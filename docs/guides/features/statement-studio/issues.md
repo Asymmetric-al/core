@@ -1,31 +1,35 @@
 # Statement Studio Issue Breakdown
 
-> **Superseded and blocked from dispatch (Phase 18, 2026-07-21).** GitHub issues
-> #314-#364 preserve useful historical decomposition and repo evidence, but
-> their implementation instructions are superseded by Phase 18 and must not be
-> dispatched as written. Amend or close/reissue each issue against the Phase 18
-> PRD, authority manifest, renderer qualification protocol, ADRs 0033-0039, and
-> OpenSpec change before implementation. Phase 18 D17 requires a clean
-> pre-production cutover, not a legacy migration or dual-runtime plan.
+> [!IMPORTANT]
+> **Superseded and blocked from dispatch (Phase 18, 2026-07-21).** This file and
+> GitHub issues #314-#364 preserve useful historical Phase 0 decomposition and
+> repo evidence, but they have no current implementation authority and must not
+> be dispatched as written. Amend or close/reissue each issue against **Phase 18
+> D-prime-amended-and-hardened (D-prime-R)**, the current Phase 18 PRD,
+> authority manifest, implementation spec, renderer qualification protocol,
+> ADRs 0033-0039, and OpenSpec contract. The active route is one bounded,
+> production-shaped renderer contest, at most one exact winner, and an
+> environment-gated destructive pre-production cutover to zero legacy runtime.
+> Do not use this file to authorize gradual migration, fallback or dual runtime,
+> or a preselected DocRaptor path.
 
-This was the canonical pre-Phase-18 issue map for implementing Statement Studio
-from the earlier PRD.
+This is the historical issue map created from the superseded Phase 0 PRD.
 GitHub issues **#310** (parent) and **#312–#364** (slices **SS-00** through
-**SS-26**) were published on 2026-06-12. Use the GitHub issue numbers for
-historical cross-reference only; do not use them for implementation until their
-bodies are reconciled with Phase 18.
+**SS-26**) were published on 2026-06-12. They and the `SS-##` draft IDs are
+preserved only for evidence and cross-reference; they do not authorize current
+implementation until their bodies are reconciled with Phase 18.
 
-**HITL** (human-in-the-loop): slices that need product, legal, care, or legacy
-removal decisions before an agent implements them alone.
+**HITL** (human-in-the-loop) historically marked slices that required product,
+legal, care, or legacy-removal decisions.
 
-**AFK** (away-from-keyboard): slices an agent can implement after reading the PRD
-and dependencies, subject to normal review.
+**AFK** (away-from-keyboard) historically marked slices the retired plan treated
+as agent-implementable.
 
-## Published GitHub Issues
+## Historical Published GitHub Issues
 
-Canonical GitHub issues were published on 2026-06-12. Temporary duplicates
-created during publication were closed with comments that point back to the
-canonical issue.
+These issues were published on 2026-06-12 under the retired route. Temporary
+duplicates created during publication were closed with comments that point
+back to this historical set.
 
 Parent issue:
 [#310](https://github.com/Asymmetric-al/core/issues/310) - AL-310: PRD -
@@ -63,11 +67,10 @@ Statement Studio rebuild and implementation backlog
 
 ## Triggers
 
-Use this document when creating GitHub issues, planning implementation slices,
-or checking whether a Statement Studio implementation issue is complete enough
-for an AFK agent.
+Use this document only to inspect the historical issue decomposition. Do not
+use it to create or select current implementation work.
 
-Use it for:
+Historical topics covered:
 
 - Statement Studio issue creation.
 - Splitting the PRD into vertical slices.
@@ -78,22 +81,10 @@ Use it for:
 
 ## Workflow Steps
 
-1. Read the Statement Studio PRD first.
-2. Read Phase 0 and supporting Statement Studio docs before implementation.
-3. Use the issue overview to confirm slice granularity and dependencies.
-4. Track work on the published GitHub issues in the table below; open new issues
-   only when the PRD changes materially (use the `to-tickets` skill).
-5. When adding new slices, create blocker issues first so later issues can
-   reference real tracker IDs.
-6. Apply exactly one repo label from each issue-label category:
-   complexity, status, and type.
-7. For any database, RLS, Storage, Auth, migration, seed, or Supabase client
-   work, load the repo Supabase skill and use the Supabase CLI.
-8. For schema, RLS, indexes, query, or migration performance work, also load
-   the Supabase Postgres best-practices skill.
-9. For UI work, load frontend rules and use shared `@asym/ui` and Maia/Zinc
-   design tokens.
-10. For Next.js work, read the installed Next.js docs before coding.
+1. For implementation, stop here and use the current Phase 18 PRD,
+   implementation spec, OpenSpec contract, and current Phase 18 issues.
+2. Use the tables and archived bodies below only to understand the retired
+   Phase 0 decomposition.
 
 ## Research Basis
 
@@ -116,11 +107,9 @@ This breakdown is grounded in:
 
 ## Proposed Issue Overview
 
-**Note:** The table below is an **archival planning view** with `SS-##` draft
-IDs and user-story columns for PRD cross-reference. **Implementation tracking
-uses the Published GitHub Issues table above** (`#312`–`#364`). Do not treat
-both tables as independent sources of truth—when they diverge, GitHub issue
-numbers win.
+**Note:** The table below and the historical Published GitHub Issues table are
+both archival evidence. Neither is current implementation tracking or a source
+of implementation authority.
 
 | Draft ID | Title                                                                       | Type | Blocked By                                      | User Stories                             |
 | -------- | --------------------------------------------------------------------------- | ---- | ----------------------------------------------- | ---------------------------------------- |

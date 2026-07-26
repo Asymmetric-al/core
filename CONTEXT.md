@@ -206,19 +206,28 @@ not receiptable unless donor information is later provided, and staff never
 invent fake donor data.
 _Avoid_: fake donor row, "Anonymous Anonymous" donor, receiptable unknown gift
 
-**Receipt Identity Snapshot**:
-The donor name, email, and address captured on a contribution at gift time so
-receipts, statements, and audits stay historically accurate even if the donor
-record changes later. Never exposed to missionary or public views.
-_Avoid_: live donor lookup for receipts, mutable receipt identity
+**Receipt Identity Snapshot** (Phase 7):
+The immutable legal-donor name and address evidence accepted into a specific
+receipt/statement facts version so official documents and audits stay
+historically accurate even if the Party profile later changes. It is produced
+from the source-owned contribution identity and eligibility evidence, not kept
+as mutable receipt columns on the contribution, and is never exposed to
+missionary or public projections.
+_Avoid_: live donor lookup for an issued receipt; mutable receipt identity;
+`receipt_name`/`receipt_address` columns as parallel truth
 
 **Gift / Donation**:
-A donor's contribution record through the platform — one-time or a recurring
-installment — carrying amount, currency, a single designation, payment/provider
-state, and receipt state. "Gift" and "donation" are used interchangeably for
-this record. See [[one-time-donation]], [[recurring-giving]].
+A donor's contribution event through the platform—one-time or a recurring
+occurrence—represented by one Phase 13 contribution header and one or more
+designation lines whose amounts conserve the header total. Phase 13 keeps
+payment/posting/review truth; Phase 7 owns receipt facts, Phase 18 owns the
+canonical generated artifact, Phase 17 owns immutable prepared message content
+and bounded sender identity, and Phase 6 alone owns communication policy,
+scheduling, dispatch, provider outcome, and history. "Gift" is donor-facing
+language; "contribution" is the data-model term. See [[one-time-donation]],
+[[recurring-giving]].
 _Avoid_: fixed-total pledge or recurring commitment (intent records, not
-received gifts), staged gift (the post-completion record)
+received gifts); one-gift-one-fund; receipt status on the contribution
 
 **Fund**:
 A tenant-owned designation target — such as a general or project fund — a gift
@@ -226,16 +235,22 @@ can be directed to, distinct from a missionary. See [[designation]].
 _Avoid_: missionary, campaign, Stripe product
 
 **Designation**:
-The single missionary or fund a gift is directed to at checkout. A gift
-designates exactly one target today; reallocation after the fact is a
-[[contribution-correction]], not a donor edit.
-_Avoid_: split gift, multi-line allocation, missionary and fund on one gift
+The tenant-owned purpose target selected by exactly one contribution
+designation line. A gift may contain several lines, each with one target and an
+explicit same-currency amount; the lines must sum exactly to their payment
+group. Reallocation after posting is an append-only
+[[contribution-correction]], not an in-place donor edit.
+_Avoid_: two targets on one line; one-gift-one-fund; lines that do not conserve
+the payment-group total
 
-**Staged Gift**:
-The record created when a donation completes, carrying receipt status, CRM-post
-status, and designation for downstream receipting and CRM posting. It is not
-the donation record itself.
-_Avoid_: donation row, receipt, pending donation
+**Staged Gift** (retired legacy term):
+The former bridge record that mixed receipt status, CRM-post status, and
+designation after payment. It is not a target runtime model. Phase 15 owns
+editable pre-commit batch rows; Phase 13 owns committed contribution
+headers/lines/postings; downstream receipt, document, communication, and
+accounting authorities remain separate.
+_Avoid_: extending the legacy staged-gift table; using one row as money,
+receipt, CRM, and accounting truth
 
 **Fixed-total pledge**:
 The canonical record of a Commitment Party's explicit promise to give a
@@ -247,11 +262,15 @@ _Avoid_: recurring commitment, provider subscription, received gift, donor debt,
 accounting receivable by default
 
 **Contribution Correction**:
-A recorded staff change to a completed contribution that affects money, donor
-identity, designation, provider state, refunds, receipts, or donor-visible
-history, preserving a before/after trail rather than silently overwriting
-truth.
-_Avoid_: silent edit, direct overwrite, harmless metadata edit
+A source-owned, append-only staff action that changes the effective contribution
+through explicit postings and a durable correction occurrence. Phase 7,
+Phase 18, Phase 17 (prepared message content and sender identity), Phase 6
+(communication policy, dispatch, provider outcome, and history), Phase 20, and
+other consumers process that occurrence independently under their own version,
+recovery, and audit contracts; the correction never mutates their prior facts
+or provider history atomically.
+_Avoid_: silent edit; direct overwrite; one cross-domain transaction that
+rewrites gift, receipt, document, communication, and accounting truth
 
 **Donation Saga**:
 The durable, outbox-driven process that creates a donation's payment intent and
@@ -891,11 +910,21 @@ automatic support linked to it remains a separately authorized recurring commitm
 arrangement is independent of the tender recorded on any received gift.
 _Avoid_: payment channel as commitment type; provider status as donor intent; collection mode on a fixed pledge
 
+**Gross supported gift** (Phase 13):
+The sum of the original positive, non-fee-cover Designation lines for one
+contribution occurrence. Together with a separate fee-cover contribution, it
+equals the contribution header's hard-tender total.
+_Avoid_: net donation, fee-cover blended into a Designation, amount after fees
+
 **Fee-cover** (Phase 13):
-An extra amount, on top of the intended gift, that covers processing fees so ~100% reaches the
-field. Configured per tenant and per payment method (optional or, for a method, mandatory);
-a fully-deductible gift shown as its own line, never a hidden surcharge.
-_Avoid_: implying an exact fee; a mandatory card charge framed as a card surcharge
+An extra estimated-offset contribution on top of the gross supported gift,
+configured per tenant and payment method and shown as its own ledger line. It
+helps offset payment-processing costs but is neither the provider's exact fee
+nor a guarantee that 100% reaches a supported purpose. Phase 20 D19 applies it
+first against exact eligible cost for accounting attribution; any surplus
+remains fee-cover contribution and any uncovered cost follows the frozen
+tenant policy.
+_Avoid_: exact fee, net gift, hidden surcharge, guaranteed full cost recovery
 
 **Source code** (Phase 13):
 The attribution tag for what DROVE a gift (the July newsletter, a banquet QR, a prayer letter) —
@@ -1951,9 +1980,10 @@ remainder
 
 **Deposit group** (Phase 15):
 `deposit_groups`: the artifact tying a set of offline gifts to one bank deposit
-(slip/report), with a **nullable gift-grain link** from each gift to its group.
-Phase 15 owns this operational artifact; Phase 20 owns the GL undeposited-funds
-account and bank-statement tie-out.
+(slip/report), with append-only assignment events and a derived current
+gift-grain membership projection. Phase 15 owns this operational artifact;
+Phase 20 owns the balanced undeposited-funds/deposit-clearing Accounting
+Effect and bounded Bank Match, while QBO/Xero owns final bank reconciliation.
 _Avoid_: a flat `deposit_reference` string on the gift; Phase 15 claiming the
 GL account or statement reconciliation
 
@@ -1963,12 +1993,15 @@ group — "in the drawer, not yet at the bank." The GL undeposited-funds account
 is Phase 20's.
 _Avoid_: conflating the operational undeposited set with the GL account
 
-**Deposit-state (6th orthogonal axis)** (Phase 15):
-The sixth orthogonal contribution axis (beside payment, ledger/posting,
-receipt, accounting-export, review): `undeposited → deposited → cleared`. Its
-own state machine (D6), NOT a chain of posting gates on the money.
-_Avoid_: modeling deposited/cleared as posting preconditions; a single blended
-status
+**Deposit state** (Phase 15):
+A derived operational projection over the current append-only assignment and
+deposit-group evidence: `undeposited → in_open_deposit → deposited`, with
+purpose-specific `returned` or `direct_credit/no_slip` outcomes where the
+tender requires them. It is separate from Phase 13 payment/posting/review,
+Phase 7 receipt facts, and Phase 20 accounting release, provider-delivery, and
+Bank Match truth. There is no generic Phase 15 `cleared` state.
+_Avoid_: modeling deposit state as a posting or receipt precondition; storing
+one blended money/receipt/accounting status
 
 **Deposit assignment event** (Phase 15):
 The append-only event that assigns a gift to (or removes it from) a deposit
@@ -1982,8 +2015,10 @@ Deposit-eligibility keys on this, NOT on `gift_method` (amends Phase 13 D4 A1).
 _Avoid_: keying deposit-eligibility on `gift_method`; assuming one ACH rail
 
 **Settles-via-payout** (Phase 15):
-The Stripe-rail settlement path: money arrives as a Stripe payout, reconciled
-through the payout, not grouped into an offline bank deposit.
+The Stripe-rail settlement path: money arrives as a Stripe payout and is not
+grouped into an offline bank deposit. Phase 20 links exact processor
+settlement/payout evidence to an Expected Bank Arrival and bounded Bank Match;
+QBO/Xero owns final bank reconciliation.
 _Avoid_: deposit-grouping a Stripe-rail gift; reconciling a payout as a manual
 deposit
 
@@ -2266,6 +2301,663 @@ A temporary, scope-bound derivative of currently authorized evidence prepared
 for a governed audit request with explicit contents, exclusions, expiry,
 reauthorization, integrity proof, and verified disposal.
 _Avoid_: permanent download library, unbounded export, access-by-link
+
+**Accounting doorway** (Phase 20/21):
+The sole boundary through which source-owned settlement, deposit, and approved
+expense facts become accounting projections and provider delivery work. Phase
+20 owns the accounting handoff and evidence; the source phase retains its
+original facts and lifecycle.
+_Avoid_: a second QBO/Xero integration in the expense product, accounting sync
+as gift or expense truth, a shared mutable status
+
+**Finance authority boundary** (Phase 20):
+Stripe is authoritative only for its processor account, balance movements,
+conversion evidence, payout-transfer lifecycle, and provider-attributed
+composition. Source-labelled bank evidence proves only what its statement,
+certified read-only connection, or explicit staff attestation observed; Asym's
+Bank Match is a bounded allocation over that evidence, not final
+reconciliation. Asym owns immutable Accounting Releases, source coverage,
+delivery intent, provider-operation evidence, and derived drift verdicts.
+QuickBooks Online or Xero owns the tenant's posted books, accounting periods,
+translation and revaluation, and final bank reconciliation under accountant
+control. Evidence may be compared across these authorities but never collapsed
+into one mutable `reconciled` or `synced` flag.
+_Avoid_: Stripe payout status as bank proof, bank import as gift truth, provider
+acceptance as reconciled books, QBO/Xero edits rewriting an Accounting Release
+
+**Field Account** (Phase 21):
+The organization-owned, append-only operational allocation subledger for one
+missionary, worker, project, or other approved field purpose, partitioned by
+Tenant, Legal Entity, and currency. Its balance is derived from covered support
+allocations, assessments, approved draws, transfers, expense effects, and
+corrections. It is not a donor asset, bank account, general ledger, payroll
+ledger, accounts-payable ledger, or mirror of QBO/Xero.
+_Avoid_: one mutable support-balance column, summing gifts at read time,
+cross-currency balance, treating an external accounting balance as source truth
+
+**Gross Support Allocation** (Phase 21):
+An immutable Field Account credit derived from exact eligible Phase 13 posted
+designation-line coverage at the gross support amount. Fee-cover, processor
+cost, assessments, refunds, and other effects remain separate typed occurrences
+and never rewrite this allocation or the underlying gift.
+_Avoid_: netting processor cost into the gift, recomputing current designation
+weights, allocating an unposted or uncovered contribution
+
+**Assessment Entry** (Phase 21):
+A separate, typed Field Account debit created from a prospective tenant policy
+version and exact covered source occurrence. It records the organization's
+administrative or ministry assessment without changing contribution,
+designation, receipt, processor-cost, or Accounting Release truth.
+_Avoid_: hidden net-support math, mutable assessment percentage, retroactive
+policy application, assessment as a processor fee
+
+**Accounting-ready expense handoff** (Phase 20/21):
+The immutable, PII-minimized projection through which exact approved expense,
+reimbursement-obligation, payment, or correction facts may enter Phase 20,
+linked through exact approved expense line-disposition coverage to their
+source-owned Approved Expense Snapshot. It is not the report, receipt, approval
+workflow, reimbursement balance, payment executor, field-account entry, or
+external general-ledger record.
+_Avoid_: exporting an unapproved expense, copying the expense product into
+Phase 20, a generic expense blob, provider identifiers as source truth
+
+**Approved Expense Snapshot** (Phase 21):
+The immutable source-owned version of one approved expense report, preserving
+exact line dispositions, funding truth, allocations, approval evidence, and
+succession lineage. Later approvals or corrections create successors rather
+than changing coverage already handed to accounting; a later payment links to
+the exact covered obligations and snapshot versions without mutating them.
+_Avoid_: a mutable approved report, report-level paid authority, Phase 20
+ownership of receipts or approval
+
+**Accounting-ready expense occurrence** (Phase 20/21):
+A typed, source-owned Cleared Organization-Paid Expense, Approved Reimbursement
+Obligation, evidence-qualified Reimbursement Payment, or Expense Accounting
+Correction that may authorize an Accounting Posting Intent. It is neither a
+journal line nor a provider object.
+_Avoid_: one generic expense event, approval implies payment, pending card
+authorization as cleared spending, editable debit and credit input
+
+**Reimbursement Payment Coverage** (Phase 20/21):
+The immutable proof of the exact approved reimbursement obligations and
+amounts covered by one source-owned payment, including partial, grouped,
+one-to-many, and many-to-one settlement. It is homogeneous for one Tenant,
+Legal Entity, payee, disbursement currency, and posting owner; a cross-payee
+batch only groups separate atomic payments. Original applications never
+overapply or mutate; later returns, disputes, and corrections append new
+occurrences. It is evidence, not an AP ledger or mutable outstanding-balance
+system.
+_Avoid_: whole-report `paid`, some-or-all payment confirmation, inferred
+coverage, Phase 20 reimbursement aging
+
+**Legal Entity** (Phase 7 canonical; consumed by source phases and Phase 20):
+The enduring legal and financial organization beneath a Tenant that receives
+money, issues receipts, owns settlement relationships, and keeps its own books.
+Each Tenant starts with one quiet default, but every independently authoritative
+financial root stores the exact Legal Entity explicitly. A Legal Entity may
+optionally link to one same-Tenant organization Party for CRM relationships,
+contacts, and presentation; that Party is not required for financial identity,
+and Party merge, archival, or display-name change cannot rewrite the Legal
+Entity. Sites may present a Legal Entity but never define one.
+_Avoid_: one entity per Site or fund, a parallel Legal Issuer identity, the
+Tenant default as historical or runtime ownership, a provider organization as
+the entity
+
+**Legal Issuer Profile Version** (Phase 7):
+The immutable, effective-dated receipt-issuer facts used by one Legal Entity,
+including the approved legal name, address, registration or tax identifiers,
+signature and jurisdiction-required presentation facts. A receipt, statement,
+or generated document pins the exact version it used. The profile is evidence
+about the stable Legal Entity at one time; it is not a second organization
+identity, and editing current issuer details creates a successor version.
+_Avoid_: mutable issuer fields on a receipt, Legal Issuer as a parallel entity,
+inferring the issuer from Site branding or current Tenant settings
+
+**Legal Entity capability readiness** (Phase 20 over source-owned identity):
+The independently proven ability of one Legal Entity to perform a particular
+kind of work, such as receiving donations, issuing receipts, settling money, or
+delivering accounting records. Failure in one capability does not imply that
+the others are unavailable.
+_Avoid_: one global `active` or `verified` flag, accounting access blocking
+donations, provider metadata presented as legal certification
+
+**Settlement Account Binding** (source phases; certified by Phase 20):
+The immutable-versioned, effective-dated relationship between one Tenant, one
+Legal Entity, and one exact processor merchant account in one environment for
+an approved settlement purpose. Source money roots pin the binding used; a
+replacement is prospective and preserves historical merchant and settlement
+ownership. Currency, balance type, payout destination, and Accounting
+Destination readiness are proved separately by a Settlement Currency Lane
+Version rather than inferred from this binding.
+_Avoid_: one permanent processor account on the Tenant, automatic cross-entity
+failover, a provider display name as identity, rewriting old transactions after
+an account change
+
+**Settlement Currency Lane Version** (Phase 20):
+The immutable, prospective authorization for one exact Tenant, Legal Entity,
+Settlement Account Binding, processor account and environment, balance type,
+settlement currency, payout destination, Accounting Destination, and half-open
+effective interval. The ordinary lane is derived quietly only when the
+settlement currency exactly equals the destination's certified QBO home or Xero
+base currency; retaining another currency is explicit and proof-gated.
+_Avoid_: tenant-wide multicurrency boolean, mutable capability as authority,
+retroactive activation, per-gift currency routing
+
+**Accounting Destination** (Phase 20):
+The stable external set of books to which accounting work may be delivered,
+identified by its provider-native organization identity and environment.
+Replaceable OAuth grants authorize access to it but do not define it.
+_Avoid_: an OAuth user as the destination, a display name as identity, silently
+changing companies during reconnect
+
+**Provider Authorization Grant** (Phase 20):
+The encrypted provider-issued credential family authorizing Asym's provider app
+within exact granted scopes. It owns the current monotonic token generation,
+expiry evidence, provider-user subject where available, serialized rotation,
+and non-secret lifecycle lineage. One Xero grant may authorize several exact
+organization connections, so it is never itself a Tenant, Legal Entity, or
+Accounting Destination.
+_Avoid_: one Xero token family per destination, concurrent refresh,
+tenant-readable tokens, workflow-carried credentials
+
+**Accounting Destination Connection** (Phase 20):
+The effective-dated Tenant- and Legal-Entity-scoped binding from one Accounting
+Destination to one authorized Provider Authorization Grant for an exact
+provider and environment. It preserves provider-organization identity and
+binding history but does not own tokens, provider health, capability
+certification, delivery outcome, or reconciliation truth.
+_Avoid_: a mutable `connected` boolean, display-name identity, authorization
+health stored as destination truth, silent destination replacement
+
+**Provider authorization attempt** (Phase 20):
+A short-lived, single-use, server-owned OAuth transaction bound to its actor,
+session, Tenant, Legal Entity, provider, environment, purpose, expected
+destination when reconnecting, requested scopes, setup revision, nonce, and
+expiry. Callback success proves provider authorization only; promotion still
+requires current Asym authority and exact provider-organization verification.
+_Avoid_: reusable OAuth state, callback state as permission, reconnect reused
+as destination replacement
+
+**Local authorization quarantine** (Phase 20):
+The immediate Asym-side prohibition on new provider calls through a grant or
+destination while revocation, compromise, ambiguity, or recovery is resolved.
+It is effective without provider cooperation and remains distinct from
+provider-confirmed revocation.
+_Avoid_: claiming remote revocation from a local flag, deleting historical
+destination evidence, automatic backlog retry after reconnect
+
+**Semantic accounting policy** (Phase 20):
+The versioned, tenant-accountant-confirmed interpretation that converts
+source-authorized economic facts into canonical account roles, accounting
+dates, and semantic dimensions. It is neither source truth nor a provider
+mapping.
+_Avoid_: provider adapters making accounting policy, silently changing old
+releases, claiming blanket GAAP compliance
+
+**Accounting Posting Intent** (Phase 20):
+The immutable typed statement that an exact source occurrence is eligible to
+be projected for one accounting purpose, Legal Entity, date basis, and
+semantic accounting-policy version. It preserves why accounting work exists
+without becoming a provider document.
+_Avoid_: an arbitrary journal form, a mutable export row, a QBO/Xero object
+type
+
+**Canonical Accounting Effect** (Phase 20):
+The immutable, provider-neutral, exactly balanced debit-and-credit meaning
+derived from an Accounting Posting Intent under its frozen semantic accounting
+policy. It defines required accounting effect, not provider record shape or
+delivery success.
+_Avoid_: provider payloads as accounting truth, adapter-created accounting
+policy, balance achieved with an unexplained plug
+
+**Source Coverage Manifest** (Phase 20):
+The immutable proof of how every accounting-relevant source occurrence and
+amount is represented exactly once or explicitly excluded in a Canonical
+Accounting Effect. It preserves source-level traceability even when posting
+lines are summarized.
+_Avoid_: assuming a balanced total proves completeness, duplicate source
+coverage, losing lineage during summarization
+
+**Provider effect equivalence** (Phase 20):
+The evidence that a complete graph of provider-native planned or observed
+operations preserves the exact Canonical Accounting Effect without overlap,
+omission, or hidden automatic accounting effects. A successful request or
+matching grand total alone is insufficient.
+_Avoid_: HTTP success as proof, silent dimension loss, universal journal
+fallback, unmodeled provider defaults
+
+**Posting Profile** (Phase 20):
+The prospective, versioned selection of an approved posting grain and
+product-owned provider-native recipes for one Legal Entity and Accounting
+Destination. It controls representation, not source truth or accounting
+policy.
+_Avoid_: an arbitrary recipe builder, per-release selection, a mutable active
+profile, provider representation changing economic meaning
+
+**Posting grain** (Phase 20):
+The amount of source detail represented in the accounting provider: gift
+detail, gift-and-fund detail, or fund summary. Every grain retains the same
+gift-level Source Coverage Manifest in Asym.
+_Avoid_: posting grain as accounting policy, summary that loses source
+lineage, reporting views tied to provider output
+
+**Provider-native recipe** (Phase 20):
+A product-owned, versioned, conformance-tested method for compiling an exact
+Canonical Accounting Effect into the provider objects appropriate to one
+source purpose. Tenants select bounded outcomes; they do not author the
+operation graph.
+_Avoid_: universal journals, silent transaction-type substitution, tenant
+payload editors
+
+**Single posting owner** (Phase 20):
+The invariant that exactly one system owns provider posting for one canonical
+source occurrence, Legal Entity, destination, source account or instrument,
+Accounting Posting Intent family, and source-authoritative ownership interval.
+It prevents Asym, another connector, a create-capable bank rule, or a manual
+workflow from independently recording the same economic activity.
+_Avoid_: ownership by source-family label alone, overlapping connectors,
+manual workflow ignored as an owner, artifact download treated as another
+posting path
+
+**Posting Ownership Cutover** (Phase 20):
+The immutable, prospective transfer of provider-posting ownership for one
+source-authoritative scope from a previous owner to a next owner at a complete
+atomic source boundary. It preserves the prior owner and exact half-open
+ownership interval without splitting a payout, Deposit Group, expense,
+payable, payment, or other source-owned occurrence.
+_Avoid_: calendar-date-only cutoff, two owners, retroactively moving an active
+boundary, implicitly reactivating the previous owner
+
+**Cutover Coverage Manifest** (Phase 20):
+The immutable coverage evidence for one frozen, explicitly bounded cutover
+review population. It records each source occurrence's ownership disposition
+and exact, bounded, staff-confirmed, or unavailable evidence strength without
+copying financial truth or claiming universal provider history.
+_Avoid_: second source ledger, all-history scan, empty query as proof of
+absence, clean occurrences requiring row-by-row staff review
+
+**Previous-owner posting evidence** (Phase 20):
+Exact or capability-labelled evidence that a prior connector or manual workflow
+created a provider record for a source occurrence. It remains attributed to the
+previous owner and may support continuity or correction without becoming Asym
+delivery.
+_Avoid_: fuzzy date-and-amount adoption, relabelling external work as Asym,
+provider similarity as ownership proof
+
+**Accounting Reporting Target** (Phase 20):
+A tenant-owned, Legal-Entity-scoped, provider-neutral downstream reporting
+projection to which one or more source-owned Designations may resolve. A target
+used once is displayed as exact; a target shared by several Designations is
+displayed as grouped. It changes representation only.
+_Avoid_: treating a reporting target as donor restriction, net-asset class,
+accounting policy, CRM hierarchy, or provider object
+
+**Designation Mapping Version** (Phase 20):
+The immutable, prospective, effective-dated resolution authority for
+Designations used by one Legal Entity and Accounting Destination. It contains
+explicit or bulk assignments plus one optional named-default-or-require-review
+policy and is pinned by every Accounting Release that uses it.
+_Avoid_: live mapping rules, overlapping active versions, historical rewrite,
+per-release overrides
+
+**Mapping Coverage Manifest** (Phase 20):
+The immutable per-release proof that every included Designation allocation
+resolved exactly once to an Accounting Reporting Target or a policy-authorized
+evidence-only disposition, and then to the required typed provider carrier
+without omission or duplication.
+_Avoid_: assuming balance proves mapping completeness, additive override and
+group behavior, silent `Other`, mixed mapping versions
+
+**Typed provider carrier binding** (Phase 20):
+The destination-scoped binding from one bounded semantic role to a certified
+provider object type and stable provider object identifier, with expected
+type, activity, account, currency, and capability evidence. QBO Accounts,
+Classes, Locations, Items, and Projects and Xero Accounts, Tracking Options,
+and separately certified Projects are not interchangeable fund fields.
+_Avoid_: provider mapping by name, arbitrary carrier substitution, provider
+identifiers in source truth, silent remapping after drift
+
+**QBO Carrier Plan Version** (Phase 20):
+The immutable, prospective, destination-scoped authority that defines and
+certifies the QuickBooks Online carrier kinds and posting positions allowed for
+each bounded role, while validating a pinned set of D6 bindings and declaring
+its exact QBO Reporting Visibility.
+_Avoid_: mandatory Class-only bookkeeping, an arbitrary field-mapping language,
+provider objects deciding accounting meaning, historical reinterpretation,
+silent carrier fallback
+
+**QBO Capability Certificate** (Phase 20):
+The time-bounded evidence that one exact QuickBooks Online destination currently
+supports a QBO Carrier Plan Version's preferences, scopes, field positions,
+provider objects, relationships, and capacity.
+_Avoid_: inferring capability from a product name, treating a webhook as proof,
+reusing evidence across realms
+
+**QBO Reporting Visibility** (Phase 20):
+The derived disclosure of whether a semantic role is visible in QuickBooks
+across income and expense, on one side only, transaction-wide, project-specific,
+split across reports, or retained only in Asym.
+_Avoid_: calling partial visibility full coverage, confusing reporting
+visibility with Source Coverage or Mapping Coverage
+
+**Xero Carrier Plan Version** (Phase 20):
+The immutable, prospective, destination-scoped authority that defines and
+certifies the Xero carrier kinds and posting positions allowed for each bounded
+role, while validating a pinned set of D6 bindings and declaring its exact
+Xero Reporting Visibility.
+_Avoid_: mandatory Tracking-only bookkeeping, an arbitrary field-mapping
+language, Xero objects deciding accounting meaning, per-release overrides,
+silent carrier fallback
+
+**Xero Tracking Budget** (Phase 20):
+The derived current disclosure of active and archived Tracking Category and
+Option capacity, role usage, and calculated report-column exposure for one
+Xero organization. It is evidence for a carrier choice, not a stored quota or
+accounting authority.
+_Avoid_: assuming a third active category, treating recommended option counts
+as hard API limits, ignoring two-category report multiplication
+
+**Xero Capability Certificate** (Phase 20):
+The time-bounded evidence that one exact Xero organization and destination
+currently support a Xero Carrier Plan Version's scopes, permissions, object
+semantics, recipe positions, Tracking capacity, report envelope, currency, and
+evidence tier.
+_Avoid_: inferring capability from a Xero plan name, treating object readback
+as journal proof, reusing evidence across organizations
+
+**Xero Reporting Visibility** (Phase 20):
+The derived disclosure of whether a semantic role is visible in Xero across
+income and expense, on one side only, transaction-wide, Tracking-limited,
+separately certified Project-specific, split across reports, or retained only
+in Asym.
+_Avoid_: calling partial Xero visibility full coverage, confusing reporting
+visibility with Source Coverage, Mapping Coverage, delivery, or reconciliation
+
+**Accounting Release** (Phase 20):
+The immutable, balanced accounting intent frozen for one destination from exact
+source facts and governing D4 policy/effect, D5 Posting Profile/recipe, D6
+Designation Mapping, provider Carrier Plan, compiler, adapter, and
+provider-contract versions. It is neither an external provider record nor proof
+that delivery or reconciliation succeeded.
+_Avoid_: a mutable export batch, editing a release after provider delivery, one
+release spanning incompatible destinations
+
+**Accounting Release Cadence Policy Version** (Phase 20):
+The immutable, prospective tenant choice for when one product-owned Posting
+Intent family may reach the Accounting Release fence for one Legal Entity,
+Accounting Destination, and delivery lane: automatically when eligible,
+prepared on a bounded schedule for review, or held for staff.
+_Avoid_: configurable accounting truth, arbitrary cron, tenant-authored
+readiness rules, retroactively changing frozen releases
+
+**Release Candidate** (Phase 20):
+A derived, disposable projection that says source work currently appears ready
+for an Accounting Release. It is revalidated against exact current authorities
+at the release fence and is never sent to an accounting provider.
+_Avoid_: candidate as financial truth, persisting one mutable ready boolean,
+releasing a stale review snapshot
+
+**Accounting Release fence** (Phase 20):
+The one atomic compare-and-freeze boundary that revalidates source versions,
+policy, mapping, Carrier Plan, destination, period treatment, and blocking
+exceptions before creating an immutable Accounting Release.
+_Avoid_: separate automatic and manual release logic, bypass through Release
+now, treating a provider batch as the release transaction
+
+**Cadence Execution Evidence** (Phase 20):
+The durable, PII-minimized audit record of one automatic, scheduled, manual, or
+catch-up cadence evaluation, including its logical occurrence, policy, exact
+reviewed selection when applicable, source digests, reason-coded exclusions,
+Pause or resume evidence, releases created, and provider correlations.
+_Avoid_: retaining disposable candidates as audit truth, donor PII in run
+evidence, workspace retention determining financial evidence retention
+
+**Release Horizon** (Phase 20):
+The quiet, derived Ready for Accounting view of what needs staff, what will
+happen automatically and when, what is blocked, and what recently released.
+It summarizes but never collapses readiness, release, delivery, readback,
+drift, or reconciliation truth.
+_Avoid_: metric-card dashboard, one synced status, noisy healthy-run alerts
+
+**Accounting Exception Contract** (Phase 20):
+The versioned, product-owned definition of one exceptional accounting cause,
+including its detecting authority, root-cause scope, block radius, permitted
+actions, revalidation, and proof required to clear.
+_Avoid_: tenant-authored exception rule, generic provider error, editable
+resolution policy
+
+**Accounting Exception Case** (Phase 20):
+One durable occurrence of a contract-defined, source-authoritative accounting
+condition at its narrowest root-cause scope, with append-only evidence and
+linked recurrence. A shared Mission Control task may own human follow-up but
+never determines whether the case is resolved.
+_Avoid_: generic ticket, task status as financial truth, one case per affected
+row when one shared root cause exists
+
+**Exception Cluster** (Phase 20):
+A disposable Ready for Accounting grouping of compatible open Accounting
+Exception Cases that share the cause, scope, and next safe action.
+_Avoid_: persisted case authority, mixed-currency total, one bulk action across
+incompatible preconditions
+
+**Correction Cause** (Phase 20):
+The source-owned reason that previously released accounting needs new
+downstream treatment, distinct from the tenant accountant's classification of
+its financial-statement or GAAP significance.
+_Avoid_: Asym deciding materiality, treating every late event as an accounting
+error, free-text correction type
+
+**Correction Posting Policy Version** (Phase 20):
+The immutable, prospective, accountant-confirmed tenant policy that identifies
+permitted treatments and posting periods for each Correction Cause.
+_Avoid_: Asym accounting advice, arbitrary backdating, a tenant-authored rules
+engine, retroactively changing prior policy
+
+**Compensating Accounting Release** (Phase 20):
+A new immutable Accounting Release whose balanced effect corrects, reverses, or
+supplements one or more earlier releases while preserving exact lineage to the
+original source facts, policy, and provider evidence.
+_Avoid_: editing or deleting the original release, silent replacement,
+parallel correction ledger
+
+**Posting Period Readiness** (Phase 20):
+The independently observed state of whether a proposed posting period is
+tenant-policy-permitted and provider-accepted. It is not authority to open,
+close, or override an accounting period.
+_Avoid_: Asym-owned close calendar, advisory provider preflight as final truth,
+storing a closing-date password
+
+**Accounting Evidence Artifact** (Phase 20):
+The immutable, machine-verifiable manifest and human-auditable representation
+retained for every Accounting Release. It proves what Asym intended and why,
+but it is not necessarily a QBO/Xero import file or evidence of provider
+acceptance.
+_Avoid_: treating a downloaded audit package as delivered, discarding evidence
+after API delivery, making a provider-specific file the accounting authority
+
+**Accounting delivery lane** (Phase 20):
+The one delivery method selected for an Accounting Release: direct provider API
+or staff-mediated provider import. The lanes are mutually exclusive for the
+same release so one accounting intent cannot be posted twice.
+_Avoid_: API delivery plus manual import for one release, a download silently
+changing delivery state
+
+**Provider Delivery Plan** (Phase 20):
+The immutable versioned binding from an Accounting Release to its exact tenant,
+legal entity, destination, connection, posting date, currency, payload digest,
+and pinned D4 policy/effect, D5 Posting Profile/recipe, D6 mapping, QBO or Xero
+Carrier Plan, compiler, adapter, and provider-contract versions. It makes
+delivery reproducible without turning the provider payload into accounting
+truth.
+_Avoid_: resolving mappings or destination identity during a retry, reusing a
+plan across tenants or legal entities
+
+**Import Surface Conformance Record** (Phase 20):
+A narrow, product-owned, expiring evidence record proving that one exact
+provider, region, subscription capability, importer, template, serializer,
+limit set, and recovery contract has been tested for staff-mediated accounting
+delivery. It proves file conformance, not tenant accounting policy, current
+staff permission, successful import, provider finalization, or reconciliation.
+_Avoid_: generic QBO CSV, generic Xero CSV, tenant-authored import schema,
+another capability platform, direct-delivery capacity certificate
+
+**Accounting Delivery Package** (Phase 20):
+The immutable, Legal-Entity-, destination-, and staff-mediated-lane-pinned
+projection compiled from one frozen Provider Delivery Plan into one logical
+package and zero or more ordered provider-import parts. It preserves exact
+bytes and evidence but does not prove download, import, provider finalization,
+effect verification, or reconciliation.
+_Avoid_: mutable export, mandatory ZIP, download equals import, re-import as
+retry, silent regeneration, spreadsheet as accounting authority
+
+**Certified Execution Envelope** (Phase 20):
+The product-owned, versioned evidence of the exact provider, environment,
+provider-contract, adapter, recipe, operation, line, byte, batch, latency,
+readback, and recovery workload shapes Asym has proved safe for direct
+accounting delivery. It establishes structural safety, not live quota, provider
+health, queue position, or a completion guarantee.
+_Avoid_: one gift-count limit, tenant-editable capacity, copied documentation as
+proof, live provider conditions frozen into a certificate
+
+**Provider Capacity Observation** (Phase 20):
+A source-labelled, time-bounded observation of current provider quota, health,
+commercial headroom, and tenant-fair queue conditions used to derive current
+scheduling state and completion timing. It cannot change an Accounting Release,
+Provider Delivery Plan, Posting Profile, destination, or delivery lane.
+_Avoid_: stored quota as provider truth, capacity observation as permission,
+exact completion promise, accounting or reconciliation status
+
+**Outcome unknown** (Phase 20):
+A Delivery Operation state used when a provider may have committed a write but
+Asym lacks sufficient proof of the result. The operation is quarantined and
+read from the provider before retry; it is not treated as an ordinary failure.
+_Avoid_: blind retry after timeout, retrying an entire release, claiming
+exactly-once delivery
+
+**Reconciliation Verdict** (Phase 20):
+Asym's independently derived comparison of an Accounting Release with current
+provider and settlement evidence. Provider acceptance alone is not a
+reconciled verdict, and later provider drift may change the current verdict
+without rewriting historical evidence.
+_Avoid_: `accepted = reconciled`, one mutable `synced` flag, overwriting prior
+reconciliation evidence
+
+**Processor Payout Transfer** (Phase 20):
+The provider-owned movement of one amount and currency from one exact processor
+account to one settlement destination, with its own independently observed
+lifecycle. It is not gift truth, bank-arrival proof, or an Accounting Release.
+_Avoid_: bare payout, settlement batch, treating `paid` as bank reconciled
+
+**Settlement Component** (Phase 20):
+One immutable provider balance movement that contributes to processor
+settlement evidence, preserving its gross amount, fee, net effect, currency,
+provider classification, and source reference when available.
+_Avoid_: editable processor row, subtracting an embedded fee twice, guessed
+classification
+
+**Provider Conversion Evidence** (Phase 20):
+The immutable provider-attributed evidence for one conversion, preserving the
+exact account, environment, source occurrence, source and destination currency,
+amount basis, raw nullable rate and its documented direction, effective time,
+and separately classified provider costs where exposed. The source gift's
+presentment amount remains independent, and a site's reporting currency is not
+evidence of QBO home currency or Xero base currency.
+_Avoid_: mutable aggregate balance, market or staff rate, inferred or synthetic
+rate, reporting currency as accounting-provider authority
+
+**Processor Cost Attribution Policy Version** (Phase 20):
+The prospective Tenant-, Legal-Entity-, settlement-binding-, and source-family-
+scoped choice that assigns an exact ordinary processor expense either to the
+organization or, after associated fee-cover, to supported Designations. It
+changes expense attribution, never gift, receipt, or settlement truth.
+_Avoid_: net-gift policy, fee estimate as accounting truth, per-gift formula
+
+**Uncovered Processing Cost** (Phase 20):
+The non-negative part of one exact eligible charge-linked processor cost that
+remains after its associated fee-cover contribution is applied for attribution
+purposes. It is an accounting-policy result, not a smaller contribution.
+_Avoid_: net donation, donor deduction, estimated fee
+
+**Processor Cost Attribution Manifest** (Phase 20):
+The immutable proof linking one exact eligible processor-cost occurrence to
+its frozen policy, fee-cover, original Designation weights, organization and
+Designation shares, mappings, and Accounting Effect coverage.
+_Avoid_: mutable fee split, payout-wide pro rata, current-fund recalculation
+
+**Designation Cost Exception Version** (Phase 20):
+A prospective, policy-backed instruction that one Designation cannot bear its
+calculated uncovered processor-cost share, so that share remains
+organization-borne without shifting onto another supported Designation.
+_Avoid_: per-gift override, redistribution to other funds, retroactive exemption
+
+**Settlement Evidence Snapshot** (Phase 20):
+An immutable, versioned observation that records either complete
+provider-attributed payout composition or a bounded processor-balance interval,
+including the evidence mode and its exact limitations.
+_Avoid_: mutable current-provider view as historical evidence, invented payout
+membership, one universal reconciliation mode
+
+**Payout-attributed evidence** (Phase 20):
+A Settlement Evidence Snapshot whose complete component membership is
+explicitly supplied by the processor for one supported Processor Payout
+Transfer.
+_Avoid_: amount-and-date matching, incomplete pagination, attribution while the
+provider still reports composition in progress
+
+**Balance-window evidence** (Phase 20):
+A Settlement Evidence Snapshot that proves processor balance activity over one
+bounded account, balance type, currency, and interval without claiming that the
+processor identified which individual components composed a transfer.
+_Avoid_: presenting manual, instant, or unsupported payout membership as exact
+
+**Settlement Source Link** (Phase 20):
+The exact evidence relationship from a Settlement Component to a source-owned
+money occurrence without transferring truth ownership to the processor or
+settlement context.
+_Avoid_: fuzzy source matching as final truth, processor records rewriting
+source facts
+
+**Processor Settlement Verdict** (Phase 20):
+Asym's derived assessment of settlement-evidence completeness, arithmetic
+conservation, classification, and source coverage. It remains separate from
+Processor Payout Transfer state, Bank Match, and Accounting Release state.
+_Avoid_: one `reconciled` flag, provider success as proof of source coverage
+
+**Bank Match** (Phase 20):
+The independently governed, source-labelled allocation of an Expected Bank
+Arrival to posted bank evidence. It explains whether processor or offline-
+deposit expectations agree with observed bank activity; it is not final bank
+reconciliation, which remains owned by QuickBooks Online or Xero.
+_Avoid_: `payout.paid = bank received`, processor composition as bank evidence,
+Asym-reconciled
+
+**Expected Bank Arrival** (Phase 20):
+An immutable expectation that one Processor Payout Transfer or frozen offline
+Deposit Group will arrive at one exact Legal Entity bank-account binding for a
+specified amount, currency, direction, and bounded date window.
+_Avoid_: bank transaction, receivable, proof of arrival, mutable expected
+deposit
+
+**Bank Evidence Observation** (Phase 20):
+A source-labelled observation of bank activity obtained from a reviewed
+statement import, an optional certified read-only connection, or explicit
+staff-confirmed evidence, with its provenance, freshness, and supersession
+lineage preserved.
+_Avoid_: bank truth without provenance, mutable imported row, staff attestation
+presented as provider evidence
+
+**Bank Match Allocation** (Phase 20):
+The exact minor-unit amount assigned between one Expected Bank Arrival and one
+posted Bank Evidence Observation. Allocations may be one-to-one, many-to-one,
+one-to-many, or partial without over-allocating either side.
+_Avoid_: fuzzy match as proof, one mutable matched boolean, reusing consumed
+bank evidence
+
+**Settlement Exception** (Phase 20):
+A cause-coded, auditable condition that identifies incomplete, inconsistent,
+unclassified, or unmatched settlement evidence and its bounded recovery owner.
+_Avoid_: silent suspense plugs, raw provider errors as staff workflow, one
+exception blocking unrelated settlements
 
 ## Example Dialogue
 

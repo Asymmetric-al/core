@@ -69,6 +69,8 @@ pre-production environment/data gate.
   release calendar.
 - Foreign-template conversion, legacy import, cross-tenant transfer, historical
   backfill, or continued prototype compatibility.
+- Phase 20 accounting delivery packages, reconciliation, or provider posting.
+  A PDF may be a human-readable companion but is not accounting authority.
 - Choosing a renderer before the D3 evidence contest produces exactly one
   qualified winner.
 - Claiming comprehensive tax compliance, CRA certification, or legal advice.

@@ -404,7 +404,8 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   owner/assignment chip (**N role-qualified assignees + ONE primary, reading
   assignment edges only**); tags chips; privacy role-gate indicator; and a
   reserved header **action-slot registry** (print/PDF exports → Phases 18/19;
-  Write-a-Message → Phase 6/17; "Request payment method update" → A11).
+  Write-a-Message → Phase 17 governed content/sender resolution, then Phase 6
+  dispatch/history; "Request payment method update" → A11).
   **Eight live tabs:** Overview, Contact, Relationships, Giving (incl.
   Commitments + the payment-instruments read panel), Notes, Activity, Tasks
   (thin), Audit (thin, permission-gated). **Eight hidden registry sockets:**
@@ -425,8 +426,11 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   exclusion:** `member_care_private_notes` stays RLS-revoked; only the
   permission-gated Overview indicator references care. (D4.)
   - **Giving-tab reserved columns (the four ratified in D4):** soft-credit
-    rows (light up with Phase 7 `gift_credits`); per-gift
-    receipt/acknowledgment status (Phase 7 facts; Phases 18/19 rendering);
+    rows (light up from Phase 14 `contribution_credits` through its governed
+    read model); per-gift
+    receipt state linked from Phase 7 official facts, acknowledgment state
+    linked from Phase 14 purpose/readiness, with the exact Phase 18 artifact,
+    Phase 17 content version, and Phase 6 delivery outcome shown separately;
     commitment support health (Phase 16 derived multi-axis lifecycle,
     attention reasons, fulfillment progress, and certainty—not one writable
     `on-track/behind` flag); and
@@ -452,8 +456,9 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   **reserves an action socket** (not an edit form): "Request payment method
   update" mints a setup-mode Checkout Session / billing-portal deep link
   (portal sessions already exist in
-  `packages/api/src/donor-portal/billing.ts`) and sends via the Phase 6
-  seam — lights up with Phase 6;
+  `packages/api/src/donor-portal/billing.ts`), resolves governed content,
+  sender, and reply purpose through Phase 17, and dispatches via the Phase 6
+  seam — lights up only when both downstream contracts are available;
   donor-side completion is Phase 25. **HARD PROGRAM GUARDRAIL (amended
   2026-07-11 by Phase 15 and extended 2026-07-13 by Phase 16): Asym never
   stores, logs, or processes raw card or bank-account details.** A donor or
@@ -673,9 +678,12 @@ foundation, business, daf_sponsor, partner, agency, …}` on the org
 - **C4 — Phase 3 (inherited seams).** Role-scoped projection chokepoint on
   every read model; export governance on B14; the consent gate (PR #502)
   behind every send-adjacent action.
-- **C5 — Phase 6 (socket-only).** The Communications tab socket and the
-  "Request payment method update" / Write-a-Message action slots **light up
-  with Phase 6**; nothing in Phase 9 blocks on it.
+- **C5 — Phases 17 and 6 (socket-only).** The Communications tab socket and
+  the "Request payment method update" / Write-a-Message action slots light up
+  only when Phase 17 can resolve the governed content, template, sender, and
+  reply purpose and Phase 6 can apply consent-aware scheduling, dispatch,
+  provider outcomes, and communication history. Nothing in Phase 9 blocks on
+  either downstream product.
 - **C6 — Congruence touches.** The C1/C2 amendments and the 2026-07-06
   congruence-audit fixes (45 findings: dependency-graph alignment incl. the
   phase-map row-9 soft-Phase-8 qualification, tracking updates to #602/#603,
@@ -891,12 +899,13 @@ is retained in the Giving tab as a capability-checklist item (D6 reframing):
 - Full admin permission configuration → Phase 3/12.
 - Full giving ledger → Phases 13/14 (Giving tab links source truth).
 - Full offline batch entry → Phase 15.
-- Full soft credit / DAF processing → Phases 7/14.
+- Full soft-credit / DAF / tribute / matching operations → Phase 14; Phase 7
+  consumes proved results only for receipt/statement legal facts.
 - Full pledge management → Phase 16 (Commitments section reads contracts).
 - Full receipt/PDF template system → Phase 18.
 - Full year-end statement operations → Phase 19.
-- Full accounting exports → later Area-11 phase (P9 ships governed list CSV
-  only).
+- Accounting Releases, QBO/Xero delivery, processor settlement coverage, and
+  bounded Bank Match → Phase 20 (P9 ships governed list CSV only).
 - Full public page workflow → Phase 5+/public phases.
 - Full Site Planner → its own phase.
 - Full donor dashboard depth → Phase 25.
@@ -926,8 +935,8 @@ staff-visible today may be missing from the new build), not a migration
 gate. No user-continuity ceremony — but fresh-build must NEVER skip: (a)
 tenant-isolation plumbing; (b) migration-chain hygiene (additive, named
 constraints, seed regeneration; no squash); (c) merge auditability + receipt
-integrity through merge; (d) frozen receipt snapshots + the three-document
-wall; (e) consent/suppression gates; (f) RLS discipline
+integrity through merge; (d) Phase 7's canonical frozen receipt facts + the
+three-document wall; (e) consent/suppression gates; (f) RLS discipline
 (`security_invoker` views, member-care revocation, FINANCE provenance,
 anonymity); (g) the D3 enforcement tiers; (h) the A11 PCI guardrails;
 (i) the irreversible graph-topology axes. **"No users" softens nothing about
@@ -1014,7 +1023,8 @@ _Epic + children created via `/to-issues` after PRD approval. Launch 21-issue
 mapping: #1/#2 kept (merged into T1); **#3 obsolete — decided by the grill**
 (A1/A2); #4–#18/#20/#21 reshaped below; **#19 dead per D6** (replaced by the
 schema tranche + seed regeneration in T2); #14 becomes socket-only (registry
-in T8; lights with Phase 6)._
+in T8; governed content/sender/reply lights with Phase 17 and
+dispatch/outcomes/history with Phase 6)._
 
 > **Final slicing (created 2026-07-06): epic #604 + children #605–#627.**
 > The published set refines the first-pass skeleton below (house precedent:
@@ -1096,5 +1106,6 @@ in T8; lights with Phase 6)._
 **Related:** program charter + parity matrix + phase map; predecessor epics
 Phases 2–8; ADR-0001. **Prerequisites (must land first):** Phase 4 isolation
 plumbing + A9 merge contract; Phase 7 §D/T4 as amended (C2). **Soft:**
-Phase 8 re-groom (#603) for the Audit-tab socket content; Phase 6 for the
-comms/secure-link sockets.
+Phase 8 re-groom (#603) for the Audit-tab socket content; Phase 17 for governed
+message content/sender/reply configuration and Phase 6 for consent-aware
+dispatch/outcomes/history behind the comms/secure-link sockets.

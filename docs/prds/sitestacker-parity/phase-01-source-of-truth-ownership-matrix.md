@@ -20,9 +20,14 @@ wins, and the disagreement is a bug to fix, not a fork to preserve.
 
 ## The one-sentence ruling
 
-**Asym Postgres is the system of record for all operational truth. External
-systems execute, store bytes, move money, send messages, or publish content —
-they never own operational truth — and Twenty CRM is retired as a product
+**Asym Postgres is authoritative for Asym-owned operational decisions,
+source-domain facts, immutable observations, Accounting Releases, and evidence.
+External systems remain authoritative for the actions and records they own:
+Supabase Auth for authentication; Stripe for processor execution, balance
+transactions, and payout state; bank sources for observed bank evidence; and
+QBO/Xero for accepted provider records, books, period close, and final
+reconciliation. Provider facts never redefine donor identity, Legal Entity,
+designation, or source-domain gift truth. Twenty CRM is retired as a product
 dependency entirely (ADR-0001, 2026-07-06).**
 
 ## Ownership matrix
@@ -40,7 +45,7 @@ dependency entirely (ADR-0001, 2026-07-06).**
 | CRM tasks                                                                               | Asym Postgres (`mission_control_tasks`, `missionary_tasks`)                                                                | Existing task services                                                                                                                             | Asym                                                                                                         | Existing task flows                                                                                                                                                              |
 | CRM activity timeline                                                                   | Asym Postgres (Phase 9 net-new; composes source-truth events)                                                              | Emitting services write facts; timeline composes                                                                                                   | Underlying source of each fact                                                                               | Recompose from sources                                                                                                                                                           |
 | Duplicate candidates & merge state                                                      | Asym Postgres (`crm_merge_candidates`, `merge_operations`)                                                                 | Phase 4 dedupe scan + merge workbench                                                                                                              | Asym; merges never auto-run                                                                                  | Reversible un-merge (Phase 4)                                                                                                                                                    |
-| Money: donations, refunds, payouts                                                      | Asym Postgres ledger; **Stripe = payment executor only**                                                                   | Donate paths + contribution operations (`packages/api`)                                                                                            | Asym always                                                                                                  | Adjustment ledger (`contribution_adjustments`), never in-place edits                                                                                                             |
+| Contribution money: gifts, designation allocations, refunds/returns                     | Asym Postgres Phase 13 ledger; Stripe owns exact processor execution and provider observations                             | Donate paths + contribution operations (`packages/api`); signed Stripe evidence proves provider outcomes                                           | Asym source-domain gift meaning; Stripe only for what the processor executed                                 | Source-owned append-only postings/reversals; re-ingest exact provider evidence without allowing it to rewrite legal donor, designation, or gift truth                            |
 | Automatic recurring intent and schedules                                                | Asym Postgres (Phase 16 recurring group/cohort/line, schedule epochs, occurrences and commands)                            | Phase 16 services own intent and scoped mutations; Stripe executes authorized leg/item bindings, generates ordinary renewals, and returns evidence | Asym intent and append-only command/epoch history; provider events prove execution, never intent             | Reconcile provider-generated ordinary renewals and scoped mutation/recovery commands to exact bindings; quarantine unknown/control-loss state; formal proof-gated cutover        |
 | Fixed-total pledges and fulfillment expectations                                        | Asym Postgres (Phase 16 fixed pledge, plan versions, expectations, unscheduled balance lines and fulfillment applications) | Phase 16 pledge and fulfillment services; Phase 13/15 remain the only money writers                                                                | Asym pledge versions and conserved fulfillment applications                                                  | Append correction/release/restore or exact inverse application; never mutate posted money or infer ownership from payment identity                                               |
 | Receipt & statement facts                                                               | Asym Postgres (Phase 7 immutable versioned facts)                                                                          | Phase 7 receipt/statement engine                                                                                                                   | Asym; renderers never author truth                                                                           | Version supersede/void, never mutation                                                                                                                                           |
@@ -190,3 +195,38 @@ object storage, and local downloads are subordinate executors or evidence—not
 statement-run authority. Every Phase 19 record is tenant/environment scoped,
 uses same-scope references and RLS, and preserves independently live document,
 portal, communication, paper, incident, legal, and records truth.
+
+## Dated Phase 20 ownership amendment (2026-07-27)
+
+**Financial authority is deliberately split.** Phase 7 owns the stable Legal
+Entity and immutable issuer-profile facts. Phase 13 owns posted contribution,
+designation, refund, and return truth and the effective-dated Settlement
+Account Binding to the exact Stripe account/environment. Stripe owns exact
+processor execution, balance transactions, fees, and payout-transfer state.
+The bank, imported statement, or certified read-only feed owns each observed
+bank transaction. QBO/Xero owns accepted provider records, books, period close,
+and final bank reconciliation.
+
+**New Phase 20 winners.** Asym Postgres owns normalized mode-honest settlement
+evidence and coverage; Expected Bank Arrivals and bounded Bank Match decisions;
+tenant- and Legal-Entity-scoped accounting policy, Reporting Targets, mappings,
+Posting Profiles, carrier plans, destination connections, and exact half-open
+Posting Ownership Cutovers; immutable balanced Accounting Releases, evidence
+artifacts, delivery packages, provider-operation evidence, exact readback and
+drift findings; and cause-linked compensating releases and exception cases.
+Every release uses exactly one direct-QBO, direct-Xero, or artifact lane.
+
+**Conflict and repair.** Exact provider facts win only for what the provider
+actually did; Asym relationships and decisions win only inside their bounded
+contract. Missing or ambiguous settlement/bank/provider outcomes quarantine
+affected work rather than trigger fuzzy inference, destination substitution,
+dual-write, or whole-history replay. Repair is append-only: re-ingest exact
+provider evidence, unmatch/rematch with successor evidence, reconnect the
+proved same destination or activate a prospective replacement, retry only an
+exactly safe provider operation, or create a new cause-linked Compensating
+Accounting Release. An original release is never edited or reopened.
+
+**Phase 21 boundary.** Phase 21 owns Field Accounts and all expense, approval,
+reimbursement, and payment-coverage truth. Phase 20 may consume only the
+immutable Approved Expense Snapshot and PII-minimized Accounting-Ready Expense
+Handoff; it never creates a second expense system or QBO/Xero connector.

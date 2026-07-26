@@ -129,8 +129,11 @@ rather than a cautious, reversible, production-safe migration.
 17. As **finance**, I want the reporting-currency and exchange-rate-snapshot fields reserved now
     (populated later from the payment provider), so that multi-currency reporting never forces a
     money-schema refactor.
-18. As the **organization**, I want the merchant/settlement identity to remain at the tenant (one
-    Stripe account), so that adding sites never fragments payouts or reconciliation.
+18. As the **organization**, I want each financial operation to freeze the
+    exact Legal Entity and its effective Settlement Account Binding, while a
+    single-entity tenant quietly preselects its default, so that adding sites
+    never fragments payouts and later multi-entity activation never requires
+    rewriting historical money. _(Amended 2026-07-27 by Phase 20 D3.)_
 
 **Attribution**
 
@@ -213,15 +216,26 @@ rather than a cautious, reversible, production-safe migration.
   `site_*_settings` table. The "facets, not a hierarchy" rule extends to _all_ pre-phase site
   settings, not just locale and currency. This is the recorded justification against adding a
   `site_settings` table when the next setting arrives.
-- **A2. Tenant owns the money; site owns the presentation.** The merchant/settlement identity stays
-  at the tenant (one **Stripe Connect connected account** per tenant — the tenant owns the money via
-  a connected account accessed with `{stripeAccount:'acct_…'}`, not a stored secret key; see Phase 13
-  (Campaign, Designation, Contribution Ledger & Giving Cart) D1 §A topology). A site declares a **presentment currency** and **locale**
-  as display facets. **Phase 2 constraint:** a site's presentment currency **must equal** the
-  tenant's settlement currency — we never show "priced in EUR, charged in USD." A nullable per-site
-  payment-account override is **reserved** (unused) for a future genuinely-separate processor.
-  Verified against Stripe docs: one standalone account can present 135+ currencies, so multi-currency
-  later needs **no** per-site accounts. _(Amended 2026-07-11, Phase 15 (Offline Gift & Batch Entry) D4: the tenant's merchant identity is a Stripe Connect connected account accessed with `{stripeAccount:'acct_…'}` (Phase 13 D1 §A topology), not a stored standalone secret key — the earlier "standalone account / stored secret key / no Stripe Connect" wording is superseded; the presentment=settlement constraint and the reserved per-site override are unchanged.)\_
+- **A2. Legal Entity owns financial identity; site owns presentation.** Tenant
+  remains the outer isolation boundary, but merchant, settlement owner, legal
+  issuer, and accounting owner are roles of the canonical Phase 7/20 **Legal
+  Entity**. Every financial root freezes `legal_entity_id`; an effective-dated
+  **Settlement Account Binding** connects that entity to the exact Stripe
+  Connect account/environment. The ordinary one-entity tenant sees no selector:
+  its seeded default entity prefills setup, but persistence never falls back to
+  a mutable tenant default. A Site declares presentment currency and locale as
+  display facets and never selects a merchant through a
+  `payment_account_ref`. Phase 2 still constrains the launch path to
+  presentment currency = the resolved settlement currency; Phase 24 may later
+  activate additional donor presentment, while Phase 20 D20 governs certified
+  settlement lanes. Adding a second Legal Entity is explicit and must not
+  silently split a cart, change an old gift, or follow a Site boundary.
+  _(Amended 2026-07-27 by Phase 20 D3/D20; supersedes the 2026-07-11
+  tenant-account and reserved site-override wording.)_
+  _(Clarified 2026-07-26 by Phase 20 D20: Phase 20 may consume exact
+  downstream provider-conversion and settlement evidence, but it does not
+  widen this transaction allowlist. Phase 24 alone may later activate
+  additional donor presentment currencies.)_
 - **A3. Dual representation in one database.** Payload and Supabase share a **single Postgres**
   (Payload in schema `cms`, app data in `public`; the Payload DB URL falls back to the Supabase DB
   URL). So a site is represented by `public.sites` (operational source of truth: identity, tenant
@@ -237,15 +251,14 @@ rather than a cautious, reversible, production-safe migration.
   repo); Phase 2 introduces host→**site**→tenant resolution as a **new** capability, not a relocation
   of existing site logic.
 - **A5. Attribution = four orthogonal axes, no generic "channel."** `site_id` (where), `source`
-  repurposed as **entry method** (how it entered), `source_code` (what drove it), and the existing
-  designation (fund/campaign, what it is for). The word "channel" is retired as a gift field to avoid
-  its three-way ambiguity: SiteStacker "site channel" = our _site_; the repo's `campaigns.channel` is
-  a **comms medium** and is **left untouched** (channel survives there, unrelated to gift
-  attribution); marketing origin = _source code_. The `donations.source` and `donations.campaign_id`
-  columns were added by the foundation migration; `source` carries a `DEFAULT 'direct'` and legacy
-  backfilled values (mirroring `donation_type`) but is not consumed by the giving path, and
-  `campaign_id` is not written by the saga — so repurposing `source` as entry method must remap those
-  existing `'direct'`/`donation_type` values (see Module 4 backfill), not assume nulls.
+  represented canonically as **entry method** (how it entered), `source_code` (what drove it), and
+  designation (fund/campaign, what it is for). Phase 13 owns those axes on committed contributions;
+  Phase 15 captures them only on pre-commit batch rows; Phase 16 freezes them on commitment terms
+  and occurrence snapshots. The word "channel" is retired as a gift field to avoid its three-way
+  ambiguity: SiteStacker "site channel" = our _site_; `campaigns.channel` remains a distinct
+  **communication medium**; marketing origin = _source code_. Existing `donations.source` and
+  `donations.campaign_id` columns are historical migration/removal evidence only and are not
+  repurposed as the target contract.
 - **A6. Pre-production posture.** No production data exists, so build the **correct target shape**
   with proper constraints (`NOT NULL` `site_id` defaulting to the tenant's default site, enum/check
   constraints, currency-aware types) and let the demo seed conform. No staged nullable-then-tighten
@@ -262,12 +275,15 @@ knowledge behind a stable, boring interface so the rest of the codebase never di
 - Interface (shape): `minorUnitExponent(code) → 0 | 2 | 3`, `formatMoney(minorUnits, code) → string`,
   `parseMoneyToMinorUnits(input, code) → integer`, `isSupportedCurrency(code) → boolean`,
   `assertTransactable(code, tenantSettlementCurrency)`.
-- `currency_metadata` primitive: ISO-4217 code → decimal exponent + special-case flags for the
-  documented Stripe exceptions (the ISK/UGX/HUF/TWD charge-vs-payout quirks; the three-decimal
-  currencies). **Source of truth is a TS constant in `packages/api`, mirrored to a seed table** so
-  the SQL/RPCs that format or validate money server-side (e.g. the donation saga, receipt formatting)
-  can look up exponents and reject unknown codes at the DB boundary. The metadata is comprehensive (a
-  correctness lookup for any currency).
+- `currency_metadata` primitive: ISO-4217 code → decimal exponent +
+  special-case flags for the documented Stripe exceptions (the
+  ISK/UGX/HUF/TWD charge-vs-payout quirks; the three-decimal currencies).
+  **Source of truth is a TS constant in `packages/api`, mirrored to a seed
+  table** so canonical server-side owners such as Phase 13 contribution
+  acceptance and Phase 7 facts validation can look up exponents and reject
+  unknown codes at the DB boundary. Legacy donation-saga/receipt-formatting
+  callers are migration/removal evidence, not target owners. The metadata is
+  comprehensive (a correctness lookup for any currency).
 - **Transaction allowlist ≠ metadata:** the set of currencies a gift may transact in is, in Phase 2,
   **exactly the tenant's settlement currency**. `currency_metadata` stays comprehensive; the
   allowlist is narrow and honest about un-launched capability.
@@ -292,9 +308,9 @@ Assembles a gift's four attribution axes and hardens the user-controlled input.
 
 - Interface (shape): `buildAttribution({ host, params, authContext, entrySurface }) →
 { site_id, entry_method, source_code }`.
-- Entry-method vocabulary (repurposed `donations.source`; gift _type_ stays in
-  `donation_type`/`is_recurring`): `public_checkout | portal | offline | import | api | admin |
-legacy`, enforced by a DB check/enum. **Caller → entry_method mapping** (the `entrySurface` is
+- Entry-method vocabulary (kept separate from gift/commitment type):
+  `public_checkout | portal | offline | import | api | admin | legacy`, enforced by the canonical
+  owner contract's DB check/enum. **Caller → entry_method mapping** (the `entrySurface` is
   caller-supplied; if it disagrees with `authContext`, the authenticated context wins):
   - authenticated donor portal `/donate` → `portal`
   - anonymous public checkout (Phase 5 — Public Website Runtime Contract) → `public_checkout`
@@ -317,11 +333,11 @@ creation of the default site and conformance of existing (mock) data.
 - Interface (shape): `ensureDefaultSite(tenant) → site` (idempotent), plus a migration/seed routine.
 - Seeds `public.sites` (operational) and aligns the `cms.sites` Payload document on the same UUID.
   Seeds the default site from the tenant's existing primary domain + locale + settlement currency.
-- Backfills existing content and gifts to the tenant's default site. **Entry-method backfill is
-  lossless:** the existing `donations.source` values (which mirror `donation_type`, defaulting to
-  `'direct'`) are remapped to `legacy`; any rows already denoting `import` are **preserved** as
-  `import`; the new check/enum constraint is then enforced. Backfilled gifts get `source_code = null`
-  (never a fabricated appeal).
+- Backfills existing CMS content to the tenant's default site. There is no production gift data and
+  no legacy-gift runtime to preserve: historical `donations.source` values are migration/removal
+  evidence only. Any retained fixture conversion maps an unknown historical entry method to
+  `legacy`, preserves an explicitly proven `import`, and leaves `source_code_id = null` rather than
+  fabricating attribution; target writes go only to the Phase 13/15/16 owner contracts above.
 - Seeds the **two-site demo** (two hosts, two brand-color sets, one public home page each) so the
   acceptance test "two domains, one tenant, two brands, both give" can pass.
 
@@ -344,7 +360,8 @@ _All site settings that need a home before their consuming phase are **typed col
 - **`public.sites`** (operational SoT): `id (uuid)`, `tenant_id (fk, not null)`, `slug`,
   `is_default (bool)`, `primary_domain`, `alias_domains (text[])`, `default_locale (bcp-47)`,
   `allowed_locales (text[])`, `presentment_currency`, `reporting_currency`,
-  `payment_account_ref (nullable, reserved)`, `default_designation (nullable)`, `is_active`.
+  `default_designation (nullable)`, `is_active`. No merchant/account selector
+  lives on the Site.
   Unique host index across `primary_domain` + `alias_domains`.
 - **`cms.sites`** (Payload collection): same `id`, `tenant` relationship, branding fields
   (name, logo→Media, tagline, brand color tokens), content-scoping. Presentation only; disjoint from
@@ -353,29 +370,38 @@ _All site settings that need a home before their consuming phase are **typed col
   special-case flags.
 - **`currency_rate_snapshots`** — **shape reserved, behavior deferred**: sourced later from the
   payment provider's balance transaction (its exchange rate and settled amount/fee/net; both
-  presentment and settlement amounts). Nullable when no conversion is needed.
-- **Column additions (table-by-table):**
-  - `site_id` (`NOT NULL`, default = tenant default site) on CMS content collections
-    (Pages, Navigation, MissionaryGivingPages, ProjectPages) and the giving records
-    (`donations`, `staged_gifts`, `donor_pledges`).
-  - `campaigns.site_id` **nullable** (a campaign may be tenant-wide or site-specific). Note:
-    `campaigns` already carries `channel` (a comms medium, left untouched per A5); this phase adds
-    `currency` and the nullable `site_id`.
-  - `source_code` + the repurposed `source` (entry method) on `donations`, `staged_gifts`,
-    `donor_pledges` — explicit **indexed columns**, not JSON, so reports/triggers filter efficiently.
-  - **`currency`** added to **`campaigns`** — the one money table missing it. `donor_pledges`,
-    `pledge_charge_attempts`, `donations`, `staged_gifts`, and `funds` **already have** a `currency`
-    column (`NOT NULL DEFAULT 'usd'`); for those, Phase 2 adds only **ISO-4217 validation** of the
-    existing column, not a new column.
-  - Reserved (nullable) money-context columns on giving records: `presentment_currency`,
-    `settlement_currency`, `exchange_rate_snapshot_id` — default to the single currency in Phase 2.
-  - `rendered_locale` (nullable, defaults to site default) reserved on receipts and system messages.
-    It is a reserved **column contract** for the receipts/messages entities that Phase 7 (Receipt &
-    Statement Compliance Rules + donor-identity/credit model) creates — Phase 2 builds no receipts
-    table. Capture semantics: `rendered_locale` is stamped from the **effective locale at
-    render/issuance time** and is thereafter **immutable** — a frozen fact, not a live pointer to the
-    site's current `default_locale` — so a later `default_locale` change never misreports a
-    historical receipt.
+  presentment and settlement amounts). Nullable when no conversion is needed. If implemented, this
+  is a reference to or projection of immutable Phase 20 D9/D20 provider evidence, never a second
+  editable rate authority. `sites.reporting_currency` remains a display/reporting preference and
+  does not establish QBO home currency or Xero base currency.
+- **Canonical owner contracts (no new legacy giving columns):**
+  - `site_id` (`NOT NULL`, default = tenant default site) is added to CMS content collections
+    (Pages, Navigation, MissionaryGivingPages, ProjectPages).
+  - Phase 13 owns committed contribution attribution and money truth. Its cart and append-only
+    contribution ledger carry the indexed `site_id`, `entry_method`, `source_code_id`, and
+    designation axes plus the accepted contribution currency. Phase 15 may capture and freeze those
+    values on an editable batch row only to commit them into Phase 13; it never becomes a second
+    committed-gift authority.
+  - Phase 16 owns recurring-commitment and fixed-total-pledge intent. Its immutable term versions
+    and occurrence snapshots carry their own `site_id`, `entry_method`, `source_code_id`, and
+    currency context, then any received gift is represented by a separate Phase 13 contribution.
+  - `campaigns.site_id` is **nullable** because a Phase 13 campaign may be tenant-wide or
+    site-specific. `campaigns` retains its distinct communication-medium field and gains validated
+    currency plus the nullable site reference.
+  - Phase 20 owns immutable processor settlement and conversion evidence, including exact
+    presentment currency, settlement currency, provider exchange rate, settled amount, fee, and net.
+    Phase 2 does not add generic nullable FX columns to every giving record or make
+    `sites.reporting_currency` an accounting authority.
+  - Legacy `donations`, `staged_gifts`, `donor_pledges`, and `pledge_charge_attempts` names are
+    historical migration/removal evidence only. They receive no new normative columns or runtime
+    ownership from this phase.
+  - Locale/jurisdiction are validated **context facets**, not one shared
+    `rendered_locale` authority. Phase 7 freezes the governing locale and
+    jurisdiction inputs needed by an official facts version; Phase 18 records
+    the actual rendered locale on the immutable generated-document version;
+    Phase 17 pins the resolved message/content version and locale; and Phase 6
+    records the locale actually dispatched. No owner falls back to a site's
+    current `default_locale` when reading historical evidence.
   - **Not** site-scoped (stay tenant-wide): funds/designations, donor/CRM tables, and **Media**
     (Media is already tenant-scoped today via its `tenant` relationship + access hooks; per-site
     asset isolation, if ever needed, is later work — no Media change in Phase 2).
@@ -405,18 +431,23 @@ gift's legal tax year answer different questions and may legitimately differ.
   short-month, leap-year, and twice-monthly test matrix; Phase 2 owns only the
   governed tenant setting and validation contract.
 
-- **Reserved override-resolution contract (D9 shape, storage deferred):** for receipts and system
-  messages, a setting/message resolves in the order **tenant default → site override → locale
-  override**. Phase 2 reserves this _ordering contract_ only, as a reserved ordering contract for the
-  receipts/messages entities that Phase 7 (Receipt & Statement Compliance Rules + donor-identity/credit
-  model) creates; the override storage and editor are deferred to Phase 7. Phase 7 **may extend** this
-  override-resolution contract with a jurisdiction axis.
+- **Reserved message-context contract (D9 shape, resolution deferred):** Phase
+  2 supplies validated Tenant, Site, locale, and jurisdiction context to
+  downstream communication contracts; it does **not** own message-template
+  storage, override priority, or fallback. Phase 17 owns deterministic
+  contract-scoped resolution across the allowed Tenant/Site/locale scopes,
+  including a tenant-configurable priority, immutable resolved-version
+  evidence, the Asym system default as the final fallback, and render-failure
+  fallback plus alerting. Phase 7 supplies legal receipt/statement facts only.
 
 ### Contracts & wiring (thin, on top of the deep modules)
 
-- **Donate contract:** `donatePostSchema` and the donation-saga RPC accept optional `site_id` and
-  `source_code`; the authenticated path defaults `site_id` to the tenant default site and
-  `entry_method = portal`; the saga writes all four axes onto the gift.
+- **Public-giving acceptance contract:** the public-giving input accepts
+  optional `site_id` and `source_code`; the authenticated path defaults
+  `site_id` to the tenant default Site and `entry_method = portal`. The Phase 13
+  acceptance service validates and freezes all four axes on the canonical
+  contribution source revision. Phase 2 supplies context and validation only;
+  it neither extends the legacy donation saga nor writes a gift.
 - **CMS site-scoping retrofit — the concrete touch-points:**
   1. Introduce host→site→tenant resolution (Module 2) and use it in the CMS public routes.
   2. Add `siteId` to the CMS request context (default-site-aware).
@@ -470,10 +501,12 @@ convention, from the tombstoned phase-01 operating-foundation PRD):
    `source_code` sanitization (allowlist filtering, length cap, **CSV formula-injection
    neutralization**, PII/raw-query rejection); default-site assignment for portal/offline/import;
    recurring inheritance.
-4. **Site provisioning & backfill** — idempotent default-site creation; backfill assigns existing
-   content/gifts to the default site; the **lossless entry-method remap** (`'direct'`/`donation_type`
-   values → `legacy`, existing `import` preserved, `source_code` null — no fabricated source); the
-   two-site demo seed produces the acceptance-test fixtures.
+4. **Site provisioning & clean-start fixtures** — idempotent default-site
+   creation; existing CMS content in an approved pre-production reset may be
+   assigned to that default Site, but no greenfield gift backfill or legacy
+   entry-method remap becomes a runtime contract. The two-site demo seed
+   produces canonical Phase 13 acceptance fixtures without fabricated source
+   evidence.
 5. **Branding/theming resolver** — branding lookup → tokens with fallback to platform defaults; the
    donor layout consumes the context (no hard-coded colors leak back into checkout).
 
@@ -483,7 +516,8 @@ convention, from the tombstoned phase-01 operating-foundation PRD):
   brands, and a gift on each is stored with the correct `site_id`, currency, and (if present)
   `source_code`.
 - Donor portal shows a donor's gifts across **both** sites (multi-site does not fragment history).
-- The donation saga persists all four attribution axes and the currency-aware amount.
+- The Phase 13 public-giving acceptance path persists all four attribution axes
+  and the currency-aware amount on the canonical contribution revision.
 
 **Prior art:** follow the existing unit-test patterns under `tests/unit` (including the CMS/Payload
 DB-config tests) and the phase-evidence pattern (`docs/ops/phase-evidence/`) for the completion
@@ -539,12 +573,13 @@ write-up.
   **site** only for siloed content or a different payment processor/currency — "9 times out of 10
   make a new Channel, not a new Site." We collapse that two-tier shape into a single `site` and keep
   attribution as orthogonal tags, which reproduces the outcome with far less nesting. Stripe docs
-  confirm one standalone account handles 135+ presentment currencies (so multi-currency needs no
-  per-site accounts), that minor units vary by currency (the correctness fix), that reporting FX
-  should be snapshotted from the provider's balance transaction (not self-computed), and that a
-  Stripe Customer is currency-locked (subscriptions cannot mix currencies) — so a future recurring/
-  multi-currency phase will need a Customer-per-(donor × currency) mapping or Stripe's
-  multi-currency-customers feature.
+  confirm that available presentment and settlement currencies depend on the
+  exact connected account, country, capabilities, settlement configuration,
+  and current provider contract—not a universal standalone-account claim.
+  Minor units vary by currency (the correctness fix), reporting FX should be
+  snapshotted from exact provider evidence rather than self-computed, and
+  recurring/customer currency compatibility must be capability-checked by the
+  owning phase. Site count never determines payment-account count.
 - **Founder intent captured.** The public website renders in the **donor app**; its content backend
   is **Payload CMS** in the admin app; the **Site/Web Studio** manages content (and later, sites).
   Each tenant has one default website plus optional others, all connected under the tenant. The
@@ -570,8 +605,8 @@ Tracked as epic **#477** + children (created via `/to-issues`). Ticket shape:
 3. Currency module: `currency_metadata` (TS constant + seed) + money helpers + ISO-4217 validation
    (Module 1); replace the donate-path cents assumption.
 4. Site context resolver in `packages/api` — host→site→tenant (Module 2).
-5. Attribution builder + `source` repurpose + `source_code` capture/sanitization (Module 3);
-   donate schema + saga axes.
+5. Attribution builder + `source_code` capture/sanitization (Module 3); public
+   input plus the Phase 13 contribution-acceptance handoff.
 6. CMS site-scoping retrofit (the six touch-points) + per-site slug uniqueness.
 7. Branding/theming resolver + donor-app wiring (Module 5); checkout brand tokens; footer templating.
 8. Web Studio `cms.sites` (branding editable, rest read-only, create/delete gated) + Mission Control

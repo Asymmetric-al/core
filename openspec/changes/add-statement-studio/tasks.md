@@ -25,7 +25,9 @@
       publications; heads and one appointment; facts references; idempotent
       requests; fenced attempts; logical documents; exact artifacts; source-owned
       issuance links; batches/items; access grants/sessions; schedules/holds/
-      disposal; and PII-minimal audit evidence.
+      disposal; and PII-minimal audit evidence. Official financial Facts
+      Packages and artifacts pin the exact source-facts version and Legal
+      Entity without importing Phase 20 accounting projection authority.
 - [ ] 2.2 Enforce non-null tenant/environment and, where applicable, exact-issuer
       scope; composite same-scope foreign keys; restrictive deletes; immutable
       pins; named uniqueness; one-current-head/artifact; nonoverlapping Canadian

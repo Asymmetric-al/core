@@ -1,27 +1,33 @@
 # Product Plan
 
-> **Superseded implementation authority (Phase 18, 2026-07-21).** This plan is
-> retained as historical product evidence only. Do not dispatch it or use it as
-> target architecture. Use the Phase 18 PRD, authority manifest, renderer
-> qualification protocol, ADRs 0033-0039, and OpenSpec change. Phase 18 D3 leaves
-> the renderer unselected until one bounded evidence contest, and D17 requires a
-> clean pre-production cutover rather than a legacy migration or dual runtime.
+> [!IMPORTANT]
+> **Implementation route superseded (Phase 18, 2026-07-21).** This plan is
+> retained only as historical Phase 0 product evidence and has no implementation
+> authority. All implementation must follow **Phase 18
+> D-prime-amended-and-hardened (D-prime-R)**, the current Phase 18 PRD,
+> authority manifest, implementation spec, renderer qualification protocol,
+> ADRs 0033-0039, and OpenSpec contract. D3 leaves the renderer unselected until
+> one bounded production-shaped evidence contest yields at most one exact
+> winner; D17 then performs an environment-gated destructive pre-production
+> cutover to zero legacy runtime. Do not use this file to authorize gradual
+> migration, fallback or dual runtime, or a preselected DocRaptor path.
 
 Statement Studio is a custom Mission Control product surface for staff to build, preview, publish, assign, render, and manage tenant-safe PDFs.
 
 ## Triggers
 
-Use this plan when defining Statement Studio scope, product behavior, implementation phases, or tenant-facing capabilities.
+Use this plan only to inspect the historical Phase 0 product proposal. Do not
+use it to define current scope, behavior, implementation phases, or
+tenant-facing capabilities.
 
 ## Workflow Steps
 
-1. Start from the product north star.
-2. Preserve domain ownership boundaries.
-3. Build in thin vertical slices.
-4. Keep tenant configuration flexible, but enforce platform safety floors.
-5. Keep UX clean, token-driven, and non-technical.
+1. For implementation, stop here and use the current Phase 18 PRD,
+   implementation spec, and OpenSpec contract.
+2. Use the plan below only as historical evidence; do not execute its phased
+   migration or provider-selection route.
 
-## Product North Star
+## Historical Product North Star (Superseded)
 
 - Fully usable staff-facing product inside Mission Control.
 - Own custom Statement Studio surface, not Unlayer and not an email editor.
@@ -32,7 +38,7 @@ Use this plan when defining Statement Studio scope, product behavior, implementa
 - White-label, tenant-brandable, accessible, printable, and reliable.
 - Tenant-aware across Mission Control, Donor Dashboard, and Missionary Dashboard.
 
-## Scope
+## Historical Scope
 
 Statement Studio owns:
 
@@ -63,7 +69,7 @@ head, access, and records. Phase 19 owns statement population, cutoff, runs, and
 items. Phase 17 owns message and delivery. Phase 18 consumes immutable Facts
 Packages and never authors or mutates source compliance truth.
 
-## Phases
+## Historical Phase 0 Slice Plan (Superseded)
 
 0. Phase 0 audit brief.
 1. Foundation: schema, RLS, grants, Storage, template JSON, versioning, artifact model.

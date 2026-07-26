@@ -59,7 +59,7 @@ When the actual promise includes timing, staff deliberately choose **Add install
 
 One calm **Change or close campaign commitment** doorway offers four truthful actions: donor-requested change, donor-requested ending, organization-only expectation release, or factual entry correction. They share a shell but not authority, meaning, or downstream effects. Received gifts and fulfillment history never change implicitly.
 
-Campaign-commitment reminders are Off for every tenant and pledge by default. A tenant may make reminders unavailable, permit the fixed 30-day upcoming courtesy stage only, or permit that stage plus one source-aware follow-up. Authorized staff explicitly enroll a current plan and verified purpose-bound service contact. Every stage is merely a candidate that must re-prove current pledge, fulfillment, source freshness, authority, contact, consent, suppression, template, and duplicate truth at send time through the Phase 6/17 seam.
+Campaign-commitment reminders are Off for every tenant and pledge by default. A tenant may make reminders unavailable, permit the fixed 30-day upcoming courtesy stage only, or permit that stage plus one source-aware follow-up. Authorized staff explicitly enroll a current plan and verified purpose-bound service contact. Every stage is merely a candidate that must re-prove current pledge, fulfillment, source freshness, authority, and contact; Phase 17 resolves the exact governed content/sender/reply version, and Phase 6 re-proves consent, suppression, duplicate, provider readiness, and dispatch eligibility.
 
 ### 3. One authoritative relationship between expectation and money
 
@@ -74,7 +74,7 @@ All audiences consume the same append-only facts through different role-safe pro
 | Decision | Binding result                                                                                                                                                                                                                                                                                                                                                                                                 |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **D1**   | Recurring commitments and fixed-total pledges are separate aggregates. Collection arrangement and posted money are orthogonal. No universal mutable commitment row, lifecycle, editor, or automatic conversion.                                                                                                                                                                                                |
-| **D2**   | One explicit recurring-giving group contains independent destination lines and compatible billing cohorts. Ordinary cohorts have one provider execution leg; twice-monthly cohorts have two. Every leg binds one exact subscription item to each participating line. Grouping is never inferred.                                                                                                               |
+| **D2**   | One explicit recurring-giving group contains independent same-Legal-Entity destination lines and compatible billing cohorts. Ordinary cohorts have one provider execution leg; twice-monthly cohorts have two. Every leg binds one exact subscription item to each participating line. Grouping and entity ownership are never inferred.                                                                       |
 | **D3**   | Monthly is featured when enabled; one-time is adjacent; tenants may offer the closed cadence catalog. Twice monthly means the 1st and 15th and uses two explicit execution legs, never an interval approximation.                                                                                                                                                                                              |
 | **D4**   | One real initial gift is attempted immediately per disclosed compatible billing cohort, never per line or twice-monthly leg. Multi-cohort checkout discloses charge count, amount, and allocation before authorization. Continuing dates are donor-controlled civil dates in a frozen tenant IANA giving timezone. Epochs are append-only; short months clamp and recover; end date is optional and inclusive. |
 | **D5**   | Skip one occurrence, bounded/indefinite pause, unchanged-grid resume, direct cancel, and freshly authorized restart. No debt, catch-up, or ordinary-save charge. Missionaries see truthful pause state but cannot act.                                                                                                                                                                                         |
@@ -88,7 +88,7 @@ All audiences consume the same append-only facts through different role-safe pro
 | **D13**  | Missionary UX is cash-first and automatic-recurring-first. Month occurrence outcomes and the recurring list precede secondary goal coverage, forecast, and conditional other commitments.                                                                                                                                                                                                                      |
 | **D14**  | Each commitment has one immutable Commitment Party. Representative, service contact, expected remitter, collection authorizer, posted legal donor, and Recognition Party are separately proven facts.                                                                                                                                                                                                          |
 | **D15**  | Staff own one fast service case, but the real financial authorizer owns financial permission. Every command passes operator authority, Party instruction, and collection authorization and yields one of four server-derived outcomes.                                                                                                                                                                         |
-| **D16**  | Provider-control loss uses a bounded evidence ladder and one tenant/account incident. Unknown control fences unsafe work; reconnect only starts reconciliation; a replacement needs old-stop proof and current authority.                                                                                                                                                                                      |
+| **D16**  | Provider-control loss uses a bounded evidence ladder and one Tenant/Legal-Entity/Settlement-Account-Binding/account incident. Unknown control fences unsafe work; reconnect only starts reconciliation; a replacement needs old-stop proof and current authority.                                                                                                                                              |
 | **D17**  | Fixed pledge is total-first. An optional focused plan builder supports one date, even installments, or custom expectations with an explicit undated remainder and exact conservation.                                                                                                                                                                                                                          |
 | **D18**  | Donor change, donor ending, internal release, and correction are four distinct append-only operations behind one short accessible doorway and one exact line/expectation fold.                                                                                                                                                                                                                                 |
 | **D19**  | One Gentle fixed-pledge reminder profile, explicit current-plan enrollment, tenant reduction-only maximum, proof at send, permanent idempotency, easy purpose stop, and no parallel communication system.                                                                                                                                                                                                      |
@@ -126,7 +126,10 @@ The full amendment text is normative in `phase-16-cross-prd-congruence-2026-07-1
 - **A1–A4:** two aggregates, compatible cohorts, separate axes, and D6–D10 product-owned recovery supersede the roadmap and Phase 13 universal pledge/status/Smart-Retry language.
 - **A5–A8:** civil-date skip/pause/cancel, explicit donor commands, separate recurring end semantics, and evidence-gated adoption supersede UTC/provider-owned lifecycle shortcuts.
 - **A9:** recurring ACH processing is not successful receipt.
-- **A10–A14:** cash-first missionary projection, immutable Commitment Party, Phase 6/17 communication ownership, recognition-versus-fulfillment separation, and Phase 15's sole offline money writer are binding.
+- **A10–A14:** cash-first missionary projection, immutable Commitment Party,
+  Phase 17 governed-content/sender ownership, Phase 6 dispatch/history
+  ownership, recognition-versus-fulfillment separation, and Phase 15's sole
+  offline money writer are binding.
 - **A15:** the Phase 16 OpenSpec delta supersedes the active one-to-one `donor_pledges` recurring proposals before any implementation dispatch.
 
 Issue dispositions are also binding: #706 and #707 are materially superseded; #708 is partially superseded; #709 is materially amended; #710 is re-scoped. #705 remains mostly orthogonal but any recurring fee-cover change must follow the same exact-term authorization rules as the underlying amount.
@@ -271,7 +274,7 @@ An implementing agent must re-check these anchors against the branch at implemen
 ### Developer, auditor, security, and operations
 
 - As an implementing developer, I have one pure calendar kernel, one server command boundary, exact provider bindings, permanent semantic idempotency, and explicit state axes rather than inferred status strings.
-- As a security engineer, every record/reference/query/job/cache/token/idempotency key is tenant scoped; cross-tenant/account/mode/application poison fails closed and alerts.
+- As a security engineer, every record/reference/query/job/cache/token/idempotency key is Tenant and, for financial work, Legal-Entity scoped; cross-Tenant/entity/binding/account/mode/application poison fails closed and alerts.
 - As an auditor, I can reconstruct actor, Party instruction, collection authorization, schedule epoch, occurrence, attempt, provider evidence, fulfillment, receipt, communication, and correction without treating an audit entry as consent.
 - As an operator, I see exception-only worklists, stable reason codes, correlations, freshness, and safe repair actions. Routine success, ordinary Off state, and normal misses do not create a task storm.
 
@@ -323,7 +326,7 @@ They share platform primitives and one typed fulfillment boundary, but not an ag
 
 ### A.2 One explicit recurring group, never inferred
 
-A recurring-giving group is created by one accepted checkout or a later deliberate group action. It requires one tenant, one Commitment Party, one legal payer/collection-authorizer context, and one currency. Any mismatch in Party, legal payer context, or currency creates a separate group, not another cohort inside the old group. The system may not merge or infer groups from email, household, Stripe Customer, payment method, amount, date, destination, cadence, or connected account.
+A recurring-giving group is created by one accepted checkout or a later deliberate group action. It requires one Tenant, one immutable Legal Entity, one Commitment Party, one legal payer/collection-authorizer context, and one currency. Any mismatch in Legal Entity, Party, legal payer context, or currency creates a separate group, not another cohort inside the old group. A checkout containing destinations owned by several Legal Entities must disclose the separate groups, charges, merchant/issuer identity, and allocations before authorization; it never silently mixes or redirects them. The system may not merge or infer groups or entity ownership from email, household, Stripe Customer, payment method, amount, date, destination, cadence, Site, tenant default, or connected account.
 
 One group contains stable destination-specific lines. Line identity survives provider replacement, cohort split, schedule change, and historical allocation changes. A group may contain several cohorts only for a real incompatibility or provider limit, and every audience-visible preview discloses separate charge count, amount, and date.
 
@@ -331,10 +334,10 @@ One group contains stable destination-specific lines. Line identity survives pro
 
 Two active line epochs may share a billing cohort only when every following value is equal or explicitly compatible:
 
-- tenant and Commitment Party;
+- Tenant, Legal Entity, and Commitment Party;
 - legal payer and collection authorizer scope;
 - currency;
-- connected account, livemode, merchant, charge architecture, and provider Customer;
+- effective Settlement Account Binding, connected account, livemode, merchant, charge architecture, and provider Customer;
 - payment authorization lineage and rail;
 - cadence, continuing anchor, giving timezone, and operational-time resolver;
 - pause/skip/recovery behavior and final eligible horizon;
@@ -385,7 +388,7 @@ D11 requires one safe application interface without reintroducing a universal co
 - `fixed_expectation_line`; or
 - `fixed_unscheduled_balance_line`.
 
-Every target is created transactionally by its owning domain, carries non-null tenant, currency, designation, capacity, and an exact same-tenant source FK, and cannot change type. It contains no lifecycle/editor/status. Applications reference this target ID rather than an unchecked polymorphic pair. The owner domain remains the source of expectation meaning.
+Every target is created transactionally by its owning domain, carries non-null Tenant, immutable Legal Entity, currency, designation, capacity, and an exact same-Tenant/same-Legal-Entity source FK, and cannot change type. It contains no lifecycle/editor/status. Applications reference this target ID rather than an unchecked polymorphic pair. The owner domain remains the source of expectation meaning.
 
 ---
 
@@ -615,7 +618,7 @@ Provider operations run through an outbox/saga with permanent operation identity
 
 Asym owns recurring intent, occurrence materialization, retry eligibility, candidate slots, failure-episode runway, suppression, and the decision whether one provider command is allowed. Stripe or another approved adapter owns ordinary payment execution, authentication, rail submission, and provider finality. The provider is not the product-policy scheduler, and Asym is not a card-network simulator.
 
-There is one executor owner per occurrence at a time. Before any command, the system proves tenant, connected account, live/test mode, executor binding, exact provider invoice/payment object, authorization lineage, amount/currency, cohort line snapshot, schedule epoch, lifecycle eligibility, and control evidence. Provider-native automatic retries must be disabled or proven unable to overlap Asym-owned D7 commands. A dashboard setting or assumed default is not proof; configuration is read back and continuously reconciled.
+There is one executor owner per occurrence at a time. Before any command, the system proves Tenant, Legal Entity, effective Settlement Account Binding, connected account, live/test mode, executor binding, exact provider invoice/payment object, authorization lineage, amount/currency, cohort line snapshot, schedule epoch, lifecycle eligibility, and control evidence. Provider-native automatic retries must be disabled or proven unable to overlap Asym-owned D7 commands. A dashboard setting or assumed default is not proof; configuration is read back and continuously reconciled.
 
 Automatic accelerated card recovery is never used for:
 
@@ -764,7 +767,7 @@ ACH verification, debit initiation, settlement/success, return exposure, and fin
 
 One old occurrence may enter `recovery_open` only after a normal ACH return coded R01 or R09 and only when the actual processor/ODFI path supplies current written proof that lawful same-entry reinitiation is available, Asym is the exclusive retry owner, required waiting/timing is met, the mandate remains valid, and provider retry is disabled/read back.
 
-The donor then completes a dedicated authenticated financial review for the exact total cohort occurrence. It names the original amount/date, destinations, return-safe explanation, payment account ending, recovery date/effect, next normal occurrence, and no-debt/no-catch-up rule. The donor explicitly submits **Retry this bank donation**. The server re-evaluates every gate and exchanges the preview for a one-use, short-lived execution grant bound to tenant, account/mode, mandate lineage, occurrence, amount/currency, provider object, terms version, and command identity.
+The donor then completes a dedicated authenticated financial review for the exact total cohort occurrence. It names the original amount/date, destinations, return-safe explanation, payment account ending, recovery date/effect, next normal occurrence, and no-debt/no-catch-up rule. The donor explicitly submits **Retry this bank donation**. The server re-evaluates every gate and exchanges the preview for a one-use, short-lived execution grant bound to Tenant, Legal Entity, Settlement Account Binding, account/mode, mandate lineage, occurrence, amount/currency, provider object, terms version, and command identity.
 
 The grant authorizes one execution only. It cannot partially recover one line from an indivisible cohort, change the amount, change the schedule, or become a general future mandate. A saved bank account never triggers recovery by itself. An indeterminate provider response reserves the grant and occurrence; no normal or recovery debit overlaps until reconciliation.
 
@@ -810,7 +813,7 @@ An application targets exactly one typed expectation line:
 - normally, an immutable recurring or fixed-plan scheduled occurrence line; or
 - only for a genuinely unscheduled fixed-total pledge, an explicit unscheduled pledge-balance line.
 
-The cross-product `commitment_fulfillment_targets` registry is a narrow typed identity/projection that resolves to one authorized target adapter. It is not an unchecked polymorphic `(type, id)` pair, universal status, universal editor, or ownership aggregate. A target row carries tenant, kind, source record ID, currency, designation, capacity, revision, and retired state, all maintained by its source domain.
+The cross-product `commitment_fulfillment_targets` registry is a narrow typed identity/projection that resolves to one authorized target adapter. It is not an unchecked polymorphic `(type, id)` pair, universal status, universal editor, or ownership aggregate. A target row carries Tenant, immutable Legal Entity, kind, source record ID, currency, designation, capacity, revision, and retired state, all maintained by its source domain.
 
 No fabricated occurrence date may be created merely to match money. An unscheduled fixed pledge stays unscheduled until a staff amendment adds a real plan.
 
@@ -818,7 +821,8 @@ No fabricated occurrence date may be created merely to match money. An unschedul
 
 One immutable operation groups signed application entries. Each entry links one effective Phase 13 contribution designation line to one named expectation line. The command enforces, inside one database transaction:
 
-- same tenant and permitted environment/provider scope;
+- same Tenant and Legal Entity, plus exact Settlement Account
+  Binding/account/mode when provider evidence is involved;
 - exact currency match; v1 has no cross-currency fulfillment;
 - designation compatibility and staff authority;
 - effective source money capacity;
@@ -845,7 +849,7 @@ Automatic application is allowed only when one of these exact proofs exists:
 2. an authenticated donor instruction captured with the gift; or
 3. an approved authenticated structured-remittance line with an exact versioned mapping.
 
-These are three independent, closed application-authority types—not ingredients that must all be present. Every path re-proves the same tenant, Commitment Party, currency, designation, source capacity, target capacity, current revision, and non-revoked authority at apply or reapply time while holding that authority type's invalidation fence in the F.3 lock order. The donor-instruction and structured-remittance records and their exact target allocations are defined in O.11; a generic note, source ID, import flag, or opaque evidence string cannot substitute for them. Staff-confirmed manual application is a fourth closed application-authority type, but it is never reclassified as automatic. A later inverse or uncertain-vector retraction is a correction, not a new application: it requires current canonical correction evidence tied to the original operation and entries and never reuses or re-proves an expired, revoked, or consumed application authority.
+These are three independent, closed application-authority types—not ingredients that must all be present. Every path re-proves the same Tenant and Legal Entity, Commitment Party, currency, designation, source capacity, target capacity, current revision, and non-revoked authority at apply or reapply time while holding that authority type's invalidation fence in the F.3 lock order. Provider-lineage authority also re-proves the exact Settlement Account Binding/account/mode frozen on the source evidence. The donor-instruction and structured-remittance records and their exact target allocations are defined in O.11; a generic note, source ID, import flag, or opaque evidence string cannot substitute for them. Staff-confirmed manual application is a fourth closed application-authority type, but it is never reclassified as automatic. A later inverse or uncertain-vector retraction is a correction, not a new application: it requires current canonical correction evidence tied to the original operation and entries and never reuses or re-proves an expired, revoked, or consumed application authority.
 
 Names, dates, equal amounts, memo text, OCR, PDFs, soft credits, household/member relationships, donor-recipient history, and missionary relationships may create ranked suggestions but never authorize an application. Suggestions carry evidence and confidence explanations and enter **Commitment match: Needs review**. Staff can accept, change, split, or reject them through the same conserved command.
 
@@ -1068,7 +1072,7 @@ The server compares canonical before/after terms and returns one outcome. The cl
 
 Reducing, stopping, postponing, pausing, or canceling must stay fast. Failure to deliver a confirmation never reverses a valid protective action. A bounded pause may resume on its agreed date if authorization/control remain valid; early/indefinite resume or restart after cancellation requires applicable fresh authorization.
 
-Party, payer, currency, merchant, connected account, or materially different authorization scope cannot be rewritten in place. Supersede and create fresh. Designation changes are prospective; if merchant/account scope changes, use fresh authorization. No bulk action may widen exposure, redirect, bind methods, remove limits, or restart donors. A separately gated bulk protective block may only narrow/stop unsafe collection.
+Legal Entity, Party, payer, currency, merchant, Settlement Account Binding, connected account, or materially different authorization scope cannot be rewritten in place. Supersede and create fresh. Designation changes are prospective and remain within the same entity; changing entity or merchant/account scope creates a separate group under fresh authorization. No bulk action may widen exposure, redirect, bind methods, remove limits, or restart donors. A separately gated bulk protective block may only narrow/stop unsafe collection.
 
 ### J.4 Staff UX and immutable terms
 
@@ -1088,15 +1092,15 @@ Provider access, capability, executor ownership, command control, payment execut
 
 The internal ladder is deliberately small:
 
-| State                               | Entry evidence                                                                                                                                               | Safe behavior                                                                                                        |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| **Managed**                         | Current authenticated reads prove tenant/account/mode, merchant/application ownership, required capabilities, exact executor, and reconciliation             | Normal authorized commands                                                                                           |
-| **Degraded observation**            | Timeout, rate limit, provider 5xx, or webhook lag without identity/revocation evidence                                                                       | Fence indeterminate mutations; retry safe reads; no donor/missionary alarm until real impact                         |
-| **Control at risk**                 | Reachable account with a known future requirement/deadline threatening collection/control                                                                    | Show exact deadline/remediation; preserve current truth; notify only if commitment-level impact materializes         |
-| **Control restricted**              | Reachable account but one required capability is disabled/restricted                                                                                         | Suppress only dependent actions; never confuse payout restriction with charge stop                                   |
-| **Control unknown**                 | Revocation, wrong account/mode/application, inaccessible/mismatched executor, missing ownership proof, or inability to prove control at a financial boundary | Suppress all new Asym attempts, D7, widening, replacement, migration, and stale replay; never claim provider stopped |
-| **Reconciling**                     | Same binding appears restored but event gap, objects, in-flight work, controls, and ledger are not proved                                                    | Read-only reconciliation; cancellation/protective stops first; no general release                                    |
-| **Externally controlled/read-only** | Known executor is owned/controlled by another application/operator                                                                                           | Observe qualified facts only; never adopt by metadata or start a competitor                                          |
+| State                               | Entry evidence                                                                                                                                                                           | Safe behavior                                                                                                        |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Managed**                         | Current authenticated reads prove Tenant/Legal-Entity/Settlement-Account-Binding/account/mode, merchant/application ownership, required capabilities, exact executor, and reconciliation | Normal authorized commands                                                                                           |
+| **Degraded observation**            | Timeout, rate limit, provider 5xx, or webhook lag without identity/revocation evidence                                                                                                   | Fence indeterminate mutations; retry safe reads; no donor/missionary alarm until real impact                         |
+| **Control at risk**                 | Reachable account with a known future requirement/deadline threatening collection/control                                                                                                | Show exact deadline/remediation; preserve current truth; notify only if commitment-level impact materializes         |
+| **Control restricted**              | Reachable account but one required capability is disabled/restricted                                                                                                                     | Suppress only dependent actions; never confuse payout restriction with charge stop                                   |
+| **Control unknown**                 | Revocation, wrong account/mode/application, inaccessible/mismatched executor, missing ownership proof, or inability to prove control at a financial boundary                             | Suppress all new Asym attempts, D7, widening, replacement, migration, and stale replay; never claim provider stopped |
+| **Reconciling**                     | Same binding appears restored but event gap, objects, in-flight work, controls, and ledger are not proved                                                                                | Read-only reconciliation; cancellation/protective stops first; no general release                                    |
+| **Externally controlled/read-only** | Known executor is owned/controlled by another application/operator                                                                                                                       | Observe qualified facts only; never adopt by metadata or start a competitor                                          |
 
 A timeout is not deauthorization. Conversely, an indeterminate financial mutation is fenced immediately even if other reads remain Managed. Entry/exit/escalation depends on evidence and the next financial-risk boundary, not one arbitrary timer.
 
@@ -1117,7 +1121,7 @@ Charge architecture affects truth:
 
 ### K.3 One tenant incident, not per-gift noise
 
-An unplanned loss or credible mismatch creates one tenant/account incident with a paginated affected-binding set. It freezes unsafe Asym work, preserves donor intent, schedule anchors, and history, and produces per-line projection consequences without creating one staff task or donor message per agreement.
+An unplanned loss or credible mismatch creates one Tenant/Legal-Entity/Settlement-Account-Binding/account/mode incident with a paginated affected-binding set. It freezes unsafe Asym work, preserves donor intent, schedule anchors, and history, and produces per-line projection consequences without creating one staff task or donor message per agreement.
 
 The incident workspace shows last verified state/time, account/mode/application identity, affected due-soon cohorts/amounts, in-flight/indeterminate work, cancellation queue, capability restrictions, event/cursor gap, reconciliation progress/exceptions, and one safe next action. It has an assigned payment owner plus backup and a concise runbook/audit export.
 
@@ -1135,7 +1139,7 @@ Old retry, increase, restart, method-change, and migration commands expire. Reco
 
 Reconnection to the same apparent account enters **Reconciling**, never Managed. A cohort is released only when current evidence proves:
 
-- same tenant/account/mode/application/merchant and expected charge architecture;
+- same Tenant/Legal-Entity/Settlement-Account-Binding/account/mode/application/merchant and expected charge architecture;
 - current ownership/capabilities and exact object/item mapping;
 - accessible event-gap reconciliation plus current-object census where retention is insufficient;
 - in-flight/indeterminate occurrences resolved;
@@ -1194,7 +1198,7 @@ Donors see a conditional **Campaign commitment** card with promise/progress and 
 
 ### L.4 Atomic append-only creation and amendment
 
-One tenant-scoped idempotent command saves pledge, destination lines, plan version, expectations/child lines, fulfillment targets, evidence reference, audit, and outbox atomically. Plan changes append a version and supersede only affected unfulfilled expectations. Original/past/applied/money facts never change. Concurrent D11 fulfillment and amendment use common target locks, expected revisions, and CAS.
+One Tenant-and-Legal-Entity-scoped idempotent command saves pledge, destination lines, plan version, expectations/child lines, fulfillment targets, evidence reference, audit, and outbox atomically. Plan changes append a version and supersede only affected unfulfilled expectations. Original/past/applied/money facts never change. Concurrent D11 fulfillment and amendment use common target locks, expected revisions, and CAS.
 
 The review above **Record campaign commitment** is editable, repeats **No automatic charges**, and requires no routine confirmation modal. Errors preserve input, focus a linked summary, repeat identical inline corrections, and expose status accessibly.
 
@@ -1243,7 +1247,7 @@ A later restoration is a linked signed inverse of the release. A renewed future 
 
 ### M.6 Correction and authority dispute
 
-A factual correction supersedes/replaces same-identity facts with complete before/after history and evidence. Wrong Party, currency, tenant, promise type, merchant boundary, or material identity never mutates in place: tombstone the invalid record and, if authorized, link a same-tenant successor. Records never move between tenants. Money and D11 applications change only through their own inverse/reapply contracts.
+A factual correction supersedes/replaces same-identity facts with complete before/after history and evidence. Wrong Party, currency, Tenant, Legal Entity, promise type, merchant boundary, or material identity never mutates in place: tombstone the invalid record and, if authorized, link a same-Tenant successor carrying its own explicit correct Legal Entity. Records never move between Tenants or silently move between Legal Entities. Money and D11 applications change only through their own inverse/reapply contracts.
 
 **I never authorized this** is not silently correction or donor end. It enters a bounded authority-review quarantine, leaves history, and is excluded from active forecast/reminders until evidence resolves it.
 
@@ -1286,7 +1290,7 @@ One check-answers page shows Party, current plan version, its eligible expectati
 
 Immediately before Phase 6 submission, re-prove tenant/site, tenant maximum, enrollment/plan/expectation versions, positive unresolved capacity, D11 fulfillment, partial/pending gifts/batches/checks, source coverage/matching, D18 end/release/correction/quarantine, D16 control state where relevant, current service contact/purpose, jurisdiction, consent, suppression, published Phase 17 template, and permanent semantic duplicate state.
 
-Phase 16 owns policy, enrollment, candidate derivation, and pledge/source eligibility. Phase 6 owns consent/suppression/events/delivery. Phase 17 owns governed rendering. Phase 25 consumes the same preference. Actual sends remain blocked until required Phase 6 and 17 seams exist; Phase 16 does not create a parallel queue, studio, or provider binding.
+Phase 16 owns policy, enrollment, candidate derivation, and pledge/source eligibility. Phase 17 owns governed message content, locale resolution, sender profiles, and reply purposes. Phase 6 owns intent, consent/suppression, dispatch, events, and delivery. Phase 25 consumes the same preference. Actual sends remain blocked until required Phase 6 and 17 seams exist; Phase 16 does not create a parallel queue, studio, or provider binding.
 
 The old `scheduled_gift_reminder` transactional literal is not authority. Fixed-total pledge reminders use an explicit campaign-commitment stewardship/fundraising purpose and the stricter consent gate unless later governing policy proves otherwise.
 
@@ -1309,15 +1313,46 @@ Staff see one compact reminder block and a **Needs attention** list containing o
 All names below are the canonical build target. Phase 13 forward names `commitment_groups` and `recurring_commitments` are retained but their old one-subscription-per-line and six-state semantics are superseded. Every Phase 16-owned table follows these rules unless a stricter rule is stated:
 
 - UUID primary key generated server-side; `tenant_id uuid NOT NULL` with no default.
-- Parent tables declare `UNIQUE (id, tenant_id)`; every tenant-owned reference uses a composite same-tenant FK such as `(child_id, tenant_id) → (id, tenant_id)`.
+- Every independently authoritative financial/provider root also carries
+  immutable `legal_entity_id uuid NOT NULL` with no default. A tenant default
+  may prefill a draft only; create/apply fails if the exact entity is absent.
+- Parent financial tables declare
+  `UNIQUE (id, tenant_id, legal_entity_id)`; every financial child repeats
+  `legal_entity_id` and uses a composite same-Tenant/same-entity FK such as
+  `(child_id, tenant_id, legal_entity_id) → (id, tenant_id, legal_entity_id)`.
+  Equality is enforced structurally, never inferred at query time.
+- Every provider-scoped root additionally freezes
+  `settlement_account_binding_id`, provider account, and environment/mode. The
+  binding must be effective for the same Tenant and Legal Entity at the
+  command's financial boundary; reconnect or later default changes never
+  rewrite it.
 - `created_at`, `created_by`, `request_id`, and aggregate revision/provenance where applicable; authoritative business dates are separately named.
 - money is signed or nonnegative `bigint` integer minor units plus ISO currency; no floating-point money.
 - civil schedule dates are Postgres `date`; execution/provider facts are `timestamptz`; every civil calculation also binds an IANA zone and schedule-rule version.
 - FORCE RLS where table exposure is appropriate; deny-by-default policies use the active server-resolved tenant and capability. Internal journals/evidence are revoked from the Data API and reachable only through SECURITY DEFINER/service functions with explicit tenant and capability checks.
 - no raw PAN, CVV, bank routing/account number, mandate document, or provider secret; store token/reference IDs, safe display metadata, and restricted evidence references only.
 - authoritative journals are append-only with BEFORE UPDATE/DELETE denial except an explicitly documented soft-retire/projection maintenance path. Corrections append superseding/inverse facts.
-- tenant/account/mode/semantic identities are included in unique/idempotency keys; no unscoped cache, worker, outbox, or provider lookup.
+- Tenant/Legal-Entity/Settlement-Account-Binding/account/mode/semantic
+  identities are included in unique/idempotency keys; no unscoped cache,
+  worker, outbox, or provider lookup.
 - all server-created timestamps use the database clock. Effective commands also store the caller's displayed civil date/zone and the resolver version.
+
+The independently authoritative roots covered by this rule are, at minimum:
+`commitment_groups`, `recurring_commitments`, `recurring_billing_cohorts`,
+`recurring_occurrences`, `recurring_collection_attempts`,
+`payment_credential_lineages`, `recurring_authorization_terms`,
+`recurring_executor_bindings`, `commitment_commands`,
+`commitment_provider_operations`, `card_failure_episodes`,
+`card_recovery_incidents`, `ach_authorization_lineages`,
+`ach_recovery_grants`, `provider_control_evidence`,
+`provider_control_incidents`, `provider_control_snapshots`,
+`fixed_total_pledges`, `commitment_fulfillment_targets`, and
+`commitment_fulfillment_operations`. Their version/event/line children repeat
+the entity and prove equality through composite FKs. This is a finite scope
+column and constraint, not a second aggregate or permission system.
+Any later “Key columns” list is additive to these O.1 scope columns; omission
+of a repeated `legal_entity_id`, or of a Settlement Account Binding on a
+provider-scoped child, does not make that scope nullable or inferable.
 
 ### O.2 Tenant schedule, recovery, and review policy
 
@@ -1349,44 +1384,44 @@ This bounded, append-only policy governs only when a manual/external recurring o
 
 #### `commitment_groups`
 
-Key columns: `id`, `tenant_id`, `commitment_party_id`, `currency`, `legal_payer_context_hash`, `collection_authorizer_context_hash`, `display_reference`, `origin`, `created_at`, `created_by`, `revision`, `superseded_by_group_id`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `commitment_party_id`, `currency`, `legal_payer_context_hash`, `collection_authorizer_context_hash`, `display_reference`, `origin`, `created_at`, `created_by`, `revision`, `superseded_by_group_id`.
 
-This is the donor-facing grouping object only. It stores no cached total, universal status, provider subscription ID, method ID, or inferred grouping key. All lines share Party, currency, legal payer context, and a compatible collection-authorizer context; a mismatch creates another group. `collection_authorizer_context_hash` is a frozen grouping-integrity snapshot, never authorization. Exact financial authority remains in `recurring_authorization_terms` and the D14 evidence chain. Index `(tenant_id, commitment_party_id, created_at desc, id)`.
+This is the donor-facing grouping object only. It stores no cached total, universal status, provider subscription ID, method ID, or inferred grouping key. All lines share Legal Entity, Party, currency, legal payer context, and a compatible collection-authorizer context; a mismatch creates another group. `collection_authorizer_context_hash` is a frozen grouping-integrity snapshot, never authorization. Exact financial authority remains in `recurring_authorization_terms` and the D14 evidence chain. Index `(tenant_id, legal_entity_id, commitment_party_id, created_at desc, id)`.
 
 #### `recurring_commitments`
 
-One stable row per independently manageable destination line. Key columns: `id`, `tenant_id`, `commitment_group_id`, `intent_state`, `original_creation_at`, `original_anchor_date`, `current_term_version_id`, `current_schedule_epoch_id`, `current_revision`, `superseded_by_line_id`.
+One stable row per independently manageable destination line. Key columns: `id`, `tenant_id`, `legal_entity_id`, `commitment_group_id`, `intent_state`, `original_creation_at`, `original_anchor_date`, `current_term_version_id`, `current_schedule_epoch_id`, `current_revision`, `superseded_by_line_id`.
 
 Constraints:
 
 - original creation/anchor immutable;
-- same-tenant Party/group/current-term/current-epoch references;
+- same-Tenant/same-Legal-Entity Party/group/current-term/current-epoch references;
 - no provider customer/subscription/item or payment-method columns on this business line;
 - valid intent states only: `pending_activation`, `ongoing`, `paused`, `cancellation_requested`, `canceled`, `ended_as_scheduled`, `superseded`;
 - `intent_state` and current pointers are revision/CAS projections; immutable term versions, schedule epochs, pause events, commands, and evidence remain authoritative;
-- index `(tenant_id, commitment_group_id, id)` and partial index over live intent states.
+- index `(tenant_id, legal_entity_id, commitment_group_id, id)` and partial index over live intent states.
 
 #### `recurring_commitment_term_versions`
 
-Key columns: `id`, `tenant_id`, `recurring_commitment_id`, `version`, `designation_id`, `amount_minor`, `currency`, `cadence_code`, `collection_arrangement` (`provider_automatic|manual_external`), `optional_final_eligible_date`, `recurring_policy_version_id`, `site_id`, nullable `source_code_id`, `entry_method`, `captured_locale`, `source_code_snapshot_hash`, `fee_cover_election`, `fee_cover_policy_version_id`, `fee_cover_terms_snapshot_hash`, `effective_from_occurrence_date`, nullable `effective_to_occurrence_date`, `supersedes_term_version_id`, `created_by_command_id`, `created_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `recurring_commitment_id`, `version`, `designation_id`, `amount_minor`, `currency`, `cadence_code`, `collection_arrangement` (`provider_automatic|manual_external`), `optional_final_eligible_date`, `recurring_policy_version_id`, `site_id`, nullable `source_code_id`, `entry_method`, `captured_locale`, `source_code_snapshot_hash`, `fee_cover_election`, `fee_cover_policy_version_id`, `fee_cover_terms_snapshot_hash`, `effective_from_occurrence_date`, nullable `effective_to_occurrence_date`, `supersedes_term_version_id`, `created_by_command_id`, `created_at`.
 
-Unique `(tenant_id, recurring_commitment_id, version)` and one effective version per line/date. Amount is positive; currency and cadence use closed validated vocabularies. Composite same-tenant FKs bind the line, designation, site, source code, policy, and command. The source-code snapshot remains frozen even after retirement, campaign attribution continues to derive through that source code rather than a second mutable campaign field, and the fee-cover election/policy is re-evaluated for the actual rail on every occurrence without silently changing donor terms. Amount, destination, cadence, arrangement, end boundary, attribution, or fee-cover changes append a prospective version; no historical revision is overwritten.
+Unique `(tenant_id, legal_entity_id, recurring_commitment_id, version)` and one effective version per line/date. Amount is positive; currency and cadence use closed validated vocabularies. Composite same-Tenant/same-Legal-Entity FKs bind the line, designation, site, source code, policy, and command; the designation must belong to the same Legal Entity. The source-code snapshot remains frozen even after retirement, campaign attribution continues to derive through that source code rather than a second mutable campaign field, and the fee-cover election/policy is re-evaluated for the actual rail on every occurrence without silently changing donor terms. Amount, destination, cadence, arrangement, end boundary, attribution, or fee-cover changes append a prospective version; no historical revision is overwritten.
 
 #### `recurring_billing_cohorts`
 
-Key columns: `id`, `tenant_id`, `commitment_group_id`, `collection_arrangement` (`provider_automatic|manual_external`), nullable `connected_account_id`, nullable `livemode`, nullable `rail` (`card|ach`), nullable `merchant_scope_hash`, `currency`, nullable `current_authorization_terms_id`, `schedule_compatibility_hash`, `collection_behavior_version`, `current_schedule_version_id`, `current_revision`, `retired_at`, `retired_reason`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `commitment_group_id`, `collection_arrangement` (`provider_automatic|manual_external`), nullable `settlement_account_binding_id`, nullable `connected_account_id`, nullable `livemode`, nullable `rail` (`card|ach`), nullable `merchant_scope_hash`, `currency`, nullable `current_authorization_terms_id`, `schedule_compatibility_hash`, `collection_behavior_version`, `current_schedule_version_id`, `current_revision`, `retired_at`, `retired_reason`.
 
-The compatibility hash is an integrity aid, not authority; the server recomputes the full predicate. A cohort is the one logical collection unit and owns one or more explicit execution legs: exactly one for ordinary cadences and exactly two for twice-monthly. It never stores a single executor/subscription slot. Provider-automatic cohorts require account/mode/rail and a non-null composite same-tenant FK from `current_authorization_terms_id` to `recurring_authorization_terms`, plus one live binding per leg. The pointer is revision/CAS convenience only; immutable terms history remains authoritative. Manual/external cohorts require those provider fields, the authorization pointer, and bindings to be null; they reuse schedule/occurrence/fulfillment truth and never receive a fake executor/retry engine. Unique live cohort identity is tenant-scoped and cannot merge across groups merely because donor/method match.
+The compatibility hash is an integrity aid, not authority; the server recomputes the full predicate including exact Legal Entity and Settlement Account Binding. A cohort is the one logical collection unit and owns one or more explicit execution legs: exactly one for ordinary cadences and exactly two for twice-monthly. It never stores a single executor/subscription slot. Provider-automatic cohorts require binding/account/mode/rail and a non-null composite same-Tenant/same-Legal-Entity FK from `current_authorization_terms_id` to `recurring_authorization_terms`, plus one live binding per leg. The pointer is revision/CAS convenience only; immutable terms history remains authoritative. Manual/external cohorts require those provider fields, the authorization pointer, and bindings to be null; they reuse schedule/occurrence/fulfillment truth and never receive a fake executor/retry engine. Unique live cohort identity is Tenant-and-Legal-Entity scoped and cannot merge across groups merely because donor/method match.
 
 #### `recurring_cohort_memberships`
 
-Key columns: `id`, `tenant_id`, `billing_cohort_id`, `recurring_commitment_id`, `line_term_version_id`, `line_schedule_epoch_id`, `cohort_schedule_version_id`, `effective_from_occurrence_date`, `effective_to_occurrence_date`, `reason`, `command_id`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `billing_cohort_id`, `recurring_commitment_id`, `line_term_version_id`, `line_schedule_epoch_id`, `cohort_schedule_version_id`, `effective_from_occurrence_date`, `effective_to_occurrence_date`, `reason`, `command_id`.
 
 Half-open effective ranges, append-only. An exclusion/transaction constraint prevents a line from belonging to two live cohorts over the same occurrence-date range; both twice-monthly legs remain inside the one cohort membership. Index by `(tenant_id, recurring_commitment_id, effective_from_occurrence_date desc)` and `(tenant_id, billing_cohort_id, effective_from_occurrence_date)`.
 
 #### `recurring_schedule_epochs`
 
-Key columns: `id`, `tenant_id`, `recurring_commitment_id`, `epoch_number`, `cadence_code`, `anchor_date`, `giving_timezone`, `tzdb_version`, `resolver_version`, `effective_after_occurrence_id`, `effective_from_date`, `final_eligible_date`, `terms_snapshot_hash`, `created_by_command_id`, `created_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `recurring_commitment_id`, `epoch_number`, `cadence_code`, `anchor_date`, `giving_timezone`, `tzdb_version`, `resolver_version`, `effective_after_occurrence_id`, `effective_from_date`, `final_eligible_date`, `terms_snapshot_hash`, `created_by_command_id`, `created_at`.
 
 Unique `(tenant_id, recurring_commitment_id, epoch_number)`. Immutable. The original epoch is 1. Changes append epochs; historical dates never rewrite.
 
@@ -1406,7 +1441,7 @@ This immutable version is the executable schedule shared by compatible member-li
 
 #### `recurring_execution_legs`
 
-Key columns: `id`, `tenant_id`, `billing_cohort_id`, `cohort_schedule_version_id`, `leg_code`, `ordinal`, `effective_from`, `effective_to`, `created_by_command_id`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `billing_cohort_id`, `cohort_schedule_version_id`, `leg_code`, `ordinal`, `effective_from`, `effective_to`, `created_by_command_id`.
 
 Ordinary cadences have exactly one `primary` leg. Twice-monthly has exactly `day_1` and `day_15` legs. Unique per cohort schedule version/leg code. Each provider-automatic leg receives its own executor binding/subscription and exact item-per-participating-line bindings. A manual/external leg has no provider binding and exists only to preserve its truthful expected-date/fulfillment grain. A leg is execution structure, not another donor-visible line or group/cohort.
 
@@ -1414,87 +1449,87 @@ Ordinary cadences have exactly one `primary` leg. Twice-monthly has exactly `day
 
 #### `recurring_occurrences`
 
-One business schedule occurrence per logical cohort execution-leg slot or initial per-cohort attempt. For provider-automatic collection it is the reconciliation grain for the provider's ordinary renewal or an explicitly product-triggered payment; for manual/external collection it is an expectation/fulfillment grain and never implies a provider attempt. Key columns: `id`, `tenant_id`, `occurrence_semantic_key`, `billing_cohort_id`, `cohort_schedule_version_id`, `collection_arrangement_snapshot`, `occurrence_kind` (`scheduled|initial_out_of_series`), nullable `execution_leg_id`, nullable `execution_leg_code`, nullable `initial_checkout_command_id`, nullable `initial_execution_mode` (`executor_invoice|product_triggered`), `scheduled_for date`, nullable `review_policy_version_id`, nullable `review_basis` (`mailed_manual|hand_delivery_cash|structured_feed`), nullable `review_basis_evidence_ref`, nullable `structured_source_version_id`, nullable `structured_source_sla_snapshot_hash`, nullable `review_after_at timestamptz`, nullable `review_timezone`, nullable `review_resolver_version`, `giving_timezone`, `resolved_window_start`, `resolved_window_end`, `execution_state` (`planned|suppressed|claiming|submitted|closed`), nullable `closure_reason`, `execution_state_cursor`, nullable `suppression_reason`, nullable `product_trigger_command_id`, nullable `connected_account_id`, nullable `livemode`, nullable `provider_invoice_id`, nullable `current_payment_state` (`processing|succeeded|failed|action_required|indeterminate|reversed`), nullable `payment_state_cursor`, nullable `finalized_at`, `updated_at`, `revision`.
+One business schedule occurrence per logical cohort execution-leg slot or initial per-cohort attempt. For provider-automatic collection it is the reconciliation grain for the provider's ordinary renewal or an explicitly product-triggered payment; for manual/external collection it is an expectation/fulfillment grain and never implies a provider attempt. Key columns: `id`, `tenant_id`, `legal_entity_id`, `occurrence_semantic_key`, `billing_cohort_id`, `cohort_schedule_version_id`, `collection_arrangement_snapshot`, `occurrence_kind` (`scheduled|initial_out_of_series`), nullable `execution_leg_id`, nullable `execution_leg_code`, nullable `initial_checkout_command_id`, nullable `initial_execution_mode` (`executor_invoice|product_triggered`), `scheduled_for date`, nullable `review_policy_version_id`, nullable `review_basis` (`mailed_manual|hand_delivery_cash|structured_feed`), nullable `review_basis_evidence_ref`, nullable `structured_source_version_id`, nullable `structured_source_sla_snapshot_hash`, nullable `review_after_at timestamptz`, nullable `review_timezone`, nullable `review_resolver_version`, `giving_timezone`, `resolved_window_start`, `resolved_window_end`, `execution_state` (`planned|suppressed|claiming|submitted|closed`), nullable `closure_reason`, `execution_state_cursor`, nullable `suppression_reason`, nullable `product_trigger_command_id`, nullable `settlement_account_binding_id`, nullable `connected_account_id`, nullable `livemode`, nullable `provider_invoice_id`, nullable `current_payment_state` (`processing|succeeded|failed|action_required|indeterminate|reversed`), nullable `payment_state_cursor`, nullable `finalized_at`, `updated_at`, `revision`.
 
-A scheduled occurrence requires an execution leg and stable leg code. Its stored semantic key is deterministically derived from tenant, cohort, scheduled kind, stable leg code, and civil scheduled date and is globally unique within the tenant; schedule-version changes therefore cannot materialize the same business slot twice. A future-start/off-slot immediate payment-backed gift is `initial_out_of_series`, has no execution leg, and derives its unique key from tenant, initial checkout command, and cohort. Thus one checkout creates exactly one initial occurrence/provider attempt per disclosed automatic cohort, never per line or per twice-monthly leg. `initial_execution_mode` is required exactly when `initial_checkout_command_id` is present and is otherwise null; it freezes which mutually exclusive owner may create that attempt. Execution state answers whether the named occurrence was planned, fenced, claimed, submitted, or closed; payment state separately folds immutable attempt/provider evidence and never re-anchors the schedule. Posted/received money remains the independent Phase 13 contribution fold. `closure_reason` is a closed, evidence-derived outcome such as `succeeded`, `missed`, `reversed`, `manual_fulfilled`, `ended`, or `superseded`, not a payment-status substitute. Manual/external occurrences require a composite same-tenant `review_policy_version_id` FK, a closed review basis with evidence, and a frozen, reconstructable policy-derived `review_after_at`, timezone, and resolver version; structured-feed rows additionally require an approved same-tenant structured-source-version FK and source-specific SLA snapshot. Provider-automatic occurrences require every review field null and carry immutable account/mode scope whenever a provider invoice ID is present; `(tenant_id, connected_account_id, livemode, provider_invoice_id)` is unique when present. Manual/external occurrences retain null payment state and derive Expected/Past expected/Fulfilled review truth from schedule plus D11/D12; they cannot enter claiming/submitted or receive a provider attempt without a prospective, freshly authorized collection-arrangement supersession. A `missed` closure is terminal except a late event proving a pre-closure attempt; that correction is explicit and exactly-once.
+A scheduled occurrence requires an execution leg and stable leg code. Its stored semantic key is deterministically derived from Tenant, Legal Entity, cohort, scheduled kind, stable leg code, and civil scheduled date and is globally unique within that entity; schedule-version changes therefore cannot materialize the same business slot twice. A future-start/off-slot immediate payment-backed gift is `initial_out_of_series`, has no execution leg, and derives its unique key from Tenant, Legal Entity, initial checkout command, and cohort. Thus one checkout creates exactly one initial occurrence/provider attempt per disclosed automatic cohort, never per line or per twice-monthly leg. `initial_execution_mode` is required exactly when `initial_checkout_command_id` is present and is otherwise null; it freezes which mutually exclusive owner may create that attempt. Execution state answers whether the named occurrence was planned, fenced, claimed, submitted, or closed; payment state separately folds immutable attempt/provider evidence and never re-anchors the schedule. Posted/received money remains the independent Phase 13 contribution fold. `closure_reason` is a closed, evidence-derived outcome such as `succeeded`, `missed`, `reversed`, `manual_fulfilled`, `ended`, or `superseded`, not a payment-status substitute. Manual/external occurrences require a composite same-Tenant `review_policy_version_id` FK, preserve the occurrence's exact Legal Entity, and carry a closed review basis with evidence plus a frozen, reconstructable policy-derived `review_after_at`, timezone, and resolver version; structured-feed rows additionally require an approved same-Tenant/same-Legal-Entity structured-source-version FK and source-specific SLA snapshot. Provider-automatic occurrences require every review field null and carry immutable Settlement-Account-Binding/account/mode scope whenever a provider invoice ID is present; `(tenant_id, legal_entity_id, settlement_account_binding_id, connected_account_id, livemode, provider_invoice_id)` is unique when present. Manual/external occurrences retain null payment state and derive Expected/Past expected/Fulfilled review truth from schedule plus D11/D12; they cannot enter claiming/submitted or receive a provider attempt without a prospective, freshly authorized collection-arrangement supersession. A `missed` closure is terminal except a late event proving a pre-closure attempt; that correction is explicit and exactly-once.
 
 Indexes: due claim `(tenant_id, execution_state, resolved_window_start, id)`; reconciliation `(tenant_id, current_payment_state, updated_at)`; cohort history `(tenant_id, billing_cohort_id, scheduled_for desc, id)`.
 
 #### `recurring_occurrence_lines`
 
-Immutable snapshot rows: `id`, `tenant_id`, `occurrence_id`, `recurring_commitment_id`, `line_term_version_id`, `designation_id`, `amount_minor`, `currency`, `site_id`, nullable `source_code_id`, `entry_method`, `captured_locale`, `source_code_snapshot_hash`, `fee_cover_election`, `fee_cover_policy_version_id`, `fee_cover_terms_snapshot_hash`, `fulfillment_target_id`.
+Immutable snapshot rows: `id`, `tenant_id`, `legal_entity_id`, `occurrence_id`, `recurring_commitment_id`, `line_term_version_id`, `designation_id`, `amount_minor`, `currency`, `site_id`, nullable `source_code_id`, `entry_method`, `captured_locale`, `source_code_snapshot_hash`, `fee_cover_election`, `fee_cover_policy_version_id`, `fee_cover_terms_snapshot_hash`, `fulfillment_target_id`.
 
 Unique `(tenant_id, occurrence_id, recurring_commitment_id)`. Sum of line amounts must equal cohort occurrence amount, enforced by the occurrence creation command and reconciliation, not only a CHECK. A shared-cohort attempt outcome applies to every snapshotted line; role projections filter lines before aggregation. Contribution generation copies the frozen site/entry/source/designation/locale attribution from these rows and recomputes the accepted fee-cover election for the actual rail under the pinned policy; it never re-reads mutable checkout attribution.
 
 #### `recurring_collection_attempts`
 
-Key columns: `id`, `tenant_id`, `occurrence_id`, nullable `retry_slot_id`, nullable `product_command_id`, nullable `commitment_provider_operation_id`, `connected_account_id`, `livemode`, nullable `provider_operation_id`, `execution_source` (`provider_renewal|provider_executor_initial|product_triggered`), `attempt_kind` (`ordinary|initial|accelerated|donor_present|ach_proof_gated`), nullable `product_attempted_at`, nullable `provider_accepted_at`, `outcome`, `advice_scope`, `provider_code`, `indeterminate_at`, `resolved_at`, `raw_evidence_ref`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `occurrence_id`, nullable `retry_slot_id`, nullable `product_command_id`, nullable `commitment_provider_operation_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, nullable `provider_operation_id`, `execution_source` (`provider_renewal|provider_executor_initial|product_triggered`), `attempt_kind` (`ordinary|initial|accelerated|donor_present|ach_proof_gated`), nullable `product_attempted_at`, nullable `provider_accepted_at`, `outcome`, `advice_scope`, `provider_code`, `indeterminate_at`, `resolved_at`, `raw_evidence_ref`.
 
-Unique provider operation identities include tenant/account/mode, enforced directly on immutable snapshot columns and checked against the occurrence/binding scope. Attempts are append-only. An ordinary provider renewal is ingested/reconciled from verified provider evidence, has no product-trigger timestamp, and may have no Phase 16 command/operation child. An initial executor-invoice attempt references the exact `provision_executor` operation that created its charge-owning leg. A product-triggered attempt requires one composite same-tenant/account/mode `commitment_provider_operation_id` whose kind is `create_payment` or `retry_payment`. One provider-operation child may have infrastructure delivery retries but at most one provider authorization attempt. Manual/external occurrences have no attempt rows. Raw evidence remains restricted.
+Unique provider operation identities include Tenant/Legal-Entity/Settlement-Account-Binding/account/mode, enforced directly on immutable snapshot columns and checked against the occurrence/binding scope. Attempts are append-only. An ordinary provider renewal is ingested/reconciled from verified provider evidence, has no product-trigger timestamp, and may have no Phase 16 command/operation child. An initial executor-invoice attempt references the exact `provision_executor` operation that created its charge-owning leg. A product-triggered attempt requires one composite same-Tenant/same-Legal-Entity/binding/account/mode `commitment_provider_operation_id` whose kind is `create_payment` or `retry_payment`. One provider-operation child may have infrastructure delivery retries but at most one provider authorization attempt. Manual/external occurrences have no attempt rows. Raw evidence remains restricted.
 
 #### `recurring_network_attempt_evidence`
 
-Key columns: `id`, `tenant_id`, `attempt_id`, `connected_account_id`, `livemode`, `payment_credential_lineage_id`, `network_sent_at`, `network_reference_hash`, `source`, `confidence`, `reconciled_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `attempt_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `payment_credential_lineage_id`, `network_sent_at`, `network_reference_hash`, `source`, `confidence`, `reconciled_at`.
 
-Unique when a stable network reference exists. The lineage FK is composite and same-tenant/account/mode, and must resolve to `rail=card` for card network evidence. Used for the rolling ceiling; product-attempt and network-sent counts remain separate.
+Unique when a stable network reference exists. The lineage FK is composite and same-Tenant/same-Legal-Entity/binding/account/mode, and must resolve to `rail=card` for card network evidence. Used for the rolling ceiling; product-attempt and network-sent counts remain separate.
 
 ### O.5 Authorization, provider executor, and command journals
 
 #### `payment_credential_lineages`
 
-Key columns: `id`, `tenant_id`, `connected_account_id`, `livemode`, `rail` (`card|ach`), `durable_lineage_hash`, `lineage_source`, `confidence`, `state`, `created_at`, nullable `superseded_by_id`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `rail` (`card|ach`), `durable_lineage_hash`, `lineage_source`, `confidence`, `state`, `created_at`, nullable `superseded_by_id`.
 
-This is the processor/network-proven identity used for attempt pressure, failure episodes, and credential replacement safety. It is not collection authorization and grants no payment right. Unique `(tenant_id, connected_account_id, livemode, rail, durable_lineage_hash)`; all inbound references use composite same-tenant/account/mode FKs. Token or method-reference rotation remains in the same lineage only when processor/network evidence proves continuity. Otherwise it creates a new lineage; a token ID, masked digits, note, or staff assertion alone can neither merge nor reset a lineage.
+This is the processor/network-proven identity used for attempt pressure, failure episodes, and credential replacement safety. It is not collection authorization and grants no payment right. Unique `(tenant_id, legal_entity_id, settlement_account_binding_id, connected_account_id, livemode, rail, durable_lineage_hash)`; all inbound references use composite same-Tenant/same-Legal-Entity/binding/account/mode FKs. Token or method-reference rotation remains in the same lineage only when processor/network evidence proves continuity. Otherwise it creates a new lineage; a token ID, masked digits, note, or staff assertion alone can neither merge nor reset a lineage.
 
 #### `recurring_authorization_terms`
 
-Key columns: `id`, `tenant_id`, `commitment_group_id`, `commitment_party_id`, `financial_authorizer_party_id`, `connected_account_id`, `livemode`, `rail`, `payment_credential_lineage_id`, `provider_method_ref`, `masked_method`, `terms_schema_version`, `terms_version`, `terms_hash`, `amount_rule` (`fixed_per_occurrence|bounded_variable`), nullable `authorized_amount_minor`, nullable `authorized_amount_cap_minor`, `currency`, `cadence_code`, `anchor_date`, `first_continuing_date`, nullable `final_eligible_date`, `giving_timezone_snapshot`, `merchant_identity_snapshot_hash`, `merchant_scope_hash`, `line_allocation_snapshot_hash`, `retry_recovery_terms_version`, `future_use_purpose_code`, `cancellation_terms_version`, `notice_bundle_version`, `authorization_source`, `evidence_ref`, `accepted_at`, `effective_from`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `commitment_group_id`, `commitment_party_id`, `financial_authorizer_party_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `rail`, `payment_credential_lineage_id`, `provider_method_ref`, `masked_method`, `terms_schema_version`, `terms_version`, `terms_hash`, `amount_rule` (`fixed_per_occurrence|bounded_variable`), nullable `authorized_amount_minor`, nullable `authorized_amount_cap_minor`, `currency`, `cadence_code`, `anchor_date`, `first_continuing_date`, nullable `final_eligible_date`, `giving_timezone_snapshot`, `merchant_identity_snapshot_hash`, `merchant_scope_hash`, `line_allocation_snapshot_hash`, `retry_recovery_terms_version`, `future_use_purpose_code`, `cancellation_terms_version`, `notice_bundle_version`, `authorization_source`, `evidence_ref`, `accepted_at`, `effective_from`.
 
-This is the collection-authority lineage, not Party ownership or credential identity. The credential and group FKs are composite and must match tenant/account/mode/rail/Party. Closed-schema validation requires exactly one fixed amount or bounded cap rule and retains the exact schedule, merchant/application, destinations, future-use, retry/recovery, cancellation, and notice terms the authorizer accepted. Terms/evidence are immutable. Material change creates fresh terms and a supersession event; revocation/expiry never updates the accepted record. Unique `(tenant_id, terms_hash, financial_authorizer_party_id, connected_account_id, livemode)` only prevents replay of the exact acceptance; it does not merge agreements.
+This is the collection-authority lineage, not Party ownership or credential identity. The credential and group FKs are composite and must match Tenant/Legal-Entity/Settlement-Account-Binding/account/mode/rail/Party. Closed-schema validation requires exactly one fixed amount or bounded cap rule and retains the exact schedule, merchant/application, destinations, future-use, retry/recovery, cancellation, and notice terms the authorizer accepted. Terms/evidence are immutable. Material change creates fresh terms and a supersession event; revocation/expiry never updates the accepted record. Unique `(tenant_id, legal_entity_id, settlement_account_binding_id, terms_hash, financial_authorizer_party_id, connected_account_id, livemode)` only prevents replay of the exact acceptance; it does not merge agreements.
 
 #### `recurring_authorization_term_events`
 
-Key columns: `id`, `tenant_id`, `authorization_terms_id`, `event_type` (`revoked|expired|superseded`), `effective_at`, nullable `successor_authorization_terms_id`, `reason_code`, `evidence_ref`, `commitment_command_id`, `created_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `authorization_terms_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `event_type` (`revoked|expired|superseded`), `effective_at`, nullable `successor_authorization_terms_id`, `reason_code`, `evidence_ref`, `commitment_command_id`, `created_at`.
 
-Events are append-only and composite same-tenant/account/mode scoped through their terms. `superseded` requires a distinct successor terms record; revoked/expired forbid one. Unique semantic event identity prevents double termination. Current authorization is a fold over accepted terms plus these events, never a mutable status or timestamp on the accepted evidence.
+Events are append-only and composite same-Tenant/same-Legal-Entity/binding/account/mode scoped through their terms. `superseded` requires a distinct successor terms record; revoked/expired forbid one. Unique semantic event identity prevents double termination. Current authorization is a fold over accepted terms plus these events, never a mutable status or timestamp on the accepted evidence.
 
 #### `recurring_executor_bindings`
 
-Key columns: `id`, `tenant_id`, `execution_leg_id`, `billing_cohort_id`, `connected_account_id`, `livemode`, `rail`, `connection_epoch`, `connect_application_id`, `ownership_state`, `charge_architecture`, `merchant_id`, `on_behalf_of_account_id`, `transfer_destination_account_id`, `provider_customer_id`, `provider_subscription_id`, `provider_schedule_id`, `authorization_terms_id`, `last_trusted_event_id`, `last_reconciled_at`, `binding_revision`, `effective_from`, `effective_to`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `execution_leg_id`, `billing_cohort_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `rail`, `connection_epoch`, `connect_application_id`, `ownership_state`, `charge_architecture`, `merchant_id`, `on_behalf_of_account_id`, `transfer_destination_account_id`, `provider_customer_id`, `provider_subscription_id`, `provider_schedule_id`, `authorization_terms_id`, `last_trusted_event_id`, `last_reconciled_at`, `binding_revision`, `effective_from`, `effective_to`.
 
-Unique provider object identities are scoped by account+mode, for example `(connected_account_id, livemode, provider_subscription_id)`. A second live executor for one execution leg is prohibited. An ordinary cohort therefore has one live binding; a twice-monthly cohort has two, one per leg. At every effective boundary, the binding's `authorization_terms_id` must equal the cohort's current authorization-terms pointer, and the binding, cohort, terms, and credential lineage must agree on tenant, account, mode, rail, merchant scope, and currency. Composite FKs plus the command finalizer enforce equality; a hash or application assertion is not enough. Bindings are append-only epochs; reconnect does not edit the old proof.
+Unique provider object identities are scoped by Legal Entity + Settlement Account Binding + account + mode, for example `(tenant_id, legal_entity_id, settlement_account_binding_id, connected_account_id, livemode, provider_subscription_id)`. A second live executor for one execution leg is prohibited. An ordinary cohort therefore has one live binding; a twice-monthly cohort has two, one per leg. At every effective boundary, the binding's `authorization_terms_id` must equal the cohort's current authorization-terms pointer, and the binding, cohort, terms, credential lineage, and Settlement Account Binding must agree on Tenant, Legal Entity, account, mode, rail, merchant scope, and currency. Composite FKs plus the command finalizer enforce equality; a hash or application assertion is not enough. Bindings are append-only epochs; reconnect does not edit the old proof.
 
 #### `recurring_executor_line_bindings`
 
-Key columns: `id`, `tenant_id`, `executor_binding_id`, `execution_leg_id`, `recurring_commitment_id`, `line_term_version_id`, `connected_account_id`, `livemode`, `provider_subscription_item_id`, `provider_price_id`, `effective_from`, `effective_to`, `last_verified_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `executor_binding_id`, `execution_leg_id`, `recurring_commitment_id`, `line_term_version_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `provider_subscription_item_id`, `provider_price_id`, `effective_from`, `effective_to`, `last_verified_at`.
 
-Unique live item per line per execution leg and unique live line per item, both scoped directly by tenant/account/mode and checked against the parent executor binding. Twice-monthly therefore has two item bindings for each participating business line, one under each leg/subscription. All provider mutations resolve by this exact binding; no code may use an array ordinal or `items[0]`.
+Unique live item per line per execution leg and unique live line per item, both scoped directly by Tenant/Legal-Entity/Settlement-Account-Binding/account/mode and checked against the parent executor binding. Twice-monthly therefore has two item bindings for each participating business line, one under each leg/subscription. All provider mutations resolve by this exact binding; no code may use an array ordinal or `items[0]`.
 
 #### `commitment_commands`
 
-Key columns: `id`, `tenant_id`, `command_type`, `request_id`, `idempotency_key`, `expected_revision`, `preview_token_hash`, `payload_version`, `requested_by_actor_id`, `instruction_actor_id`, `instruction_authority_ref`, `operator_capability_version`, nullable `authorization_terms_id`, `terms_snapshot_hash`, `state`, `effective_boundary`, `outcome_code`, `created_at`, `expires_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `command_type`, `request_id`, `idempotency_key`, `expected_revision`, `preview_token_hash`, `payload_version`, `requested_by_actor_id`, `instruction_actor_id`, `instruction_authority_ref`, `operator_capability_version`, `operator_legal_entity_scope_revision`, `operator_legal_entity_scope_hash`, nullable `authorization_terms_id`, `terms_snapshot_hash`, `state`, `effective_boundary`, `outcome_code`, `created_at`, `expires_at`.
 
 This shared envelope/journal records commands for both separate aggregates without merging their lifecycles. Unique `(tenant_id, idempotency_key, command_type)`. State: `requested`, `awaiting_authorization`, `authorized`, `applying`, `applied`, `provider_sync_failed`, `reconciling`, `reconciled`, `rejected`, `expired`, `indeterminate`. Command payload is a closed, versioned schema validated server-side and contains exact affected IDs; it never contains credentials. Structural subjects use the typed relation below rather than an unenforceable polymorphic ID. An applied recurring schedule command freezes a versioned, role-safe confirmation snapshot with exact effective terms, projected civil dates/resolved instants, in-flight non-effects, provider-sync result, and Phase 6 intent identity/status reference. Authorized GET responses rebuild from that frozen snapshot and monotonic provider/communication evidence; they never recalculate historical confirmation copy from current policy.
 
 #### `commitment_command_subjects`
 
-Key columns: `id`, `tenant_id`, `commitment_command_id`, `subject_kind` (`recurring_group|recurring_line|recurring_cohort|recurring_occurrence|card_recovery_incident|ach_recovery_grant|fixed_total_pledge|party|representative_authority|service_contact|expected_remitter|recurring_policy|review_policy|reminder_policy|provider_control_incident|contribution_designation_line|fulfillment_target|fulfillment_operation`), nullable `commitment_group_id`, nullable `recurring_commitment_id`, nullable `recurring_billing_cohort_id`, nullable `recurring_occurrence_id`, nullable `card_recovery_incident_id`, nullable `ach_recovery_grant_id`, nullable `fixed_total_pledge_id`, nullable `party_id`, nullable `representative_authority_id`, nullable `service_contact_id`, nullable `expected_remitter_id`, nullable `recurring_policy_version_id`, nullable `review_policy_version_id`, nullable `reminder_policy_version_id`, nullable `provider_control_incident_id`, nullable `contribution_designation_line_id`, nullable `fulfillment_target_id`, nullable `fulfillment_operation_id`, `relationship` (`primary|affected|created|superseded`).
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `commitment_command_id`, `subject_kind` (`recurring_group|recurring_line|recurring_cohort|recurring_occurrence|card_recovery_incident|ach_recovery_grant|fixed_total_pledge|party|representative_authority|service_contact|expected_remitter|recurring_policy|review_policy|reminder_policy|provider_control_incident|contribution_designation_line|fulfillment_target|fulfillment_operation`), nullable `commitment_group_id`, nullable `recurring_commitment_id`, nullable `recurring_billing_cohort_id`, nullable `recurring_occurrence_id`, nullable `card_recovery_incident_id`, nullable `ach_recovery_grant_id`, nullable `fixed_total_pledge_id`, nullable `party_id`, nullable `representative_authority_id`, nullable `service_contact_id`, nullable `expected_remitter_id`, nullable `recurring_policy_version_id`, nullable `review_policy_version_id`, nullable `reminder_policy_version_id`, nullable `provider_control_incident_id`, nullable `contribution_designation_line_id`, nullable `fulfillment_target_id`, nullable `fulfillment_operation_id`, `relationship` (`primary|affected|created|superseded`).
 
-Exactly one typed subject FK is non-null and matches `subject_kind`; every FK is composite same-tenant. Each command has exactly one `primary` subject and may have additional exact affected/created/superseded subjects. This permits Party-wide role commands and multi-line/cohort sagas without raw polymorphic references or trusting payload IDs for tenancy.
+Exactly one typed subject FK is non-null and matches `subject_kind`; every entity-bearing FK is composite same-Tenant/same-Legal-Entity, while Tenant-wide policy or Party subjects remain same-Tenant. Each command has exactly one `primary` subject and may have additional exact affected/created/superseded subjects. This permits Party-wide role commands and multi-line/cohort sagas without raw polymorphic references or trusting payload IDs for tenancy or entity scope.
 
 #### `commitment_provider_operations`
 
-Key columns: `id`, `tenant_id`, `commitment_command_id`, `operation_index`, `operation_kind` (`provision_executor|create_payment|retry_payment|update_executor|stop_executor|reconcile_executor|cutover_executor`), `target_kind` (`occurrence|execution_leg|executor_binding|executor_line_binding|provider_control_incident`), nullable `recurring_occurrence_id`, nullable `recurring_execution_leg_id`, nullable `recurring_executor_binding_id`, nullable `recurring_executor_line_binding_id`, nullable `provider_control_incident_id`, `connected_account_id`, `livemode`, `semantic_idempotency_key`, `provider_idempotency_key`, nullable `provider_operation_id`, `state` (`planned|claimed|submitted|accepted|indeterminate|succeeded|failed|reconciled`), nullable `evidence_ref`, `created_at`, `updated_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `commitment_command_id`, `operation_index`, `operation_kind` (`provision_executor|create_payment|retry_payment|update_executor|stop_executor|reconcile_executor|cutover_executor`), `target_kind` (`occurrence|execution_leg|executor_binding|executor_line_binding|provider_control_incident`), nullable `recurring_occurrence_id`, nullable `recurring_execution_leg_id`, nullable `recurring_executor_binding_id`, nullable `recurring_executor_line_binding_id`, nullable `provider_control_incident_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `semantic_idempotency_key`, `provider_idempotency_key`, nullable `provider_operation_id`, `state` (`planned|claimed|submitted|accepted|indeterminate|succeeded|failed|reconciled`), nullable `evidence_ref`, `created_at`, `updated_at`.
 
-Exactly one target FK is non-null, matches `target_kind`, and is composite same-tenant/account/mode where applicable. Unique `(tenant_id, commitment_command_id, operation_index)`, `(tenant_id, connected_account_id, livemode, semantic_idempotency_key)`, and scoped provider identity when present. Initial executor creation is one `provision_executor` operation per execution leg, targeted at that pre-existing leg because no executor binding exists yet. Its immutable payload references the exact cohort schedule version, authorization terms, initial-execution mode, and complete line-term/item plan for that leg; it never targets a fabricated future binding. A command may own several provider operations, but every operation has one permanent semantic identity and its own outcome/evidence. Attempts and executor mutations reference this row; the parent command never pretends one provider ID represents a multi-effect saga.
+Exactly one target FK is non-null, matches `target_kind`, and is composite same-Tenant/same-Legal-Entity/binding/account/mode where applicable. Unique `(tenant_id, legal_entity_id, commitment_command_id, operation_index)`, `(tenant_id, legal_entity_id, settlement_account_binding_id, connected_account_id, livemode, semantic_idempotency_key)`, and scoped provider identity when present. Initial executor creation is one `provision_executor` operation per execution leg, targeted at that pre-existing leg because no executor binding exists yet. Its immutable payload references the exact cohort schedule version, authorization terms, initial-execution mode, and complete line-term/item plan for that leg; it never targets a fabricated future binding. A command may own several provider operations, but every operation has one permanent semantic identity and its own outcome/evidence. Attempts and executor mutations reference this row; the parent command never pretends one provider ID represents a multi-effect saga.
 
 #### `commitment_command_events`
 
-Append-only events: `id`, `tenant_id`, `commitment_command_id`, `sequence`, `event_type`, `payload`, `evidence_ref`, `occurred_at`, `recorded_at`, `actor_id`. Unique command/sequence. Payloads are versioned and redacted. This is a domain-specific journal, not a platform-wide event-sourcing framework.
+Append-only events: `id`, `tenant_id`, `legal_entity_id`, `commitment_command_id`, `sequence`, `event_type`, `payload`, `evidence_ref`, `occurred_at`, `recorded_at`, `actor_id`. Unique command/sequence within the exact Tenant and Legal Entity. Payloads are versioned and redacted. This is a domain-specific journal, not a platform-wide event-sourcing framework.
 
 #### `recurring_authorization_challenges`
 
-Key columns: `id`, `tenant_id`, `commitment_command_id`, `intended_authorizer_party_id`, nullable `recipient_party_id`, nullable `recipient_contact_point_id`, `terms_version`, `terms_hash`, `purpose_code`, `delivery_channel` (`email|sms|qr|staff_present`), `token_hash`, `state` (`pending|viewed|accepted|declined|expired|superseded|consumed`), `expires_at`, nullable `superseded_by_id`, nullable `consumed_by_authorization_terms_id`, `created_at`, nullable `viewed_at`, nullable `accepted_at`, nullable `consumed_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `commitment_command_id`, `intended_authorizer_party_id`, nullable `recipient_party_id`, nullable `recipient_contact_point_id`, `terms_version`, `terms_hash`, `purpose_code`, `delivery_channel` (`email|sms|qr|staff_present`), `token_hash`, `state` (`pending|viewed|accepted|declined|expired|superseded|consumed`), `expires_at`, nullable `superseded_by_id`, nullable `consumed_by_authorization_terms_id`, `created_at`, nullable `viewed_at`, nullable `accepted_at`, nullable `consumed_at`.
 
 One challenge binds one exact current command, preview/revision, authorizer Party, frozen delivery recipient/contact point, and immutable terms hash. The recipient fields are delivery evidence, not authority; apply always re-proves the authorizer. Tokens are high-entropy, hash-stored, single-use, tenant/purpose bound, and scanner-safe: GET may display a read-only review but never accept terms; deliberate POST plus the required authentication/verification accepts. Any material edit, stale revision, expiry, authorizer mismatch, or supersession invalidates the challenge. Acceptance appends `recurring_authorization_terms`; it never lets staff proxy-consent or exposes credentials.
 
@@ -1502,19 +1537,19 @@ One challenge binds one exact current command, preview/revision, authorizer Part
 
 #### `card_failure_episodes`
 
-Key columns: `id`, `tenant_id`, `connected_account_id`, `livemode`, `payment_credential_lineage_id`, `trigger_occurrence_id`, `state` (`open|resolved`), `scheduled_cycles_consumed`, `current_cycle_number`, `opened_at`, nullable `resolved_at`, nullable `resolved_by`, nullable `reset_evidence_ref`, `policy_version_id`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `payment_credential_lineage_id`, `trigger_occurrence_id`, `state` (`open|resolved`), `scheduled_cycles_consumed`, `current_cycle_number`, `opened_at`, nullable `resolved_at`, nullable `resolved_by`, nullable `reset_evidence_ref`, `policy_version_id`.
 
-At most one open episode for a proven card credential lineage. The composite FK must resolve to `rail=card`. `scheduled_cycles_consumed` is 0–3; trigger is separate. Same-card token churn cannot change lineage/reset. Index `(tenant_id, connected_account_id, livemode, payment_credential_lineage_id, state)`.
+At most one open episode for a proven card credential lineage. The composite FK must resolve to `rail=card`. `scheduled_cycles_consumed` is 0–3; trigger is separate. Same-card token churn cannot change lineage/reset. Index `(tenant_id, legal_entity_id, settlement_account_binding_id, connected_account_id, livemode, payment_credential_lineage_id, state)`.
 
 #### `card_recovery_incidents`
 
-One exact occurrence incident: `id`, `tenant_id`, `failure_episode_id`, `occurrence_id`, `incident_role` (`trigger|scheduled_cycle|none`), nullable `cycle_number`, `policy_version_id`, `cadence_tier`, `next_ordinary_occurrence_id`, `connected_account_id`, `livemode`, nullable `provider_invoice_id`, `amount_minor`, `currency`, `state` (`recovering|succeeded|exhausted|suppressed|indeterminate`), `opened_at`, nullable `closed_at`, nullable `close_reason`.
+One exact occurrence incident: `id`, `tenant_id`, `legal_entity_id`, `failure_episode_id`, `occurrence_id`, `incident_role` (`trigger|scheduled_cycle|none`), nullable `cycle_number`, `policy_version_id`, `cadence_tier`, `next_ordinary_occurrence_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, nullable `provider_invoice_id`, `amount_minor`, `currency`, `state` (`recovering|succeeded|exhausted|suppressed|indeterminate`), `opened_at`, nullable `closed_at`, nullable `close_reason`.
 
-Unique `(tenant_id, occurrence_id)` and scoped provider invoice identity `(tenant_id, connected_account_id, livemode, provider_invoice_id)` where present. Cycle number null for trigger and 1–3 for later cycles. Opening a cycle incident consumes the episode entitlement even if slots later suppress.
+Unique `(tenant_id, legal_entity_id, occurrence_id)` and scoped provider invoice identity `(tenant_id, legal_entity_id, settlement_account_binding_id, connected_account_id, livemode, provider_invoice_id)` where present. Cycle number null for trigger and 1–3 for later cycles. Opening a cycle incident consumes the episode entitlement even if slots later suppress.
 
 #### `card_retry_slots`
 
-Key columns: `id`, `tenant_id`, `recovery_incident_id`, `slot_number`, `candidate_local_date`, `resolved_offset`, `not_before`, `expires_at`, `state`, `claimed_command_id`, `consumed_attempt_id`, `suppression_reason`, `reserved_at`, `resolved_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `recovery_incident_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `slot_number`, `candidate_local_date`, `resolved_offset`, `not_before`, `expires_at`, `state`, `claimed_command_id`, `consumed_attempt_id`, `suppression_reason`, `reserved_at`, `resolved_at`.
 
 Unique incident/slot and unique claimed command. State: `available`, `claimed`, `reserved_indeterminate`, `consumed`, `suppressed`, `expired`, `canceled_by_donor`. A database/service invariant prevents a claim outside `[not_before, expires_at)` and prevents claims after control/lifecycle/next-occurrence fences.
 
@@ -1522,13 +1557,13 @@ Unique incident/slot and unique claimed command. State: `available`, `claimed`, 
 
 #### `ach_authorization_lineages`
 
-Key columns: `id`, `tenant_id`, `connected_account_id`, `livemode`, `payment_credential_lineage_id`, `authorization_terms_id`, `provider_mandate_ref`, `provider_bank_method_ref`, `lineage_hash`, `state` (`active|action_required|revoked|parked|superseded`), `normal_soft_return_count`, nullable `first_normal_soft_return_date`, nullable `last_normal_success_at`, nullable `automatic_collection_parked_at`, nullable `park_reason`, `revision`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `payment_credential_lineage_id`, `authorization_terms_id`, `provider_mandate_ref`, `provider_bank_method_ref`, `lineage_hash`, `state` (`active|action_required|revoked|parked|superseded`), `normal_soft_return_count`, nullable `first_normal_soft_return_date`, nullable `last_normal_success_at`, nullable `automatic_collection_parked_at`, nullable `park_reason`, `revision`.
 
-The composite credential FK must resolve to the same tenant/account/mode and `rail=ach`; authorization terms must bind the same credential lineage. Counters are rebuildable projections over occurrence/return facts and may be cached only with cursor. The lineage is never inferred from a token ID alone.
+The composite credential FK must resolve to the same Tenant/Legal-Entity/Settlement-Account-Binding/account/mode and `rail=ach`; authorization terms must bind the same credential lineage. Counters are rebuildable projections over occurrence/return facts and may be cached only with cursor. The lineage is never inferred from a token ID alone.
 
 #### `ach_recovery_grants`
 
-Key columns: `id`, `tenant_id`, `occurrence_id`, `ach_authorization_lineage_id`, `return_code`, `provider_eligibility_evidence_ref`, `odfi_eligibility_evidence_ref`, `terms_snapshot_hash`, `granted_to_party_id`, `one_use_token_hash`, `state`, `expires_at`, `consumed_by_command_id`, `indeterminate_at`, `resolved_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `occurrence_id`, `ach_authorization_lineage_id`, `return_code`, `provider_eligibility_evidence_ref`, `odfi_eligibility_evidence_ref`, `terms_snapshot_hash`, `granted_to_party_id`, `one_use_token_hash`, `state`, `expires_at`, `consumed_by_command_id`, `indeterminate_at`, `resolved_at`.
 
 Unique `(tenant_id, occurrence_id)` for a recovery grant and unique consumed command. States: `offered`, `authorized`, `claimed`, `indeterminate`, `consumed_success`, `consumed_failed`, `expired`, `revoked`. Grant creation is impossible except R01/R09 with all D10 proof; terminal Missed cannot reopen.
 
@@ -1536,33 +1571,33 @@ Unique `(tenant_id, occurrence_id)` for a recovery grant and unique consumed com
 
 #### `provider_control_evidence`
 
-Key columns: `id`, `tenant_id`, `connected_account_id`, `livemode`, `connection_epoch`, `evidence_type`, `provider_object_type` (closed enum), `provider_object_id`, `observed_value`, `source_event_id`, `source_request_id`, `provider_occurred_at`, `received_at`, `verified_at`, `evidence_hash`, `restricted_payload_ref`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `connection_epoch`, `evidence_type`, `provider_object_type` (closed enum), `provider_object_id`, `observed_value`, `source_event_id`, `source_request_id`, `provider_occurred_at`, `received_at`, `verified_at`, `evidence_hash`, `restricted_payload_ref`.
 
 Append-only and deduped by provider/account/mode/evidence identity. Current control is a fold, never a mutable boolean.
 
 #### `provider_control_incidents`
 
-Key columns: `id`, `tenant_id`, `connected_account_id`, `livemode`, `connection_epoch`, `opened_control_state`, `opening_evidence_cursor`, `incident_stage`, `opened_at`, `last_verified_at`, nullable `risk_boundary_at`, `owner_user_id`, `backup_user_id`, `affected_count`, `affected_amounts_by_currency`, `state` (`open|closed`), nullable `closed_at`, nullable `close_evidence_ref`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `connection_epoch`, `opened_control_state`, `opening_evidence_cursor`, `incident_stage`, `opened_at`, `last_verified_at`, nullable `risk_boundary_at`, `owner_user_id`, `backup_user_id`, `affected_count`, `affected_amounts_by_currency`, `state` (`open|closed`), nullable `closed_at`, nullable `close_evidence_ref`.
 
-One open tenant/account/mode incident. `opened_control_state` is the immutable state that caused the incident; current control is always folded from evidence/snapshots and never updated on this row. Stages: `detect`, `protect`, `resolve_access`, `reconcile`, `restore_management`. Counts/totals are cursor-backed projections, not authority.
+One open Tenant/Legal-Entity/Settlement-Account-Binding/account/mode incident. `opened_control_state` is the immutable state that caused the incident; current control is always folded from evidence/snapshots and never updated on this row. Stages: `detect`, `protect`, `resolve_access`, `reconcile`, `restore_management`. Counts/totals are cursor-backed projections, not authority.
 
 #### `provider_control_snapshots`
 
-Key columns: `id`, `tenant_id`, `connected_account_id`, `livemode`, `connection_epoch`, `control_state`, `evidence_cursor`, `evidence_set_hash`, `evaluator_version`, `freshness_state`, `computed_at`, `revision`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `connection_epoch`, `control_state`, `evidence_cursor`, `evidence_set_hash`, `evaluator_version`, `freshness_state`, `computed_at`, `revision`.
 
-This is a rebuildable CAS cache over `provider_control_evidence`, unique per tenant/account/mode/connection epoch/evaluator. It never authorizes a command. Every mutation folds and revalidates current evidence; stale or absent snapshots fail to the conservative D16 posture.
+This is a rebuildable CAS cache over `provider_control_evidence`, unique per Tenant/Legal-Entity/Settlement-Account-Binding/account/mode/connection epoch/evaluator. It never authorizes a command. Every mutation folds and revalidates current evidence; stale or absent snapshots fail to the conservative D16 posture.
 
 #### `provider_control_incident_bindings`
 
-Key columns: `id`, `tenant_id`, `incident_id`, `executor_binding_id`, `impact_state`, `next_occurrence_id`, `due_before_boundary`, `reconciliation_state`, `released_at`, `exception_code`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `incident_id`, `executor_binding_id`, `settlement_account_binding_id`, `connected_account_id`, `livemode`, `impact_state`, `next_occurrence_id`, `due_before_boundary`, `reconciliation_state`, `released_at`, `exception_code`.
 
-Unique incident/binding. Indexed for cancellation first, due date, exception, and cursor pagination. Binding rows record evidence progress only. A cohort leaves quarantine only after every live execution-leg binding and exact item binding passes the same-account/mode/application/authorization/control reconciliation predicate; partial-leg or partial-item proof is never cohort release.
+Unique incident/binding. Indexed for cancellation first, due date, exception, and cursor pagination. Binding rows record evidence progress only. A cohort leaves quarantine only after every live execution-leg binding and exact item binding passes the same-Legal-Entity/Settlement-Account-Binding/account/mode/application/authorization/control reconciliation predicate; partial-leg or partial-item proof is never cohort release.
 
 ### O.9 Fixed-total pledge aggregate and plan
 
 #### `fixed_total_pledges`
 
-Key columns: `id`, `tenant_id`, `commitment_party_id`, `currency`, `commitment_date`, `origin`, `current_term_version_id`, `current_plan_version_id`, `lifecycle_state` (`open|ended_by_donor|superseded|tombstoned`), `authority_review_state` (`clear|under_review|quarantined|resolved`), `revision`, `superseded_by_id`, `created_by`, `created_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `commitment_party_id`, `currency`, `commitment_date`, `origin`, `current_term_version_id`, `current_plan_version_id`, `lifecycle_state` (`open|ended_by_donor|superseded|tombstoned`), `authority_review_state` (`clear|under_review|quarantined|resolved`), `revision`, `superseded_by_id`, `created_by`, `created_at`.
 
 The total lives in the term version, not a mutable header counter. Promise lifecycle, authority review, internal release, and fulfillment are separate axes. Fulfilled/partially fulfilled/open progress is derived from the cursor-qualified D11/D18 fold and may reverse through exact D11 inverses; it is never an authoritative lifecycle transition.
 
@@ -1652,7 +1687,7 @@ These append-only derived allocations preserve what a linked recurring D11 appli
 
 #### `commitment_fulfillment_targets`
 
-Key columns: `id`, `tenant_id`, `target_kind` (`recurring_occurrence_line|fixed_expectation_line|fixed_unscheduled_balance_line`), nullable `recurring_occurrence_line_id`, nullable `fixed_pledge_expectation_line_id`, nullable `fixed_pledge_unscheduled_balance_line_id`, `designation_id`, `currency`, `capacity_minor`, `target_revision`, `state`, `source_cursor`, `retired_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `target_kind` (`recurring_occurrence_line|fixed_expectation_line|fixed_unscheduled_balance_line`), nullable `recurring_occurrence_line_id`, nullable `fixed_pledge_expectation_line_id`, nullable `fixed_pledge_unscheduled_balance_line_id`, `designation_id`, `currency`, `capacity_minor`, `target_revision`, `state`, `source_cursor`, `retired_at`.
 
 A CHECK requires exactly one typed target; composite FKs enforce same tenant. Unique source target. `capacity_minor` is a rebuildable convenience checked against the source domain before writes. The target registry cannot be updated directly by clients.
 
@@ -1688,7 +1723,7 @@ Append-only authority lifecycle: `id`, `tenant_id`, `subject_kind` (`donor_instr
 
 #### `commitment_fulfillment_operations`
 
-Key columns: `id`, `tenant_id`, `commitment_command_id`, `contribution_designation_line_id`, `operation_type` (`apply|inverse|retract_vector|reapply`), nullable `application_authority_type` (`provider_lineage|authenticated_donor_instruction|structured_remittance_mapping|staff_confirmed_manual`), nullable `provider_lineage_evidence_ref`, nullable `donor_fulfillment_instruction_id`, nullable `structured_remittance_mapping_version_id`, nullable `staff_application_authority_evidence_ref`, nullable `correction_evidence_type` (`source_full_reversal|source_partial_reversal|source_designation_correction|staff_fulfillment_correction`), nullable `source_correction_journal_ref`, nullable `staff_correction_evidence_ref`, nullable `reapplies_after_operation_id`, `certainty` (`automatic_proven|staff_confirmed`), `source_revision`, `created_at`.
+Key columns: `id`, `tenant_id`, `legal_entity_id`, `commitment_command_id`, `contribution_designation_line_id`, `operation_type` (`apply|inverse|retract_vector|reapply`), nullable `application_authority_type` (`provider_lineage|authenticated_donor_instruction|structured_remittance_mapping|staff_confirmed_manual`), nullable `provider_lineage_evidence_ref`, nullable `donor_fulfillment_instruction_id`, nullable `structured_remittance_mapping_version_id`, nullable `staff_application_authority_evidence_ref`, nullable `correction_evidence_type` (`source_full_reversal|source_partial_reversal|source_designation_correction|staff_fulfillment_correction`), nullable `source_correction_journal_ref`, nullable `staff_correction_evidence_ref`, nullable `reapplies_after_operation_id`, `certainty` (`automatic_proven|staff_confirmed`), `source_revision`, `created_at`.
 
 Two disjoint exclusive arcs prevent application and correction authority from being conflated. `apply|reapply` requires exactly one current `application_authority_type` and its matching reference, forbids all correction fields, and re-proves that authority under the same source/target locks as capacity. Provider lineage, donor instruction, and structured mapping may use `automatic_proven` only after their exact proof path passes; `staff_confirmed_manual` requires the command's current capability/instruction evidence and can use only `staff_confirmed`. The operation's entries must equal the frozen instruction/mapping allocation set when one is referenced. `reapply` additionally requires `reapplies_after_operation_id` and cannot reuse a consumed donor instruction.
 
@@ -1714,9 +1749,18 @@ Non-authoritative staff worklist: `id`, `tenant_id`, `contribution_designation_l
 
 #### `fixed_pledge_reminder_policy_versions`
 
-Key columns: `id`, `tenant_id`, `version`, `maximum_profile` (`unavailable|upcoming_only|upcoming_and_followup`), `communication_delivery_profile_version_id`, `locale_policy`, `template_binding_version`, `candidate_local_time`, `giving_timezone_snapshot`, `tzdb_version`, `resolver_version`, `effective_from`, `effective_to`, `created_by`, `reason`.
+Key columns: `id`, `tenant_id`, `version`, `maximum_profile` (`unavailable|upcoming_only|upcoming_and_followup`), `sender_profile_version_id` (exact immutable Phase 17 version), `reply_purpose_code`, `locale_policy`, `template_binding_version` (Phase 17), `candidate_local_time`, `giving_timezone_snapshot`, `tzdb_version`, `resolver_version`, `effective_from`, `effective_to`, `created_by`, `reason`.
 
-The composite same-tenant delivery-profile FK resolves the Phase 6 governed sender identity and reply-to contact point; Phase 16 does not invent sender configuration. V1 channel is fixed to email. `candidate_local_time` and the frozen zone/tzdb/resolver deterministically turn each calendar candidate day into an instant; DST gaps advance to the first valid instant on the same civil day and overlaps choose the earlier offset. No per-pledge stage/cadence/channel configuration. Policy expansion is prospective; narrowing immediately suppresses incompatible unsubmitted candidates.
+The composite same-tenant sender-profile/version binding resolves the exact
+Phase 17 governed sender identity and reply-purpose destination; Phase 16 does
+not invent sender configuration. Phase 6 pins that resolution on the intent,
+revalidates it against live provider readiness, and dispatches without
+substitution. V1 channel is fixed to email. `candidate_local_time` and the
+frozen zone/tzdb/resolver deterministically turn each calendar candidate day
+into an instant; DST gaps advance to the first valid instant on the same civil
+day and overlaps choose the earlier offset. No per-pledge
+stage/cadence/channel configuration. Policy expansion is prospective; narrowing
+immediately suppresses incompatible unsubmitted candidates.
 
 #### `fixed_pledge_reminder_enrollments`
 
@@ -1766,9 +1810,9 @@ Exclusive typed composite same-tenant FKs bind each side. A link records an auth
 
 Migrations and command services must implement and test these invariants explicitly; comments or application convention are insufficient:
 
-1. A group has one tenant, Commitment Party, currency, legal-payer context, and collection-authorizer context. Line/cohort insertion re-proves those values; a mismatch requires a new group. The context hash is never accepted as financial authorization.
+1. A group has one Tenant, one immutable Legal Entity, Commitment Party, currency, legal-payer context, and collection-authorizer context. Line/cohort insertion re-proves those values; a mismatch requires a new group. The context hash is never accepted as financial authorization.
 2. A cohort has one collection arrangement and one logical compatible schedule. Ordinary schedule versions have exactly one `primary` leg; twice-monthly versions have exactly `day_1` and `day_15`. A deferred constraint or same-transaction finalizer rejects every incomplete or extra topology.
-3. A provider-automatic cohort has account/mode/rail/merchant/authorization proof, a current same-tenant authorization-terms pointer, and exactly one current executor binding per live leg. At the effective boundary, each binding's authorization-terms ID equals that pointer and its account/mode/rail/merchant/currency scope equals the cohort and terms. A manual/external cohort has none of those provider fields, authorization pointers, bindings, attempt rows, retry incidents, or provider queue work.
+3. A provider-automatic cohort has an exact Settlement Account Binding/account/mode/rail/merchant/authorization proof, a current same-Tenant/same-Legal-Entity authorization-terms pointer, and exactly one current executor binding per live leg. At the effective boundary, each binding's authorization-terms ID equals that pointer and its Legal-Entity/Settlement-Account-Binding/account/mode/rail/merchant/currency scope equals the cohort and terms. A manual/external cohort has none of those provider fields, authorization pointers, bindings, attempt rows, retry incidents, or provider queue work.
 4. Every provider-automatic live leg has exactly one current provider item binding for every effective member line and no extra item. Twice-monthly therefore has two complete item sets. A domain saga may be temporarily reconciling after partial provider response, but it cannot become active/reconciled until topology is complete.
 5. A line has at most one effective cohort membership on a date. A scheduled occurrence, including a today-start initial gift that fulfills the scheduled slot, has one leg and one immutable line snapshot for every effective member. Its schedule-version-independent semantic key prevents stale/new materializers from creating the same cohort/leg/date slot twice. Only a future-start or off-slot `initial_out_of_series` occurrence has no leg. Every initial occurrence is unique per checkout command/cohort regardless of kind.
 6. Line term and schedule epoch agree at every effective boundary. The epoch is authoritative calendar truth; the term is the matching donor-disclosure snapshot; the cohort schedule is an executable projection accepted only when every member epoch is equivalent. Any disagreement fails closed or splits the cohort.
@@ -1777,7 +1821,7 @@ Migrations and command services must implement and test these invariants explici
 9. D11 source and target capacities conserve under the authority-fence → source → sorted-target lock order. `apply|reapply` has exactly one closed current application-authority type/reference; automatic provider lineage, donor instruction, and structured-remittance mapping each independently re-prove tenant/Party/currency/designation/capacity/current authority, while incomplete or revoked evidence can only suggest. Instruction/mapping allocation rows equal the operation entries. `inverse|retract_vector` has no application-authority field and instead requires one compatible canonical correction-evidence type/reference plus the complete typed set of affected prior operations and exact original entries; it does not re-prove stale application authority. Fixed-pledge term lines, named expectations, and undated lines conserve their owning totals. Signed corrections identify exact originals and cannot apply twice. One recurring application consumes source capacity once; a linked fixed-pledge coverage allocation is an append-only temporal roll-up, never a second consumption, and v1 permits only one effective fixed link per recurring line/date.
 10. Pause, review, role, resolution, communication-intent, and provider-control histories are immutable facts. Review instants are reconstructable from frozen policy/basis/timezone/resolver evidence. A cohort leaves control quarantine only when every live leg/item binding passes proof.
 11. Current pointers and cached counters are revision/CAS-protected conveniences. Authoritative epochs, commands, evidence, attempts, applications, resolutions, reminder meanings, and control facts remain append-only and rebuildable.
-12. Every command subject is a typed same-tenant FK; every provider effect is an exact scoped child operation. Every credential-lineage, authorization, review-policy, RLS, SECURITY DEFINER, worker claim, cache key, idempotency key, outbox key, projection key, and export reference includes or server-resolves tenant scope. Rail/account/mode and cross-tenant poison tests must fail at both service and database layers.
+12. Every command subject is a typed same-Tenant FK and every entity-bearing subject also proves the same Legal Entity; every provider effect is an exact Tenant/Legal-Entity/Settlement-Account-Binding/account/mode-scoped child operation. Every credential-lineage, authorization, RLS, SECURITY DEFINER call, worker claim, cache key, idempotency key, outbox key, projection key, and financial export reference includes or server-resolves Tenant and exact Legal Entity; provider work additionally freezes and proves its Settlement Account Binding/account/mode. Review-policy references remain Tenant-scoped configuration and cannot infer entity. Entity/binding/account/mode and cross-Tenant poison tests must fail at both service and database layers.
 
 ## Canonical Transition Matrices
 
@@ -1883,31 +1927,31 @@ Control state is evidence-derived; operators cannot manually set Managed. Closin
 
 Capabilities are exact dot-delimited verbs registered through the Phase 12 permission foundation; no legacy blanket role grants the whole surface. The keys below are binding unless the Phase 12 registry already has an equivalent exact key at implementation time, in which case the congruence change must name and prove the mapping. Operator capability is only the first D15 gate: it never supplies Party instruction, representative authority, cardholder/account-holder authorization, or collection consent.
 
-| Capability                                           | Permitted operations                                                                                                  | Explicitly not granted                                                                                |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `commitments.view_detail`                            | Role-safe recurring/fixed staff detail                                                                                | Restricted payment/evidence internals                                                                 |
-| `commitments.record_manual`                          | Record manual recurring/fixed intent with D14/D15 evidence                                                            | Payment authorization or money posting                                                                |
-| `commitments.manage_recurring`                       | Prepare/apply eligible recurring changes, including protective stop/reduce and an authorization-pending widening case | Provider admin, widening without the real authorizer, raw credentials                                 |
-| `commitments.manage_recurring_policy`                | Version the closed cadence catalog and bounded recovery profile; preview prospective and live-narrowing effects       | Current-gift mutation, provider settings, or safety-ceiling expansion                                 |
-| `commitments.manage_review_policy`                   | Version bounded manual/offline review timing and proven structured-feed review windows                                | Promise dates, debt, payment failure, lifecycle, or fulfillment writes                                |
-| `commitments.manage_fixed`                           | D17 plan and donor-authorized D18 changes/end                                                                         | Internal release or correction by implication                                                         |
-| `commitments.release_expectations`                   | Exact organization-only release/inverse                                                                               | Donor end, money write, or stop of a separately linked recurring executor                             |
-| `commitments.apply_corrections`                      | Proof-bound same-identity correction/tombstone successor                                                              | Intent change disguised as correction                                                                 |
-| `commitments.review_authority`                       | Open/resolve proof-bound commitment authority quarantine and record its evidence                                      | Donor term change, correction by implication, or collection authorization                             |
-| `commitments.apply_fulfillment`                      | Preview/apply/invert exact D11 source-to-target fulfillment under capacity locks                                      | Contribution posting, recognition, guessed matching, or source duplication                            |
-| `commitments.manage_structured_remittance_authority` | Version, approve, supersede, or revoke authenticated structured sources and exact source-line mappings after preview  | Posting money, applying fulfillment, approving heuristic mappings, or bypassing source authentication |
-| `commitments.manage_service_contacts`                | Purpose-bound service-contact versions                                                                                | Representative/payment authority or portal grant                                                      |
-| `commitments.manage_expected_remitters`              | Record/revoke evidence-backed expected-remitter hints                                                                 | Automatic fulfillment, promise ownership, or payment authority                                        |
-| `commitments.verify_representative_authority`        | Verify/revoke scoped D14 authority                                                                                    | Collection authorization                                                                              |
-| `commitments.manage_reminders`                       | Enroll/stop within tenant D19 maximum                                                                                 | Force-send, cadence/template editing                                                                  |
-| `commitments.manage_reminder_policy`                 | Version tenant reminder maximum, Phase 6 delivery-profile binding, locale and eligible template binding               | Per-pledge enrollment, direct send, consent bypass, or arbitrary journeys                             |
-| `commitments.run_recurring_recovery`                 | Stop an incident or assist an authorized donor-present D7/D10 action                                                  | Add attempt budget, silently authorize, or bypass proof                                               |
-| `payments.operate_provider_control`                  | D16 incident/reconciliation/cutover controls                                                                          | Donor-intent mutation or tenant crossing                                                              |
-| `payments.view_restricted_evidence`                  | Minimum necessary provider/return/authority evidence                                                                  | Missionary/donor disclosure or credential access                                                      |
-| `missionary_support.view`                            | Designation/anonymity-safe H projections                                                                              | Any mutation, contact/payment/provider detail                                                         |
-| `commitments.export`                                 | Governed, purpose-bound role-safe commitment reports/exports through the Phase 3/12 egress meter                      | Restricted evidence, credentials, hidden identity, or mutation                                        |
+| Capability                                           | Permitted operations                                                                                                       | Explicitly not granted                                                                                |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `commitments.view_detail`                            | Role-safe recurring/fixed staff detail                                                                                     | Restricted payment/evidence internals                                                                 |
+| `commitments.record_manual`                          | Record manual recurring/fixed intent with D14/D15 evidence                                                                 | Payment authorization or money posting                                                                |
+| `commitments.manage_recurring`                       | Prepare/apply eligible recurring changes, including protective stop/reduce and an authorization-pending widening case      | Provider admin, widening without the real authorizer, raw credentials                                 |
+| `commitments.manage_recurring_policy`                | Version the closed cadence catalog and bounded recovery profile; preview prospective and live-narrowing effects            | Current-gift mutation, provider settings, or safety-ceiling expansion                                 |
+| `commitments.manage_review_policy`                   | Version bounded manual/offline review timing and proven structured-feed review windows                                     | Promise dates, debt, payment failure, lifecycle, or fulfillment writes                                |
+| `commitments.manage_fixed`                           | D17 plan and donor-authorized D18 changes/end                                                                              | Internal release or correction by implication                                                         |
+| `commitments.release_expectations`                   | Exact organization-only release/inverse                                                                                    | Donor end, money write, or stop of a separately linked recurring executor                             |
+| `commitments.apply_corrections`                      | Proof-bound same-identity correction/tombstone successor                                                                   | Intent change disguised as correction                                                                 |
+| `commitments.review_authority`                       | Open/resolve proof-bound commitment authority quarantine and record its evidence                                           | Donor term change, correction by implication, or collection authorization                             |
+| `commitments.apply_fulfillment`                      | Preview/apply/invert exact D11 source-to-target fulfillment under capacity locks                                           | Contribution posting, recognition, guessed matching, or source duplication                            |
+| `commitments.manage_structured_remittance_authority` | Version, approve, supersede, or revoke authenticated structured sources and exact source-line mappings after preview       | Posting money, applying fulfillment, approving heuristic mappings, or bypassing source authentication |
+| `commitments.manage_service_contacts`                | Purpose-bound service-contact versions                                                                                     | Representative/payment authority or portal grant                                                      |
+| `commitments.manage_expected_remitters`              | Record/revoke evidence-backed expected-remitter hints                                                                      | Automatic fulfillment, promise ownership, or payment authority                                        |
+| `commitments.verify_representative_authority`        | Verify/revoke scoped D14 authority                                                                                         | Collection authorization                                                                              |
+| `commitments.manage_reminders`                       | Enroll/stop within tenant D19 maximum                                                                                      | Force-send, cadence/template editing                                                                  |
+| `commitments.manage_reminder_policy`                 | Version tenant reminder maximum, exact Phase 17 sender-profile/reply-purpose binding, locale and eligible template binding | Per-pledge enrollment, direct send, consent bypass, or arbitrary journeys                             |
+| `commitments.run_recurring_recovery`                 | Stop an incident or assist an authorized donor-present D7/D10 action                                                       | Add attempt budget, silently authorize, or bypass proof                                               |
+| `payments.operate_provider_control`                  | D16 incident/reconciliation/cutover controls                                                                               | Donor-intent mutation or tenant crossing                                                              |
+| `payments.view_restricted_evidence`                  | Minimum necessary provider/return/authority evidence                                                                       | Missionary/donor disclosure or credential access                                                      |
+| `missionary_support.view`                            | Designation/anonymity-safe H projections                                                                                   | Any mutation, contact/payment/provider detail                                                         |
+| `commitments.export`                                 | Governed, purpose-bound role-safe commitment reports/exports through the Phase 3/12 egress meter                           | Restricted evidence, credentials, hidden identity, or mutation                                        |
 
-Donors can read/manage only commitments whose Party/portal-claim rules authorize them. A service contact, expected remitter, household member, recognition Party, or provider customer match grants no portal access. Missionaries are always read-only. Background workers use narrowly scoped service roles and repeat tenant/account/mode/capability predicates; service-role bypass never substitutes for command validation.
+Donors can read/manage only commitments whose Party/portal-claim rules authorize them. A service contact, expected remitter, household member, recognition Party, or provider customer match grants no portal access. Missionaries are always read-only. Background workers use narrowly scoped service roles and repeat Tenant/Legal-Entity/capability predicates; provider work additionally proves Settlement Account Binding/account/mode. Service-role bypass never substitutes for command validation.
 
 ## Module, Command, and API Contracts
 
@@ -1940,6 +1984,7 @@ Every financial or intent mutation accepts a server-created/authenticated envelo
 ```ts
 type CommitmentCommandEnvelope<T> = {
   tenantId: string;
+  legalEntityId: string;
   actorId: string;
   requestId: string;
   idempotencyKey: string;
@@ -2012,7 +2057,7 @@ Use the repo's server-mediated data-access boundary. Exact framework wiring may 
 - governed reports/exports use `POST /api/admin/commitments/exports/preview` then `/requests`, with `commitments.export`, Phase 3/12 projection, purpose, metering, audit, redaction and asynchronous status/download authorization;
 - missionary support uses read-only `GET /api/missionary/support?period=calendar-month|next-30-days|next-12-months`, cursor-paginated `GET /api/missionary/support/recurring`, and conditional cursor-paginated `GET /api/missionary/support/other-commitments`; the 12-month response is an exact dated occurrence schedule with explicit timezone/currency, source cursors, freshness and privacy-before-aggregation rather than a monthly-normalized promise;
 - provider webhooks continue through verified Stripe webhook entrypoints but call one shared ingestion service; multiple app routes do not duplicate domain handling; and
-- worker routes/functions are not public browser APIs and require internal authentication plus explicit tenant/account shard.
+- worker routes/functions are not public browser APIs and require internal authentication plus explicit Tenant/Legal-Entity shard and, for provider work, exact Settlement-Account-Binding/account scope.
 
 Every mutation requires origin/CSRF protection, authenticated session or narrow signed token, `Idempotency-Key`, content-type/size limits, server tenant resolution, and rate/abuse controls. Donor financial actions use recent authentication or narrow reauthentication according to risk. Signed email links may only read; purpose-stop POST tokens can only narrow communication.
 
@@ -2099,12 +2144,13 @@ Capability facts are versioned evidence with observed time and expiry. Cached me
 | No end chosen                | No question or required interaction; secondary **Set an end date**                                                                                                                | Ongoing-versus-end chooser, recommended badge, guilt copy                                    |
 | End opened                   | “This is the final eligible donation date. You can change, pause, or cancel later.”                                                                                               | Blocking retention modal                                                                     |
 | Multi-line/group             | Each destination/amount; total today; exact number, amount, and destination allocation of separate charges today; continuing charge count/date; twice-monthly schedule disclosure | Hidden sibling/initial charges or provider-object terms                                      |
+| Multi-Legal-Entity cart      | Separate plainly named organization/issuer groups and charges, each with its own destination allocation and recurring terms; one review before submit                             | Silent splitting, mixed-entity group, inferred entity, or redirect to a tenant default       |
 | Card success                 | **Donation received** + receipt/next date                                                                                                                                         | “Pending” or duplicate schedule activation                                                   |
 | Card action required/failure | Exact safe action; no receipt/received claim                                                                                                                                      | Raw decline/network details or active-success claim                                          |
 | ACH processing               | **Bank donation initiated — awaiting confirmation** + next schedule pending activation                                                                                            | “Received,” “Paid,” or official receipt                                                      |
 | Provider unknown             | **We’re confirming your donation. Do not submit again.** + status check                                                                                                           | Retry/resubmit button                                                                        |
 
-The final review always names tenant/organization, Party-safe donor identity, line destinations, amount/currency, rail/masked method, fee cover separately, schedule timezone, next three dates, optional final date, cancellation/manage path, and exact submit effect. A common one-charge button may say **Donate $X and start recurring giving**. If multiple initial charges are required, the action and immediately adjacent review say **Donate $X today in N charges and start recurring giving**, then list each charge without exposing internal cohort terminology. The UI must not expose “subscription,” “PaymentIntent,” “invoice,” “cohort,” “epoch,” or “execution leg” to donors.
+The final review always names tenant/organization, Party-safe donor identity, line destinations, amount/currency, rail/masked method, fee cover separately, schedule timezone, next three dates, optional final date, cancellation/manage path, and exact submit effect. For the ordinary single-entity path, the Legal Entity is resolved from the destination and creates no selector or repeated technical label. If several entities are present, each disclosed charge names the human-facing legal organization/issuer and destinations it covers. A common one-charge button may say **Donate $X and start recurring giving**. If multiple initial charges are required, the action and immediately adjacent review say **Donate $X today in N charges and start recurring giving**, then list each charge without exposing internal cohort terminology. The UI must not expose “subscription,” “PaymentIntent,” “invoice,” “cohort,” “epoch,” “execution leg,” or “Settlement Account Binding” to donors.
 
 ### R.2 Donor recurring detail matrix
 
@@ -2124,7 +2170,7 @@ The detail always separates original creation, original anchor, current next dat
 
 ### R.3 Staff service-desk matrix
 
-One page presents current truth first, then **Manage recurring support**. It shows Party/roles, line/cohort/leg composition in plain operational language, intent, schedule, occurrence/payment, collection/recovery, control/reconciliation, last/next dates, no-catch-up balance, authorization, and audit without collapsing them.
+One page presents current truth first, then **Manage recurring support**. It shows Party/roles, line/cohort/leg composition in plain operational language, intent, schedule, occurrence/payment, collection/recovery, control/reconciliation, last/next dates, no-catch-up balance, authorization, and audit without collapsing them. A multi-entity tenant also sees one clear read-only Legal Entity/merchant label in the summary and review; a single-entity tenant sees no entity control. Changing entity is never an edit—it starts a separate, freshly authorized group.
 
 | Outcome                 | Banner/CTA                                                              | Completion truth                                                       |
 | ----------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -2144,6 +2190,8 @@ The first screen order is incident truth, impact, urgent donor-stop work, safe a
 - plain control state and incident stage;
 - started/last verified times;
 - masked account/mode/application/charge architecture;
+- Legal Entity and human-facing settlement relationship when the Tenant has
+  more than one, with technical binding IDs restricted to the evidence view;
 - affected agreement count and per-currency due-before-boundary amount;
 - cancellation/stop queue and in-flight/indeterminate count;
 - owner and backup; and
@@ -2172,7 +2220,7 @@ Authorized tenant administrators get one simple **Commitment settings** page wit
 
 1. **Recurring options and recovery** — enabled schedules, Monthly featured when enabled, and Balanced or Off recovery within platform limits.
 2. **Review timing** — bounded mailed, hand-delivery, and proven structured-feed windows for when manual/offline expectations need staff review.
-3. **Fixed-pledge reminders** — Off, Upcoming only, or Upcoming + one follow-up, with one governed Phase 6 email delivery profile, locale, deterministic local send time, and eligible template binding.
+3. **Fixed-pledge reminders** — Off, Upcoming only, or Upcoming + one follow-up, with one exact governed Phase 17 sender-profile version, purpose-owned reply destination, locale/content binding, and deterministic local send time; Phase 6 owns the resulting intent, consent, dispatch, and delivery evidence.
 
 Each card shows the current effective version, a concise explanation, and **Review changes**. The review shows Current and After, exactly which future records use the new version, which existing commitments remain grandfathered/frozen, and which already-unstarted work a safety reduction suppresses immediately. Apply is one clear confirmation with a reason and durable result. A stale version shows the canonical diff and requires a fresh review. Expanding recovery or reminders is prospective; narrowing takes the D7/D19 live safety effect already specified. The page exposes no provider retry toggles, raw thresholds outside the bounded controls, arbitrary cadences, journeys, or template editors. Users without the exact policy capability get a role-safe read-only explanation or no card, never a disabled control that implies permission.
 
@@ -2194,18 +2242,22 @@ Test participants must correctly explain what charges now, what happens next, wh
 
 ## Security, Privacy, and Data-Access Invariants
 
-1. Active tenant comes only from authenticated server context. Tenant IDs in URLs, bodies, provider metadata, jobs, or cache values are treated as untrusted assertions and must match.
-2. Signed top-level Stripe Connect `event.account` and `livemode` route provider events. Verify the endpoint signature before parsing trusted data. Metadata cannot select tenant/account/mode.
-3. Every provider/customer/subscription/item/invoice/payment/method/mandate reference is scoped by tenant, connected account, mode, connection epoch, and expected application/ownership. Wrong-scope lookup is a security incident, not Not Found fallback.
-4. RLS and composite FKs prevent horizontal tenant access even if an API check fails. Internal service functions accept explicit tenant and re-check capabilities; never use a default tenant.
-5. Staff, donor, missionary, worker, and communication DTOs are purpose-specific. The richest internal model is never serialized and filtered in the browser.
-6. Provider payment components/tokenization keep Asym out of raw credential storage. CVV is never persisted. Sensitive call recordings pause/redact; evidence references have separate encryption, access, retention, and audit.
-7. Party/contact/authority/recognition/remitter relationships do not infer portal access. Portal claiming uses authenticated identity and explicit Party authorization.
-8. Preview/apply prevents parameter substitution: terms are server-owned, exact, hashed, short-lived, and revalidated under lock. Changing any material term invalidates authorization.
-9. Financial or consent mutation via GET is forbidden. CSRF, origin, recent-auth, replay, session fixation, scanner, and signed-token tests are mandatory.
-10. Logs/traces exclude raw credentials, bank facts, unrestricted evidence, email token, provider payload, and hidden donor identity. Use opaque IDs and reason codes with controlled lookup.
-11. Anonymity, restricted-worker policy, and designation authorization apply before aggregation. Small-cell protection prevents inference from counts/differences.
-12. Exports are capability-gated, tenant-scoped, redacted by role, versioned, auditable, and provider-neutral. An export does not include secrets or convert suggestions into authoritative applications.
+1. Active Tenant comes only from authenticated server context. Tenant IDs in URLs, bodies, provider metadata, jobs, or cache values are treated as untrusted assertions and must match.
+2. Every financial target carries immutable `legal_entity_id`. The Phase 3/12
+   PDP/PEPs verify current entity scope at preview, apply, read, export, enqueue,
+   and fire-time. A missing entity, mutable-default fallback, cross-entity
+   aggregate, or stale scope revision/hash fails closed.
+3. Signed top-level Stripe Connect `event.account` and `livemode` route provider events. Verify the endpoint signature before parsing trusted data. Metadata cannot select Tenant, Legal Entity, Settlement Account Binding, account, or mode.
+4. Every provider/customer/subscription/item/invoice/payment/method/mandate reference is scoped by Tenant, Legal Entity, Settlement Account Binding, connected account, mode, connection epoch, and expected application/ownership. Wrong-scope lookup is a security incident, not Not Found fallback.
+5. RLS and composite FKs prevent horizontal Tenant access even if an API check fails. Composite financial FKs also require equal Legal Entity. Internal service functions accept explicit Tenant and Legal Entity and re-check capabilities/current entity scope; never use a default Tenant or entity.
+6. Staff, donor, missionary, worker, and communication DTOs are purpose-specific. The richest internal model is never serialized and filtered in the browser.
+7. Provider payment components/tokenization keep Asym out of raw credential storage. CVV is never persisted. Sensitive call recordings pause/redact; evidence references have separate encryption, access, retention, and audit.
+8. Party/contact/authority/recognition/remitter relationships do not infer portal access. Portal claiming uses authenticated identity and explicit Party authorization.
+9. Preview/apply prevents parameter substitution: terms are server-owned, exact, hashed, short-lived, and revalidated under lock. Changing any material term invalidates authorization.
+10. Financial or consent mutation via GET is forbidden. CSRF, origin, recent-auth, replay, session fixation, scanner, and signed-token tests are mandatory.
+11. Logs/traces exclude raw credentials, bank facts, unrestricted evidence, email token, provider payload, and hidden donor identity. Use opaque IDs and reason codes with controlled lookup.
+12. Anonymity, restricted-worker policy, and designation authorization apply before aggregation. Small-cell protection prevents inference from counts/differences.
+13. Exports are capability-gated, Tenant/Legal-Entity scoped, redacted by role, versioned, auditable, and provider-neutral. An export does not include secrets or convert suggestions into authoritative applications.
 
 ## Observability and Operational Contract
 
@@ -2233,7 +2285,7 @@ Metrics are tagged only with bounded non-sensitive dimensions such as environmen
 Page or create a high-severity incident for:
 
 - duplicate provider executor on one execution leg, missing/duplicate line item on any leg, or partial twice-monthly topology declared reconciled;
-- wrong tenant/account/mode/application routing or cache/idempotency poisoning;
+- wrong Tenant/Legal-Entity/Settlement-Account-Binding/account/mode/application routing or cache/idempotency poisoning;
 - provider call after occurrence/slot expiry, donor stop, pause, cancellation, final date, control-unknown fence, or safety ceiling;
 - old occurrence still retryable inside the next-occurrence cutoff, or two overlapping attempts;
 - payment/contribution/receipt duplication, ACH processing counted received, or late reversal not exactly inverted;
@@ -2327,7 +2379,7 @@ Use **expand → classify/shadow → reconcile → switch → contract**. New ta
 | dormant checkout recurring fields/state                            | Salvage validated UI/provider primitives only; submit through the one accepted-agreement contract. Delete duplicate writer/state machine.                                                                                                                                                                                                                                     |
 | whole-account Stripe Billing Portal management                     | Do not use as the authoritative recurring editor. Provider-hosted narrow payment/auth surfaces may be embedded; Asym commands and projections remain truth.                                                                                                                                                                                                                   |
 | missionary first-row/ad hoc cadence math/client sums               | Replace with server metric registry and exact cursor-backed projections; remove rail/payment details and hidden row caps.                                                                                                                                                                                                                                                     |
-| legacy `scheduled_gift_reminder` literal/queue                     | Supersede with D19 purpose/policy/enrollment/candidate and Phase 6/17 seam. It creates no consent or enrollment.                                                                                                                                                                                                                                                              |
+| legacy `scheduled_gift_reminder` literal/queue                     | Supersede with D19 purpose/policy/enrollment/candidate, Phase 17 governed content/sender/reply resolution, and Phase 6 intent/dispatch/history. It creates no consent or enrollment.                                                                                                                                                                                          |
 | plaintext tenant Stripe keys                                       | Eliminate through the governed Connect/token/secret posture before provider-control release; never copy into Phase 16.                                                                                                                                                                                                                                                        |
 
 External/tenant imports classify each field/link as **proved**, **hint**, or **unknown**, retain source schema/version/provenance, and never backfill consent, Party authority, legal donor, collection authorization, fulfillment, reminder enrollment, or cash. Imported executors without account/mode/application/authorization/ownership proof default to external read-only/control unknown. No historical notifications, retries, receipts, or financial side effects replay.
@@ -2375,9 +2427,12 @@ The tracer runs through real database/RLS/service/API/provider-fixture boundarie
 ### U.2 Four invariant suites
 
 1. **Pure calendar suite:** table/property tests over cadence, anchor, timezone, DST/tzdb, short month, leap year, start/end, epochs, twice-monthly legs, pause/skip/resume, and projected dates.
-2. **Database/tenant/concurrency suite:** real Postgres migrations, RLS, composite FKs, locks/CAS, idempotency, append-only triggers, conservation, worker leases, and cross-tenant poison.
-3. **Provider/control/recovery suite:** pinned Stripe contract fixtures, webhook replay, account/mode/application routing, card/ACH finality, D7/D8/D10, charge architectures, outages/indeterminate, control incidents, and cutover.
-4. **Communication/projection suite:** candidate/meaning dedupe, Phase 6/17 seams, privacy-before-aggregation, freshness, delivery corrections, reminders, dashboards, and accessibility/Playwright.
+2. **Database/Tenant/Legal-Entity/concurrency suite:** real Postgres migrations, RLS, composite Tenant+Legal-Entity FKs, Phase 12 entity-scope checks, locks/CAS, idempotency, append-only triggers, conservation, worker leases, and cross-Tenant/cross-entity poison.
+3. **Provider/control/recovery suite:** pinned Stripe contract fixtures, webhook replay, Legal-Entity/Settlement-Account-Binding/account/mode/application routing, card/ACH finality, D7/D8/D10, charge architectures, outages/indeterminate, control incidents, and cutover.
+4. **Communication/projection suite:** candidate/meaning dedupe, Phase 17
+   content/sender/reply resolution, Phase 6 intent/dispatch/history,
+   privacy-before-aggregation, freshness, delivery corrections, reminders,
+   dashboards, and accessibility/Playwright.
 
 ### U.3 Calendar and checkout acceptance
 
@@ -2598,7 +2653,7 @@ The authoritative package is `docs/prds/sitestacker-parity/phase-16-cross-prd-co
 | A9        | Phase 7/13 ACH receipt/posting at processing                       | D4/D10: recurring processing is evidence only; official posting/receipt only success; late-return exact inverse                           |
 | A10       | Phase 9 one on-track/behind health and support-goal-first view     | D12/D13: lifecycle+reasons, cash-first/online-recurring-first, goal secondary, quiet fixed pledge                                         |
 | A11       | Phase 4/9 identity merge broadly re-points promise                 | D14: merge preserves owner snapshot; owner transfer supersedes/fresh evidence                                                             |
-| A12       | Phase 6 legacy pledge refs/provider naming                         | D9/D19: typed intents/candidates; Phase 6 delivery, Phase 17 render, provider replaceable                                                 |
+| A12       | Phase 6 legacy pledge refs/provider naming                         | D9/D19: typed intents/candidates; Phase 17 content/sender binding, Phase 6 delivery, provider replaceable                                 |
 | A13       | Phase 14 recognition might satisfy pledge                          | D11/D14: only conserved application fulfills; recognition/DAF/remitter are not authority                                                  |
 | A14       | Phase 15 entry might become promise/match money writer             | D11/D17/D18 + ADR-0010: promise writes no money; Phase 15 posts, then D11 applies                                                         |
 | A15       | merged/active OpenSpec one-to-one pledge/subscription/status       | D1–D16 and new delta: separate products/topology/axes/schedule/recovery/control/commands/finality                                         |
@@ -2701,7 +2756,7 @@ Implementation or release stops, with the affected lane disabled, when any of th
 - tenant giving timezone is missing/invalid or a provider mapping cannot preserve the civil-date grid;
 - Stripe SDK/API/webhook/account behavior for the chosen pinned version is not verified from source/docs/sandbox/readback;
 - ordinary/twice-monthly executor topology, exact item binding, provider retry ownership, or exactly one initial charge per disclosed compatible cohort cannot be proved;
-- tenant/account/mode/application/merchant/Party/authorization scope is unknown or mismatched;
+- Tenant/Legal-Entity/Settlement-Account-Binding/account/mode/application/merchant/Party/authorization scope is unknown or mismatched;
 - a prior payment/command is indeterminate, in-flight, retryable, or could overlap the proposed action;
 - RLS/composite FK/capability/idempotency/CAS/append-only/conservation invariants fail;
 - ACH R01/R09 provider/ODFI proof or exact donor grant is missing; the safe schedule-only path remains complete;

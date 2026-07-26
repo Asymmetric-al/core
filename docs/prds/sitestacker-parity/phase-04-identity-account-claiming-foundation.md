@@ -4,6 +4,17 @@
 > **Predecessors:** Phase 2 (Site, Locale & Currency) · Phase 3 (Minimum Permission & Role-Scoped Projection)
 > **Charter / matrix:** `docs/prds/sitestacker-parity/README.md`, `parity-matrix.md`
 
+> **Canonical receipt-pipeline amendment (2026-07-27; Phase 7 / Phase 18
+> congruency).** Phase 4 owns mutable identity claiming, dedupe, and merge—not
+> receipt facts. Once Phase 7 exists, an issued receipt's legal donor resolves
+> only from the immutable frozen facts in canonical `contribution_receipts`;
+> Phase 4 may display that identity as read-only merge evidence but never
+> changes it. Phase 4 creates no receipt-fact row and never writes, extends, or
+> dual-writes the legacy `contribution_receipt_snapshots`,
+> `gift_receipt_records`, or live-render paths. Before Phase 7 lands, receipt
+> issuance that needs canonical frozen facts remains blocked rather than
+> manufacturing an interim authority.
+
 Modern SiteStacker parity for **how one real person shows up across the product** — as a login, a CRM person, a donor, a missionary, a provider identity — **without collapsing those into one object and without ever crossing a tenant boundary.** This is a foundation phase: it builds the genuinely-missing piece (donor **account claiming** and the **unclaimed-donor lifecycle**), formalizes the identity seam that already exists in the repo, adds safe donor **deduplication/merge**, hardens tenant isolation, and **reserves** (does not build) the full identity-management system so it can drop in later without a rewrite.
 
 ---
@@ -115,13 +126,13 @@ Underneath, the foundation is **method-agnostic** (it binds on proven email poss
 
 - **A1 — Scope: Option A, scaffolded to Option C.** Build account claiming + the unclaimed-donor lifecycle + safe merge + minimal visibility + isolation hardening. Formalize the existing seam (`authz.memberships`, `crm_record_links`, `crm_merge_candidates`). **Reserve** the full identity system. Recon confirmed ~60% of the originally-proposed model already exists.
 - **A2 — Anchor: profiles-as-anchor now; typed person spine reserved.** The claim binding is `donors.profile_id` (existing FK, authoritative) + a donor `authz.memberships` row + an audit event. "CRM person" is **Asym-owned operational truth** over donors/missionaries — today via the donor/missionary records themselves, later via the Phase-7-populated `persons` spine (the earlier Twenty-projection clause is retired — [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)); money-truth stays in Asym. A minimal **inert typed `persons` anchor** + nullable `person_id` FKs are shipped now (not populated/read; on missionaries/profiles only — `donors` receives `party_id` instead, per Phase 9 C1, amended 2026-07-06) so the Option-C spine is a cheap future retrofit.
-- **A3 — Unclaimed donor is a permanent first-class state.** `donors.profile_id` NULLABLE stays legal forever; no code assumes a donor has a login. Anonymous gift stays `donations.donor_id IS NULL`; a _known but publicly-anonymous_ donor is a reserved explicit flag, never modeled as absence of data.
+- **A3 — Unclaimed donor is a permanent first-class state.** `donors.profile_id` NULLABLE stays legal forever; no code assumes a donor has a login. Phase 13 freezes the gift-time legal donor on the contribution header and represents guest/anonymous treatment explicitly; a _known but publicly-anonymous_ donor is never modeled as accidental absence of identity.
 - **A4 — Offline-capture → invisible attribution → optional claim.** Staff capture stores an **unverified contact email** on the donor and creates no login. Online guest gifts **attribute** to a matching donor with the six safety rules (below). Claiming is optional, verified, and never forced.
 - **A5 — Six safety rules (non-negotiable).** (1) Recognize but never reveal; (2) enumeration-safe form; (3) email-verification state gates all sensitive access; (4) saved payment methods verified-only; (5) never force login; (6) single clean match attributes silently, anything ambiguous → staff review (reuse `crm_merge_candidates`), never a silent guess.
 - **A6 — Claiming is method-agnostic; magic-link-first.** The claim gate binds on **proven email possession**, regardless of how proven (magic link, password, and — reserved — Google/Apple/passkey). **Magic-link/OTP is the hard-rule entry**; set-password is a post-authentication step only (a signup entry path collides on Supabase's global-unique email and leaks cross-tenant existence).
 - **A7 — Tenancy: Path 2 (complete data isolation).** Single Supabase project; the shared credential authorizes nothing. Separate donor record, membership, and claim per tenant; **no cross-tenant linking, merge, single-view, or dedupe**; every access carries `tenant_id`. Physical per-tenant auth (separate projects) is reserved for future compliance.
-- **A8 — Experiential separation is mandatory.** Every identity surface is per-tenant branded: auth emails via the **Supabase Send Email Hook → Email Studio template → Resend**; login/claim UI on the tenant's own domain with `base-maia`/zinc tokens; **no cross-tenant surface** in the donor portal. This is an acceptance criterion _and_ a test (unbranded chrome = failing build).
-- **A9 — Merge is non-destructive, reversible, replayable, never automatic.** Admin picks the surviving record and composes a field-by-field golden record; all eligible children re-point (donations, pledge/commitment canonical Party references, `donor_feed_preferences`, `crm_record_links`, invitations); consent merges to the **most-restrictive**; a `merged_into_donor_id` tombstone plus a **replayable `merge_operations`** record make un-merge real; an **opt-in, completeness-gated** hard-delete may remove the empty shell without ever touching money history. Dedupe scan is on-demand + scheduled self-healing, **within-tenant only**. The re-point child list is expected to grow in later phases to cover Phase-7 party/soft-credit rows (e.g. `gift_credits`, `household_members`). _(Amended 2026-07-06, Phase 9 C1: the re-point list additionally gains `parties`, `crm_relationships`, and the party-keyed engagement tables.)_ _(Amended 2026-07-13, Phase 16 A11/D14: only a governed, same-tenant merge of duplicate records proven to represent the same real-world Party may re-point a commitment's current canonical Party ID, while the commitment retains its immutable original Commitment Party snapshot and merge provenance. That identity repair is not an owner transfer. A genuine owner change supersedes the old commitment and creates a successor under fresh Party intent and collection authority; neither path may cross tenants.)_
+- **A8 — Experiential separation is mandatory.** Every identity surface is per-tenant branded. For auth email, Phase 4/Supabase Auth is only the producer and purpose authority: its **Send Email Hook emits a typed auth-purpose request → Phase 17 resolves immutable prepared content and the bounded sender profile → Phase 6 creates the sole communication event, schedules/dispatches, and records provider outcome/history → Resend transports the message**. Phase 4 never renders or sends directly. Login/claim UI stays on the tenant's own domain with `base-maia`/zinc tokens; **no cross-tenant surface** appears in the donor portal. This is an acceptance criterion _and_ a test (unbranded chrome = failing build).
+- **A9 — Merge is non-destructive, reversible, replayable, never automatic.** Admin picks the surviving record and composes a field-by-field golden record; eligible **mutable CRM references** re-point (`donor_feed_preferences`, `crm_record_links`, invitations, and current canonical Party references only where the source domain permits identity repair); frozen contribution, legal-donor, receipt, statement, accounting, and commitment-owner facts never re-point. Consent merges to the **most-restrictive**; a `merged_into_donor_id` tombstone plus a **replayable `merge_operations`** record make un-merge real; an **opt-in, completeness-gated** hard-delete may remove the empty shell without ever touching money history. Dedupe scan is on-demand + scheduled self-healing, **within-tenant only**. The re-point child list is expected to grow in later phases only for source-domain-approved mutable projections such as Party relationships and engagement rows; Phase 7 `contribution_receipts` and its frozen legal-donor facts are explicitly excluded. _(Amended 2026-07-06, Phase 9 C1: the re-point list additionally gains `parties`, `crm_relationships`, and the party-keyed engagement tables.)_ _(Amended 2026-07-13, Phase 16 A11/D14: only a governed, same-tenant merge of duplicate records proven to represent the same real-world Party may re-point a commitment's current canonical Party ID, while the commitment retains its immutable original Commitment Party snapshot and merge provenance. That identity repair is not an owner transfer. A genuine owner change supersedes the old commitment and creates a successor under fresh Party intent and collection authority; neither path may cross tenants.)_
 - **A10 — Auth methods reserved, not built.** Social (Google/Apple) and passkeys are reserved as **per-tenant-optional** fast-follows (they reinforce one global identity via verified-email auto-linking, so they change UX, not isolation; passkeys are a _post-claim_ upgrade). SAML SSO is reserved for a future **staff** auth phase. The consent-screen branding limitation is why magic-link stays the branded default.
 
 ### B. Deep modules (`packages/api/src/identity`)
@@ -133,10 +144,10 @@ Each is a deep module — a simple, testable interface hiding real complexity �
 - **`claiming`** — guest attribution + the verified-possession bind.
   - `attributeGuestGift({ tenantId, email, gift })` → find-or-create donor by normalized `(tenant, email)`; **reveals nothing**; defers dedupe to async so the response is constant-shape/constant-time.
   - `bindClaim({ tenantId, donorId, possessionProof })` → sets `donors.profile_id`, `email_verified_at`, and the donor membership **in one transaction**, only with a fresh single-use proof for the _same normalized email_; audits the transition. Never called from the attribution path or an admin action without proof.
-- **`invitations`** — `issue / redeem / revoke` legacy invitations; lifetime/single-use/revocation are our table's state (Supabase link/OTP tokens hard-cap at 24h, so a fresh short-lived Supabase link is minted at redemption); branded via the Email Studio path; consent-gated.
-- **`merge`** — `previewMerge / executeMerge / unmerge / purgeShell`; executes inside the tenant guard; asserts `survivor.tenant_id === loser.tenant_id`; re-points eligible children; writes the replayable `merge_operations` record; `purgeShell` is opt-in and gated on a completeness check. For Phase 16 commitments, merge may repair only a proven same-real-world canonical Party reference while preserving the immutable original owner snapshot and provenance; a real owner transfer uses supersession plus fresh authority, never merge.
+- **`invitations`** — `issue / redeem / revoke` legacy invitations; lifetime/single-use/revocation are our table's state (Supabase link/OTP tokens hard-cap at 24h, so a fresh short-lived Supabase link is minted at redemption). The invitation domain supplies purpose and variables; Phase 17 prepares branded content/sender identity and Phase 6 alone evaluates the communication policy, dispatches, and records history.
+- **`merge`** — `previewMerge / executeMerge / unmerge / purgeShell`; executes inside the tenant guard; asserts `survivor.tenant_id === loser.tenant_id`; re-points only source-approved mutable CRM children; writes the replayable `merge_operations` record; and treats Phase 7 receipt/statement facts plus every immutable financial snapshot as read-only evidence. `purgeShell` is opt-in and gated on a completeness check proving no authoritative source still requires the shell. For Phase 16 commitments, merge may repair only a proven same-real-world canonical Party reference while preserving the immutable original owner snapshot and provenance; a real owner transfer uses supersession plus fresh authority, never merge.
 - **`dedupe`** — `scan({ tenantId })` (on-demand + scheduled self-healing via Inngest, within-tenant matcher, exact-email=high / fuzzy=low) → populates `crm_merge_candidates`; never auto-merges.
-- **Branded-auth-email** — the Send Email Hook handler that resolves the tenant from the request/redirect context and renders that tenant's Email Studio template via Resend.
+- **Auth-email producer adapter** — the Send Email Hook handler resolves the tenant/site from trusted request/redirect context, validates the auth purpose and bounded variables, and submits that request to the Phase 17 prepared-message contract. Phase 17 returns immutable prepared content plus sender identity; the adapter hands it to Phase 6's sole communication seam. Only Phase 6 creates the communication event, dispatches through Resend, and records outcome/history.
 
 ### C. Phase-3 plug-in (no parallel systems)
 
@@ -154,11 +165,16 @@ Each is a deep module — a simple, testable interface hiding real complexity �
 
 - `donors.email_verified_at` (nullable) — null = unverified contact email; set **only** by the possession path.
 - `donors.merged_into_donor_id` (nullable, composite tenant FK) — merge tombstone.
-- A **frozen receipted legal-donor snapshot** (name + address + donor-id-at-issue) on the receipt/donation record at issuance — immutable; merge/redaction touch only the mutable CRM projection. This snapshot is reserved as **party-aware**: the fields **Phase 7** populates freeze `donor_id` + `party_kind` (+ `org_type` for org-kind legal donors; amended from `party_type` 2026-07-06, Phase 9 C2) + `legal_name`/name + address-of-record + (for org/DAF/foundation legal donors) EIN + (when a household is the legal giving unit) household-member-ids. The snapshot stores a **frozen copy of the resolved `party_kind`/`org_type` at issuance** — a frozen copy, never live dual truth (Phase 9 C2). Phase 4 ships only the reservation and the person subset; Phase 7 **extends** the snapshot columns for org/DAF/household legal donors, so appending those columns does not break the immutable-snapshot contract.
+- **No receipt-fact column or interim snapshot.** Phase 4 reserves the
+  integration contract only: when Phase 7 issues a receipt,
+  `contribution_receipts` freezes the exact legal-donor and Legal Entity facts
+  and becomes the sole authority. Phase 4 merge/redaction may change mutable
+  CRM projections but cannot update those facts or create a pre-Phase-7
+  substitute.
 - **Inert reserved:** empty `persons` (`id`, `tenant_id`, `created_at`) + nullable `person_id` FK on missionaries/profiles — not populated or read in Phase 4. _(Amended 2026-07-06, Phase 9 C1: the `person_id`-on-donors reservation is superseded — `donors` never receives `person_id`; `donors.party_id` is created in its place.)_
 - **Replayable:** a `merge_operations` record (survivor, loser, per-child re-pointed FKs, golden-record choices, pre-merge consent).
 
-**Reuse:** `authz.memberships` (roles/multi-hat); `crm_record_links` (provider links — Stripe now, Mailchimp later; the second Stripe customer from a merge lands here); `crm_merge_candidates` (dedupe/review, extended to reference two same-tenant Asym donor ids); consent (`do_not_email` / `do_not_contact` / `email_suppressions`); Email Studio `email_templates`; the Phase-3 audit spine.
+**Reuse:** `authz.memberships` (roles/multi-hat); `crm_record_links` (provider links — Stripe now, Mailchimp later; the second Stripe customer from a merge lands here); `crm_merge_candidates` (dedupe/review, extended to reference two same-tenant Asym donor ids); Phase 6 consent/suppression and communication-event contracts; Phase 17 prepared-message/content/sender contracts (existing Email Studio tables are implementation evidence, not Phase 4 authority); the Phase-3 audit spine.
 
 **Reserved seam (entity-link types):** the `crm_link_entity_type` DB enum and its TS mirror `CrmIdentityConceptId` reservation remains for **generalized provider links only** (re-scoped 2026-07-06, ADR-0001): `household` / `organization` / `daf_sponsor` (and `person` / `gift_credit`) entity-link types are added only if/when a provider link actually needs them (see Phase 7 C4); Phase 4 ships only the current entity-link set (baseline: `supabase/migrations/20260508000413_crm_identity_mapping.sql` and `packages/api/src/crm/identity/concepts.ts`).
 
@@ -166,8 +182,10 @@ Each is a deep module — a simple, testable interface hiding real complexity �
 
 ### E. Contracts / wiring
 
-- **Supabase Auth:** `signInWithOtp` (magic-link entry), `admin.inviteUserByEmail`/`generateLink` (invites; fresh link at redemption), `updateUser` (post-auth password), automatic identity linking (verified-email-only — reinforces the takeover-safety rule). Send Email Hook for branded delivery.
-- **Email Studio → Resend:** per-tenant branded auth-email templates; the hook
+- **Supabase Auth:** `signInWithOtp` (magic-link entry), `admin.inviteUserByEmail`/`generateLink` (invites; fresh link at redemption), `updateUser` (post-auth password), automatic identity linking (verified-email-only — reinforces the takeover-safety rule). The Send Email Hook is the authenticated producer adapter, not a parallel sender.
+- **Phase 17 → Phase 6 → Resend:** Phase 17 prepares the immutable,
+  tenant-branded auth message and sender/reply resolution; Phase 6 alone
+  dispatches and records communication history; Resend transports. The hook
   carries only a server-issued opaque context handle in `redirectTo`. Server-side
   lookup re-proves tenant, site, recipient, action, and template before
   rendering; no URL field selects authority.
@@ -196,7 +214,10 @@ Added during the Phase-8 (CRM Operating Foundation) grill, which confirmed **Pha
 
 **G2 — Receipt integrity through merge (strengthens #507 / #512 / #506 / #516).** Because a donor merge re-points `donations.donor_id` (A9), an already-issued receipt MUST NOT silently re-attach to the surviving donor:
 
-- The receipt **resolves its legal donor from the frozen snapshot (#507), never from live `donations.donor_id`.** The snapshot embeds `donor-id-at-issue` + legal name + address-of-record (already #507's intent) and is the receipt's source of donor truth.
+- The receipt **resolves its legal donor from frozen Phase 13/7 source facts,
+  never from live mutable Party/donor links.** A later identity merge may change
+  current CRM projections but cannot change the receipt's legal donor, Legal
+  Entity/issuer, facts version, document identity, or exact issued artifact.
 - The shipped `contribution_receipt_snapshots` table and migration are prototype-removal evidence only. **Do not extend, read, import, backfill, or preserve that runtime.** Phase 7's immutable `contribution_receipts` facts record freezes the party-aware legal-donor identity from its first authoritative write; Phase 18 D17 removes the prototype schema/runtime before any official receipt path activates. There is no interim authority, overlap, compatibility view, or dual truth (Phase 9 C1, amended 2026-07-25).
 - **Guard trigger (#506):** a `BEFORE UPDATE OF donor_id` trigger on `donations` that RAISEs when a frozen receipt/statement snapshot exists for the donation (short-circuit `IS DISTINCT FROM`, security-definer with locked `search_path` so RLS cannot hide a snapshot, explicit `ERRCODE`, indexed lookup) — defense-in-depth so no merge/re-point path can corrupt an issued receipt.
 - **Permanent negative test (#516):** a merge / re-point never changes the donor an already-issued receipt resolves to.
@@ -211,16 +232,28 @@ Good tests here assert **external behavior and safety invariants**, not implemen
 
 - **Unit (deep modules):** guest-gift find-or-create attribution (single match attributes, ambiguous → candidate, no duplicate); **enumeration-safety** (identical response _and_ latency envelope for known-existing vs absent email); **verified-possession bind** including the **reject-unverified-bind takeover regression**; invitation lifetime / single-use / revocation; merge re-point + tombstone + **un-merge replay**; consent-most-restrictive on **both** attribution and merge; email-normalization equivalence across call sites.
 - **Cross-tenant negative-test tier (permanent CI gate):** RLS `is_empty()` tests (tenant B invisible to tenant A); **service-path** tests that call the real donate/attribution/resolver/merge functions with tenant-A context and assert they cannot touch tenant-B rows despite RLS bypass; a dedupe test asserting no candidate pair ever spans tenants; the enumeration latency test. Every new tenant-scoped table or service-role path must add its own isolation test.
-- **Structural assertions:** a CI check (via `pg_class`/`pg_policies`) that every public tenant table has `relrowsecurity` **and** `relforcerowsecurity` with ≥1 policy; the tenant-guard grep gate; a **branding test** (an auth email or identity screen rendered with default/unbranded chrome fails).
+- **Structural assertions:** a CI check (via `pg_class`/`pg_policies`) that every public tenant table has `relrowsecurity` **and** `relforcerowsecurity` with ≥1 policy; the tenant-guard grep gate; and an auth-email contract test proving the producer request resolves tenant-branded Phase 17 content/sender identity and exactly one Phase 6 communication event/history chain (default/unbranded content or direct Phase 4→Resend dispatch fails).
 - **Prior art:** Phase-3 resolver/projection golden-snapshot tests; the shipped recovery-scan (donation-saga-recovery) Inngest pattern (for the dedupe scan); existing `packages/api` service unit tests.
 
 ---
 
 ## Out of Scope (reserved seams — documented, not built)
 
-- The **populated** person/constituent spine and cross-entity (donor+missionary) dedupe — only the inert typed anchor ships now. The populated persons/constituent spine and the party/credit model are delivered by **Phase 7**, which **fulfills** these Phase-4 reservations; Phase 7 **hard-depends** on the Phase-4 isolation-hardening foundation (composite `(tenant_id, id)` keys, `ENABLE`+`FORCE` RLS, the tenant-guard wrapper, the cross-tenant negative-test CI tier) shipping first, so it **inherits, never bypasses,** these isolation gates.
+- The **populated** Party/constituent spine and cross-role dedupe — only the
+  inert typed identity/claim anchor ships now. Phase 7 populates the base Party
+  and Statement Subject required for official facts; Phase 9 deepens the Party
+  and relationship graph; Phase 13 freezes the accepted contribution's legal
+  donor source evidence. Every later owner inherits Phase 4's composite tenant
+  keys, FORCE RLS, tenant-guard wrapper, and cross-tenant negative-test tier.
 - `contact_points` (multiple emails/phones per person); a `verification_method` enum (so a future SSO can't silently unlock saved cards).
-- `gift_credits` (**soft credit**; synonym `gift_attributions` rejected — Phase 7 D) / tribute / matching / DAF — with `donations.donor_id` documented as the **legal donor (hard credit)** invariant, kept separate from the person spine (the mistake that forced Salesforce's NPSP→Nonprofit-Cloud re-platform). Reserved **hard invariant** for when the `gift_credits` ledger is built (**Phase 7**): soft rows carry `is_receiptable = FALSE`, never enter a money total, and never mint a receipt; acknowledgment and notification documents are structurally forbidden from deductibility merge-fields (the three-document wall: **tax receipt / acknowledgment / notification**).
+- Phase 14 `contribution_credits` (**soft credit**; synonym
+  `gift_attributions` rejected), tribute, matching, and DAF operations. Phase
+  13 owns the contribution header and frozen legal donor source evidence;
+  Phase 7 consumes that evidence for official receipt/statement facts. Credit
+  rows are `is_receiptable = FALSE`, never enter a money total, and never mint
+  a receipt. Phase 14 defines acknowledgment/notification purpose facts, Phase
+  17 governs content/variables, Phase 18 owns print/PDF artifacts, and Phase 6
+  owns dispatch/history under the three-document wall.
 - **Households** as a separate _party_ entity (never an account that absorbs people); **church/organization** records; **applicant** + applicant→missionary conversion; **reference** contacts.
 - A **GDPR redaction seam** distinct from delete (erase PII while retaining the immutable receipt ledger); **anonymity-as-explicit-flag** on a known donor.
 - **Bulk** invitations; **social login (Google/Apple)**, **passkeys**, and **SAML SSO** wiring — including a **per-tenant enabled-auth-methods config** and **Apple "Hide My Email" relay-identity handling** (a relay address won't match a donor's contact email, so it is treated as unmatched and never mis-attributed); **Mailchimp** provider links; **physical per-tenant auth** (separate Supabase projects).
@@ -246,12 +279,12 @@ Good tests here assert **external behavior and safety invariants**, not implemen
 - [ ] A guest online gift with a matching email attributes to the same donor — no duplicate, reveals nothing, enumeration-safe, constant-time; the form behaves identically for known vs unknown emails.
 - [ ] A donor can claim via magic-link (or set-password post-auth); the login binds to the donor record **only** inside a verified-possession transaction; `email_verified_at` is set in the same transaction; the binding is audited.
 - [ ] Giving history and saved payment methods are hidden until email possession is verified.
-- [ ] Staff can invite a legacy donor; invitations are branded, expiring, single-use, revocable, consent-gated, and audited.
+- [ ] Staff can invite a legacy donor; invitations are branded, expiring, single-use, revocable, and audited. The invitation supplies purpose/variables, Phase 17 pins prepared content/sender identity, and Phase 6 alone applies communication policy, dispatches through Resend, and records history.
 - [ ] Staff can merge donors from a dedupe queue and from CRM search; merge is field-by-field golden-record, re-points every eligible child, preserves immutable commitment-owner snapshots/provenance, is reversible/replayable, and offers an opt-in completeness-gated shell delete; merges never transfer a genuine commitment owner, auto-run, or span tenants.
 - [ ] A scheduled self-healing dedupe scan surfaces within-tenant candidates without auto-merging.
 - [ ] **Cross-tenant negative tests are green**; every tenant table has `FORCE` RLS + a policy; the tenant-guard and branding CI gates pass.
 - [ ] Every identity surface (auth emails, login, claim, portal) is tenant-branded on the `base-maia`/zinc tokens; no cross-tenant surface appears in the donor portal.
-- [ ] The inert typed `persons` anchor + `person_id` FKs (on missionaries/profiles; `donors` receives `party_id` instead — Phase 9 C1, 2026-07-06) exist; the receipted legal-donor snapshot is frozen at issuance.
+- [ ] The inert typed `persons` anchor + `person_id` FKs (on missionaries/profiles; `donors` receives `party_id` instead — Phase 9 C1, 2026-07-06) exist; Phase 4 creates no receipt-fact row, and merge leaves Phase 7 frozen legal-donor/issuer facts unchanged.
 - [ ] All claim/attribution/invitation/merge events are audited (identifiers-only) with tenant and a stable actor id.
 
 **Evidence file** (Phase-2/3 style, authored at completion): migrations applied; the full test suite incl. the negative-test tier passing; route/API checks; screenshots of the claim flow and the merge UI; the isolation-gate CI output; known gaps; and an explicit list of what Phase 4 intentionally did **not** build (the reserved seams).
@@ -265,15 +298,15 @@ Mirrors the Phase-2/3 structure. Foundation tickets first (`status:todo`); the r
 - **Epic — Phase 4: Identity & Account-Claiming Foundation**
 - **T1** — Docs: PRD, OpenSpec/glossary (CONTEXT.md) terms, and the 4 ADRs.
 - **T2** — Isolation-hardening foundation: tenant-guard wrapper, `ENABLE`+`FORCE` RLS, composite `(tenant_id, id)` FKs, and the CI assertions/grep gate. _(foundation)_
-- **T3** — Data-model migrations: the 2 tables, columns, inert `persons` anchor, receipt snapshot, unique keys, and the canonical email-normalizer. _(foundation)_ _(Amended 2026-07-06, Phase 9 C1: the person_id-on-donors reservation is superseded — `donors` never receives `person_id`; `donors.party_id` is created in its place; `person_id` on missionaries/profiles unchanged.)_
+- **T3** — Data-model migrations: the 2 tables, identity columns, inert `persons` anchor, unique keys, and the canonical email-normalizer; no receipt snapshot or legacy receipt writer. _(foundation)_ _(Amended 2026-07-06, Phase 9 C1: the person_id-on-donors reservation is superseded — `donors` never receives `person_id`; `donors.party_id` is created in its place; `person_id` on missionaries/profiles unchanged.)_
 - **T4** — Unclaimed-donor lifecycle + guest attribution (extend the donate path; enumeration-safe, constant-time).
 - **T5** — Claim service (magic-link-first; verified-possession bind; reveal-gate via the Phase-3 resolver).
-- **T6** — Legacy invitations (issue/redeem/revoke; branded via Email Studio + Resend; consent-gated).
+- **T6** — Legacy invitations (issue/redeem/revoke; producer-owned purpose/variables routed through Phase 17 preparation and the sole Phase 6 communication seam).
 - **T7** — Merge execution (golden record, re-point, tombstone, `merge_operations`, un-merge, opt-in purge).
 - **T8** — Dedupe scan (on-demand + self-healing Inngest; within-tenant matcher → `crm_merge_candidates`).
 - **T9** — Merge UI (dedupe queue + CRM-search multi-select → one compare sheet; `base-maia`/zinc, Base UI, `DataTableResponsive`).
 - **T10** — Minimal Mission Control identity/claim visibility (linked records + claim/merge review queue, read-only).
-- **T11** — Branded auth emails (Send Email Hook → per-tenant Email Studio template resolution → Resend).
+- **T11** — Branded auth emails (Supabase/Phase 4 auth-purpose producer → Phase 17 immutable prepared content and sender profile → Phase 6 sole communication event/dispatch/history → Resend transport).
 - **T12** — Cross-tenant negative-test CI tier + FORCE-RLS assertion + branding test.
 - **T13** — Phase 4 evidence file.
 

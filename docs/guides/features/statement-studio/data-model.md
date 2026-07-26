@@ -1,28 +1,31 @@
 # Data Model
 
-> **Superseded implementation authority (Phase 18, 2026-07-21).** This file
-> preserves pre-Phase-18 design evidence only. Do not dispatch it or use it as
-> target architecture. The Phase 18 PRD, authority manifest, renderer
-> qualification protocol, ADRs 0033-0039, and OpenSpec change are controlling.
-> Phase 18 D17 requires a clean pre-production cutover with no legacy runtime,
-> import, backfill, or dual compatibility; D13 forbids raw provider or signed
-> object URLs as access authority.
+> [!IMPORTANT]
+> **Implementation route superseded (Phase 18, 2026-07-21).** This file
+> preserves historical Phase 0 design evidence only and has no implementation
+> authority. All implementation must follow **Phase 18
+> D-prime-amended-and-hardened (D-prime-R)**, the current Phase 18 PRD,
+> authority manifest, implementation spec, renderer qualification protocol,
+> ADRs 0033-0039, and OpenSpec contract. D17 requires an environment-gated
+> destructive pre-production cutover to zero legacy runtime, with no import,
+> backfill, fallback, or dual compatibility; D13 forbids raw provider or signed
+> object URLs as access authority. No renderer, including DocRaptor, has
+> production authority before the bounded D3 evidence contest.
 
 The data model must be tenant-safe, Supabase-current, and flexible enough for standard platform jobs plus tenant-created custom assignments.
 
 ## Triggers
 
-Use this doc when planning or changing Statement Studio tables, migrations, RLS, grants, Storage, artifacts, defaults, retention, or purge behavior.
+Use this doc only to inspect the historical Phase 0 data-model evidence. Do not
+use it to plan or change current tables, migrations, RLS, grants, Storage,
+artifacts, defaults, retention, or purge behavior.
 
 ## Workflow Steps
 
-1. Load `docs/ai/skills/supabase/SKILL.md`.
-2. Load `docs/ai/rules/backend.md`.
-3. Load `supabase/AGENTS.md`.
-4. For schema, RLS, indexes, or query performance, load `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`.
-5. Verify current Supabase docs/changelog before implementation.
-6. Add explicit grants and RLS together in migrations.
-7. Run focused SQL/type/route verification.
+1. For implementation, stop here and use the current Phase 18 PRD,
+   implementation spec, and OpenSpec contract.
+2. Use the concepts below only as historical evidence to compare against the
+   current Phase 18 canonical schema and cutover.
 
 ## Historical persistence evidence and current boundary
 
@@ -44,7 +47,7 @@ invent a migration path.
 slices must not write parallel table families or treat a prototype table as an
 independent source of document truth.
 
-## Core Persistence Concepts
+## Historical Core Persistence Concepts
 
 The following Phase 0 mapping is retained only as removal and concept evidence:
 

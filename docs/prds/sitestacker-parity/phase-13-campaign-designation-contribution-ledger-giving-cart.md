@@ -2,7 +2,7 @@
 
 ## Status
 
-Groomed via `grill-with-docs` (2026-07-09). All decisions **D1–D25** ratified and adversarially hardened (five ruthless 16/17-category reviews across D2/D3/D5/D7/D8/D12/D13/D14/D15/D16). PRD authored from the decision log. Program posture: **groomed-not-built** — this is a design against not-yet-built Phase 3/4/5/7/9/10/11/12 contracts; no live/shipped claims. Not yet tracked (issues follow via `/to-issues`). Repo anchors throughout are **evidence as of authoring**, never brittle build instructions.
+Groomed via `grill-with-docs` (2026-07-09). All decisions **D1–D25** ratified and adversarially hardened (five ruthless 16/17-category reviews across D2/D3/D5/D7/D8/D12/D13/D14/D15/D16). PRD authored from the decision log. Program posture: **groomed-not-built** — this is a design against not-yet-built Phase 3/4/5/7/9/10/11/12 contracts; no live/shipped claims. The phase is tracked by live epic **#690** and children **#691–#713**; every child is currently `status:blocked`. Those issue bodies are historical planning surfaces that predate the current congruency corrections and must not be dispatched unchanged. Issues **#706–#710** additionally remain subject to the binding Phase 16 recurring-domain supersession below. Repo anchors throughout are **evidence as of authoring**, never brittle build instructions.
 
 **Slug:** `contribution-ledger` · **Roadmap position:** Phase 13 of 41 (roadmap v2) · **Status:** PRD (design ratified 2026-07-09 via grill-with-docs — decisions D1–D25 + two governing principles R-JW and R-UX, each big money decision deep-researched against Stripe/IRS/NPSP/Blackbaud/CiviCRM/Baymard/FTC-ROSCA best practice and then pressure-tested by a 16/17-category ruthless adversarial review with a verify pass. Notable reversals — D1 named-destination → actually-direct charges; D2 compat-view → delete-and-replace; D8.c free-choice → guided-override-bounded-by-method; D14.2 first-touch → last-touch; D16.5 guarded → full self-serve — are the highest-signal parts of the record. READY).
 
@@ -57,11 +57,29 @@ If a campaign product, an accounting export, offline gift entry, or a public pro
 
 ## Solution
 
-A **server-authoritative, append-only contribution ledger** — the system of record for _the money facts of a gift_ — with Asym Postgres as the source of truth and Stripe as a pure executor, wrapped in the donor-facing giving cart, recurring commitments, source-code attribution, and campaign model that a modern ministry runs on. It is governed end-to-end by two founder principles: **R-JW ("just works" — seamless and invisible to the donor, effortless for the tenant, no hacky workarounds, modern best practice only)** and **R-UX (best-in-class staff/admin UX — easy by default, powerful on demand via progressive disclosure)**. The finished shape, in plain terms:
+A **server-authoritative, append-only contribution ledger** for donor intent,
+legal donor, designation, Legal Entity, and posting meaning, wrapped in the
+donor-facing giving cart, source-code attribution, and campaign model that a
+modern ministry runs on. Stripe remains authoritative for the exact provider
+execution, Balance Transaction, settlement, and payout evidence it emits;
+Phase 20 normalizes and links that evidence without letting it rewrite the
+source-domain contribution meaning. It is governed end-to-end by two founder
+principles: **R-JW ("just works" — seamless and invisible to the donor,
+effortless for the tenant, no hacky workarounds, modern best practice only)**
+and **R-UX (best-in-class staff/admin UX — easy by default, powerful on demand
+via progressive disclosure)**. The finished shape, in plain terms:
 
 - **A header + designation-lines + postings ledger, append-only by construction.** One contribution = a **header** (the hard-tender total + a frozen legal-donor snapshot), **designation lines** (one target each — a missionary _or_ a fund — the money source of truth), and **postings** (the append-only entries that fold to the current value). A `BEFORE UPDATE OR DELETE` trigger makes a posted row immutable (RLS and REVOKE cannot — `service_role` holds `BYPASSRLS`); `sum(lines) = header` is enforced by a deferred constraint at commit; a per-header monotonic `seq` (never `created_at`) orders the fold; every row is tenant-branded with composite same-tenant foreign keys so a cross-tenant reference cannot resolve. The effective value is readable _only_ through the DB fold, guarded by a CI grep gate. This **replaces the flat `donations` table outright** (delete-and-replace, reusing the existing UUIDs so every `/contributions/{id}` URL and foreign key stays valid), with **no compatibility view, ever**.
 
-- **Stripe Connect direct charges on the tenant's own connected account — Asym never in the flow of funds.** 100% of donation money flows through the tenant's own Stripe account via **direct charges on a controller-properties connected account** onboarded through Stripe-hosted Connect Onboarding. The platform stores only the `acct_` id (never a secret key — this **deletes the plaintext-key conflict**), calls each account with the `Stripe-Account` header, and takes **0% of donations — no application fee, ever** (the software is monetized out-of-band). The tenant owns funds, descriptor, disputes, and payouts; Asym is maximally plugged in to _observe_ (gifts, refunds, disputes, payouts) and _control_ (issue refunds from the CRM) without ever holding money. PCI stays SAQ-A: the PAN never touches Asym servers.
+- **Stripe Connect direct charges through the exact Legal Entity binding —
+  Asym never in the flow of funds.** One hundred percent of donation money
+  flows through the controller-properties connected account named by the
+  effective-dated Settlement Account Binding for the contribution's Legal
+  Entity/environment. The platform stores only the non-secret `acct_` reference
+  in that binding, calls with `Stripe-Account`, and takes 0% of donations—no
+  application fee. Tenant remains the isolation boundary; the Legal Entity is
+  the merchant/settlement owner. Asym observes provider evidence and performs
+  authorized operations without holding donor money. PCI remains SAQ-A.
 
 - **One giving cart — mixed, invisible, cross-device.** A donor adds any
   number of designation lines, one-time or recurring, in a single cart with an
@@ -105,7 +123,10 @@ The result: a donor gives once and to many, seamlessly; a missionary's recurring
 ### Goals
 
 - **Replace the flat `donations` row with the append-only header + designation-lines + postings ledger** as the single money source of record — delete-and-replace, UUID-reuse, no compatibility view (D2, D3).
-- **Stand up Stripe Connect direct charges on tenant-owned connected accounts**, Asym never in the flow of funds, 0% of donations, only the `acct_` id stored (D1, D1b) — and **delete the plaintext tenant Stripe key** (D1, D23).
+- **Stand up Stripe Connect direct charges through exact, effective-dated
+  Legal-Entity Settlement Account Bindings**, Asym never in the flow of funds,
+  0% of donations, only the non-secret `acct_` reference stored in the binding
+  (D1, D1b, Phase 20 D3)—and delete the plaintext tenant Stripe key (D1, D23).
 - **Ship the giving cart** — mixed one-time/recurring, one confirmation, cross-device for logged-in donors, enumeration-safe for guests, server-revalidated per line (D15), with **method-aware, tenant-configurable, per-payment-type fee-cover** (D12).
 - **Provide the ledger, Connect, signed-event, idempotency, designation-
   eligibility, and correction seams Phase 16 consumes**; do not build the
@@ -128,8 +149,9 @@ The result: a donor gives once and to many, seamlessly; a missionary's recurring
 - **Cross-processor PAN/ACH migration, donor re-authorization, recurring-object
   adoption, and bulk cutover tooling** — a separate dedicated migration
   workstream governed by Phase 16's proof-gated control and authorization
-  contracts. Phase 13 owns only the imported money/receipt boundary and exact
-  external-reference seam (D24, D25; superseded 2026-07-13).
+  contracts. Phase 13 owns only imported contribution/provider-reference
+  evidence, including an explicit `already_receipted` source hint; Phase 7
+  alone decides and versions receipt facts (D24, D25; superseded 2026-07-13).
 - **Full CRM data migration at scale** (people/relationships/notes/tags/consent/historical giving) — the migration workstream (deps Phases 4/9/11); Phase 13 owns the payment/ledger seam and linkage model (D25).
 - **Recurring intent, fixed-total pledges, fulfillment, donor/staff management,
   recovery policy, support health, and provider-control recovery** — Phase 16
@@ -138,13 +160,19 @@ The result: a donor gives once and to many, seamlessly; a missionary's recurring
   are distinct aggregates and are **never** auto-converted.
 - **Donor-portal depth** (designation-edit polish beyond the eligibility guard, statements, preference center, magic-link, wallet) — Phase 25 (D16).
 - **Public campaign pages, P2P/peer-to-peer fundraisers, and appeals** — Phases 22/36/27; Phase 13 reserves the `parent_campaign_id` self-FK and the by-id page reference, and moves all email/presentation fields _out_ of the campaign into their domains (D13).
-- **Accounting/GL export execution and reconciliation** — Phase 20; Phase 13 reserves the export status axis so it never collapses into posting (D7, D9).
+- **Accounting/GL export execution and reconciliation** — Phase 20; Phase 13
+  exposes exact source-occurrence identity and eligibility but reserves no
+  writable export-status axis (D7, D9).
 - **Reporting/BI dashboards and progress-chart UI** — Phase 33; Phase 13 ships the derived, per-currency, P10-safe progress _projection_ and names the v1 observability metrics (D13, D17).
 - **Recurring and fixed-pledge communication-candidate policy** — Phase 16;
   consent, delivery, outcome history, and suppression — Phase 6; editable
   content — Phase 17. Phase 13 must not hardcode a delivery vendor or preserve
   stale continuation fields as a universal commitment mechanism.
-- **Rendering tax documents** — receipts, year-end statements, Form 1098-C / 8283 / quid-pro-quo are **rendered by Phase 7/18**; Phase 13 _captures_ the facts and feeds them, and never issues, re-issues, or values a receipt itself (D8).
+- **Rendering tax documents** — Phase 7 owns immutable receipt/statement facts
+  and correction authority; Phase 18 alone renders the canonical receipt,
+  year-end statement, Form 1098-C / 8283, and quid-pro-quo artifacts. Phase 13
+  captures and exposes source facts and never issues, re-issues, renders, or
+  values a receipt itself (D8).
 - **Custom fields on money-transaction records** — explicitly excluded in v1; funds may carry custom fields but they are default-closed and receipt-excluded (P11).
 
 ---
@@ -153,13 +181,13 @@ The result: a donor gives once and to many, seamlessly; a missionary's recurring
 
 Phase 13 sits at the top of the parity stack: it **consumes** hard constraints ratified in Phases 1–12 and may not re-litigate them. These are the load-bearing contracts the money backbone is built on; violating any one of them is a defect, not a design choice. (Each is stated verbatim-in-spirit from the ratified predecessor PRDs and the Phase 13 Binding-Predecessor-Constraints record.)
 
-- **Phase 1 (Source-of-Truth Ownership Matrix) — Asym Postgres is the system of record for money; Stripe is the executor.** A provider identifier (`pi_`, `ch_`, `sub_`, `cus_`, `acct_`) is a **link, never the money's identity**. Corrections happen **only via the adjustment/posting ledger** — never an in-place edit of a settled money row. Phase 13 owns the ledger; Stripe state is reconciled _into_ it, never treated as truth.
+- **Phase 1 (Source-of-Truth Ownership Matrix) — authority is source-specific.** Asym owns donor, designation, Legal Entity, contribution intent, and append-only posting truth. Stripe owns the exact provider execution, balance-transaction, settlement, and payout evidence it emits. A provider identifier (`pi_`, `ch_`, `sub_`, `cus_`, `acct_`) is a **source link, never the contribution's business identity**. Corrections happen **only via source- and cause-linked adjustment/posting occurrences** — never an in-place edit of a settled contribution. Phase 20 normalizes and links provider settlement evidence without letting that evidence redefine legal donor, designation, or Legal Entity.
 
-- **Phase 2 (Site, Locale & Currency Foundation) — integer minor units and four orthogonal attribution axes.** Money is **integer minor units + validated ISO-4217 + per-currency exponent** (never a hardcoded ÷100); presentment currency **must equal** settlement currency in-phase (`assertTransactable`); reserved FX columns stay nullable. Every ledger row carries the four orthogonal, indexed attribution axes — **`site_id` (NOT NULL), `entry_method` (enum), `source_code` (allowlisted, CSV-safe), `designation` (tenant-wide)** — and a recurring gift **copies attribution to each installment**.
+- **Phase 2 (Site, Locale & Currency Foundation) — integer minor units and four orthogonal attribution axes.** Money is **integer minor units + validated ISO-4217 + per-currency exponent** (never a hardcoded ÷100); presentment currency **must equal** settlement currency in-phase (`assertTransactable`); reserved FX columns stay nullable. Phase 24 alone may later widen the source transaction allowlist; Phase 20 D20 only consumes exact downstream settlement and provider-conversion evidence and cannot make a foreign-currency checkout valid. Every ledger row carries the four orthogonal, indexed attribution axes — **`site_id` (NOT NULL), `entry_method` (enum), `source_code` (allowlisted, CSV-safe), `designation` (tenant-wide)** — and a recurring gift **copies attribution to each installment**.
 
 - **Phase 3 (Minimum Permission & Role-Scoped Projection Foundation) — every sensitive read/write goes through the one projection chokepoint, fail-closed.** All sensitive ledger access flows through `resolveProjection`; **processor identifiers are hard-locked non-visible and non-exportable**; row scope is **subtract-only per viewer**; exports are **column-driven via `csvSafeCell`**; audit logs record **field keys, never dollar amounts**. Phase 13 adds no read or export path that bypasses this.
 
-- **Phase 4 (Identity & Account-Claiming Foundation) — four distinct identities, and a frozen legal donor.** **Auth user ≠ donor ≠ Stripe customer ≠ legal donor.** The legal/hard-credit donor on a gift is a **frozen snapshot at gift time**; a NULL donor (guest/anonymous) is an **explicit flag**, not an accident; the snapshot must **survive a party merge via re-point** without changing the historical gift. Corrections never change the legal donor.
+- **Phase 4 (Identity & Account-Claiming Foundation) — four distinct identities, and a frozen legal donor.** **Auth user ≠ donor ≠ Stripe customer ≠ legal donor.** The legal/hard-credit donor on a contribution is frozen as exact source evidence at acceptance; only intentional `unknown_offline` may be null. A proved same-person merge may repair the mutable canonical Party reference, but it never rewrites the frozen identity evidence or any derived official-facts version. Corrections never silently change the legal donor.
 
 - **Phase 5 (Public Website Runtime Contract) — the server re-validates every reference before charge; the client amount is a suggestion.** On checkout the server **re-validates every designation reference against the resolved tenant** before any charge; the client-supplied amount and label are suggestions; an **invalid or cross-tenant designation fails safe** (dropped/flagged, never errored, never leaked, never mis-charged). The cart handoff is **enumeration-safe**.
 
@@ -342,7 +370,12 @@ Stories are grouped by actor and numbered continuously. Every story is grounded 
 
 ### Finance staff — review queue & exceptions
 
-114. As **finance staff**, I want money-final gifts to auto-post with no artificial delay, and only genuine exceptions to land in my review queue, so that giving is invisible/effortless to donors and I only touch what needs a human. `[D7.a]`
+114. As **finance staff**, I want gifts that reach their tender-specific
+     posting milestone to auto-post with no artificial delay, and only genuine
+     exceptions to land in my review queue, so that giving is
+     invisible/effortless to donors and I only touch what needs a human. A
+     provisional posting remains visibly provisional and is not final settlement.
+     `[D7.a]`
 115. As **finance staff**, I want the review queue to fail closed on risky cases (large gifts, restricted-ministry gifts, imported gifts, ambiguous donor matches), especially for a brand-new tenant with no config yet, so that nothing risky auto-posts by default. `[D7 review]`
 116. As **finance staff**, I want a simplified, money-oriented gift view with raw provider detail available on drill-down, so that the everyday view is clean and the deep detail is one click away. `[D7.b, R-UX]`
 117. As **finance staff**, I want a provisional ACH gift to show a "return-exposed until [date]" badge, so that I know at a glance which money isn't final yet. `[D7.b, D7 review]`
@@ -445,7 +478,7 @@ Stories are grouped by actor and numbered continuously. Every story is grounded 
 
 158. As an **org admin**, I want to connect my ministry's own Stripe account through Stripe-hosted onboarding (a redirect, then done), so that setup is a guided flow, not a manual key-paste. `[D1]`
 159. As an **org admin**, I want 100% of donations to flow through my ministry's own Stripe account with Asym never in the flow of funds, so that we retain full ownership of our money and payouts. `[D1]`
-160. As an **org admin**, I want Asym to take 0% of donations (no application fee ever), so that we can honestly tell donors 100% of their gift reaches the field. `[D1b]`
+160. As an **org admin**, I want Asym to take 0% of donations (no application fee ever), so that donors know Asym never reduces their gift through a platform cut. `[D1b]`
 161. As an **org admin**, I want Asym to observe our gifts, refunds, disputes, and payouts into the CRM and let us issue refunds from the CRM, without ever touching or holding our funds, so that we get full CRM control without handing over custody. `[D1]`
 162. As an **org admin**, I want the platform to store only my Stripe account id (never a secret key), so that there's no plaintext master key to leak. `[D1, D23]`
 163. As an **org admin**, I want to configure fee-cover per payment method (card vs ACH) with a simple rate and mode (optional opt-out, optional opt-in, or mandatory), so that I can set a card rate and a bank rate that each reflect their true cost. `[D12 amendment]`
@@ -565,7 +598,11 @@ P16 D4/D5/D16]`
 220. As a **developer**, I want money-transaction records to carry no custom fields in v1 (funds may, default-closed and receipt-excluded), and `extensible_targets.campaign` enabled by Phase 13 when it defines the real campaign record, so that the custom-field surface stays safe on the money path. `[P11, D13]`
 221. As a **developer**, I want a permanent negative/safety test tier plus structural CI gates (pgTAP for deferred-sum-at-commit, append-only immutability, per-line deltas, integer minor units; grep gates banning `.from('donations')` and direct base-money reads; type regeneration so `donations` no longer typechecks), so that the ledger's core invariants fail the build if broken. `[D2, D3]`
 222. As a **developer**, I want out-of-order events (a refund arriving before its charge) quarantined with backoff (never dropped or fabricated), so that webhook ordering can't corrupt the ledger. `[D3]`
-223. As a **developer**, I want imported/adopted gifts to enter the same five axes pre-advanced (no special "imported" enum) with a pre-Asym provenance boundary, so that migration reuses the exact same lifecycle without a parallel code path. `[D7, D24]`
+223. As a **developer**, I want imported/adopted gifts to enter the same four
+     source-owned axes pre-advanced (no special "imported" enum), with an exact
+     pre-Asym provenance boundary and Phase 20 D17 previous-owner evidence, so that
+     migration reuses the source lifecycle without a parallel path or falsely
+     claiming accounting delivery. `[D7, D24; amended 2026-07-27]`
 
 ---
 
@@ -578,7 +615,7 @@ Decisions are labeled `D#` to trace to the Phase 13 grill-with-docs decision log
 - **R-JW — "Just works."** Seamless and invisible to donors; as easy and invisible as possible to the tenant; no hacky workarounds; modern best practice only. A choice that creates a visible seam, a two-class experience, a manual step a donor or tenant must think about, or a "temporary" hack fails the bar and must be reworked onto the native path.
 - **R-UX — Best staff/admin UX.** Effortless by default (the common path is one obvious action with sane defaults), powerful on demand (per-line refund override, optional second approver, threshold alerts, provider detail available but never in the way).
 
-Everything in this block honors the binding predecessor constraints Phase 13 must consume and never re-litigate — in particular **P1** (Asym Postgres is the system of record for money; Stripe is the executor; a provider id is a _link_, never the money's identity; corrections only via the adjustment ledger), **P2** (integer minor units, validated ISO-4217, one currency per record), **P4** (auth user ≠ donor ≠ Stripe customer ≠ legal donor; the legal/hard-credit donor is a frozen snapshot at gift time), and **P12** (money reads/writes verify an HMAC-signed `EffectiveAccess`; capabilities are the only enforcement unit; Phase 13 _mints_ the money capabilities and declares its SoD pairs, Phase 12 (Full Role & Permission Configuration) _enforces_ them).
+Everything in this block honors the binding predecessor constraints Phase 13 must consume and never re-litigate — in particular **P1** (Asym owns contribution-business truth; Stripe owns the exact provider execution and settlement evidence it emits; a provider id is a source link, never the contribution's business identity; corrections use source- and cause-linked adjustment occurrences), **P2** (integer minor units, validated ISO-4217, one currency per record), **P4** (auth user ≠ donor ≠ Stripe customer ≠ legal donor; the legal/hard-credit donor is a frozen snapshot at gift time), and **P12** (money reads/writes verify an HMAC-signed `EffectiveAccess`; capabilities are the only enforcement unit; Phase 13 _mints_ the money capabilities and declares its SoD pairs, Phase 12 (Full Role & Permission Configuration) _enforces_ them).
 
 > **Production gate.** The Stripe Connect topology, PCI posture, ACH/NACHA handling, and receipt boundaries below encode best-effort readings of Stripe's official docs and IRS/NACHA guidance; **production use requires review by qualified payments/finance counsel and a Stripe implementation review.** This document is not legal, tax, or PCI-compliance advice.
 
@@ -591,7 +628,13 @@ Everything in this block honors the binding predecessor constraints Phase 13 mus
 **Architecture (RATIFIED — PRD-binding):**
 
 - **Stripe Connect + DIRECT charges** on a **controller-properties connected account with full-dashboard ("Standard") behavior**, onboarded through **Stripe-hosted Connect Onboarding (Account Links)**. Do **not** use OAuth (Stripe no longer recommends it for new platforms) and do **not** use the legacy `type: 'standard' | 'express' | 'custom'` labels. Use controller properties: `controller.stripe_dashboard.type = full`, `controller.losses.payments = stripe`, `controller.fees.payer = account`, `controller.requirement_collection = stripe`. The consequence of `controller.losses.payments = stripe` and `controller.fees.payer = account` is that the **tenant bears disputes/losses and Stripe's processing fees** — Asym never absorbs either.
-- **Access model — the header, never a stored key.** The platform calls each connected account with **its own platform secret key + a `Stripe-Account: acct_…` header**. The platform stores **only the `acct_` id** — never a tenant secret key. This is the single most important schema change in the money plane: it **DELETES the plaintext `tenants.stripe_secret_key`** (the CONFLICT-tier finding in the current code, stored in plaintext while `resend_api_key_encrypted` is encrypted) and replaces it with a non-secret `stripe_account_id`. There is no tenant API key anywhere in the design to leak, rotate, or encrypt.
+- **Access model — the exact binding, never a stored tenant key.** The platform
+  calls each connected account with its platform secret plus
+  `Stripe-Account: acct_…`. It stores only the non-secret account reference on
+  an effective-dated `(Tenant, Legal Entity, environment, purpose)` Settlement
+  Account Binding—never a tenant secret key and never one mutable tenant-level
+  account field. This deletes plaintext `tenants.stripe_secret_key` without
+  creating a later multi-entity migration trap.
 - **PCI posture = SAQ-A** via the Stripe **Payment Element** rendered in Stripe-hosted iframes. The platform renders the checkout UI with its own **publishable** key + `{ stripeAccount: 'acct_…' }` + the PaymentIntent `client_secret`; the **PAN never touches platform servers**. Saved Customers and PaymentMethods live **on the connected account** (this is the seam recurring giving depends on — see D16 elsewhere in this PRD, and D24/D25 below).
 - **Refunds and disputes — control without custody.** The platform issues refunds via `POST /v1/refunds` with the `Stripe-Account` header (this debits the **tenant's** balance, not Asym's); it can stage and submit dispute evidence via `POST /v1/disputes/:id` on the tenant's behalf; the tenant can also self-serve through the embedded `dispute_management` surface. Because Asym holds no balance, a refund is always a debit against the tenant.
 - **Observability — one Connect webhook, fail-closed binding resolution.** A
@@ -624,7 +667,12 @@ Everything in this block honors the binding predecessor constraints Phase 13 mus
 
 - **No `application_fee_amount` / `application_fee_percent` anywhere** in the charge path or the subscription path. (The downstream migration edge-case sweep in D25 hardens this into an assertion: `application_fee = 0` on every direct charge, including replayed/backfilled historical webhooks.)
 - Asym holds **no Stripe balance** derived from donations.
-- This is the strongest donor-trust posture — "100% of your gift reaches the field" is _literally_ true on the money rails (fee-cover mechanics for processing fees are handled separately under D12, elsewhere in this PRD).
+- This preserves the strongest truthful donor-trust posture: Asym takes 0% and
+  the complete gross supported gift remains credited to its original
+  Designations. Processor costs remain a separate economic fact. Their
+  accounting attribution follows the frozen Phase 20 D19 policy, so neither
+  checkout nor product copy may promise that 100% is always available to the
+  field.
 - It **kills the `refund_application_fee` rider entirely** — there is no platform fee to refund.
 
 **Parked riders (revisit later, not v1):** dispute-fee allocation policy, deauthorization UX polish, and the exact scope of optional Platform controls.
@@ -774,7 +822,19 @@ Every operation writes one audit-event row. **Never a raw status dropdown** (the
 - **Optional, per-tenant policy, OFF by default** (configured in Phase 12 (Full Role & Permission Configuration)'s permission/approval-config, **not hardcoded here**): require a **second approver (SoD)** for refund / write-off / cross-missionary re-designation, and/or auto-require SoD above a dollar threshold. Orgs with the staff can enable it; single-finance orgs never see it.
 - Rationale: role + audit is a **detective** control (it catches after the money moved); refunds especially are **irreversible money-out**. Always-on active-audit + optional-SoD delivers the founder's light default while leaving the best-practice **preventive** layer available — congruent with Phase 12 owning the configurable approval policy. With D5.c role-restricted (no mandatory tier), the write-off dollar threshold becomes an **alert / optional-SoD trigger** only, tenant-configurable — not a hard block.
 
-**Receipt / progress / safety ripple (corrections emit typed facts, ids only — see the D7/D8 blocks elsewhere in this PRD):** a `contribution.corrected` / `refund.posted` fact re-runs Phase 7 (Receipt, Statement Compliance & Donor Credit) receipt eligibility off the **effective** fold (supersede-reduced / void / hold / no-op; comms fire once, version-scoped idempotent; **prior-year issued receipts are never retracted** — supersede + a "corrected" badge); a `designation.reallocated` fact recomputes **both** missionaries' support progress **from effective lines** (a required fix — `current_funding` must derive from effective lines, not a denormalized column, or it double-counts); a fund label is resolved through the Phase 10 (Sensitive-Data Classification & Restricted-Ministry Safety) firewall (alias / fund-code, never a legal name) before it reaches a frozen snapshot; and corrections **never** change the legal/hard-credit donor (the frozen `donor_id` snapshot — only explicit identity ops, out of Phase 13 scope, touch it).
+**Receipt / progress / safety ripple (corrections emit typed facts, ids only —
+see the D7/D8 blocks elsewhere in this PRD):** a
+`contribution.corrected` / `refund.posted` occurrence exposes the exact new
+source revision. Phase 7 independently and idempotently re-evaluates receipt
+facts from the canonical effective fold (supersede-reduced / void / hold /
+no-op); Phase 18 owns the replacement artifact, Phase 17 owns governed
+content/sender/reply resolution, and Phase 6 owns version-scoped dispatch and
+communication history. A `designation.reallocated` occurrence
+recomputes both missionaries' support progress from effective lines (a
+required fix—`current_funding` must derive from effective lines, not a
+denormalized column, or it double-counts). A fund label is resolved through the
+Phase 10 safety firewall (alias / fund-code, never a legal name) before it
+reaches Phase 7 facts. Corrections never change the legal/hard-credit donor.
 
 **Real-vs-forward evidence (as of authoring).** **Build on:** the `CONTRIBUTION_ACTION_TYPES` catalog, `policy.ts` risk tiers, `approval-policy.ts` SoD, `correctionEffectiveValues` + the `base_revision` 409 + idempotency, the effective-values fold, and the append-only adjustments/audit/receipt migrations. **Refine:** `created_at` ordering → the monotonic `header_seq`; whole-field replacement → per-line-id deltas + `DEFERRABLE sum = header`; `adjustment_type` TEXT → an enum; the `status = 'reversed'` flip → a new negating entry. **Replace:** the `stripe/webhooks.ts` inline `UPDATE donations.refund_amount` → webhook-written compensating postings + a **new `charge.dispute.*` handler**; wire `refundContribution` into its dependencies (it currently throws 501); recompute missionary `current_funding` from effective lines; and retire the buggy donor-portal live path (which buckets by UTC year and _drops_ refunded gifts instead of net-reducing them). Treat these as the forward target, not a description of shipped behavior.
 
@@ -782,44 +842,73 @@ Every operation writes one audit-event row. **Never a raw status dropdown** (the
 
 _(This block covers the money-movement plane and ledger core: D1, D1b, D24/D25, D2, D3, and D5. The donor-facing checkout plane — D15 giving cart, D12 fee-cover — the attribution axes (D14), status/lifecycle (D7), tender & dating (D8), recurring commitments (D16), and campaign/appeal (D13) are specified in the subsequent Implementation Decisions blocks of this PRD.)_
 
-### G. Contribution lifecycle — five orthogonal state axes (D7)
+### G. Contribution lifecycle — three header axes plus related receipt and accounting truth (D7)
 
-**Core ruling: a contribution has no single `status`.** It has **five separate, orthogonal state axes**, each a closed `CHECK`-constrained, DB-function-enforced state machine that moves independently and is **never collapsed into one enum**. This retires the free-text `donations.status` (`supabase/migrations/…init_schema.sql:183` — `TEXT DEFAULT 'pending'`, no `CHECK`) and its drifting reader vocabularies (`completed` / `succeeded` / `success` / display-`Succeeded`; the duplicate `SETTLED_DONATION_STATUSES` constant), and **promotes the discipline `staged_gifts` already proves** (multi-axis status columns + an `ALLOWED_TRANSITIONS` matrix at `staged-gifts.ts:118-129`) onto the canonical ledger header.
+**Core ruling: a contribution has no single `status`.** Its header has **three
+separate, Phase-13-owned orthogonal state axes**, each a closed
+`CHECK`-constrained, DB-function-enforced state machine that moves independently
+and is never collapsed into one enum. Phase 7 receipt eligibility/facts
+versions; Phase 20 Accounting Release coverage, provider
+delivery/readback/drift, settlement evidence, and bounded Bank Match; and
+QBO/Xero final books/reconciliation are separately authoritative related
+records. They may be summarized through read-only projections, but no
+`receipt_status` or `accounting_export_status` header column is authoritative.
+This retires the free-text `donations.status`
+(`supabase/migrations/…init_schema.sql:183` — `TEXT DEFAULT 'pending'`, no
+`CHECK`) and its drifting reader vocabularies, while promoting the useful
+multi-axis discipline already demonstrated by `staged_gifts`.
 
-> **Real-vs-forward (as of authoring).** `staged_gifts` today carries five
-> parallel status columns and a transition matrix. That is evidence of the
-> concerns that must remain separate, not authority to copy every legacy column
-> onto the final header. Phase 13 moves only its owned payment/posting/review
-> discipline plus the narrow Phase 20 stub into the final DB model; the legacy
-> receipt carrier is removed by Phase 18 D17.
+> **Real-vs-forward (as of authoring).** `staged_gifts` today carries several
+> parallel status columns and a transition matrix. That is evidence that
+> independent lifecycle concerns are native to this domain, not authority to
+> place every downstream subsystem on the contribution row. Phase 13 moves only
+> payment, posting, and review onto the header and into the DB. Phase 7 keeps
+> receipt authority, and Phase 20 keeps accounting authority, in related
+> records.
 
-The five axes:
+The three Phase-13-owned header axes:
 
 1. **PAYMENT** — the money-rail truth (Stripe or offline capture). States: `requires_action / processing / succeeded / failed / canceled / refunded / disputed`, plus ACH `provisionally_settled`, plus the dispute and refund sub-lifecycles. **Driven by Stripe webhooks only** (never by staff edits or derivation). Per-rail finality is explicit: **card `succeeded` = final; ACH `succeeded` = PROVISIONAL** (an unauthorized-consumer return can arrive up to ~60 calendar days later as `charge.dispute.created`). Terminal vs in-flight is an explicit property of each state, not a convention.
 
 2. **LEDGER / POSTING** — the append-only DB fold. States: `unposted / posted / reversed`. **This axis does not exist today — it is Phase 13's core gap.** A header posts when its tender-specific §E.1 rule admits posting (processor-confirmed online success; recorded for CB-B offline checks/church remittances); corrections and refunds **append a reversing posting** (never mutate the posted row). `posted` means "a ledger entry exists," never "immutable-final money" (ACH and checks can remain provisional; see below).
 
-3. **RECEIPT / DOCUMENT PROJECTION** — Phase 7 owns source eligibility/issuance truth and Phase 18 owns generated-document lifecycle/current artifact; Phase 13 owns neither. Phase 13 may expose a constrained derived projection for money operations, but it MUST NOT create a competing receipt state machine or reserve an authoritative receipt column. `staged_gifts.receipt_status`, `gift_receipt_records.status`, and `contribution_receipt_snapshots` are D17 removal targets. Posting and payment transitions emit typed source facts; the owning services derive receipt/document state without writing it back as money truth.
+3. **REVIEW / workflow** — the finance queue. States: `received / needs_review / ready_to_post / …`, with **donor-match and allocation as review-_reason inputs_ into this single axis, not standalone axes.** This is a **durable precedent** (`staged_gifts` `ALLOWED_TRANSITIONS`, `staged-gifts.ts:118-129`). Keep it as the human-workflow axis, but **stop overloading its `posted` value** to also mean ledger-posted _and_ CRM-posted — re-anchor those meanings to the first-class POSTING axis.
 
-4. **ACCOUNTING-EXPORT** — a Phase 20 seam. States: `not_exported / queued / exported / failed / excluded`. Batch-cadence, distinct from real-time posting; re-export is idempotent and read-only with respect to the ledger. **Seam-only in Phase 13** (reserved single-state stub) so accounting-export can never collapse into posting.
+**Receipt truth (related, not a header axis).** Phase 7 evaluates the
+version-cursored Phase 13 source projection and records reason-carrying
+eligibility plus immutable receipt/statement-facts versions. Current-repo
+receipt-status carriers are prototype evidence only. Phase 13 exposes exact
+source ids/revisions and may show a read-only receipt summary, but never owns or
+gates posting on receipt state.
 
-5. **REVIEW / workflow** — the finance queue. States: `received / needs_review / ready_to_post / …`, with **donor-match and allocation as review-_reason inputs_ into this single axis, not standalone axes.** This is a **durable precedent** (`staged_gifts` `ALLOWED_TRANSITIONS`, `staged-gifts.ts:118-129`). Keep it as the human-workflow axis, but **stop overloading its `posted` value** to also mean ledger-posted _and_ CRM-posted — re-anchor those meanings to the first-class POSTING axis.
+**Accounting coverage (derived, not an axis).** Phase 13 exposes exact
+source-occurrence identity and accounting eligibility. Phase 20 returns a
+source-labelled, one-to-many coverage summary over immutable Source Coverage
+Manifests, Accounting Releases, delivery operations, packages, provider
+readback, and compensating releases. A contribution may therefore be uncovered,
+partly covered, covered by more than one release, or later affected by a
+compensation without any Phase 13 status mutation.
 
-**Right-sized, not over-built.** The five lifecycle concerns remain separate,
-but that does not mean five Phase 13 authorities. Phase 13 persists its payment,
-posting, and review truth plus the already-ratified narrow accounting-export
-stub for Phase 20. Receipt/document state is a constrained read projection over
-Phase 7 source issuance plus Phase 18 generated-document state. No reserved
-receipt column or duplicate receipt state machine ships here.
+**Right-sized, not over-built.** Three small header state machines preserve
+Phase 13's payment, posting, and review truth. Phase 7 receipt facts and Phase 20
+accounting records remain independently authoritative and join by exact source
+identity. A single free-text `status`, a reserved receipt stub, and a reserved
+accounting stub are all rejected.
 
 #### D.1 — The composition chain (one-directional preconditions, never merged)
 
 The axes compose as a **one-directional precondition chain**, never as one enum:
 
-> tender-specific §E.1 posting predicate (processor-confirmed online success/adopted gifts, or recorded CB-B offline tender) → **eligible to post** → `posted` → Phase 7 **plan/policy receipt eligibility** (checks may admit at recorded by default; ACH waits for confirmed success) → `posted` + settled/cleared where required → **exportable**.
+> tender-specific posting milestone → any required review → `posted` → exact
+> source revision independently consumed by Phase 7 receipt evaluation and
+> Phase 20 source coverage.
 
 - **REVIEW sits upstream of POSTING** as an optional human gate.
-- **Reversals flow the same append-only direction**: a refund or ACH return → `posting = reversed` → cascades `receipt = voided`, leaving the payment row _and_ the original posting intact.
+- **Reversals flow the same append-only direction**: a refund or ACH return
+  appends the Phase 13 reversal and a durable, idempotent source occurrence.
+  Phase 7 consumes that cause to issue governed void/superseding facts. Phase 20
+  consumes it only through a new source-covered Accounting Release. The
+  payment row and original posting remain intact.
 - Each transition table is enforced inside a **locked DB function** (the locked-function pattern from `[[fractional-index-collation-trap]]`), so **no free-text write can bypass validation or skip a precondition.** Unknown/illegal transition pairs raise an escalation row — **never a silent ignore.**
 
 > **Real-vs-forward (as of authoring).** The state machine is enforced in TypeScript today, so a raw `.update({status})` already bypasses it (`markStagedGiftRefunded`, `sendStagedGiftReceipt`). The forward design moves enforcement into a `SECURITY DEFINER` locked function + a `BEFORE UPDATE` trigger that rejects out-of-table and stale-ordered transitions. Use `CHECK`-constrained `TEXT` columns, **not** a native Postgres `ENUM` — the vocabulary must evolve without a type migration. All co-moving axes for a single event are composed into **one RPC / one transaction under a per-contribution advisory lock** (avoids torn writes; single-row locked functions are deadlock-safe).
@@ -873,12 +962,19 @@ Phase 13 builds new dispute/return handlers in the durable Inngest processor (ne
 
 #### D.6 — Import / adopt (from D24)
 
-Imported and adopted gifts enter the **same five axes, pre-advanced** — there is **no special `imported` status enum**:
+Imported and adopted gifts enter the same three Phase 13 header axes,
+pre-advanced—there is **no special `imported` status enum**:
 
 - **PAYMENT** = already-succeeded (an externally-sourced marker; no Stripe reconciliation attempted);
 - **POSTING** = eligible immediately, stamped with a pre-Asym provenance boundary;
-- **RECEIPT** = `not_required` / `suppressed` before the boundary (**never re-issue or void a historical receipt** the legacy system already sent);
-- **ACCOUNTING-EXPORT** = `exported` / `excluded` for the pre-Asym period;
+- **RECEIPT BOUNDARY** = a separate Phase 7 import fact records that a
+  pre-Asym receipt exists or that no Asym receipt is permitted. Phase 13 stores
+  exact provenance and `already_receipted` evidence, but no receipt status and
+  never re-issues or voids a historical receipt the previous system sent;
+- **ACCOUNTING OWNERSHIP** = exact pre-Asym provenance and, where available,
+  previous-owner provider evidence supplied to the Phase 20 D17 cutover. An
+  import never asserts `exported` from a legacy flag alone and never replays
+  work without gap-only proof;
 - **REVIEW** = bypassed unless donor-match or allocation is ambiguous.
 
 #### D.7 — THE ONE HARD RULE
@@ -893,7 +989,12 @@ ACH is a single Stripe-dashboard toggle away from live. Without dispute ingestio
 
 **Ruling (D8):** seven first-class tenders + a shared non-cash asset substrate for the rare high-consequence gift types. D8 **confirms the Phase 7 (Receipt & Statement Compliance) delivery-dating model verbatim** — it does not re-litigate it — and adds per-tender required inputs.
 
-> **Production gate.** This section is not legal or tax advice. The IRS statutory constants and form seams below (Form 8283, Form 8282, Form 1098-C, quid-pro-quo, DAF §4967) require review by qualified finance/tax counsel before production use. Phase 13 **captures facts only**; Phase 7 renders the immutable receipt; Phase 18 renders the 8283 / 1098-C / quid-pro-quo documents.
+> **Production gate.** This section is not legal or tax advice. The IRS
+> statutory constants and form seams below (Form 8283, Form 8282, Form 1098-C,
+> quid-pro-quo, DAF §4967) require review by qualified finance/tax counsel
+> before production use. Phase 13 captures source facts only; Phase 7 owns
+> immutable receipt facts and Phase 18 renders every canonical receipt/form
+> artifact.
 
 #### E.1 — The tender enum (`gift_method`)
 
@@ -998,19 +1099,30 @@ Derived flags (1098-C-required, appraisal-required, 8283-section) are computed *
 
 The forward design makes the leak a **compile error**, not a review catch:
 
-- The internal FMV **is the non-cash line's ledger amount** (so `sum(lines) = header` holds and totals are real), stored in a **separate `contribution_internal_valuation` table** that the Phase-7 inclusion-snapshot builder **physically never joins.**
-- The render type is a **discriminated-union `ReceiptRenderInput`** whose **non-cash arm has no `amount` field at the type level** → putting a value on a non-cash receipt is a **`tsc` error**, backed by a taint test + a negative test.
+- The internal FMV **is the non-cash line's ledger amount** (so
+  `sum(lines) = header` holds and totals are real), stored in a separate
+  `contribution_internal_valuation` table that the Phase 7 receipt-facts
+  builder physically never joins.
+- The Phase 18 renderer consumes a **discriminated-union
+  `ReceiptRenderInput`** whose non-cash arm has no `amount` field at the type
+  level → putting a value on a non-cash receipt is a `tsc` error, backed by a
+  taint test + a negative test.
 
 This is cheap now (pre-schema) and near-impossible to retrofit once receipts freeze.
 
 #### E.6 — The 1098-C / 8283 / 8282 capture seams (reserved for Phase 18)
 
-Phase 13 captures the facts and reserves the durable clocks; **Phase 18 renders the forms and runs the clocks:**
+Phase 13 captures the source facts and durable clock anchors. Phase 18 renders
+the exact form artifacts; it does not own or advance compliance clocks.
+Purpose-owned compliance workflow consumes those anchors and requests the
+artifact when due:
 
 - **Form 8283** — capture a `> $500` flag + a `> $5,000` qualified-appraisal / charity-Section-B-Part-V acknowledgment fact (Phase 18 renders; Phase 13 does not compute the appraisal).
 - **Form 1098-C** — reserve the 30-day-acknowledgment clock seam (vehicles).
 - **Form 8282** — reserve the 3-year disposition-clock seam (securities/non-cash disposed within 3 years).
-- **Quid-pro-quo** — store a good-faith benefit estimate + benefit description as **frozen per-gift / per-line facts** (Phase 7 renders net-deductible).
+- **Quid-pro-quo** — store a good-faith benefit estimate + benefit description
+  as frozen per-gift / per-line source facts (Phase 7 derives the
+  net-deductible receipt facts; Phase 18 renders).
 - **IRS statutory constants** ($500 / $5k / $10k / 3yr) are **DB lookup data, not hard-coded** — a threshold change is a data change, not a code change.
 
 > **Restricted-worker safety on the new egress doors.** The 1098-C and 8283 documents are new egress doors. A restricted-worker legal name reaching them must read **through the Phase 10 public projection** (Phase 10 deferred the fund-name rule to Phase 13 — enforce it here with a structural test). See D17 and the P10 rollup rule.
@@ -1078,7 +1190,12 @@ The donor-facing anchor of SiteStacker parity: a single **giving cart** that let
   - **N one-time lines → 1 PaymentIntent (PI-on-cart)** on the connected account → **1 D3 header + N designation lines** (largest-remainder proration, §M).
   - **M recurring lines → Phase 16 group/line/cohort/leg planner.** One explicit accepted action creates the minimum groups and compatible cohorts. Ordinary cadences normally use one subscription leg; twice-monthly uses separate 1st/15th legs. Every line has one exact item binding in every applicable leg.
   - **ONE donor interaction does not imply unlimited authorization.** A provider-managed payment flow may collect one method, but the server binds it only to groups/cohorts whose exact Party, payer, account/mode, currency, schedule, merchant, amount, future-use, retry, and cancellation terms the accepted authorization covers.
-  - **The signed provider-event path is the SOLE money-final ledger writer** (D1/D7). Request-time code may persist accepted intent, command, occurrence, and processing evidence, but never successful cash or an official ACH receipt. Partial provider success is a visible, reconcilable saga state.
+  - **The signed provider-event path is the sole writer of
+    provider-originated payment and posting transitions** (D1/D7).
+    Request-time code may persist accepted intent, command, occurrence, and
+    processing evidence, but never successful/provisionally posted money or an
+    official ACH receipt. Partial provider success is a visible, reconcilable
+    saga state.
   - **Idempotency keys extend `${cartKey}:<suffix>`** with stable opaque group, line, cohort, leg, initial-occurrence, and provider-operation identities. A PaymentIntent or subscription is execution evidence, never cart-owned truth; browser replay retrieves the existing command rather than provisioning again.
 - **Conversion-optimal donor flow (proven best practice — Baymard/NN-G/Stripe/giving-platform grounded):** a single page, **guest-by-default**, mobile-first, with a load-bearing stacking order:
   1. **Express Checkout Element (Apple Pay / Google Pay / Link) pinned FIRST, above the fold** (auto-hides unavailable wallets). Levers: Link +14% and 3× returning; Google Pay +2.6%; Apple Pay +2%.
@@ -1088,17 +1205,21 @@ The donor-facing anchor of SiteStacker parity: a single **giving cart** that let
   5. The Payment Element + Address in `billing` mode, **no shipping, 6–8 fields max**, autofill on (NN/G: 11→4 fields = +120% completion).
   6. **An account is offered only AFTER, on confirmation — never forced** (Baymard: a forced account = 26% abandonment).
   - A11y: labeled line groups, labeled wallet and fee-cover controls, coherent focus order, reduced-motion honored; 50-line carts virtualize on mobile; the sticky total + thumb CTA never scroll away.
-- **Edge-case rulings:** designation inactive / goal-met mid-cart → the server drops/flags the line, the rest proceeds, never a silent redesignation. Restricted-worker label change → re-fetched server-side; the opaque ID still charges; the stale name never renders. Abandoned + resumed → the client cart survives to TTL and is re-validated on resume. **Mixed-currency → REJECT** (one cart = one currency, no silent FX). Fee-cover after a partial refund → a proportional reversal of both the designation and the fee-cover lines.
+- **Edge-case rulings:** designation inactive / goal-met mid-cart → the server drops/flags the line, the rest proceeds, never a silent redesignation. Restricted-worker label change → re-fetched server-side; the opaque ID still charges; the stale name never renders. Abandoned + resumed → the client cart survives to TTL and is re-validated on resume. **Mixed-currency → REJECT** (one cart = one currency, no silent FX). Fee-cover after a partial refund → a source-covered reversal of both the affected Designation and fee-cover facts; any resulting uncovered processor cost is handled append-only against the original frozen Phase 20 D19 policy and manifest, never current mappings.
 - **⛔ #1 SEQUENCING BLOCKER — the D1 Stripe Connect connected-account foundation is UNBUILT** and the entire cart assumes it. **Real-vs-forward (grep-confirmed as of authoring):** ZERO `on_behalf_of` / `transfer_data` / `stripeAccount` usage in `packages/api/src`; the webhook verifies with the _platform_ secret only. **Build the D1 Connect vertical slice FIRST**, behind **one Connect wrapper that REQUIRES the exact account and mode**. Every PI/cohort/leg operation is a chance to default to the platform account, and money on the wrong account is a compliance incident.
 - **Center-of-gravity risk — the mixed accepted-agreement saga has no provider-atomic boundary.** SCA/ACH processing and partial cohort/leg provisioning are normal outcomes. The durable server-side saga therefore gives every branch, group, line, cohort, leg, initial occurrence, and provider mutation a permanent idempotency identity; it distinguishes indeterminate from failed and reconciles before compensating. One provider payment can enter the Phase 13 money writer exactly once.
 - **Observability is in-phase, not deferred.** The cart's thesis is unfalsifiable without funnel stages, abandonment, accepted-command and partial-provisioning outcomes, grouped cohort/occurrence failure visibility, and the collected-vs-actual fee delta (§M). Phase 13 owns cart/ledger signals; Phase 16 owns recurring lifecycle/recovery signals.
 
 ### K. Fee-cover — per-tenant, per-method, %+flat behind a simple-% display (D12)
 
-Fee-cover lets a donor add an amount so that ~100% of their intended gift reaches the field. The founder governing bar (**R-JW / R-UX**): the donor sees clean dollar amounts and the org nets whole; staff configure it in an "amazing UX" two-row matrix; nothing hacky.
+Fee-cover lets a donor add an estimated-offset contribution so more of the
+gross supported gift remains available after processing costs. It never
+promises an exact fee or complete recovery. The founder governing bar
+(**R-JW / R-UX**): the donor sees clean dollar amounts and honest estimate
+copy; staff configure it in an "amazing UX" two-row matrix; nothing hacky.
 
 - **Config is per-tenant, PER-PAYMENT-METHOD (card vs ACH), because the fees differ ~4×** (card ≈ 2.2% + $0.15–$0.30 nonprofit; ACH ≈ 0.5–1%, ~$5 cap; ACH is not a card and is not subject to surcharge law at all). Each method stores `{ enabled, rate_bps (integer basis points), mode }`. Modes: **`optional_opt_out` (default, pre-checked toggle)** | `optional_opt_in` (unchecked) | `mandatory`. **Do NOT build adaptive / AI / hidden modes** (over-engineering). Staff UI = a clean **two-row matrix** (Card / ACH → enabled · rate · mode) + inline hard warnings.
-- **HARD CHANGE 1 — pure-% is the DISPLAY, `%+flat` is the ENGINE.** A pure percentage **structurally under-recovers by exactly the flat fee** on every gift, worst on small ones (a $10 gift costs the org ~5.2%; a 2.2% cover under-recovers ~$0.30) — so "100% reaches us" would be silently false and violate R-JW. The engine grosses up: `charge = round((net + flat_cents) / (1 − bps/10000))`, where `flat` is a per-method **system constant** and `rate` is stored per-method in basis points; it applies on the gross/charged total, and the D3 **largest-remainder** algorithm allocates the resulting `is_fee_cover` line. **The tenant still sets a simple %, the donor still sees one clean dollar amount — only the internal math accounts for the flat fee.** This is the universal platform pattern (Fundraise Up / Donorbox / Classy / Givebutter — none use pure-%).
+- **HARD CHANGE 1 — pure-% is the DISPLAY, `%+flat` is the ENGINE.** A pure percentage **structurally under-recovers by exactly the flat fee** on every gift, worst on small ones (a $10 gift costs the org ~5.2%; a 2.2% cover under-recovers ~$0.30). The engine therefore improves the estimate without claiming exact recovery: `charge = round((net + flat_cents) / (1 − bps/10000))`, where `flat` is a per-method **system constant** and `rate` is stored per-method in basis points; it applies on the gross/charged total, and the D3 **largest-remainder** algorithm allocates the resulting `is_fee_cover` line. **The tenant still sets a simple %, the donor still sees one clean dollar amount — only the internal estimate accounts for the flat fee.** This is the universal platform pattern (Fundraise Up / Donorbox / Classy / Givebutter — none use pure-%).
 - **HARD CHANGE 2 — mandatory CARD is BOUNDED; mandatory ACH is unrestricted.** A mandatory card uplift is the textbook shape of a **credit-card surcharge** (Visa's 3% cap + cost-of-acceptance clamp, ≥30-day acquirer registration, POS/receipt disclosure, and the **debit/prepaid surcharge PROHIBITION**; CT/MA/ME still restrict). Five guardrails MUST hold for mandatory card to be safe:
   1. **Framed and recorded as a charitable GIFT-TOTAL COMPONENT, never a "card fee"/surcharge** — "your donation total includes X% to cover processing"; one deductible receipt total (base + cover) + "no goods or services"; the computation is not shaped like a Visa surcharge (the Givebutter posture that keeps out of the surcharge regime entirely).
   2. **Debit/prepaid HARD CARVE-OUT** — read Stripe `card.funding`; if `!== 'credit'` (treat `unknown` as non-credit, fail-safe), **auto-downgrade mandatory → optional** for that tender; server-authoritative, re-checked on a live method switch; wallets resolve underlying funding first.
@@ -1107,11 +1228,11 @@ Fee-cover lets a donor add an amount so that ~100% of their intended gift reache
   5. **Per-installment persistence + NO silent recurring increases** — persist `applied_rate`, `fee_cover_mode`, `payment_method_class`, `fee_cover_amount`, `base_amount`, `charged_total` per installment; a rate hike on an existing recurring commitment is **grandfathered or re-consented**, never silently applied.
      Plus a tenant **warning banner** (network + CT/MA/ME notice) when enabling mandatory card.
 - **Config fail-CLOSED.** Default = `optional_opt_out`, a sane per-method rate, **mandatory OFF**; never fail open to mandatory or a garbage rate; validate the rate at config time (reject blank / 0-if-enabled; warn if card < ~2.4% under-recovers; clamp an implausibly high rate). Optional opt-out alone captures ~53–95% coverage with none of the legal/conversion downside — **mandatory is a bounded tenant-owned choice, not the recommended path.**
-- **Server recomputes — never trusts the client figure.** **Real-vs-forward (as of authoring):** today the UI computes card-only `(amount + 0.30)/(1 − 0.029)` and drops `coverFees` before the POST, so the server never learns the intent and over-charges ACH ~3.6×. The fix carries `cover_fees` + amount in the schema, server-authoritative; on a card↔ACH switch the server recomputes **rate + mode + amount in one round-trip** (the _mode itself_ can change) and renders the delta legibly. Never a client-only authorization estimate. Copy = "Cover **estimated** processing fees so ~100% reaches the field," never "the exact fee is $X."
-- **Allocation = a dedicated fee-cover ledger line** (`is_fee_cover=true`, a reserved system fund), **NOT silently pro-rated into the ministry designations** (that would misstate net-to-missionary). For net-per-designation analytics only, pro-rate via the same largest-remainder algorithm. **Fully deductible in BOTH modes** (the org receives it under D1 direct charges; the donor gets nothing back; mandatory framed as a gift-total component avoids quid-pro-quo). The receipt shows **one deductible total** (intended + fee-cover), optionally itemized.
+- **Server recomputes — never trusts the client figure.** **Real-vs-forward (as of authoring):** today the UI computes card-only `(amount + 0.30)/(1 − 0.029)` and drops `coverFees` before the POST, so the server never learns the intent and over-charges ACH ~3.6×. The fix carries `cover_fees` + amount in the schema, server-authoritative; on a card↔ACH switch the server recomputes **rate + mode + amount in one round-trip** (the _mode itself_ can change) and renders the delta legibly. Never a client-only authorization estimate. Copy = "Help cover **estimated** processing costs," never "the exact fee is $X" or "100% will reach the field."
+- **Allocation = a dedicated fee-cover ledger line** (`is_fee_cover=true`, a reserved system fund), **NOT silently pro-rated into the ministry designations**. Phase 20 D19 may attribute only the separate, exact uncovered processor expense across the frozen original non-fee-cover Designation weights; it never reallocates the fee-cover gift or reduces gross Designation principal. **Fully deductible in BOTH modes** (the org receives it under D1 direct charges; the donor gets nothing back; mandatory framed as a gift-total component avoids quid-pro-quo). The receipt shows **one deductible total** (gross supported gift + fee-cover), optionally itemized.
 - **Founder UX requirement — itemized on the checkout screen.** Show three distinct labeled lines: **`Your gift: $X` / `Cover processing fees: +$Y` / `Total: $Z`** (transparency is best practice and legally required for mandatory mode) — but **do not expose the raw `% + $0.30` formula mechanics**; the donor sees clean dollar amounts.
 - **Recurring recompute.** Store the `cover_fees` intent on the commitment; **recompute per installment via Stripe Billing on each subscription's invoice** — never freeze a dollar figure. The checkout fee-cover line attaches to the **one-time PI header ONLY** and must never bleed into a recurring first invoice; each recurring installment's fee-cover lands on **that installment's header**. Persist the per-line allocation so a single-line partial refund returns `line_amount + line_fee_cover_share` cleanly.
-- **Refund INCLUDES the fee-cover** — the donor is made whole (reversing postings for both the designation and the fee-cover lines). The processor keeps its fee, so the org's net dips slightly — an org P&L reality, **never a donor clawback**.
+- **Refund INCLUDES the fee-cover** — the donor is made whole through source-covered reversing postings for both the Designation and fee-cover lines. Whether the provider retains, returns, or later adjusts its fee is separate processor truth. Any remaining exact cost follows the original frozen Phase 20 D19 policy and manifest through append-only correction; it is **never a donor clawback**.
 - **Staff config/visibility UX:** on/off + default state (ON/opt-out, ~75–85% coverage) + a **server-enforced added-% CAP** bounding the blast radius of a formula bug + editable donor copy; the per-gift default view shows the three labeled numbers (intended · fee-cover estimate · gross charged) + the method + an "estimate" note.
 
 ### L. Source codes + attribution + UTM + URL structure (D14 / D14b)
@@ -1230,14 +1351,13 @@ SECURITY DEFINER DB function + BEFORE UPDATE trigger** (the locked-function
 pattern from the custom-collections reorder work), composing co-moving Phase 13
 facts for one event into one RPC under a **per-contribution advisory lock**.
 Receipt/document status remains separately owned rather than a column on
-`contribution_headers`; the Phase 20 accounting-export reservation remains a
-single inert stub:
+`contribution_headers`; Phase 20 accounting coverage is also a derived
+cross-domain projection, not a header stub:
 
 1. **PAYMENT** (Stripe/rail truth, driven by webhooks ONLY): `requires_action / processing / succeeded / failed / canceled / refunded / disputed / returned`, plus ACH `provisionally_settled`. Card `succeeded` = final; **ACH `succeeded` = PROVISIONAL** (returns arrive up to ~60 days later).
 2. **LEDGER/POSTING** (append-only fold — **the core gap that does not exist today**): `unposted / posted / reversed`. "Posted" = "a ledger entry exists," never immutable-final money.
 3. **RECEIPT / DOCUMENT** (Phase 7 source truth + Phase 18 generated-document truth): constrained derived projection only; no Phase 13 column or transition machine.
-4. **ACCOUNTING-EXPORT** (Phase 20 seam): reserved single-state stub only; Phase 13 authors no export transitions.
-5. **REVIEW/workflow** (finance queue): `received / needs_review / ready_to_post / …` + review-reason inputs (`donor_match`, `allocation`). This is the human gate; it must **stop overloading `posted`** to also mean ledger-posted.
+4. **REVIEW/workflow** (finance queue): `received / needs_review / ready_to_post / …` + review-reason inputs (`donor_match`, `allocation`). This is the human gate; it must **stop overloading `posted`** to also mean ledger-posted.
 
 Composition is a one-directional precondition chain whose first step is tender-specific (processor-confirmed online success, adopted gifts, or recorded CB-B offline tenders → eligible to post; posted → Phase 7 plan/policy receipt eligibility; posted+settled/cleared where required → exportable); reversals flow the **same append-only direction**. Free-text drift is deleted (`succeeded`/`success`/`Succeeded`, the duplicate `SETTLED_DONATION_STATUSES` constant); `donations.status` becomes a projection over the PAYMENT axis. **Hard rule: ACH is not enabled until the `charge.dispute.*` / return handlers + fail-closed review + Phase 13-local one-transaction money reversal and durable Phase 7 correction pointer ship.**
 
@@ -1320,21 +1440,22 @@ contracts, and migration dispositions are in the Phase 16 PRD.
 
 Phase 13 adds these record types to the Phase 1 ownership matrix. In every row **Asym Postgres is the system of record; Stripe executes and is linked by ID; a provider ID is a link, never an identity.**
 
-| Record type                                                | System of record                                                            | Write path                                                                                          | Conflict winner                                        | Repair path                                                                                                                                             |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Contribution header / designation lines                    | Asym Postgres (`contribution_headers`, `contribution_designation_lines`)    | Donate/cart saga + contribution operations (`packages/api`); webhook is the sole money-final writer | Asym always                                            | Append-only `contribution_postings` (reversing entries); never in-place edits                                                                           |
-| Contribution postings (correction/refund/reversal stream)  | Asym Postgres (`contribution_postings`)                                     | Contribution-operations intent verbs; Stripe webhook for provider-originated postings               | Asym                                                   | New negating posting referencing the same `line_id`s; rows never mutated/deleted                                                                        |
-| Payment execution (charge, refund, dispute, payout)        | **Stripe (connected account) = executor only**; Asym owns the money truth   | Platform calls with `Stripe-Account`; ingested via the one Connect webhook                          | Asym for money truth; Stripe for provider-state facts  | Re-ingest from `stripe_raw_events` keyed by signed account + live/test mode + environment + effective-dated binding; reconcile fold vs provider outcome |
-| Connected-account link                                     | Asym Postgres (`tenants.stripe_account_id`)                                 | Hosted Connect onboarding (Account Link → persist `acct_` only)                                     | Asym owns the link; Stripe owns KYC/onboarding state   | `account.updated` / `account.application.deauthorized` handlers; reset on reconnect                                                                     |
-| Recurring group / cohort / line / schedule epoch / command | Asym Postgres (Phase 16 canonical recurring domain)                         | Phase 16 command services; provider adapter executes exact cohort/item effects                      | Asym intent and append-only epochs/commands            | Exact-binding reconciliation; quarantine unknown/control-loss state; formal proof-gated cutover                                                         |
-| Recurring occurrence / attempt / payment linkage           | Asym Postgres (Phase 16 occurrence and attempt truth; Phase 13 money links) | Phase 16 scheduler + durable provider-event processor                                               | Asym schedule/attempt facts; provider proves execution | Idempotent replay from `stripe_raw_events`; never fabricate money, debt, or a backcharge                                                                |
-| Source codes + resolved attribution                        | Asym Postgres (`source_codes`; frozen posting snapshot)                     | Staff CRUD + seed/bulk-import + capture-time resolver + append-only override                        | Asym                                                   | Append-only D5 source-code correction; alias rules; drift never rewrites the snapshot                                                                   |
-| Raw-UTM capture log                                        | Asym Postgres (erasable, off-ledger, Phase-10-classified)                   | Public entry capture (total/non-throwing)                                                           | Asym                                                   | Redaction/tombstone (DSAR); no erasure path exists on the ledger by design                                                                              |
-| Giving campaigns + goals                                   | Asym Postgres (`giving_campaigns`, `campaign_goals`)                        | Staff campaign admin (`packages/api`)                                                               | Asym                                                   | Governed/audited locked reparent fn; archive-not-delete; derived rollups win over any snapshot                                                          |
-| Cart (authenticated) / cart lines                          | Asym Postgres (`carts`, `cart_lines`; owner-scoped)                         | `GET /cart` owner-implicit; merge RPC on login                                                      | Asym (owner)                                           | Re-validate on load/submit; GC convert-driven + lazy TTL (never delete a cart with an in-flight PI)                                                     |
-| Guest cart                                                 | **Client browser (localStorage)** — zero server state                       | Client only                                                                                         | Client until merge, then Asym                          | Discarded on TTL (90d); reconciled to live tenant state on load/merge                                                                                   |
-| Fee-cover config                                           | Asym Postgres (`tenant_fee_cover_config`, per-method)                       | Tenant admin config                                                                                 | Asym                                                   | Config validation at write; per-installment persisted `applied_rate` is the historical truth                                                            |
-| Fund progress / campaign progress / public totals          | Asym Postgres **derived** (version-cursor read model)                       | No direct writer — folded from postings                                                             | Asym derivation                                        | Re-derive from postings; drift alarm; `funds.current_amount` counter deleted                                                                            |
+| Record type                                                | System of record                                                                                                      | Write path                                                                                                                     | Conflict winner                                                                                         | Repair path                                                                                                                                                                              |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Contribution header / designation lines                    | Asym Postgres (`contribution_headers`, `contribution_designation_lines`)                                              | Donate/cart saga + contribution operations; signed provider events alone write provider-originated payment/posting transitions | Asym for source-domain meaning                                                                          | Append-only `contribution_postings` (reversing entries); never in-place edits                                                                                                            |
+| Contribution postings (correction/refund/reversal stream)  | Asym Postgres (`contribution_postings`)                                                                               | Contribution-operations intent verbs; Stripe webhook for provider-originated postings                                          | Asym                                                                                                    | New negating posting referencing the same `line_id`s; rows never mutated/deleted                                                                                                         |
+| Payment execution (charge, refund, dispute)                | Stripe owns exact processor execution and provider state; Asym owns donor intent and source-domain contribution facts | Platform calls with the exact Settlement Account Binding; signed events enter the provider-observation ledger                  | Stripe for what the processor executed; Asym for legal donor, designation, gift, and correction meaning | Re-ingest exact signed provider observations by account/mode/environment/binding, then append the appropriate source-domain effect; never let provider state silently rewrite gift truth |
+| Processor balance movements and payout state               | Stripe owns exact balance-transaction and payout observations; Phase 20 owns normalized coverage and transfer linkage | Phase 20 webhook-hinted plus fully paginated synchronization                                                                   | Exact Stripe observation for provider occurrence; Asym for normalized linkage/coverage                  | Re-fetch/reconcile exact account/mode/object evidence; unsupported payout composition remains explicitly unknown rather than inferred                                                    |
+| Settlement Account Binding                                 | Asym Postgres (Tenant + Legal Entity + environment + purpose + effective range + non-secret `acct_`)                  | Hosted Connect onboarding and proof-gated binding activation                                                                   | Asym owns binding/coverage; Stripe owns KYC/account capability evidence                                 | `account.updated` / `account.application.deauthorized`; quarantine/reconnect or prospective replacement, never a mutable tenant-account swap                                             |
+| Recurring group / cohort / line / schedule epoch / command | Asym Postgres (Phase 16 canonical recurring domain)                                                                   | Phase 16 command services; provider adapter executes exact cohort/item effects                                                 | Asym intent and append-only epochs/commands                                                             | Exact-binding reconciliation; quarantine unknown/control-loss state; formal proof-gated cutover                                                                                          |
+| Recurring occurrence / attempt / payment linkage           | Asym Postgres (Phase 16 occurrence and attempt truth; Phase 13 money links)                                           | Phase 16 scheduler + durable provider-event processor                                                                          | Asym schedule/attempt facts; provider proves execution                                                  | Idempotent replay from `stripe_raw_events`; never fabricate money, debt, or a backcharge                                                                                                 |
+| Source codes + resolved attribution                        | Asym Postgres (`source_codes`; frozen posting snapshot)                                                               | Staff CRUD + seed/bulk-import + capture-time resolver + append-only override                                                   | Asym                                                                                                    | Append-only D5 source-code correction; alias rules; drift never rewrites the snapshot                                                                                                    |
+| Raw-UTM capture log                                        | Asym Postgres (erasable, off-ledger, Phase-10-classified)                                                             | Public entry capture (total/non-throwing)                                                                                      | Asym                                                                                                    | Redaction/tombstone (DSAR); no erasure path exists on the ledger by design                                                                                                               |
+| Giving campaigns + goals                                   | Asym Postgres (`giving_campaigns`, `campaign_goals`)                                                                  | Staff campaign admin (`packages/api`)                                                                                          | Asym                                                                                                    | Governed/audited locked reparent fn; archive-not-delete; derived rollups win over any snapshot                                                                                           |
+| Cart (authenticated) / cart lines                          | Asym Postgres (`carts`, `cart_lines`; owner-scoped)                                                                   | `GET /cart` owner-implicit; merge RPC on login                                                                                 | Asym (owner)                                                                                            | Re-validate on load/submit; GC convert-driven + lazy TTL (never delete a cart with an in-flight PI)                                                                                      |
+| Guest cart                                                 | **Client browser (localStorage)** — zero server state                                                                 | Client only                                                                                                                    | Client until merge, then Asym                                                                           | Discarded on TTL (90d); reconciled to live tenant state on load/merge                                                                                                                    |
+| Fee-cover config                                           | Asym Postgres (`tenant_fee_cover_config`, per-method)                                                                 | Tenant admin config                                                                                                            | Asym                                                                                                    | Config validation at write; per-installment persisted `applied_rate` is the historical truth                                                                                             |
+| Fund progress / campaign progress / public totals          | Asym Postgres **derived** (version-cursor read model)                                                                 | No direct writer — folded from postings                                                                                        | Asym derivation                                                                                         | Re-derive from postings; drift alarm; `funds.current_amount` counter deleted                                                                                                             |
 
 **Provider rule reaffirmed (D1):** Stripe may charge a card, issue a refund, run a subscription, or store a saved PaymentMethod on the connected account — Asym links each by ID (`pi_`/`ch_`/`sub_`/`cus_`/`pm_`/`acct_`). Losing or re-pointing any of them never changes who a donor is or what money happened. The **ledger stays topology-agnostic**.
 
@@ -1508,7 +1629,7 @@ _What the PRD tells the agent to build, and in what order. Nothing in a later gr
 **BUILD-V1 — the enforced product (each behind a named gate, dependency-ordered):**
 
 5. The **D3 ledger core**: header + designation lines + append-only postings; monotonic `seq` via `FOR UPDATE` on the header; the immutability trigger; the deferrable `sum(lines)=header` constraint; the derivation-only effective-value fold + CI grep gate on base-money reads; the version-cursored read model; **delete `funds.current_amount`** (derive + reconcile); the shared largest-remainder (Hamilton) proration function used by both the UI preview and the ledger.
-6. The **D7 separated lifecycle**: CHECK-TEXT columns for Phase 13-owned payment, posting, and review truth plus the inert Phase 20 accounting-export stub; the locked transition RPC + `BEFORE UPDATE` trigger (unknown pairs → escalation row, never silent-ignore); route existing webhooks through it; replace the free-text `donations.status`; and ship the fail-closed exception predicate set + queue. Receipt/document state remains a constrained cross-domain projection with no Phase 13 stub column.
+6. The **D7 separated lifecycle**: CHECK-TEXT columns for Phase 13-owned payment, posting, and review truth; the locked transition RPC + `BEFORE UPDATE` trigger (unknown pairs → escalation row, never silent-ignore); route existing webhooks through it; replace the free-text `donations.status`; and ship the fail-closed exception predicate set + queue. Receipt/document and accounting coverage remain constrained cross-domain projections with no Phase 13 stub columns.
 7. The **NEW `charge.dispute.*` + refund/return handlers** in the Inngest processor (idempotent; Nacha R05/R07/R10/R11 → return/correction effect; pin the Stripe API version + a CI allowlist-review-on-bump) and the Phase 13-local one-transaction reversal cascade (payment state → money inverse → derived progress → durable Phase 7 correction pointer under a per-contribution advisory lock). Phase 7/18/19/17 then advance independently. **HARD GATE — the ACH no-go:** _do not enable ACH until these dispute/return handlers + the fail-closed review + the local reversal/outbox cascade ship._ ACH is one Stripe dashboard toggle from live; enabling it earlier means money leaves and the gift stays "paid" forever (D7 blocker #1 / the one hard rule).
 8. **D8 tender + dating + non-cash subtypes**: the `gift_method` enum + per-tender metadata; the capture-not-recompute date-of-delivery resolver with `delivery_basis` **guided override bounded by method** + live tax-year preview + A15 staff attestation on issued-year crossing (tenant/jurisdiction strengthening optional); fail-closed tenant tax config; the `non_cash_asset` substrate (vehicle/securities incl. crypto/real-estate) with subtype-keyed CHECK constraints making illegal combos unrepresentable, dedicated append-only fact tables (not the closed fold), derived 1098-C/8283/appraisal flags from DB lookup constants; the structural internal-value wall; real-estate always `requires_gift_acceptance_review` (never auto-posts).
 9. **D14 source codes + attribution**: the `source_codes` registry (FORCE RLS, Data-API-revoke, composite uniqueness, `ON DELETE RESTRICT`, `campaign_id` nullable-reserved); the **seed/bulk-import path** (cannot trail — an empty registry routes the whole ledger to triage on day one); the shared `normalizeSourceCode`; UTM capture (discrete allowlisted columns + jsonb overflow); per-line write-once freeze; the immutable recurring attribution snapshot (label+channel+segment+id, **not** raw UTM); the **separate erasable raw-UTM capture-log** off the ledger (Article-9 religious-affiliation risk) + redaction path; store-both + per-tenant report-time toggle initialized to **last-touch**; the CSV-injection fix; **the tagged-link builder** (canonical `?sc=` link + short link + dynamic QR) and the `/s/[token]` data-driven redirect (the one friction-critical UI — match rate is a direct function of it).
@@ -1536,7 +1657,8 @@ _What the PRD tells the agent to build, and in what order. Nothing in a later gr
 consumer):** stable connected-account and provider-object links; raw signed
 event retention; the reusable event claim/complete/failure and workflow
 dispatch ledgers; source/designation snapshots copied onto later occurrences;
-the **ACCOUNTING-EXPORT axis stub** (Phase 20); the **campaign public-page
+the **Phase 20 accounting-eligibility and source-identity seam** (with
+downstream coverage read only from Phase 20 records); the **campaign public-page
 reference-by-id** seam (Phase 22); the **soft-credit table** keyed to the header
 (Phase 14); the **DAF hand-off facts** enumerated now (capture-in-13,
 operate-in-14); and the D14 `parent_campaign_id`/`personal_campaign` P2P
@@ -1569,9 +1691,17 @@ metrics over its separate occurrence/attempt/control facts.
   meaningful-transition communication outcomes, and support-health aging. A
   shared provider/control failure becomes one tenant incident with affected
   counts, never one alert per line. PII stays out of logs.
-- **Checkout / cart funnel (D15/D12).** Instrument the abandonment funnel by stage (express-checkout shown → cart built → fee-cover state → method entered → reviewed → accepted → one-time/recurring branches reconciled), grouped cohort/occurrence outcomes, and the **fee reconciliation delta**: collected fee-cover vs actual Stripe fee per gift and in aggregate, so "~100% reaches the field" is measurable rather than asserted. A negative or persistently drifting delta is an alarm (the `%+flat` engine mis-set or a method-mix change).
+- **Checkout / cart funnel (D15/D12).** Instrument the abandonment funnel by stage (express-checkout shown → cart built → fee-cover state → method entered → reviewed → accepted → one-time/recurring branches reconciled) and grouped cohort/occurrence outcomes. Phase 20 D19 observability adds exact eligible processor cost, associated fee-cover, covered and uncovered cost, organization and Designation shares, exceptions, and a zero-difference conservation check. Aggregate fee-cover-versus-actual-cost drift remains a checkout-estimate signal, never proof that 100% reaches a supported purpose.
 - **Attribution health (D14).** Named v1 metrics (charts may trail): **match rate**, **unattributed rate**, **triage backlog age**, **top-unresolved tuples**, **first/last-touch divergence**, **recurring-snapshot integrity** (a year-1 gift still reports under its origin code in year 3).
-- **Reconciliation invariants (D3/D13 — fail loudly; derived wins over any snapshot).** A `giving_reconciliation_runs` job asserts: `Σ(amount_own over the tree) == root.amount_in_hierarchy`; `Σ(all posted lines) == campaign-total-over-all == fund-total-over-all` (the disjoint-lenses check — a campaign total is never accidentally summed with a fund total); `sum(lines) == header` holds across the whole ledger; and, at the tender level, deposit/settlement reconciliation for provisional rails. Any drift fails the run loudly and pages, and the derived value is authoritative over any cached figure.
+- **Source-ledger reconciliation invariants (D3/D13 — fail loudly; derived
+  wins over any cache).** A `giving_reconciliation_runs` job asserts:
+  `Σ(amount_own over the tree) == root.amount_in_hierarchy`;
+  `Σ(all posted lines) == campaign-total-over-all == fund-total-over-all`
+  (disjoint lenses); and `sum(lines) == header` across the ledger. Phase 13
+  may flag missing or contradictory provider-source evidence but does not
+  claim bank/deposit/settlement reconciliation. Phase 15 owns operational
+  deposit grouping, Phase 20 owns bounded Bank Match and settlement coverage,
+  and QBO/Xero owns final reconciliation.
 - **Progress drift (D3.8/D13).** Because `funds.current_amount` is deleted and fund/campaign progress is _derived_ from the version-cursored effective read model, a **periodic re-derivation drift alarm** compares the cached read model against a from-scratch fold; a mismatch means the cursor invalidation missed an append and is a release-quality bug, not a cosmetic one. The effective read model is cursor-invalidated (not TTL) so a stale read is structurally detectable.
 - **Money-out active audit (D5).** Every high-risk correction/refund/write-off writes an immutable `contribution_operation_audit_events` row (actor / reason / before-after / provider-outcome) **and** surfaces on a visible correction/refund activity feed with real-time notification to other finance/admins (detective control with teeth — no money-out action is invisible), plus an optional tenant-configurable dollar-threshold anomaly alert (default ~$1,000). A `payment_axis_disagrees_with_latest_receipt_version` watch (partial index) catches a receipt that drifted from its payment state.
 
@@ -1596,7 +1726,11 @@ Reserved as seams (plumbed, not built) or owned by a named later phase — Phase
 - **Public campaign pages** — Phase 22 (a page record references a campaign by id; no presentation fields on the campaign).
 - **Peer-to-peer / personal-campaign fundraising** — Phase 36 (the `parent_campaign_id` self-FK + `personal_campaign` flag are reserved).
 - **Appeals** — Phase 27 (the appeal owns the linkage; the campaign carries no appeal fields).
-- **Full accounting / GL export** — Phase 20 (the ACCOUNTING-EXPORT axis ships as a reserved single-state stub; the export product and reconciliation-to-GL are not built here).
+- **Full accounting / GL delivery** — Phase 20. Phase 13 supplies exact
+  eligible source occurrences and reads a derived coverage summary; it ships
+  no accounting-export status machine. Phase 20 owns immutable releases,
+  provider delivery/readback, bounded Bank Match, and append-only compensation;
+  QBO/Xero owns the final books and final bank reconciliation.
 - **Donor-portal depth** — Phase 25 owns statements, preference center, wallet,
   magic-link, and broader portal depth. Phase 16 owns recurring-management
   behavior; Phase 13 ships no separate retention portal.
@@ -1630,7 +1764,7 @@ Congruence work owed at authoring (Phase 13 introduces the contribution ledger, 
 - **`docs/prds/sitestacker-parity/phase-map.md`** — confirm Phase 13 precedes offline batch (15), pledges (16), and the cultivation/ask records that tie to Phase 13 campaigns/designations.
 - **`docs/prds/sitestacker-parity/README.md`** — add Phase 13 to the phase index / status table.
 - **`docs/prds/sitestacker-parity/parity-matrix.md`** — populate the contributions/giving, public-checkout, and MC-finance rows with Phase 13 ownership (and the touched rows for Phases 2, 5, 7, 10).
-- **`docs/prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md`** — add every Phase 13-owned record type with owner / write-path / conflict-winner / repair (Asym Postgres owns all; write-path is the `packages/api` service through the advisory-locked / trigger-enforced functions; conflict-winner is the epoch/`seq`-guarded latest committed append; repair is the reconciliation sweep): `contribution_headers` · `contribution_designation_lines` · `contribution_postings` · `contribution_internal_valuation` · `non_cash_asset` (+ `asset_valuation` / `asset_disposition` / `asset_identity`) · `contribution_operation_audit_events` · `source_codes` (+ raw-UTM capture-log) · `giving_campaigns` · `campaign_goals` · `carts` + `cart_lines` · the tenant `stripe_account_id` (replacing plaintext `stripe_secret_key`) · the reserved soft-credit table. Phase 16 owns and registers recurring/fixed-pledge records separately.
+- **`docs/prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md`** — add the Phase 13 source-domain records with owner / write path / conflict winner / repair: `contribution_headers` · `contribution_designation_lines` · `contribution_postings` · `contribution_internal_valuation` · `non_cash_asset` (+ valuation/disposition/identity) · operation audit events · source codes/raw-UTM capture log · campaigns/goals · carts/lines · `SettlementAccountBinding` · reserved soft-credit seam. State the boundary honestly: Asym owns gift intent/facts and binding coverage; Stripe owns exact processor execution, balance transactions, payout state, connected-account identity, and capabilities; Phase 20 owns normalized payout/accounting coverage; QBO/Xero owns accepted provider records and the books. Phase 16 registers recurring/fixed-pledge roots separately and pins the same Legal Entity/binding.
 - **Root `CONTEXT.md` glossary** — add the Phase 13 ledger/attribution terms. Phase 16 owns the current recurring group/line/cohort/executor, collection-lapse, fixed-total pledge, fulfillment, and support-health language; do not retain the historical six-state/per-line-executor vocabulary.
 - **OpenSpec change + ADRs** — author the OpenSpec change for the contribution-ledger capability, and the ADRs for the Phase 13 hard-to-reverse decisions: the D1 Connect-direct topology + 0% economics; the D2 delete-and-replace (fresh tables reusing UUIDs, no view); the D3 append-only header+lines+postings + derivation-only truth; and the D7 money-ledger axes + ACH no-go rule. Phase 16 ADRs 0012–0017 supersede the former per-line-subscription/combined-pledge design.
 

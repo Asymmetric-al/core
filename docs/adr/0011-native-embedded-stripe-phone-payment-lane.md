@@ -4,6 +4,11 @@
 
 > Full record: `docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md`
 > (ratified decision D4 + its Stripe-deep-dive hardening amendments A16–A18).
+>
+> **Authority amendment (2026-07-27):** The embedded Stripe lane remains
+> accepted. Its historical “receipt fires” shorthand is superseded: verified
+> processor success creates an accepted Phase 15 source occurrence, while
+> Phase 7 independently decides receipt facts and eligibility.
 
 ## Context
 
@@ -25,9 +30,12 @@ via PaymentIntent metadata; repeat donors charge a saved method off-session.
 ACH: a mid-call Financial Connections donor-tap (WEB mandate, async
 settlement) as primary, plus a bounded staff-keyed TEL lane (Stripe beta +
 recording/retention + legal review + single-use, never-store-raw) as
-secondary. Every phone gift is an ONLINE gift written by the Stripe webhook —
-never an offline batch money row. It runs on the ratified full Stripe Connect
-substrate (Phase 13): delete the plaintext tenant key, detect capabilities via
+secondary. A verified `payment_intent.succeeded` webhook creates the accepted
+Phase 15 source occurrence for the phone gift; it never writes an offline batch
+money row and never directly creates or sends a receipt. Phase 7 independently
+decides receipt timing, facts, and eligibility from that accepted source
+occurrence. The lane runs on the ratified full Stripe Connect substrate (Phase
+13): delete the plaintext tenant key, detect capabilities via
 `account.capabilities`, revoke via `account.application.deauthorized`.
 
 ## Consequences
@@ -35,12 +43,15 @@ substrate (Phase 13): delete the plaintext tenant key, detect capabilities via
 - A Stripe-hosted iframe keyed by staff is explicitly permitted (SAQ-A;
   number goes browser→Stripe); a raw PAN/bank `<input>` Asym JS can read stays
   permanently forbidden — the invariant the whole lane rests on.
-- Phone/MOTO/hosted-link gifts flow through the webhook → staged-gift seam,
-  so they are never double-counted as offline batch money rows.
+- Phone/MOTO/hosted-link gifts flow through the verified webhook → accepted
+  Phase 15 source-occurrence seam, so they are never double-counted as offline
+  batch money rows.
 - MOTO is Stripe-support-gated per connected account with no liability shift;
   the lane must gate + detect + degrade (falls back to ordinary CNP confirm).
 - Phone-ACH cannot settle on the call (NACHA reality); the donor taps once on
-  their own device, and the receipt fires only on `succeeded`.
+  their own device, and no accepted source occurrence exists until
+  `payment_intent.succeeded`. Receipt consideration begins only after that
+  success, under Phase 7's independent rules.
 - Consciously accepted: the online `card.moto` REST flag is absent from the
   public reference and needs a Stripe-support/test-probe confirmation at build.
 - Overlaps Phase 13's ratified-but-unwritten Connect topology — a

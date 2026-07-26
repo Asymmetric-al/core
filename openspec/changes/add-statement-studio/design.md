@@ -57,6 +57,8 @@ schema/version, canonical hash, privacy/safety generation, recipient and subject
 roles, bounded collections with stable row identity/order, raw structured values
 where needed for validation, and frozen official display values where the source
 owns formatting. Null, absent, withheld, ambiguity, and overflow are distinct.
+For an official financial purpose, the package also pins the exact source-facts
+version and Legal Entity supplied by the source owner.
 
 ### Generation Request
 
@@ -104,7 +106,8 @@ requires final bytes, required machine and human-qualified validations,
 SHA-256, byte length, opaque never-reused object identity, storage generation,
 private upload, independent read-back, current request token, and atomic
 one-canonical-artifact enforcement. Historical access always returns stored
-bytes, never a rerender.
+bytes, never a rerender. An official financial artifact additionally records
+the exact source-facts version and Legal Entity from its frozen Facts Package.
 
 ### Logical Document
 
@@ -328,4 +331,5 @@ No microservice fleet, generic event sourcing, tenant legal-rules DSL, arbitrary
 CRM query/formula/ETL language, Word/Canva clone, workflow builder, file manager,
 records suite, eDiscovery product, PKI console, renderer chooser, multi-output
 graph, release calendar, generic migration/import platform, second delivery
-history, or second statement-run engine.
+history, second statement-run engine, or Phase 20 accounting package,
+reconciliation, or posting engine.

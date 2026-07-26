@@ -25,6 +25,22 @@ A retry, provider callback, page refresh, batch restart, download, print, resend
 or delivery event MUST NOT create a second logical document, issuance, official
 identity, or canonical artifact.
 
+For an official financial purpose, the source-owned Facts Package and canonical
+Artifact MUST pin the exact source-facts version and Legal Entity. A live
+contribution, mutable Party profile, payment-provider object, browser payload,
+or Phase 20 accounting projection MUST NOT substitute for those frozen source
+facts or become document-render authority.
+
+#### Scenario: An official financial artifact is requested
+
+- GIVEN the source owner authorized one exact immutable official-facts version
+  and Legal Entity
+- WHEN the Generated Document service renders the approved purpose
+- THEN the artifact pins that facts version, Legal Entity, publication, and
+  source-owned correction lineage
+- AND the service does not infer eligibility or render from a live
+  contribution, Party profile, provider object, or accounting projection
+
 #### Scenario: A render times out and later succeeds
 
 - GIVEN one Generation Request has one running Render Attempt

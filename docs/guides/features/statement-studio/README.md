@@ -1,20 +1,27 @@
 # Statement Studio
 
-> **Current authority (Phases 18–19, 2026-07-24).** The documents in this folder are
-> retained as pre-Phase-18 research and design evidence; they are not
-> dispatchable target architecture. Use the Phase 18 PRD, authority manifest,
-> renderer qualification protocol, ADRs 0033-0039, and OpenSpec change for the
-> Generated Document service. For year-end bulk operations, use the
+> [!IMPORTANT]
+> **Current authority (Phases 18–19, 2026-07-24); implementation route
+> superseded.** This folder is retained as pre-Phase-18 research and design
+> evidence and has no implementation authority. All implementation must follow
+> **Phase 18 D-prime-amended-and-hardened (D-prime-R)**, the current Phase 18
+> PRD, authority manifest, implementation spec, renderer qualification protocol,
+> ADRs 0033-0039, and OpenSpec contract. The active route is one bounded,
+> production-shaped renderer contest, at most one exact production winner, and
+> an environment-gated destructive pre-production cutover to zero legacy
+> runtime. Do not use this folder to authorize gradual migration, fallback or
+> dual runtime, or a preselected DocRaptor path.
+>
+> For year-end bulk operations, use the
 > [Phase 19 PRD](../../../prds/sitestacker-parity/phase-19-year-end-statement-operations.md),
-> its authority map, ADRs, and OpenSpec change. Phase 7
-> owns eligibility, facts, source issuance, and correction effect; Phase 18 owns
-> document definition, publication, requests, exact artifacts, current-head
-> access, and records; Phase 19 consumes Phase 7 eligibility and owns frozen
-> statement population, participation, runs, recipient-operation coordination,
-> physical fulfillment, controls, completion, and run evidence; Phase 17 owns
-> message and delivery. Both phases are planning-only and
-> groomed-not-dispatched. Phase 18 D17 requires a clean pre-production cutover, and
-> D13 forbids raw provider or signed object URLs as access authority.
+> its authority map, ADRs, and OpenSpec change. Phase 7 owns eligibility, facts,
+> source issuance, and correction effect; Phase 18 owns document definition,
+> publication, requests, exact artifacts, current-head access, and records;
+> Phase 19 consumes Phase 7 eligibility and owns frozen statement population,
+> participation, runs, recipient-operation coordination, physical fulfillment,
+> controls, completion, and run evidence; Phase 17 owns message and delivery.
+> Phases 18 and 19 are planning-only and groomed-not-dispatched. Phase 18 D13
+> forbids raw provider or signed object URLs as access authority.
 
 Statement Studio is the planned replacement for PDF Studio: a fully usable staff-facing Mission Control product for building, assigning, rendering, and managing tenant-safe PDFs and statements.
 
@@ -28,7 +35,7 @@ protocol. D17 then enables only the winner in the clean canonical runtime.
 
 ## Triggers
 
-Use this documentation when planning or implementing:
+Use this documentation only to inspect the historical Phase 0 research behind:
 
 - Statement Studio / PDF Studio rebuild work.
 - PDF template editing, publishing, defaults, assignments, variables, or rendering.
@@ -37,12 +44,14 @@ Use this documentation when planning or implementing:
 
 ## Workflow Steps
 
-1. Read this `README.md`.
+1. For implementation, stop using the historical plan in this guide and use
+   the current Phase 18 PRD, implementation spec, and OpenSpec contract.
 2. Read the Phase 18 PRD, authority manifest, renderer qualification protocol,
    ADRs 0033-0039, and Phase 18 OpenSpec change before Generated Document work.
    For year-end runs, also read the Phase 19 PRD, its authority map, ADRs, and
-   OpenSpec change. Use the Phase 0 brief and evidence
-   appendix only for historical repo observations.
+   OpenSpec change. Use this guide and the Phase 0 brief and evidence appendix
+   only for historical repo observations; do not turn their provider choice,
+   migration plan, issue graph, or tracer into implementation instructions.
 3. Load `docs/ai/skills/supabase/SKILL.md`, `docs/ai/rules/backend.md`, and `supabase/AGENTS.md` before any Supabase/database work.
 4. Load `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` for schema, RLS, indexes, query, or migration work.
 5. Load `docs/ai/rules/frontend.md` before UI work.
@@ -74,7 +83,7 @@ Use this documentation when planning or implementing:
 - `legacy-pdf-studio-removal.md` - Unlayer/PDF Studio legacy boundary.
 - `testing-fixtures.md` - fixtures and risk-based verification.
 
-## Approved Direction
+## Historical Phase 0 Direction (Superseded)
 
 - User-facing product name: Statement Studio.
 - Phase 18 replaces the prototype `/pdf`, receipt-render, and `pdf_*` runtime
@@ -99,9 +108,10 @@ Use this documentation when planning or implementing:
   physical fulfillment, operational completion, and Run Evidence Record. Phase
   17/6 own message preparation, transport, and delivery evidence.
 
-## Checklist
+## Historical Checklist
 
-Final gate before implementation:
+This checklist records the retired Phase 0 plan and is not a current
+implementation gate:
 
 - [x] Phase 0 audit brief and evidence exist.
 - [ ] UX/IA uses shared design tokens and components.

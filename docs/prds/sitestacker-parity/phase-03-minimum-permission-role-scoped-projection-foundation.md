@@ -18,6 +18,19 @@
 > relationships receive explicit per-surface classification; no new Phase 16
 > reader or export may bypass the floor because it is a projection or aggregate.
 
+> **Legal Entity scope amendment (2026-07-27; Phase 20 D3 /
+> ADR-0044).** Tenant remains the outer RLS and authorization boundary. A
+> Legal Entity is a subtract-only row scope _inside_ that Tenant, enforced by
+> the same `resolveProjection` Policy Decision Point (PDP) and every existing
+> Policy Enforcement Point (PEP); it is not another tenant, role system,
+> resolver, or `field_policies` dimension. Every financial record presented to
+> the resolver carries an explicit immutable `legal_entity_id`. Missing,
+> stale, unrecognized, or out-of-scope entity authority fails closed with the
+> same not-found uniformity as any other denied row. Phase 12 supplies the
+> configurable entity grants and runtime-verifiable scope binding. A
+> single-entity tenant still persists and checks the exact entity but presents
+> no selector or extra workflow.
+
 ---
 
 ## Problem Statement
@@ -41,7 +54,7 @@ This is a **foundation** phase, not the full permissions product. It creates the
 Build the **full conceptual projection model now, integrated with the systems that already exist** (not a parallel one), with five moving parts:
 
 1. **`field_policies`** — one field-only static lookup keyed `(record_type, field_key, surface, tenant_id)` → `{visible, editable, exportable, sensitivity_category}`. Fail-closed: no row ⇒ invisible/non-exportable outside Mission Control.
-2. **A surface-generic, subtract-only projection resolver** — the single read/write chokepoint. Effective access = `field_policies ∩ row-scope ∩ record-flags ∩ record-state`. It can only ever _remove_ access, never grant it. All conditional/row logic (ownership, gift anonymity, relationship-scope, record-state, consent) lives here, **never** in `field_policies`.
+2. **A surface-generic, subtract-only projection resolver** — the single read/write chokepoint. Effective access = `field_policies ∩ tenant boundary ∩ Legal Entity scope ∩ row-scope ∩ record-flags ∩ record-state`. It can only ever _remove_ access, never grant it. All conditional/row logic (Legal Entity, ownership, gift anonymity, relationship-scope, record-state, consent) lives here, **never** in `field_policies`.
 3. **A code-source-of-truth capability registry** — generalizes the existing contributions-only capability pattern; effective capability = union across a user's active memberships (multi-hat). Capability _tables_ are deferred (D12); code is the sole authority and Mission Control renders it read-only.
 4. **One unified export-governance layer** — a single policy source + shared `csvSafeCell` + one consent gate + identifiers-only audit, governing CSV, receipts, and email now, with Mailchimp as a fully-specified contract.
 5. **A change-controlled Mission Control permissions UI** — three routes where **widening a projection is a maker-checker reviewed event** (reusing the existing contribution correction-approval engine) and **narrowing is immediate** (fail-safe direction).
@@ -79,7 +92,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
 - **A1 — Fail-closed default.** Any `(field, surface)` with no policy row, any unknown/dotted key, any unregistered surface ⇒ omitted outside Mission Control. Restriction is the default; access is granted up. Unclassified fields are treated as the strictest category (`internal`).
 - **A2 — Single projection chokepoint.** Every narrow-surface read/write and every governed export flows through one resolver in `packages/api`. Surfaces stop hand-rolling `SELECT`s. Enforced by a lint that bans direct `.from('<sensitive-table>').select()` outside the resolver module (a callsite/import check — **not** column-string static analysis, which is deferred).
 - **A3 — `field_policies` is a field-only static lookup, never a rules engine.** No conditions, no dotted-path evaluation, no per-value provenance. → **ADR-A**.
-- **A4 — The resolver is the only home for conditional/row logic and it only subtracts.** Ownership, gift anonymity, relationship-scope, record-state, member-care author-only, and consent live here as composing predicates. `effective = field_policies ∩ row_scope ∩ record_flags ∩ record_state`; the resolver never grants.
+- **A4 — The resolver is the only home for conditional/row logic and it only subtracts.** Tenant boundary, Legal Entity scope, ownership, gift anonymity, relationship-scope, record-state, member-care author-only, and consent live here as composing predicates. `effective = field_policies ∩ tenant_boundary ∩ legal_entity_scope ∩ row_scope ∩ record_flags ∩ record_state`; the resolver never grants. Legal Entity is evaluated only for entity-bearing records, never inferred from Site, designation, processor account, or a mutable tenant default.
 - **A5 — Capabilities are code source-of-truth; capability tables deferred (D12).** One exhaustive typed registry (`capability → meta`, `role/subrole → capability[]`), effective = union across active memberships, with a dormant `tenantOverrides` param so per-tenant grants are additive later. `/minimum` renders the code map read-only. → **ADR-B**.
 - **A6 — Export is governed through one policy source; `exportable` is authoritative, serializers are consumers.** Any egress emits a field only if `exportable = true` and its category is allowed for the channel; `internal`/`care`/`security` never leave externally; payment identifiers are never bulk-exported. → **ADR-D**.
 - **A7 — Audit is identifiers-only with a typed payload and a system-actor path.** Field **keys**, not values; a nullable actor for transactional/system events. This is an _enforced_ property of the logging helper, not an assumed database protection (see Data model note on `audit_logs`).
@@ -137,11 +150,13 @@ The governing principle throughout is **least privilege / need-to-know**: restri
 - Interface:
   ```ts
   interface RowScope {
+    withinTenant(row): boolean;
+    withinLegalEntity(row): boolean; // exact persisted legal_entity_id; not inferred
     ownsRow(row): boolean;
     isAnonymizedFor(row): boolean;
     recordState(row): "open" | "settled" | "locked";
     withinRelationship(row): boolean;
-    withinHouseholdVisibility(row, viewerPersonId): boolean; // reserved-inert (Phase 7)
+    withinHouseholdVisibility(row, viewerPartyId): boolean; // reserved-inert; P9 relationships + P7 policy
   }
   function resolveProjection<Row>(input: {
     surface;
@@ -160,17 +175,24 @@ The governing principle throughout is **least privilege / need-to-know**: restri
   }): void; // throws 403
   ```
 - Prior art: `contribution-operations/viewer-projection.ts` (`redactProviderOutcomeForViewer` — the exact subtract-only per-viewer redaction precedent). Promotes `DONOR_SELECT` and `DONOR_RELATIONSHIP_SELECT`.
-- Reserved seam (like the `tenant_id` seam): `withinHouseholdVisibility(row, viewerPersonId)` is declared inert now and implemented by Phase 7 as register + classify. Intra-household visibility is **member-scoped** — a household co-member does **not** automatically inherit visibility of another member's private/anonymous gift.
+- Financial readers and egress doors pass a row whose exact
+  `legal_entity_id` is already source-authoritative. The resolver checks that
+  entity against the current Phase 12 scope before any field projection,
+  filter, aggregate, export, or template binding. A missing entity on a
+  financial root is invalid data, not permission to use
+  `tenants.default_legal_entity_id`.
+- Reserved seam (like the `tenant_id` seam): `withinHouseholdVisibility(row, viewerPartyId)` is declared inert now. Phase 9 supplies the effective-dated Party/household relationship; Phase 7 classifies official-facts visibility; Phase 3 enforces the resulting projection. Intra-household visibility is **member-scoped**—a household co-member does **not** automatically inherit another member's private/anonymous contribution.
 
 **Module 4 — Unified export-governance layer** _(one policy source, all channels)_
 
-- Responsibility: shared `resolvePolicy()` (reads `exportable` + category) + `csvSafeCell()` (one OWASP/CWE-1236 helper — neutralize leading `=`/`+`/`-`/`@`/TAB/CR/LF, RFC 4180 quote, CRLF + UTF-8 BOM; **shared with the P0 patch, never re-implemented**) + one consent gate + one audit call. The admin CRM CSV serializer is **rewired to build columns from the resolved exportable projection** (its derived output columns classified at the projection under `crm_report.*`), not a hardcoded list. Consent gate over `do_not_email`/`do_not_contact`/`email_suppressions`, fail-closed, staff/system-initiated outbound only. Also **enforce-now: bind template merge-tag resolution to the recipient surface** so a donor/missionary email can't resolve internal/other-party fields. Reserved seam: the merge-tag governance (recipient-surface-bound today) must be extendable so forbidden merge-fields (deductibility, amount) can be keyed by **document class**, not only recipient surface — enabling the Phase 7 three-document wall; Phase 7 owns the implementation.
+- Responsibility: shared `resolvePolicy()` (reads `exportable` + category) + `csvSafeCell()` (one OWASP/CWE-1236 helper — neutralize leading `=`/`+`/`-`/`@`/TAB/CR/LF, RFC 4180 quote, CRLF + UTF-8 BOM; **shared with the P0 patch, never re-implemented**) + one consent gate + one audit call. The admin CRM CSV serializer is **rewired to build columns from the resolved exportable projection** (its derived output columns classified at the projection under `crm_report.*`), not a hardcoded list. The consent gate evaluates canonical Party/contact-point consent and `email_suppressions`, fail-closed, for staff/system-initiated outbound communication. Also **enforce now:** bind Phase 17 variable resolution and Phase 18 document-field projection to the intended recipient surface so a donor/missionary output cannot resolve internal/other-party fields. Phase 14 registers acknowledgment/notification purpose and allowed-fact census rows; Phase 17 owns typed message-variable/content contracts; Phase 18 owns generated-document field/artifact enforcement; Phase 3 remains the fail-closed projection/consent-policy chokepoint.
 - Interface:
   ```ts
   function csvSafeCell(value: unknown): string;
   function resolveConsent(input: {
-    donorId;
-    channel: "email" | "csv" | "receipt";
+    recipientPartyId;
+    recipientContactPointId?;
+    channel: "email" | "export" | "generated_document";
     initiator: "staff" | "system" | "self";
   }): Promise<{
     allowed: boolean;
@@ -250,7 +272,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
 - **Meta-capabilities** — `permissions.view` / `permissions.propose_widening` / `permissions.approve_widening` on the **contribution capability resolver** (graduated so propose ≠ approve), not the flat staff-capability union.
 - **Anti-drift CI** — extend `verify:data-boundary` with the callsite lint (A2); the client DataTable CSV export **throws on any governed/sensitive column**.
 - **Surface-exposure lattice (ruling).** `mission_control` (least exposed) `<` `donor` ≈ `missionary` (peers, **incomparable**) `<` `public` (most exposed); `export` is governed by the separate stricter `exportable` flag. Moving a field between two incomparable surfaces (e.g. donor→missionary) is a **widen** (fail-closed). Any surface pair not comparable in the lattice ⇒ `widen`.
-- **Anonymity (ruling).** Mask donor identity on `missionary` + `public`; **retain** for finance/admin/receipt/audit. The resolver masks when the gift is anonymous — covering the existing null-donor guest case now and a future donor-elected flag as a contract. Grounded in the AFP Donor Bill of Rights (not the retracted `CONTEXT.md` citation — see Further Notes).
+- **Anonymity (ruling).** Mask donor identity on `missionary` + `public`; **retain** for finance/admin/receipt/audit. The resolver masks only from an explicit, purpose-scoped gift-anonymity fact. Every accepted online guest gift resolves or creates its known Party/legal donor before the contribution is accepted; guest giving is never a null-donor shortcut. A null donor is valid only for the explicit `unknown_offline` source-intent case (for example, anonymous cash or an unmarked offering), which remains non-receiptable until source-owned identity evidence is later supplied. Grounded in the AFP Donor Bill of Rights (not the retracted `CONTEXT.md` citation — see Further Notes).
 
 ### ADRs to write
 
@@ -266,7 +288,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
 A good test here exercises **external behavior through each module's stable interface with adversarial inputs**; the two highest-value targets are projection leakage and export injection. Modules to test (all of Modules 1–5). Test scope:
 
 - **`widen()` exhaustive matrix** _(the load-bearing safety unit)_ — every category-order transition, every `visible/editable/exportable` `F→T`/`T→F` on internal vs external surfaces, every `(category-change × surface-pair)` verdict, and every unknown/ambiguous input ⇒ asserts `widen`; a derived field inherits max-sensitivity of inputs. A single missed branch silently converts an approval-gated widening into an auto-publish leak.
-- **Projection resolver, fail-closed + subtract-only** — no-policy field omitted; unregistered/new surface sees nothing; dotted/unknown key omitted; row-scope subtracts (non-owner loses contact fields; anonymity masks donor on missionary/public but not finance/receipt/audit; member-care author-only); resolver never adds a field absent from `field_policies`; promoted resolver reproduces today's `DONOR_SELECT` / `DONOR_RELATIONSHIP_SELECT` visible set exactly (no regression) while excluding unclassified columns.
+- **Projection resolver, fail-closed + subtract-only** — no-policy field omitted; unregistered/new surface sees nothing; dotted/unknown key omitted; row-scope subtracts (wrong Tenant or Legal Entity is uniformly not found; non-owner loses contact fields; anonymity masks donor on missionary/public but not finance/receipt/audit; member-care author-only); resolver never adds a field absent from `field_policies`; promoted resolver reproduces today's `DONOR_SELECT` / `DONOR_RELATIONSHIP_SELECT` visible set exactly (no regression) while excluding unclassified columns. Poison fixtures prove that a correct row ID with a wrong or missing entity, a stale entity-scope token, and a mutable-default change cannot authorize access or cross-entity aggregation.
 - **Per-surface golden snapshots** — freeze the exact field set each enforced surface emits for a canonical row; any diff must be an intentional, reviewed change (the cheap closer of the deliberate-widening leak path).
 - **Export governance** — `csvSafeCell` neutralizes leading `=`/`+`/`-`/`@`/TAB/CR/LF then RFC-4180-quotes (fixtures for all three serializers incl. the donor-**name** label column and the Phase-2 `source_code` debt), emits CRLF + BOM; `emitGovernedCsv` emits only `exportable=true` fields and drops `internal`/`care`/`security` + payment identifiers; the rewired serializer's columns equal the `exportable` projection (proves the two sources can't disagree); audited `rowCount` == rows emitted; JSON export obeys the same field set (format-agnostic); merge-tag render can't inject other-party/internal fields.
 - **Consent gate** — staff/system email/CSV to a `do_not_email`/`do_not_contact`/suppressed donor is blocked fail-closed; a donor's self-service access to their own receipt is not blocked.
@@ -304,7 +326,7 @@ A good test here exercises **external behavior through each module's stable inte
 
 **Live P0s (fast-tracked, compose with Phase 3).** Three live issues were spun off as standalone security patches: CSV formula-injection across three serializers (adds the shared `csvSafeCell` + CRLF/BOM + the Phase-2 `source_code` debt) and the `sendEmail()` consent-bypass. Phase 3's export-governance **consumes the same `csvSafeCell`** the patch introduces — it must be one shared helper, never re-implemented (a lint forbids a second CSV-escaping implementation).
 
-**Glossary & OpenSpec.** Add to repo-root `CONTEXT.md`: **permission**, **capability**, **role-scoped field projection** (disambiguated), **field policy**, **sensitivity category**, **surface**, **donor-safe / missionary-safe / public-safe**, **fail-closed default**. Phase 3 lands as spec deltas + tasks in the existing `openspec/changes/sitestacker-parity/` change and adds a Phase 3 row to `parity-matrix.md`.
+**Glossary & OpenSpec.** Add to repo-root `CONTEXT.md`: **permission**, **capability**, **role-scoped field projection** (disambiguated), **field policy**, **sensitivity category**, **surface**, **donor-safe / missionary-safe / public-safe**, **fail-closed default**, and **Legal Entity scope** (a subtract-only scope inside Tenant). Phase 3 lands as spec deltas + tasks in the existing `openspec/changes/sitestacker-parity/` change and adds a Phase 3 row to `parity-matrix.md`.
 
 ---
 
@@ -321,6 +343,10 @@ Evidence file under `docs/ops/phase-evidence/` (following the program's phase-ev
 5. A field flipped `exportable=false` **disappears from the CSV** (serializer driven by policy), and a donor named `=HYPERLINK(...)` is neutralized on export.
 6. A staff/system email to a `do_not_email` donor is **blocked and audited**; the donor's own receipt download is not.
 7. **Widening** a projection routes through maker-checker and **blocks self-approval**; **narrowing** auto-publishes; both are audited identifiers-only.
+8. A finance user scoped to Legal Entity A cannot read, aggregate, export, send,
+   or mutate an Entity B financial record in the same Tenant. Single-entity
+   users see no selector, but the persisted entity and authorization check are
+   still exact.
 
 ---
 
@@ -336,7 +362,7 @@ Ticket shape (filed via `/to-issues`):
 6. `field_policy_change_requests` + `widen()` classifier + surface-exposure lattice + `/projections` change-control UI + baseline guard.
 7. `/audit` read-only viewer + `logPolicyChange` + typed identifiers-only audit payload + system-actor path.
 8. Split-gift `contribution_designation` record_type + per-line row-scope (contract-only binding).
-9. Gift-anonymity masking rule + null-donor case now + reserved donor-elected-flag contract.
+9. Gift-anonymity masking rule + explicit `unknown_offline` null-intent case + reserved donor-elected-flag contract; accepted online guest gifts always have a known Party/legal donor.
 10. The four ADRs.
 11. Glossary (`CONTEXT.md`) + OpenSpec spec-delta/tasks + `parity-matrix.md` row.
 12. Phase 3 evidence file.

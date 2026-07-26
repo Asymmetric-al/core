@@ -1,12 +1,16 @@
 # Statement Studio Handoff
 
-> **Superseded implementation authority (Phase 18, 2026-07-21).** This handoff
-> remains useful as historical repo evidence, but it is not dispatchable target
-> architecture. Use the Phase 18 PRD, authority manifest, renderer qualification
-> protocol, ADRs 0033-0039, and OpenSpec change. D17 requires a clean
-> pre-production cutover with no legacy runtime, import, backfill, or dual
-> compatibility; D13 forbids raw provider or signed object URLs as access
-> authority.
+> [!IMPORTANT]
+> **Implementation route superseded (Phase 18, 2026-07-21).** This handoff is
+> retained only as historical Phase 0 repo evidence and has no implementation
+> authority. All implementation must follow **Phase 18
+> D-prime-amended-and-hardened (D-prime-R)**, the current Phase 18 PRD,
+> authority manifest, implementation spec, renderer qualification protocol,
+> ADRs 0033-0039, and OpenSpec contract. D17 requires an environment-gated
+> destructive pre-production cutover to zero legacy runtime, with no import,
+> backfill, fallback, or dual compatibility; D13 forbids raw provider or signed
+> object URLs as access authority. Do not use this handoff to authorize gradual
+> migration or a preselected DocRaptor path.
 
 Updated: 2026-07-10 Asia/Bangkok
 
@@ -14,12 +18,13 @@ Updated: 2026-07-10 Asia/Bangkok
 
 Use this handoff only when interpreting the AL-312 Phase 0 audit or older issue
 bodies. For current Phase 18 work, enter through the Phase 18 PRD and authority
-manifest.
+manifest, implementation spec, OpenSpec contract, and current Phase 18 issues.
 
 ## Workflow Steps
 
-1. Read the Phase 18 PRD, authority manifest, renderer qualification protocol,
-   ADRs 0033-0039, and Phase 18 OpenSpec change.
+1. For implementation, stop using the retired route in this handoff and read
+   the Phase 18 PRD, authority manifest, implementation spec, renderer
+   qualification protocol, ADRs 0033-0039, and Phase 18 OpenSpec change.
 2. Read `README.md`, `phase-0-audit-brief.md`, and
    `phase-0-research-evidence.md` only for historical repo evidence.
 3. Read the relevant source-owner PRD and live GitHub issue; block the issue if
@@ -42,7 +47,7 @@ manifest.
 - Issues #314 through #364 preserve the historical implementation breakdown but
   are blocked from dispatch until amended or closed/reissued against Phase 18.
 
-## Historical Phase 0 decisions — superseded
+## Historical Phase 0 Decisions (Superseded)
 
 The bullets below record the earlier decision package. They explain existing
 repo shapes but do not authorize implementation after Phase 18 D1-D17:
@@ -79,7 +84,7 @@ repo shapes but do not authorize implementation after Phase 18 D1-D17:
 4. Implement thin vertical slices through the one canonical service using
    synthetic proof data first, then source-owned immutable Facts Packages.
 
-## Verification Expectations
+## Historical Verification Expectations
 
 For foundation/runtime work:
 

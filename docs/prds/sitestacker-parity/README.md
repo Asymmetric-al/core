@@ -80,13 +80,14 @@ bolted-on module or push admin depth into donor/missionary surfaces.
 - **Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit
   Model)** is the final Lane-1 foundation phase (groomed 2026-07-05; Phases
   2–6 precede it in dependency order — see [`phase-map.md`](./phase-map.md)).
-  It **fulfills the identity/party/credit seams reserved in Phase 4** — the
-  persons spine, party entities, frozen-snapshot extension, and the
-  `gift_credits`/tribute/matching/DAF model — which the provisional build
-  order permits. Phase 7 **hard-depends on the Phase 4 isolation-hardening
-  foundation, the Phase 6 communication-event spine + `sendEmail` seam, and
-  the Phase 3 consent gate (PR #502) shipping first** (the PRD's hard
-  prerequisites C1–C3).
+  It **fulfills the identity/party and receipt-facts seams reserved in Phase
+  4**—the persons/Party spine, frozen legal-donor Statement Subject, and
+  immutable receipt/statement facts. Phase 14 owns the
+  `contribution_credits`, tribute, matching, and DAF operational models; Phase
+  7 consumes their typed read models without rebuilding them. Phase 7
+  **hard-depends on the Phase 4 isolation-hardening foundation, the Phase 6
+  communication-event spine + `sendEmail` seam, and the Phase 3 consent gate
+  (PR #502) shipping first** (the PRD's hard prerequisites C1–C3).
 - **Phase 8 (CRM Operating Foundation)** was **re-groomed 2026-07-07 (#603
   complete)** under
   [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md).
@@ -280,14 +281,36 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   Groomed 2026-07-24 (ratified D1–D18; PRD authority map,
   decision-to-test traceability, primary-source research, dated cross-PRD
   congruence, focused ADRs, and a Statement Operations OpenSpec delta).
-  Planning only; no Phase 19 epic or child issue has been published, no
-  implementation dispatch is authorized, and the phase is not built.
+  Planning only; epic #977 and children #978–#1031 are published and blocked.
+  No implementation dispatch is authorized, and the phase is not built.
+- [`phase-20-accounting-exports-reconciliation.md`](./phase-20-accounting-exports-reconciliation.md)
+  — the implementation-ready Phase 20 specification (Accounting Exports &
+  Reconciliation): one accounting doorway over immutable balanced Accounting
+  Releases, exact source coverage, mutually exclusive direct-QBO/direct-Xero or
+  evidence-always artifact delivery, bounded Bank Match, append-only
+  corrections, and a PII-minimized Phase 21 expense handoff. Groomed
+  2026-07-26 through ratified D1–D20 and specified 2026-07-27. Planning only;
+  not implemented or dispatched. See the
+  [`decision log`](./phase-20-accounting-exports-reconciliation-decision-log.md),
+  [`OpenSpec change`](../../../openspec/changes/add-accounting-exports-reconciliation/proposal.md),
+  and
+  [`cross-phase congruency audit`](./phase-20-cross-phase-congruency-audit.md).
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
   program exists and is governed as outcome parity).
 
 ## Related in-flight work
+
+PR [#872](https://github.com/Asymmetric-al/core/pull/872) carries the Phase
+17–20 PRDs, ADRs, and OpenSpec packages for review before they merge into
+`develop`. Its live issue sets already exist: Phase 17 epic #873 +
+#874–#905, Phase 18 epic #907 + #908–#961, and Phase 19 epic #977 +
+#978–#1031. Phase 20 has the specification issue
+[#1036](https://github.com/Asymmetric-al/core/issues/1036); no Phase 20
+implementation children have been generated or dispatched. Publishing planning
+issues does not authorize implementation; current labels and dependency
+relationships still control readiness.
 
 OpenSpec PR #462 refines the platform specs and adds capability specs
 (donation-lifecycle, crm-core, contribution-operations, identity-and-access,

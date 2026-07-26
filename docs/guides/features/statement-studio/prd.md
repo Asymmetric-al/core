@@ -1,13 +1,17 @@
 # Statement Studio PRD
 
-> **Superseded implementation authority (Phase 18, 2026-07-21).** This PRD is
-> retained as historical design and repo evidence only. Do not dispatch or
-> implement it directly. The Phase 18 PRD, authority manifest, renderer
-> qualification protocol, ADRs 0033-0039, and OpenSpec change are controlling.
-> Phase 18 D17 requires a clean pre-production cutover with no legacy runtime,
-> import, backfill, or dual compatibility; D3 selects at most one exact
-> production renderer through evidence; D13 forbids raw provider or signed
-> object URLs as access authority.
+> [!IMPORTANT]
+> **Implementation route superseded (Phase 18, 2026-07-21).** This PRD is
+> retained only as historical Phase 0 design and repo evidence and has no
+> implementation authority. All implementation must follow **Phase 18
+> D-prime-amended-and-hardened (D-prime-R)**, the current Phase 18 PRD,
+> authority manifest, implementation spec, renderer qualification protocol,
+> ADRs 0033-0039, and OpenSpec contract. D3 selects at most one exact renderer
+> through one bounded production-shaped evidence contest; D17 performs an
+> environment-gated destructive pre-production cutover to zero legacy runtime,
+> with no import, backfill, fallback, or dual compatibility; and D13 forbids raw
+> provider or signed object URLs as access authority. Do not use this file to
+> authorize gradual migration or a preselected DocRaptor path.
 
 Statement Studio is the full rebuild of PDF Studio into a usable staff-facing
 product inside Mission Control. It must become the platform's own custom PDF
@@ -31,7 +35,7 @@ Use this PRD only as historical evidence when reconciling old issues or scope.
 Use the Phase 18 PRD when creating issues, planning implementation, or
 checking completeness for Statement Studio work.
 
-Use it for:
+Historical topics covered:
 
 - Statement Studio product shell, navigation, and UX.
 - Template editor, starter library, template versions, publishing, rollback,
@@ -46,31 +50,10 @@ Use it for:
 
 ## Workflow Steps
 
-1. Start every implementation pass with Phase 0 audit work before creating
-   schema, routes, UI, render code, or removing legacy PDF Studio behavior.
-2. Use OpenSpec product and boundary truth first: Mission Control owns staff
-   operational depth, donor and missionary dashboards expose role-scoped
-   slices, and tenant safety is non-negotiable. **Phase 0 (#312) deliverable:**
-   add `openspec/changes/add-statement-studio/` (proposal, design, tasks, spec
-   deltas for boundaries and data access) and link it from this doc set. AL-312
-   now supplies that proposed change.
-3. Load the repo Supabase skill before any database, Auth, Storage, Realtime,
-   Edge Function, RLS, migration, or Supabase CLI work.
-4. Load the Supabase Postgres best-practices skill before schema, RLS, index,
-   query, policy, or migration design.
-5. Use the Supabase CLI for database/Supabase work: migration creation and
-   review, local reset/diff, linked dry runs where appropriate, SQL linting,
-   database advisors, and any supported RLS/policy validation.
-6. Confirm current official Supabase docs and changelog guidance before
-   implementing database or Storage behavior.
-7. Load frontend rules before UI work, use shared `@asym/ui` primitives, and
-   keep all visual styling on the repo's shared Maia/Zinc design tokens.
-8. Read installed Next.js docs before any Next.js work, per repo instruction.
-9. Build in thin vertical slices that prove template versioning, variables,
-   assignments, rendering, Storage artifacts, downloads, and cross-surface
-   access together.
-10. Keep final implementation issue-ready: each issue should name the affected
-    module, owner boundary, acceptance criteria, tests, and tenant-safety checks.
+1. For implementation, stop here and use the current Phase 18 PRD,
+   implementation spec, OpenSpec contract, and current Phase 18 issues.
+2. Use the remaining PRD only as historical Phase 0 evidence; its provider,
+   migration, issue, and fallback decisions are not current instructions.
 
 ## Problem Statement
 

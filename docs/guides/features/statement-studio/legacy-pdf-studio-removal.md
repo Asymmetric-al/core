@@ -1,34 +1,44 @@
 # Legacy PDF Studio Removal
 
-> **Superseded implementation authority (Phase 18, 2026-07-21).** This file is
-> retained as prototype-removal evidence, not as a migration plan. Phase 18 D17
-> controls: prove the environment is pre-production, then delete the obsolete
-> PDF Studio, Unlayer, receipt-render, and dual-runtime paths before the new
-> canonical system is enabled. Do not build import, backfill, compatibility, or
-> fallback runtime for data that has never served production users.
+> **Current Phase 18 cutover guide.** Phase 18 D-prime-R, its PRD, and
+> `openspec/changes/add-statement-studio` are authoritative. The old Phase 0
+> gradual-migration/compatibility plan is superseded. The production-shaped
+> renderer contest yields at most one exact winner; an environment-gated,
+> destructive pre-production cutover then removes every competing editor,
+> renderer, receipt store, flag, dependency, and fallback. There is zero legacy
+> runtime, no import or backfill of prototype data, and no preselected DocRaptor
+> path.
 
-The rebuilt product is Statement Studio. Unlayer is not part of the new product architecture.
+The rebuilt product is the Phase 18 generated-document system. Unlayer and the
+old PDF Studio are not part of its runtime.
 
 ## Triggers
 
-Use this doc to locate and remove obsolete PDF Studio, Unlayer, native-preview,
-direct receipt-render, flag, config, route, dependency, documentation, and test
-surfaces after the D17 environment assertion passes.
+Use this doc when inventorying and removing legacy PDF Studio, Unlayer, parallel
+receipt stores, renderers, flags, config, routes, dependencies, or tests during
+the proof-gated Phase 18 pre-production cutover.
 
 ## Workflow Steps
 
-1. Run and record the Phase 18 D17 environment assertion before mutation.
-2. Stop the line if any real production or irreplaceable-data reliance exists;
-   return to grooming rather than improvising migration.
-3. Inventory every obsolete runtime/schema/route/dependency/config/test/doc
-   symbol and classify it as delete or retained non-runtime evidence.
-4. Delete obsolete writers, readers, flags, fallbacks, provider adapters, schema,
-   routes, and dependencies before enabling the canonical writer.
-5. Build one tenant-safe canonical Phase 18 runtime and one user-facing product.
-6. Replace useful behavioral tests with canonical public-seam tests and add
-   forbidden-symbol/route/dependency checks for removed paths.
-7. Record clean-cut closure; never ship a compatibility or rollback-to-legacy
-   switch.
+1. Run and record the Phase 18 D17 environment assertion before mutation. Stop
+   and return to grooming if any real production or irreplaceable-data reliance
+   exists.
+2. Use the Phase 18 Cutover Coverage Manifest to enumerate every legacy and
+   competing runtime, schema, route, dependency, config, test, and documentation
+   path.
+3. Complete the bounded production-shaped renderer contest and record at most
+   one exact production winner.
+4. Prove the winning generated-document path and artifact contract in the
+   cutover environment; block cutover if coverage or required proof is
+   incomplete.
+5. Execute the environment-gated destructive pre-production cutover atomically:
+   remove every non-winning editor, renderer, store, flag, route, dependency,
+   environment key, test, and fallback.
+6. Verify only the canonical Phase 18 schema, writer, renderer, and artifact
+   path remain; replace useful behavioral tests with canonical public-seam
+   tests and update docs and deployment configuration in the same change.
+7. Record clean-cut closure and fail CI if a deleted legacy identifier or path
+   is reintroduced; never ship a rollback-to-legacy switch.
 
 ## Phase 18 clean-cut boundary
 
@@ -42,6 +52,11 @@ surfaces after the D17 environment assertion passes.
   inventory.
 - After the first canonical official artifact, recovery is forward repair; it
   never re-enables an obsolete writer.
+- Unlayer, old PDF Studio, competing receipt stores, live render paths, and
+  losing renderers are deleted, not hidden behind compatibility flags.
+- Failure before the atomic cutover leaves the old development environment
+  untouched; failure after cutover requires restoring the environment from the
+  cutover backup or fixing the one canonical path, never re-enabling a fallback.
 
 ## Removal Targets To Audit
 

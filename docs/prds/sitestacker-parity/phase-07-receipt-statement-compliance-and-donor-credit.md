@@ -2,11 +2,24 @@
 
 > **Program:** SiteStacker Parity · **Phase:** 7 · **Status:** Groomed (grill-with-docs, 2026-07-05) · **Base:** `develop`
 > **Predecessors:** Phase 2 (Site, Locale & Currency) · Phase 3 (Minimum Permission & Role-Scoped Projection) · Phase 4 (Identity & Account-Claiming) · Phase 5 (Public Website Runtime Contract) · Phase 6 (Shared Communication Event Model)
-> **Hard dependencies (must ship first):** Phase 4 tenant-isolation foundation slice · Phase 6 communication-event spine + `sendEmail` seam · Phase 3 consent gate (in-flight, PR #502, **unmerged**)
+> **Hard dependencies:** Phase 4 tenant-isolation foundation slice must ship
+> first. The Phase 6 communication-event spine + `sendEmail` seam are shipped
+> and available; the Phase 3 consent gate shipped via merged PR #502.
 > **Charter / matrix:** `docs/prds/sitestacker-parity/README.md`, `parity-matrix.md` (Areas 7, 9, 10; touches 2, 5, 11)
 > **Production gate:** requires review by qualified finance/tax counsel before production use (this document is not legal or tax advice).
 
 Modern SiteStacker parity for the **finance/legal record foundation** of the platform — a **rules-first engine that decides what is receiptable, who the legal donor is, what facts a receipt or year-end statement asserts, how corrections/voids/supersedes work, and what belongs in an annual statement — before any template renders a single document** — built on a **full donor-identity/credit model** (party spine, hard vs soft credit, DAF, matching gifts, households, tributes) so the right document always goes to the right party. Phase 7 supplies that legal/facts brain, **references** (never forks) the money-truth ledger, and builds the Phase-4-reserved identity/party spine on top of Phase 4's isolation foundation. Current receipt/PDF/send code is prototype evidence only: Phase 18 owns the clean generated-document runtime, Phase 17 owns delivery, and Phase 19 owns statement populations and runs. The result lets finance explain why any gift did or did not get a receipt and authorize correct/void/replacement facts without allowing a template, renderer, payment provider, or delivery event to invent legal truth.
+
+> **Legal Entity amendment (2026-07-27; Phase 20 D3 / ADR-0044).** Phase 7's
+> Legal Issuer is the issuer profile of one canonical Tenant-scoped **Legal
+> Entity**, not a parallel identity and not a tenant-wide implicit fallback.
+> Phase 7 introduces the canonical `legal_entities` root and seeds exactly one
+> default for the ordinary tenant. Every receipt, statement, contribution,
+> designation, recurring arrangement, deposit group, settlement binding,
+> expense handoff, and Accounting Release freezes an explicit
+> `legal_entity_id`. Single-entity users see no selector. Multi-entity
+> activation is proof-gated and never combines issuers in one receipt,
+> statement, cart charge, deposit, Field Account, or Accounting Release.
 
 > **Controlling Phase 18 amendment (2026-07-21).** Phase 7 remains the
 > authority for legal donor identity, receipt/statement eligibility, immutable
