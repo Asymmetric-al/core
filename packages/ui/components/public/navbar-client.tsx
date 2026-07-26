@@ -2,7 +2,6 @@
 
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { cn } from "../../lib/utils";
@@ -13,22 +12,25 @@ interface NavLink {
   href: string;
 }
 
+/**
+ * `hero` is the transparent-over-artwork treatment; `solid` is the opaque bar.
+ *
+ * This is a prop rather than a `usePathname()` lookup because the navbar lives
+ * in a layout, and the variant would otherwise be URL data — which cannot enter
+ * a route's prefetched App Shell, so the whole navigation would drop out of it.
+ * The route groups `(hero)` and `(solid)` under `app/(public)` each pass the
+ * value statically, so every route prerenders the correct bar.
+ */
+export type NavbarVariant = "hero" | "solid";
+
 interface NavbarClientProps {
   navLinks: readonly NavLink[];
   ctaLabel: string;
   ctaHref: string;
   siteName: string;
   shortName: string;
+  variant: NavbarVariant;
 }
-
-const HERO_PAGES = [
-  "/",
-  "/about",
-  "/workers",
-  "/faq",
-  "/financials",
-  "/ways-to-give",
-];
 
 export function NavbarClient({
   navLinks,
@@ -36,9 +38,9 @@ export function NavbarClient({
   ctaHref,
   siteName,
   shortName,
+  variant,
 }: NavbarClientProps) {
-  const pathname = usePathname();
-  const isHeroPage = HERO_PAGES.includes(pathname);
+  const isHeroPage = variant === "hero";
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);

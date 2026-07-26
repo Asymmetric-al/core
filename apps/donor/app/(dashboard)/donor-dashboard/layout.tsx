@@ -30,7 +30,7 @@ export default function DonorDashboardLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col bg-zinc-50">
-      <Navbar />
+      <Navbar variant="solid" />
       <div className="pt-16">
         <DonorSubNav />
         <main className="flex-1 pt-8 pb-20">

@@ -74,7 +74,7 @@ test.describe("Instant navigation (donor public site)", () => {
    * The home page's CMS updates read resolves the tenant from `headers()`, so
    * it can never join the static shell. Guards that the hero (the LCP) is not
    * dragged out of the shell with it — the regression this covers is a
-   * top-level `await` creeping back into `(public)/page.tsx`.
+   * top-level `await` creeping back into `(public)/(hero)/page.tsx`.
    */
   test("navbar logo navigation commits the home hero under instant()", async ({
     page,
