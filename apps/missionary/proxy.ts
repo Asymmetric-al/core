@@ -1,4 +1,5 @@
 import { createAuthMiddleware } from "@asym/auth/middleware";
+import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 
 import type { NextRequest } from "next/server";
 
@@ -26,6 +27,7 @@ const authProxy = createAuthMiddleware({
   redirectAuthenticatedTo: "/",
   unauthorizedRedirectTo: "/",
   allowedRoles: ["missionary", "super_admin"],
+  resolveUserRole: resolveUserRoleFromDatabase,
 });
 
 export function proxy(request: NextRequest) {

@@ -183,6 +183,7 @@ describe("createAuthMiddleware", () => {
       protectedRoutePrefixes: ["/donor-dashboard"],
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
+      resolveUserRole: async () => null,
     });
     const cookieValue = await createE2EAuthCookieValue({
       userId: "e2e-donor-user",
@@ -211,6 +212,7 @@ describe("createAuthMiddleware", () => {
       protectedRoutePrefixes: ["/donor-dashboard"],
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
+      resolveUserRole: async () => null,
     });
 
     const response = await middleware(
@@ -240,6 +242,7 @@ describe("createAuthMiddleware", () => {
       protectedRoutePrefixes: ["/donor-dashboard"],
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
+      resolveUserRole: async () => null,
     });
 
     const response = await middleware(
@@ -274,6 +277,7 @@ describe("createAuthMiddleware", () => {
       protectedRoutePrefixes: ["/donor-dashboard"],
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
+      resolveUserRole: async () => null,
     });
 
     const response = await middleware(
@@ -300,6 +304,7 @@ describe("createAuthMiddleware", () => {
       protectedRoutePrefixes: ["/donor-dashboard"],
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
+      resolveUserRole: async () => null,
     });
     const cookieValue = await createE2EAuthCookieValue({
       userId: "e2e-admin-user",
@@ -497,5 +502,54 @@ describe("createAuthMiddleware", () => {
     expect(errorSpy).toHaveBeenCalledWith(
       expect.stringContaining("E2E bypass blocked"),
     );
+  });
+});
+
+describe("edge role enforcement", () => {
+  beforeEach(() => {
+    process.env.E2E_AUTH_BYPASS = "false";
+    mockConfigWithUser("user_donor");
+  });
+
+  it("redirects a signed-in user whose role is not allowed for the app", async () => {
+    const middleware = createAuthMiddleware({
+      protectedRoutePrefixes: ["/crm"],
+      allowedRoles: ["staff", "admin", "super_admin"],
+      unauthorizedRedirectTo: "/no-access",
+      resolveUserRole: async () => "donor",
+    });
+
+    const response = await middleware(createRequest("/crm"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/no-access",
+    );
+  });
+
+  it("lets a signed-in user with an allowed role through", async () => {
+    const middleware = createAuthMiddleware({
+      protectedRoutePrefixes: ["/crm"],
+      allowedRoles: ["staff", "admin", "super_admin"],
+      unauthorizedRedirectTo: "/no-access",
+      resolveUserRole: async () => "staff",
+    });
+
+    const response = await middleware(createRequest("/crm"));
+
+    expect(response.status).toBe(200);
+  });
+
+  it("refuses to build a role-gated middleware without a role resolver", () => {
+    // Without this guard the misconfiguration is silent and total: every
+    // signed-in user resolves to a `null` role, fails closed, and is redirected
+    // off every protected path. All three apps set `allowedRoles`, and admin and
+    // missionary protect "/", so that is a full lockout. Fail at construction.
+    expect(() =>
+      createAuthMiddleware({
+        protectedRoutePrefixes: ["/"],
+        allowedRoles: ["staff"],
+      }),
+    ).toThrow(/resolveUserRole/);
   });
 });

@@ -12,6 +12,7 @@
     "./client-session": "./client-session.ts",
     "./client-signout": "./client-signout.ts",
     "./middleware": "./middleware.ts",
+    "./resolve-user-role": "./resolve-user-role.ts",
     "./e2e-auth": "./e2e-auth.ts",
     "./constants": "./constants.ts",
     "./roles": "./roles.ts",
