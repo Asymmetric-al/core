@@ -2,8 +2,6 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { serverEnv } from "@asym/env";
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
   const cronSecret = serverEnv.CRON_SECRET;
   // Fail CLOSED: this endpoint deletes users via the admin (RLS-bypass) client

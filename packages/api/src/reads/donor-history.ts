@@ -34,9 +34,17 @@ function toErrorMessage(error: QueryError, fallback: string): string {
   return error?.message || fallback;
 }
 
-function applyCacheMetadata(tags: string[]): void {
+function applyCacheLife(): void {
   try {
     cacheLife("minutes");
+  } catch {
+    // Unit tests execute outside Next's Cache Components runtime.
+  }
+}
+
+function applyCacheMetadata(tags: string[]): void {
+  applyCacheLife();
+  try {
     for (const tag of tags) {
       cacheTag(tag);
     }
@@ -126,6 +134,12 @@ export async function resolveDonorId(
   profileId: string | null,
 ): Promise<string | null> {
   "use cache";
+
+  // Lifetime first: the `!profileId` early return is still a cache entry, and
+  // without a profile it would be stored under the default `expire: never`
+  // rather than the intended minutes-long window. The tags below are keyed on
+  // `profileId`, so they can only be declared once it is known to exist.
+  applyCacheLife();
 
   if (!profileId) {
     return null;
