@@ -36,17 +36,20 @@ export default function DonorDashboardLayout({
         <main className="flex-1 pt-8 pb-20">
           <RouteMainViewTransitionBoundary className="container-responsive">
             {/*
-             * Only the role gate reads the session, so it is the only thing
-             * behind the boundary — the chrome above prerenders into the shell
-             * of all six dashboard routes instead of collapsing to null.
+             * The gate is a redirect-only SIBLING, not a wrapper. When it wrapped
+             * `{children}`, this `fallback={null}` covered the whole page, so the
+             * per-route `loading.tsx` skeletons could never render on a page load
+             * — the null fallback always won. With `{children}` outside, each
+             * route's own `loading.tsx` is the boundary the user actually sees.
              *
-             * `fallback={null}` rather than a page-level skeleton: each route
-             * owns its own `loading.tsx`, and a full-page fallback at layout
-             * level would replace most of the page on every navigation.
+             * `fallback={null}` is correct here precisely because the gate renders
+             * nothing on success; an empty fallback over real content would be the
+             * empty-shell bug.
              */}
             <Suspense fallback={null}>
-              <DonorRoleGate>{children}</DonorRoleGate>
+              <DonorRoleGate />
             </Suspense>
+            {children}
           </RouteMainViewTransitionBoundary>
         </main>
       </div>
@@ -56,12 +59,15 @@ export default function DonorDashboardLayout({
 }
 
 /**
- * Role-only defence in depth. `apps/donor/proxy.ts` already requires an
- * authenticated session for `/donor-dashboard` at the edge, so an anonymous
- * visitor never reaches this. Children render inside the gate, so an
- * unauthorized visitor gets the chrome and a redirect, never dashboard content.
+ * Role-only defence in depth; renders nothing, it only redirects.
+ *
+ * Safe as a sibling because the edge now enforces role, not just authentication:
+ * `apps/donor/proxy.ts` passes `allowedRoles: ["donor", "super_admin"]` and
+ * `packages/auth/middleware.ts` rejects any other role for `/donor-dashboard`
+ * before the app renders. A wrong-role visitor is redirected at the proxy, so
+ * `{children}` rendering beside this gate does not leak dashboard content.
  */
-async function DonorRoleGate({ children }: { children: React.ReactNode }) {
+async function DonorRoleGate() {
   const authContext = await getAuthContext();
   const authRedirectPath = getProtectedAppRedirectPath(
     authContext,
@@ -76,5 +82,5 @@ async function DonorRoleGate({ children }: { children: React.ReactNode }) {
     redirect("/no-access");
   }
 
-  return <>{children}</>;
+  return null;
 }

@@ -97,6 +97,10 @@ function WorkerCard({
           <h2 className="text-xl sm:text-2xl font-semibold text-white leading-tight mb-4">
             <Link
               href={`/workers/${worker.id}`}
+              // Same target as the card link above, so it must prefetch the same
+              // way — siblings that disagree leave this one committing a shell
+              // with no worker content.
+              prefetch={true}
               className="group/name inline-flex items-center gap-2 cursor-pointer hover:text-emerald-300 transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-sm"
             >
               <SharedNamedViewTransition
