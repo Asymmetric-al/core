@@ -4,7 +4,7 @@
 import { siteConfig } from "@asym/config/site-client";
 import Link from "next/link";
 
-import { NavbarClient } from "./navbar-client";
+import { NavbarClient, type NavbarVariant } from "./navbar-client";
 import { cn } from "../../lib/utils";
 import { buttonVariants } from "../shadcn/button";
 
@@ -59,7 +59,7 @@ function DesktopNav({ isScrolled }: { isScrolled: boolean }) {
   );
 }
 
-export function Navbar() {
+export function Navbar({ variant }: { variant: NavbarVariant }) {
   return (
     <NavbarClient
       navLinks={navLinks}
@@ -67,8 +67,10 @@ export function Navbar() {
       ctaHref={siteConfig.nav.cta.href}
       siteName={siteConfig.name}
       shortName={siteConfig.shortName}
+      variant={variant}
     />
   );
 }
 
 export { NavbarLogo, DesktopNav };
+export type { NavbarVariant } from "./navbar-client";
