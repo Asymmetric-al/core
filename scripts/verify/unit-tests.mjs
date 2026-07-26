@@ -64,6 +64,30 @@ export function runBunVersionGuard(spawn = spawnSync) {
   return result.status ?? 1;
 }
 
+/**
+ * Windows runs the suite through one sequential worker (`--no-file-parallelism`),
+ * so a test's wall time is dominated by how much of its module graph is already
+ * transformed — not by the assertions.
+ *
+ * Measured on the admin subset (65 files) with these exact flags: the heaviest
+ * jsdom files take ~17-20s with a warm cache, but the same
+ * `contributions-page.test.tsx` takes ~119s cold, and its first test alone ~63s.
+ * Overhead dwarfs the work: 37s import + 42s environment vs 66s of tests for 65
+ * warm files, and 496s import + 224s environment for the full cold suite.
+ *
+ * At the previous `--testTimeout=30000` that spread landed on the wrong side of
+ * the cap intermittently, failing a *different* admin/api test each run while
+ * every one passed in isolation.
+ *
+ * `--hookTimeout` is the load-bearing half, and is easy to miss: the observed
+ * failures were `Hook timed out in 30000ms` inside `beforeEach`, which
+ * `--testTimeout` does not govern. Passing `--testTimeout` alone changed
+ * nothing and simply moved which files failed. `vitest.config.ts` sets
+ * `hookTimeout: 120_000`, but a CLI `--testTimeout` drags the effective hook
+ * budget down with it, so both must be stated explicitly here.
+ *
+ * Neither masks a hang — a genuinely stuck test or hook still fails, just later.
+ */
 export function runUnitTests(platform = process.platform, spawn = spawnSync) {
   if (platform === "win32") {
     const bunVersionStatus = runBunVersionGuard(spawn);
@@ -76,7 +100,8 @@ export function runUnitTests(platform = process.platform, spawn = spawnSync) {
       [
         "--coverage",
         "--maxWorkers=50%",
-        "--testTimeout=30000",
+        "--testTimeout=120000",
+        "--hookTimeout=120000",
         "--no-file-parallelism",
         "--exclude",
         "tests/unit/scripts/bun-version.test.ts",
@@ -125,7 +150,8 @@ if (isMain) {
       runVitest([
         "--coverage",
         "--maxWorkers=50%",
-        "--testTimeout=30000",
+        "--testTimeout=120000",
+        "--hookTimeout=120000",
         "--no-file-parallelism",
         "--exclude",
         "tests/unit/scripts/bun-version.test.ts",
