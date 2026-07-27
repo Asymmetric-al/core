@@ -97,6 +97,7 @@
     "verify:shadcn-token-drift": "node scripts/verify/shadcn-token-drift.mjs",
     "tsconfig:future-audit": "node scripts/tsconfig-future-audit.mjs",
     "verify:bun-version": "node scripts/verify/bun-version.mjs",
+    "verify:bun-lock-drift": "node scripts/verify/bun-lock-drift.mjs",
     "verify:data-boundary": "node scripts/verify/data-boundary-check.mjs",
     "verify:cms-public-sole-entry": "node scripts/verify/cms-public-sole-entry.mjs",
     "verify:twenty-crm-health": "bun scripts/verify/twenty-crm-health.ts",
