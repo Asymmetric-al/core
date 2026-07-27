@@ -858,7 +858,9 @@ function validateBudgetsValidatorsRoles(
     }
   }
   const finalApproval = input.approvals.find(
-    (approval) => approval.actor === roles.final_approver,
+    (approval) =>
+      approval.actor === roles.final_approver &&
+      approval.role === "final_approver",
   );
   if (!finalApproval) {
     issues.push(

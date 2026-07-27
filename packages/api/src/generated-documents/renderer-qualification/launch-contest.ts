@@ -677,6 +677,27 @@ export interface Phase18ContestFreezeInput {
  * plus the freeze-time provenance. `freezeRendererQualificationCharter` still
  * validates the result; this builder cannot bypass any freeze rule.
  */
+function deepFreezeProtocol<T>(value: T): T {
+  if (typeof value !== "object" || value === null) return value;
+  for (const child of Object.values(value as Record<string, unknown>)) {
+    deepFreezeProtocol(child);
+  }
+  return Object.freeze(value);
+}
+
+// Protocol tables are the validation baseline. Freeze them at module load so
+// in-place mutation cannot rewrite the approved contest definitions.
+deepFreezeProtocol(OPEN_CASE_DEFINITIONS);
+deepFreezeProtocol(HELD_BACK_CASE_DEFINITIONS);
+deepFreezeProtocol(PHASE_18_QUALIFICATION_GATES);
+deepFreezeProtocol(PHASE_18_SCORE_DIMENSIONS);
+deepFreezeProtocol(PHASE_18_SCORING_RULES);
+deepFreezeProtocol(PHASE_18_OPERATIONAL_SUITES);
+deepFreezeProtocol(PHASE_18_EVIDENCE_RULES);
+deepFreezeProtocol(PHASE_18_ABSOLUTE_BUDGETS);
+deepFreezeProtocol(PHASE_18_VALIDATION_TOOLS);
+deepFreezeProtocol(PHASE_18_REQUALIFICATION_TRIGGERS);
+
 export function buildPhase18RendererContestInput(
   input: Phase18ContestFreezeInput,
 ): RendererQualificationCharterInput {
@@ -691,8 +712,10 @@ export function buildPhase18RendererContestInput(
     output_profile: definition.output_profile,
     synthetic: true,
     fixture: {
-      facts_digest: input.fixtures[case_id].facts_digest,
-      document_digest: input.fixtures[case_id].document_digest,
+      // Blank defaults let freeze validation report typed corpus issues
+      // instead of throwing when a required fixture record is omitted.
+      facts_digest: input.fixtures[case_id]?.facts_digest ?? "",
+      document_digest: input.fixtures[case_id]?.document_digest ?? "",
       bounds: definition.bounds,
     },
     expected: {
@@ -715,14 +738,16 @@ export function buildPhase18RendererContestInput(
     output_profile: definition.output_profile,
     synthetic: true,
     fixture: {
-      facts_digest: input.fixtures[case_id].facts_digest,
-      document_digest: input.fixtures[case_id].document_digest,
+      facts_digest: input.fixtures[case_id]?.facts_digest ?? "",
+      document_digest: input.fixtures[case_id]?.document_digest ?? "",
       bounds: definition.bounds,
     },
-    sealed_expectation_digest: input.sealed_expectations[case_id],
+    sealed_expectation_digest: input.sealed_expectations[case_id] ?? "",
   }));
 
-  return {
+  // Clone so callers cannot mutate shared protocol objects that validation
+  // also uses as its fixed baseline.
+  return structuredClone({
     charter_id: input.charter_id,
     charter_version: input.charter_version,
     frozen_at: input.frozen_at,
@@ -748,5 +773,5 @@ export function buildPhase18RendererContestInput(
     evidence_rules: PHASE_18_EVIDENCE_RULES,
     requalification_triggers: PHASE_18_REQUALIFICATION_TRIGGERS,
     unknown_evidence_rule: "fails_affected_gate",
-  };
+  });
 }

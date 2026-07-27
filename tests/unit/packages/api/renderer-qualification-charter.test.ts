@@ -1,16 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  buildFixtureContestInput,
-  syntheticDigest,
-} from "./renderer-qualification-test-fixture";
-import {
   HELD_BACK_CASE_IDS,
   OPEN_CASE_IDS,
   PHASE_18_EVIDENCE_RULES,
   PHASE_18_OPERATIONAL_SUITES,
   PHASE_18_ABSOLUTE_BUDGETS,
+  PHASE_18_QUALIFICATION_GATES,
   RendererCharterValidationError,
+  buildPhase18RendererContestInput,
   buildRendererQualificationManifest,
   digestQualificationValue,
   freezeRendererQualificationCharter,
@@ -20,8 +18,16 @@ import {
 
 import type {
   FrozenRendererQualificationCharter,
+  Phase18ContestFreezeInput,
   RendererQualificationCharterInput,
 } from "../../../../packages/api/src/generated-documents/renderer-qualification";
+
+import {
+  FIXTURE_ROLES,
+  buildFixtureContestInput,
+  fixtureCandidates,
+  syntheticDigest,
+} from "./renderer-qualification-test-fixture";
 
 function mutated(
   mutate: (input: RendererQualificationCharterInput) => void,
@@ -880,5 +886,106 @@ describe("protocol-fixed fields are pinned at freeze", () => {
         }),
       ),
     ).toContain("held_back_not_sealed");
+  });
+
+  it("requires the final approval to be recorded in the final_approver role", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.approvals = input.approvals.map((approval) =>
+            approval.actor === FIXTURE_ROLES.final_approver
+              ? { ...approval, role: "independent_reviewer" }
+              : approval,
+          );
+        }),
+      ),
+    ).toContain("approval_missing");
+  });
+
+  it("reports a missing fixture record as a typed validation issue, not a crash", () => {
+    const fixtures = Object.fromEntries(
+      [...OPEN_CASE_IDS, ...HELD_BACK_CASE_IDS].map((caseId) => [
+        caseId,
+        {
+          facts_digest: syntheticDigest(`facts-${caseId}`),
+          document_digest: syntheticDigest(`document-${caseId}`),
+        },
+      ]),
+    );
+    delete fixtures.O01;
+
+    const sealed_expectations = Object.fromEntries(
+      HELD_BACK_CASE_IDS.map((caseId) => [
+        caseId,
+        syntheticDigest(`sealed-${caseId}`),
+      ]),
+    );
+
+    const incompleteInput = {
+      charter_id: "p18-renderer-contest",
+      charter_version: "1.0.0",
+      frozen_at: "2026-07-22T12:00:00.000Z",
+      roles: FIXTURE_ROLES,
+      approvals: [
+        {
+          actor: FIXTURE_ROLES.final_approver,
+          role: "final_approver",
+          approved_at: "2026-07-22T11:59:00.000Z",
+          statement:
+            "Charter approved for freeze before any candidate result exists.",
+        },
+      ],
+      candidates: fixtureCandidates(),
+      fixtures,
+      sealed_expectations,
+      held_back_seal: {
+        custodian: FIXTURE_ROLES.corpus_custodian,
+        sealed_at: "2026-07-22T11:00:00.000Z",
+        sealed_expectations_digest: syntheticDigest(
+          "all-held-back-expectations",
+        ),
+        access_log: [
+          {
+            actor: FIXTURE_ROLES.corpus_custodian,
+            at: "2026-07-22T11:00:00.000Z",
+            reason: "initial seal before candidate work",
+          },
+        ],
+      },
+    } as Phase18ContestFreezeInput;
+
+    let thrown: unknown;
+    try {
+      freezeRendererQualificationCharter(
+        buildPhase18RendererContestInput(incompleteInput),
+      );
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(RendererCharterValidationError);
+    expect(
+      (thrown as RendererCharterValidationError).issues.map(
+        (issue) => issue.code,
+      ),
+    ).toContain("corpus_invalid");
+  });
+
+  it("keeps the protocol baseline immutable against in-place input mutation", () => {
+    const input = buildFixtureContestInput();
+    const baselineRule = PHASE_18_QUALIFICATION_GATES[0]?.pass_rule;
+    expect(baselineRule).toBeTruthy();
+
+    const firstGate = input.gates[0];
+    expect(firstGate).toBeDefined();
+    (firstGate as { pass_rule: string }).pass_rule = "always passes";
+
+    expect(issueCodes(input)).toContain("protocol_fixed_field_changed");
+    expect(PHASE_18_QUALIFICATION_GATES[0]?.pass_rule).toBe(baselineRule);
+
+    expect(() => {
+      (PHASE_18_QUALIFICATION_GATES[0] as { pass_rule: string }).pass_rule =
+        "always passes";
+    }).toThrow(TypeError);
   });
 });
