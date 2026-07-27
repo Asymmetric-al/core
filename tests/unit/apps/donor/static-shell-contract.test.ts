@@ -21,9 +21,7 @@ const readRaw = (relativePath: string) =>
  * match would trip on its own explanation. Assert against code only.
  */
 const stripComments = (source: string) =>
-  source
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/(^|[^:])\/\/.*$/gm, "$1");
+  source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 
 const read = (relativePath: string) => stripComments(readRaw(relativePath));
 
@@ -69,7 +67,9 @@ describe("donor static shell contract", () => {
   });
 
   it("keeps worker profiles prerenderable", () => {
-    const source = read("apps/donor/app/(public)/(solid)/workers/[id]/page.tsx");
+    const source = read(
+      "apps/donor/app/(public)/(solid)/workers/[id]/page.tsx",
+    );
 
     // connection() opts the whole route out of prerendering, which drops the
     // profile copy and its JSON-LD from the crawler-visible HTML.
