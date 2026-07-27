@@ -221,8 +221,11 @@ describe("serializePublicPage", () => {
               thumbnail: { url: "/media/team-thumb.jpg", filesize: 999 },
               card: { url: "/media/team-card.jpg" },
             },
-            // Raw Payload internals that must never be emitted:
+            // Public media fields per issue #529 (filename is the public
+            // URL's last segment; caption is the editorial caption):
             filename: "team.jpg",
+            caption: "The field team in June",
+            // Raw Payload internals that must never be emitted:
             filesize: 123456,
             focalX: 50,
             focalY: 50,
@@ -244,7 +247,38 @@ describe("serializePublicPage", () => {
       width: 1200,
       height: 800,
       mimeType: "image/jpeg",
+      filename: "team.jpg",
+      caption: "The field team in June",
     });
+  });
+
+  it("omits filename/caption keys entirely when the document has none (present-only contract)", () => {
+    const doc = {
+      ...baseDoc,
+      layout: [
+        {
+          id: "m1",
+          blockType: "media-feature",
+          title: null,
+          body: null,
+          mediaCaption: null,
+          media: {
+            id: 9,
+            alt: "Team photo",
+            url: "/media/team.jpg",
+            width: 1200,
+            height: 800,
+            mimeType: "image/jpeg",
+          },
+        },
+      ],
+    };
+
+    const page = serializePublicPage(doc);
+    const block = (page.layout ?? [])[0] as { media: Record<string, unknown> };
+
+    expect("filename" in block.media).toBe(false);
+    expect("caption" in block.media).toBe(false);
   });
 
   it("passes bare media ids through unchanged (unpopulated relationships)", () => {
