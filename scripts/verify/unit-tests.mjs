@@ -75,18 +75,29 @@ export function runBunVersionGuard(spawn = spawnSync) {
  * Overhead dwarfs the work: 37s import + 42s environment vs 66s of tests for 65
  * warm files, and 496s import + 224s environment for the full cold suite.
  *
- * At the previous `--testTimeout=30000` that spread landed on the wrong side of
- * the cap intermittently, failing a *different* admin/api test each run while
- * every one passed in isolation.
+ * KNOWN BROKEN: these two timeout flags do not take effect, and raising them
+ * has NOT fixed the intermittent failures. Running this script directly still
+ * reports `Test timed out in 30000ms` / `Hook timed out in 90000ms` — 90000
+ * being 3x30000, i.e. vitest deriving the hook budget from an effective
+ * `testTimeout` of 30000. That 30000 is in neither these flags nor
+ * `vitest.config.ts` (which sets `testTimeout: 20_000`), so something else is
+ * supplying it and both values below are being ignored. Do not read the flags
+ * as a working fix; the underlying slowness is real but still uncapped.
  *
- * `--hookTimeout` is the load-bearing half, and is easy to miss: the observed
- * failures were `Hook timed out in 30000ms` inside `beforeEach`, which
- * `--testTimeout` does not govern. Passing `--testTimeout` alone changed
- * nothing and simply moved which files failed. `vitest.config.ts` sets
- * `hookTimeout: 120_000`, but a CLI `--testTimeout` drags the effective hook
- * budget down with it, so both must be stated explicitly here.
+ * Unverified leads: a second vitest/workspace config; Vitest 4 not accepting
+ * `--testTimeout` on the CLI (unknown flags are dropped silently);
+ * `buildVitestInvocation` joining args under `shell: true` on Windows, where
+ * cmd.exe also treats the `%` in `--maxWorkers=50%` specially; or a `VITEST_*`
+ * env var. Quickest probe: run one slow file with `--testTimeout` and check
+ * whether the reported timeout changes at all.
  *
- * Neither masks a hang — a genuinely stuck test or hook still fails, just later.
+ * Separately, the husky pre-push wrapper exits 255 at vitest *startup* while
+ * this script run directly exits 1 with ordinary failures — so that 255 belongs
+ * to the wrapper, not to vitest.
+ *
+ * Suite health is not the problem: 513/518 files and 3460 tests pass in ~1500s;
+ * only `contributions-page.test.tsx` (hook) and `contribution-batches.test.ts`
+ * (test) time out.
  */
 export function runUnitTests(platform = process.platform, spawn = spawnSync) {
   if (platform === "win32") {
