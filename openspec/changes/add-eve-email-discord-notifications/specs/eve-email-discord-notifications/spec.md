@@ -30,14 +30,42 @@ Email destinations MUST resolve only from enabled app-owned platform-owner notif
 identity and permission state is valid. V1 MUST NOT send Eve email to customers, donors, tenant users,
 arbitrary admins, or addresses supplied by prompts, models, tools, source events, issues, PRs, or monitor
 evidence. Email MUST contain only the safe envelope rendering and permitted links to authorized app context.
+Those notification records MUST be revisioned service-only authorities with no
+tenant id and MUST bind one stable app principal, verified email/contact
+revision, platform-owner permission epoch, eligible event classes, and current
+enable/pause state. Eve MUST pass only the exact authority id/revision/epoch;
+Phase 6 MUST re-prove it during platform preparation and MUST keep the actual
+destination only in restricted delivery material.
+Every eligible email meaning MUST be registered as an exact platform-scoped,
+Asym-fixed Phase 17 system-message contract. Eve MUST submit only the typed safe
+facts and verified platform-owner recipient authority through the Phase 6 intent
+seam. Phase 17 MUST own the catalog/contract, fixed publication resolution,
+canonical compiler, and platform delivery-profile/connection configuration and
+proof. Phase 6 MUST own recipient-specific intent, preparation orchestration
+through those Phase 17 resolvers, outbox/claim, submission fence, idempotency,
+Resend invocation, provider attempt/evidence/outcome reduction, reconciliation,
+and body-free communication history. That connection MUST NOT be usable as tenant fallback or
+resolve tenant data, publications, credentials, or recipients.
+The current Phase 17 manifest generation contains zero Eve email keys, so email
+MUST remain non-dispatchable and fail before intent creation. A later generation
+MAY add only producer-enumerated, meaning-specific keys with exact source fences,
+the fixed platform profile, and complete platform proof packs. A generic
+`eve_alert` or severity-only catch-all MUST NOT exist.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
 
 #### Scenario: A platform-owner notification is eligible
 
 - **GIVEN** an enabled verified platform owner is configured for the event class
+- **AND** a later Phase 17 manifest generation contains the exact
+  meaning-specific Live email key, source fence, fixed platform profile, and
+  passed proof pack
 - **WHEN** policy permits an email delivery
 - **THEN** the recipient resolves from app-owned configuration
 - **AND** the durable message contains the safe summary and permitted references only
+- **AND** email delivery uses one exact Live platform-scoped Phase 17 contract
+  rather than an Eve-owned renderer or provider lifecycle
+- **AND** every Phase 6 execution/history row references the same platform scope and exact
+  platform-owner authority revision with no tenant/Party/contact fields
 
 #### Scenario: Event content supplies an address
 
@@ -45,6 +73,13 @@ evidence. Email MUST contain only the safe envelope rendering and permitted link
 - **WHEN** destination resolution runs
 - **THEN** the supplied address is ignored and cannot become a recipient
 - **AND** no message is sent unless a valid configured platform-owner destination exists
+
+#### Scenario: An Eve email key has not been proved
+
+- **GIVEN** the current manifest generation contains no exact Eve email key
+- **WHEN** Eve requests an email notification
+- **THEN** the request is rejected before a Phase 6 intent is created
+- **AND** no generic key, tenant fallback, or uncataloged publication is used
 
 ### Requirement: Discord Is Urgent And Rich Only After Safe-Content Policy
 
@@ -99,11 +134,32 @@ at storage or display time. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/
 
 ### Requirement: Notification Delivery Is Deduplicated, Idempotent, Bounded, And Pausable
 
-Every notification MUST use a stable dedupe key and lifecycle state. Repeat events inside the configured window
-MUST be suppressed or update the existing notification; provider attempts MUST use idempotency where
-supported. Retries MUST be bounded, consume #423 budgets/rate limits, stop after expiry, and recheck #418
-release/emergency, #420 relevant switch, notification pause/opt-out, recipient validity, and content policy
-before every attempt. #436 MUST NOT create a new global kill switch or self-grant an override.
+Every notification MUST use a stable dedupe key and notification-level state.
+Repeat events inside the configured window MUST be suppressed or update the
+existing notification. Eve MUST own eligibility, suppression, cancellation,
+pause, expiry, and handoff for both channels. Discord provider attempts and
+retries remain #436-owned and MUST be idempotent and bounded. Email provider
+attempts, retries, reconciliation, and terminal delivery states MUST be owned by
+the Phase 6 prepared-message and Resend lifecycle, which invokes Phase 17's
+compiler/resolvers; Eve MUST link to that
+evidence rather than duplicate it. Both paths MUST consume #423 budgets/rate
+limits, stop after expiry, and recheck #418 release/emergency, #420 relevant
+switch, notification pause/opt-out, recipient validity, and content policy at
+their respective safe fence. #436 MUST NOT create a new global kill switch or
+self-grant an override.
+
+Eve MUST own one opaque, server-verifiable source fence containing current #418
+release/emergency state, #420 switch, notification pause/opt-out/expiry/dedupe
+eligibility, exact source event and target identity, #426 verified
+service-identity revision, recipient-authority revision, severity band, current
+`#423` budget/rate-limit decision and policy revision, selected eligible channel,
+and content-policy/redaction version. Phase 6 MUST independently re-read or
+verify that same complete fence before preparation and again immediately before
+committing its submission fence. Missing, stale, mismatched, or unavailable
+proof MUST fail closed and suppress or supersede only definitely unsubmitted
+work; work that may have crossed the provider boundary MUST remain under outcome
+reconciliation. Phase 6 MUST validate the current proof without reimplementing
+Eve policy.
 [VERIFIED-REPO: openspec/changes/add-eve-approval-budget-policy]
 
 #### Scenario: A duplicate alert is observed
@@ -122,10 +178,12 @@ before every attempt. #436 MUST NOT create a new global kill switch or self-gran
 
 ### Requirement: Notification Decisions And Outcomes Are Audited And Retained By Existing Owners
 
-#419 MUST record the explicit source initiator/trigger, #426-verified service delivery actor, event class,
-policy/redaction versions, severity, dedupe outcome, channel and destination class, attempt identity, provider
-response class, and delivery result without storing credentials or unsafe payloads. Every generation and
-delivery attempt MUST execute under the verified service identity and user/tenant scope derived by #426;
+`#419` MUST record the explicit source initiator/trigger, #426-verified service delivery actor, event class,
+policy/redaction versions, severity, dedupe outcome, channel and destination class, and the appropriate linked
+delivery evidence without storing credentials or unsafe payloads. For Discord that evidence includes Eve's
+attempt identity, provider response class, and delivery result. For email, #419 MUST link the Phase 6 intent,
+attempt, and provider outcome rather than store a second lifecycle. Every generation and
+delivery attempt MUST execute under the verified service identity and user/tenant or platform scope derived by #426;
 prompt, model, event, issue, PR, monitor, or tool content MUST NOT choose that actor or scope. #424 MUST own
 retention/hold/expiry of notification and audit records. #427 MUST expose safe notification status and pause
 controls to authorized admins. Email or Discord MUST NOT become the authoritative audit or retention store.
@@ -149,8 +207,9 @@ controls to authorized admins. Email or Discord MUST NOT become the authoritativ
 
 This change MUST remain spec-only and MUST NOT configure providers, webhooks, credentials, destinations,
 schema, event consumers, sends, or runtime activation. #425 remains the owner of event-consumer/runtime
-durability; outbound email MUST remain behind the server-side email boundary rather than a browser/provider-
-direct path. #420 remains the owner of global automation controls; #419/#424 remain owners of audit/redaction
+durability; outbound email MUST use the platform-scoped Phase 17 contract/compiler and Phase 6 Resend boundary rather than an Eve-owned or
+browser/provider-direct path. Discord remains a separate Eve operational channel and MUST NOT be represented
+as tenant System Messages or Phase 6 email history. #420 remains the owner of global automation controls; #419/#424 remain owners of audit/redaction
 and retention/replay; #426 remains owner of verified identity and scope. The #418 release switch MUST remain
 off. [VERIFIED-REPO: openspec/project.md]
 
