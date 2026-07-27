@@ -236,6 +236,35 @@ describe("public cms tenant resolution", () => {
     expect(find).toHaveBeenCalledTimes(1);
   });
 
+  it("ignores the explicit tenant query parameter in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    // Host lookups: primary domain, then subdomain — both miss.
+    const find = vi
+      .fn()
+      .mockResolvedValueOnce({ docs: [] })
+      .mockResolvedValueOnce({ docs: [] });
+    getPayloadClientMock.mockResolvedValue({ find });
+
+    const tenant = await resolveTenantFromRequest(
+      createRequest(
+        "/api/cms/public/pages/home?tenant=another-ministry",
+        "unknown-host.example",
+      ),
+    );
+
+    // A request-controlled selector would let a visitor on one ministry's
+    // domain read another ministry's content (Phase 5 ruling A6, ADR-0028).
+    // Only the host may choose the tenant in production; anything else is
+    // "site not found".
+    expect(tenant).toBeNull();
+    expect(find).toHaveBeenCalledTimes(2);
+    expect(find).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { slug: { equals: "another-ministry" } },
+      }),
+    );
+  });
+
   it("keeps primary domain resolution ahead of the local fallback", async () => {
     vi.stubEnv("CMS_LOCAL_DEFAULT_TENANT_SLUG", "give-hope-demo");
     const find = vi.fn().mockResolvedValueOnce({

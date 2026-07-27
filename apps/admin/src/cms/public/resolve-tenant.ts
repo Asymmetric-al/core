@@ -52,7 +52,16 @@ function isLoopbackHost(host: string | null) {
   return host === "localhost" || host === "127.0.0.1" || host === "::1";
 }
 
-function isLocalTenantFallbackAllowed() {
+/**
+ * Non-production tenant-selection aids — the loopback default tenant and the
+ * `?tenant=` slug override — are development conveniences only.
+ *
+ * In production the tenant must come from the platform-trusted host (Phase 5
+ * ruling A6). A request-controlled selector would let a visitor on one
+ * ministry's domain read another ministry's published content, which is the
+ * cross-tenant exposure ADR-0028 exists to prevent.
+ */
+function isNonProductionTenantSelectionAllowed() {
   return process.env.NODE_ENV !== "production";
 }
 
@@ -136,11 +145,11 @@ export async function resolveTenantFromRequest(
     }
   }
 
-  if (explicitTenant) {
+  if (explicitTenant && isNonProductionTenantSelectionAllowed()) {
     return findTenantBySlug(payload, explicitTenant);
   }
 
-  if (isLoopbackHost(host) && isLocalTenantFallbackAllowed()) {
+  if (isLoopbackHost(host) && isNonProductionTenantSelectionAllowed()) {
     const localDefaultTenantSlug = process.env.CMS_LOCAL_DEFAULT_TENANT_SLUG;
     if (localDefaultTenantSlug) {
       const localTenant = await findTenantBySlug(
