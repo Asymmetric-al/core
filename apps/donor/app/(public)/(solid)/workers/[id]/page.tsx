@@ -11,7 +11,6 @@ import { ArrowLeft, Rss, Heart, MessageCircle, Share2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { GivingWidget } from "./giving-widget";
@@ -91,7 +90,16 @@ const PUBLIC_UPDATES = [
   },
 ];
 
-function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
+/**
+ * Cached because `<SafeHtml>` sanitizes through isomorphic-dompurify, which
+ * reads the clock. Under Cache Components a Server Component may not read the
+ * current time before touching request data, and the whole point of this route
+ * is that it touches none — so the sanitized markup is cached instead. The
+ * input is a module constant, so the cache entry is stable.
+ */
+async function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
+  "use cache";
+
   return (
     <article className="group relative pl-8 pb-12 last:pb-0">
       <div
@@ -271,8 +279,19 @@ function GivingWidgetSkeleton() {
   );
 }
 
+/**
+ * `await connection()` was removed here deliberately — it predates Cache
+ * Components and forced every profile to render at request time.
+ * `getFieldWorkerById` is a synchronous in-memory lookup (packages/mock-data)
+ * and every client child on this page is request-free, so all
+ * `generateStaticParams` profiles now prerender, JSON-LD included.
+ *
+ * When worker data moves to Supabase, add `"use cache"` + `cacheTag` (pattern:
+ * packages/api/src/reads/dashboard-stats.ts) — do not re-add `connection()`.
+ * The build fails loudly with "Uncached data was accessed outside of
+ * <Suspense>" if that is forgotten, which is the signal we want.
+ */
 export default async function WorkerProfilePage({ params }: PageProps) {
-  await connection();
   const { id } = await params;
   const worker = getFieldWorkerById(id);
 

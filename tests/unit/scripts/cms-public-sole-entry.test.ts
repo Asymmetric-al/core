@@ -30,6 +30,13 @@ describe("public code path scoping", () => {
     expect(isPublicCodePath(PUBLIC_MODULE_FILE)).toBe(true);
     expect(isPublicCodePath("apps/donor/app/(public)/page.tsx")).toBe(true);
     expect(isPublicCodePath("apps/donor/lib/cms/client.ts")).toBe(true);
+    // Nested route groups under (public) must stay inside the choke point.
+    expect(isPublicCodePath("apps/donor/app/(public)/(hero)/page.tsx")).toBe(
+      true,
+    );
+    expect(
+      isPublicCodePath("apps/donor/app/(public)/(solid)/[...cmsSlug]/page.tsx"),
+    ).toBe(true);
   });
 
   it("leaves staff/admin Payload reads unaffected", () => {
