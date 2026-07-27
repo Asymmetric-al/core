@@ -36,9 +36,11 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  Activity,
   AlertTriangle,
   BadgeDollarSign,
   BrainCircuit,
+  Network,
   ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
@@ -113,6 +115,95 @@ async function mutateEveModelPolicy(
     throw new Error(body?.error ?? "Could not update Eve model policy.");
   }
   return (await response.json()) as EveModelPolicyResponse;
+}
+
+export function EveModelPolicyReadiness({
+  data,
+}: {
+  data: EveModelPolicyAdminView;
+}) {
+  const evaluatedPolicy =
+    data.activePolicy ??
+    data.policies.find((policy) => policy.evalStatus !== "not_evaluated");
+  const checks = evaluatedPolicy?.evalSummary?.checks ?? [];
+  const passedChecks = checks.filter((check) => check.passed).length;
+  const subagentOverrides = Object.entries(
+    data.activePolicy?.policy.subagentOverrides ?? {},
+  );
+
+  return (
+    <div className="mb-4 grid gap-4 lg:grid-cols-2">
+      <section
+        id="eve-eval-health"
+        aria-labelledby="eve-eval-health-title"
+        className="rounded-lg border border-border p-4"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <h3
+            id="eve-eval-health-title"
+            className="flex items-center gap-2 text-sm font-medium"
+          >
+            <Activity aria-hidden="true" className="size-4" />
+            Eval health
+          </h3>
+          <Badge
+            variant={
+              evaluatedPolicy?.evalStatus === "failed"
+                ? "destructive"
+                : data.activePolicy
+                  ? "secondary"
+                  : "outline"
+            }
+          >
+            {data.activePolicy
+              ? "Passed"
+              : evaluatedPolicy?.evalStatus === "failed"
+                ? "Failed"
+                : "Not ready"}
+          </Badge>
+        </div>
+        <p className="mt-3 text-sm text-muted-foreground">
+          {evaluatedPolicy
+            ? `Policy v${evaluatedPolicy.version}: ${passedChecks} of ${checks.length} recorded checks passed.`
+            : "No policy evaluation has been recorded. Eve remains fail-closed."}
+        </p>
+      </section>
+
+      <section
+        id="eve-subagents"
+        aria-labelledby="eve-subagents-title"
+        className="rounded-lg border border-border p-4"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <h3
+            id="eve-subagents-title"
+            className="flex items-center gap-2 text-sm font-medium"
+          >
+            <Network aria-hidden="true" className="size-4" />
+            Subagent policy
+          </h3>
+          <Badge variant="outline">{subagentOverrides.length} configured</Badge>
+        </div>
+        {subagentOverrides.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            No active subagent overrides are configured.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {subagentOverrides.map(([name, override]) => (
+              <li
+                key={name}
+                className="flex items-center justify-between gap-3 text-sm"
+              >
+                <span className="font-medium text-foreground">{name}</span>
+                <span className="text-muted-foreground">{override.role}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
 }
 
 function PolicyLifecycleRow({
@@ -348,7 +439,7 @@ export function EveModelPolicyPanel() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card id="eve-model-policy">
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -397,6 +488,7 @@ export function EveModelPolicyPanel() {
               </AlertDescription>
             </Alert>
           )}
+          <EveModelPolicyReadiness data={data} />
           <ul className="divide-y divide-border">
             {data.policies.length === 0 ? (
               <li className="py-4 text-sm text-muted-foreground">

@@ -69,7 +69,7 @@ export function EveRetentionPanel() {
   });
 
   return (
-    <Card>
+    <Card id="eve-retention">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ArchiveRestore aria-hidden="true" className="size-5" />

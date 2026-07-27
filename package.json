@@ -232,14 +232,10 @@
   },
   "lint-staged": {
     "{apps,packages,tooling}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
-      "eslint --fix",
-      "prettier --write"
+      "eslint --fix"
     ],
-    "{apps,packages,tooling,docs,.github}/**/*.{json,md,yml,yaml}": [
-      "prettier --write"
-    ],
-    "./{README.md,package.json,turbo.json,tsconfig.json}": [
-      "prettier --write"
+    "*": [
+      "prettier --ignore-unknown --write"
     ]
   }
 }
