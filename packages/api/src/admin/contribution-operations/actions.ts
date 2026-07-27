@@ -8,6 +8,12 @@ import {
   CRM_POSTING_UNAVAILABLE_NEXT_STEP,
   CRM_POSTING_UNAVAILABLE_REASON,
 } from "./crm-retry-support";
+import {
+  APPROVE_CORRECTION_CAPABILITY,
+  REQUEST_CORRECTION_CAPABILITY,
+  directContributionCapabilityForAction,
+  isProviderGranularContributionAction,
+} from "./permissions";
 import { getContributionActionPolicy } from "./policy";
 import {
   correctionStatusForProviderOutcome,
@@ -186,30 +192,6 @@ function assertReasonAndConfirmation(
 }
 
 const LEGACY_MANAGE_PERMISSION = "finance:manage_contributions" as const;
-const REQUEST_CORRECTION_CAPABILITY = "contributions.request_corrections";
-const APPROVE_CORRECTION_CAPABILITY = "contributions.approve_corrections";
-
-/**
- * Granular capability required to execute an action immediately. Approval
- * request creation is handled separately for approval-gated corrections.
- */
-const DIRECT_ACTION_CAPABILITY: Record<ContributionActionType, string> = {
-  resend_receipt: "contributions.manage_receipts",
-  approve_staged_gift: "contributions.apply_corrections",
-  retry_staged_gift: "contributions.retry_crm_post",
-  crm_repost: "contributions.retry_crm_post",
-  metadata_update: "contributions.apply_corrections",
-  refund: "contributions.run_refunds",
-  stripe_replay: "contributions.use_provider_actions",
-  donor_relink: "contributions.apply_corrections",
-  amount_correction: "contributions.apply_corrections",
-  designation_correction: "contributions.apply_corrections",
-  fund_correction: "contributions.apply_corrections",
-  allocation_correction: "contributions.apply_corrections",
-  receipt_correction: "contributions.apply_corrections",
-  statement_correction: "contributions.apply_corrections",
-  payment_state_correction: "contributions.apply_corrections",
-};
 
 function hasLegacyManagePermission(
   input: Pick<ExecuteContributionActionInput, "actorPermissions">,
@@ -227,7 +209,7 @@ function hasActorCapability(
 function legacyManageCoversDirectAction(
   actionType: ContributionActionType,
 ): boolean {
-  return actionType !== "refund" && actionType !== "stripe_replay";
+  return !isProviderGranularContributionAction(actionType);
 }
 
 function hasLegacyDirectActionPermission(
@@ -243,12 +225,6 @@ function hasLegacyDirectActionPermission(
   );
 }
 
-function directCapabilityForApprovedRequest(
-  actionType: ContributionActionType,
-): string {
-  return DIRECT_ACTION_CAPABILITY[actionType];
-}
-
 function assertApprovedRequestCapabilities(
   input: Pick<
     ExecuteContributionActionInput,
@@ -262,12 +238,17 @@ function assertApprovedRequestCapabilities(
     );
   }
 
-  const directCapability = directCapabilityForApprovedRequest(input.actionType);
+  const directCapability = directContributionCapabilityForAction(
+    input.actionType,
+  );
   if (!hasActorCapability(input, directCapability)) {
     throw new ApiHttpError(403, `Forbidden: requires ${directCapability}`);
   }
 }
 
+// Narrower than the permissions policy's approvalRequestable on purpose:
+// stripe_replay is absent here, but provider-granular actions throw in
+// assertActorPermissions before this branch is ever consulted for them.
 function isApprovalRequestAction(actionType: ContributionActionType): boolean {
   return (
     actionType === "refund" ||
@@ -296,10 +277,13 @@ function assertActorPermissions(
     return;
   }
 
-  const directCapability = DIRECT_ACTION_CAPABILITY[input.actionType];
+  const directCapability = directContributionCapabilityForAction(
+    input.actionType,
+  );
   if (hasActorCapability(input, directCapability)) {
-    const granularProviderAction =
-      input.actionType === "refund" || input.actionType === "stripe_replay";
+    const granularProviderAction = isProviderGranularContributionAction(
+      input.actionType,
+    );
     if (
       granularProviderAction &&
       options.requiresApproval &&
@@ -313,7 +297,7 @@ function assertActorPermissions(
     return;
   }
 
-  if (input.actionType === "refund" || input.actionType === "stripe_replay") {
+  if (isProviderGranularContributionAction(input.actionType)) {
     throw new ApiHttpError(403, `Forbidden: requires ${directCapability}`);
   }
 
@@ -1095,7 +1079,10 @@ export async function executeContributionAction<TContribution = unknown>(
         return createPendingCorrectionRequest(input);
       }
 
-      assertCanExecuteDirectly(input, DIRECT_ACTION_CAPABILITY.donor_relink);
+      assertCanExecuteDirectly(
+        input,
+        directContributionCapabilityForAction("donor_relink"),
+      );
 
       const relinkDonor = requireDependency(input.dependencies, "relinkDonor");
       const relink = await relinkDonor({
@@ -1147,7 +1134,10 @@ export async function executeContributionAction<TContribution = unknown>(
         return createPendingCorrectionRequest(input);
       }
 
-      assertCanExecuteDirectly(input, DIRECT_ACTION_CAPABILITY.refund);
+      assertCanExecuteDirectly(
+        input,
+        directContributionCapabilityForAction("refund"),
+      );
 
       const refund = requireDependency(
         input.dependencies,
@@ -1229,7 +1219,10 @@ export async function executeContributionAction<TContribution = unknown>(
         return createPendingCorrectionRequest(input);
       }
 
-      assertCanExecuteDirectly(input, DIRECT_ACTION_CAPABILITY.stripe_replay);
+      assertCanExecuteDirectly(
+        input,
+        directContributionCapabilityForAction("stripe_replay"),
+      );
 
       const replayStripeEvent = requireDependency(
         input.dependencies,
@@ -1299,7 +1292,7 @@ export async function executeContributionAction<TContribution = unknown>(
 
         assertCanExecuteDirectly(
           input,
-          DIRECT_ACTION_CAPABILITY[input.actionType],
+          directContributionCapabilityForAction(input.actionType),
         );
 
         const applyCorrection = requireDependency(

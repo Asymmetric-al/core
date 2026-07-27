@@ -1,7 +1,7 @@
 import { ApiHttpError } from "../../shared/api-http-error";
 import {
   redactEveArtifactText,
-  redactEveAuditValue,
+  redactEveReplayValue,
   summarizeEveAuditValue,
 } from "../audit/redaction";
 
@@ -14,6 +14,7 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 const BUCKET = "eve-replay-artifacts";
+const MAX_ARTIFACT_BYTES = 5_000_000;
 
 function actorParams(auth: AuthenticatedContext) {
   return {
@@ -27,12 +28,19 @@ function mapError(error: { message: string } | null): never {
   const message = error?.message ?? "eve_retention_mutation_failed";
   if (message.includes("actor_tenant_mismatch"))
     throw new ApiHttpError(403, "Retention ownership could not be verified.");
+  if (message.includes("eve_replay_run_owner_mismatch"))
+    throw new ApiHttpError(403, "Replay run ownership could not be verified.");
   if (message.includes("missing_eve_replay_artifact"))
     throw new ApiHttpError(404, "Replay artifact was not found.");
   if (message.includes("missing_eve_retention_hold"))
     throw new ApiHttpError(404, "Retention hold was not found.");
   if (message.includes("duplicate key"))
     throw new ApiHttpError(409, "An active hold already covers that target.");
+  if (message.includes("eve_replay_artifact_deletion_in_progress"))
+    throw new ApiHttpError(
+      409,
+      "Replay artifact deletion is already in progress.",
+    );
   if (message.includes("invalid_eve") || message.includes("violates check"))
     throw new ApiHttpError(400, "The retention request is invalid.");
   throw new Error(message);
@@ -47,7 +55,7 @@ function toHex(buffer: ArrayBuffer): string {
 function redactArtifactContent(kind: EveArtifactKind, content: string): string {
   if (kind === "debug") return redactEveArtifactText(content);
   try {
-    return JSON.stringify(redactEveAuditValue(JSON.parse(content)));
+    return JSON.stringify(redactEveReplayValue(JSON.parse(content)));
   } catch {
     throw new ApiHttpError(
       400,
@@ -64,6 +72,25 @@ export async function storeEveReplayArtifact(input: {
   runId?: string;
   supabaseAdmin: AdminSupabaseClient;
 }) {
+  if (input.artifactKind === "gateway_telemetry") {
+    throw new ApiHttpError(
+      400,
+      "Gateway telemetry is metadata-only and cannot store artifact bodies.",
+    );
+  }
+
+  const redactedContent = redactArtifactContent(
+    input.artifactKind,
+    input.content,
+  );
+  const encoded = new TextEncoder().encode(redactedContent);
+  if (encoded.byteLength > MAX_ARTIFACT_BYTES) {
+    throw new ApiHttpError(
+      400,
+      "Replay artifact bodies cannot exceed 5,000,000 bytes.",
+    );
+  }
+
   const artifactId = crypto.randomUUID();
   const extension = input.artifactKind === "debug" ? "txt" : "json";
   const storagePath = `${input.auth.tenantId}/${input.auth.profileId}/${artifactId}.${extension}`;
@@ -79,11 +106,6 @@ export async function storeEveReplayArtifact(input: {
     });
   if (prepareError || typeof expiresAt !== "string")
     return mapError(prepareError);
-  const redactedContent = redactArtifactContent(
-    input.artifactKind,
-    input.content,
-  );
-  const encoded = new TextEncoder().encode(redactedContent);
   const contentType =
     input.artifactKind === "debug" ? "text/plain" : "application/json";
   const sha256 = toHex(await crypto.subtle.digest("SHA-256", encoded));
@@ -111,7 +133,22 @@ export async function storeEveReplayArtifact(input: {
     },
   );
   if (completeError) {
-    await input.supabaseAdmin.storage.from(BUCKET).remove([storagePath]);
+    const { error: cleanupError } = await input.supabaseAdmin.storage
+      .from(BUCKET)
+      .remove([storagePath]);
+    if (cleanupError) {
+      throw new Error("eve_replay_artifact_storage_cleanup_failed", {
+        cause: cleanupError,
+      });
+    }
+
+    await input.supabaseAdmin
+      .from("eve_replay_artifacts")
+      .delete()
+      .eq("id", artifactId)
+      .eq("tenant_id", input.auth.tenantId)
+      .eq("owner_profile_id", input.auth.profileId)
+      .eq("status", "upload_pending");
     mapError(completeError);
   }
   return { artifactId, expiresAt, byteSize: encoded.byteLength, sha256 };
@@ -178,9 +215,17 @@ export async function clearEveRetentionHold(input: {
 }
 
 export async function runEveRetentionExpiry(input: {
+  auth: AuthenticatedContext;
   limit: number;
   supabaseAdmin: AdminSupabaseClient;
 }) {
+  if (input.auth.role !== "super_admin") {
+    throw new ApiHttpError(
+      403,
+      "Only super administrators can run global retention expiry.",
+    );
+  }
+
   const { data: claimed, error } = await input.supabaseAdmin.rpc(
     "claim_eve_replay_artifact_expiry",
     { p_limit: input.limit },
@@ -193,10 +238,26 @@ export async function runEveRetentionExpiry(input: {
   }>;
   const deletedIds: string[] = [];
   for (const row of rows) {
+    const { data: deletionStarted, error: beginError } =
+      await input.supabaseAdmin.rpc("begin_eve_replay_artifact_deletion", {
+        p_id: row.id,
+      });
+    if (beginError) mapError(beginError);
+    if (deletionStarted !== true) continue;
+
     const { error: removeError } = await input.supabaseAdmin.storage
       .from(row.storage_bucket)
       .remove([row.storage_path]);
-    if (!removeError) deletedIds.push(row.id);
+    if (!removeError) {
+      deletedIds.push(row.id);
+      continue;
+    }
+
+    const { error: releaseError } = await input.supabaseAdmin.rpc(
+      "release_eve_replay_artifact_deletion",
+      { p_id: row.id },
+    );
+    if (releaseError) mapError(releaseError);
   }
   if (deletedIds.length > 0) {
     const { error: finalizeError } = await input.supabaseAdmin.rpc(

@@ -43,6 +43,10 @@ import type {
 interface ResponseBody extends EveAdminMemoryAdminView {
   requestId: string;
 }
+interface EntryMutationIntent {
+  entryId: string;
+  expectedVersion: number;
+}
 type Mutation =
   | {
       method: "POST";
@@ -197,7 +201,8 @@ export function EveAdminMemoryPanel() {
   const [content, setContent] = useState("");
   const [category, setCategory] =
     useState<EveAdminMemoryCategory>("preference");
-  const [editingId, setEditingId] = useState<string>();
+  const [editingIntent, setEditingIntent] = useState<EntryMutationIntent>();
+  const [deleteIntent, setDeleteIntent] = useState<EntryMutationIntent>();
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: () => requestMemory(),
@@ -209,7 +214,12 @@ export function EveAdminMemoryPanel() {
     mutationFn: requestMemory,
     onSuccess(data, variables) {
       client.setQueryData(QUERY_KEY, data);
-      setEditingId(undefined);
+      if (variables?.method === "PATCH" && variables.body.action === "edit") {
+        setEditingIntent(undefined);
+      }
+      if (variables?.method === "DELETE") {
+        setDeleteIntent(undefined);
+      }
       if (variables?.method === "POST") {
         setTitle("");
         setContent("");
@@ -408,18 +418,18 @@ export function EveAdminMemoryPanel() {
           <ul className="divide-y">
             {entries.map((entry) => (
               <li key={entry.id} className="space-y-3 py-4">
-                {editingId === entry.id ? (
+                {editingIntent?.entryId === entry.id ? (
                   <EntryEditor
                     entry={entry}
                     pending={mutation.isPending}
-                    onCancel={() => setEditingId(undefined)}
+                    onCancel={() => setEditingIntent(undefined)}
                     onSave={(values) =>
                       mutation.mutate({
                         method: "PATCH",
                         body: {
                           action: "edit",
-                          entryId: entry.id,
-                          expectedVersion: entry.version,
+                          entryId: editingIntent.entryId,
+                          expectedVersion: editingIntent.expectedVersion,
                           ...values,
                         },
                       })
@@ -452,12 +462,23 @@ export function EveAdminMemoryPanel() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setEditingId(entry.id)}
+                            onClick={() =>
+                              setEditingIntent({
+                                entryId: entry.id,
+                                expectedVersion: entry.version,
+                              })
+                            }
                           >
                             Edit
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger
+                              onClick={() =>
+                                setDeleteIntent({
+                                  entryId: entry.id,
+                                  expectedVersion: entry.version,
+                                })
+                              }
                               render={
                                 <Button size="sm" variant="destructive">
                                   Delete
@@ -477,18 +498,26 @@ export function EveAdminMemoryPanel() {
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel
+                                  onClick={() => setDeleteIntent(undefined)}
+                                >
+                                  Cancel
+                                </AlertDialogCancel>
                                 <AlertDialogAction
                                   variant="destructive"
-                                  onClick={() =>
+                                  onClick={() => {
+                                    if (deleteIntent?.entryId !== entry.id) {
+                                      return;
+                                    }
                                     mutation.mutate({
                                       method: "DELETE",
                                       body: {
-                                        entryId: entry.id,
-                                        expectedVersion: entry.version,
+                                        entryId: deleteIntent.entryId,
+                                        expectedVersion:
+                                          deleteIntent.expectedVersion,
                                       },
-                                    })
-                                  }
+                                    });
+                                  }}
                                 >
                                   Confirm delete
                                 </AlertDialogAction>

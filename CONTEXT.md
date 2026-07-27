@@ -79,6 +79,80 @@ get the same real-world job done here?" and tracked in the parity matrix
 (`docs/prds/sitestacker-parity/`). Child sponsorship is out of scope.
 _Avoid_: SiteStacker clone, screen-for-screen copy, feature-for-feature parity
 
+**Public tenant website** (Phase 5):
+The tenant's public-facing ministry site — branded public pages, missionary
+and project pages, storytelling, and giving entry points — served today as a
+surface inside the donor app, on the tenant's domain. It is a public ministry
+experience, never an operational console, and "channel" is retired as a
+public/attribution concept (Phase 2's four axes replaced it: site,
+entry method, source code, designation).
+_Avoid_: public admin console, marketing microsite outside the platform,
+channel
+
+**Public runtime** (Phase 5):
+The governed way the public tenant website actually runs: host-based tenant
+resolution, published-only isolated content reads, reference validation,
+enumeration-safe checkout handoff, tagged caching with secured invalidation,
+and Draft Mode preview — one contract every public page type builds on.
+_Avoid_: per-page fetch rules, ad hoc public data paths
+
+**Published-content reader / choke-point** (Phase 5):
+The sole entry for public content reads. It takes the resolved tenant (and
+reserved site) as a required argument, always applies tenant-and-published,
+runs with Payload access control enforced, and returns empty when no tenant
+resolves. A hard-blocking lint forbids raw Payload reads in public paths.
+_Avoid_: direct Payload reads in public code, hand-written tenant `where`
+clauses, `overrideAccess: true` public reads
+
+**Public serializer** (Phase 5):
+The allowlist between CMS documents and the public. It emits only named
+public-safe fields and typed layout blocks; new or unknown fields are
+excluded by default; media is normalized to public URLs. Raw Payload
+documents never cross it.
+_Avoid_: passing raw CMS documents to pages, denylist filtering, leaking
+internal fields by default
+
+**Public request context** (Phase 5):
+The unified result of resolving a public request from the platform-trusted
+host: operational tenant id, CMS tenant id, and a reserved site id. Fail
+closed — an unknown or disabled host resolves to "site not found," never to
+an unfiltered read. Client-supplied tenant overrides are dev-only.
+_Avoid_: trusting `?tenant=` in production, per-page host parsing
+
+**Checkout handoff / CTA resolver** (Phase 5):
+The resolver that turns a public "Give" CTA into a server-validated checkout
+handoff. Every operational reference is re-validated server-side against the
+resolved tenant; a preset amount is a re-validated suggestion, never a
+trusted charge value; the handoff carries the reserved attribution fields
+(site, source code, currency, locale, entry method). Invalid links fail to
+"give another way," never a mis-designated gift.
+_Avoid_: hand-rolled giving URLs, client-trusted amounts or references,
+enumeration-leaking giving forms
+
+**Preview (Draft Mode) / preview token** (Phase 5):
+Staff preview renders the real public page with drafts on via Next.js Draft
+Mode, behind a signed-secret route that authenticates the staff user and
+checks the tenant; the response is never cached and never indexed. A
+shareable, expiring non-staff preview token is a reserved seam.
+_Avoid_: separate preview templates that drift from the live page, publicly
+reachable drafts, indexable preview URLs
+
+**Public page identity** (Phase 5):
+A public page's presentation identity — display name, slug, publish state —
+linked to, but never equal to, the operational record behind it. CMS wins
+for presentation; operational truth wins for identity, money, and existence;
+a dangling or cross-tenant reference fails safe.
+_Avoid_: treating the page as the operational record, copying operational
+truth into CMS
+
+**Cache tag scheme** (Phase 5):
+The tenant/document-derived tags on cached public reads, used for prompt
+invalidation when content publishes. Tags invalidate; they never isolate —
+cache-key isolation comes from passing the resolved tenant as a function
+argument. Site and locale tag dimensions are reserved.
+_Avoid_: tag-only tenant isolation, route-segment cache config, unbounded
+"never expire" caching
+
 **Workflow Orchestration**:
 Durable coordination of background work after authoritative product records
 exist. It does not become the source of truth for donations, CRM state,

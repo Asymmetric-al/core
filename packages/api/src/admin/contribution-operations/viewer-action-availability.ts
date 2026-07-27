@@ -1,6 +1,8 @@
 import { correctionRequiresApproval } from "./approval-policy";
 import {
+  REQUEST_CORRECTION_CAPABILITY,
   directContributionCapabilityForAction,
+  isProviderGranularContributionAction,
   requiredCapabilitiesForContributionAction,
 } from "./permissions";
 import { getContributionActionRiskLevel } from "./policy";
@@ -130,8 +132,6 @@ export function requiredCapabilitiesForContributionOperation(
   return requiredCapabilitiesForContributionAction(actionType, { mode });
 }
 
-const REQUEST_CORRECTION_CAPABILITY = "contributions.request_corrections";
-
 export function viewerCanUseContributionOperation(input: {
   actionType: CrmGiftInlineActionType;
   approvalPolicy: CorrectionApprovalPolicy;
@@ -152,7 +152,7 @@ export function viewerCanUseContributionOperation(input: {
   if (executesAsApprovalRequest) {
     // Provider-touching requests keep the stricter route gate: the requester
     // must hold both the direct capability and the request capability.
-    if (input.actionType === "refund" || input.actionType === "stripe_replay") {
+    if (isProviderGranularContributionAction(input.actionType)) {
       return requiredCapabilities.every((capability) =>
         input.viewerCapabilities.includes(capability),
       );
