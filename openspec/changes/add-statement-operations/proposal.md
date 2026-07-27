@@ -85,6 +85,8 @@ or fork those already-active capability changes.
 ## Release Posture
 
 This change is an implementation-ready product and architecture contract only.
-It does not implement Phase 19 or dispatch tickets. Runtime work may begin only
-after the dependency gate above is satisfied and implementation is explicitly
-dispatched. The confirmed public testing seam in the design is binding.
+It does not implement Phase 19. Epic #977 and child issues #978–#1031 are
+published as blocked implementation slices; their existence does not authorize
+runtime work. Runtime work may begin only after the dependency gate above is
+satisfied and implementation is explicitly dispatched. The confirmed public
+testing seam in the design is binding.

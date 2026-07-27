@@ -2,7 +2,10 @@
 
 ## Status
 
-**PRD exists; groomed but not dispatched.** This document authorizes planning only. It does not authorize implementation, schema changes, issue dispatch, or a `ready-for-agent` label.
+**PRD exists; issue decomposition published; implementation not dispatched.**
+Epic #977 and child issues #978–#1031 are published as blocked implementation
+slices. This document and issue set authorize planning only; they do not
+authorize implementation, schema changes, or promotion to `ready-for-agent`.
 
 **Decision authority:** Phase 19 `/grill-with-docs` D1-D18, ratified by Conrad on 2026-07-22 and 2026-07-23. Where older repository language conflicts, the decisions and explicit congruence appendix in this document control for Phase 19.
 
@@ -1792,7 +1795,10 @@ Any new primitive requires a launch user story and a named authority owner. Tena
 ## Further Notes
 
 - This document is a planning and acceptance contract. It introduces no runtime
-  implementation, migration, ticket, provider adoption, or live-send authority.
+  implementation, migration, provider adoption, or live-send authority. The
+  dependency-ordered issue decomposition is published under epic #977 and
+  children #978–#1031, but remains blocked and does not itself authorize
+  implementation.
 - The Phase 17/18 authority package must be accepted, merged, or explicitly
   superseded before Phase 19 implementation dispatch.
 - Resend, Inngest, storage, PostGrid, Lob, postal, and jurisdiction facts are
