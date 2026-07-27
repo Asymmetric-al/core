@@ -104,4 +104,79 @@ describe("serializePublishedPageLike", () => {
       },
     ]);
   });
+
+  it("emits public filename/caption only when present, identically to the package serializer (#529)", async () => {
+    const { serializePublicPage } =
+      await import("../../../packages/api/src/cms/public/serializer");
+
+    const doc = {
+      id: 12,
+      title: "Missionary",
+      slug: "missionary",
+      layout: [
+        {
+          id: "m1",
+          blockType: "media-feature",
+          title: "From the field",
+          body: "A season of growth.",
+          mediaCaption: null,
+          media: {
+            id: 44,
+            alt: "Jane in field",
+            url: "/api/media/file/jane.jpg",
+            width: 1200,
+            height: 800,
+            mimeType: "image/jpeg",
+            filename: "jane.jpg",
+            caption: "Jane serving in June",
+            // Raw Payload internals that must never be emitted:
+            filesize: 123456,
+            focalX: 50,
+            focalY: 50,
+            tenant: 99,
+          },
+        },
+      ],
+      pageType: null,
+      missionaryId: null,
+      fundId: null,
+    };
+
+    const shipped = JSON.parse(JSON.stringify(serializePublishedPageLike(doc)));
+    const packaged = JSON.parse(JSON.stringify(serializePublicPage(doc)));
+
+    const shippedMedia = shipped.layout[0].media;
+    expect(shippedMedia.filename).toBe("jane.jpg");
+    expect(shippedMedia.caption).toBe("Jane serving in June");
+    expect(shippedMedia.filesize).toBeUndefined();
+    expect(shippedMedia.focalX).toBeUndefined();
+    expect(shippedMedia.tenant).toBeUndefined();
+
+    // Both serializers stay behavior-identical — the #523 parity baseline.
+    expect(shipped.layout).toEqual(packaged.layout);
+
+    // Present-only: a document without filename/caption emits neither key.
+    const bare = JSON.parse(
+      JSON.stringify(
+        serializePublishedPageLike({
+          ...doc,
+          layout: [
+            {
+              ...doc.layout[0],
+              media: {
+                id: 44,
+                alt: "Jane in field",
+                url: "/api/media/file/jane.jpg",
+                width: 1200,
+                height: 800,
+                mimeType: "image/jpeg",
+              },
+            },
+          ],
+        }),
+      ),
+    );
+    expect("filename" in bare.layout[0].media).toBe(false);
+    expect("caption" in bare.layout[0].media).toBe(false);
+  });
 });
