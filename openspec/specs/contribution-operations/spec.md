@@ -210,10 +210,12 @@ donor-facing contribution correction emails directly through Resend or a
 feature-local email builder.
 
 If a required correction template is missing, inactive, or invalid during
-preparation or dispatch, the contribution action MUST remain complete, Phase 6
-MUST NOT dispatch a fallback donor email, the notification decision MUST be
-audited, and follow-up task intent MUST be created through the shared task
-contract.
+Phase 17 resolution or preparation, the contribution action MUST remain
+complete, Phase 6 MUST NOT dispatch a fallback donor email, the notification
+decision MUST be audited, and follow-up task intent MUST be created through the
+shared task contract. Once a correction notification has crossed the durable
+prepared-message boundary, dispatch MUST NOT re-check template activity; it
+re-proves only the current safety fences that apply to the frozen payload.
 
 #### Scenario: A refund notification is sent
 
@@ -225,15 +227,27 @@ contract.
 - AND the communication event records the exact template version, recipient,
   provider outcome, and contribution-operation audit link
 
-#### Scenario: A correction template is invalid at send time
+#### Scenario: A correction template is invalid before preparation
 
 - GIVEN a contribution action succeeds but its required donor correction
-  template is missing, inactive, or missing required merge tags
-- WHEN notification dispatch runs
+  template is missing, inactive, or missing required merge tags when Phase 17
+  resolves or prepares the notification
+- WHEN preparation fails closed
 - THEN no fallback donor email is sent
 - AND the contribution action remains successful
 - AND the blocked notification decision is audited
 - AND a follow-up task is requested for the configured actor or queue
+
+#### Scenario: A prepared correction notification survives later deactivation
+
+- GIVEN a donor correction notification has already crossed the durable
+  prepared-message boundary under an active publication
+- AND that publication is later deactivated
+- WHEN Phase 6 dispatch runs for the frozen prepared payload
+- THEN dispatch does not re-check template activity
+- AND it re-proves only the current safety fences that apply to the frozen
+  payload
+- AND byte-identical recovery remains available while those fences pass
 
 ### Requirement: Bulk Contribution Actions Use The Single-Action Contract
 

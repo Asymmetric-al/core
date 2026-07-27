@@ -374,14 +374,17 @@ Ticket shape (filed via `/to-issues`):
 the recipient surface/document class. It does not define SMS evidence or the
 Phase 17 authoring and support-detail capabilities.
 
-**New winner.** Phase 17 consumes the same fail-closed projection and consent
-boundary for typed message facts, fake-data-only preview/review, publication,
-delivery resolution, and Recent sent copy access. D9 adds channel-scoped SMS
-consent provenance and registration evidence while SMS transport stays
-structurally unavailable. Phase 12 supplies explicit capabilities for catalog
-administration, drafting, standard/protected publication, branding/layout,
-delivery settings, reply destinations, portability, repair, and privileged
-Recent sent copy reveal.
+**New winner.** Phase 17 consumes the same fail-closed projection boundary for
+typed message facts, fake-data-only preview/review, publication, catalog
+administration, and Recent sent copy access. Those staff operations are governed
+by capability and projection checks; they do not target a recipient and MUST NOT
+apply recipient consent or contactability gates. Recipient consent and
+contactability govern delivery resolution and send-time gates only. D9 adds
+channel-scoped SMS consent provenance and registration evidence while SMS
+transport stays structurally unavailable. Phase 12 supplies explicit
+capabilities for catalog administration, drafting, standard/protected
+publication, branding/layout, delivery settings, reply destinations,
+portability, repair, and privileged Recent sent copy reveal.
 
 **Compatibility boundary.** `do_not_contact` remains the absolute contact floor
 and `email_suppressions` remains the email suppression authority. Phase 17 does

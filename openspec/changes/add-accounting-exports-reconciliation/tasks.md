@@ -12,7 +12,8 @@
       when proof is missing; add no direct-table compatibility shim.
 - [ ] 1.3 Inventory every existing accounting export, settlement, deposit,
       provider-credential, and expense-handoff writer. Record one source-family
-      posting owner and keep Phase 20 dark until cutover proof exists.
+      posting owner and keep only that source family dark until its cutover
+      proof exists; other certified families may proceed independently.
 
 ## 2. Public Service And Canonical Persistence
 

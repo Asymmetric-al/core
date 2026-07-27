@@ -1284,11 +1284,12 @@ Deposit-state is **derived, not stored** as a redundant enum (a stored enum woul
 - `no_deposit` — terminal, tender-derived: securities, in-kind.
 - `direct_credit` / `no_slip` — tender-derived: wire / direct bank credit (money lands in the bank with no physical deposit slip; P20 reconciles it against the statement, no P15 slip).
 - `undeposited` — bank-settled tender (check, cash, bank-direct ACH), link is NULL.
-- `in_open_deposit` — link is set, the group's regime is `open`.
-- `deposited` — link is set, the group has been physically banked (slip printed / marked deposited).
+- `in_open_deposit` — link is set and the group has not yet been physically
+  banked (no deposited stamp / slip-complete mark).
+- `deposited` — link is set and the group has been physically banked (slip printed / marked deposited).
 - `cleared` — **RESERVED, P20-driven.** Never independently stored, aged, or operator-maintained in Phase 15. Phase 15 tops out at `deposited`.
 
-The only independently-stored per-gift datum in this axis is a `returned` / `nsf` flag (D6.6). Everything else derives from `deposit_group_id` presence + the group's regime + the tender's settlement rail.
+The only independently-stored per-gift datum in this axis is a `returned` / `nsf` flag (D6.6). Everything else derives from `deposit_group_id` presence + physical-banking/slip evidence + the tender's settlement rail.
 
 Deposit-state is **NON-GATING** on posting and on any Phase 7 plan-admitted individual receipt [HD-9]. A settled-on-entry gift posts while still `undeposited`; an individual receipt follows D5, while `annual_cumulative_cash` remains ready for year-end coverage. Deposit timing is free before OR after posting (V1–V6). This resolves the D5 × P13 collision (CB-B): P13's original "posting/receipt deferred to cleared" narrative is **reworded** — the `cleared` waypoint is separate from posting, and clearance risk on offline checks is handled by the NSF compensating-reversal path (D6.6), never by changing the frozen prospective receipt plan. An opt-in per-tenant "hold check individual tax-receipt until cleared" toggle rides the same D5 receipt-timing rail but is OFF by default.
 
@@ -1330,7 +1331,10 @@ All tables are tenant-scoped with composite `(tenant_id, id)` primary/unique key
 - `deposit_date` — DATE; the physical banking date (inline-editable; defaults today on the one-click gesture). NEVER drives any gift's `gift_date` or `tax_year` (D6.11).
 - `reference` — TEXT; slip/deposit reference number (auto-suggested, editable).
 - `expected_total` — BIGINT integer minor units; the operator-entered bank figure, FROZEN once set (D6.5).
-- `regime` — TEXT + CHECK ∈ {`open`, `exported`}; the two-regime lock ladder (D6.7). (`deposited` is a derived/stamped property of members + slip, not a third regime under the ratified CB-C answer.)
+- `current_revision` — BIGINT monotonic membership revision; Phase 20 Source
+  Coverage pins exact revisions rather than a stored `exported` regime (D6.7).
+  (`deposited` remains a derived/stamped property of members + slip, never a
+  stored lock state.)
 - `status` / `voided_at` / `voided_reason` — void-not-delete metadata (D6.7).
 - `external_deposit_id` — reserved-nullable for RDC/bank integration (HD-15).
 - audit columns (created_by, created_at).
@@ -1390,7 +1394,9 @@ The UI explicitly distinguishes **Current group**, **Slip version**, and
 **Accounting-covered version** only when they differ; the ordinary case stays
 quiet.
 
-**Void, don't delete:** a group that has ever had members or passed beyond empty-`open` is voided (actor + reason; each detachment audit-stamped), never hard-deleted. Only an empty `open` group hard-deletes. No CASCADE / SET NULL on the link.
+**Void, don't delete:** a group that has ever had members is voided (actor +
+reason; each detachment audit-stamped), never hard-deleted. Only an empty group
+that never held members hard-deletes. No CASCADE / SET NULL on the link.
 
 ### D6.8 — Two homes, one service, three gestures [HD-10, HD-11, HD-13]
 
@@ -2092,7 +2098,7 @@ Batch-origin acknowledgments (DAF advisor thank-you, tribute notifications, soft
 4. **One-deposit-only + conservation.** The scalar `deposit_group_id` forbids one gift in two deposits; deposit `expected_total` is a SOFT surfaced aid (frozen expected + live actual + persisted variance), never a hard gate, never silently rewritten. [D6 HD-6/HD-7]
 5. **Append-only postings.** A posted `contribution_postings` row is immutable (P13 BEFORE-UPDATE trigger); corrections are compensating postings, never in-place mutation. [P13]
 6. **Deposit link on the mutable header, reassignment append-only.** The link lives on the header's mutable status-axis, never on immutable postings; every move writes a `deposit_assignment_events` row (grouping moves no money → no compensating posting). [D6 HD-2]
-7. **Deposit-state derived, not stored.** Only `deposit_returned` is stored; every other state derives from link + group regime + tender rail; `cleared` is reserved to Phase 20. [D6 HD-3]
+7. **Deposit-state derived, not stored.** Only `deposit_returned` is stored; every other state derives from link + physical-banking/slip evidence + tender rail; `cleared` is reserved to Phase 20. [D6 HD-3]
 8. **Describe-never-value.** `in_kind` posts `recognized_value_minor = 0`; `internal_valuation_minor` is structurally unreachable by receipt/acknowledgment/export/posting across grid, paste, API, and import. [D4 A3]
 9. **No-double-count phone gifts.** A phone card/ACH gift is an online gift the Stripe webhook writes; it never becomes an offline money row and never inflates the batch expected/entered totals. [D4 A7]
 10. **Receipt gated on plan and settlement.** Phase 7's frozen plan first admits or defers official coverage. Only an admitted individual receipt may fire: ACH (and any async tender) waits for `succeeded`/`completed`, never `processing`; a settled-on-entry tender may receipt at post. `annual_cumulative_cash` creates no per-gift receipt or send-outbox row. [D4 A18, D5 Amd4, P7/P19 D4]
@@ -2108,7 +2114,7 @@ Batch-origin acknowledgments (DAF advisor thank-you, tribute notifications, soft
 20. **No card field ever; raw card/bank never stored or logged.** A CI/redaction guard asserts no card-shaped data enters payment requests or logs; the raw-card-data-API bundle is never requested. [D4 A8]
 21. **Non-cash tenders excluded from the cash control total** (separate item/count tally; mixed batches stay balanceable). [D4 A6]
 22. **`gift_disposition_facts` CI-gated out of every money aggregate** (`fact_kind='non_contribution'`; a schema lint asserts no disposition row can emit a posting). [D4 A4]
-23. **Deposit export-immutable ladder.** `open → exported` (TWO regimes, CB-C); an `open` group stays membership-editable until P20 export even after its slip is printed or it is physically banked (`deposited` is a derived/stamped property, never a stored regime; the printed slip is a separate retained immutable snapshot); a Phase-20-exported deposit is compensating-correction-only; NSF retains membership (state→returned), never a silent delete. [D6 HD-8]
+23. **Deposit membership revisions + Phase 20 Source Coverage.** The live deposit group stays membership-editable after slip print or physical banking (`deposited` is derived/stamped, never a stored lock; the printed slip is a separate retained immutable snapshot). Phase 20 freezes only the exact consumed membership revision as immutable Source Coverage; later edits append a successor revision and any required cause-linked Compensating Accounting Release. There is no stored deposit `exported` regime. NSF retains membership (state→returned), never a silent delete. [D6 HD-8; amended 2026-07-27]
 24. **Escape-valve conservation.** SQL-enforced `committed_actual + Σ pending_async + carried_expected = frozen original_expected`, forever; the follow-on draft inherits only the frozen carried remainder, never re-derived from carried rows. [D5 Amd9]
 25. **Every offline money write is the commit path.** No API route other than the commit service writes offline money; the Track-B 501 bridge is deleted slice one and a guard test forbids its return. [D3 Amd16, D5 Amd13]
 
@@ -2118,7 +2124,7 @@ Batch-origin acknowledgments (DAF advisor thank-you, tribute notifications, soft
 
 **1. `commitGiftEntryBatch` — the one commit/post service (the sole offline-money writer).** Signature intent: `(tenantId, batchId, validatedRevision, actorId, { subset? }) → { headerIds, postingSeqs, receiptAuthorizationIntentIds, ackHeld }`. Inside one guarded transaction under the per-batch advisory lock it: asserts `validatedRevision == HEAD`, quiesces autosave, re-runs validation + the control-total predicate server-side, re-evaluates authorization fail-closed, applies the high-risk / new-operator routing predicate, and promotes each staged row into a Phase 13 header + designation line(s) + posting(s) (monotonic `effective_seq` under `FOR UPDATE`). The server derives the exact `legal_issuer_id` from the verified issuer authority for this tenant/environment, writes the immutable header issuer/tender binding, and creates the required initial Phase 7 `contribution_dating_facts` revision in the same guarded transaction; no row, request, template, or UI field can supply the issuer or resolved date. It then calls Phase 7's resolve-and-freeze receipt-plan seam against that exact header/issuer binding and references the returned `receipt_plan_fact_id` from any year-end-readiness or plan-admitted authorization evidence. It never stores or accepts an independent plan value. The same transaction emits `credit_recheck` and only plan-admitted source receipt-authorization intents, lands batch-origin acks in `held (batch_gate_pending)`, and flips batch status atomically. Idempotent per batch-revision. The escape valve is one atomic op: clean-terminal→post, clean-async-ACH→stays with origin (`partially_posted`), genuine-error→carried follow-on DRAFT with the frozen conservation split.
 
-**2. Deposit service (create / attach / detach / slip) — one service, two homes.** `createDepositGroup`, `attachGift`/`detachGift`/`reassignGift` (compare-and-set on the current `deposit_group_id` under the cooperative advisory lock, one `deposit_assignment_events` row per move; bulk assign = a synchronous bounded `UPDATE ... WHERE id = ANY(...)`, never the `contribution_operation_batches` async saga), and `renderDepositSlip` (tagged-PDF/accessible-HTML, cash + checks subtotaled separately, capability-gated + audited, PII-minimized default). Enforces the settlement-rail eligibility predicate and the two-regime lock ladder in the DB, not the UI.
+**2. Deposit service (create / attach / detach / slip) — one service, two homes.** `createDepositGroup`, `attachGift`/`detachGift`/`reassignGift` (compare-and-set on the current `deposit_group_id` under the cooperative advisory lock, one `deposit_assignment_events` row per move; bulk assign = a synchronous bounded `UPDATE ... WHERE id = ANY(...)`, never the `contribution_operation_batches` async saga), and `renderDepositSlip` (tagged-PDF/accessible-HTML, cash + checks subtotaled separately, capability-gated + audited, PII-minimized default). Enforces the settlement-rail eligibility predicate and revision-aware Source Coverage immutability in the DB, not the UI.
 
 **3. `sendBatchAcknowledgments` service (NF3).** `(tenantId, batchId, actorId, { excludedGiftIds?, streams? }) → { queued, held, wontSend }`. Flips READY `held` rows to `pending_send` and enqueues one outbox event per `(tenant, header/settlement, notify_party, stream)` with `eligible_at = now + recall_delay`; idempotent (already-`sent` never re-enqueued); restricted-party acks gated to a cleared actor (stay `held` for non-cleared); `recallBatchAcknowledgments` flips not-yet-drained events back to `held`. One trigger edge, never a second send path.
 
