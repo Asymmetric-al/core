@@ -99,7 +99,38 @@ async function createAuthContextClient(
     });
   }
 
-  if (request) {
+  // Prefer the mutable Next.js cookie store whenever it is available so
+  // route handlers that call getAuthContext(request) can persist refreshed
+  // sessions. Fall back to the explicit Request Cookie header only when the
+  // ambient store is unavailable (forwarded/sidecar contexts).
+  try {
+    const cookieStore = await cookies();
+
+    return createServerClient(url, key, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(
+          cookiesToSet: Array<{
+            name: string;
+            value: string;
+            options?: Parameters<typeof cookieStore.set>[2];
+          }>,
+        ) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options),
+            );
+          } catch {}
+        },
+      },
+    });
+  } catch {
+    if (!request) {
+      return null;
+    }
+
     const requestCookies = parseCookieHeader(
       request.headers.get("cookie") ?? "",
     ).flatMap(({ name, value }) =>
@@ -111,35 +142,11 @@ async function createAuthContextClient(
         getAll() {
           return requestCookies;
         },
-        // A forwarded request is immutable. Any refreshed session belongs on
-        // the originating Next.js response, not inside the Eve sidecar.
+        // No mutable response cookie jar in this context.
         setAll() {},
       },
     });
   }
-
-  const cookieStore = await cookies();
-
-  return createServerClient(url, key, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll(
-        cookiesToSet: Array<{
-          name: string;
-          value: string;
-          options?: Parameters<typeof cookieStore.set>[2];
-        }>,
-      ) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          );
-        } catch {}
-      },
-    },
-  });
 }
 
 function createUnauthenticatedContext(): AuthContext {
