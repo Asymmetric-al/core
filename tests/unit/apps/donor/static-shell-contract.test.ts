@@ -10,11 +10,22 @@ import { describe, expect, it } from "vitest";
  * perfectly green build while silently emptying the prerendered HTML, so a
  * build gate cannot catch them — only these assertions can.
  */
-const read = (relativePath: string) =>
+const readRaw = (relativePath: string) =>
   readFileSync(
     fileURLToPath(new URL(`../../../../${relativePath}`, import.meta.url)),
     "utf8",
   );
+
+/**
+ * The files below document *why* each banned API is banned, so a naive text
+ * match would trip on its own explanation. Assert against code only.
+ */
+const stripComments = (source: string) =>
+  source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1");
+
+const read = (relativePath: string) => stripComments(readRaw(relativePath));
 
 describe("donor static shell contract", () => {
   it("keeps the donor root layout free of a Suspense boundary", () => {
