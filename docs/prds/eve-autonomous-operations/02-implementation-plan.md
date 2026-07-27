@@ -214,6 +214,11 @@ ADR-0027.
 
 ### 11. Admin Workspace Operations Shell
 
+Implementation: the admin-only operations-first panel index, real governance
+and failure summaries, model-policy-backed eval/subagent health, explicit
+unavailable future connections, and safe secondary-chat boundary are delivered
+by issue #427 and ADR-0028.
+
 - Type: AFK
 - Blocked by: 2, 3, 4, 5, 6, 7, 8
 - User stories covered: 22, 25, 26, 34, 35, 37, 38, 42, 67
