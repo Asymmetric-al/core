@@ -1,5 +1,7 @@
 import { getPayloadClient } from "../get-payload";
 
+import { resolveDeploymentEnvironment } from "@asym/env/target-env";
+
 import type { PublicRequestContext } from "@asym/api/cms/public";
 import type { NextRequest } from "next/server";
 import type { Payload } from "payload";
@@ -53,15 +55,34 @@ function isLoopbackHost(host: string | null) {
 }
 
 /**
- * Non-production tenant-selection aids — the loopback default tenant and the
- * `?tenant=` slug override — are development conveniences only.
+ * Dev/preview tenant-selection aids — the loopback default tenant and the
+ * `?tenant=` slug override — per Phase 5 ruling A6.
  *
- * In production the tenant must come from the platform-trusted host (Phase 5
- * ruling A6). A request-controlled selector would let a visitor on one
- * ministry's domain read another ministry's published content, which is the
- * cross-tenant exposure ADR-0028 exists to prevent.
+ * On Vercel, preview and hosted develop report `NODE_ENV="production"` while
+ * `VERCEL_ENV="preview"`. Gating on `NODE_ENV` alone would disable `?tenant=`
+ * there and break CMS reads on unregistered preview hosts. Production (and
+ * legacy staging) must resolve the tenant only from the platform-trusted host;
+ * a request-controlled selector would let a visitor read another ministry's
+ * published content (ADR-0028).
  */
-function isNonProductionTenantSelectionAllowed() {
+function isDevOrPreviewTenantSelectionAllowed() {
+  const vercelEnv = process.env.VERCEL_ENV;
+  const vercelTargetEnv = process.env.VERCEL_TARGET_ENV;
+
+  if (vercelEnv || vercelTargetEnv) {
+    const deployment = resolveDeploymentEnvironment({
+      VERCEL_ENV: vercelEnv,
+      VERCEL_TARGET_ENV: vercelTargetEnv,
+    });
+
+    return (
+      deployment === "preview" ||
+      deployment === "development" ||
+      deployment === "core-development"
+    );
+  }
+
+  // Local / unit tests (no Vercel deployment signals).
   return process.env.NODE_ENV !== "production";
 }
 
@@ -145,11 +166,11 @@ export async function resolveTenantFromRequest(
     }
   }
 
-  if (explicitTenant && isNonProductionTenantSelectionAllowed()) {
+  if (explicitTenant && isDevOrPreviewTenantSelectionAllowed()) {
     return findTenantBySlug(payload, explicitTenant);
   }
 
-  if (isLoopbackHost(host) && isNonProductionTenantSelectionAllowed()) {
+  if (isLoopbackHost(host) && isDevOrPreviewTenantSelectionAllowed()) {
     const localDefaultTenantSlug = process.env.CMS_LOCAL_DEFAULT_TENANT_SLUG;
     if (localDefaultTenantSlug) {
       const localTenant = await findTenantBySlug(
