@@ -161,28 +161,26 @@ Fix:
 
 ### `TS6059` after a cached `typecheck` (workspace symlinks replaced by real directories)
 
-Symptom (Windows): a cache-hit `bun run typecheck` is immediately followed by a failing build, e.g.
-
-```
-error TS6059: File '.../packages/lib/responsive.ts' is not under 'rootDir' '.../packages/ui'.
-```
-
+Symptom (Windows): a cache-hit `bun run typecheck` is immediately followed by a failing build, and
 `ls -la packages/ui/node_modules/@asym/` shows `lib`, `auth`, and `database` as real directories
 instead of symlinks into `packages/*`.
 
-Cause: `tsc` writes `.tsbuildinfo` through the Bun workspace symlinks, so an unanchored output glob
-such as `**/*.tsbuildinfo` captures paths like
-`packages/ui/node_modules/@asym/lib/dist/tsconfig.tsbuildinfo`. Restoring that cached output
-materializes a real directory over the symlink and breaks module resolution.
+```text
+error TS6059: File '.../packages/lib/responsive.ts' is not under 'rootDir' '.../packages/ui'.
+```
 
-Fix (already applied in `turbo.json`): keep `outputs` anchored to the two locations `tsc` actually
-writes (`*.tsbuildinfo` at the package root, `dist/*.tsbuildinfo`), and keep the
-`"!**/node_modules/**"` guard on both `build` and `typecheck`. **Never cache anything under
-`node_modules`.** If Next.js `output: "standalone"` is ever enabled, revisit that guard — standalone
-builds emit required dependencies into `.next/standalone/node_modules`.
+`tsc` writes `.tsbuildinfo` through the Bun workspace symlinks, so an unanchored output glob such as
+`**/*.tsbuildinfo` captures `packages/ui/node_modules/@asym/lib/dist/tsconfig.tsbuildinfo`; restoring
+that cached output materializes a real directory over the symlink.
 
-Recovery if a workspace is already corrupted: `bun install` alone does **not** repair it, because the
-clobbered directory already exists. Delete the affected links first, then reinstall:
+Fix:
+
+- Keep `turbo.json` `outputs` anchored to where `tsc` writes — `*.tsbuildinfo` at the package root
+  and `dist/*.tsbuildinfo` — with `"!**/node_modules/**"` on both `build` and `typecheck`.
+- Revisit that guard if Next.js `output: "standalone"` is enabled; standalone builds emit required
+  dependencies into `.next/standalone/node_modules`.
+- Repair an already-corrupted workspace by deleting the clobbered links before reinstalling —
+  `bun install` alone leaves them in place:
 
 ```bash
 find packages apps -path "*/node_modules/@asym/*" -maxdepth 4 -type d '!' -exec test -e "{}/package.json" ';' -print -prune | xargs rm -rf
