@@ -1,31 +1,17 @@
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 /**
- * Suspense boundary for `await params` plus the tenant lookup in
- * `fetchPublishedCmsPageResult`, which resolves the host via `await headers()`.
+ * Suspense boundary for `await params` plus the tenant lookup, which resolves
+ * the host via `await headers()` and so cannot live inside `use cache`. It lets
+ * the navbar, footer and this skeleton prerender while the article streams.
  *
- * The body of a CMS page cannot reach the static shell while the tenant comes
- * from a request header — `headers()` is request-time and cannot be called
- * inside `"use cache"`. This boundary is what lets the navbar, footer and this
- * skeleton prerender while the article streams in the same response.
- *
- * Known consequence: because the article streams, it lands in `<div hidden>`
- * and is revealed by an inline script, so a consumer that does not execute
- * JavaScript sees this skeleton rather than the article. Every other public
- * route emits its content inline; this one cannot yet.
- *
- * The route CAN be made to emit the article inline by exporting
- * `unstable_instant = false` here and deleting this file, which exempts the
- * segment from static-shell validation and lets the render block. That is
- * deliberately NOT done: it drops the route's prerendered shell to zero bytes,
- * so nothing paints until the read completes — directly against Phase 5 US2
- * ("the page shell to appear instantly ... so that I never stare at a blank
- * loading screen"). While published reads are uncached that blank window is a
- * live round-trip to the admin app.
- *
- * Revisit once #525 lands (function-level `use cache` + `cacheTag` + bounded
- * `cacheLife`, per ADR-0030): a blocking render off a warm cache is fast, and
- * the shell/SEO trade largely dissolves. Do not make the trade before then.
+ * Consequence: the article lands in `<div hidden>`, so a consumer that does not
+ * run JavaScript sees this skeleton. Every other public route emits its content
+ * inline. Exporting `unstable_instant = false` here and deleting this file
+ * would fix that by letting the render block — deliberately not done, because
+ * it drops the prerendered shell to zero bytes and nothing paints until the
+ * read completes, against Phase 5 US2. Revisit once #525 makes published reads
+ * cached (ADR-0030), when a blocking render is a cache hit.
  */
 export default function CmsPageLoading() {
   return (

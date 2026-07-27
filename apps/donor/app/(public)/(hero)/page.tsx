@@ -24,11 +24,9 @@ export default function HomePage() {
       <HomeMission />
       <HomeStats />
       <HomeFeatured />
-      {/*
-        fallback={null} is right here: the section already renders null on an
-        empty result, it sits below the fold, and it is the only request-time
-        read on this route. Everything above it stays in the static shell.
-      */}
+      {/* The only request-time read on this route; everything above it stays in
+          the static shell. A null fallback is fine — the section renders null
+          on an empty result anyway, and it sits below the fold. */}
       <Suspense fallback={null}>
         <LatestMinistryUpdates />
       </Suspense>

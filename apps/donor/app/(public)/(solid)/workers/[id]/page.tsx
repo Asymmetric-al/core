@@ -280,16 +280,12 @@ function GivingWidgetSkeleton() {
 }
 
 /**
- * `await connection()` was removed here deliberately — it predates Cache
- * Components and forced every profile to render at request time.
- * `getFieldWorkerById` is a synchronous in-memory lookup (packages/mock-data)
- * and every client child on this page is request-free, so all
- * `generateStaticParams` profiles now prerender, JSON-LD included.
+ * No `await connection()` here on purpose: it forced every profile to render at
+ * request time, and `getFieldWorkerById` is a synchronous in-memory lookup, so
+ * the `generateStaticParams` profiles prerender with their JSON-LD.
  *
- * When worker data moves to Supabase, add `"use cache"` + `cacheTag` (pattern:
- * packages/api/src/reads/dashboard-stats.ts) — do not re-add `connection()`.
- * The build fails loudly with "Uncached data was accessed outside of
- * <Suspense>" if that is forgotten, which is the signal we want.
+ * When worker data moves to Supabase, reach for `"use cache"` + `cacheTag`
+ * (pattern: `packages/api/src/reads/dashboard-stats.ts`), not `connection()`.
  */
 export default async function WorkerProfilePage({ params }: PageProps) {
   const { id } = await params;

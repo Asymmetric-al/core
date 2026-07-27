@@ -11,15 +11,11 @@ export const metadata: Metadata = {
 };
 
 /**
- * Marks the route as request-time for metadata resolution only.
- *
- * `[token]` is a dynamic segment with no `generateStaticParams`, so metadata
- * still resolves per request while the page body below is fully static. Next
- * rejects that mismatch ("generateMetadata that depends on Request data when
- * the rest of the route does not"); this is the documented remedy. The
- * `connection()` call must stay inside its own boundary — putting it in the
- * page body would opt the whole route out of prerendering, which is what we
- * just removed from the worker profiles.
+ * Marks the route request-time for metadata only. `[token]` has no
+ * `generateStaticParams`, so metadata resolves per request while the body below
+ * is static, and Next rejects that mismatch; this is the documented remedy.
+ * Keep it inside its own boundary — in the page body it would opt the whole
+ * route out of prerendering.
  */
 const Connection = async () => {
   await connection();
@@ -27,11 +23,8 @@ const Connection = async () => {
 };
 
 /**
- * The signing UI is a client component that never read the `token` param — it
- * called `use(params)` and discarded the result, which was enough to make the
- * route request-time under Cache Components. Not awaiting params here lets the
- * static signing chrome prerender; the token is read client-side when signing
- * is wired to a real backend.
+ * Params are deliberately not awaited: the signing UI never read `token`, and
+ * awaiting it here would push the static signing chrome out of the shell.
  */
 export default function Page() {
   return (
