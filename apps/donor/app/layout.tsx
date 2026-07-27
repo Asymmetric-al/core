@@ -8,7 +8,6 @@ import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Suspense } from "react";
 
 import type { Metadata, Viewport } from "next";
 
@@ -169,12 +168,10 @@ export default function RootLayout({
           <TooltipProvider delay={0}>
             <QueryProvider>
               <MotionProvider>
-                <Suspense fallback={null}>
-                  <NuqsAdapter>
-                    <BoneyardRegistry />
-                    <OpenPolicyProvider>{children}</OpenPolicyProvider>
-                  </NuqsAdapter>
-                </Suspense>
+                <NuqsAdapter>
+                  <BoneyardRegistry />
+                  <OpenPolicyProvider>{children}</OpenPolicyProvider>
+                </NuqsAdapter>
               </MotionProvider>
             </QueryProvider>
           </TooltipProvider>
