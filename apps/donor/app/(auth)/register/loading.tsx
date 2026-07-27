@@ -13,6 +13,7 @@ export default function RegisterLoading() {
     <div
       className="flex min-h-[50vh] flex-col items-center justify-center gap-6 p-6"
       aria-busy="true"
+      role="status"
       aria-label="Loading registration"
     >
       <Skeleton className="h-10 w-48" />

@@ -9,7 +9,12 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
  */
 export default function CheckoutLoading() {
   return (
-    <div className="pt-24 pb-32" aria-busy="true" aria-label="Loading checkout">
+    <div
+      className="pt-24 pb-32"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading checkout"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-12">
           <div className="lg:col-span-7">

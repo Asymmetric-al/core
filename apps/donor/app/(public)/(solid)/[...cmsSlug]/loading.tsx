@@ -14,6 +14,7 @@ export default function CmsPageLoading() {
     <div
       className="mx-auto w-full max-w-4xl px-4 py-16 sm:px-6 lg:px-8"
       aria-busy="true"
+      role="status"
       aria-label="Loading page"
     >
       <Skeleton className="h-3 w-28" />

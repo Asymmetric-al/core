@@ -10,6 +10,7 @@ export function DashboardShellSkeleton() {
     <div
       className="flex min-h-screen flex-col bg-zinc-50"
       aria-busy="true"
+      role="status"
       aria-label="Loading dashboard"
     >
       <div className="pt-24">
