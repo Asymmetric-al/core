@@ -24,6 +24,16 @@ const PUBLIC_READ_CONTEXT_KEY = "asymPublicRead";
 const PUBLIC_STATIC_MEDIA_READ_CONTEXT_KEY = "asymPublicStaticMediaRead";
 const STATIC_MEDIA_FILE_EXISTS_WHERE = { id: { exists: true } } satisfies Where;
 
+/**
+ * Image-size filename fields from `apps/admin/src/cms/collections/media.ts`.
+ * Kept here so a Blob prefix lookup for a resized file stays scoped to the
+ * same authorized filename without widening to the whole collection.
+ */
+const MEDIA_IMAGE_SIZE_FILENAME_FIELDS = [
+  "sizes.thumbnail.filename",
+  "sizes.card.filename",
+] as const;
+
 export type PublicReadContext = {
   /** The resolved CMS tenant document id (`cms` schema). */
   cmsTenantId: number | string;
@@ -82,19 +92,51 @@ export function getPublicReadContext(
   return { cmsTenantId };
 }
 
-function markPublicStaticMediaRead(req: PayloadRequest): void {
+function readStaticMediaFilename(data: unknown): string | null {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  const filename = (data as { filename?: unknown }).filename;
+  if (typeof filename !== "string") {
+    return null;
+  }
+
+  const trimmed = filename.trim();
+  // Match Payload's static-file traversal guard: reject relative escapes.
+  if (!trimmed || trimmed.includes("../") || trimmed.includes("..\\")) {
+    return null;
+  }
+
+  return trimmed;
+}
+
+function markPublicStaticMediaRead(
+  req: PayloadRequest,
+  filename: string,
+): void {
   req.context = {
     ...(req.context ?? {}),
-    [PUBLIC_STATIC_MEDIA_READ_CONTEXT_KEY]: true,
+    [PUBLIC_STATIC_MEDIA_READ_CONTEXT_KEY]: filename,
   };
 }
 
-function isPublicStaticMediaRead(req: PayloadRequest): boolean {
-  return (
-    (req.context as Record<string, unknown> | undefined)?.[
-      PUBLIC_STATIC_MEDIA_READ_CONTEXT_KEY
-    ] === true
-  );
+function getPublicStaticMediaFilename(req: PayloadRequest): string | null {
+  const value = (req.context as Record<string, unknown> | undefined)?.[
+    PUBLIC_STATIC_MEDIA_READ_CONTEXT_KEY
+  ];
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function buildStaticMediaFilenameWhere(filename: string): Where {
+  return {
+    or: [
+      { filename: { equals: filename } },
+      ...MEDIA_IMAGE_SIZE_FILENAME_FIELDS.map((field) => ({
+        [field]: { equals: filename },
+      })),
+    ],
+  };
 }
 
 /**
@@ -196,7 +238,7 @@ export const publishedPublicReadAccess = (
  * Media `read` access: document reads follow the standard public-read policy
  * (public marker → resolved tenant's documents; staff behavior otherwise),
  * while static-file requests (`/api/media/file/<filename>`) are publicly
- * readable.
+ * readable for that filename only.
  *
  * Payload runs collection `read` access before serving file bytes
  * (`checkFileAccess`, invoked with `isReadingStaticFile: true`), and the
@@ -204,8 +246,13 @@ export const publishedPublicReadAccess = (
  * loader forwards no headers or cookies — so public pages can only render
  * CMS media if the bytes themselves are public. This matches the hosted
  * posture exactly: the Vercel Blob adapter creates the store with
- * `access: "public"`, where anyone holding a URL can read the bytes. Document
- * metadata (alt, caption, tenant) stays behind the public-read policy.
+ * `access: "public"`, where anyone holding a URL can read the bytes.
+ *
+ * Follow-up Local API reads on the same request (Blob `getFilePrefix`) are
+ * constrained to the authorized filename — never an unrestricted `true` that
+ * would let the same request enumerate every media document. Collection
+ * metadata list/detail reads without that static-file marker stay behind the
+ * public-read policy.
  */
 export const publicMediaReadAccess = (
   tenantField: string,
@@ -214,14 +261,20 @@ export const publicMediaReadAccess = (
   const documentAccess = publishedPublicReadAccess(tenantField, options);
 
   return (args) => {
-    if (isPublicStaticMediaRead(args.req)) {
-      return true;
+    const authorizedFilename = getPublicStaticMediaFilename(args.req);
+    if (authorizedFilename) {
+      return buildStaticMediaFilenameWhere(authorizedFilename);
     }
 
     if (args.isReadingStaticFile) {
       const context = getTenantContext(args.req);
       if (!context.isAuthenticated || !isStaffRole(context)) {
-        markPublicStaticMediaRead(args.req);
+        const filename = readStaticMediaFilename(args.data);
+        if (!filename) {
+          return false;
+        }
+
+        markPublicStaticMediaRead(args.req, filename);
         return STATIC_MEDIA_FILE_EXISTS_WHERE;
       }
     }

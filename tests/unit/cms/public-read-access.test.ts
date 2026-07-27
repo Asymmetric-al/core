@@ -144,20 +144,53 @@ describe("publicMediaReadAccess", () => {
     const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
     const args = {
       ...accessArgs(staffRequest(null)),
+      data: { filename: "hero.jpg" },
       isReadingStaticFile: true,
     };
 
     expect(access(args)).toEqual({ id: { exists: true } });
   });
 
-  it("keeps Blob prefix lookups public within an anonymous static-file request", () => {
+  it("keeps Blob prefix lookups scoped to the authorized filename", () => {
     const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
     const req = staffRequest(null);
+    const filename = "hero-card.webp";
 
-    expect(access({ ...accessArgs(req), isReadingStaticFile: true })).toEqual({
-      id: { exists: true },
+    expect(
+      access({
+        ...accessArgs(req),
+        data: { filename },
+        isReadingStaticFile: true,
+      }),
+    ).toEqual({ id: { exists: true } });
+    expect(access(accessArgs(req))).toEqual({
+      or: [
+        { filename: { equals: filename } },
+        { "sizes.thumbnail.filename": { equals: filename } },
+        { "sizes.card.filename": { equals: filename } },
+      ],
     });
-    expect(access(accessArgs(req))).toBe(true);
+  });
+
+  it("denies anonymous static-file reads without a filename", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+    const args = {
+      ...accessArgs(staffRequest(null)),
+      isReadingStaticFile: true,
+    };
+
+    expect(access(args)).toBe(false);
+  });
+
+  it("denies path-traversal filenames on anonymous static-file reads", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+    const args = {
+      ...accessArgs(staffRequest(null)),
+      data: { filename: "../secret.jpg" },
+      isReadingStaticFile: true,
+    };
+
+    expect(access(args)).toBe(false);
   });
 
   it("keeps authenticated staff static-file reads tenant scoped", () => {
