@@ -18,21 +18,15 @@ type RouteMainTemplateProps = {
 /**
  * `template.tsx` variant of {@link RouteMainViewTransitionBoundary}.
  *
- * Identical behaviour, minus the `key={usePathname()}`: Next.js already gives a
- * template a unique key per route, so the unmount/mount pair that makes
- * `enter`/`exit` fire comes from the framework instead of a hook.
+ * Identical behaviour minus `key={usePathname()}` — Next.js keys templates per
+ * route, so `enter`/`exit` fire without the hook. That matters because
+ * `usePathname()` suspends on routes with params `generateStaticParams()`
+ * doesn't cover, and this wraps `{children}`, so in a layout it held every page
+ * below it out of the static shell. A Suspense boundary can't rescue that: its
+ * fallback may not contain `{children}`
+ * (https://nextjs.org/docs/messages/blocking-prerender-client-hook).
  *
- * That difference is the entire point. `usePathname()` suspends while
- * prerendering a route with a dynamic param that `generateStaticParams()`
- * doesn't cover, and this component wraps `{children}`. In a layout it
- * therefore held every page below it out of the static shell — `/[...cmsSlug]`
- * and `/sign/[token]` prerendered with no page content at all. A Suspense
- * boundary can't rescue that: its fallback must not contain `{children}`
- * (https://nextjs.org/docs/messages/blocking-prerender-client-hook), so the
- * children stay out of the shell either way. Removing the read is the fix.
- *
- * Use this in `template.tsx`. Use the boundary version only where the wrapper
- * must persist across navigations.
+ * Use the boundary version only where the wrapper must persist across navigations.
  */
 export function RouteMainViewTransitionTemplate({
   children,

@@ -36,15 +36,10 @@ export default function DonorDashboardLayout({
         <main className="flex-1 pt-8 pb-20">
           <RouteMainViewTransitionBoundary className="container-responsive">
             {/*
-             * The gate is a redirect-only SIBLING, not a wrapper. When it wrapped
-             * `{children}`, this `fallback={null}` covered the whole page, so the
-             * per-route `loading.tsx` skeletons could never render on a page load
-             * — the null fallback always won. With `{children}` outside, each
-             * route's own `loading.tsx` is the boundary the user actually sees.
-             *
-             * `fallback={null}` is correct here precisely because the gate renders
-             * nothing on success; an empty fallback over real content would be the
-             * empty-shell bug.
+             * Sibling, not a wrapper: while it wrapped `{children}` this null
+             * fallback covered the whole page and the per-route `loading.tsx`
+             * skeletons could never render. `fallback={null}` is only correct
+             * because the gate renders nothing on success.
              */}
             <Suspense fallback={null}>
               <DonorRoleGate />

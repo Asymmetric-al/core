@@ -65,39 +65,14 @@ export function runBunVersionGuard(spawn = spawnSync) {
 }
 
 /**
- * Windows runs the suite through one sequential worker (`--no-file-parallelism`),
- * so a test's wall time is dominated by how much of its module graph is already
- * transformed — not by the assertions.
- *
- * Measured on the admin subset (65 files) with these exact flags: the heaviest
- * jsdom files take ~17-20s with a warm cache, but the same
- * `contributions-page.test.tsx` takes ~119s cold, and its first test alone ~63s.
- * Overhead dwarfs the work: 37s import + 42s environment vs 66s of tests for 65
- * warm files, and 496s import + 224s environment for the full cold suite.
- *
- * KNOWN BROKEN: these two timeout flags do not take effect, and raising them
- * has NOT fixed the intermittent failures. Running this script directly still
- * reports `Test timed out in 30000ms` / `Hook timed out in 90000ms` — 90000
- * being 3x30000, i.e. vitest deriving the hook budget from an effective
- * `testTimeout` of 30000. That 30000 is in neither these flags nor
- * `vitest.config.ts` (which sets `testTimeout: 20_000`), so something else is
- * supplying it and both values below are being ignored. Do not read the flags
- * as a working fix; the underlying slowness is real but still uncapped.
- *
- * Unverified leads: a second vitest/workspace config; Vitest 4 not accepting
- * `--testTimeout` on the CLI (unknown flags are dropped silently);
- * `buildVitestInvocation` joining args under `shell: true` on Windows, where
- * cmd.exe also treats the `%` in `--maxWorkers=50%` specially; or a `VITEST_*`
- * env var. Quickest probe: run one slow file with `--testTimeout` and check
- * whether the reported timeout changes at all.
- *
- * Separately, the husky pre-push wrapper exits 255 at vitest *startup* while
- * this script run directly exits 1 with ordinary failures — so that 255 belongs
- * to the wrapper, not to vitest.
- *
- * Suite health is not the problem: 513/518 files and 3460 tests pass in ~1500s;
- * only `contributions-page.test.tsx` (hook) and `contribution-batches.test.ts`
- * (test) time out.
+ * KNOWN BROKEN: the timeout flags below do not take effect. This script still
+ * reports `Test timed out in 30000ms` / `Hook timed out in 90000ms` (3x30000,
+ * vitest deriving the hook budget), a value in neither these flags nor
+ * `vitest.config.ts`. Don't read them as a working cap. Leads: a second vitest
+ * config, Vitest 4 dropping unknown CLI flags, `shell: true` arg joining on
+ * Windows (`--maxWorkers=50%` contains a cmd-special `%`), or a `VITEST_*` env
+ * var. The pre-push 255 is separate and belongs to the husky wrapper — run
+ * directly this exits 1 with ordinary failures.
  */
 export function runUnitTests(platform = process.platform, spawn = spawnSync) {
   if (platform === "win32") {
