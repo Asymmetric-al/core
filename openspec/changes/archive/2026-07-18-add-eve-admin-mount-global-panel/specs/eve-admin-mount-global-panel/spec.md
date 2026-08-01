@@ -122,23 +122,23 @@ a lightweight companion to that shell, not a re-implementation of it.
 - THEN it exposes the #427 operations-first shell running on the #425 standalone runtime
 - AND it does not redefine the shell's panels, decision-summary rule, role-gating, or the runtime's contract
 
-### Requirement: The Mount And Panel Grant No New Authority And Introduce No Live Code
+### Requirement: The Mount And Panel Grant No New Authority
 
-This change MUST only add the mount/panel boundary as a **spec/ADR contract**. It MUST NOT introduce a **live
-admin mount, Next.js integration wiring, global panel UI, data fetchers, or Supabase schema**; it is a **HITL**
-slice; and the **release switch MUST stay off until verified**. It MUST NOT widen Eve's authority, MUST NOT
+The live mount and global panel MUST remain a **HITL** surface, and the **release switch MUST stay off until
+verified**. The panel MUST NOT add live tools, provider credentials, production data fetchers, or Supabase
+schema. It MUST NOT widen Eve's authority, MUST NOT
 bypass #417 protected-area/approval limits, #418 emergency-off precedence, or the #426 auth gate, and MUST NOT
 redefine the #425 runtime, #426 auth boundary, #427 shell, or the #418–#424 governance slices.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:195]
 [VERIFIED-REPO: openspec/project.md] [VERIFIED-REPO: AGENTS.md]
 
-#### Scenario: The change stays spec-only and HITL with the release switch off
+#### Scenario: The mounted panel stays HITL with the release switch off
 
 - GIVEN this change is under review
 - WHEN a reviewer inspects what it introduces
-- THEN it adds only the spec/ADR contract, no live admin mount, Next.js integration wiring, global panel UI, data fetchers, or Supabase schema
-- AND it is a HITL slice with the release switch off until governance, auth, audit, evals, protected-area policy, kill switches, and rollback paths are verified
+- THEN it adds no live tools, provider credentials, production data fetchers, or Supabase schema
+- AND it remains a HITL surface with the release switch off until governance, auth, audit, evals, protected-area policy, kill switches, and rollback paths are verified
 
 #### Scenario: The mount does not override higher-authority constraints
 
