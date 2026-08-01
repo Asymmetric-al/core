@@ -187,7 +187,7 @@
     "@asym/pdf-template-schema": "file:../../vendor/react-pdf-packages/asym-pdf-template-schema",
     "@supabase/ssr": "^0.8.0",
     "inngest": "4.5.1",
-    "next": "16.2.6",
+    "next": "16.2.11",
     "server-only": "0.0.1",
     "stripe": "22.2.0",
     "zod": "^4.3.6"
