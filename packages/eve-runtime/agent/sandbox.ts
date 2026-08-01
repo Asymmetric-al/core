@@ -14,11 +14,29 @@ export default defineSandbox({
     microsandbox: { networkPolicy: denyAllNetwork },
     vercel: { networkPolicy: denyAllNetwork },
   }),
-  revalidationKey: () =>
-    `core-develop-sanitized-v1:${process.env.VERCEL_GIT_COMMIT_SHA ?? "local"}`,
+  revalidationKey: () => {
+    // The checkout tracks the moving `develop` branch, so the key has to expire
+    // on its own: VERCEL_GIT_COMMIT_SHA only changes when the deploying app is
+    // redeployed, and it is absent entirely outside Vercel. Bucketing by hour
+    // bounds how stale a cached workspace can be while still reusing it across
+    // a working session.
+    const hourBucket = Math.floor(Date.now() / 3_600_000);
+    const deploySha = process.env.VERCEL_GIT_COMMIT_SHA ?? "local";
+    return `core-develop-sanitized-v2:${deploySha}:${hourBucket}`;
+  },
   async bootstrap({ use: acquireSandbox }) {
     const sandbox = await acquireSandbox();
-    await sandbox.setNetworkPolicy("allow-all");
+    // Bootstrap egress is governed like every other sandbox network use. The
+    // clone below reaches the public internet, so refuse to open the network
+    // at all when governance denies it; otherwise a kill switch would still
+    // leave provisioning able to egress.
+    const decision = await resolveEveSandboxNetworkDecision();
+    if (!decision.allowed) {
+      throw new Error(
+        `Sandbox bootstrap is not authorized: ${decision.reason}.`,
+      );
+    }
+    await sandbox.setNetworkPolicy(decision.networkPolicy);
     try {
       const clone = await sandbox.run({
         command:
@@ -36,7 +54,9 @@ export default defineSandbox({
         throw new Error("The Core checkout could not be sanitized.");
       }
     } finally {
-      await sandbox.setNetworkPolicy(denyAllNetwork).catch(() => undefined);
+      // Deny-first: a failed restore must fail the bootstrap rather than cache
+      // a workspace snapshot whose network may still be open.
+      await sandbox.setNetworkPolicy(denyAllNetwork);
     }
   },
   async onSession({ ctx, use: acquireSandbox }) {
@@ -45,6 +65,7 @@ export default defineSandbox({
     const runId = crypto.randomUUID();
     const auditRecorded = await recordEveSandboxAction({
       action: "network_policy",
+      decision,
       result: decision.allowed ? "started" : "blocked",
       runId,
       sessionId: ctx.session.id,
@@ -52,7 +73,11 @@ export default defineSandbox({
     });
 
     if (!decision.allowed || !auditRecorded) {
-      await sandbox.setNetworkPolicy(denyAllNetwork).catch(() => undefined);
+      try {
+        await sandbox.setNetworkPolicy(denyAllNetwork);
+      } catch {
+        throw new Error("Sandbox networking could not be denied safely.");
+      }
       return;
     }
 
@@ -61,6 +86,7 @@ export default defineSandbox({
     } catch {
       await recordEveSandboxAction({
         action: "network_policy",
+        decision,
         result: "failed",
         runId,
         sessionId: ctx.session.id,
@@ -71,13 +97,18 @@ export default defineSandbox({
 
     const completionRecorded = await recordEveSandboxAction({
       action: "network_policy",
+      decision,
       result: "succeeded",
       runId,
       sessionId: ctx.session.id,
       target: decision.networkPolicy,
     });
     if (!completionRecorded) {
-      await sandbox.setNetworkPolicy(denyAllNetwork).catch(() => undefined);
+      try {
+        await sandbox.setNetworkPolicy(denyAllNetwork);
+      } catch {
+        throw new Error("Sandbox networking could not be denied safely.");
+      }
       throw new Error("Sandbox network authorization could not be audited.");
     }
   },
