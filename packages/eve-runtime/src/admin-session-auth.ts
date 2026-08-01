@@ -13,6 +13,10 @@ import {
 import type { EveChannelEvents } from "eve/channels/eve";
 
 function isLoopbackVerificationRequest(request: Request): boolean {
+  if (process.argv[2] !== "eval") {
+    return false;
+  }
+
   const hostname = new URL(request.url).hostname;
   return (
     hostname === "localhost" ||
@@ -23,9 +27,9 @@ function isLoopbackVerificationRequest(request: Request): boolean {
 }
 
 export const adminEveRouteAuth: AuthFn<Request> = async (request) => {
-  // Preserve #425's offline deterministic eval. The following localDev()
-  // authenticator independently rechecks the loopback boundary; this entry
-  // only skips app auth so local verification does not require Supabase env.
+  // Preserve #425's offline deterministic eval without trusting Host alone.
+  // Eve runs local evals in this process with the `eval` CLI command, and the
+  // following localDev() authenticator independently rechecks loopback.
   if (isLoopbackVerificationRequest(request)) {
     return null;
   }

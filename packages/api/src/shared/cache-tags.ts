@@ -80,7 +80,7 @@ export const READ_CACHE_TAGS = {
   missionary: (missionaryId: string) => `missionary:${missionaryId}`,
 } as const;
 
-function revalidateTags(tags: string[]): void {
+export function revalidateTags(tags: string[]): void {
   for (const tag of tags) {
     try {
       revalidateTag(tag, "max");

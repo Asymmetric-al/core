@@ -307,6 +307,8 @@ Giving source-reference fields (`missionaryId`, `fundId`, `supabaseMissionaryId`
 
 The native edit shell now reports loading, dirty, saving, autosave, validation, lock, trash, preview, and publish states without replacing Payload's document form. The authenticated preview route uses `overrideAccess: false`; public routes stay published-only and never receive draft data.
 
+**Preview convergence (Phase 5 (Public Website Runtime Contract)):** preview converges on the public runtime via Next.js Draft Mode — staff preview renders the **real public page** through the shared published-content reader with drafts on, behind a signed-secret route that authenticates the staff user, checks the tenant, enables Draft Mode (so the request is dynamic and drafts are never cached), redirects to a validated internal path, and marks the response `noindex`; it reads with `overrideAccess: false` so a tenant-A staffer cannot preview tenant-B drafts. The authenticated admin-template preview above remains the **interim** path until the Draft Mode public preview is proven. A shareable, expiring non-staff review token and Payload Live Preview remain reserved seams. See `docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md` (A10) and ADR-0028/ADR-0030.
+
 ---
 
 ## 15. Media, uploads, relationships

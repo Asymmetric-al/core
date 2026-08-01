@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export const EVE_POLICY_STATUSES = [
   "not_configured",
   "ready",
@@ -32,17 +34,24 @@ export const EVE_AUTONOMOUS_DOMAINS = [
 export type EveAutonomousDomain = (typeof EVE_AUTONOMOUS_DOMAINS)[number];
 export type EveKillSwitchState = Record<EveKillSwitchKey, boolean>;
 
+export const eveKillSwitchStateSchema = z.object(
+  Object.fromEntries(
+    EVE_KILL_SWITCH_KEYS.map((key) => [key, z.boolean()]),
+  ) as Record<EveKillSwitchKey, z.ZodBoolean>,
+);
+
+function createEveKillSwitchStateWithAll(value: boolean): EveKillSwitchState {
+  return Object.fromEntries(
+    EVE_KILL_SWITCH_KEYS.map((key) => [key, value]),
+  ) as EveKillSwitchState;
+}
+
 export function createClearedEveKillSwitchState(): EveKillSwitchState {
-  return {
-    all_automation: false,
-    active_runs: false,
-    github_actions: false,
-    production_writes: false,
-    sandbox_networking: false,
-    dynamic_workflows: false,
-    model_policy_changes: false,
-    force_approval: false,
-  };
+  return createEveKillSwitchStateWithAll(false);
+}
+
+export function createEngagedEveKillSwitchState(): EveKillSwitchState {
+  return createEveKillSwitchStateWithAll(true);
 }
 
 export type EveGovernanceBlockReason =
