@@ -2,7 +2,7 @@
 
 | Folder      | Purpose                                                     | Examples                                                   |
 | ----------- | ----------------------------------------------------------- | ---------------------------------------------------------- |
-| `apps/`     | Deployable Next.js apps and app-specific routes/UI.         | `apps/admin/app/tasks/page.tsx`                            |
+| `apps/`     | Deployable Next.js apps and app-specific routes/UI.         | `apps/admin/app/(app)/tasks/page.tsx`                      |
 | `packages/` | Shared TypeScript libraries consumed by apps.               | `packages/ui/components/button.tsx`                        |
 | `docs/`     | Contributor and architecture documentation.                 | `docs/conventions.md`                                      |
 | `scripts/`  | Automation and local verification helpers.                  | `scripts/seed-demo.sh`                                     |

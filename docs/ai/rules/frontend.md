@@ -101,6 +101,18 @@ implementation task.
 - Use TanStack Form + Zod for complex client forms with multiple fields, reusable sections, array/dynamic inputs, cross-field validation, async validation, or modal/drawer workflows.
 - Prefer native `<form>`, `next/form`, or server-action patterns for simple search bars, URL-sync inputs, one-field filters, and server-only forms.
 
+### Instant Navigation (Next.js 16.3)
+
+- All apps run `cacheComponents: true` + `partialPrefetching: true`; navigations must stay instant (see **Instant Navigation (Next.js 16.3)** in root `AGENTS.md`).
+- Every server `await` in a page/layout is an explicit Stream / Cache / Block decision:
+  - Stream request-time data with `<Suspense fallback={...}>`.
+  - Cache request-reusable data with `'use cache'`.
+  - Block only deliberately with `export const instant = false` plus a one-line reason comment.
+- Read the labeled fix links from Instant Insights errors (`nextjs.org/docs/messages/...`) before editing; apply the canonical pattern, not an improvised variation.
+- Keep `<Suspense>` boundaries close to the dynamic read; an empty shell (boundary around the whole page body) is a regression, not a fix.
+- Deeper per-link prefetching is opt-in: `<Link prefetch={true}>` + `'use cache'`; `export const prefetch = 'allow-runtime'` requires justification in the PR.
+- Add `instant()` assertions from `@next/playwright` for navigation-critical routes (pattern: `tests/e2e/instant-navigation.spec.ts`).
+
 ### Frontend testing
 
 - Follow `rules/testing.md` for Playwright/a11y/perf expectations.

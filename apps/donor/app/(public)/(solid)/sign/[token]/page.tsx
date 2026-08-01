@@ -11,28 +11,31 @@ export const metadata: Metadata = {
 };
 
 /**
- * Marks the route request-time for metadata only. `[token]` has no
- * `generateStaticParams`, so metadata resolves per request while the body below
- * is static, and Next rejects that mismatch; this is the documented remedy.
- * Keep it inside its own boundary — in the page body it would opt the whole
- * route out of prerendering.
- */
-const RequestTimeMetadataBoundary = async () => {
-  await connection();
-  return null;
-};
-
-/**
- * Params are deliberately not awaited: the signing UI never read `token`, and
- * awaiting it here would push the static signing chrome out of the shell.
+ * Takes no props on purpose. The signing UI reads its token on the client, so
+ * forwarding `params`/`searchParams` here would serialize an unresolved promise
+ * across the client boundary and keep the page segment `isPartial`, holding an
+ * otherwise fully static page out of the prerendered shell.
  */
 export default function Page() {
   return (
     <>
+      {/*
+       * `[dynamic]` fix from
+       * https://nextjs.org/docs/messages/blocking-prerender-metadata-runtime.
+       * This is a fallback route (a `[token]` with no `generateStaticParams`),
+       * so its metadata resolves per request. This marker renders nothing and
+       * declares that, which keeps the metadata out of the prerender while the
+       * page body above still prerenders into the shell.
+       */}
       <Suspense fallback={null}>
-        <RequestTimeMetadataBoundary />
+        <RequestTimeMetadataMarker />
       </Suspense>
       <PageClient />
     </>
   );
+}
+
+async function RequestTimeMetadataMarker() {
+  await connection();
+  return null;
 }

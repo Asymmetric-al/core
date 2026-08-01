@@ -35,7 +35,7 @@ describe("Vercel ignored-build helper", () => {
   });
 
   it("builds only admin for admin app changes", () => {
-    expect(buildMatrix(["apps/admin/app/page.tsx"])).toEqual({
+    expect(buildMatrix(["apps/admin/app/(app)/page.tsx"])).toEqual({
       admin: true,
       donor: false,
       missionary: false,

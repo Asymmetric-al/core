@@ -11,7 +11,7 @@ function readRepoFile(path: string) {
 describe("ContentModerationStatsSection", () => {
   it("omits the aggregate comments stat and renders the remaining six stats", () => {
     const source = readRepoFile(
-      "apps/admin/app/feed/content-moderation-sections.tsx",
+      "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
     );
     const section = source.slice(
       source.indexOf("export function ContentModerationStatsSection"),
@@ -30,7 +30,7 @@ describe("ContentModerationStatsSection", () => {
 
   it("keeps every moderation stat tile the same size", () => {
     const source = readRepoFile(
-      "apps/admin/app/feed/content-moderation-sections.tsx",
+      "apps/admin/app/(app)/feed/content-moderation-sections.tsx",
     );
     const statCard = source.slice(
       source.indexOf("function StatCard"),

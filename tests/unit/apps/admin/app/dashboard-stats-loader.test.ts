@@ -5,9 +5,9 @@ vi.hoisted(() => {
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
 });
 
-import { loadDashboardStats } from "../../../../../apps/admin/app/dashboard-stats-loader";
+import { loadDashboardStats } from "../../../../../apps/admin/app/(app)/dashboard-stats-loader";
 
-describe("apps/admin/app/dashboard-stats-loader", () => {
+describe("apps/admin/app/(app)/dashboard-stats-loader", () => {
   it("returns null when dashboard stats loading fails", async () => {
     const loadStats = vi.fn().mockRejectedValue(new Error("db unavailable"));
 

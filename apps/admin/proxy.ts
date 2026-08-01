@@ -1,4 +1,5 @@
 import { createAuthMiddleware } from "@asym/auth/middleware";
+import { resolveUserRoleFromDatabase } from "@asym/auth/resolve-user-role";
 
 export const proxy = createAuthMiddleware({
   publicRoutes: [
@@ -20,8 +21,9 @@ export const proxy = createAuthMiddleware({
   protectedRoutePrefixes: ["/"],
   loginPath: "/login",
   redirectAuthenticatedTo: "/",
-  unauthorizedRedirectTo: "/login",
+  unauthorizedRedirectTo: "/no-access",
   allowedRoles: ["staff", "admin", "super_admin"],
+  resolveUserRole: resolveUserRoleFromDatabase,
 });
 
 export const config = {

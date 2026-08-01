@@ -4,7 +4,9 @@ import { summarizeDeploymentImpact } from "../../../scripts/release/production.m
 
 describe("production release summary", () => {
   it("summarizes app-only and shared deployment impact", () => {
-    expect(summarizeDeploymentImpact(["apps/admin/app/page.tsx"])).toEqual([
+    expect(
+      summarizeDeploymentImpact(["apps/admin/app/(app)/page.tsx"]),
+    ).toEqual([
       expect.objectContaining({ app: "admin", build: true }),
       expect.objectContaining({ app: "donor", build: false }),
       expect.objectContaining({ app: "missionary", build: false }),

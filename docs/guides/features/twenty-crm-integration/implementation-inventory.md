@@ -65,16 +65,16 @@ Evidence:
 
 ### Current CRM surface
 
-- A native Mission Control CRM page already exists at `apps/admin/app/crm`.
+- A native Mission Control CRM page already exists at `apps/admin/app/(app)/crm`.
 - A current admin CRM API exists under `packages/api/src/admin/crm`.
 - The current CRM list reads Supabase `donors` records and maps them to a shared CRM grid row.
 - The CRM UI already uses shared table patterns and admin hooks.
 
 Evidence:
 
-- `apps/admin/app/crm/page.tsx`
-- `apps/admin/app/crm/page-client.tsx`
-- `apps/admin/app/crm/columns.tsx`
+- `apps/admin/app/(app)/crm/page.tsx`
+- `apps/admin/app/(app)/crm/page-client.tsx`
+- `apps/admin/app/(app)/crm/columns.tsx`
 - `packages/api/src/admin/crm/index.ts`
 - `packages/api/src/admin/crm/service.ts`
 - `packages/api/src/admin/crm/model.ts`
@@ -104,7 +104,7 @@ Evidence:
 - `docs/guides/development/tanstack-integration.md`
 - `packages/ui/components/shadcn/data-table/*`
 - `packages/database/hooks/admin-crm-infinite.ts`
-- `apps/admin/app/crm/page-client.tsx`
+- `apps/admin/app/(app)/crm/page-client.tsx`
 
 ### Planned/reference awareness of Twenty
 

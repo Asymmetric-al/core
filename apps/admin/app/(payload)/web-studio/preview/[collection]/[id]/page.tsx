@@ -21,6 +21,12 @@ type PageProps = {
   }>;
 };
 
+/**
+ * Block: a draft preview must show the true current record, and its
+ * `redirect()` / `notFound()` have to resolve before the response flushes.
+ */
+export const instant = false;
+
 export default async function WebStudioAuthenticatedPreviewPage({
   params,
 }: PageProps) {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveRegistrationCapacity } from "../../../../../../apps/admin/app/events/events-derived";
+import { deriveRegistrationCapacity } from "../../../../../../apps/admin/app/(app)/events/events-derived";
 
 describe("events registration capacity helpers", () => {
   it("clamps normal capacity progress and remaining seats", () => {

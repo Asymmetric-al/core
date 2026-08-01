@@ -12,20 +12,21 @@ Mission Control panel.
 
 The admin mount MUST use Eve's Next.js integration **only after compatibility with the repo's installed Next.js
 version is proven, or after the planned Next.js 16.3 stable rollout is validated**; otherwise the mount MUST be
-**explicitly blocked** on that rollout. The installed version is `next` **16.2.6** (not 16.3), so compatibility
-MUST be proven against 16.2.6 or the mount stays blocked. The Eve runtime MUST remain a **dedicated,
+**explicitly blocked** on that rollout. The installed version is `next` **16.3.0-preview.9** (a preview, not the
+stable 16.3 release), so compatibility MUST be proven against 16.3.0-preview.9 or the mount stays blocked — a
+preview pin is not the stable rollout. The Eve runtime MUST remain a **dedicated,
 Node-isolated workspace package**, and if Eve requires a newer Next.js release than the repo has installed, the
 Next.js upgrade MUST be treated as a **separate prerequisite**, not folded into this mount.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:203]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:370]
-[VERIFIED-REPO: package.json:169]
+[VERIFIED-REPO: package.json:176]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:644]
 
 #### Scenario: Compatibility is proven against the installed Next.js version
 
-- GIVEN the repo has `next` 16.2.6 installed and the 16.3 rollout is not yet stable
+- GIVEN the repo has `next` 16.3.0-preview.9 installed and the stable 16.3 rollout has not shipped
 - WHEN the admin mount is considered for enablement
-- THEN it is enabled only after compatibility with 16.2.6 is proven, or it is explicitly blocked on the stable 16.3 rollout
+- THEN it is enabled only after compatibility with 16.3.0-preview.9 is proven, or it is explicitly blocked on the stable 16.3 rollout
 - AND a newer-Next.js requirement is handled as a separate prerequisite, not bundled into this mount
 
 #### Scenario: The Eve runtime stays a Node-isolated workspace package

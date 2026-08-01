@@ -11,10 +11,10 @@ function readRepoFile(path: string) {
 describe("admin TanStack surface migrations", () => {
   it("routes contributions through shared database hooks and responsive table", () => {
     const mainBodySource = readRepoFile(
-      "apps/admin/app/contributions/main-body.tsx",
+      "apps/admin/app/(app)/contributions/main-body.tsx",
     );
     const pageSource = readRepoFile(
-      "apps/admin/app/contributions/page-client.tsx",
+      "apps/admin/app/(app)/contributions/page-client.tsx",
     );
 
     expect(mainBodySource).toMatch(/DataTableResponsive/);
@@ -23,14 +23,14 @@ describe("admin TanStack surface migrations", () => {
   });
 
   it("loads CRM contacts from shared package hooks instead of app-local mock data", () => {
-    const source = readRepoFile("apps/admin/app/crm/page-client.tsx");
+    const source = readRepoFile("apps/admin/app/(app)/crm/page-client.tsx");
 
     expect(source).toMatch(/useAdminCrmRecordsInfiniteGrid/);
     expect(source).not.toMatch(/MOCK_CONTACTS/);
   });
 
   it("loads task data from shared package hooks instead of local mock state", () => {
-    const source = readRepoFile("apps/admin/app/tasks/tasks-content.tsx");
+    const source = readRepoFile("apps/admin/app/(app)/tasks/tasks-content.tsx");
 
     expect(source).toMatch(/useTasksRows/);
     expect(source).toMatch(/useTaskStaff/);
@@ -51,18 +51,20 @@ describe("admin TanStack surface migrations", () => {
   });
 
   it("moves raw table surfaces onto shared hooks for attendees, mobilize, and teams", () => {
-    const eventsSource = readRepoFile("apps/admin/app/events/page-client.tsx");
+    const eventsSource = readRepoFile(
+      "apps/admin/app/(app)/events/page-client.tsx",
+    );
     const mobilizePageSource = readRepoFile(
-      "apps/admin/app/mobilize/page-client.tsx",
+      "apps/admin/app/(app)/mobilize/page-client.tsx",
     );
     const mobilizeSectionsSource = readRepoFile(
-      "apps/admin/app/mobilize/mobilize-sections.tsx",
+      "apps/admin/app/(app)/mobilize/mobilize-sections.tsx",
     );
     const teamsPageSource = readRepoFile(
-      "apps/admin/app/admin/teams/page-client.tsx",
+      "apps/admin/app/(app)/admin/teams/page-client.tsx",
     );
     const teamsSectionsSource = readRepoFile(
-      "apps/admin/app/admin/teams/teams-sections.tsx",
+      "apps/admin/app/(app)/admin/teams/teams-sections.tsx",
     );
 
     expect(eventsSource).toMatch(/useEventAttendees/);

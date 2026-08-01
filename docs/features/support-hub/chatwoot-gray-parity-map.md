@@ -50,7 +50,7 @@
 | Top-level nav with Inbox / Tickets / Customers / Internal Notes / Knowledge Base / Macros / Automation / Settings | `components/app-sidebar.tsx`                                | Existing `MCShell` `toolNav` already lists Support Hub under Tools. We do not add a parallel nav. | MVP   | Settings / Reports remain nested routes (`/support/settings`, `/support/reports`).                                                                                                      |
 | Tickets page composed of stat cards + toolbar + board / table                                                     | `components/tickets/tickets-page.tsx`                       | `apps/admin/features/support-hub/components/SupportInbox.tsx`                                     | MVP   | Wrapped by `<PageShell title="Support Hub">`.                                                                                                                                           |
 | Sidebar filter rail (Views, Categories, Priority) with badge counts                                               | `components/tickets/ticket-sidebar-filters.tsx`             | `apps/admin/features/support-hub/components/sidebar/SupportSidebarFilters.tsx`                    | MVP   | Built on `@asym/ui/components/shadcn/sidebar` primitives without a nested `<SidebarProvider>`. We rename "Categories" to "Labels" to align with Chatwoot vocabulary and our data model. |
-| Stat cards above the inbox (Total / Open / Pending / Resolved with WoW deltas)                                    | `components/tickets/ticket-stats.tsx`                       | `apps/admin/features/support-hub/components/SupportInbox.tsx` (top section)                       | MVP   | Reuses the Maia/Zinc stat-card pattern from `apps/admin/app/contributions/main-body.tsx`.                                                                                               |
+| Stat cards above the inbox (Total / Open / Pending / Resolved with WoW deltas)                                    | `components/tickets/ticket-stats.tsx`                       | `apps/admin/features/support-hub/components/SupportInbox.tsx` (top section)                       | MVP   | Reuses the Maia/Zinc stat-card pattern from `apps/admin/app/(app)/contributions/main-body.tsx`.                                                                                         |
 | Search toolbar with status dropdown + board/table toggle                                                          | `components/tickets/ticket-search-toolbar.tsx`              | `apps/admin/features/support-hub/components/toolbar/SupportSearchToolbar.tsx`                     | MVP   | Status dropdown wires to `?status=` search param; layout toggle wires to `?layout=`.                                                                                                    |
 | View slices (`all`, `mine`, `unassigned`, `past-due`, `escalated`)                                                | `lib/tickets/types.ts` (`TicketViewKey`)                    | `apps/admin/features/support-hub/types.ts` (`SupportViewKey`) and `?view=` param                  | MVP   | Computed in the API read layer, not stored.                                                                                                                                             |
 | Board ↔ table layout toggle                                                                                       | `lib/tickets/types.ts` (`TicketLayoutMode`)                 | `?layout=` param + `SupportInbox` switching between `SupportBoardView` and `SupportTableView`     | MVP   | Default `board` (matches donor).                                                                                                                                                        |
@@ -102,19 +102,19 @@
 
 ## 5. Settings (Phase 3 / 4)
 
-| Setting                                              | Chatwoot location            | Repo target                                                                                                 | Phase   |
-| ---------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------- | ------- |
-| Inbox connection (sender, signature, business hours) | Settings → Inboxes           | Reuses existing `apps/admin/app/settings/integrations/resend/page.tsx` + new `/support/settings/inbox/[id]` | Phase 3 |
-| Agents and roles                                     | Settings → Agents            | Existing tenant member management; Support Hub reads agent list from `profiles` filtered by membership      | Phase 3 |
-| Teams                                                | Settings → Teams             | New `support_teams` table + UI under `/support/settings/teams`                                              | Phase 3 |
-| Labels                                               | Settings → Labels            | `/support/settings/labels` CRUD over `support_labels`                                                       | Phase 3 |
-| Macros                                               | Settings → Macros            | `/support/settings/macros` CRUD over `support_macros`                                                       | Phase 3 |
-| Canned responses                                     | Settings → Canned responses  | `/support/settings/canned-responses`                                                                        | Phase 3 |
-| Custom attributes                                    | Settings → Custom attributes | (deferred)                                                                                                  | Phase 4 |
-| Automation rules                                     | Settings → Automation        | (deferred — out of scope for this build)                                                                    | Out     |
-| Business hours                                       | Settings → Business hours    | `/support/settings/business-hours`                                                                          | Phase 3 |
-| SLA policies                                         | Settings → SLAs              | `/support/settings/sla`                                                                                     | Phase 3 |
-| Round-robin assignment                               | Inbox setting                | Toggle on inbox; logic in `assign.ts`                                                                       | Phase 3 |
+| Setting                                              | Chatwoot location            | Repo target                                                                                                       | Phase   |
+| ---------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------- |
+| Inbox connection (sender, signature, business hours) | Settings → Inboxes           | Reuses existing `apps/admin/app/(app)/settings/integrations/resend/page.tsx` + new `/support/settings/inbox/[id]` | Phase 3 |
+| Agents and roles                                     | Settings → Agents            | Existing tenant member management; Support Hub reads agent list from `profiles` filtered by membership            | Phase 3 |
+| Teams                                                | Settings → Teams             | New `support_teams` table + UI under `/support/settings/teams`                                                    | Phase 3 |
+| Labels                                               | Settings → Labels            | `/support/settings/labels` CRUD over `support_labels`                                                             | Phase 3 |
+| Macros                                               | Settings → Macros            | `/support/settings/macros` CRUD over `support_macros`                                                             | Phase 3 |
+| Canned responses                                     | Settings → Canned responses  | `/support/settings/canned-responses`                                                                              | Phase 3 |
+| Custom attributes                                    | Settings → Custom attributes | (deferred)                                                                                                        | Phase 4 |
+| Automation rules                                     | Settings → Automation        | (deferred — out of scope for this build)                                                                          | Out     |
+| Business hours                                       | Settings → Business hours    | `/support/settings/business-hours`                                                                                | Phase 3 |
+| SLA policies                                         | Settings → SLAs              | `/support/settings/sla`                                                                                           | Phase 3 |
+| Round-robin assignment                               | Inbox setting                | Toggle on inbox; logic in `assign.ts`                                                                             | Phase 3 |
 
 ## 6. Reports (Phase 4)
 
@@ -149,7 +149,7 @@ deferred tables). All report **UIs** ship Phase 4.
 We do not build CRM linkage in MVP, but the schema is ready for it:
 
 - `support_conversations.contact_id` is a nullable FK to the existing
-  CRM contacts surface (`apps/admin/app/crm`).
+  CRM contacts surface (`apps/admin/app/(app)/crm`).
 - `support_conversations.external_contact_email` is always populated and
   is the join key Phase 4 uses to backfill `contact_id` once the CRM
   matcher exists.

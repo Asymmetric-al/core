@@ -11,9 +11,9 @@ import {
 } from "../../../../../packages/api/src/admin/contribution-operations/crm-retry-support";
 
 const clientComponentPaths = [
-  "../../../../../apps/admin/app/contributions/contribution-detail-sheet.tsx",
-  "../../../../../apps/admin/app/contributions/operation-shell.tsx",
-  "../../../../../apps/admin/app/crm/gift-inline-action-controls.tsx",
+  "../../../../../apps/admin/app/(app)/contributions/contribution-detail-sheet.tsx",
+  "../../../../../apps/admin/app/(app)/contributions/operation-shell.tsx",
+  "../../../../../apps/admin/app/(app)/crm/gift-inline-action-controls.tsx",
 ].map((relativePath) => fileURLToPath(new URL(relativePath, import.meta.url)));
 const retrySupportPath = fileURLToPath(
   new URL(

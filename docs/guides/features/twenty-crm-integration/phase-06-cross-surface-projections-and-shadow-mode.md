@@ -101,10 +101,10 @@ links, sync status, metadata, and replay request metadata.
 
 Native Mission Control route:
 
-- Page: `apps/admin/app/crm/projections/page.tsx`
-- Client: `apps/admin/app/crm/projections/page-client.tsx`
-- Columns: `apps/admin/app/crm/projections/columns.tsx`
-- Entry point: `apps/admin/app/crm/page-client.tsx` links to
+- Page: `apps/admin/app/(app)/crm/projections/page.tsx`
+- Client: `apps/admin/app/(app)/crm/projections/page-client.tsx`
+- Columns: `apps/admin/app/(app)/crm/projections/columns.tsx`
+- Entry point: `apps/admin/app/(app)/crm/page-client.tsx` links to
   `/crm/projections`
 
 API boundary:

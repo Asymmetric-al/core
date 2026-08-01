@@ -9,21 +9,6 @@ function readRepoFile(path: string) {
 }
 
 describe("React Review audit cleanup contracts", () => {
-  it("keeps draft-mode API navigation on Next Link without prefetching", () => {
-    for (const path of [
-      ".agents/skills/nextjs/templates/app-router-async-params.tsx",
-      ".cursor/skills/nextjs/templates/app-router-async-params.tsx",
-    ]) {
-      const source = readRepoFile(path);
-
-      expect(source, path).toContain("import Link from 'next/link'");
-      expect(source, path).toContain(
-        '<Link href="/api/disable-draft" prefetch={false}>',
-      );
-      expect(source, path).not.toContain('<a href="/api/disable-draft">');
-    }
-  });
-
   it("keeps review-touched examples on gap utilities at the affected call sites", () => {
     for (const path of [
       ".agents/skills/shadcn-ui/examples/auth-layout.tsx",

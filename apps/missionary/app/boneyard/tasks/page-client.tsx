@@ -2,6 +2,7 @@
 
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import { Suspense } from "react";
 
 import { MissionaryTasksListBoneyardFixture } from "../../tasks/boneyard-fixture";
 
@@ -19,17 +20,26 @@ export default function BoneyardTasksCapturePage() {
       badge="Personal Workflow"
       actions={null}
     >
-      <BoneyardSkeleton
-        name="missionary-tasks-list"
-        loading={false}
-        fixture={skeletonContent}
-        snapshotConfig={{
-          excludeSelectors: ["[data-no-skeleton]", "svg.lucide", "svg"],
-          excludeTags: ["footer"],
-        }}
-      >
-        {skeletonContent}
-      </BoneyardSkeleton>
+      {/*
+       * Stream: the fixture rows render `TaskRow`, which pulls in `motion`
+       * (non-deterministic ids) and date-fns relative-date helpers that read the
+       * current date. Neither can be baked into a prerender, so the rows are
+       * deferred while the page frame above stays static. The header is what
+       * Boneyard captures anyway.
+       */}
+      <Suspense fallback={null}>
+        <BoneyardSkeleton
+          name="missionary-tasks-list"
+          loading={false}
+          fixture={skeletonContent}
+          snapshotConfig={{
+            excludeSelectors: ["[data-no-skeleton]", "svg.lucide", "svg"],
+            excludeTags: ["footer"],
+          }}
+        >
+          {skeletonContent}
+        </BoneyardSkeleton>
+      </Suspense>
     </PageShell>
   );
 }

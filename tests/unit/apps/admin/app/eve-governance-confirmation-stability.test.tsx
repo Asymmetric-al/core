@@ -55,7 +55,7 @@ function createGovernanceView({
 describe("Eve governance confirmation stability", () => {
   beforeAll(async () => {
     const pageClient =
-      await import("../../../../../apps/admin/app/admin/eve/page-client");
+      await import("../../../../../apps/admin/app/(app)/admin/eve/page-client");
     EveGovernanceView = pageClient.EveGovernanceView;
   });
 

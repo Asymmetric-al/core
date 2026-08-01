@@ -13,7 +13,7 @@
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { EveLaunchReadinessPanel } from "../../../../../apps/admin/app/admin/eve/launch-readiness-panel";
+import { EveLaunchReadinessPanel } from "../../../../../apps/admin/app/(app)/admin/eve/launch-readiness-panel";
 import { getQueryClient } from "../../../../../packages/database/providers/query-client";
 import { QueryProvider } from "../../../../../packages/database/providers/query-provider";
 

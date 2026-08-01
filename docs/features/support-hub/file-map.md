@@ -18,8 +18,8 @@
 ### 1.1 Pages and route handlers
 
 ```
-~ apps/admin/app/support/page.tsx
-~ apps/admin/app/support/loading.tsx
+~ apps/admin/app/(app)/support/page.tsx
+~ apps/admin/app/(app)/support/loading.tsx
 + apps/admin/app/api/admin/support/conversations/route.ts
 + apps/admin/app/api/admin/support/conversations/[id]/route.ts
 + apps/admin/app/api/admin/support/conversations/[id]/messages/route.ts
@@ -98,7 +98,7 @@ Notes:
   `@asym/ui/components/shadcn/rich-text-editor`. No alternative editor.
 - `SupportTableView.tsx` is `<DataTableResponsive />` with
   `urlState`, mobile card config, virtualization, and realtime — same
-  pattern as `apps/admin/app/contributions/main-body.tsx`.
+  pattern as `apps/admin/app/(app)/contributions/main-body.tsx`.
 - `SupportInbox.tsx` wraps the three panes inside a single
   `SidebarProvider`-aware container so the donor's left sub-rail does not
   fight `MCShell`'s outer sidebar (we use it as a plain panel rather than

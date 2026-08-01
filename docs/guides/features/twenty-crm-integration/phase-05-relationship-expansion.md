@@ -78,10 +78,10 @@ domains without enabling relationship-domain writes.
 
 ### Native Surface
 
-- Route: `apps/admin/app/crm/relationships/page.tsx`
-- Client: `apps/admin/app/crm/relationships/page-client.tsx`
-- Columns: `apps/admin/app/crm/relationships/columns.tsx`
-- Entry point: `apps/admin/app/crm/page-client.tsx` links the CRM dashboard to
+- Route: `apps/admin/app/(app)/crm/relationships/page.tsx`
+- Client: `apps/admin/app/(app)/crm/relationships/page-client.tsx`
+- Columns: `apps/admin/app/(app)/crm/relationships/columns.tsx`
+- Entry point: `apps/admin/app/(app)/crm/page-client.tsx` links the CRM dashboard to
   `/crm/relationships`
 
 The surface includes tenant-scoped search, domain filters, source-system

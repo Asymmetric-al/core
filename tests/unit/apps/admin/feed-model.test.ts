@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   contentModerationUiReducer,
   INITIAL_CONTENT_MODERATION_UI_STATE,
-} from "../../../../apps/admin/app/feed/feed-model";
+} from "../../../../apps/admin/app/(app)/feed/feed-model";
 
 describe("contentModerationUiReducer", () => {
   it("updates the active tab without mutating other fields", () => {

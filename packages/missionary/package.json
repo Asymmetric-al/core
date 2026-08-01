@@ -24,7 +24,7 @@
     "date-fns": "^4.1.0",
     "lucide-react": "1.17.0",
     "motion": "^12.34.2",
-    "next": "16.2.11",
+    "next": "16.3.0-preview.9",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^2.15.4",

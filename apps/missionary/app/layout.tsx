@@ -77,10 +77,28 @@ function isPublicPath(pathname: string) {
   );
 }
 
-async function MissionaryRoleGate({ children }: { children: React.ReactNode }) {
+/**
+ * Redirect-only sibling of `{children}` — it renders nothing.
+ *
+ * It deliberately does not wrap the page: wherever this gate wraps `children`,
+ * `children` cannot prerender (the gate must `await headers()` before it can
+ * even reach its `isPublicPath` early return), so every route's real markup and
+ * every `loading.tsx` fall out of the static shell. As a sibling, the pages —
+ * all of which are thin client re-exports with no server data reads — prerender
+ * their actual content instead.
+ *
+ * Safe because `apps/missionary/proxy.ts` enforces `protectedRoutePrefixes:
+ * ["/"]` with the shared `MISSIONARY_ALLOWED_ROLES` on every request, and page
+ * data arrives through client hooks under RLS. Redirect timing is unchanged:
+ * the gate was already inside the boundary, so `redirect()` already fired
+ * post-flush. The accepted trade-off is that a request which bypassed the proxy
+ * would briefly paint the static page frame — never data — before the streamed
+ * redirect.
+ */
+async function MissionaryRoleGate() {
   const pathname = (await headers()).get("x-asym-pathname") ?? "/";
   if (isPublicPath(pathname)) {
-    return <>{children}</>;
+    return null;
   }
 
   const authContext = await getAuthContext();
@@ -97,7 +115,7 @@ async function MissionaryRoleGate({ children }: { children: React.ReactNode }) {
     redirect("/no-access");
   }
 
-  return <>{children}</>;
+  return null;
 }
 
 export const metadata: Metadata = {
@@ -162,13 +180,21 @@ export default function RootLayout({
           <QueryProvider>
             <MotionProvider>
               <TooltipProvider delay={0}>
-                <Suspense fallback={null}>
-                  <NuqsAdapter>
-                    <MissionaryRoleGate>
-                      <MissionaryLayoutShell>{children}</MissionaryLayoutShell>
-                    </MissionaryRoleGate>
-                  </NuqsAdapter>
-                </Suspense>
+                <NuqsAdapter>
+                  {/*
+                   * The role gate is a redirect-only sibling of `children`, not
+                   * a wrapper — see MissionaryRoleGate. That keeps the session
+                   * read (the only suspending work) behind the boundary while
+                   * the chrome AND each page's real markup prerender into the
+                   * static shell.
+                   */}
+                  <MissionaryLayoutShell>
+                    <Suspense fallback={null}>
+                      <MissionaryRoleGate />
+                    </Suspense>
+                    {children}
+                  </MissionaryLayoutShell>
+                </NuqsAdapter>
               </TooltipProvider>
             </MotionProvider>
           </QueryProvider>

@@ -111,10 +111,12 @@ bunx turbo run build --filter=@asym/admin --filter=@asym/donor --filter=@asym/mi
 > build time. Running `bunx turbo run build --filter=@asym/admin` directly (without the
 > `run-with-ci-env.mjs` wrapper or a real `.env.local`) will fail with
 > _"PAYLOAD_SECRET must be configured outside local development"_.
-> Use `bun run build:admin` or `bun run build:admin:strict` (both use the CI build planner and
-> supply CI-safe defaults including `PAYLOAD_SECRET`), or set a real secret in `.env.local` before
-> invoking raw `turbo`. On Windows, the CI build planner runs app builds directly through Bun to avoid
-> Turbo wrapper hangs after successful Next builds.
+> Use `bun run build:admin` to run the CI build planner with CI-safe defaults,
+> including `PAYLOAD_SECRET`. Use `bun run build:admin:strict` only when real
+> environment values are present; strict mode deliberately bypasses those
+> defaults to validate the deployment environment. On Windows, the CI build
+> planner runs app builds directly through Bun to avoid Turbo wrapper hangs
+> after successful Next builds.
 
 ## Known failure modes and fixes
 

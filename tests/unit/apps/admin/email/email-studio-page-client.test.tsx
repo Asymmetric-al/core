@@ -10,7 +10,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import EmailStudio from "../../../../../apps/admin/app/email/page-client";
+import EmailStudio from "../../../../../apps/admin/app/(app)/email/page-client";
 
 const editorHandle = vi.hoisted(() => ({
   canRedo: vi.fn(() => false),
