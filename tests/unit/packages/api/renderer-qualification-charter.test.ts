@@ -126,21 +126,31 @@ describe("freezeRendererQualificationCharter", () => {
     // The custodian access log is a genuinely order-sensitive record; its
     // order participates in the digest. (Tie-break order is now pinned to the
     // protocol, so reordering it is a validation error, not a new version.)
-    const reorderedAccessLog = structuredClone(buildFixtureContestInput());
-    reorderedAccessLog.held_back_seal = {
-      ...reorderedAccessLog.held_back_seal,
-      access_log: [
-        ...reorderedAccessLog.held_back_seal.access_log,
-        {
-          actor: "custodian-quinn",
-          at: "2026-07-22T11:30:00.000Z",
-          reason: "re-verified the sealed digest",
-        },
-      ],
+    const digestWithAccessLog = (
+      accessLog: RendererQualificationCharterInput["held_back_seal"]["access_log"],
+    ) => {
+      const input = structuredClone(buildFixtureContestInput());
+      input.held_back_seal = { ...input.held_back_seal, access_log: accessLog };
+      return freezeRendererQualificationCharter(input).manifest_digest;
     };
-    expect(
-      freezeRendererQualificationCharter(reorderedAccessLog).manifest_digest,
-    ).not.toBe(base.manifest_digest);
+
+    const twoEntries = [
+      ...structuredClone(buildFixtureContestInput()).held_back_seal.access_log,
+      {
+        actor: "custodian-quinn",
+        at: "2026-07-22T11:30:00.000Z",
+        reason: "re-verified the sealed digest",
+      },
+    ];
+    const forward = digestWithAccessLog(twoEntries);
+
+    // Appending changes the digest...
+    expect(forward).not.toBe(base.manifest_digest);
+    // ...and so does reordering the same entries, which is the actual
+    // order-sensitivity claim. Asserting only the append would pass even if the
+    // access log were canonicalized order-insensitively like the other
+    // collections above.
+    expect(digestWithAccessLog([...twoEntries].reverse())).not.toBe(forward);
   });
 
   it("names every protocol role, including operations and records/legal", () => {

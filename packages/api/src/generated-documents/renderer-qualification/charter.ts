@@ -447,8 +447,10 @@ function validateSuites(
       suites.repeatability.case_ids,
       PHASE_18_OPERATIONAL_SUITES.repeatability.case_ids,
     ) ||
-    suites.repeatability.cold_runs_per_case !== 10 ||
-    suites.repeatability.warm_runs_per_case !== 10
+    suites.repeatability.cold_runs_per_case !==
+      PHASE_18_OPERATIONAL_SUITES.repeatability.cold_runs_per_case ||
+    suites.repeatability.warm_runs_per_case !==
+      PHASE_18_OPERATIONAL_SUITES.repeatability.warm_runs_per_case
   ) {
     issues.push(
       issue(
@@ -461,12 +463,14 @@ function validateSuites(
 
   const batch = suites.mixed_batch;
   if (
-    batch.total_items !== 1000 ||
-    batch.tenants !== 20 ||
-    batch.short_items !== 700 ||
-    batch.medium_items !== 200 ||
-    batch.long_items !== 80 ||
-    batch.poison_items !== 20 ||
+    batch.total_items !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.total_items ||
+    batch.tenants !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.tenants ||
+    batch.short_items !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.short_items ||
+    batch.medium_items !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.medium_items ||
+    batch.long_items !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.long_items ||
+    batch.poison_items !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.poison_items ||
     batch.short_items +
       batch.medium_items +
       batch.long_items +
@@ -484,10 +488,14 @@ function validateSuites(
 
   const fairness = suites.fairness;
   if (
-    fairness.heavy_tenant_items !== 500 ||
-    fairness.light_tenants !== 19 ||
-    fairness.light_items_each !== 10 ||
-    fairness.claim_bound_multiplier !== 2
+    fairness.heavy_tenant_items !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.heavy_tenant_items ||
+    fairness.light_tenants !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.light_tenants ||
+    fairness.light_items_each !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.light_items_each ||
+    fairness.claim_bound_multiplier !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.claim_bound_multiplier
   ) {
     issues.push(
       issue(
@@ -500,7 +508,7 @@ function validateSuites(
 
   if (
     JSON.stringify(suites.concurrency_staircase.steps) !==
-    JSON.stringify([1, 5, 10, 25, 50])
+    JSON.stringify(PHASE_18_OPERATIONAL_SUITES.concurrency_staircase.steps)
   ) {
     issues.push(
       issue(
@@ -649,10 +657,13 @@ function validateGatesAndScoring(
 
   const rules = input.scoring_rules;
   if (
-    rules.reviewer_count !== 2 ||
-    rules.min_uncertainty_band_points !== 2 ||
-    rules.material_lead_points !== 5 ||
-    rules.tie_break_order.length !== 3
+    rules.reviewer_count !== PHASE_18_SCORING_RULES.reviewer_count ||
+    rules.min_uncertainty_band_points !==
+      PHASE_18_SCORING_RULES.min_uncertainty_band_points ||
+    rules.material_lead_points !==
+      PHASE_18_SCORING_RULES.material_lead_points ||
+    rules.tie_break_order.length !==
+      PHASE_18_SCORING_RULES.tie_break_order.length
   ) {
     issues.push(
       issue(

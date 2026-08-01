@@ -700,5 +700,16 @@ describe("remediation accounting hardening", () => {
       name: "QualificationHarnessError",
       code: "evidence_append_conflict",
     });
+
+    // The duplicate cycle_id above is caught by identity alone. A fresh id
+    // replaying the same ordinal is the case that actually exercises the
+    // anti-replay guard, and it must be rejected too.
+    await expect(
+      store.appendRemediationCycle({ ...cycle, cycle_id: "replayed-cycle" }),
+    ).rejects.toMatchObject({
+      name: "QualificationHarnessError",
+      code: "evidence_append_conflict",
+    });
+    expect(await store.listRemediationCycles()).toHaveLength(1);
   });
 });
