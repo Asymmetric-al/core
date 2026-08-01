@@ -2,7 +2,6 @@
 
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { cn } from "../../lib/utils";
@@ -13,22 +12,27 @@ interface NavLink {
   href: string;
 }
 
+/**
+ * `hero` routes open on full-bleed artwork, so the bar starts transparent and
+ * solidifies on scroll. `solid` routes are opaque from first paint.
+ *
+ * This is a static prop rather than a `usePathname()` lookup on purpose. Under
+ * Cache Components a URL read in shared layout chrome is request data, which
+ * blocks prerendering for every route below it that has a dynamic param — and a
+ * `<Suspense>` fallback here would be shared by all those routes, baking one
+ * navbar variant into each of them. Callers pick the variant instead, via
+ * sibling route groups.
+ */
+export type NavbarVariant = "hero" | "solid";
+
 interface NavbarClientProps {
   navLinks: readonly NavLink[];
   ctaLabel: string;
   ctaHref: string;
   siteName: string;
   shortName: string;
+  variant: NavbarVariant;
 }
-
-const HERO_PAGES = [
-  "/",
-  "/about",
-  "/workers",
-  "/faq",
-  "/financials",
-  "/ways-to-give",
-];
 
 export function NavbarClient({
   navLinks,
@@ -36,9 +40,9 @@ export function NavbarClient({
   ctaHref,
   siteName,
   shortName,
+  variant,
 }: NavbarClientProps) {
-  const pathname = usePathname();
-  const isHeroPage = HERO_PAGES.includes(pathname);
+  const isHeroPage = variant === "hero";
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
