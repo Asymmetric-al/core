@@ -22,7 +22,7 @@ component.
   `tanstack-foundation-guardrails.test.ts` rule still holds: no
   `@tanstack/db` import lands in `apps/admin`.
 - **Charts** reuse Recharts through dynamic imports (same pattern as
-  `apps/admin/app/reports/reports-charts.tsx`). No new chart library.
+  `apps/admin/app/(app)/reports/reports-charts.tsx`). No new chart library.
 - **Knowledge-base article insertion** is deferred — the repo has no fitting
   content source today. Listed in the Phase 7 follow-up.
 
@@ -70,7 +70,7 @@ flowchart LR
 
 ## Files added
 
-### Routes (`apps/admin/app/support/`)
+### Routes (`apps/admin/app/(app)/support/`)
 
 ```
 reports/

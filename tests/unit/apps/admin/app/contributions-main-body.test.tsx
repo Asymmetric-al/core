@@ -95,9 +95,9 @@ vi.mock("sonner", () => ({
 
 const root = new NodeURL("../../../../../", import.meta.url);
 type ContributionsMainBodyComponent =
-  typeof import("../../../../../apps/admin/app/contributions/main-body").ContributionsMainBody;
+  typeof import("../../../../../apps/admin/app/(app)/contributions/main-body").ContributionsMainBody;
 type ContributionsPageActionsComponent =
-  typeof import("../../../../../apps/admin/app/contributions/main-body").ContributionsPageActions;
+  typeof import("../../../../../apps/admin/app/(app)/contributions/main-body").ContributionsPageActions;
 let ContributionsMainBody: ContributionsMainBodyComponent;
 let ContributionsPageActions: ContributionsPageActionsComponent;
 let confirmDescriptor: PropertyDescriptor | undefined;
@@ -344,7 +344,7 @@ beforeEach(async () => {
     },
   });
   const mainBodyModule =
-    await import("../../../../../apps/admin/app/contributions/main-body");
+    await import("../../../../../apps/admin/app/(app)/contributions/main-body");
   ContributionsMainBody = mainBodyModule.ContributionsMainBody;
   ContributionsPageActions = mainBodyModule.ContributionsPageActions;
   selectedRowsRef.current = [];
@@ -520,7 +520,9 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
   });
 
   it("removes the old native confirm source from the bulk receipt path", () => {
-    const source = readRepoFile("apps/admin/app/contributions/main-body.tsx");
+    const source = readRepoFile(
+      "apps/admin/app/(app)/contributions/main-body.tsx",
+    );
 
     expect(source).not.toContain("window.confirm");
     expect(source).not.toContain("confirm(");
@@ -755,8 +757,8 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
 describe("contributions surface design tokens", () => {
   it("uses semantic tokens and explicit transitions (no raw palette, no transition-all)", () => {
     const paths = [
-      "apps/admin/app/contributions/main-body.tsx",
-      "apps/admin/app/contributions/page-client.tsx",
+      "apps/admin/app/(app)/contributions/main-body.tsx",
+      "apps/admin/app/(app)/contributions/page-client.tsx",
     ];
 
     for (const path of paths) {

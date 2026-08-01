@@ -11,7 +11,7 @@ function readRepoFile(path: string) {
 describe("support new ticket page", () => {
   it("renders real labeled controls for ticket intake", () => {
     const source = readRepoFile(
-      "apps/admin/app/support/tickets/new/new-ticket-form.tsx",
+      "apps/admin/app/(app)/support/tickets/new/new-ticket-form.tsx",
     );
 
     for (const label of [

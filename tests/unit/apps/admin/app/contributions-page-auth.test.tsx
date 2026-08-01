@@ -68,7 +68,7 @@ async function renderPageClientProps(): Promise<PageClientProps> {
   return pageClientElement.props as PageClientProps;
 }
 
-describe("apps/admin/app/contributions/page auth gate", () => {
+describe("apps/admin/app/(app)/contributions/page auth gate", () => {
   beforeEach(async () => {
     vi.resetModules();
     getAuthContextMock.mockReset();
@@ -90,14 +90,15 @@ describe("apps/admin/app/contributions/page auth gate", () => {
       }),
     );
     vi.doMock(
-      "../../../../../apps/admin/app/contributions/page-client",
+      "../../../../../apps/admin/app/(app)/contributions/page-client",
       () => ({
         default: () => null,
       }),
     );
 
-    Page = (await import("../../../../../apps/admin/app/contributions/page"))
-      .default as PageComponent;
+    Page = (
+      await import("../../../../../apps/admin/app/(app)/contributions/page")
+    ).default as PageComponent;
   });
 
   it("does not expose contribution management actions to unauthenticated visitors", async () => {

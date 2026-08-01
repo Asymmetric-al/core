@@ -17,11 +17,11 @@ vi.mock("@asym/database/hooks", () => ({
 
 const repoRoot = process.cwd();
 type AutomationsPageComponent =
-  typeof import("../../../../../apps/admin/app/automations/page-client").default;
+  typeof import("../../../../../apps/admin/app/(app)/automations/page-client").default;
 type AutomationsPageViewComponent =
-  typeof import("../../../../../apps/admin/app/automations/page-client").AutomationsPageView;
+  typeof import("../../../../../apps/admin/app/(app)/automations/page-client").AutomationsPageView;
 type FilterAutomationRules =
-  typeof import("../../../../../apps/admin/app/automations/page-client").filterAutomationRules;
+  typeof import("../../../../../apps/admin/app/(app)/automations/page-client").filterAutomationRules;
 type AutomationRuleFixture = Parameters<FilterAutomationRules>[0][number];
 let AutomationsPage: AutomationsPageComponent;
 let AutomationsPageView: AutomationsPageViewComponent;
@@ -69,7 +69,7 @@ function createAutomationRule(
   };
 }
 
-describe("apps/admin/app/automations/page-client", () => {
+describe("apps/admin/app/(app)/automations/page-client", () => {
   beforeEach(async () => {
     useMissionControlAutomationsMock.mockReset();
     process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
@@ -114,7 +114,7 @@ describe("apps/admin/app/automations/page-client", () => {
 
     if (!AutomationsPage || !AutomationsPageView || !filterAutomationRules) {
       const pageClient =
-        await import("../../../../../apps/admin/app/automations/page-client");
+        await import("../../../../../apps/admin/app/(app)/automations/page-client");
       AutomationsPage = pageClient.default;
       AutomationsPageView = pageClient.AutomationsPageView;
       filterAutomationRules = pageClient.filterAutomationRules;
@@ -441,7 +441,9 @@ describe("apps/admin/app/automations/page-client", () => {
   });
 
   it("does not keep production fallback demo data in the page source", () => {
-    const source = readRepoFile("apps/admin/app/automations/page-client.tsx");
+    const source = readRepoFile(
+      "apps/admin/app/(app)/automations/page-client.tsx",
+    );
 
     for (const banned of [
       "RECENT_FLOWS",

@@ -1,6 +1,6 @@
 # TanStack Integration Guide
 
-This guide documents the project-standard integration for TanStack Query v5, Table v9 (beta), DB, and Virtual v3 in this Next.js 16.2.11 monorepo.
+This guide documents the project-standard integration for TanStack Query v5, Table v9 (beta), DB, and Virtual v3 in this Next.js 16.3.0-preview.9 monorepo.
 
 AI agents should pair official TanStack CLI docs/search output with this repo-specific guide. TanStack Intent skills apply only when the current `npx --yes @tanstack/intent@latest list` output returns a matching package; for Query/Table/Router surfaces not returned by Intent, keep using `tanstack doc`, `tanstack search-docs`, this guide, and the virtual foundation guide below. For Table specifically, see [v9 doc sources](#v9-doc-sources) first — tanstack.com still serves v8 docs.
 

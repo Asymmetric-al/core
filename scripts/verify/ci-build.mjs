@@ -4,6 +4,8 @@ import { existsSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { repairWorkspaceLinks } from "../repair-workspace-links.mjs";
+
 const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
@@ -29,12 +31,6 @@ const NEXT_APPS = Object.freeze([
     cwd: "apps/missionary",
     nextDir: "apps/missionary/.next",
   },
-]);
-
-const NEXT_APP_FILTERS = Object.freeze([
-  "--filter=!@asym/admin",
-  "--filter=!@asym/donor",
-  "--filter=!@asym/missionary-app",
 ]);
 
 const SHARED_PACKAGES = Object.freeze([
@@ -106,50 +102,65 @@ function createRunWithCiEnvStep(label, command, args) {
   };
 }
 
+function createBuildStep(label, command, args, { strict = false } = {}) {
+  if (strict) {
+    return { label, command, args };
+  }
+
+  return createRunWithCiEnvStep(label, command, args);
+}
+
 export function getSharedPackageBuildSteps({
   platform = process.platform,
+  strict = false,
   turboBin = TURBO_BIN,
+  apps = NEXT_APPS,
 } = {}) {
   if (platform === "win32") {
     return SHARED_PACKAGES.map((workspace) =>
-      createRunWithCiEnvStep(workspace.id, "bun", [
-        "run",
-        "--cwd",
-        workspace.cwd,
-        "build",
-      ]),
+      createBuildStep(
+        workspace.id,
+        "bun",
+        ["run", "--cwd", workspace.cwd, "build"],
+        { strict },
+      ),
     );
   }
 
+  // `<pkg>^...` is Turbo's "dependencies of <pkg>, not <pkg> itself". Scoping to
+  // the requested apps keeps a single-app deploy off unrelated workspaces:
+  // Vercel runs `bun run build:donor`, and "everything except the three apps"
+  // pulled in @asym/eve-runtime (admin-only, `eve build`, requires Node >= 24)
+  // and @asym/missionary. Building all three apps still resolves to the same
+  // set, so `bun run build` is unchanged.
+  const dependencyFilters = apps.map((app) => `--filter=${app.filter}^...`);
+
   return [
-    createRunWithCiEnvStep("shared packages", turboBin, [
-      "run",
-      "build",
-      ...NEXT_APP_FILTERS,
-      "--concurrency=1",
-    ]),
+    createBuildStep(
+      "shared packages",
+      turboBin,
+      ["run", "build", ...dependencyFilters, "--concurrency=1"],
+      { strict },
+    ),
   ];
 }
 
 export function getAppBuildStep(
   app,
-  { platform = process.platform, turboBin = TURBO_BIN } = {},
+  { platform = process.platform, strict = false, turboBin = TURBO_BIN } = {},
 ) {
   if (platform === "win32") {
-    return createRunWithCiEnvStep(app.id, "bun", [
-      "run",
-      "--cwd",
-      app.cwd,
-      "build",
-    ]);
+    return createBuildStep(app.id, "bun", ["run", "--cwd", app.cwd, "build"], {
+      strict,
+    });
   }
 
-  return createRunWithCiEnvStep(app.id, turboBin, [
-    "run",
-    "build",
-    `--filter=${app.filter}`,
-    "--concurrency=1",
-  ]);
+  return createBuildStep(
+    app.id,
+    turboBin,
+    ["run", "build", `--filter=${app.filter}`, "--concurrency=1"],
+    { strict },
+  );
 }
 
 export function getRequestedApps(args = [], apps = NEXT_APPS) {
@@ -279,7 +290,16 @@ function clearStaleNextLocks() {
   }
 }
 
+/** Heal hollow workspace links (Bun isolated-linker corruption) before builds. */
+function repairAndLogWorkspaceLinks() {
+  const { repaired } = repairWorkspaceLinks(REPO_ROOT);
+  for (const entry of repaired) {
+    console.log(`[repair-workspace-links] restored ${entry}`);
+  }
+}
+
 function main(args = process.argv.slice(2)) {
+  const strict = args.includes("--strict");
   let requestedApps;
   try {
     requestedApps = getRequestedApps(args);
@@ -288,14 +308,24 @@ function main(args = process.argv.slice(2)) {
     process.exit(1);
   }
 
-  for (const step of getSharedPackageBuildSteps()) {
+  repairAndLogWorkspaceLinks();
+
+  for (const step of getSharedPackageBuildSteps({
+    strict,
+    apps: requestedApps,
+  })) {
     clearStaleNextLocks();
     run(step.command, step.args, step.label);
     clearStaleNextLocks();
   }
 
   for (const app of requestedApps) {
-    const step = getAppBuildStep(app);
+    const step = getAppBuildStep(app, { strict });
+    // Repeated per app on purpose, not a duplicate of the call at CI entry: a
+    // turbo cache hit during an earlier app's build can restore tsbuildinfo
+    // files over a workspace junction and re-hollow it mid-pipeline. See
+    // scripts/repair-workspace-links.mjs.
+    repairAndLogWorkspaceLinks();
     clearStaleNextLocks();
     run(step.command, step.args, step.label);
     clearStaleNextLocks();

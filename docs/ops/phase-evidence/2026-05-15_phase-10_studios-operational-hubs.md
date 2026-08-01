@@ -11,7 +11,7 @@ Phase 10 selected the Mission Control PDF Studio template persistence hub.
 
 Selection evidence:
 
-- `apps/admin/app/pdf/page-client.tsx` already called `/api/pdf-templates` for
+- `apps/admin/app/(app)/pdf/page-client.tsx` already called `/api/pdf-templates` for
   save/delete behavior.
 - `supabase/schema.sql` and existing migrations already contain
   `public.pdf_templates`; Phase 10 added no migration.

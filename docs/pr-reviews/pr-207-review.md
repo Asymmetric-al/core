@@ -14,8 +14,8 @@ Local merge into `upstream/production`: failed.
 
 Conflicts:
 
-- `apps/admin/app/events/page.tsx`
-- `apps/admin/app/reports/page.tsx`
+- `apps/admin/app/(app)/events/page.tsx`
+- `apps/admin/app/(app)/reports/page.tsx`
 - `apps/donor/app/(dashboard)/donor-dashboard/feed/page.tsx`
 - `apps/donor/app/(dashboard)/donor-dashboard/history/page.tsx`
 - `apps/donor/app/(dashboard)/donor-dashboard/wallet/page.tsx`

@@ -6,7 +6,7 @@ context: |
   Three Next.js App Router apps — Mission Control/admin, donor, missionary —
   plus the public tenant website experience, with shared workspace packages
   (api, auth, database, env, ui).
-  Tech: Next.js 16.2.x, React 19.2.x, TypeScript 6.0.x, Tailwind v4, Supabase,
+  Tech: Next.js 16.3.0-preview.9, React 19.2.x, TypeScript 6.0.x, Tailwind v4, Supabase,
   Stripe, TanStack Query, Inngest (workflow orchestration), Twenty (CRM
   backing subsystem), Payload (CMS engine for Web Studio).
   Spec layout is two-layered: openspec/specs/platform-* are durable

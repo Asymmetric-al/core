@@ -26,7 +26,7 @@ const TONE_DOT_CLASSES: Record<NonNullable<StatCardProps["tone"]>, string> = {
 
 /**
  * Single stat tile shared by the support-hub stats strip. Mirrors the Maia
- * pattern from `apps/admin/app/contributions/main-body.tsx` so the page reads
+ * pattern from `apps/admin/app/(app)/contributions/main-body.tsx` so the page reads
  * as part of Mission Control rather than a pasted donor block.
  */
 export function StatCard({

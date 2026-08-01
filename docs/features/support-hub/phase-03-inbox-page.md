@@ -12,9 +12,9 @@
 
 ## What landed in this phase
 
-- **Page wiring.** `apps/admin/app/support/page.tsx` mounts
+- **Page wiring.** `apps/admin/app/(app)/support/page.tsx` mounts
   `<PageShell>` with a Knowledge Base / New Conversation header action pair
-  and renders `<SupportInbox />`. `apps/admin/app/support/loading.tsx`
+  and renders `<SupportInbox />`. `apps/admin/app/(app)/support/loading.tsx`
   shows the same shell with `<SupportInboxSkeleton />`.
 - **Inbox shell** (`features/support-hub/components/SupportInbox.tsx`).
   Reads URL state via `useSupportInboxState()`, threads the same filtered
@@ -105,7 +105,7 @@ flowchart TD
 - View tabs and toolbar densities match the existing Mission Control
   navigation chrome.
 - Stats tiles inherit the Maia card pattern from
-  `apps/admin/app/contributions/main-body.tsx`.
+  `apps/admin/app/(app)/contributions/main-body.tsx`.
 - Board cards use the same chip / avatar / badge primitives the table
   cells use, so the two layouts feel like one workspace.
 
@@ -127,7 +127,7 @@ The board's drop handler dispatches a single
 
 ## Loading and empty states
 
-- `apps/admin/app/support/loading.tsx` renders the inbox skeleton inside
+- `apps/admin/app/(app)/support/loading.tsx` renders the inbox skeleton inside
   `PageShell`.
 - `<SupportInboxEmptyState />` appears when the filter pipeline returns
   zero rows; "Reset filters" calls `resetState()`.

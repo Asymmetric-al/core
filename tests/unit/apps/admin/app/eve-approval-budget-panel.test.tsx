@@ -71,7 +71,7 @@ function renderPanel() {
 
 beforeAll(async () => {
   const module =
-    await import("../../../../../apps/admin/app/admin/eve/approval-budget-panel");
+    await import("../../../../../apps/admin/app/(app)/admin/eve/approval-budget-panel");
   EveApprovalBudgetPanel = module.EveApprovalBudgetPanel;
 });
 

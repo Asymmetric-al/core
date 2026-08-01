@@ -1,5 +1,7 @@
 ﻿import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { cacheLife } from "next/cache";
+
 const { getAdminClientMock } = vi.hoisted(() => ({
   getAdminClientMock: vi.fn(),
 }));
@@ -160,6 +162,14 @@ describe("api/reads/donor-history", () => {
       "donor-456",
     );
     expect(donorLookupQuery.maybeSingle).toHaveBeenCalledTimes(1);
+    expect(cacheLife).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies one cache lifetime when no profile id is available", async () => {
+    await expect(resolveDonorId(null, "tenant-1", null)).resolves.toBeNull();
+
+    expect(cacheLife).toHaveBeenCalledTimes(1);
+    expect(getAdminClientMock).not.toHaveBeenCalled();
   });
 
   it("returns the explicit donor id only when it matches the signed-in profile", async () => {

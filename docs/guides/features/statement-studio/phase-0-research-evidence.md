@@ -122,13 +122,13 @@ object and direct file reads.
 - **Runtime:** Mission Control still exposes the product as `/pdf` / "PDF
   Studio." The normal editor is
   `LegacyUnlayerDocumentEditor`
-  (`apps/admin/app/pdf/page-client.tsx:59`, `:1939-1955`). The only browser E2E
+  (`apps/admin/app/(app)/pdf/page-client.tsx:59`, `:1939-1955`). The only browser E2E
   spec verifies the legacy page, Unlayer container, and iframe
   (`tests/e2e/admin-pdf-studio-legacy.spec.ts:29-52`). It can skip when the demo
   account is unavailable (`:7-22`).
 - **Runtime:** Legacy templates save Unlayer design JSON and cached HTML into
   `pdf_templates`; legacy PDF export calls the Unlayer browser editor and opens
-  the returned temporary URL (`apps/admin/app/pdf/page-client.tsx:1168-1176`,
+  the returned temporary URL (`apps/admin/app/(app)/pdf/page-client.tsx:1168-1176`,
   `:1480-1503`). `react-email-editor` remains a production dependency of
   `packages/ui/package.json`.
 - **Schema/runtime:** `pdf_templates` is the established root table with tenant,
@@ -181,19 +181,19 @@ object and direct file reads.
 
 - The "native builder" shown to staff is currently a raw **Document JSON**
   `<Textarea>` beside an iframe preview
-  (`apps/admin/app/pdf/page-client.tsx:1080-1160`). There is no runtime import of
+  (`apps/admin/app/(app)/pdf/page-client.tsx:1080-1160`). There is no runtime import of
   `@asym/pdf-editor` outside manifests/vendor code. This is a developer scaffold,
   not the non-technical Statement Studio editor promised by the PRD.
 - Native save writes the mutable source JSON back to the root `pdf_templates`
   row and sets `html: null`; it does **not** create an immutable version
   (`packages/api/src/pdf-templates/native-adapter.ts:221-265`). The UI confirms
   this gap by labeling "Version History" as "coming soon"
-  (`apps/admin/app/pdf/page-client.tsx:653-659`).
+  (`apps/admin/app/(app)/pdf/page-client.tsx:653-659`).
 - DocRaptor render receives PDF bytes but the native adapter discards the bytes,
   returns only size/type plus an `adapter_reference`, and neither inserts an
   artifact nor gives the browser a file/URL
   (`packages/api/src/pdf-templates/native-adapter.ts:190-217`). The UI can only
-  toast "Native render completed" (`apps/admin/app/pdf/page-client.tsx:1434-1477`).
+  toast "Native render completed" (`apps/admin/app/(app)/pdf/page-client.tsx:1434-1477`).
 - Asset URL signing and batch execution are placeholders: the asset adapter
   returns `undefined` for a signed URL and the batch adapter only echoes enqueue
   metadata (`packages/api/src/pdf-templates/native-adapter.ts:368-403`).
@@ -338,12 +338,12 @@ owners are reconciled; it should not become a fifth money/receipt truth store.
 | Giving / donor    | `packages/api/src/giving/{receipts,receipt-record}.ts`; `packages/api/src/admin/contribution-operations/{receipt-delivery,receipt-pdf}.ts`; `packages/api/src/donor-portal/{service,receipts,statements}.ts`            | **Runtime + Schema + Test.** Giving and Contribution Operations own gift, correction, receipt, and delivery facts; donor portal is the recipient BFF. The four receipt paths and live annual query are not yet one official-document context.                                                                                                            |
 | Reports / finance | `packages/api/src/admin/crm/reports/service.ts:buildAdminCrmReport`; `packages/api/src/admin/crm/reports/export.ts`; `apps/admin/app/api/admin/crm/reports/{route,export/route}.ts`                                     | **Runtime + Test.** A tenant-scoped report/CSV seam exists, but its giving aggregation selects flat completed `donations` by `created_at`; finance must approve a document DTO before Statement Studio uses it.                                                                                                                                          |
 | Missionary        | `packages/api/src/missionary-portal/service.ts:getMissionaryPortalSnapshot`; `packages/api/src/missionary-portal/{donors,tasks}.ts`; `tests/unit/packages/api/missionary-portal-{redaction,snapshot-redaction}.test.ts` | **Runtime + Test.** This is a real role-scoped BFF/resolver starting point, but there is no statement route/context. The legacy `missionary_tasks` table in `20250101000000_init_schema.sql:287-301` has no tenant column and was initially created with RLS disabled at `:577`, so task documents are not a clean first job without separate hardening. |
-| Events            | `apps/admin/app/events/page-client.tsx:EventsPage`; `packages/database/collections/admin-workspace.ts:eventAttendeesCollection`                                                                                         | **Runtime UI over seed data.** The attendee collection returns `EVENT_ATTENDEES_SEED`; no production event document resolver or artifact route was found. Treat event starters as sample/template-ready only.                                                                                                                                            |
+| Events            | `apps/admin/app/(app)/events/page-client.tsx:EventsPage`; `packages/database/collections/admin-workspace.ts:eventAttendeesCollection`                                                                                   | **Runtime UI over seed data.** The attendee collection returns `EVENT_ATTENDEES_SEED`; no production event document resolver or artifact route was found. Treat event starters as sample/template-ready only.                                                                                                                                            |
 | Support / reports | `packages/api/src/admin/support-hub/adapter/index.ts:supportHubAdapter`; `apps/admin/app/api/admin/support/reports/route.ts`; `apps/admin/features/support-hub/lib/report-aggregations.ts:buildReportSeries`            | **Runtime.** Supabase is the live Support adapter, but the reports route explicitly delegates part of aggregation to a client-side helper. Consolidate a server-owned report context before PDF output.                                                                                                                                                  |
 | Member care       | `packages/api/src/reads/member-care.ts`; `packages/api/src/admin/member-care/**`; `supabase/migrations/20260414180338_member_care_foundation.sql`                                                                       | **Runtime + Schema + Test.** Tenant-scoped activities, goals, requirements, and private notes exist. Private-note redaction, elevated capability, retention, and access-reason audit need separate HITL policy before any care packet.                                                                                                                   |
 | Shared tasks      | `packages/api/src/admin/mission-control-tasks/**`; `packages/api/src/admin/mission-control-tasks/store.ts` writes `mission_control_tasks`; `packages/database/collections/admin-workspace.ts:adminTasksCollection`      | **Runtime service plus seed/in-memory UI collection.** Shared Mission Control tasks are the source owner. Do not render from `adminTasksCollection`, whose query/mutations operate on in-memory rows.                                                                                                                                                    |
-| Mobilize          | `apps/admin/app/mobilize/**`; `packages/database/collections/admin-workspace.ts:mobilizeCandidatesCollection`                                                                                                           | **Runtime UI over seed data.** Candidate collection reads `MOBILIZE_CANDIDATES_SEED`; no production packet resolver was found. Defer operational packets.                                                                                                                                                                                                |
-| Legal / signing   | `apps/admin/app/sign/page-client.tsx`; `apps/donor/app/(public)/(solid)/sign/[token]/page-client.tsx`                                                                                                                   | **Prototype/mock.** The public signer assigns the literal mock signature `John Doe`; no production legal evidence/context owner was found. Legal packets remain HITL and not implementation-ready.                                                                                                                                                       |
+| Mobilize          | `apps/admin/app/(app)/mobilize/**`; `packages/database/collections/admin-workspace.ts:mobilizeCandidatesCollection`                                                                                                     | **Runtime UI over seed data.** Candidate collection reads `MOBILIZE_CANDIDATES_SEED`; no production packet resolver was found. Defer operational packets.                                                                                                                                                                                                |
+| Legal / signing   | `apps/admin/app/(app)/sign/page-client.tsx`; `apps/donor/app/(public)/(solid)/sign/[token]/page-client.tsx`                                                                                                             | **Prototype/mock.** The public signer assigns the literal mock signature `John Doe`; no production legal evidence/context owner was found. Legal packets remain HITL and not implementation-ready.                                                                                                                                                       |
 | CMS               | `apps/admin/src/cms/access/tenant-access.ts`; `apps/admin/src/cms/public/published-page-read.ts`; `apps/admin/src/cms/collections/media.ts`; `apps/admin/src/cms/payload-runtime-integrations.ts`                       | **Runtime.** Payload provides tenant-scoped approved content and published-page reads. Media uses Vercel Blob when configured and local `staticDir` as the fallback; Statement Studio still needs an authorized, render-safe asset adapter. CMS may supply branding/content, never operational or gift truth.                                            |
 
 Repository searches also covered the report, event, missionary, care, task,

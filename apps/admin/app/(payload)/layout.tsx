@@ -28,6 +28,7 @@ import type {
   ServerFunctionClient,
 } from "payload";
 
+import { requireAdminAccess } from "@/lib/admin-access";
 import {
   assertPayloadDatabaseConfiguration,
   PayloadDatabaseConfigurationError,
@@ -70,11 +71,31 @@ const serverFunction: ServerFunctionClient = async (args) => {
   }
 };
 
+/**
+ * Block: the Payload admin resolves auth, access rules and nav preferences
+ * before it can render `children` at all, so there is nothing to lift into a
+ * static shell — a boundary here would only produce an empty one.
+ */
+export const instant = false;
+
+/** The shell can never hold segment data here, so don't spend a prefetch on it. */
+export const prefetch = "force-disabled";
+
 export default function PayloadLayout({ children }: Props) {
   return <PayloadEmbeddedLayout>{children}</PayloadEmbeddedLayout>;
 }
 
 async function PayloadEmbeddedLayout({ children }: Props) {
+  // `(payload)` deliberately stays outside `(app)`: Payload's import-map
+  // generator only resolves `app/(payload)/<adminRoute>/`, so moving this group
+  // breaks `generate:importmap`. That means the `(app)` layout's role gate does
+  // not cover these routes, and `proxy.ts` authenticates without ever checking
+  // role — so the gate has to be explicit here, or any signed-in donor or
+  // missionary reaches the Payload admin.
+  const gatePathname =
+    (await nextHeaders()).get("x-asym-pathname") ?? "/web-studio";
+  await requireAdminAccess(gatePathname);
+
   try {
     assertPayloadDatabaseConfiguration();
   } catch (cause) {

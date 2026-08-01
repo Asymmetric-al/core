@@ -4,7 +4,7 @@ import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 /**
  * Skeleton mirror of the inbox layout: stats strip, tab strip, toolbar,
- * and the body grid. Rendered by `apps/admin/app/support/loading.tsx`.
+ * and the body grid. Rendered by `apps/admin/app/(app)/support/loading.tsx`.
  */
 export function SupportInboxSkeleton() {
   return (

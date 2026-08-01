@@ -14,17 +14,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { filterSharedContributions } from "../../../../../packages/api/src/admin/contribution-shared";
 
-import type { Contribution } from "../../../../../apps/admin/app/contributions/types";
+import type { Contribution } from "../../../../../apps/admin/app/(app)/contributions/types";
 import type { ReactNode } from "react";
 
 type ContributionsPageComponent =
-  typeof import("../../../../../apps/admin/app/contributions/page-client").default;
+  typeof import("../../../../../apps/admin/app/(app)/contributions/page-client").default;
 type InvalidateContributionOperationQueries =
-  typeof import("../../../../../apps/admin/app/contributions/page-client").invalidateContributionOperationQueries;
+  typeof import("../../../../../apps/admin/app/(app)/contributions/page-client").invalidateContributionOperationQueries;
 type ContributionsDataModule =
-  typeof import("../../../../../apps/admin/app/contributions/data");
+  typeof import("../../../../../apps/admin/app/(app)/contributions/data");
 type UseAdminContributionsModule =
-  typeof import("../../../../../apps/admin/app/contributions/use-admin-contributions");
+  typeof import("../../../../../apps/admin/app/(app)/contributions/use-admin-contributions");
 type DatabaseHooksModule = typeof import("@asym/database/hooks");
 
 const useAdminContributionsMock = vi.fn();
@@ -65,10 +65,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock(
-  "../../../../../apps/admin/app/contributions/use-admin-contributions",
+  "../../../../../apps/admin/app/(app)/contributions/use-admin-contributions",
   async () => {
     const dataModule =
-      await import("../../../../../apps/admin/app/contributions/data");
+      await import("../../../../../apps/admin/app/(app)/contributions/data");
 
     return {
       ADMIN_CONTRIBUTIONS_QUERY_KEY: ADMIN_CONTRIBUTIONS_QUERY_KEY_VALUE,
@@ -468,12 +468,12 @@ async function loadEnvSensitiveModules() {
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
 
   const useAdminContributionsModule =
-    await import("../../../../../apps/admin/app/contributions/use-admin-contributions");
+    await import("../../../../../apps/admin/app/(app)/contributions/use-admin-contributions");
   const databaseHooksModule = await import("@asym/database/hooks");
   const dataModule =
-    await import("../../../../../apps/admin/app/contributions/data");
+    await import("../../../../../apps/admin/app/(app)/contributions/data");
   const pageClientModule =
-    await import("../../../../../apps/admin/app/contributions/page-client");
+    await import("../../../../../apps/admin/app/(app)/contributions/page-client");
 
   ContributionsPage = pageClientModule.default;
   invalidateContributionOperationQueries =
@@ -488,7 +488,7 @@ async function loadEnvSensitiveModules() {
     databaseHooksModule.MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY;
 }
 
-describe("apps/admin/app/contributions/page-client", () => {
+describe("apps/admin/app/(app)/contributions/page-client", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();

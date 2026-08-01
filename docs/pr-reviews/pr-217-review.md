@@ -36,7 +36,7 @@ Suggested fix:
 
 ### P2 - Event progress can divide by zero
 
-Evidence: `apps/admin/app/events/page-client.tsx` around lines 760-775 computes progress from `event.registrants / event.capacity`.
+Evidence: `apps/admin/app/(app)/events/page-client.tsx` around lines 760-775 computes progress from `event.registrants / event.capacity`.
 
 Impact: capacity values of `0`, `null`, or unset can produce `Infinity`, `NaN`, or layout oddities.
 
@@ -48,7 +48,7 @@ Suggested fix:
 
 ### P2 - Animations bypass shared motion/reduced-motion conventions
 
-Evidence: several `motion.div` usages in `apps/admin/app/support/page-client.tsx` use literal durations/easing around lines 105-188.
+Evidence: several `motion.div` usages in `apps/admin/app/(app)/support/page-client.tsx` use literal durations/easing around lines 105-188.
 
 Impact: dashboard surfaces can ignore reduced-motion needs and drift from the repo's animation rules.
 

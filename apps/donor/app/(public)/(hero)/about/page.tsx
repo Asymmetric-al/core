@@ -13,7 +13,10 @@ export const metadata: Metadata = pageMetadata.about;
 
 export default function AboutPage() {
   return (
-    <div className="bg-white min-h-screen selection:bg-emerald-500/30">
+    <div
+      className="bg-white min-h-screen selection:bg-emerald-500/30"
+      data-testid="about-route-shell"
+    >
       <BreadcrumbJsonLd
         items={[
           { name: "Home", href: "/" },
