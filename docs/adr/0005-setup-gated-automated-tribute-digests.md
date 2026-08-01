@@ -5,6 +5,12 @@
 > Full record: `docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md`,
 > Section F (ratified decision D3, Option B + 14 hardening amendments from
 > the adversarial pass `wf_d2a57022-c30`).
+>
+> **Authority amendment (2026-07-27):** The tribute cadence and coverage
+> ruling remains in force. The historical reference to rendering on “both
+> engines” is superseded by Phase 18's clean production contract: a bounded
+> evidence contest may select at most one exact production renderer, and the
+> production runtime never operates two rendering engines in parallel.
 
 ## Context
 
@@ -45,4 +51,6 @@ enable, default OFF. Imported tributes arrive stopped.
 - The no-auto-stop rule means cadence, not lifecycle heuristics, is the only
   thing that ends letters — closing a stream is always a human act.
 - Render paths enforce the notification document-class allowlist with
-  render-refusal on both engines before the first letter ships.
+  render-refusal on the single Phase 18 production renderer before the first
+  letter ships. Any losing spike implementation is removed or kept strictly
+  outside production; there is no dual-renderer runtime or failover path.

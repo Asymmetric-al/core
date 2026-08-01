@@ -77,7 +77,10 @@ patterns where they help:
 - server-side trust boundaries and strong audit trails
 - safer donor privacy and cleaner public/authenticated separation
 - rules-first receipt and statement behavior (not template-first)
-- clear provider boundaries (providers store/execute; Asym owns truth)
+- clear, source-specific provider boundaries: Asym owns its operational
+  intent, source coverage, and audit evidence; Stripe, banks, and QBO/Xero
+  remain authoritative for the exact external facts and outcomes each
+  produces
 - better CRM data-health, recovery, and reconciliation paths
 - better testing, evidence, accessibility, and responsive UX
 
@@ -129,53 +132,69 @@ capabilities that already have code lives in
 [`parity-matrix.md`](./parity-matrix.md) — all matrix `Live?` cells are
 `unconf` until the human-only Phase 0 Lane 2 check runs.
 
-The Phase 16 qualifier `issue set pending; groomed-not-dispatched` means its PRD
-exists, but no Phase 16 epic/children have been published and no implementation
-dispatch has been authorized.
+The Phase 16 qualifier `epic #793 + #794–#837; groomed-not-dispatched` means its
+PRD and issue set exist, but no implementation dispatch has been authorized.
+The Phase 17 qualifier `epic #873 + #874–#905; groomed-not-dispatched` means its
+PRD and blocked issue set exist, but no implementation dispatch has been
+authorized and no child carries `ready-for-agent`.
+The Phase 18 qualifier `epic #907 + #908–#961; approved frontier #908–#910`
+means its PRD and published issue set exist. Children #908–#910 are open with
+`status:todo` + `ready-for-agent`; #911–#961 remain open with
+`status:blocked`. Those labels do not prove implementation or authorize further
+dispatch.
 
-| #      | Phase                                                                            | Hard deps                                        | Status                                                         |
-| ------ | -------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
-| **0**  | Baseline, Governance & Evidence                                                  | —                                                | `PRD exists`                                                   |
-| **1**  | Source-of-Truth Ownership Matrix                                                 | 0                                                | `PRD exists` (ruled 2026-07-06)                                |
-| **2**  | Site, Locale & Currency Foundation                                               | 1                                                | `PRD exists` (epic #477)                                       |
-| **3**  | Minimum Permission & Role-Scoped Projection Foundation                           | 1, 2                                             | `PRD exists` (epic #489)                                       |
-| **4**  | Identity & Account-Claiming Foundation                                           | 2, 3                                             | `PRD exists` (epic #503)                                       |
-| **5**  | Public Website Runtime Contract                                                  | 2, 3, 4                                          | `PRD exists` (epic #520)                                       |
-| **6**  | Shared Communication Event Model                                                 | 2, 3, 4, 5                                       | `PRD exists` (epic #550)                                       |
-| **7**  | Receipt & Statement Compliance Rules + Donor Identity/Credit Model               | **4, 6, 3** (PRD C1–C3)                          | `PRD exists` (epic #566)                                       |
-| **8**  | CRM Operating Foundation _(re-groomed → Operations Observability & Data-Health)_ | none (build-now core); 6/9 gate reserved sockets | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)      |
-| **9**  | Full CRM Depth & Relationship Graph                                              | **4, 7, 3**; 8 soft                              | `PRD exists` (epic #604 + #605–#627)                           |
-| **10** | Sensitive-Data Classification & Restricted-Ministry Safety Foundation            | **3, 9**                                         | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)       |
-| **11** | Custom Fields & Custom Collections                                               | 9, 10, 3                                         | `PRD exists` (epic #645 + #646–#664)                           |
-| **12** | Full Role & Permission Configuration                                             | 3, 10, 11                                        | `PRD exists` (epic #665 + #666–#687)                           |
-| **13** | Campaign, Designation, Contribution Ledger & Giving Cart                         | 1, 2, 3, 4, 5, 7                                 | `PRD exists` (epic #690 + #691–#713)                           |
-| **14** | Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts           | 13, 7, 9                                         | `PRD exists` (epic #719 + #720–#741)                           |
-| **15** | Offline Gift & Batch Entry                                                       | **13**, 14, 7                                    | `PRD exists (epic #758 + #759–#786)`                           |
-| **16** | Pledges & Recurring Commitments                                                  | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**      | `PRD exists` (issue set pending; groomed-not-dispatched)       |
-| **17** | System Messages & Template Management                                            | 6, 2, 3                                          | `future (needs PRD)`                                           |
-| **18** | Receipt & PDF Template System                                                    | 7, **13**, 17                                    | `future (needs PRD)`                                           |
-| **19** | Year-End Statement Operations                                                    | 7, 18, 17, **13**, 6                             | `future (needs PRD)`                                           |
-| **20** | Accounting Exports & Reconciliation                                              | **13**, 15, 14, 2                                | `future (needs PRD)`                                           |
-| **21** | Missionary Field Accounts & Support Balances                                     | 13, 20, 3, 4                                     | `future (needs PRD)` — new in v2                               |
-| **22** | Public Missionary & Project Page Workflow                                        | 5, 9, 10, 13, 3                                  | `future (needs PRD)`                                           |
-| **23** | CMS / Site Planner Dynamic Content Parity                                        | 5, 3, 2                                          | `future (needs PRD)` — deps allow an early start after Phase 5 |
-| **24** | Full Multi-Site, Language & Currency Management                                  | 2, 5, 23                                         | `future (needs PRD)`                                           |
-| **25** | Donor Dashboard Depth                                                            | 4, 3, 13, 7, 6                                   | `future (needs PRD)`                                           |
-| **26** | Support Hub & Conversation Management                                            | 6, 3, 4, 9, 17                                   | `future (needs PRD)` — new in v2                               |
-| **27** | Donor Development & Portfolio Management _(beyond-parity differentiator)_        | **9**, 3, 6, 13                                  | `future (needs PRD)` (was v1 Phase 33)                         |
-| **28** | Missionary Workspace Depth & Support-Raising CRM                                 | 9, 13, 16, 6, 3, 27                              | `future (needs PRD)`                                           |
-| **29** | File Manager & Document Management                                               | 3, 9                                             | `future (needs PRD)`                                           |
-| **30** | Imports & Migration Tools                                                        | 9, 13, 11, 29, 4, 3                              | `future (needs PRD)`                                           |
-| **31** | Platform API, Webhooks & Connector Framework                                     | 1, 3, 4, 6                                       | `future (needs PRD)` — new in v2                               |
-| **32** | Mailchimp / Newsletter Sync with Suppression Handling                            | 6, 3, 28, 4, 31                                  | `future (needs PRD)`                                           |
-| **33** | Reporting & BI / Report Studio                                                   | 9, 13, 7, 6, 3                                   | `future (needs PRD)` — deps allow an early start (see lanes)   |
-| **34** | Configurable Automation & Workflow Engine                                        | 9, 11, 12, 29, 17, 6                             | `future (needs PRD)`                                           |
-| **35** | Spark-Style Contribution Triggers                                                | **34**, 13, 6, 3                                 | `future (needs PRD)` (confirmed separate from 34)              |
-| **36** | Peer-to-Peer & Advocacy Campaigns                                                | 5, 13, 25, 3, 22                                 | `future (needs PRD)`                                           |
-| **37** | Event / Opportunity Workflows & Group Management                                 | 5, 9, 13, 6, 29, 34, 36                          | `future (needs PRD)`                                           |
-| **38** | Member Care, Crisis & Restricted-Ministry Operations                             | 10, 3, 4, 9, 29                                  | `future (needs PRD)` — new in v2                               |
-| **39** | Mobile, Low-Bandwidth & Conflict-Safe Field Experience                           | 3, 4, 9, 28                                      | `future (needs PRD)` — new in v2                               |
-| **40** | Data Stewardship, Global Search & AI Operator Workbench                          | 3, 4, 8, 9, 13, 30, 33                           | `future (needs PRD)` — new in v2                               |
+The Phase 19 qualifier `epic #977 + #978–#1031; blocked/not-dispatched` means
+its PRD authority map, traceability, research, congruence, ADR, OpenSpec package,
+and issue set exist, but no implementation dispatch has been authorized.
+
+`PRD in PR #872` means the Phase 17–20 planning package is reviewable but not
+yet merged into `develop`. Phase 20 is implementation-ready planning only; its
+specification, ADRs, OpenSpec package, and spec issue #1036 do not prove runtime
+implementation or authorize ticket dispatch.
+
+| #      | Phase                                                                            | Hard deps                                        | Status                                                          |
+| ------ | -------------------------------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------- |
+| **0**  | Baseline, Governance & Evidence                                                  | —                                                | `PRD exists`                                                    |
+| **1**  | Source-of-Truth Ownership Matrix                                                 | 0                                                | `PRD exists` (ruled 2026-07-06)                                 |
+| **2**  | Site, Locale & Currency Foundation                                               | 1                                                | `PRD exists` (epic #477)                                        |
+| **3**  | Minimum Permission & Role-Scoped Projection Foundation                           | 1, 2                                             | `PRD exists` (epic #489)                                        |
+| **4**  | Identity & Account-Claiming Foundation                                           | 2, 3                                             | `PRD exists` (epic #503)                                        |
+| **5**  | Public Website Runtime Contract                                                  | 2, 3, 4                                          | `PRD exists` (epic #520)                                        |
+| **6**  | Shared Communication Event Model                                                 | 2, 3, 4, 5                                       | `PRD exists` (epic #550)                                        |
+| **7**  | Receipt & Statement Compliance Rules + Donor Identity/Credit Model               | **4, 6, 3** (PRD C1–C3)                          | `PRD exists` (epic #566)                                        |
+| **8**  | CRM Operating Foundation _(re-groomed → Operations Observability & Data-Health)_ | none (build-now core); 6/9 gate reserved sockets | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)       |
+| **9**  | Full CRM Depth & Relationship Graph                                              | **4, 7, 3**; 8 soft                              | `PRD exists` (epic #604 + #605–#627)                            |
+| **10** | Sensitive-Data Classification & Restricted-Ministry Safety Foundation            | **3, 9**                                         | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)        |
+| **11** | Custom Fields & Custom Collections                                               | 9, 10, 3                                         | `PRD exists` (epic #645 + #646–#664)                            |
+| **12** | Full Role & Permission Configuration                                             | 3, 10, 11                                        | `PRD exists` (epic #665 + #666–#687)                            |
+| **13** | Campaign, Designation, Contribution Ledger & Giving Cart                         | 1, 2, 3, 4, 5, 7                                 | `PRD exists` (epic #690 + #691–#713)                            |
+| **14** | Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts           | 13, 7, 9                                         | `PRD exists` (epic #719 + #720–#741)                            |
+| **15** | Offline Gift & Batch Entry                                                       | **13**, 14, 7                                    | `PRD exists (epic #758 + #759–#786)`                            |
+| **16** | Pledges & Recurring Commitments                                                  | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**      | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)    |
+| **17** | System Messages & Template Management                                            | 6, 2, 3, 7                                       | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)    |
+| **18** | Receipt & PDF Template System                                                    | 7, **13**, 17                                    | `PRD exists` (epic #907 + #908–#961; #908–#910 ready frontier)  |
+| **19** | Year-End Statement Operations                                                    | 6, 7, 12, **13**, 14, 15, 17, 18                 | `PRD exists` (epic #977 + #978–#1031; blocked/not-dispatched)   |
+| **20** | Accounting Exports & Reconciliation                                              | **2, 3, 4, 7, 12, 13, 14, 15**                   | `PRD exists` (implementation-ready 2026-07-27; not implemented) |
+| **21** | Missionary Field Accounts & Support Balances                                     | 13, 20, 3, 4                                     | `future (needs PRD)` — new in v2                                |
+| **22** | Public Missionary & Project Page Workflow                                        | 5, 9, 10, 13, 3                                  | `future (needs PRD)`                                            |
+| **23** | CMS / Site Planner Dynamic Content Parity                                        | 5, 3, 2                                          | `future (needs PRD)` — deps allow an early start after Phase 5  |
+| **24** | Full Multi-Site, Language & Currency Management                                  | 2, 5, 13, 20, 23                                 | `future (needs PRD)`                                            |
+| **25** | Donor Dashboard Depth                                                            | 4, 3, 13, 7, 6                                   | `future (needs PRD)`                                            |
+| **26** | Support Hub & Conversation Management                                            | 6, 3, 4, 9, 17                                   | `future (needs PRD)` — new in v2                                |
+| **27** | Donor Development & Portfolio Management _(beyond-parity differentiator)_        | **9**, 3, 6, 13                                  | `future (needs PRD)` (was v1 Phase 33)                          |
+| **28** | Missionary Workspace Depth & Support-Raising CRM                                 | 9, 13, 16, 6, 3, 27                              | `future (needs PRD)`                                            |
+| **29** | File Manager & Document Management                                               | 3, 9                                             | `future (needs PRD)`                                            |
+| **30** | Imports & Migration Tools                                                        | 9, 13, 11, 29, 4, 3                              | `future (needs PRD)`                                            |
+| **31** | Platform API, Webhooks & Connector Framework                                     | 1, 3, 4, 6                                       | `future (needs PRD)` — new in v2                                |
+| **32** | Mailchimp / Newsletter Sync with Suppression Handling                            | 6, 3, 28, 4, 31                                  | `future (needs PRD)`                                            |
+| **33** | Reporting & BI / Report Studio                                                   | 9, 13, 7, 6, 3                                   | `future (needs PRD)` — deps allow an early start (see lanes)    |
+| **34** | Configurable Automation & Workflow Engine                                        | 9, 11, 12, 29, 17, 6                             | `future (needs PRD)`                                            |
+| **35** | Spark-Style Contribution Triggers                                                | **34**, 13, 6, 3                                 | `future (needs PRD)` (confirmed separate from 34)               |
+| **36** | Peer-to-Peer & Advocacy Campaigns                                                | 5, 13, 25, 3, 22                                 | `future (needs PRD)`                                            |
+| **37** | Event / Opportunity Workflows & Group Management                                 | 5, 9, 13, 6, 29, 34, 36                          | `future (needs PRD)`                                            |
+| **38** | Member Care, Crisis & Restricted-Ministry Operations                             | 10, 3, 4, 9, 29                                  | `future (needs PRD)` — new in v2                                |
+| **39** | Mobile, Low-Bandwidth & Conflict-Safe Field Experience                           | 3, 4, 9, 28                                      | `future (needs PRD)` — new in v2                                |
+| **40** | Data Stewardship, Global Search & AI Operator Workbench                          | 3, 4, 8, 9, 13, 30, 33                           | `future (needs PRD)` — new in v2                                |
 
 **Out of scope (deliberate):** **child sponsorship** — declared out now and
 tracked as an out-of-scope row in [`parity-matrix.md`](./parity-matrix.md), so
@@ -288,8 +307,22 @@ Before creating issues or tickets, check:
   households, organizations, soft credits, DAF, tribute, matching). Later phases
   **consume, not re-derive** it: Phase 9 (CRM depth) builds on the Phase 7 party
   tables; Phase 14 (donor credit operations) builds on the Phase 7 credit
-  model; Phase 18 (templates) and Phase 19 (statement ops) render the Phase 7
-  approved facts. Do not re-model those concepts in a later phase.
+  model; Phase 18 alone renders/stores exact artifacts from approved facts,
+  while Phase 19 freezes source-authoritative populations, applies only bounded
+  pre-release participation, and operates statement runs. Do not
+  re-model those concepts in a later phase.
+
+- **Phase 19 is a source-authoritative bulk-operations consumer, not a second
+  receipt or statement engine.** Phase 7 owns the legal donor, eligibility,
+  facts, coverage, and correction effect; Phase 13 owns posted money; Phase 14
+  owns recognition; Phase 18 owns exact generated-document identity, artifact,
+  currentness, access, and records; and Phase 17/6 own message preparation,
+  transport, and delivery evidence. Phase 19 alone owns the immutable Run
+  Preflight, purpose-pinned Statement Run and Run Items, bounded participation,
+  release and control fences, recipient-operation coordination, physical
+  fulfillment, operational completion, and the PII-minimized Run Evidence
+  Record. Its Year-End Operations workspace is a rebuildable projection, never
+  another authority.
 
 - **Spark-style contribution triggers are confirmed separate (Phase 35).** The
   parity matrix tracks Spark triggers (area #25) as distinct from the automation
@@ -359,12 +392,17 @@ Before creating issues or tickets, check:
   staff-keyed PANs would break SAQ-A" wording is superseded.)_
 
 - **Do not present any later phase (9–40) as implemented or live.** Groomed
-  PRDs through Phase 16 are planning contracts, not build proof. Phase 16 is
-  marked `PRD exists` with an explicit issue-set-pending/groomed-not-dispatched
-  qualifier; only the separate `/to-tickets` publication step may add issue
-  references, and only a separate founder decision may dispatch them. The
-  matrix's `Built?` cells marked `(v)` still need per-area code
-  verification, and all `Live?` cells are `unconf`.
+  PRDs through Phase 20 are planning contracts, not build proof. Phase 16 is
+  marked `PRD exists` with epic #793 and children #794–#837; Phase 17 has a PRD
+  plus blocked epic #873 and children #874–#905. Phase 18 has published epic
+  #907 and children #908–#961; #908–#910 are the approved
+  `status:todo` + `ready-for-agent` frontier and #911–#961 remain
+  `status:blocked`. Phase 19 has published epic #977 and children #978–#1031,
+  all blocked/not dispatched. Phase 20 is implementation-ready but not
+  implemented or dispatched. Published issue posture is not build proof, and
+  only an explicit founder decision may dispatch additional work. The matrix's `Built?`
+  cells marked `(v)` still need per-area
+  code verification, and all `Live?` cells are `unconf`.
 
 ## Related documents
 
