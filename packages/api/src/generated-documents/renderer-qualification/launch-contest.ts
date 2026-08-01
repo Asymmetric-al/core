@@ -399,42 +399,56 @@ export const PHASE_18_SCORE_DIMENSIONS: readonly ScoreDimension[] = [
     title: "Preview/final fidelity and editor simplicity",
     weight: 20,
     anchors: ANCHORS,
+    evidence_basis:
+      "Semantic-source translation burden, preview predictability, repair clarity and ongoing authoring complexity",
   },
   {
     dimension_id: "accessibility_archival_quality",
     title: "Accessibility and archival quality",
     weight: 20,
     anchors: ANCHORS,
+    evidence_basis:
+      "Quality/stability of tag, table, language, profile and validator outcomes beyond minimum pass",
   },
   {
     dimension_id: "long_document_throughput",
     title: "Long-document correctness and throughput",
     weight: 20,
     anchors: ANCHORS,
+    evidence_basis:
+      "Tail latency, throughput, memory, page behavior and operational headroom on long/mixed workloads",
   },
   {
     dimension_id: "isolation_failure_clarity",
     title: "Isolation and failure clarity",
     weight: 15,
     anchors: ANCHORS,
+    evidence_basis:
+      "Sandbox strength, typed/diagnosable failures, ambiguous-outcome handling and recovery burden",
   },
   {
     dimension_id: "international_text",
     title: "International text",
     weight: 10,
     anchors: ANCHORS,
+    evidence_basis:
+      "Quality and maintainability across French, RTL, CJK, fonts, extraction and bidi behavior",
   },
   {
     dimension_id: "total_operational_cost",
     title: "Total operational cost",
     weight: 10,
     anchors: ANCHORS,
+    evidence_basis:
+      "Measured cost at launch/year-end shapes, staffing, procurement, support, upgrades and capacity",
   },
   {
     dimension_id: "provider_portability",
     title: "Provider portability",
     weight: 5,
     anchors: ANCHORS,
+    evidence_basis:
+      "Narrowness of adapter, retained source/evidence, exit cost and absence of provider-owned product truth",
   },
 ];
 

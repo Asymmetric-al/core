@@ -227,6 +227,31 @@ describe("sealCandidateSubmission", () => {
   });
 });
 
+describe("sealCandidateSubmission clock ordering", () => {
+  it("refuses to seal evidence dated before the charter froze", async () => {
+    // A skewed or injected clock would otherwise produce a submission dated
+    // before the contest existed, and that ordering is what makes the evidence
+    // package auditable.
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+
+    await expect(
+      sealCandidateSubmission({
+        charter,
+        expected_manifest_digest: charter.manifest_digest,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        source_digest: syntheticDigest("early-source"),
+        output_digest: syntheticDigest("early-output"),
+        now: () => new Date("2026-07-22T11:59:59.000Z"),
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "submission_invalid" });
+
+    expect(await store.listSubmissions()).toHaveLength(0);
+  });
+});
+
 describe("recordRemediationCycle", () => {
   it("commits metered effort and attribution to the evidence digest", async () => {
     // hours_spent meters the equal remediation budget and recorded_at carries

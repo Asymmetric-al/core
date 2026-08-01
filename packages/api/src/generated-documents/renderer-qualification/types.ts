@@ -184,6 +184,12 @@ export interface ScoreDimension {
   weight: number;
   /** Exact 0–5 anchors. */
   anchors: readonly [string, string, string, string, string, string];
+  /**
+   * The protocol's "Evidence considered after the hard gates" for this
+   * category. Frozen so reviewers cannot change what evidence justifies a
+   * score once results are visible.
+   */
+  evidence_basis: string;
 }
 
 export interface ScoringRules {

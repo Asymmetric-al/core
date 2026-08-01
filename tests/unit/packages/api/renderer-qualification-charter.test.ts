@@ -372,6 +372,31 @@ describe("freezeRendererQualificationCharter", () => {
     ).toContain("charter_incomplete");
   });
 
+  it("freezes the evidence basis behind each scored dimension", () => {
+    // The protocol's scoring table has an "Evidence considered after the hard
+    // gates" column per category. Freezing only titles/anchors would let a
+    // reviewer redefine what evidence justifies a score once results are
+    // visible.
+    const charter = freezeRendererQualificationCharter(
+      buildFixtureContestInput(),
+    );
+    for (const dimension of charter.score_dimensions) {
+      expect(dimension.evidence_basis.length).toBeGreaterThan(0);
+    }
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.score_dimensions = input.score_dimensions.map((item, index) =>
+            index === 0
+              ? { ...item, evidence_basis: "whatever the reviewer likes" }
+              : item,
+          );
+        }),
+      ),
+    ).toContain("protocol_fixed_field_changed");
+  });
+
   it("rejects wrong or missing candidates and versions", () => {
     expect(
       issueCodes(

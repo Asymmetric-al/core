@@ -741,13 +741,14 @@ function validateGatesAndScoring(
     if (!fixed) continue;
     if (
       dimension.title !== fixed.title ||
+      dimension.evidence_basis !== fixed.evidence_basis ||
       JSON.stringify(dimension.anchors) !== JSON.stringify(fixed.anchors)
     ) {
       issues.push(
         issue(
           `score_dimensions.${dimension.dimension_id}`,
           "protocol_fixed_field_changed",
-          "Dimension titles and 0–5 anchors are pre-registered by the protocol.",
+          "Dimension titles, evidence basis, and 0–5 anchors are pre-registered by the protocol.",
         ),
       );
     }

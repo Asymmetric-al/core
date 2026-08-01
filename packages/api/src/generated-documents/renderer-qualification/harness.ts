@@ -316,6 +316,17 @@ export async function sealCandidateSubmission(
     }
   }
 
+  // Evidence cannot predate the charter that governs it. Without this a skewed
+  // or injected clock seals a submission dated before the contest existed, and
+  // the ordering is what makes the evidence package auditable.
+  const sealedAt = (input.now ?? (() => new Date()))();
+  if (sealedAt.getTime() < Date.parse(input.charter.frozen_at)) {
+    throw new QualificationHarnessError(
+      "submission_invalid",
+      `Submission cannot be sealed at ${sealedAt.toISOString()}, before the charter froze at ${input.charter.frozen_at}.`,
+    );
+  }
+
   const record: SealedCandidateSubmission = {
     submission_id: (input.generateId ?? (() => crypto.randomUUID()))(),
     charter_id: input.charter.charter_id,
@@ -325,7 +336,7 @@ export async function sealCandidateSubmission(
     remediation_cycle_ordinal: ordinal,
     source_digest: input.source_digest,
     output_digest: input.output_digest,
-    sealed_at: (input.now ?? (() => new Date()))().toISOString(),
+    sealed_at: sealedAt.toISOString(),
     sealed_by: input.actor,
   };
 
