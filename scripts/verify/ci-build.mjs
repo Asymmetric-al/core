@@ -33,12 +33,6 @@ const NEXT_APPS = Object.freeze([
   },
 ]);
 
-const NEXT_APP_FILTERS = Object.freeze([
-  "--filter=!@asym/admin",
-  "--filter=!@asym/donor",
-  "--filter=!@asym/missionary-app",
-]);
-
 const SHARED_PACKAGES = Object.freeze([
   { id: "api", cwd: "packages/api" },
   { id: "auth", cwd: "packages/auth" },
@@ -120,6 +114,7 @@ export function getSharedPackageBuildSteps({
   platform = process.platform,
   strict = false,
   turboBin = TURBO_BIN,
+  apps = NEXT_APPS,
 } = {}) {
   if (platform === "win32") {
     return SHARED_PACKAGES.map((workspace) =>
@@ -132,11 +127,19 @@ export function getSharedPackageBuildSteps({
     );
   }
 
+  // `<pkg>^...` is Turbo's "dependencies of <pkg>, not <pkg> itself". Scoping to
+  // the requested apps keeps a single-app deploy off unrelated workspaces:
+  // Vercel runs `bun run build:donor`, and "everything except the three apps"
+  // pulled in @asym/eve-runtime (admin-only, `eve build`, requires Node >= 24)
+  // and @asym/missionary. Building all three apps still resolves to the same
+  // set, so `bun run build` is unchanged.
+  const dependencyFilters = apps.map((app) => `--filter=${app.filter}^...`);
+
   return [
     createBuildStep(
       "shared packages",
       turboBin,
-      ["run", "build", ...NEXT_APP_FILTERS, "--concurrency=1"],
+      ["run", "build", ...dependencyFilters, "--concurrency=1"],
       { strict },
     ),
   ];
@@ -307,7 +310,10 @@ function main(args = process.argv.slice(2)) {
 
   repairAndLogWorkspaceLinks();
 
-  for (const step of getSharedPackageBuildSteps({ strict })) {
+  for (const step of getSharedPackageBuildSteps({
+    strict,
+    apps: requestedApps,
+  })) {
     clearStaleNextLocks();
     run(step.command, step.args, step.label);
     clearStaleNextLocks();
