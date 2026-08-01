@@ -61,6 +61,138 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
   place to consume the Phase 16 model and expressly record that their original
   legacy-pledge topology is superseded. Historical archived changes remain
   unchanged.
+- **System messages are one governed platform capability, not Email Studio
+  plus exceptions (added 2026-07-19, Phase 17).** One code-governed catalog
+  defines stable message contracts and their Reserved/Live/Retired lifecycle.
+  One normative executable manifest expands five immutable compile-time profiles
+  into complete flat contracts for all 18 Target Live candidates, with exact
+  fact walls, trigger bindings, action/surface/retention envelopes, generated
+  projections, a separate protected system-default namespace, and dated
+  producer/obligation plus decision/test closure artifacts. Runtime inheritance
+  and inferred safety defaults are prohibited.
+  Producer domains own events, facts, recipients, protected actions, business
+  fences, official truth, and completion. Phase 17 owns immutable structured
+  presentation, publication, whole-message resolution, bounded Delivery Plans,
+  and notification presentation; Phase 6 remains the single recipient-specific
+  intent, dispatch, provider-evidence, and communication-history spine. This
+  prevents templates, provider objects, mutable bindings, or workflows from
+  becoming a second source of business truth.
+- **Tenant freedom is broad inside an explicit safety envelope (added
+  2026-07-19, Phase 17).** Tenants can control permitted content, tone, Brand
+  Kit, Role Layouts, organization/site variants, any canonical human-language
+  locale in the pinned IANA/Unicode standards catalog, one of two bounded
+  fallback priorities, optional Delivery Plan steps,
+  sender profiles, reply destinations, and native portability. Contracts retain
+  the minimum legal/security/payment/receipt truth, recipient authority,
+  consent, protected actions, and source-owned facts. Publications and their
+  compatible dependencies are complete, immutable, diffable, synthetic-data
+  previewable, proportionally reviewed, and atomically published.
+- **Transport is tenant-owned and subordinate to prepared product identity
+  (added 2026-07-19, Phase 17).** Resend is the only email provider, but every
+  tenant brings one proved Resend account/domain/connection and there is no
+  shared tenant-message fallback. One Default Sender Profile plus bounded
+  same-domain profiles and independent contract-purpose reply destinations
+  compose into immutable delivery snapshots. Recipient-specific preparation
+  freezes content, locale, presentation, protected-action reference,
+  sender/reply/connection, and hashes before provider I/O. Recovery distinguishes
+  definitely unsubmitted from possibly submitted work, reconciles unknown
+  outcomes, and never blindly rerenders or replays.
+- **Tenant and platform mail share one structurally scoped spine (added
+  2026-07-19, Phase 17).** Every execution/history row carries an explicit
+  tenant-or-platform owner arc and scope-prefixed keys/FKs. Tenant Party/contact
+  and tenant connection/profile fields are mutually exclusive with the closed
+  platform-recipient authority union; v1 admits only the exact revisioned
+  `eve_platform_owner` authority and fixed platform connection/profile. Provider
+  envelopes are single-scope; tenant roles cannot reach platform rows; no
+  caller/provider field or fake tenant chooses ownership. Eve retains source
+  policy and Discord. Phase 17 owns any exact cataloged Eve contract,
+  publication/compiler, and platform connection/profile proof; Phase 6 owns its
+  recipient-specific delivery and history. Customer-account security mail needs
+  a future distinct recipient-authority branch.
+- **Notification, history, portability, and reserved channels stay bounded
+  (added 2026-07-19, Phase 17).** In-product notifications use one Asym attention
+  projection model and never become business/task truth. Durable communication
+  history stays body-free; eligible tenant messages may retain one encrypted,
+  support-safe recent copy for at most 30 days, while platform-scoped messages
+  retain no readable copy in this generation. Native packages create
+  destination-owned drafts without authority, secrets, or recipient history.
+  SMS records consent/readiness/suppression evidence while transport remains
+  structurally unavailable. General workflows remain Phase 34, inbound replies
+  Phase 26, broad portal notification centers Phases 25/28, campaigns Phase 32,
+  and official documents/statements their producing phases.
+- **Phase 17 architecture decisions are recorded once (added 2026-07-19).**
+  Canonical `docs/adr/0025`–`0032` bind protected actions, Delivery Plans,
+  notifications, dark SMS
+  evidence, mutually exclusive tenant/platform Resend ownership and composed delivery identity, the structured
+  document and presentation graph, body-free history/recent copy, and immutable
+  preparation/recovery. The full product contract lives in
+  `specs/outbound-communications/spec.md`; the dated full requirement deltas in
+  `platform-surfaces` and `platform-boundaries` remove the older unbounded
+  tenant-control and contribution-specific automation routing ambiguity.
+- **Generated documents preserve separate durable authorities (added
+  2026-07-21, Phase 18).** One bounded relational Document Production module
+  and one product-level Generated Document service keep the immutable Document
+  Definition Publication, source-owned Facts Package, idempotent Generation
+  Request, optional source-authorized Issuance, and exact private Artifact
+  separate. Source domains retain issuance validity and correction-effect
+  authority; Phase 18 owns D9/D11 code-governed reference/serial allocation,
+  nonreuse/disposition, and artifact linkage after admitted freeze. Render
+  Attempts are subordinate technical evidence and Phase 17 Delivery is external.
+  Templates and renderers cannot query source tables, decide legal or money
+  truth, allocate identifiers, select statement populations, or turn a send/
+  download into issuance. Staff use Templates, Documents, and Batches; recipients
+  see one authorized logical document and one current PDF action.
+- **One evidence-qualified renderer produces one exact accessible artifact
+  (added 2026-07-21, Phase 18).** A pre-registered Prince-family versus Typst
+  0.15.1 contest with Chromium control may select one production deployment or
+  no winner. Each purpose selects one code-owned accessible output policy, and
+  archival conformance is added to the same PDF rather than creating a peer
+  file. Structured authoring, Approved Data Views, immutable publication,
+  code-owned U.S./opt-in Canadian packs, proof-gated resolution, current-object
+  authorization, scanner-resistant shared protected actions, item-authoritative
+  batches, records schedules, and one future publication appointment remain
+  purpose-bound and tenant-safe.
+- **The pre-production prototype runtime is removed rather than migrated
+  (added 2026-07-21, Phase 18).** A server-authoritative environment/data/
+  dependency assertion must first prove there are no production tenants,
+  irreplaceable artifacts, or relied-upon external dependencies. Only then may
+  the disposable environment be reset to the canonical schema and every
+  snapshot, scaffold, live-text, hard-coded-send, mutable-root, browser-facts,
+  Unlayer/native-switch, provider-URL, direct-write, and alternate reader/writer
+  path be deleted. An indeterminate or positive proof stops the line for
+  re-grooming. No importer, compatibility view, archive, dual path, shadow
+  migration, or fabricated history ships.
+- **Statement operations coordinate separate authorities through one reviewed
+  release (added 2026-07-24, Phase 19).** One immutable Run Preflight pins
+  source-authoritative Statement Subjects, facts closure, participation,
+  document and communication resolution, recipient delivery, fulfillment, and
+  policy. One atomic Start transaction creates the canonical purpose-pinned
+  Statement Run and opens the release barrier without external I/O. Phase 19
+  coordinates but does not absorb Phase 7 eligibility/facts, Phase 14
+  recognition, Phase 18 document/artifact, or Phase 17/6 communication truth.
+  The Year-End Operations workspace is a derived operational projection rather
+  than a campaign parent or lifecycle authority.
+- **Tenant control stays broad inside explicit statement contracts (added
+  2026-07-24, Phase 19).** Tenants control compatible pre-start participation,
+  Statement Delivery Profiles, self-print/mail-house/direct-mail posture,
+  staff capabilities, bounded review strengthening, run control, operational
+  completion, and one target-ready date. They cannot override legal-donor
+  identity, eligibility, coverage, current artifact, privacy, suppression,
+  provider finality, or tenant-fair capacity. The ordinary path remains
+  automatic and low-ceremony.
+- **Official and recognition documents never collapse (added 2026-07-24,
+  Phase 19).** Official documents use exact Phase 7 legal-donor Statement
+  Subjects. Household and disclosed-DAF recognition may appear only through the
+  separate optional `giving.summary.informational@1` Support overview, always
+  labeled **Not a tax document** and absent by default. Shared destinations and
+  presentation groups never create joint legal truth.
+- **Frozen runs recover through owner-specific append-only lanes (added
+  2026-07-24, Phase 19).** Destination succession, cooperative Pause/Resume/
+  Stop, year-boundary check late facts, contextual help, supplemental runs,
+  exact-current copy requests, staff completion, and audit-package retrieval
+  preserve immutable release evidence and route each action to its source
+  owner. Unknown provider outcomes reconcile before new effects. The live-text
+  annual statement path is removed rather than extended.
 
 ## Non-goals
 
@@ -70,6 +202,15 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
 - No exhaustive up-front spec of the 25 areas.
 - No product implementation, migration, issue dispatch, or communication send
   is authorized by the Phase 16 specification package.
+- No product implementation, migration, transport activation, catalog
+  activation, tenant credential collection, message publication, bulk send, or
+  issue dispatch is authorized by the Phase 17 specification package.
+- No product implementation, destructive cutover, renderer selection, Canadian
+  activation, document publication, artifact generation, migration, or issue
+  dispatch is authorized by the Phase 18 specification package.
+- No product implementation, provider activation, live statement release,
+  mailpiece submission, data migration, or issue dispatch is authorized by the
+  Phase 19 specification package.
 
 ## Risks / trade-offs
 
@@ -81,6 +222,28 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
   outcome-based.
 - **Overlap with OpenSpec PR #462** → mitigated by an explicit reconcile
   follow-up; the matrix points to #462 where it already governs an area.
+- **Existing Email Studio and Resend tables look more complete than they are** →
+  mitigated by explicit REAL-versus-FORWARD anchors and migration requirements.
+  Mutable templates, `is_active` bindings, singular settings, and provider logs
+  are predecessor inputs; they are not the Phase 17 catalog, publication,
+  prepared-message, recovery, or communication-history authority.
+- **A configurable message product can become a second workflow engine or a
+  second truth store** → mitigated by producer ownership, fixed Delivery Plan
+  slots, typed facts, one Phase 6 send/history seam, and hard phase boundaries.
+  The unique Delivery Plan occurrence header and atomic release compiler are
+  coordination inside that Phase 6 spine; they are not another queue, outbox,
+  scheduler, workflow run, communication ledger, or outcome authority.
+- **Tenant freedom can weaken safety or deliverability** → mitigated by complete
+  immutable publications, contract-owned protected truth, proportional review,
+  same-domain proved sender profiles, purpose-bound replies, server-side
+  resolution, and no shared Resend fallback.
+- **Recovery can duplicate or mutate a message after provider uncertainty** →
+  mitigated by separate server-derived semantic-identity and immutable-command
+  hashes, the durable preparation boundary, distinct artifact/envelope AAD,
+  typed failure ownership, indeterminate reconciliation, precise quarantine,
+  and proof-gated recovery limited to eligible unprepared,
+  prepared-definitely-unsubmitted, or exact contract-permitted definitely
+  rejected work.
 
 ## Open questions
 

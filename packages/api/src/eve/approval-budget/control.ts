@@ -14,7 +14,9 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 function identityParams(auth: AuthenticatedContext) {
-  return verifiedIdentityParams(createAdminEveAuditIdentity(auth));
+  return verifiedIdentityParams(
+    createAdminEveAuditIdentity(auth, { tenantId: auth.tenantId }),
+  );
 }
 
 function verifiedIdentityParams(identity: EveVerifiedAuditIdentity) {
@@ -90,7 +92,9 @@ export async function executeEvePolicyTracer(input: {
   return executeEvePolicyTracerAsIdentity({
     actionId: input.actionId,
     approvalId: input.approvalId,
-    identity: createAdminEveAuditIdentity(input.auth),
+    identity: createAdminEveAuditIdentity(input.auth, {
+      tenantId: input.auth.tenantId,
+    }),
     supabaseAdmin: input.supabaseAdmin,
     targetKey: input.targetKey,
   });

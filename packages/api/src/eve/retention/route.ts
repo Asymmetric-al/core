@@ -64,7 +64,11 @@ export const POST = withOperation(
           result = { cleared: true };
           break;
         case "run_expiry":
-          result = await runEveRetentionExpiry({ supabaseAdmin, ...mutation });
+          result = await runEveRetentionExpiry({
+            auth,
+            supabaseAdmin,
+            ...mutation,
+          });
           break;
       }
       return NextResponse.json({ result, requestId });

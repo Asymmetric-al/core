@@ -33,10 +33,10 @@ grant authority, or alter governance policy.
 
 Artifact expiry is two-phase. A security-definer claim function locks eligible
 rows with `FOR UPDATE SKIP LOCKED`, excludes active artifact/category holds, and
-moves uploaded objects to `delete_pending`. The server deletes Storage objects,
-then finalizes only the successful deletions. Upload-pending metadata can expire
-atomically because no object exists. Record expiry is separately bounded and
-hold-aware.
+moves possible Storage objects to `delete_pending`. The server deletes Storage
+objects, then finalizes only the successful deletions. Upload-pending metadata
+uses the same deletion path because an interrupted post-upload completion may
+have left an object behind. Record expiry is separately bounded and hold-aware.
 
 ## Consequences
 

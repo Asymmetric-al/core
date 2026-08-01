@@ -37,6 +37,7 @@
     "./components/public/navbar": "./components/public/navbar.tsx",
     "./components/public/footer": "./components/public/footer.tsx",
     "./components/public/about-sections": "./components/public/about-sections.tsx",
+    "./components/public/cms-media": "./components/public/cms-media.tsx",
     "./components/public/home-sections": "./components/public/home-sections.tsx",
     "./hooks": "./hooks/index.ts",
     "./lib": "./lib/index.ts",

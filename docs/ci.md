@@ -32,6 +32,7 @@ Required checks:
 - **Pinned version:** root `package.json` `packageManager` (currently `bun@1.3.14`).
 - **GitHub Actions:** both workflows set `env.BUN_VERSION` to that exact version; every `oven-sh/setup-bun@v2` step uses `bun-version: ${{ env.BUN_VERSION }}`.
 - **Install in CI:** `bun ci --no-cache --backend=copyfile` (frozen lockfile install with Bun's portable file-copy backend). Do not use `bun install --frozen-lockfile` in workflows unless a future Bun release documents a regression.
+- **Lockfile drift:** a frozen-lockfile install does **not** notice when a `package.json` dependency is missing from `bun.lock`'s `workspaces` map — commit `ea9a7673` added a root dependency without the regenerated lockfile and CI stayed green, while every contributor's next plain `bun install` silently rewrote `bun.lock`. `bun run verify:bun-lock-drift` compares the two files directly and is the check that catches this; it is a pure file read, so it needs no install and no network.
 - **Turbo cache keys** in `ci.yml` include `bun-${{ env.BUN_VERSION }}` so cache restores do not cross Bun upgrades.
 - **Local parity:** match the pin (`bun run verify:bun-version`); reproducible install from a clean tree is `bun ci`. GitHub Actions uses `bun ci --no-cache --backend=copyfile` so Linux runners use Bun's portable install backend for vendored `file:` tarballs.
 
@@ -50,13 +51,15 @@ bun run ci:preflight
 3. `skills:verify`
 4. `lint`
 5. `verify:data-boundary`
-6. `verify:workspace-contract`
-7. `verify:eslint`
-8. `verify:shadcn-config`
-9. `verify:shadcn-diff`
-10. `typecheck`
-11. `build` (with CI-compatible env defaults for local parity)
-12. `test:unit`
+6. `verify:cms-public-sole-entry`
+7. `verify:workspace-contract`
+8. `verify:bun-lock-drift`
+9. `verify:eslint`
+10. `verify:shadcn-config`
+11. `verify:shadcn-diff`
+12. `typecheck`
+13. `build` (with CI-compatible env defaults for local parity)
+14. `test:unit`
 
 Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage order),
 `tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
@@ -167,9 +170,9 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `lint` (needs: `format`)
 
-- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails) and `bun run verify:shadcn-diff` (component drift guard).
+- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails) and `bun run verify:shadcn-diff` (component drift guard).
 - _Why it exists:_ Enforces consistent code quality and prevents architecture, workspace, and ESLint config drift.
-- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run verify:shadcn-config`, and `bun run verify:shadcn-diff`.
+- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, `bun run verify:shadcn-config`, and `bun run verify:shadcn-diff`.
 
 ### `typecheck` (needs: `lint`)
 

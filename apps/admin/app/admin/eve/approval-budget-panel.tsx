@@ -24,6 +24,7 @@ import { useState } from "react";
 
 import type {
   EveApprovalBudgetAdminView,
+  EveBudgetScopeType,
   EvePolicyActionId,
 } from "@asym/api/eve/approval-budget/types";
 
@@ -51,7 +52,7 @@ type MutationBody =
     }
   | {
       action: "override_budget";
-      scopeType: "expensive_feature";
+      scopeType: EveBudgetScopeType;
       scopeId: string;
       additionalRequests: number;
       additionalUsdMicros: number;
@@ -319,7 +320,7 @@ export function EveApprovalBudgetPanel() {
                   onClick={() =>
                     mutation.mutate({
                       action: "override_budget",
-                      scopeType: "expensive_feature",
+                      scopeType: budget.scopeType,
                       scopeId: budget.scopeId,
                       additionalRequests: 1,
                       additionalUsdMicros: 0,

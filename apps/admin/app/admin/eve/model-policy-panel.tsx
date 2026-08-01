@@ -2,6 +2,7 @@
 
 import {
   createDefaultEveModelPolicy,
+  eveModelPolicyActions,
   eveModelPolicyDocumentSchema,
 } from "@asym/api/eve/model-policy";
 import {
@@ -218,14 +219,10 @@ function PolicyLifecycleRow({
   onMutate: (mutation: EveModelPolicyMutation) => void;
   policy: EveModelPolicyRecord;
 }) {
-  const canEvaluate =
-    canManage && (policy.status === "draft" || policy.status === "evaluated");
-  const canActivate =
-    canManage &&
-    policy.status === "evaluated" &&
-    policy.evalStatus === "passed";
-  const canRollback =
-    canManage && policy.status === "active" && Boolean(policy.previousPolicyId);
+  const actions = eveModelPolicyActions(policy);
+  const canEvaluate = canManage && actions.canEvaluate;
+  const canActivate = canManage && actions.canActivate;
+  const canRollback = canManage && actions.canRollback;
 
   return (
     <li className="space-y-3 py-4">

@@ -38,8 +38,10 @@ migration evidence only; implementation of this change MUST consume the Phase
   compatible billing cohort. Ordinary cadences use one leg/subscription;
   twice-monthly uses two monthly legs/subscriptions, one for the 1st and one
   for the 15th. Every line binds to its exact item in every applicable leg.
-  Product-owned schedule and occurrence facts remain provider-neutral and
-  versioned.
+  Every group freezes one Legal Entity and every cohort freezes one exact
+  Settlement Account Binding before provider creation; later defaults do not
+  reroute accepted work. Product-owned schedule and occurrence facts remain
+  provider-neutral and versioned.
 - Recurring execution joins the signed provider-event path so payment and
   control evidence update separate occurrence-execution, payment-finality,
   canonical ledger-posting, collection-health, and reconciliation projections
