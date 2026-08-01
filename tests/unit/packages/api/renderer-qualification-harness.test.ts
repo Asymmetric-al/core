@@ -55,12 +55,18 @@ describe("loadCandidateWorkPacket", () => {
 
     expect(packet.held_back_case_schemas).toHaveLength(12);
     for (const heldBack of packet.held_back_case_schemas) {
-      expect(heldBack).toEqual({
-        case_id: heldBack.case_id,
-        title: heldBack.title,
-        output_profile: heldBack.output_profile,
-        bounds: heldBack.bounds,
-      });
+      expect(Object.keys(heldBack).sort()).toEqual([
+        "bounds",
+        "case_id",
+        "output_profile",
+      ]);
+    }
+
+    // Held-back titles encode each fixture's hidden variation, so the pre-seal
+    // packet must not carry them in any form.
+    const serializedPacket = JSON.stringify(packet);
+    for (const heldBack of charter.held_back_corpus) {
+      expect(serializedPacket).not.toContain(heldBack.title);
     }
 
     // Nothing in the serialized packet leaks a held-back expectation or seal.

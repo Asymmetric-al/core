@@ -362,9 +362,12 @@ export interface CandidateWorkPacket {
   candidate_id: RendererCandidateId;
   candidate_lock: RendererCandidateLock;
   open_cases: readonly QualificationCaseManifest[];
+  /**
+   * Schema and bounds only. Held-back titles are withheld before sealing because
+   * they encode each fixture's hidden variation.
+   */
   held_back_case_schemas: readonly {
     case_id: QualificationCaseId;
-    title: string;
     output_profile: QualificationOutputProfile;
     bounds: string;
   }[];

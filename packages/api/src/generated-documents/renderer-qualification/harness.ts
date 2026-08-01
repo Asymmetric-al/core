@@ -235,7 +235,6 @@ export function loadCandidateWorkPacket(
     open_cases: charter.open_corpus,
     held_back_case_schemas: charter.held_back_corpus.map((item) => ({
       case_id: item.case_id,
-      title: item.title,
       output_profile: item.output_profile,
       bounds: item.fixture.bounds,
     })),
