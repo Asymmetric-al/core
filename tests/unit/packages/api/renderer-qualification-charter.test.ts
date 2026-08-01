@@ -397,6 +397,52 @@ describe("freezeRendererQualificationCharter", () => {
     ).toContain("protocol_fixed_field_changed");
   });
 
+  it("pins the managed deployment and rejects smuggled charter fields", () => {
+    // Protocol P18-R-P row: the managed candidate is only identified by its
+    // API/client version, endpoint/region, account mode, options, retention,
+    // support access and DPA evidence - "only the exact frozen managed
+    // deployment qualifies".
+    for (const key of [
+      "api_client_version",
+      "endpoint_region",
+      "account_mode",
+      "options_digest",
+      "retention_policy",
+      "support_access",
+      "dpa_subprocessor_evidence",
+    ]) {
+      expect(
+        issueCodes(
+          mutated((input) => {
+            input.candidates = input.candidates.map((item) =>
+              item.candidate_id === "P18-R-P"
+                ? {
+                    ...item,
+                    provider_settings: {
+                      ...item.provider_settings,
+                      [key]: " ",
+                    },
+                  }
+                : item,
+            );
+          }),
+        ),
+        key,
+      ).toContain("provenance_missing");
+    }
+
+    // normalize() spreads the input, so an unknown key would ride into the
+    // manifest digest and still verify - authority this charter never granted.
+    expect(
+      issueCodes(
+        mutated((input) => {
+          (input as unknown as Record<string, unknown>).selected_renderer =
+            "P18-R-T";
+        }),
+      ),
+    ).toContain("charter_incomplete");
+  });
+
   it("rejects wrong or missing candidates and versions", () => {
     expect(
       issueCodes(

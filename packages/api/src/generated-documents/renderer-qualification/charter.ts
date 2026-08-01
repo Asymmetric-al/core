@@ -68,6 +68,46 @@ const SHA256_HEX = /^[0-9a-f]{64}$/;
 const isSha256Hex = (value: string | undefined): boolean =>
   SHA256_HEX.test(value ?? "");
 
+/** Protocol P18-R-P row: what identifies the exact frozen managed deployment. */
+const MANAGED_PROVIDER_SETTING_KEYS = [
+  "api_client_version",
+  "endpoint_region",
+  "account_mode",
+  "options_digest",
+  "retention_policy",
+  "support_access",
+  "dpa_subprocessor_evidence",
+] as const;
+
+/**
+ * Every field the charter freezes. `normalizeRendererQualificationCharterInput`
+ * spreads the input, so an unknown key would ride into the manifest digest and
+ * still verify - letting a qualification-only charter smuggle in authority it
+ * does not have (for example a `selected_renderer`).
+ */
+const CHARTER_INPUT_FIELDS = new Set([
+  "charter_id",
+  "charter_version",
+  "frozen_at",
+  "roles",
+  "approvals",
+  "candidates",
+  "open_corpus",
+  "held_back_corpus",
+  "held_back_seal",
+  "operational_suites",
+  "gates",
+  "score_dimensions",
+  "scoring_rules",
+  "budgets",
+  "validators",
+  "remediation_policy",
+  "evidence_rules",
+  "requalification_triggers",
+  "stop_conditions",
+  "unknown_evidence_rule",
+]);
+
 /** Conservative synthetic-data screen for corpus text fields. */
 const PII_PATTERNS = [
   /[\w.+-]+@(?!example\.)[\w-]+\.[\w.-]+/,
@@ -137,6 +177,24 @@ function validateCandidates(
         "P18-R-P must be the finalist managed DocRaptor pipeline 10.1 using Prince 15.1.",
       ),
     );
+  }
+  // The managed candidate's runtime is the provider's, so the deployment is
+  // only identified by these settings. Protocol, P18-R-P row: "API/client
+  // version, endpoint/region, engine/pipeline, options, provider account mode,
+  // retention/support-access settings, DPA/subprocessor evidence" - and "only
+  // the exact frozen managed deployment qualifies".
+  if (prince) {
+    for (const key of MANAGED_PROVIDER_SETTING_KEYS) {
+      if (!prince.provider_settings?.[key]?.trim()) {
+        issues.push(
+          issue(
+            `candidates.P18-R-P.provider_settings.${key}`,
+            "provenance_missing",
+            `The managed deployment must pin ${key}.`,
+          ),
+        );
+      }
+    }
   }
 
   const typst = byId.get("P18-R-T");
@@ -1017,6 +1075,19 @@ export function validateRendererQualificationCharterInput(
   input: RendererQualificationCharterInput,
 ): CharterValidationIssue[] {
   const issues: CharterValidationIssue[] = [];
+
+  const unknownFields = Object.keys(input).filter(
+    (field) => !CHARTER_INPUT_FIELDS.has(field),
+  );
+  if (unknownFields.length > 0) {
+    issues.push(
+      issue(
+        "charter",
+        "charter_incomplete",
+        `The charter freezes a fixed field set; unknown fields would enter the manifest digest and still verify: ${unknownFields.join(", ")}.`,
+      ),
+    );
+  }
 
   if (!input.charter_id.trim() || !input.charter_version.trim()) {
     issues.push(

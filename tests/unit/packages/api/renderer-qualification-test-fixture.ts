@@ -73,7 +73,17 @@ export function fixtureCandidates(): RendererCandidateLock[] {
       configuration_digest: syntheticDigest("config-prince"),
       network_filesystem_policy:
         "managed provider; no tenant network or filesystem access from documents",
-      provider_settings: { pipeline: "10.1", javascript: "disabled" },
+      provider_settings: {
+        pipeline: "10.1",
+        javascript: "disabled",
+        api_client_version: "docraptor-node@3.1.0",
+        endpoint_region: "us-east-1",
+        account_mode: "dedicated-managed",
+        options_digest: syntheticDigest("docraptor-options"),
+        retention_policy: "no-retention; artifacts purged on delivery",
+        support_access: "break-glass only, audited, tenant-approved",
+        dpa_subprocessor_evidence: "DPA-2026-014; subprocessor list v3",
+      },
       ...shared,
     },
     {
