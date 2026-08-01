@@ -78,6 +78,7 @@
         "@asym/database": "workspace:*",
         "@asym/email": "workspace:*",
         "@asym/env": "workspace:*",
+        "@asym/eve-runtime": "workspace:*",
         "@asym/lib": "workspace:*",
         "@asym/missionary": "workspace:*",
         "@asym/mock-data": "workspace:*",
@@ -109,6 +110,7 @@
         "boneyard-js": "^1.8.1",
         "clsx": "^2.1.1",
         "date-fns": "^4.1.0",
+        "eve": "0.25.1",
         "lucide-animated": "^1.0.0",
         "lucide-react": "1.17.0",
         "motion": "^12.34.2",
@@ -1981,7 +1983,7 @@
 
     "agent-base": ["agent-base@7.1.4", "", {}, "sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ=="],
 
-    "agent-browser": ["agent-browser@0.33.0", "", { "bin": { "agent-browser": "./bin/agent-browser.js" } }, "sha512-1N5asChiJ8VeqBa8vw/b7g/mw5qelWuowKB6/PNI8CRBLFtNPqgdmzRZyzbRJgajsoB9sBTC1ORpPmIay1ulzQ=="],
+    "agent-browser": ["agent-browser@0.33.1", "", { "bin": { "agent-browser": "./bin/agent-browser.js" } }, "sha512-lS0KbU9QdkD0I2n+uzrmNXKNGRjsd6GcB7bR6Wm1eyLcaxTCSf2zuxbWzf76fHCrDA4YoY3TikoOMSA8qA+wFA=="],
 
     "ai": ["ai@7.0.31", "", { "dependencies": { "@ai-sdk/gateway": "4.0.23", "@ai-sdk/provider": "4.0.3", "@ai-sdk/provider-utils": "5.0.11" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-pJfwKXjF5kw0rKRTePwYo60EfWb8wfzJAgf3ojln/YkOsVVKttzZAJVcRPsg37Z3a06ZdKkxX+DSrMAFlPm5Mw=="],
 

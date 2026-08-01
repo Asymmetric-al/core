@@ -1,5 +1,11 @@
 # Starter Template Catalog
 
+> **Superseded implementation authority (Phase 18, 2026-07-21).** This catalog is
+> retained as historical scope evidence only. Before implementation, reconcile
+> every purpose with the Phase 18 code-owned purpose catalog, authority manifest,
+> jurisdiction-pack activation rules, and approved data views. Do not dispatch
+> this catalog independently.
+
 Statement Studio should ship with a broad white-label starter catalog that demonstrates the product's flexibility while separating production-ready jobs from template-ready examples.
 
 ## Triggers

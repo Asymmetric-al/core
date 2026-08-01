@@ -42,6 +42,7 @@
     "./mission-control/roles": "./mission-control/roles.ts",
     "./mission-control/types": "./mission-control/types.ts",
     "./view-transitions": "./view-transitions/index.ts",
+    "./cms/public-media": "./cms/public-media.ts",
     "./cms/public-page": "./cms/public-page.ts",
     "./cms/public-page-renderer": "./cms/public-page-renderer.tsx"
   },

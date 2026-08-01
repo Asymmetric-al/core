@@ -338,6 +338,8 @@ Husky hooks:
 - **pre-commit:** `lint-staged`
 - **pre-push:** `bun run ci:preflight`
 
+`lint-staged` runs `eslint --fix` on staged workspace code (`apps/`, `packages/`, `tooling/`) and `prettier --write` on **every** staged file. Keep the Prettier glob as `*`: the pre-push gate runs `prettier . --check` across the repo, so any narrower allowlist lets files (`tests/`, `scripts/`, repo-root paths) commit unformatted and fail at push time. Exclusions belong in `.prettierignore`, not in the glob. `tests/unit/format-gate.contract.test.ts` enforces this.
+
 If hooks cannot find tools, configure PATH for Husky (see Husky docs). Example init snippet (adjust for your Node/Bun install):
 
 **macOS/Linux:**

@@ -1,5 +1,18 @@
 # Statement Studio Phase 0 research evidence
 
+> [!IMPORTANT]
+> **Superseded historical evidence only (2026-07-27).** This appendix remains
+> authoritative for its commit-pinned inventory of what the earlier audit
+> observed, but none of its recommendations authorize implementation. Current
+> authority is Phase 18 D-prime-R, the Phase 18 PRD, authority manifest,
+> renderer qualification protocol, ADRs 0033-0039, and
+> `openspec/changes/add-statement-studio`: D3 leaves the renderer unselected
+> until one bounded production-shaped contest yields at most one exact winner,
+> D17 performs an environment-gated destructive pre-production cutover to zero
+> legacy runtime, and D13 forbids raw provider or signed object URL authority.
+> No gradual migration, fallback/dual runtime, or preselected DocRaptor path
+> survives.
+
 This appendix records primary-source findings for
 [GitHub issue #312](https://github.com/Asymmetric-al/core/issues/312). It is an
 implementation audit, not a replacement PRD. The audited repository baseline is

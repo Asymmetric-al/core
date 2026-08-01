@@ -181,7 +181,7 @@ expiry are delivered by issue #424 and ADR-0025.
 
 Implementation: the isolated Node.js 24+ Eve 0.25.1 workspace package,
 disabled capability surface, app-owned governance activation boundary, and
-offline framework verification are delivered by issue #425 and ADR-0026.
+offline framework verification are delivered by issue #425 and ADR-0062.
 
 - Type: AFK
 - Blocked by: 1, 5, 7
@@ -214,6 +214,11 @@ ADR-0027.
 
 ### 11. Admin Workspace Operations Shell
 
+Implementation: the admin-only operations-first panel index, real governance
+and failure summaries, model-policy-backed eval/subagent health, explicit
+unavailable future connections, and safe secondary-chat boundary are delivered
+by issue #427 and ADR-0028.
+
 - Type: AFK
 - Blocked by: 2, 3, 4, 5, 6, 7, 8
 - User stories covered: 22, 25, 26, 34, 35, 37, 38, 42, 67
@@ -227,6 +232,10 @@ ADR-0027.
   - UI exposes decision summaries, not raw hidden reasoning.
 
 ### 12. Admin Mount and Global Panel
+
+Implementation: the Next.js 16.2.6-compatible same-origin Eve mount, protected
+admin-only global panel, explicit page-context allowlist, and forwarded-request
+cookie authentication are delivered by issue #428 and ADR-0029.
 
 - Type: HITL
 - Blocked by: 9, 10, 11

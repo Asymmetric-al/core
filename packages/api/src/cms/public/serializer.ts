@@ -290,6 +290,16 @@ function serializePublicMediaValue(value: unknown): SerializedPublicMediaValue {
     mimeType: readOptionalString(media.mimeType),
   };
 
+  const filename = readOptionalString(media.filename);
+  if (filename !== null) {
+    serialized.filename = filename;
+  }
+
+  const caption = readOptionalString(media.caption);
+  if (caption !== null) {
+    serialized.caption = caption;
+  }
+
   return serialized;
 }
 
