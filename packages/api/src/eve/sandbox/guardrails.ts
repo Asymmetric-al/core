@@ -55,6 +55,12 @@ const PROTECTED_PATH_PATTERNS: ReadonlyArray<{
     pattern: /(^|\/)(vercel\.json|\.vercelignore)$/iu,
     rule: "production_deployment",
   },
+  {
+    // The sandbox governance, guardrail and audit source itself: edits here
+    // change the code that decides containment, so they must pause for approval.
+    pattern: /(^|\/)packages\/api\/src\/eve\//iu,
+    rule: "identity_data_runtime",
+  },
 ];
 
 const SENSITIVE_PATH_PATTERNS: ReadonlyArray<{
@@ -63,7 +69,10 @@ const SENSITIVE_PATH_PATTERNS: ReadonlyArray<{
 }> = [
   { pattern: /(^|\/)\.env(?:\..*)?$/iu, rule: "environment_file" },
   {
-    pattern: /(^|\/)(?:id_[^/]+|[^/]+)\.(?:key|p12|pfx|pem)$/iu,
+    // Default OpenSSH private keys have no extension, so they need their own
+    // alternative rather than relying on the extension branch.
+    pattern:
+      /(^|\/)(?:id_(?:rsa|dsa|ecdsa|ed25519)|[^/]+\.(?:key|p12|pfx|pem))$/iu,
     rule: "private_key_material",
   },
   {
@@ -92,7 +101,7 @@ const SENSITIVE_CONTENT_PATTERNS: ReadonlyArray<{
   { pattern: /SUPABASE_SERVICE_ROLE_KEY\s*=/iu, rule: "service_role_material" },
   {
     pattern:
-      /(?:STRIPE|RESEND|GITHUB|VERCEL)_[A-Z0-9_]*(?:KEY|SECRET|TOKEN)\s*=/u,
+      /(?:STRIPE|RESEND|GITHUB|VERCEL|OPENAI|ANTHROPIC|AWS|SLACK|SUPABASE|CLOUDINARY|SENTRY|TURBO)_[A-Z0-9_]*(?:KEY|SECRET|TOKEN)\s*=/u,
     rule: "provider_credential",
   },
 ];

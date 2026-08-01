@@ -58,6 +58,10 @@ describe("Eve sandbox file guardrails", () => {
     "/etc/passwd",
     "/var/run/docker.sock",
     "/home/runner/.ssh/id_rsa",
+    // Default OpenSSH key names carry no extension
+    ".ssh/id_rsa",
+    ".ssh/id_ed25519",
+    "keys/id_ecdsa",
   ])("blocks sensitive or escaping path %s", (path) => {
     const result = scanEveSandboxPath(path);
 
@@ -83,6 +87,8 @@ describe("Eve sandbox file guardrails", () => {
     ".github/workflows/ci.yml",
     "packages/auth/context.ts",
     "packages/eve-runtime/agent/agent.ts",
+    "packages/api/src/eve/sandbox/guardrails.ts",
+    "packages/api/src/eve/governance/control.ts",
     "supabase/migrations/20260717000000_change.sql",
     "bun.lock",
   ])("pauses protected path %s for durable approval", (path) => {
