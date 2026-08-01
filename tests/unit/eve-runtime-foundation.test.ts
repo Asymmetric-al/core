@@ -132,6 +132,7 @@ describe("Eve runtime foundation", () => {
     );
     expect(scheduleFiles.sort()).toEqual([
       "engineering-health.ts",
+      "launch-canary-watchdog.ts",
       "operator-notifications.ts",
     ]);
 
@@ -185,6 +186,12 @@ describe("Eve runtime foundation", () => {
     );
     expect(notificationSchedule).toContain('cron: "* * * * *"');
     expect(notificationSchedule).toContain("runEveNotificationSweep");
+    const launchWatchdogSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/launch-canary-watchdog.ts"),
+      "utf8",
+    );
+    expect(launchWatchdogSchedule).toContain('cron: "* * * * *"');
+    expect(launchWatchdogSchedule).toContain("runEveLaunchCanaryWatchdog");
   });
 
   it("keeps the runtime off when persisted release is disabled", () => {

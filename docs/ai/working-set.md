@@ -1,5 +1,31 @@
 # Working Set
 
+## 2026-07-18 (Eve final launch verification)
+
+- Date: 2026-07-18
+- Repo: Asymmetric-al/core
+- Goal: Implement issue #437 as Eve's fail-closed final launch gate and open the last stacked review PR on #870.
+- Primary area:
+  - `packages/api/src/eve/launch-readiness/**`
+  - `packages/eve-runtime/{agent/schedules,src/launch}/**`
+  - `apps/admin/app/{admin,api/admin}/eve/**`
+  - `supabase/migrations/**`
+  - `docs/guides/operations/**`
+  - `tests/unit/**`
+- Stack:
+  - TypeScript
+  - Next.js App Router
+  - Eve schedules
+  - Supabase Postgres
+  - Zod
+  - Vitest
+- Constraints:
+  - No merge, CI, deployment, prompt, model, service, or passing manifest may activate Eve.
+  - Require exact-target evidence, independent reviews, dedicated human permissions, and an atomic state recheck.
+  - Migration and PR must leave release off and grant no launch permissions.
+  - Canary failure or expiry must fail closed through the existing emergency boundary.
+  - Nia is unavailable; use repo-scoped `rg`, direct source reads, installed skills, and package source.
+
 ## 2026-07-18 (Eve email and Discord notifications)
 
 - Date: 2026-07-18

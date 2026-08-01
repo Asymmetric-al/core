@@ -129,5 +129,7 @@ recovery mechanism.
 
 ## Rollout
 
-This PR only defines the launch gate. It leaves the release switch disabled. Implementation and real launch
-must occur through separately reviewed work after all #417–#436 implementations and evidence are complete.
+This PR implements the launch gate but leaves the release switch disabled, grants no launch permission, and
+configures no target. After #417–#436 and this implementation are reviewed and deployed, operators must use
+the versioned runbooks to collect target-bound evidence, complete independent review, grant temporary human
+permissions, and explicitly activate the exact deployment. Merge and deployment remain inert.

@@ -20,7 +20,9 @@ protected-area policy, approvals, and budgets remain higher-priority constraints
 - Require dry-run and rollback/emergency-control proof before activation.
 - Require an explicit authorized human activation using #418's existing state transition and audit path.
 - Define operator runbook discovery, launch record, post-activation verification, and fail-safe rollback.
-- Keep this PR spec-only: it does not implement, configure, or enable the release switch.
+- Implement the immutable readiness store, deterministic evaluator, independent review and dedicated-permission
+  boundary, Mission Control surface, one audited #418 activation path, bounded canary, watchdog, and runbooks.
+- Leave release disabled, grant no permissions, configure no deployment, and perform no real activation.
 
 ## Impact
 
@@ -28,7 +30,7 @@ protected-area policy, approvals, and budgets remain higher-priority constraints
 - **Declared blockers:** #417 through #436
 - **Issue covered:** #437
 - **User stories covered:** 1 through 77
-- **Runtime impact:** none in this PR
+- **Runtime impact:** adds a fail-closed operations/control surface and watchdog; no autonomous behavior is enabled
 
 ## Non-Goals
 
@@ -36,7 +38,7 @@ protected-area policy, approvals, and budgets remain higher-priority constraints
 - Treating merged PRs, draft specs, green unit tests alone, or operator assertions as complete readiness.
 - Bypassing #417 protected areas, #420 kill switches, #423 approvals/budgets, or #426 identity ownership.
 - Exposing credentials or sensitive evidence in a launch manifest or runbook.
-- Activating any environment from this specification PR.
+- Activating or configuring any environment from this implementation PR.
 
 ## Evidence
 
