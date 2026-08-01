@@ -18,9 +18,8 @@
         ".next/**",
         "!.next/cache/**",
         "dist/**",
-        "tsconfig.tsbuildinfo",
         "*.tsbuildinfo",
-        "!node_modules/**"
+        "!**/node_modules/**"
       ],
       "env": [
         "NODE_ENV",
@@ -64,7 +63,7 @@
         "tsconfig.tsbuildinfo",
         "*.tsbuildinfo",
         "dist/*.tsbuildinfo",
-        "!node_modules/**"
+        "!**/node_modules/**"
       ],
       "passThroughEnv": ["CI", "NODE_OPTIONS", "FORCE_COLOR", "NO_COLOR"]
     },
