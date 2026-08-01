@@ -288,7 +288,7 @@ function clearStaleNextLocks() {
 }
 
 /** Heal hollow workspace links (Bun isolated-linker corruption) before builds. */
-function logRepairedWorkspaceLinks() {
+function repairAndLogWorkspaceLinks() {
   const { repaired } = repairWorkspaceLinks(REPO_ROOT);
   for (const entry of repaired) {
     console.log(`[repair-workspace-links] restored ${entry}`);
@@ -305,7 +305,7 @@ function main(args = process.argv.slice(2)) {
     process.exit(1);
   }
 
-  logRepairedWorkspaceLinks();
+  repairAndLogWorkspaceLinks();
 
   for (const step of getSharedPackageBuildSteps({ strict })) {
     clearStaleNextLocks();
@@ -315,7 +315,11 @@ function main(args = process.argv.slice(2)) {
 
   for (const app of requestedApps) {
     const step = getAppBuildStep(app, { strict });
-    logRepairedWorkspaceLinks();
+    // Repeated per app on purpose, not a duplicate of the call at CI entry: a
+    // turbo cache hit during an earlier app's build can restore tsbuildinfo
+    // files over a workspace junction and re-hollow it mid-pipeline. See
+    // scripts/repair-workspace-links.mjs.
+    repairAndLogWorkspaceLinks();
     clearStaleNextLocks();
     run(step.command, step.args, step.label);
     clearStaleNextLocks();

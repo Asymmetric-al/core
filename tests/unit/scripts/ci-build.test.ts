@@ -13,6 +13,29 @@ import {
 } from "../../../scripts/verify/ci-build.mjs";
 
 describe("ci-build command planning", () => {
+  it("keeps the workspace-link repair wired into CI and postinstall", () => {
+    // CI correctness depends on these two call sites, but neither is reachable
+    // from a unit test - only the repair script's own tests exercise the logic.
+    // Without this contract, deleting either call passes the whole suite.
+    const ciBuildSource = readFileSync(
+      path.resolve("scripts/verify/ci-build.mjs"),
+      "utf8",
+    );
+    const packageJson = JSON.parse(
+      readFileSync(path.resolve("package.json"), "utf8"),
+    );
+
+    expect(ciBuildSource).toContain("repairWorkspaceLinks(REPO_ROOT)");
+    // Once at entry, and again inside the per-app loop: a turbo cache hit
+    // during an earlier app's build can re-hollow a junction mid-pipeline.
+    expect(
+      ciBuildSource.split("repairAndLogWorkspaceLinks()").length - 1,
+    ).toBeGreaterThanOrEqual(2);
+    expect(packageJson.scripts.postinstall).toContain(
+      "node scripts/repair-workspace-links.mjs",
+    );
+  });
+
   it("routes app package build scripts through ci-build link repair", () => {
     const packageJson = JSON.parse(
       readFileSync(path.resolve("package.json"), "utf8"),

@@ -8,10 +8,11 @@ function readRepoFile(path: string) {
   return readFileSync(new URL(path, root), "utf8");
 }
 
+// The draft-mode Link contract for the community `nextjs` skill was removed
+// with that skill in the Next.js 16.3 upgrade (stale 16.1.1 knowledge skill,
+// superseded by the bundled node_modules/next/dist/docs). It scopes this file,
+// not the single `it` it used to sit above.
 describe("React Review audit cleanup contracts", () => {
-  // The draft-mode Link contract for the community `nextjs` skill was removed
-  // with that skill in the Next.js 16.3 upgrade (stale 16.1.1 knowledge skill,
-  // superseded by the bundled node_modules/next/dist/docs).
   it("keeps review-touched examples on gap utilities at the affected call sites", () => {
     for (const path of [
       ".agents/skills/shadcn-ui/examples/auth-layout.tsx",

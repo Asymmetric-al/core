@@ -18,7 +18,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SKIPPABLE_SYMLINK_ERROR_CODES = new Set(["EPERM", "EACCES", "ENOTSUP"]);
+const SKIPPABLE_SYMLINK_ERROR_CODES = new Set([
+  "EPERM",
+  "EACCES",
+  "ENOTSUP",
+  // A concurrent install or a process holding the directory open. This runs
+  // from postinstall, so throwing here would fail `bun install` itself.
+  "EBUSY",
+]);
 const MAX_BACKUP_PATH_ATTEMPTS = 1000;
 
 /** @param {string} repoRoot */
@@ -26,7 +33,12 @@ function discoverWorkspaceDirs(repoRoot, fileSystem) {
   const rootPackageJson = JSON.parse(
     fileSystem.readFileSync(path.join(repoRoot, "package.json"), "utf8"),
   );
-  const globs = rootPackageJson.workspaces ?? [];
+  const globs = rootPackageJson?.workspaces ?? [];
+  if (!Array.isArray(globs)) {
+    throw new Error(
+      `[repair-workspace-links] Expected an array "workspaces" field in ${path.join(repoRoot, "package.json")}.`,
+    );
+  }
   const dirs = new Set();
 
   for (const glob of globs) {
@@ -103,17 +115,16 @@ export function repairWorkspaceLinks(repoRoot, fileSystem = fs) {
       let needsRepair = false;
       try {
         const stat = fileSystem.lstatSync(linkPath);
+        const missingPackageJson = !fileSystem.existsSync(
+          path.join(linkPath, "package.json"),
+        );
         if (stat.isSymbolicLink()) {
-          // Dangling or wrong-target links resolve without a package.json.
-          needsRepair = !fileSystem.existsSync(
-            path.join(linkPath, "package.json"),
-          );
+          // Dangling links resolve without a package.json.
+          needsRepair = missingPackageJson;
         } else if (stat.isDirectory()) {
           // Hollow materialization: a real directory without package.json
           // (typically only `dist/tsconfig.tsbuildinfo`).
-          needsRepair = !fileSystem.existsSync(
-            path.join(linkPath, "package.json"),
-          );
+          needsRepair = missingPackageJson;
         }
       } catch {
         // Missing entirely: Bun legitimately omits links when resolution goes
@@ -125,7 +136,20 @@ export function repairWorkspaceLinks(repoRoot, fileSystem = fs) {
       if (!needsRepair) continue;
 
       const backupPath = createBackupPath(linkPath, fileSystem);
-      fileSystem.renameSync(linkPath, backupPath);
+      try {
+        fileSystem.renameSync(linkPath, backupPath);
+      } catch (error) {
+        // This is the first mutating step and it runs from postinstall. A
+        // locked or permission-denied entry must not fail `bun install`.
+        const code = getErrorCode(error);
+        if (SKIPPABLE_SYMLINK_ERROR_CODES.has(code)) {
+          console.warn(
+            `[repair-workspace-links] Skipping ${path.relative(repoRoot, linkPath)}: ${code}.`,
+          );
+          continue;
+        }
+        throw error;
+      }
       try {
         fileSystem.mkdirSync(path.dirname(linkPath), { recursive: true });
         fileSystem.symlinkSync(targetDir, linkPath, linkType);

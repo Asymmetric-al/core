@@ -535,7 +535,7 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 1. Read docs from the nearest matching install for the app you are changing:
    - `apps/<app>/node_modules/next/dist/docs/` (if present)
    - then `node_modules/next/dist/docs/` at repo root
-2. This monorepo currently uses `next@16.3.0-preview.9` (the 16.3 `@preview` dist-tag) across all Next.js apps (root and app `package.json` files; workspace packages align on the same version).
+2. This monorepo currently uses `next@16.3.0-preview.9` (the 16.3 `@preview` dist-tag) across all Next.js apps (root and app `package.json` files; workspace packages align on the same version). Follow-up: move the `next`, `@next/env`, `@next/playwright` and `eslint-config-next` pins together to stable `16.3.x` once it ships — they must stay on a single identical version, never a mix of preview and stable.
 3. **Upstream note:** on 16.3, `next dev` writes and updates the `<!-- BEGIN:nextjs-agent-rules -->` block in `AGENTS.md` automatically when it detects an AI coding agent (opt out with `agentRules: false` in `next.config.ts`); commit the block as-is if it shows up as an uncommitted change. On 16.1.x the `npx @next/codemod@latest agents-md` flow may still emit `.next-docs/` — this repo keeps both bundled `node_modules` docs (when installed) and committed `.next-docs/` for sandboxes.
 4. If `node_modules` docs are unavailable or unreadable:
    - run `bunx @next/codemod@canary agents-md`

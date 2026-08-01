@@ -106,6 +106,38 @@ describe("repairWorkspaceLinks", () => {
     ).toBe(false);
   });
 
+  it("skips a locked entry instead of failing the install", () => {
+    // This runs from postinstall, and the rename is the first mutating step.
+    // An EBUSY there (concurrent install, or a process holding the directory)
+    // must not take down `bun install` itself.
+    const hollow = path.join(
+      repoRoot,
+      "apps/admin/node_modules/@asym/mock-data",
+    );
+    const hollowBuildInfo = path.join(hollow, "dist/tsconfig.tsbuildinfo");
+    mkdirSync(path.dirname(hollowBuildInfo), { recursive: true });
+    writeFileSync(hollowBuildInfo, "{}");
+
+    const { repaired } = repairWorkspaceLinks(repoRoot, {
+      existsSync,
+      lstatSync,
+      mkdirSync,
+      readFileSync,
+      readdirSync,
+      renameSync() {
+        const error = new Error("resource busy or locked");
+        (error as NodeJS.ErrnoException).code = "EBUSY";
+        throw error;
+      },
+      rmSync,
+      symlinkSync,
+    });
+
+    expect(repaired).toHaveLength(0);
+    // Untouched, not half-repaired.
+    expect(existsSync(hollowBuildInfo)).toBe(true);
+  });
+
   it("restores the hollow directory if symlink creation is not supported", () => {
     const hollow = path.join(
       repoRoot,

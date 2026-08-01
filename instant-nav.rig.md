@@ -33,6 +33,12 @@ verdict (no prefetching, unreliable lock).
 - DRIFT: E2E auth bypass vs real Supabase sessions; placeholder Supabase env
   (`run-with-ci-env.mjs`) vs hosted data; seeded demo/mock data on public
   pages; no feature flags on the donor public site today.
+- SCOPE: donor public site only. Admin and missionary run the same
+  `cacheComponents` + `partialPrefetching` config but have no `instant()`
+  coverage yet — both need an authenticated production rig — so instant
+  regressions there are deliberately not gated by CI today. Note the
+  `instant-nav` job is `continue-on-error` for PRs into `develop`
+  (`.github/workflows/ci-integration.yml:424`).
 - LOOP: local build → start → test (no push needed). Agent limits: none for
   the local rig. Windows walls apply (see WALLS).
 - LIVENESS: n/a — the local rig always serves the freshly built artifact.
