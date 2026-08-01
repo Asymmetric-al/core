@@ -80,13 +80,14 @@ bolted-on module or push admin depth into donor/missionary surfaces.
 - **Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit
   Model)** is the final Lane-1 foundation phase (groomed 2026-07-05; Phases
   2–6 precede it in dependency order — see [`phase-map.md`](./phase-map.md)).
-  It **fulfills the identity/party/credit seams reserved in Phase 4** — the
-  persons spine, party entities, frozen-snapshot extension, and the
-  `gift_credits`/tribute/matching/DAF model — which the provisional build
-  order permits. Phase 7 **hard-depends on the Phase 4 isolation-hardening
-  foundation, the Phase 6 communication-event spine + `sendEmail` seam, and
-  the Phase 3 consent gate (PR #502) shipping first** (the PRD's hard
-  prerequisites C1–C3).
+  It **fulfills the identity/party and receipt-facts seams reserved in Phase
+  4**—the persons/Party spine, frozen legal-donor Statement Subject, and
+  immutable receipt/statement facts. Phase 14 owns the
+  `contribution_credits`, tribute, matching, and DAF operational models; Phase
+  7 consumes their typed read models without rebuilding them. Phase 7
+  **hard-depends on the Phase 4 isolation-hardening foundation, the Phase 6
+  communication-event spine + `sendEmail` seam, and the Phase 3 consent gate
+  (PR #502) shipping first** (the PRD's hard prerequisites C1–C3).
 - **Phase 8 (CRM Operating Foundation)** was **re-groomed 2026-07-07 (#603
   complete)** under
   [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md).
@@ -234,13 +235,82 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   change operations, and opt-in tenant-controlled gentle reminders without
   turning the legacy workflow into the primary product. Groomed 2026-07-13
   (ratified D1–D19; official-source research, six ADRs, dated cross-PRD
-  congruence, and OpenSpec reconciliation). Planning only; not dispatched.
+  congruence, and OpenSpec reconciliation). Tracked by epic #793 + children
+  #794–#837. Planning only; groomed-not-dispatched.
+- [`phase-17-system-messages-template-management.md`](./phase-17-system-messages-template-management.md)
+  — the Phase 17 plan (System Messages & Template Management): one complete
+  code-governed System message catalog and contract-owned safety kernel;
+  immutable structured publications with typed source-owned facts, tenant-open
+  locales, bounded whole-message fallback, Brand Kits and Layout Roles;
+  contract-bounded Delivery Plans and proportional in-product notifications;
+  transport-dark SMS governance; universal tenant-owned Resend with one Default
+  plus bounded Sender Profiles and governed Reply-To purposes; evidence-first
+  body-free history with an expiring support-safe Recent sent copy; deterministic
+  recovery; versioned tenant portability; and a structurally separate fixed
+  platform-email seam for Eve/operator mail while Discord remains Eve-owned
+  operational delivery. Groomed 2026-07-19 (ratified
+  D1–D20, executable 18-key manifest, dated producer/obligation census,
+  decision-to-test traceability, primary-source research, dated cross-PRD
+  congruence, focused ADRs, and an `outbound-communications` OpenSpec delta).
+  Tracked by epic #873 + children #874–#905. Planning only; every child remains
+  `status:blocked`; groomed-not-dispatched and not built.
+- [`phase-18-receipt-pdf-template-system.md`](./phase-18-receipt-pdf-template-system.md)
+  — the Phase 18 plan (Receipt & PDF Template System): one clean canonical
+  Generated Document service and structured Document Studio over source-owned
+  immutable facts; one pre-registered renderer contest with at most one exact
+  production winner; one current canonical accessible PDF; exact-byte private
+  custody and scanner-resistant access; complete everyday U.S. acknowledgments;
+  a proof-gated exact-issuer Canadian registered-charity pack; governed
+  specialist obligations; item-authoritative batches; purpose-owned records,
+  holds and verified disposal; and an environment-gated destructive
+  pre-production cut that leaves zero legacy runtime. Groomed 2026-07-21
+  (ratified D1–D17; executable purpose/authority manifest, renderer qualification
+  protocol, 204-row decision-to-test traceability, primary-source research,
+  dated cross-PRD congruence, ADRs 0033–0039, and a rewritten Document Production
+  OpenSpec contract). Epic #907 and children #908–#961 are published:
+  #908–#910 are open with `status:todo` + `ready-for-agent`, while #911–#961
+  remain open with `status:blocked`. This approved frontier does not prove the
+  phase is built or authorize further dispatch.
+- [`phase-19-year-end-statement-operations.md`](./phase-19-year-end-statement-operations.md)
+  — the Phase 19 plan (Year-End Statement Operations): one source-authoritative
+  population, immutable Run Preflight, atomic release barrier, canonical
+  purpose-pinned Statement Run and Run Item system, separately authoritative
+  document/portal/communication/paper outcomes, self-print-first physical
+  fulfillment, cooperative containment, tenant-controlled truthful completion,
+  exact-current donor access, and one PII-minimized Run Evidence Record.
+  Groomed 2026-07-24 (ratified D1–D18; PRD authority map,
+  decision-to-test traceability, primary-source research, dated cross-PRD
+  congruence, focused ADRs, and a Statement Operations OpenSpec delta).
+  Planning only; epic #977 and children #978–#1031 are published and blocked.
+  No implementation dispatch is authorized, and the phase is not built.
+- [`phase-20-accounting-exports-reconciliation.md`](./phase-20-accounting-exports-reconciliation.md)
+  — the implementation-ready Phase 20 specification (Accounting Exports &
+  Reconciliation): one accounting doorway over immutable balanced Accounting
+  Releases, exact source coverage, mutually exclusive direct-QBO/direct-Xero or
+  evidence-always artifact delivery, bounded Bank Match, append-only
+  corrections, and a PII-minimized Phase 21 expense handoff. Groomed
+  2026-07-26 through ratified D1–D20 and specified 2026-07-27. Planning only;
+  not implemented or dispatched. See the
+  [`decision log`](./phase-20-accounting-exports-reconciliation-decision-log.md),
+  [`OpenSpec change`](../../../openspec/changes/add-accounting-exports-reconciliation/proposal.md),
+  and
+  [`cross-phase congruency audit`](./phase-20-cross-phase-congruency-audit.md).
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
   program exists and is governed as outcome parity).
 
 ## Related in-flight work
+
+PR [#872](https://github.com/Asymmetric-al/core/pull/872) carries the Phase
+17–20 PRDs, ADRs, and OpenSpec packages for review before they merge into
+`develop`. Its live issue sets already exist: Phase 17 epic #873 +
+#874–#905, Phase 18 epic #907 + #908–#961, and Phase 19 epic #977 +
+#978–#1031. Phase 20 has the specification issue
+[#1036](https://github.com/Asymmetric-al/core/issues/1036); no Phase 20
+implementation children have been generated or dispatched. Publishing planning
+issues does not authorize implementation; current labels and dependency
+relationships still control readiness.
 
 OpenSpec PR #462 refines the platform specs and adds capability specs
 (donation-lifecycle, crm-core, contribution-operations, identity-and-access,

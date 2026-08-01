@@ -1,5 +1,12 @@
 # UX And IA
 
+> **Superseded implementation authority (Phase 18, 2026-07-21).** This file is
+> retained as historical UX evidence only. Current product behavior comes from
+> the Phase 18 PRD and authority manifest: one logical document, one current
+> canonical accessible PDF, evidence-only revision history, quiet exception UX,
+> flow-first structured authoring, and jurisdiction controls hidden unless
+> applicable. Do not dispatch this file independently.
+
 Statement Studio must be clean, easy to use, easy to follow, and built on the repo's shared design tokens and components.
 
 ## Triggers
