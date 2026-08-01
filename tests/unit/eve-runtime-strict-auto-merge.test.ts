@@ -8,8 +8,9 @@ vi.mock("../../packages/eve-runtime/src/github/credentials", () => ({
 }));
 
 import {
-  mergeEveStrictAutoMerge,
   escalateEveStrictAutoMerge,
+  inspectEveStrictAutoMerge,
+  mergeEveStrictAutoMerge,
 } from "../../packages/eve-runtime/src/github/strict-auto-merge";
 import { eveStrictAutoMergeRunId } from "../../packages/eve-runtime/src/github/strict-auto-merge-tool-runtime";
 
@@ -65,6 +66,69 @@ describe("Eve runtime strict auto-merge", () => {
     expect(eveStrictAutoMergeRunId("delivery", request)).not.toBe(
       eveStrictAutoMergeRunId("other-delivery", request),
     );
+  });
+
+  it("rejects an issue link whose number only shares the branch issue prefix", async () => {
+    const fetchMock = vi.fn(async (request: string | URL | Request) => {
+      const url = String(request);
+      if (url.endsWith("/pulls/900")) {
+        return new Response(
+          JSON.stringify({
+            base: { ref: "develop" },
+            body: "Closes #4320",
+            head: { ref: "eve/issue-432-strict-auto-merge", sha: HEAD_SHA },
+            mergeable: true,
+            mergeable_state: "clean",
+            state: "open",
+          }),
+          { status: 200 },
+        );
+      }
+      if (url.includes("/pulls/900/files?")) {
+        return new Response(JSON.stringify([]), { status: 200 });
+      }
+      if (url.endsWith("/issues/432")) {
+        return new Response(JSON.stringify({ number: 432 }), { status: 200 });
+      }
+      if (url.endsWith("/branches/develop/protection")) {
+        return new Response(JSON.stringify({}), { status: 200 });
+      }
+      if (url.endsWith("/rules/branches/develop")) {
+        return new Response(JSON.stringify([]), { status: 200 });
+      }
+      if (url.includes(`/commits/${HEAD_SHA}/check-runs?`)) {
+        return new Response(JSON.stringify({ check_runs: [] }), {
+          status: 200,
+        });
+      }
+      if (url.includes(`/commits/${HEAD_SHA}/status?`)) {
+        return new Response(JSON.stringify({ statuses: [] }), { status: 200 });
+      }
+      if (url.includes("/pulls/900/reviews?")) {
+        return new Response(JSON.stringify([]), { status: 200 });
+      }
+      throw new Error(`Unexpected GitHub request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const inspected = await inspectEveStrictAutoMerge({
+      accountableLogin: "maintainer",
+      accountableTrigger: "github:42:delivery:one",
+      actorProfileId: "11111111-1111-4111-8111-111111111111",
+      expectedHeadSha: HEAD_SHA,
+      identity: {} as never,
+      installationId: 42,
+      owner: "Asymmetric-al",
+      pullRequestNumber: 900,
+      repo: "core",
+      runId: "33333333-3333-4333-8333-333333333333",
+    });
+
+    expect(inspected).toMatchObject({
+      issueBranchVerified: true,
+      issueLinkVerified: false,
+      issueNumber: 432,
+    });
   });
 
   it("sends one expected-SHA merge request without a bypass parameter", async () => {
