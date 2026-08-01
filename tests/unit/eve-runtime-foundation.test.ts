@@ -117,6 +117,8 @@ describe("Eve runtime foundation", () => {
         "agent.ts",
         "ask_question.ts",
         "bash.ts",
+        "github_operator.ts",
+        "github_strict_auto_merge.ts",
         "todo.ts",
         "web_fetch.ts",
         "web_search.ts",
@@ -132,6 +134,14 @@ describe("Eve runtime foundation", () => {
       path.join(runtimeRoot, "agent/tools/write_file.ts"),
       "utf8",
     );
+    const githubOperator = await readFile(
+      path.join(runtimeRoot, "agent/tools/github_operator.ts"),
+      "utf8",
+    );
+    const strictAutoMerge = await readFile(
+      path.join(runtimeRoot, "agent/tools/github_strict_auto_merge.ts"),
+      "utf8",
+    );
 
     // Assert the call form, not the bare name: a substring match also passes
     // for an unused import or a mention in a comment, which would hide a
@@ -140,6 +150,12 @@ describe("Eve runtime foundation", () => {
     expect(bash).toMatch(/recordEveSandboxAction\(/u);
     expect(writeFile).toMatch(/scanEveSandboxWrite\(/u);
     expect(writeFile).toMatch(/recordEveSandboxAction\(/u);
+    expect(githubOperator).toMatch(/defineDynamic\(/u);
+    expect(githubOperator).toMatch(/scanEveSandboxPath\(/u);
+    expect(strictAutoMerge).toMatch(/defineDynamic\(/u);
+    // expectedHeadSha is a property name rather than a call, so the substring
+    // check is the right assertion for it.
+    expect(strictAutoMerge).toContain("expectedHeadSha");
   });
 
   it("keeps the runtime off when persisted release is disabled", () => {

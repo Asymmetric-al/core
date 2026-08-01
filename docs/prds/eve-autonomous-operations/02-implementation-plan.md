@@ -270,6 +270,11 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
 
 ### 14. GitHub App Read and Review Path
 
+Implementation: Eve 0.25.1's native verified GitHub App channel, automatic PR
+review trigger, policy-gated summary plus inline findings, protected-area
+visibility, output data-boundary enforcement, and accountable #419 audit are
+delivered by issue #430 and ADR-0031.
+
 - Type: AFK
 - Blocked by: 3, 7, 9, 13
 - User stories covered: 8, 9, 10, 32, 34, 60
@@ -281,6 +286,12 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
   - Protected-area detection is visible in review output.
 
 ### 15. Autonomous PR Operator and Work Initiation
+
+Implementation: the dynamically scoped seven-operation GitHub tool, issue-first
+branch and PR contracts, sandbox-observed safe-fix push path, business-data and
+protected-area guardrails, dedicated hard budget, accountable audit, and
+replay-safe mutations are delivered by issue #431 and ADR-0032. Merge remains
+absent and belongs to #432.
 
 - Type: AFK
 - Blocked by: 7, 13, 14
@@ -294,6 +305,7 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
 
 ### 16. Strict Auto-Merge Policy
 
+- Status: implemented in #432; release switch remains off
 - Type: HITL
 - Blocked by: 14, 15
 - User stories covered: 12, 13, 31, 32
@@ -303,6 +315,12 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
   - Auto-merge passes for safe PRs with required checks and reviews satisfied.
   - Auto-merge blocks for repo-aware protected areas.
   - Human escalation path is explicit.
+- Implementation evidence:
+  - ADR-0033 and `docs/guides/operations/eve-strict-auto-merge.md`
+  - `packages/api/src/eve/strict-auto-merge/**`
+  - `packages/eve-runtime/agent/tools/github_strict_auto_merge.ts`
+  - `packages/eve-runtime/src/github/strict-auto-merge*.ts`
+  - `supabase/migrations/20260718063523_eve_strict_auto_merge_policy_action.sql`
 
 ### 17. Subagent Catalog and Shared Run Context
 
@@ -316,6 +334,13 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
   - Per-subagent model role, budget, eval gate, and routing policy are defined.
   - Shared context writes require schema, provenance, confidence, risk, source
     evidence, and conflict preservation.
+- Implementation evidence:
+  - ADR-0034 and `docs/guides/operations/eve-subagents-shared-context.md`
+  - `packages/api/src/eve/subagent-catalog/**`
+  - `packages/api/src/eve/shared-context/**`
+  - `packages/eve-runtime/agent/subagents/**`
+  - `packages/eve-runtime/src/specialists/**`
+  - `supabase/migrations/20260718070400_eve_subagent_shared_context.sql`
 
 ### 18. Dynamic Workflow Orchestration
 
