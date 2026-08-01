@@ -55,6 +55,12 @@ const PROTECTED_PATH_PATTERNS: ReadonlyArray<{
     pattern: /(^|\/)(vercel\.json|\.vercelignore)$/iu,
     rule: "production_deployment",
   },
+  {
+    // The sandbox governance, guardrail and audit source itself: edits here
+    // change the code that decides containment, so they must pause for approval.
+    pattern: /(^|\/)packages\/api\/src\/eve\//iu,
+    rule: "identity_data_runtime",
+  },
 ];
 
 const SENSITIVE_PATH_PATTERNS: ReadonlyArray<{
@@ -63,7 +69,10 @@ const SENSITIVE_PATH_PATTERNS: ReadonlyArray<{
 }> = [
   { pattern: /(^|\/)\.env(?:\..*)?$/iu, rule: "environment_file" },
   {
-    pattern: /(^|\/)(?:id_[^/]+|[^/]+)\.(?:key|p12|pfx|pem)$/iu,
+    // Default OpenSSH private keys have no extension, so they need their own
+    // alternative rather than relying on the extension branch.
+    pattern:
+      /(^|\/)(?:id_(?:rsa|dsa|ecdsa|ed25519)|[^/]+\.(?:key|p12|pfx|pem))$/iu,
     rule: "private_key_material",
   },
   {
@@ -92,7 +101,7 @@ const SENSITIVE_CONTENT_PATTERNS: ReadonlyArray<{
   { pattern: /SUPABASE_SERVICE_ROLE_KEY\s*=/iu, rule: "service_role_material" },
   {
     pattern:
-      /(?:STRIPE|RESEND|GITHUB|VERCEL)_[A-Z0-9_]*(?:KEY|SECRET|TOKEN)\s*=/u,
+      /(?:STRIPE|RESEND|GITHUB|VERCEL|OPENAI|ANTHROPIC|AWS|SLACK|SUPABASE|CLOUDINARY|SENTRY|TURBO)_[A-Z0-9_]*(?:KEY|SECRET|TOKEN)\s*=/u,
     rule: "provider_credential",
   },
 ];
@@ -118,8 +127,11 @@ export function scanEveSandboxPath(path: string): EveSandboxScanResult {
   const normalizedPath = normalizePath(path);
   const findings: EveSandboxFinding[] = [];
 
+  // An absolute path that survived normalization never resolved under
+  // /workspace/, so it escapes the sandbox even without any ".." traversal.
   if (
     normalizedPath.length === 0 ||
+    normalizedPath.startsWith("/") ||
     normalizedPath === ".." ||
     normalizedPath.startsWith("../") ||
     normalizedPath.includes("/../")
@@ -233,6 +245,75 @@ export type EveSandboxNetworkDecision =
         | "policy_not_ready"
         | "release_disabled";
     };
+
+export type EveSandboxWriteDecision =
+  | {
+      allowed: true;
+      governanceStateVersion: number;
+      reason: "governance_allowed";
+    }
+  | {
+      allowed: false;
+      governanceStateVersion?: number;
+      reason:
+        | "emergency_off"
+        | "governance_unavailable"
+        | "kill_switch_active"
+        | "policy_not_ready"
+        | "release_disabled";
+    };
+
+/**
+ * Authorization for writing inside the disposable workspace.
+ *
+ * Deliberately does NOT consult `sandbox_networking`: a file write touches
+ * only /workspace and cannot exfiltrate anything on its own, so gating it on
+ * the egress switch would block local work that carries no network risk. Every
+ * other fail-closed condition is shared with the network decision, and
+ * `all_automation` / `active_runs` still stop writes.
+ */
+export function evaluateEveSandboxWrite(
+  snapshot: EveGovernanceSnapshot | null,
+): EveSandboxWriteDecision {
+  if (!snapshot || snapshot.source !== "persisted") {
+    return { allowed: false, reason: "governance_unavailable" };
+  }
+
+  const governanceStateVersion = snapshot.stateVersion;
+  if (snapshot.emergencyOff) {
+    return { allowed: false, governanceStateVersion, reason: "emergency_off" };
+  }
+  if (!snapshot.releaseEnabled) {
+    return {
+      allowed: false,
+      governanceStateVersion,
+      reason: "release_disabled",
+    };
+  }
+  if (
+    snapshot.killSwitchState.all_automation ||
+    snapshot.killSwitchState.active_runs
+  ) {
+    return {
+      allowed: false,
+      governanceStateVersion,
+      reason: "kill_switch_active",
+    };
+  }
+  if (snapshot.policyStatus !== "ready") {
+    return {
+      allowed: false,
+      governanceStateVersion,
+      reason: "policy_not_ready",
+    };
+  }
+
+  return {
+    allowed: true,
+    governanceStateVersion,
+    reason: "governance_allowed",
+  };
+}
 
 export function evaluateEveSandboxNetwork(
   snapshot: EveGovernanceSnapshot | null,

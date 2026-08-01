@@ -143,13 +143,18 @@ describe("Eve runtime foundation", () => {
       "utf8",
     );
 
-    expect(bash).toContain("scanEveSandboxCommand");
-    expect(bash).toContain("recordEveSandboxAction");
-    expect(writeFile).toContain("scanEveSandboxWrite");
-    expect(writeFile).toContain("recordEveSandboxAction");
-    expect(githubOperator).toContain("defineDynamic");
-    expect(githubOperator).toContain("scanEveSandboxPath");
-    expect(strictAutoMerge).toContain("defineDynamic");
+    // Assert the call form, not the bare name: a substring match also passes
+    // for an unused import or a mention in a comment, which would hide a
+    // guardrail that is wired up but never actually invoked.
+    expect(bash).toMatch(/scanEveSandboxCommand\(/u);
+    expect(bash).toMatch(/recordEveSandboxAction\(/u);
+    expect(writeFile).toMatch(/scanEveSandboxWrite\(/u);
+    expect(writeFile).toMatch(/recordEveSandboxAction\(/u);
+    expect(githubOperator).toMatch(/defineDynamic\(/u);
+    expect(githubOperator).toMatch(/scanEveSandboxPath\(/u);
+    expect(strictAutoMerge).toMatch(/defineDynamic\(/u);
+    // expectedHeadSha is a property name rather than a call, so the substring
+    // check is the right assertion for it.
     expect(strictAutoMerge).toContain("expectedHeadSha");
   });
 
