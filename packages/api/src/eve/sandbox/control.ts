@@ -32,6 +32,13 @@ export async function resolveEveSandboxNetworkDecision(): Promise<EveSandboxNetw
 export async function recordEveSandboxAction(input: {
   action: "command" | "network_policy" | "write_file";
   command?: string;
+  /**
+   * The decision that actually gated this action. Callers that already
+   * resolved one must pass it so the audit record and the enforcement come
+   * from a single governance snapshot; re-resolving here can attribute a
+   * different snapshot, or an unrelated network rationale, to the record.
+   */
+  decision?: EveSandboxNetworkDecision;
   findings?: string[];
   result: EveAuditResult;
   runId: string;
@@ -44,7 +51,7 @@ export async function recordEveSandboxAction(input: {
     return false;
   }
 
-  const decision = await resolveEveSandboxNetworkDecision();
+  const decision = input.decision ?? (await resolveEveSandboxNetworkDecision());
   const commandFingerprint = input.command
     ? fingerprintEveSandboxCommand(input.command)
     : undefined;

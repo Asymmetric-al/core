@@ -90,6 +90,7 @@ export default defineTool({
     );
     const auditStarted = await recordEveSandboxAction({
       action: "command",
+      decision,
       command: input.command,
       findings,
       result: "started",
@@ -119,6 +120,7 @@ export default defineTool({
         typeof output?.exitCode === "number" ? output.exitCode : undefined;
       await recordEveSandboxAction({
         action: "command",
+        decision,
         command: input.command,
         findings,
         result:
@@ -133,6 +135,7 @@ export default defineTool({
     } catch (error) {
       await recordEveSandboxAction({
         action: "command",
+        decision,
         command: input.command,
         findings,
         result: "failed",

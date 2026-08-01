@@ -47,6 +47,7 @@ export default defineSandbox({
     const runId = crypto.randomUUID();
     const auditRecorded = await recordEveSandboxAction({
       action: "network_policy",
+      decision,
       result: decision.allowed ? "started" : "blocked",
       runId,
       sessionId: ctx.session.id,
@@ -67,6 +68,7 @@ export default defineSandbox({
     } catch {
       await recordEveSandboxAction({
         action: "network_policy",
+        decision,
         result: "failed",
         runId,
         sessionId: ctx.session.id,
@@ -77,6 +79,7 @@ export default defineSandbox({
 
     const completionRecorded = await recordEveSandboxAction({
       action: "network_policy",
+      decision,
       result: "succeeded",
       runId,
       sessionId: ctx.session.id,

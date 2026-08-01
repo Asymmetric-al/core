@@ -72,6 +72,7 @@ export default defineTool({
     );
     const auditStarted = await recordEveSandboxAction({
       action: "write_file",
+      decision,
       findings,
       result: "started",
       runId,
@@ -86,6 +87,7 @@ export default defineTool({
       const output = await writeFile.execute(rawInput, ctx);
       await recordEveSandboxAction({
         action: "write_file",
+        decision,
         findings,
         result: "succeeded",
         runId,
@@ -96,6 +98,7 @@ export default defineTool({
     } catch (error) {
       await recordEveSandboxAction({
         action: "write_file",
+        decision,
         findings,
         result: "failed",
         runId,
