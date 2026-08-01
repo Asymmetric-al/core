@@ -90,6 +90,11 @@ describe("Eve sandbox file guardrails", () => {
     "packages/eve-runtime/agent/agent.ts",
     "packages/api/src/eve/sandbox/guardrails.ts",
     "packages/api/src/eve/governance/control.ts",
+    // Tenant resolution and admin access control gate who sees whose data
+    "apps/admin/src/cms/public/resolve-tenant.ts",
+    "apps/admin/app/admin/users/page.tsx",
+    "packages/api/src/cms/public/reader.ts",
+    "docs/guides/architecture/data-access-boundary.md",
     "supabase/migrations/20260717000000_change.sql",
     "bun.lock",
   ])("pauses protected path %s for durable approval", (path) => {
