@@ -1,7 +1,7 @@
 import {
   hasBlockingSandboxFinding,
   recordEveSandboxAction,
-  resolveEveSandboxNetworkDecision,
+  resolveEveSandboxWriteDecision,
   scanEveSandboxWrite,
 } from "@asym/api/eve/sandbox";
 import { defineTool } from "eve/tools";
@@ -61,7 +61,9 @@ export default defineTool({
       throw new Error("Sandbox paused: forbidden sensitive material detected.");
     }
 
-    const decision = await resolveEveSandboxNetworkDecision();
+    // Writes are authorized by the write decision, not the egress decision: a
+    // file write touches only /workspace and cannot exfiltrate on its own.
+    const decision = await resolveEveSandboxWriteDecision();
     if (!decision.allowed) {
       throw new Error(`Sandbox paused: ${decision.reason}.`);
     }

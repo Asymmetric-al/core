@@ -14,8 +14,16 @@ export default defineSandbox({
     microsandbox: { networkPolicy: denyAllNetwork },
     vercel: { networkPolicy: denyAllNetwork },
   }),
-  revalidationKey: () =>
-    `core-develop-sanitized-v1:${process.env.VERCEL_GIT_COMMIT_SHA ?? "local"}`,
+  revalidationKey: () => {
+    // The checkout tracks the moving `develop` branch, so the key has to expire
+    // on its own: VERCEL_GIT_COMMIT_SHA only changes when the deploying app is
+    // redeployed, and it is absent entirely outside Vercel. Bucketing by hour
+    // bounds how stale a cached workspace can be while still reusing it across
+    // a working session.
+    const hourBucket = Math.floor(Date.now() / 3_600_000);
+    const deploySha = process.env.VERCEL_GIT_COMMIT_SHA ?? "local";
+    return `core-develop-sanitized-v2:${deploySha}:${hourBucket}`;
+  },
   async bootstrap({ use: acquireSandbox }) {
     const sandbox = await acquireSandbox();
     // Bootstrap egress is governed like every other sandbox network use. The

@@ -246,6 +246,75 @@ export type EveSandboxNetworkDecision =
         | "release_disabled";
     };
 
+export type EveSandboxWriteDecision =
+  | {
+      allowed: true;
+      governanceStateVersion: number;
+      reason: "governance_allowed";
+    }
+  | {
+      allowed: false;
+      governanceStateVersion?: number;
+      reason:
+        | "emergency_off"
+        | "governance_unavailable"
+        | "kill_switch_active"
+        | "policy_not_ready"
+        | "release_disabled";
+    };
+
+/**
+ * Authorization for writing inside the disposable workspace.
+ *
+ * Deliberately does NOT consult `sandbox_networking`: a file write touches
+ * only /workspace and cannot exfiltrate anything on its own, so gating it on
+ * the egress switch would block local work that carries no network risk. Every
+ * other fail-closed condition is shared with the network decision, and
+ * `all_automation` / `active_runs` still stop writes.
+ */
+export function evaluateEveSandboxWrite(
+  snapshot: EveGovernanceSnapshot | null,
+): EveSandboxWriteDecision {
+  if (!snapshot || snapshot.source !== "persisted") {
+    return { allowed: false, reason: "governance_unavailable" };
+  }
+
+  const governanceStateVersion = snapshot.stateVersion;
+  if (snapshot.emergencyOff) {
+    return { allowed: false, governanceStateVersion, reason: "emergency_off" };
+  }
+  if (!snapshot.releaseEnabled) {
+    return {
+      allowed: false,
+      governanceStateVersion,
+      reason: "release_disabled",
+    };
+  }
+  if (
+    snapshot.killSwitchState.all_automation ||
+    snapshot.killSwitchState.active_runs
+  ) {
+    return {
+      allowed: false,
+      governanceStateVersion,
+      reason: "kill_switch_active",
+    };
+  }
+  if (snapshot.policyStatus !== "ready") {
+    return {
+      allowed: false,
+      governanceStateVersion,
+      reason: "policy_not_ready",
+    };
+  }
+
+  return {
+    allowed: true,
+    governanceStateVersion,
+    reason: "governance_allowed",
+  };
+}
+
 export function evaluateEveSandboxNetwork(
   snapshot: EveGovernanceSnapshot | null,
 ): EveSandboxNetworkDecision {

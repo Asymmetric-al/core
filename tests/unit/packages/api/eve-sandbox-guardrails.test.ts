@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   commandMayUseNetwork,
   evaluateEveSandboxNetwork,
+  evaluateEveSandboxWrite,
   fingerprintEveSandboxCommand,
   hasBlockingSandboxFinding,
   scanEveSandboxCommand,
@@ -188,6 +189,69 @@ describe("Eve sandbox network kill switch", () => {
     expect(evaluateEveSandboxNetwork(governance)).toMatchObject({
       allowed: false,
       networkPolicy: "deny-all",
+      reason,
+    });
+  });
+
+  it("authorizes writes while egress is denied by the networking kill switch", () => {
+    const governance = readyGovernance();
+    governance.killSwitchState.sandbox_networking = true;
+
+    // A write touches only /workspace and cannot exfiltrate on its own, so the
+    // egress switch must not block it — while egress itself stays denied.
+    expect(evaluateEveSandboxWrite(governance)).toMatchObject({
+      allowed: true,
+      reason: "governance_allowed",
+    });
+    expect(evaluateEveSandboxNetwork(governance)).toMatchObject({
+      allowed: false,
+      reason: "kill_switch_active",
+    });
+  });
+
+  it.each([
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.emergencyOff = true;
+      },
+      reason: "emergency_off",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.releaseEnabled = false;
+      },
+      reason: "release_disabled",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.killSwitchState.all_automation = true;
+      },
+      reason: "kill_switch_active",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.killSwitchState.active_runs = true;
+      },
+      reason: "kill_switch_active",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.policyStatus = "not_configured";
+      },
+      reason: "policy_not_ready",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.source = "missing";
+      },
+      reason: "governance_unavailable",
+    },
+  ])("denies writes fail-closed with $reason", ({ mutate, reason }) => {
+    const governance = readyGovernance();
+    mutate(governance);
+
+    expect(evaluateEveSandboxWrite(governance)).toMatchObject({
+      allowed: false,
       reason,
     });
   });

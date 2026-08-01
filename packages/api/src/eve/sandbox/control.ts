@@ -6,10 +6,14 @@ import {
 import { loadEveGovernanceSnapshot } from "../governance";
 import {
   evaluateEveSandboxNetwork,
+  evaluateEveSandboxWrite,
   fingerprintEveSandboxCommand,
 } from "./guardrails";
 
-import type { EveSandboxNetworkDecision } from "./guardrails";
+import type {
+  EveSandboxNetworkDecision,
+  EveSandboxWriteDecision,
+} from "./guardrails";
 import type { EveAuditResult } from "../audit/types";
 
 export async function resolveEveSandboxNetworkDecision(): Promise<EveSandboxNetworkDecision> {
@@ -29,6 +33,23 @@ export async function resolveEveSandboxNetworkDecision(): Promise<EveSandboxNetw
   }
 }
 
+export async function resolveEveSandboxWriteDecision(): Promise<EveSandboxWriteDecision> {
+  const { getAdminClient } = await import("@asym/database/supabase/admin");
+  const admin = getAdminClient();
+  if (!admin.client) {
+    return evaluateEveSandboxWrite(null);
+  }
+
+  try {
+    const snapshot = await loadEveGovernanceSnapshot({
+      supabaseAdmin: admin.client,
+    });
+    return evaluateEveSandboxWrite(snapshot);
+  } catch {
+    return evaluateEveSandboxWrite(null);
+  }
+}
+
 export async function recordEveSandboxAction(input: {
   action: "command" | "network_policy" | "write_file";
   command?: string;
@@ -38,7 +59,7 @@ export async function recordEveSandboxAction(input: {
    * from a single governance snapshot; re-resolving here can attribute a
    * different snapshot, or an unrelated network rationale, to the record.
    */
-  decision?: EveSandboxNetworkDecision;
+  decision?: EveSandboxNetworkDecision | EveSandboxWriteDecision;
   findings?: string[];
   result: EveAuditResult;
   runId: string;
