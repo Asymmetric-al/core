@@ -18,7 +18,15 @@ loadEnvConfig(WORKSPACE_ROOT);
 const BONEYARD_JS_ALIAS = "apps/donor/node_modules/boneyard-js";
 const BONEYARD_JS_REACT_ALIAS = `${BONEYARD_JS_ALIAS}/dist/react.js`;
 
-const nextConfig: NextConfig = {
+/**
+ * The two flags Instant Navigation needs are pinned in the type, not just set
+ * in the literal: dropping either one, or flipping it to false, then fails
+ * this app's typecheck instead of silently un-instanting every route.
+ */
+const nextConfig: NextConfig & {
+  cacheComponents: true;
+  partialPrefetching: true;
+} = {
   reactStrictMode: true,
   cacheComponents: true,
   partialPrefetching: true,

@@ -14,7 +14,15 @@ const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
 loadEnvConfig(WORKSPACE_ROOT);
 normalizeEveVercelEnvironment(process.env);
 
-export const nextConfig: NextConfig = {
+/**
+ * The two flags Instant Navigation needs are pinned in the type, not just set
+ * in the literal: dropping either one, or flipping it to false, then fails
+ * this app's typecheck instead of silently un-instanting every route.
+ */
+export const nextConfig: NextConfig & {
+  cacheComponents: true;
+  partialPrefetching: true;
+} = {
   reactStrictMode: true,
   /** Dev HMR when opening the app via `http://127.0.0.1:3030` instead of `localhost`. */
   allowedDevOrigins: ["127.0.0.1"],
