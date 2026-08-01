@@ -1,4 +1,7 @@
-import { digestQualificationValue } from "./canonical";
+import {
+  compareQualificationKeys,
+  digestQualificationValue,
+} from "./canonical";
 import {
   HELD_BACK_CASE_DEFINITIONS,
   OPEN_CASE_DEFINITIONS,
@@ -989,7 +992,9 @@ export function validateRendererQualificationCharterInput(
 }
 
 function sortById<T>(items: readonly T[], key: (item: T) => string): T[] {
-  return [...items].sort((left, right) => key(left).localeCompare(key(right)));
+  return [...items].sort((left, right) =>
+    compareQualificationKeys(key(left), key(right)),
+  );
 }
 
 /**

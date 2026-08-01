@@ -10,6 +10,7 @@ import {
   RendererCharterValidationError,
   buildPhase18RendererContestInput,
   buildRendererQualificationManifest,
+  canonicalizeQualificationValue,
   digestQualificationValue,
   freezeRendererQualificationCharter,
   validateRendererQualificationCharterInput,
@@ -42,6 +43,20 @@ function issueCodes(input: RendererQualificationCharterInput): string[] {
     (item) => item.code,
   );
 }
+
+describe("canonicalizeQualificationValue", () => {
+  it("orders keys by code unit so digests do not depend on the runtime locale", () => {
+    // "a".localeCompare("B") is negative under locale collation but "a" sorts
+    // after "B" by code unit. Pinning the code-unit result keeps the digest
+    // identical across ICU builds and ambient locales.
+    expect(canonicalizeQualificationValue({ a: 1, B: 2 })).toBe(
+      '{"B":2,"a":1}',
+    );
+    expect(canonicalizeQualificationValue({ nested: { a: 1, B: 2 } })).toBe(
+      '{"nested":{"B":2,"a":1}}',
+    );
+  });
+});
 
 describe("freezeRendererQualificationCharter", () => {
   it("freezes a complete charter with exact candidates, corpus, gates, weights, and budgets", () => {
