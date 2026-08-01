@@ -250,6 +250,27 @@ describe("sealCandidateSubmission clock ordering", () => {
 
     expect(await store.listSubmissions()).toHaveLength(0);
   });
+
+  it("refuses to record a remediation cycle dated before the charter froze", async () => {
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+    await sealInitialSubmission(charter, store, "P18-R-P");
+
+    await expect(
+      recordRemediationCycle({
+        charter,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        hours_spent: 4,
+        changes: ["backdated cycle"],
+        affected_case_ids: ["O01"],
+        now: () => new Date("2026-07-22T11:00:00.000Z"),
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "remediation_incomplete" });
+
+    expect(await store.listRemediationCycles()).toHaveLength(0);
+  });
 });
 
 describe("recordRemediationCycle", () => {
@@ -273,7 +294,7 @@ describe("recordRemediationCycle", () => {
         affected_case_ids: ["O16"],
         store,
         generateId: () => "fixed-cycle-id",
-        now: () => new Date(overrides.recordedAt ?? "2026-07-22T10:00:00.000Z"),
+        now: () => new Date(overrides.recordedAt ?? "2026-07-22T13:00:00.000Z"),
       });
       return cycle.evidence_digest;
     };
@@ -282,7 +303,7 @@ describe("recordRemediationCycle", () => {
     expect(await digestFor({})).toBe(baseline);
     expect(await digestFor({ hours_spent: 13 })).not.toBe(baseline);
     expect(
-      await digestFor({ recordedAt: "2026-07-22T11:00:00.000Z" }),
+      await digestFor({ recordedAt: "2026-07-22T14:00:00.000Z" }),
     ).not.toBe(baseline);
   });
 

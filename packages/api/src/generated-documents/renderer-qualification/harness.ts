@@ -435,6 +435,16 @@ export async function recordRemediationCycle(
     ...HELD_BACK_CASE_IDS,
   ]);
 
+  // Same clock ordering as sealCandidateSubmission: a remediation cycle cannot
+  // predate the charter that meters it.
+  const recordedAt = (input.now ?? (() => new Date()))();
+  if (recordedAt.getTime() < Date.parse(input.charter.frozen_at)) {
+    throw new QualificationHarnessError(
+      "remediation_incomplete",
+      `Remediation cycle cannot be recorded at ${recordedAt.toISOString()}, before the charter froze at ${input.charter.frozen_at}.`,
+    );
+  }
+
   // Everything the record asserts is digested, not just the change set.
   // `hours_spent` meters the equal remediation budget and `recorded_by` /
   // `recorded_at` carry attribution, so leaving them outside the digest would
@@ -449,7 +459,7 @@ export async function recordRemediationCycle(
     changes: [...input.changes],
     affected_case_ids: [...input.affected_case_ids].sort(),
     required_rerun_case_ids: [...rerunSet].sort(),
-    recorded_at: (input.now ?? (() => new Date()))().toISOString(),
+    recorded_at: recordedAt.toISOString(),
     recorded_by: input.actor,
   };
 
