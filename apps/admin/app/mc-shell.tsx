@@ -68,6 +68,8 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { EveGlobalPanel } from "./eve/global-panel";
+
 import type { MCBootstrapState } from "@asym/lib/mission-control/bootstrap";
 import type { ReactNode } from "react";
 
@@ -485,10 +487,6 @@ export function MCShell({
   const isPayloadAdmin =
     pathname === "/web-studio" || pathname.startsWith("/web-studio/");
 
-  if (isPayloadAdmin) {
-    return <>{children}</>;
-  }
-
   return (
     <ThemeProvider
       attribute="class"
@@ -498,7 +496,12 @@ export function MCShell({
       disableTransitionOnChange
     >
       <MCProvider initialState={initialState}>
-        <ApplicationShell>{children}</ApplicationShell>
+        {isPayloadAdmin ? (
+          children
+        ) : (
+          <ApplicationShell>{children}</ApplicationShell>
+        )}
+        <EveGlobalPanel />
       </MCProvider>
     </ThemeProvider>
   );
