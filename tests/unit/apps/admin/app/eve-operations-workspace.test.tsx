@@ -83,17 +83,19 @@ describe("Eve operations workspace", () => {
     expect(view.getByText(/Governance and control come first/i)).toBeTruthy();
   });
 
-  it("labels future connections unavailable without fabricating activity", () => {
+  it("labels only unimplemented connections unavailable", () => {
     const view = render(<EveCapabilityConnectionsPanel />);
 
     expect(view.getByRole("heading", { name: "GitHub activity" })).toBeTruthy();
     expect(view.getByRole("heading", { name: "Notifications" })).toBeTruthy();
     expect(view.getByRole("heading", { name: "Chat runtime" })).toBeTruthy();
-    expect(view.getAllByText("Unavailable")).toHaveLength(3);
+    expect(view.getAllByText("Unavailable")).toHaveLength(2);
+    expect(view.getByText("Mounted")).toBeTruthy();
     expect(
       view.getByText(/no commits, checks, reviews, or issues/i),
     ).toBeTruthy();
     expect(view.getByText(/no fabricated channel status/i)).toBeTruthy();
+    expect(view.getByText(/explicit allowlist for page context/i)).toBeTruthy();
     expect(view.queryByText(/mock activity/i)).toBeNull();
   });
 
