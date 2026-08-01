@@ -24,6 +24,6 @@
 
 ## 5. Document and verify
 
-- [x] 5.1 Record ADR-0031, configuration, permissions, and runbook
+- [x] 5.1 Record ADR-0063, configuration, permissions, and runbook
 - [x] 5.2 Test output policy, protected paths, governance, approval, audit, and replay markers
 - [x] 5.3 Compile with Eve 0.25.1 and run strict OpenSpec and repository gates
