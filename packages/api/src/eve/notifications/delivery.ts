@@ -116,7 +116,6 @@ async function auditNotification(input: {
         status: input.result,
       },
       result: input.result,
-      runId: input.recordId,
       target: `notification:${input.recordId}`,
       toolName: "eve_notification_delivery",
     },

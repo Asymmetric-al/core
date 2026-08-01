@@ -6,11 +6,14 @@ import {
   completeEveNotificationAttempt,
   deliverEveNotificationRecord,
   loadEveNotificationChannels,
+  resolveEveNotificationAttemptState,
 } from "@asym/api/eve/notifications";
 import {
   claimEveSessionOwnership,
   createServiceEveSessionIdentity,
 } from "@asym/api/eve/session-ownership";
+
+import type { EveNotificationChannelConfig } from "@asym/api/eve/notifications";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
@@ -28,23 +31,15 @@ export async function runEveNotificationSweep(now = new Date()) {
   const { getAdminClient } = await import("@asym/database/supabase/admin");
   const admin = getAdminClient();
   if (!admin.client) throw new Error("Eve notification store is unavailable.");
-  const governance = await loadEveGovernanceSnapshot({
+  const records = await claimDueEveNotificationRecords({
+    limit: 50,
+    now: now.toISOString(),
     supabaseAdmin: admin.client,
+    tenantId,
   });
-  if (!governance) throw new Error("Eve governance state is unavailable.");
-  const [records, channels] = await Promise.all([
-    claimDueEveNotificationRecords({
-      limit: 50,
-      now: now.toISOString(),
-      supabaseAdmin: admin.client,
-      tenantId,
-    }),
-    loadEveNotificationChannels({ supabaseAdmin: admin.client, tenantId }),
-  ]);
   let delivered = 0;
   for (const record of records) {
-    const config = channels.find((value) => value.channel === record.channel);
-    if (!config) continue;
+    let config: EveNotificationChannelConfig | undefined;
     const sessionId = `notification:${record.id}:${record.attemptCount + 1}`;
     const sessionIdentity = createServiceEveSessionIdentity({
       initiatorId: record.id,
@@ -58,6 +53,13 @@ export async function runEveNotificationSweep(now = new Date()) {
         sessionId,
         supabaseAdmin: admin.client,
       });
+      const [governance, channels] = await Promise.all([
+        loadEveGovernanceSnapshot({ supabaseAdmin: admin.client }),
+        loadEveNotificationChannels({ supabaseAdmin: admin.client, tenantId }),
+      ]);
+      config = channels.find((value) => value.channel === record.channel);
+      if (!governance) throw new Error("Eve governance state is unavailable.");
+      if (!config) throw new Error("Eve notification channel is unavailable.");
       await deliverEveNotificationRecord({
         config,
         consultPolicy: (targetKey) =>
@@ -81,12 +83,28 @@ export async function runEveNotificationSweep(now = new Date()) {
       });
       delivered += 1;
     } catch {
+      if (!config) {
+        const channels = await loadEveNotificationChannels({
+          supabaseAdmin: admin.client,
+          tenantId,
+        }).catch(() => []);
+        config = channels.find((value) => value.channel === record.channel);
+      }
+      const attempt = config
+        ? resolveEveNotificationAttemptState({
+            attemptCount: record.attemptCount,
+            maxAttempts: config.maxAttempts,
+            now,
+            outcome: { retryable: true, success: false },
+            retryBaseSeconds: config.retryBaseSeconds,
+          })
+        : { nextAttemptAt: undefined, status: "terminal_failed" as const };
       await completeEveNotificationAttempt({
         errorCode: "notification_runtime_error",
-        nextAttemptAt: new Date(now.getTime() + 60_000).toISOString(),
+        nextAttemptAt: attempt.nextAttemptAt,
         providerResponseClass: "runtime_error",
         record,
-        status: "retryable_failed",
+        status: attempt.status,
         supabaseAdmin: admin.client,
       }).catch(() => undefined);
     }

@@ -1,15 +1,18 @@
+import { createServiceEveAuditIdentity } from "@asym/api/eve/audit";
 import {
   createEveNotificationChannelDefaults,
   createEveNotificationDedupeKey,
+  deliverEveNotificationRecord,
   evaluateEveNotificationGate,
   prepareEveNotificationEnvelope,
   renderEveDiscordNotification,
   resolveEveNotificationAttemptState,
 } from "@asym/api/eve/notifications";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { EveEngineeringFinding } from "@asym/api/eve/engineering-monitors";
 import type { EveGovernanceSnapshot } from "@asym/api/eve/governance";
+import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 const TENANT_ID = "11111111-1111-4111-8111-111111111111";
 const NOW = "2026-07-18T09:30:00.000Z";
@@ -59,6 +62,10 @@ const governance: EveGovernanceSnapshot = {
 };
 
 describe("Eve operator notifications", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("ships both channels disabled, paused, and minimal", () => {
     const configs = createEveNotificationChannelDefaults({
       policyVersion: 7,
@@ -210,5 +217,82 @@ describe("Eve operator notifications", () => {
         now: NOW,
       }),
     ).toThrow("data boundary");
+  });
+
+  it("audits notification delivery without claiming a governance run", async () => {
+    vi.stubEnv(
+      "EVE_DISCORD_WEBHOOK_URL",
+      "https://discord.com/api/webhooks/123/notification-test",
+    );
+    const insertAudit = vi.fn().mockResolvedValue({ error: null });
+    const completeAttempt = vi.fn().mockResolvedValue({ error: null });
+    const supabaseAdmin = {
+      from: vi.fn((table: string) => {
+        if (table === "eve_audit_events") return { insert: insertAudit };
+        throw new Error(`Unexpected table: ${table}`);
+      }),
+      rpc: completeAttempt,
+    } as unknown as AdminSupabaseClient;
+    const envelope = prepareEveNotificationEnvelope({ finding, now: NOW });
+    const recordId = "44444444-4444-4444-8444-444444444444";
+
+    await deliverEveNotificationRecord({
+      config: {
+        ...createEveNotificationChannelDefaults({
+          policyVersion: 7,
+          tenantId: TENANT_ID,
+        })[1]!,
+        enabled: true,
+        paused: false,
+      },
+      consultPolicy: vi.fn().mockResolvedValue({
+        actionId: "engineering.notification.deliver",
+        decision: "allow",
+        reason: "operational_policy_allowed",
+        trustZone: "engineering",
+        writeClass: "operational",
+      }),
+      governance,
+      identity: createServiceEveAuditIdentity({
+        initiatorId: "monitor:ci_failure",
+        initiatorType: "schedule",
+        serviceId: "eve-notification-delivery",
+        tenantId: TENANT_ID,
+      }),
+      now: new Date(NOW),
+      record: {
+        id: recordId,
+        tenantId: TENANT_ID,
+        channel: "discord",
+        destinationClass: "discord:ops-primary",
+        envelope,
+        dedupeKey: "b".repeat(64),
+        idempotencyKey: `eve-notification/${"b".repeat(64)}`,
+        status: "sending",
+        attemptCount: 0,
+        nextAttemptAt: NOW,
+        deliveryExpiresAt: envelope.expiresAt,
+        leaseToken: "55555555-5555-4555-8555-555555555555",
+      },
+      supabaseAdmin,
+      dependencies: {
+        fetchDiscord: vi.fn().mockResolvedValue(
+          new Response(JSON.stringify({ id: "provider-message" }), {
+            headers: { "content-type": "application/json" },
+            status: 200,
+          }),
+        ),
+      },
+    });
+
+    expect(insertAudit).toHaveBeenCalledTimes(2);
+    for (const [auditRow] of insertAudit.mock.calls) {
+      expect(auditRow).toEqual(
+        expect.objectContaining({
+          run_id: null,
+          target: expect.stringMatching(/^notification:/u),
+        }),
+      );
+    }
   });
 });

@@ -165,6 +165,7 @@ async function collectFailingEvals(
 async function collectSecurityAlerts(
   config: EveEngineeringMonitorConfig,
   github: EveMonitorGithubReader,
+  now: Date,
 ): Promise<EveEngineeringMonitorEvidence[]> {
   const [dependabot, codeScanning] = await Promise.all([
     github<
@@ -208,7 +209,7 @@ async function collectSecurityAlerts(
         advisorySeverity: safeSeverity(advisory.severity),
         affectedScope: `${alert.dependency.package.name}:${alert.dependency.scope ?? "runtime"}`,
         alertSource: "dependabot",
-        observedAt: alert.created_at,
+        observedAt: now.toISOString(),
         repository: "Asymmetric-al/core",
         safeUrl: alert.html_url,
         targetId: `dependabot-alert:${alert.number}`,
@@ -229,7 +230,7 @@ async function collectSecurityAlerts(
         affectedScope:
           (alert.rule?.tags ?? []).slice(0, 5).join(",") || "repository",
         alertSource: "code_scanning",
-        observedAt: alert.created_at,
+        observedAt: now.toISOString(),
         repository: "Asymmetric-al/core",
         safeUrl: alert.html_url,
         targetId: `code-scanning-alert:${alert.number}`,
@@ -337,7 +338,7 @@ export async function collectEveEngineeringMonitorEvidence(input: {
     case "failing_eval":
       return collectFailingEvals(input.config, input.github);
     case "dependency_security_alert":
-      return collectSecurityAlerts(input.config, input.github);
+      return collectSecurityAlerts(input.config, input.github, input.now);
     case "protected_area_pull_request":
       return collectProtectedPullRequests(
         input.config,
