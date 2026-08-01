@@ -110,7 +110,7 @@ describe("getAuthContext E2E bypass", () => {
     expect(ctx.profileId).toBe(DEMO_PROFILE_ID);
   });
 
-  it("authenticates a forwarded request without reading ambient Next.js headers", async () => {
+  it("authenticates a forwarded request from explicit cookies when ambient store is unavailable", async () => {
     mockedCreateServerClient.mockImplementation((_url, _key, options) => ({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
@@ -126,7 +126,7 @@ describe("getAuthContext E2E bypass", () => {
     });
     const { cookies, headers } = await import("next/headers");
     vi.mocked(cookies).mockRejectedValue(
-      new Error("ambient cookies must not be read"),
+      new Error("ambient cookies unavailable"),
     );
     vi.mocked(headers).mockRejectedValue(
       new Error("ambient headers must not be read"),
@@ -147,7 +147,6 @@ describe("getAuthContext E2E bypass", () => {
       tenantId: DEMO_TENANT_ID,
       profileId: DEMO_PROFILE_ID,
     });
-    expect(cookies).not.toHaveBeenCalled();
     expect(headers).not.toHaveBeenCalled();
 
     const cookieOptions = mockedCreateServerClient.mock.calls[0]?.[2].cookies;
@@ -155,6 +154,45 @@ describe("getAuthContext E2E bypass", () => {
       { name: "unrelated", value: "private" },
       { name: "asym_e2e_auth_admin", value },
     ]);
+  });
+
+  it("persists refreshed auth cookies for request-scoped API handlers", async () => {
+    const setCookie = vi.fn();
+    mockedCreateServerClient.mockImplementation((_url, _key, options) => ({
+      auth: {
+        getUser: vi.fn().mockImplementation(async () => {
+          options.cookies.setAll([
+            {
+              name: "sb-access-token",
+              value: "refreshed-token",
+              options: { path: "/" },
+            },
+          ]);
+          return { data: { user: null } };
+        }),
+      },
+    }));
+
+    const { cookies } = await import("next/headers");
+    vi.mocked(cookies).mockResolvedValue({
+      get: () => undefined,
+      getAll: () => [{ name: "sb-refresh-token", value: "refresh" }],
+      set: setCookie,
+    } as never);
+
+    const request = new Request("http://localhost:3030/api/admin/example", {
+      headers: {
+        cookie: "sb-refresh-token=refresh",
+      },
+    });
+    const { getAuthContext } = await import("./context");
+    await getAuthContext(request);
+
+    expect(setCookie).toHaveBeenCalledWith(
+      "sb-access-token",
+      "refreshed-token",
+      { path: "/" },
+    );
   });
 
   it("injects demo tenant and profile for super_admin E2E bypass when ids are null", async () => {

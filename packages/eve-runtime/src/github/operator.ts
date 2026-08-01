@@ -22,6 +22,37 @@ async function verifyIssue(input: EveGithubOperatorInput, issueNumber: number) {
   }
 }
 
+async function verifyPullRequestIssue(
+  input: EveGithubOperatorInput,
+  issueNumber: number,
+  pullRequestNumber: number,
+) {
+  const pullRequest = await githubRequest<{
+    body?: unknown;
+    head?: { ref?: unknown };
+  }>({
+    installationId: input.installationId,
+    method: "GET",
+    path: `/repos/${pathPart(input.owner)}/${pathPart(input.repo)}/pulls/${pullRequestNumber}`,
+  });
+  const branch = pullRequest.body.head?.ref;
+  const body = pullRequest.body.body;
+  const issueLink = new RegExp(
+    `(?:^|\\s)Closes\\s+#${issueNumber}(?=\\s|$|[.,:;!?])`,
+    "iu",
+  );
+  if (
+    typeof branch !== "string" ||
+    !branch.startsWith(`eve/issue-${issueNumber}-`) ||
+    typeof body !== "string" ||
+    !issueLink.test(body)
+  ) {
+    throw new Error(
+      `Pull request #${pullRequestNumber} does not belong to issue #${issueNumber}.`,
+    );
+  }
+}
+
 async function createIssue(
   input: EveGithubOperatorInput,
   request: Extract<EveGithubOperatorRequest, { operation: "create_issue" }>,
@@ -252,6 +283,11 @@ export async function performEveGithubOperation(input: EveGithubOperatorInput) {
       return { resourceId: String(request.workflowRunId) };
     case "update_pull_request":
       await verifyIssue(input, request.issueNumber);
+      await verifyPullRequestIssue(
+        input,
+        request.issueNumber,
+        request.pullRequestNumber,
+      );
       await githubRequest({
         body: { state: request.state },
         installationId: input.installationId,

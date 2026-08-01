@@ -83,7 +83,7 @@ function requiredReviewReasons(
     (review) =>
       review.state.toUpperCase() === "APPROVED" &&
       review.userType?.toLowerCase() !== "bot" &&
-      (!protection.dismissStaleReviews || review.commitId === evidence.headSha),
+      review.commitId === evidence.headSha,
   );
   if (
     protection.requiredApprovingReviewCount < 1 ||

@@ -60,6 +60,14 @@ function parseIssueNumber(headRef: string): number | undefined {
     : undefined;
 }
 
+function bodyClosesIssue(
+  body: string,
+  issueNumber: number | undefined,
+): boolean {
+  if (!issueNumber) return false;
+  return new RegExp(`Closes #${issueNumber}(?!\\d)`, "u").test(body);
+}
+
 async function issueExists(
   input: EveStrictAutoMergeInput,
   issueNumber: number | undefined,
@@ -278,7 +286,7 @@ export async function inspectEveStrictAutoMerge(
     issueLinkVerified:
       issueVerified &&
       typeof pull.body.body === "string" &&
-      pull.body.body.includes(`Closes #${issueNumber}`),
+      bodyClosesIssue(pull.body.body, issueNumber),
     issueNumber,
     mergeable: pull.body.mergeable ?? null,
     mergeableState: pull.body.mergeable_state ?? "unknown",

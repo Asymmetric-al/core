@@ -117,6 +117,31 @@ describe("Eve strict auto-merge policy", () => {
     });
   });
 
+  it("rejects an approval for an earlier head even when GitHub keeps stale reviews", () => {
+    expect(
+      evaluateEveStrictAutoMerge(
+        evidence({
+          observedReviews: [
+            {
+              commitId: "b".repeat(40),
+              login: "maintainer",
+              state: "APPROVED",
+              submittedAt: "2026-07-17T12:00:00.000Z",
+              userType: "User",
+            },
+          ],
+          protection: {
+            ...evidence().protection!,
+            dismissStaleReviews: false,
+          },
+        }),
+      ),
+    ).toEqual({
+      outcome: "escalate",
+      reasons: ["required_human_review_missing"],
+    });
+  });
+
   it("blocks every protected-area finding even when checks and reviews pass", () => {
     expect(
       evaluateEveStrictAutoMerge(
