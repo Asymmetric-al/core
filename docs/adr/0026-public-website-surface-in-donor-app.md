@@ -48,3 +48,8 @@ stays authenticated.
 - The extraction trigger is explicit and deferred: an `apps/web` split (or an
   availability SLO that demands removing admin from the hot read path — see
   ADR-0027) re-opens this decision with the contract already in place.
+- Because the public surface shares the donor app, its static-shell invariants
+  are pinned by `tests/unit/apps/donor/static-shell-contract.test.ts`. Those are
+  deliberately source-text guards: a request read leaking into shared chrome
+  empties the crawler-visible HTML while the build stays green, so only an
+  assertion on the source can catch it.

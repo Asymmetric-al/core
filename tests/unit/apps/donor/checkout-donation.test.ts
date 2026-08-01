@@ -10,7 +10,7 @@ import {
   normalizeCheckoutFrequency,
   resolveCheckoutIdempotencyKey,
   resolveCheckoutMode,
-} from "../../../../apps/donor/app/(public)/checkout/checkout-donation";
+} from "../../../../apps/donor/app/(public)/(solid)/checkout/checkout-donation";
 
 describe("buildDonateRequestBody", () => {
   it("maps missionaryId/fundId to the snake_case saga contract", () => {
