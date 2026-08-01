@@ -169,13 +169,18 @@ export function validateEveDynamicWorkflowPlan(input: {
   }
 
   const cap = EVE_DELEGATION_CAPS[plan.workflowType];
+  // The cap counts the root alongside nested delegation, so the root occupies
+  // one slot and only the remainder is available to children. Comparing
+  // maxSubagentCalls against the full cap would allow cap.maxSubagents children
+  // plus the root, one agent over the hard limit.
+  const maxDelegatedCalls = Math.max(0, cap.maxSubagents - 1);
   const totalAttempts = plan.steps.reduce(
     (total, step) => total + step.maxAttempts,
     0,
   );
   const declaredRetries = totalAttempts - plan.steps.length;
   if (
-    plan.budget.maxSubagentCalls > cap.maxSubagents ||
+    plan.budget.maxSubagentCalls > maxDelegatedCalls ||
     totalAttempts > plan.budget.maxSubagentCalls ||
     declaredRetries > plan.budget.maxRetries
   ) {

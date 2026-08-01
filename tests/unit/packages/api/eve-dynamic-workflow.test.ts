@@ -91,6 +91,29 @@ describe("Eve dynamic workflow plan validation", () => {
     expect(first.requiresApproval).toBe(false);
   });
 
+  it("reserves the root slot inside the delegation cap", () => {
+    // pull_request_review is capped at 6 subagents, and the spec requires that
+    // cap to include root and nested delegation. Six delegated calls plus the
+    // root would be seven agents, one over the hard limit.
+    const atCap = plan();
+    atCap.budget = { maxSubagentCalls: 6, maxRetries: 0 };
+    expect(() =>
+      validateEveDynamicWorkflowPlan({
+        plan: atCap,
+        rootSessionId: "session-root",
+      }),
+    ).toThrow("call or retry cap");
+
+    const underCap = plan();
+    underCap.budget = { maxSubagentCalls: 5, maxRetries: 0 };
+    expect(
+      validateEveDynamicWorkflowPlan({
+        plan: underCap,
+        rootSessionId: "session-root",
+      }).topologicalOrder,
+    ).toEqual(["review", "tests"]);
+  });
+
   it("rejects cycles, out-of-scope paths, and ineligible specialists", () => {
     const cyclic = plan();
     cyclic.steps[0]!.dependsOn = ["tests"];
