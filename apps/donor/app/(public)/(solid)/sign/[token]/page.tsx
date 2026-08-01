@@ -17,7 +17,7 @@ export const metadata: Metadata = {
  * Keep it inside its own boundary — in the page body it would opt the whole
  * route out of prerendering.
  */
-const Connection = async () => {
+const RequestTimeMetadataBoundary = async () => {
   await connection();
   return null;
 };
@@ -30,7 +30,7 @@ export default function Page() {
   return (
     <>
       <Suspense fallback={null}>
-        <Connection />
+        <RequestTimeMetadataBoundary />
       </Suspense>
       <PageClient />
     </>

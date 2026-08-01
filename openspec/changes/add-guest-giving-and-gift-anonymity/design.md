@@ -121,7 +121,7 @@ These repo facts matter for implementation:
 
 ### 4.1 Checkout currently collects basic donor information
 
-`apps/donor/app/(public)/checkout/checkout-client.tsx` currently models donor info as first name, last name, and email, and the Details step blocks continuing until those fields are present.
+`apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx` currently models donor info as first name, last name, and email, and the Details step blocks continuing until those fields are present.
 
 Relevant current shape:
 

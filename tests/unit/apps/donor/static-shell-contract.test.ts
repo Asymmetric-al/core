@@ -1,5 +1,6 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "vitest";
 
 /**
@@ -66,6 +67,26 @@ describe("donor static shell contract", () => {
     );
   });
 
+  it("keeps every public page inside a navbar route group", () => {
+    const publicRoot = fileURLToPath(
+      new URL("../../../../apps/donor/app/(public)", import.meta.url),
+    );
+    const pages = readdirSync(publicRoot, {
+      recursive: true,
+      encoding: "utf8",
+    })
+      // readdirSync returns backslash-separated paths on Windows.
+      .map((entry) => entry.replaceAll("\\", "/"))
+      .filter((entry) => entry.endsWith("page.tsx"));
+
+    // Only (hero) and (solid) pin a navbar variant. A page added directly under
+    // (public) renders with no navbar at all, and nothing else would catch it.
+    expect(pages.length).toBeGreaterThan(0);
+    for (const page of pages) {
+      expect(page).toMatch(/^\((hero|solid)\)\//);
+    }
+  });
+
   it("keeps worker profiles prerenderable", () => {
     const source = read(
       "apps/donor/app/(public)/(solid)/workers/[id]/page.tsx",
@@ -75,6 +96,42 @@ describe("donor static shell contract", () => {
     // profile copy and its JSON-LD from the crawler-visible HTML.
     expect(source).not.toMatch(/^\s*import\s+\{[^}]*\bconnection\b/m);
     expect(source).not.toMatch(/await connection\(\)/);
+  });
+
+  it("keeps the sign route's connection() inside its Suspense child", () => {
+    const source = read(
+      "apps/donor/app/(public)/(solid)/sign/[token]/page.tsx",
+    );
+
+    // connection() in the default export opts the whole route out of
+    // prerendering; it only stays cheap while it is isolated in its own child.
+    expect(source).toMatch(
+      /const RequestTimeMetadataBoundary = async \(\) => \{\s*await connection\(\)/,
+    );
+    expect(source).toMatch(/<Suspense[\s\S]*?<RequestTimeMetadataBoundary \/>/);
+
+    // Matching `async` too matters: `indexOf("export default function Page")`
+    // returns -1 the moment the page becomes async, and slice(-1) would make
+    // the assertion below pass against the exact regression it guards.
+    const defaultExportIndex = source.search(
+      /export default (?:async )?function Page/,
+    );
+    expect(defaultExportIndex).toBeGreaterThan(-1);
+    expect(source.slice(defaultExportIndex)).not.toMatch(
+      /await connection\(\)/,
+    );
+  });
+
+  it("keeps the home route's request read below a Suspense boundary", () => {
+    const source = read("apps/donor/app/(public)/(hero)/page.tsx");
+
+    // The CMS read is the route's only request-time work. Hoisting it into the
+    // page body or into HomeHero pulls the above-the-fold shell dynamic.
+    expect(source).toMatch(
+      /<Suspense[\s\S]*?<LatestMinistryUpdates \/>[\s\S]*?<\/Suspense>/,
+    );
+    expect(source).not.toMatch(/\bheaders\b/);
+    expect(source).not.toMatch(/\bconnection\b/);
   });
 
   it("keeps the donor dashboard role gate ahead of any render", () => {
