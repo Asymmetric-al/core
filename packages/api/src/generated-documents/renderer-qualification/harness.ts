@@ -329,6 +329,28 @@ export async function sealCandidateSubmission(
         `Submission ordinal ${ordinal} requires recorded remediation cycle ${ordinal} for ${candidateId} under this charter first.`,
       );
     }
+
+    // A remediation cycle spends part of the equal budget, so its submission
+    // has to carry a changed candidate source. Permitted changes are
+    // adapter/translation source only, so an unchanged source digest means the
+    // cycle bought nothing and the budget was consumed for free.
+    //
+    // Deliberately NOT requiring output_digest to differ: an isolation or
+    // sandbox fix can legitimately leave the rendered bytes identical.
+    const priorSubmissions = await input.store.listSubmissions(
+      input.charter.manifest_digest,
+    );
+    const prior = priorSubmissions.find(
+      (submission) =>
+        submission.candidate_id === candidateId &&
+        submission.remediation_cycle_ordinal === ordinal - 1,
+    );
+    if (prior && prior.source_digest === input.source_digest) {
+      throw new QualificationHarnessError(
+        "remediation_incomplete",
+        `Remediation ordinal ${ordinal} for ${candidateId} carries the same source digest as ordinal ${ordinal - 1}; a cycle must change the candidate source.`,
+      );
+    }
   }
 
   // Evidence cannot predate the charter that governs it. Without this a skewed

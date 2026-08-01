@@ -273,6 +273,70 @@ describe("sealCandidateSubmission clock ordering", () => {
   });
 });
 
+describe("remediation must change the candidate source", () => {
+  it("rejects a remediation submission reusing the prior source digest", async () => {
+    // A cycle spends part of the equal remediation budget. Permitted changes
+    // are adapter/translation source only, so an unchanged source digest means
+    // the cycle bought nothing while still consuming the allowance.
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+    await sealInitialSubmission(charter, store, "P18-R-P");
+    await recordRemediationCycle({
+      charter,
+      candidate_id: "P18-R-P",
+      actor: "operator-prince",
+      hours_spent: 6,
+      changes: ["fix table header repetition"],
+      affected_case_ids: ["O16"],
+      store,
+    });
+
+    await expect(
+      sealCandidateSubmission({
+        charter,
+        expected_manifest_digest: charter.manifest_digest,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        // Byte-identical to the initial attempt.
+        source_digest: syntheticDigest("P18-R-P-initial-source"),
+        output_digest: syntheticDigest("P18-R-P-remediated-output"),
+        remediation_cycle_ordinal: 1,
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "remediation_incomplete" });
+  });
+
+  it("allows a changed source even when the rendered bytes are identical", async () => {
+    // An isolation or sandbox fix can legitimately leave the PDF unchanged, so
+    // only the source digest is required to move.
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+    await sealInitialSubmission(charter, store, "P18-R-P");
+    await recordRemediationCycle({
+      charter,
+      candidate_id: "P18-R-P",
+      actor: "operator-prince",
+      hours_spent: 6,
+      changes: ["tighten sandbox policy"],
+      affected_case_ids: ["O17"],
+      store,
+    });
+
+    const sealed = await sealCandidateSubmission({
+      charter,
+      expected_manifest_digest: charter.manifest_digest,
+      candidate_id: "P18-R-P",
+      actor: "operator-prince",
+      source_digest: syntheticDigest("P18-R-P-remediated-source"),
+      output_digest: syntheticDigest("P18-R-P-initial-output"),
+      remediation_cycle_ordinal: 1,
+      store,
+    });
+
+    expect(sealed.remediation_cycle_ordinal).toBe(1);
+  });
+});
+
 describe("evidence record identity", () => {
   it("refuses a blank generated id", async () => {
     // The store rejects repeats, but the first blank id would be stored and
