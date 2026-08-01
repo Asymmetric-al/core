@@ -59,7 +59,12 @@
     },
     "typecheck": {
       "dependsOn": ["^typecheck"],
-      "outputs": ["*.tsbuildinfo", "dist/*.tsbuildinfo", "!**/node_modules/**"],
+      "outputs": [
+        "tsconfig.tsbuildinfo",
+        "*.tsbuildinfo",
+        "dist/*.tsbuildinfo",
+        "!**/node_modules/**"
+      ],
       "passThroughEnv": ["CI", "NODE_OPTIONS", "FORCE_COLOR", "NO_COLOR"]
     },
     "dev": {

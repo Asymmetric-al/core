@@ -26,6 +26,7 @@ Notes:
 - Internal packages define `build` scripts as `tsc --noEmit` (type-check only, no JavaScript emit).
 - Example: `bunx turbo run build --filter=@asym/ui` now executes the `@asym/ui` package build task.
 - Turbo `build` caching tracks app artifacts (`.next/**`) and package/typecheck artifacts (`dist/**`, `*.tsbuildinfo`).
+- Cache output globs in `turbo.json` must never be able to match a package's own `node_modules`. Use package-relative globs (`*.tsbuildinfo`, `dist/*.tsbuildinfo`), not recursive ones (`**/*.tsbuildinfo`), and keep the `"!node_modules/**"` guard in `build.outputs` / `typecheck.outputs`. See [Turbo cache restore replaces workspace symlinks](#turbo-cache-restore-replaces-workspace-symlinks).
 - For troubleshooting, use Turbo filters directly: `bunx turbo run build --filter=@asym/<package>`.
 
 ## Environment profiles
@@ -143,6 +144,29 @@ Fix:
 
 - If route should be request-time rendered, call `await connection()` in the server component/page.
 - Or move nondeterministic logic to request-time or client-side paths where appropriate.
+
+### Turbo cache restore replaces workspace symlinks
+
+Symptom: typecheck or build fails immediately after a Turbo cache hit, with errors that look like real code defects but are not:
+
+- `TS6059: File '.../packages/lib/responsive.ts' is not under 'rootDir' '.../packages/ui'` in `packages/ui`
+- `TS2307: Cannot find module '@asym/mock-data'` in `apps/donor`
+
+Diagnosis: inspect a workspace link directory, for example `packages/ui/node_modules/@asym/`. If entries such as `auth`, `database`, or `lib` are real directories containing only a `dist/` with a `.tsbuildinfo` inside — instead of symlinks into `packages/*` — the cache restore overwrote them.
+
+Cause: a recursive output glob (`**/*.tsbuildinfo`) matches through the `node_modules/@asym/*` workspace symlinks, so Turbo captures paths like `packages/ui/node_modules/@asym/auth/dist/tsconfig.tsbuildinfo` into the cache artifact. Restoring that artifact materializes those paths as real directories and destroys the symlink. Fixed by scoping `build.outputs` / `typecheck.outputs` in `turbo.json` to package-relative globs plus a `"!node_modules/**"` guard.
+
+The guard is deliberately package-relative (`!node_modules/**`, not `!**/node_modules/**`) so it only excludes a package's own `node_modules`. A bundler may legitimately vendor dependencies _into_ build output — `packages/eve-runtime/.output/server/node_modules/` already does, and Next.js `output: "standalone"` would too — and a recursive exclusion would silently cache those bundles with their dependencies stripped out.
+
+Fix (if you hit a cache artifact written before that fix, e.g. on an older branch): delete the hollow directories, then reinstall. `bun install` on its own does not replace an existing real directory with a symlink, so the delete step is required.
+
+```bash
+find packages/*/node_modules/@asym apps/*/node_modules/@asym -maxdepth 1 -mindepth 1 -type d -exec rm -rf {} + && bun install
+```
+
+The `-type d` test matches only real directories, so intact symlinks are left alone.
+
+`TURBO_FORCE=true` only bypasses the bad restore for one run; it is a workaround, not a fix.
 
 ### Multiple lockfile warnings during Next.js build
 
