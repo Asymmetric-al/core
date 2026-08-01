@@ -598,6 +598,68 @@ describe("edge role enforcement", () => {
     expect(response.status).toBe(200);
   });
 
+  /**
+   * The missionary app's shape: everything protected, and the app's own home
+   * page is the dashboard. Listing "/" as public cancels the gate outright,
+   * because the public check returns before authentication runs.
+   */
+  const missionaryLikeMiddleware = (
+    resolveUserRole: () => Promise<{
+      profileRole: "missionary" | "donor";
+      memberships: [];
+    }>,
+  ) =>
+    createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/no-access"],
+      protectedRoutePrefixes: ["/"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/",
+      unauthorizedRedirectTo: "/no-access",
+      allowedRoles: ["missionary", "admin", "staff", "super_admin"],
+      resolveUserRole,
+    });
+
+  it("sends an anonymous visitor on a protected home page to login", async () => {
+    mockConfigWithUser(null);
+    const middleware = missionaryLikeMiddleware(async () => ({
+      profileRole: "missionary",
+      memberships: [],
+    }));
+
+    const response = await middleware(createRequest("/"));
+
+    // A 200 here means the dashboard shell was generated and the redirect was
+    // left to the layout, which arrives after the markup does.
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/login?next=%2F",
+    );
+  });
+
+  it("sends a wrong-role visitor on a protected home page to a terminal page", async () => {
+    const middleware = missionaryLikeMiddleware(async () => ({
+      profileRole: "donor",
+      memberships: [],
+    }));
+
+    const response = await middleware(createRequest("/"));
+
+    expect(response.status).toBe(307);
+    // Not "/": bouncing there re-enters this same failing check and loops.
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/no-access",
+    );
+  });
+
+  it("still serves a protected home page to an allowed role", async () => {
+    const middleware = missionaryLikeMiddleware(async () => ({
+      profileRole: "missionary",
+      memberships: [],
+    }));
+
+    expect((await middleware(createRequest("/"))).status).toBe(200);
+  });
+
   it("refuses to build a role-gated middleware without a role resolver", () => {
     // Without this guard the misconfiguration is silent and total: every
     // signed-in user resolves to a `null` role, fails closed, and is redirected
