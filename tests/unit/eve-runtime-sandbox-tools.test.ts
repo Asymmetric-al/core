@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { EveSandboxNetworkDecision } from "@asym/api/eve/sandbox";
+
 const mocks = vi.hoisted(() => ({
   decision: {
     allowed: true,
     governanceStateVersion: 1,
     networkPolicy: "allow-all",
     reason: "governance_allowed",
-  } as Record<string, unknown>,
+  } as EveSandboxNetworkDecision,
 }));
 
 // Only the governance lookup is replaced; the real guardrail scanners stay in
