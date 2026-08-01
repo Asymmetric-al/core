@@ -57,6 +57,16 @@ function sameStringSequence(
   return JSON.stringify(actual) === JSON.stringify(expected);
 }
 
+/**
+ * Content addresses are the only thing that makes the frozen corpus and the
+ * candidate locks verifiable. A non-blank but malformed value such as
+ * `"not-a-digest"` is worse than a missing one: it reads as pinned.
+ */
+const SHA256_HEX = /^[0-9a-f]{64}$/;
+
+const isSha256Hex = (value: string | undefined): boolean =>
+  SHA256_HEX.test(value ?? "");
+
 /** Conservative synthetic-data screen for corpus text fields. */
 const PII_PATTERNS = [
   /[\w.+-]+@(?!example\.)[\w-]+\.[\w.-]+/,
@@ -140,7 +150,7 @@ function validateCandidates(
     typst.pipeline !== "typst-cli@0.15.1" ||
     !typst.container_runtime?.trim() ||
     !typst.os_libc?.trim() ||
-    !/^[0-9a-f]{64}$/.test(typst.engine_binary_digest ?? "")
+    !isSha256Hex(typst.engine_binary_digest)
   ) {
     issues.push(
       issue(
@@ -190,6 +200,27 @@ function validateCandidates(
         );
       }
     }
+
+    // Content addresses, unlike the labels above, must actually be digests.
+    // `adapter_commit` stays on the trim check: it is a commit id, not a hash.
+    const requiredDigests: Array<[string, string]> = [
+      ["adapter_digest", candidate.adapter_digest],
+      ["dependency_lock_digest", candidate.dependency_lock_digest],
+      ["configuration_digest", candidate.configuration_digest],
+      ["locale_data_digest", candidate.locale_data_digest],
+      ["finalizer.digest", candidate.finalizer.digest],
+    ];
+    for (const [field, value] of requiredDigests) {
+      if (!isSha256Hex(value)) {
+        issues.push(
+          issue(
+            `${path}.${field}`,
+            "provenance_missing",
+            `Candidate lock field ${field} must be a lowercase SHA-256 hex digest.`,
+          ),
+        );
+      }
+    }
     if (candidate.fonts_assets_packages.length === 0) {
       issues.push(
         issue(
@@ -200,12 +231,19 @@ function validateCandidates(
       );
     }
     for (const item of candidate.fonts_assets_packages) {
-      if (!item.license.trim() || !item.digest.trim()) {
+      // Without a name and version the digest cannot be tied back to anything
+      // in the inventory, and the issue path below degrades to a bare prefix.
+      if (
+        !item.name.trim() ||
+        !item.version.trim() ||
+        !item.license.trim() ||
+        !isSha256Hex(item.digest)
+      ) {
         issues.push(
           issue(
-            `${path}.fonts_assets_packages.${item.name}`,
+            `${path}.fonts_assets_packages.${item.name || "<unnamed>"}`,
             "provenance_missing",
-            "Every pinned font/asset/package needs a license and digest.",
+            "Every pinned font/asset/package needs a name, version, license, and SHA-256 digest.",
           ),
         );
       }
@@ -239,11 +277,15 @@ function validateCase(
     );
   }
   if (
-    !manifest.fixture.facts_digest.trim() ||
-    !manifest.fixture.document_digest.trim()
+    !isSha256Hex(manifest.fixture.facts_digest) ||
+    !isSha256Hex(manifest.fixture.document_digest)
   ) {
     issues.push(
-      issue(path, "corpus_invalid", "Every case pins its fixture digests."),
+      issue(
+        path,
+        "corpus_invalid",
+        "Every case pins its fixture digests as lowercase SHA-256 hex.",
+      ),
     );
   }
   if (!manifest.fixture.bounds.trim()) {
@@ -414,14 +456,62 @@ function validateCorpus(
       ),
     );
   }
-  if (!input.held_back_seal.sealed_expectations_digest.trim()) {
+  if (!isSha256Hex(input.held_back_seal.sealed_expectations_digest)) {
     issues.push(
       issue(
         "held_back_seal",
         "held_back_not_sealed",
-        "Held-back expectations must be sealed under a digest before freeze.",
+        "Held-back expectations must be sealed under a SHA-256 digest before freeze.",
       ),
     );
+  }
+
+  // The custodian access log is evidence, so it has to be read, not just
+  // carried. Protocol: candidate implementers must not "See held-back expected
+  // results before candidate outputs are sealed", and the custodian must not
+  // "Tune a candidate against held-back fixture identities". An operator in
+  // this log is that leak, recorded in the charter's own evidence.
+  const operatorActors = new Set(
+    Object.values(input.roles.candidate_operators),
+  );
+  for (const [index, entry] of input.held_back_seal.access_log.entries()) {
+    const entryPath = `held_back_seal.access_log.${index}`;
+    if (operatorActors.has(entry.actor)) {
+      issues.push(
+        issue(
+          entryPath,
+          "held_back_expectation_leaked",
+          `Candidate operator ${entry.actor} accessed the held-back expectations before freeze.`,
+        ),
+      );
+    }
+    if (!entry.reason.trim()) {
+      issues.push(
+        issue(
+          entryPath,
+          "held_back_not_sealed",
+          "Every held-back access must record why it happened.",
+        ),
+      );
+    }
+    const accessedAtMs = Date.parse(entry.at);
+    if (Number.isNaN(accessedAtMs)) {
+      issues.push(
+        issue(
+          entryPath,
+          "held_back_not_sealed",
+          "Every held-back access must record a valid timestamp.",
+        ),
+      );
+    } else if (accessedAtMs > Date.parse(input.frozen_at)) {
+      issues.push(
+        issue(
+          entryPath,
+          "held_back_not_sealed",
+          "A held-back access cannot be dated after the charter freezes.",
+        ),
+      );
+    }
   }
   const sealedAtMs = Date.parse(input.held_back_seal.sealed_at);
   if (Number.isNaN(sealedAtMs)) {
@@ -908,6 +998,16 @@ function validateBudgetsValidatorsRoles(
         ),
       );
     }
+    // The statement is the only captured proof of what was authorized.
+    if (!finalApproval.statement.trim()) {
+      issues.push(
+        issue(
+          "approvals",
+          "approval_missing",
+          "The final approval must carry a non-blank statement of what was authorized.",
+        ),
+      );
+    }
   }
 }
 
@@ -922,6 +1022,17 @@ export function validateRendererQualificationCharterInput(
         "charter_id",
         "charter_incomplete",
         "Charter id and version are required.",
+      ),
+    );
+  } else if (!/^\d+\.\d+\.\d+$/.test(input.charter_version)) {
+    // A reset is "a new charter ID, new timestamp, new digest"; an ordered
+    // version is what makes one charter comparable to its predecessor. A label
+    // like "draft" freezes into a manifest that cannot be ordered at all.
+    issues.push(
+      issue(
+        "charter_version",
+        "charter_incomplete",
+        "Charter version must be a semantic MAJOR.MINOR.PATCH version.",
       ),
     );
   }
@@ -985,8 +1096,13 @@ export function validateRendererQualificationCharterInput(
   } else {
     const fixedTriggers = new Set(PHASE_18_REQUALIFICATION_TRIGGERS);
     const declaredTriggers = new Set(input.requalification_triggers);
+    // Compare lengths too, not just set contents. A duplicated trigger keeps
+    // the sets equal but survives normalization, so it changes manifest_digest
+    // while meaning nothing - and submission/remediation meters are scoped to
+    // that digest, so a semantic no-op would mint fresh allowances.
     const setsMatch =
       fixedTriggers.size === declaredTriggers.size &&
+      declaredTriggers.size === input.requalification_triggers.length &&
       [...fixedTriggers].every((trigger) => declaredTriggers.has(trigger));
     if (!setsMatch) {
       issues.push(

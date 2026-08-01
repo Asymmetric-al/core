@@ -34,6 +34,47 @@ export function verifyRendererQualificationCharter(
     };
   }
 
+  // Normalization sorts and spreads these, so a missing collection throws a raw
+  // TypeError before any structural check runs - a verifier that crashes on a
+  // malformed charter cannot report it as invalid.
+  const requiredArrays = [
+    "candidates",
+    "open_corpus",
+    "held_back_corpus",
+    "gates",
+    "score_dimensions",
+    "budgets",
+    "validators",
+    "approvals",
+    "requalification_triggers",
+  ] as const;
+  const requiredObjects = [
+    "roles",
+    "held_back_seal",
+    "operational_suites",
+    "scoring_rules",
+    "remediation_policy",
+    "evidence_rules",
+  ] as const;
+  const record = charter as unknown as Record<string, unknown>;
+  const malformed = [
+    ...requiredArrays.filter((field) => !Array.isArray(record[field])),
+    ...requiredObjects.filter(
+      (field) => typeof record[field] !== "object" || record[field] === null,
+    ),
+  ];
+  if (malformed.length > 0) {
+    return {
+      valid: false,
+      failures: [
+        {
+          code: "structure_invalid",
+          detail: `Charter is missing or malformed required fields: ${malformed.join(", ")}.`,
+        },
+      ],
+    };
+  }
+
   const { schema_version, manifest_digest, ...frozenFields } = charter;
   const normalizedFrozenFields =
     normalizeRendererQualificationCharterInput(frozenFields);

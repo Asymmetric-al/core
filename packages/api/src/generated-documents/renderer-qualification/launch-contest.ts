@@ -54,6 +54,7 @@ export const OPEN_CASE_DEFINITIONS: Record<
       "gross payment",
       "goods/services description",
       "good-faith value",
+      "deductible amount",
       "required disclosure",
     ],
     layout_assertions: ["every protected disclosure survives"],
@@ -349,7 +350,7 @@ export const PHASE_18_QUALIFICATION_GATES: readonly QualificationGate[] = [
     gate_id: "G07",
     title: "Pinning and final-byte integrity",
     pass_rule:
-      "The evidence records every executable/input pin. All required byte-changing steps precede validation. SHA-256 and length of staged, uploaded and read-back bytes match; a mismatch cannot promote. Repeat renders meet the frozen stability rule.",
+      "The evidence records every executable/input pin. All required byte-changing steps precede validation. SHA-256 and length of staged, uploaded and read-back bytes match; a mismatch cannot promote. Repeat renders meet the frozen semantic/visual stability rule, and any nonsemantic byte variance is fully explained.",
   },
   {
     gate_id: "G08",
@@ -540,6 +541,20 @@ export const PHASE_18_ABSOLUTE_BUDGETS: readonly AbsoluteBudget[] = [
     limit: 20,
     unit: "items/minute sustained minimum",
     basis: "mixed batch steady state",
+  },
+  {
+    metric: "max_attempt_deadline_ms",
+    limit: 600_000,
+    unit: "ms",
+    basis:
+      // Protocol: the frozen budgets cover "latency, throughput, memory,
+      // deadline, queue age, provider quota and cost", and every attempt
+      // declares an "explicit deadline". Percentile targets alone let a
+      // workload where under 1% of attempts hang pass every declared budget,
+      // because a hung attempt is never a slow success - it is a typed timeout.
+      // Set at twice the 100-plus-page p95 (long_item_latency_p95_ms), the
+      // largest admitted case.
+      "absolute per-attempt execution deadline; an attempt exceeding it is a typed timeout, not a slow success",
   },
   {
     metric: "max_queue_age_seconds",

@@ -212,6 +212,136 @@ describe("freezeRendererQualificationCharter", () => {
     ).not.toContain("candidate_lock_invalid");
   });
 
+  it("rejects a candidate operator recorded in the held-back access log", () => {
+    // Protocol role table: candidate implementers must not "See held-back
+    // expected results before candidate outputs are sealed". An operator in
+    // this log is that leak, recorded in the charter's own evidence - and the
+    // log was previously carried into the digest without ever being read.
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.held_back_seal = {
+            ...input.held_back_seal,
+            access_log: [
+              ...input.held_back_seal.access_log,
+              {
+                actor: input.roles.candidate_operators["P18-R-T"],
+                at: "2026-07-22T11:45:00.000Z",
+                reason: "peeked at the sealed expectations",
+              },
+            ],
+          };
+        }),
+      ),
+    ).toContain("held_back_expectation_leaked");
+  });
+
+  it("rejects content addresses that are non-blank but malformed", () => {
+    // A trim-only check treats "not-a-digest" as pinned, which makes the frozen
+    // corpus and the candidate locks unverifiable while still freezing.
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.open_corpus = input.open_corpus.map((item, index) =>
+            index === 0
+              ? {
+                  ...item,
+                  fixture: { ...item.fixture, facts_digest: "not-a-digest" },
+                }
+              : item,
+          );
+        }),
+      ),
+    ).toContain("corpus_invalid");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.held_back_seal = {
+            ...input.held_back_seal,
+            sealed_expectations_digest: "nope",
+          };
+        }),
+      ),
+    ).toContain("held_back_not_sealed");
+  });
+
+  it("requires a pinned font/asset entry to be identifiable and its approval to say something", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.candidates = input.candidates.map((item) =>
+            item.candidate_id === "P18-R-P"
+              ? {
+                  ...item,
+                  fonts_assets_packages: item.fonts_assets_packages.map(
+                    (pin, index) =>
+                      index === 0 ? { ...pin, name: "  ", version: "  " } : pin,
+                  ),
+                }
+              : item,
+          );
+        }),
+      ),
+    ).toContain("provenance_missing");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.approvals = input.approvals.map((entry) =>
+            entry.actor === input.roles.final_approver
+              ? { ...entry, statement: "   " }
+              : entry,
+          );
+        }),
+      ),
+    ).toContain("approval_missing");
+  });
+
+  it("requires an orderable charter version and a duplicate-free trigger set", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.charter_version = "draft";
+        }),
+      ),
+    ).toContain("charter_incomplete");
+
+    // A duplicated trigger keeps the sets equal, so a length check is what
+    // catches it. It survives normalization and changes manifest_digest, and
+    // the submission/remediation meters are scoped to that digest.
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.requalification_triggers = [
+            ...input.requalification_triggers,
+            input.requalification_triggers[0]!,
+          ];
+        }),
+      ),
+    ).toContain("protocol_fixed_field_changed");
+  });
+
+  it("reports a structurally malformed charter instead of throwing", () => {
+    const charter = freezeRendererQualificationCharter(
+      buildFixtureContestInput(),
+    );
+    const broken = structuredClone(charter) as unknown as Record<
+      string,
+      unknown
+    >;
+    delete broken.candidates;
+
+    const result = verifyRendererQualificationCharter(
+      broken as unknown as FrozenRendererQualificationCharter,
+    );
+    expect(result.valid).toBe(false);
+    expect(result.failures.map((item) => item.code)).toContain(
+      "structure_invalid",
+    );
+    expect(result.failures[0]?.detail).toContain("candidates");
+  });
+
   it("rejects wrong or missing candidates and versions", () => {
     expect(
       issueCodes(

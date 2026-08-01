@@ -51,7 +51,12 @@ export function fixtureCandidates(): RendererCandidateLock[] {
       },
     ],
     locale_data_version: "cldr-45",
-    finalizer: { name: "asym-final-byte-finalizer", version: "1" },
+    locale_data_digest: syntheticDigest("cldr-45"),
+    finalizer: {
+      name: "asym-final-byte-finalizer",
+      version: "1",
+      digest: syntheticDigest("finalizer-1"),
+    },
   };
 
   return [

@@ -46,7 +46,14 @@ export interface RendererCandidateLock {
     digest: string;
   }[];
   locale_data_version: string;
-  finalizer: { name: string; version: string };
+  /**
+   * Protocol: the evidence package pins "every build, deployment, compiler,
+   * adapter, dependency, font, asset, locale-data, finalizer, validator,
+   * container and configuration digest". A version label alone lets either
+   * input change without changing the lock.
+   */
+  locale_data_digest: string;
+  finalizer: { name: string; version: string; digest: string };
   configuration_digest: string;
   network_filesystem_policy: string;
   provider_settings?: Readonly<Record<string, string>>;
@@ -230,6 +237,7 @@ export const REQUIRED_BUDGET_METRICS = [
   "long_item_latency_p95_ms",
   "batch_completion_minutes",
   "throughput_items_per_minute",
+  "max_attempt_deadline_ms",
   "max_queue_age_seconds",
   "max_resident_memory_mb",
   "max_artifact_bytes",
