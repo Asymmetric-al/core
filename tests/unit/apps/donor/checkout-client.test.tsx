@@ -20,7 +20,7 @@ import {
 } from "vitest";
 
 type CheckoutPageClientComponent =
-  (typeof import("../../../../apps/donor/app/(public)/checkout/checkout-client"))["CheckoutPageClient"]; // eslint-disable-line @typescript-eslint/consistent-type-imports -- Keep the component import deferred until after mocks are registered.
+  (typeof import("../../../../apps/donor/app/(public)/(solid)/checkout/checkout-client"))["CheckoutPageClient"]; // eslint-disable-line @typescript-eslint/consistent-type-imports -- Keep the component import deferred until after mocks are registered.
 
 const stripeState = vi.hoisted(() => ({
   cardElement: {},
@@ -196,7 +196,7 @@ const TEST_WORKER_ID = "worker_1";
 
 beforeAll(async () => {
   const module =
-    await import("../../../../apps/donor/app/(public)/checkout/checkout-client");
+    await import("../../../../apps/donor/app/(public)/(solid)/checkout/checkout-client");
   CheckoutPageClient = module.CheckoutPageClient;
 });
 

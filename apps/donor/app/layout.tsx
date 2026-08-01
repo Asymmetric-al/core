@@ -8,7 +8,6 @@ import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
 import { ThemeProvider } from "@asym/ui/lib/theme-provider";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Suspense } from "react";
 
 import type { Metadata, Viewport } from "next";
 
@@ -169,12 +168,15 @@ export default function RootLayout({
           <TooltipProvider delay={0}>
             <QueryProvider>
               <MotionProvider>
-                <Suspense fallback={null}>
-                  <NuqsAdapter>
-                    <BoneyardRegistry />
-                    <OpenPolicyProvider>{children}</OpenPolicyProvider>
-                  </NuqsAdapter>
-                </Suspense>
+                {/* Do not wrap this tree in <Suspense>: a boundary here drops
+                    every donor route out of the static shell, so public HTML
+                    ships inside <div hidden> and only appears once inline JS
+                    runs. Pinned by
+                    tests/unit/apps/donor/static-shell-contract.test.ts. */}
+                <NuqsAdapter>
+                  <BoneyardRegistry />
+                  <OpenPolicyProvider>{children}</OpenPolicyProvider>
+                </NuqsAdapter>
               </MotionProvider>
             </QueryProvider>
           </TooltipProvider>

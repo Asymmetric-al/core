@@ -7,7 +7,7 @@
 > in `plans/README.md` — unless a reviewer dispatched you and told you they
 > maintain the index.
 >
-> **Drift check (run first)**: `git diff --stat a661bfb9..HEAD -- "apps/donor/app/(public)/checkout/checkout-client.tsx" "apps/donor/app/(public)/page.tsx" "apps/donor/app/(dashboard)/donor-dashboard/history/columns.tsx" "apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx" apps/donor/lib`
+> **Drift check (run first)**: `git diff --stat a661bfb9..HEAD -- "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx" "apps/donor/app/(public)/page.tsx" "apps/donor/app/(dashboard)/donor-dashboard/history/columns.tsx" "apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx" apps/donor/lib`
 > If any in-scope file changed since this plan was written, compare the
 > "Current state" excerpts against the live code before proceeding; on a
 > mismatch, treat it as a STOP condition.
@@ -45,7 +45,7 @@ apps' copies is an explicitly deferred follow-up.
 ## Current state
 
 - The buggy helper, defined identically in the four donor files in scope —
-  e.g. `apps/donor/app/(public)/checkout/checkout-client.tsx:36-40`:
+  e.g. `apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx:36-40`:
 
 ```ts
 function makeDisplayDate(value?: string | number | Date): Date {
@@ -117,7 +117,7 @@ blocking "today".
 **In scope** (the only files you should modify/create):
 
 - `apps/donor/lib/dates.ts` (create)
-- `apps/donor/app/(public)/checkout/checkout-client.tsx`
+- `apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx`
 - `apps/donor/app/(public)/page.tsx`
 - `apps/donor/app/(dashboard)/donor-dashboard/history/columns.tsx`
 - `apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx`
@@ -212,7 +212,7 @@ Create `tests/unit/apps/donor/dates.test.ts` (plain vitest, model after
 
 ### Step 3: Fix the checkout page
 
-In `apps/donor/app/(public)/checkout/checkout-client.tsx`:
+In `apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx`:
 
 1. Delete the local `makeDisplayDate` (lines 36–40) and import instead:
    `import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";`
@@ -229,7 +229,7 @@ In `apps/donor/app/(public)/checkout/checkout-client.tsx`:
    `makeDisplayDate` parses date-only strings locally.
 
 **Verify**: `bunx turbo run typecheck --filter=@asym/donor` → exit 0, and
-`grep -n "function makeDisplayDate" "apps/donor/app/(public)/checkout/checkout-client.tsx"` → no matches.
+`grep -n "function makeDisplayDate" "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx"` → no matches.
 
 ### Step 4: Fix the remaining donor copies
 
