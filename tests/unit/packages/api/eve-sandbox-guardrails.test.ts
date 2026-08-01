@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   commandMayUseNetwork,
   evaluateEveSandboxNetwork,
+  evaluateEveSandboxWrite,
   fingerprintEveSandboxCommand,
   hasBlockingSandboxFinding,
   scanEveSandboxCommand,
@@ -53,6 +54,15 @@ describe("Eve sandbox file guardrails", () => {
     "/workspace/repo/keys/service-role.pem",
     "/workspace/repo/production-data/customer.dump",
     "../host-secret.txt",
+    // Absolute paths outside /workspace/ escape the sandbox without any ".."
+    "/etc/hosts",
+    "/etc/passwd",
+    "/var/run/docker.sock",
+    "/home/runner/.ssh/id_rsa",
+    // Default OpenSSH key names carry no extension
+    ".ssh/id_rsa",
+    ".ssh/id_ed25519",
+    "keys/id_ecdsa",
   ])("blocks sensitive or escaping path %s", (path) => {
     const result = scanEveSandboxPath(path);
 
@@ -78,6 +88,8 @@ describe("Eve sandbox file guardrails", () => {
     ".github/workflows/ci.yml",
     "packages/auth/context.ts",
     "packages/eve-runtime/agent/agent.ts",
+    "packages/api/src/eve/sandbox/guardrails.ts",
+    "packages/api/src/eve/governance/control.ts",
     "supabase/migrations/20260717000000_change.sql",
     "bun.lock",
   ])("pauses protected path %s for durable approval", (path) => {
@@ -152,6 +164,24 @@ describe("Eve sandbox network kill switch", () => {
       },
       reason: "policy_not_ready",
     },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.killSwitchState.all_automation = true;
+      },
+      reason: "kill_switch_active",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.killSwitchState.active_runs = true;
+      },
+      reason: "kill_switch_active",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.source = "missing";
+      },
+      reason: "governance_unavailable",
+    },
   ])("fails closed with $reason", ({ mutate, reason }) => {
     const governance = readyGovernance();
     mutate(governance);
@@ -159,6 +189,69 @@ describe("Eve sandbox network kill switch", () => {
     expect(evaluateEveSandboxNetwork(governance)).toMatchObject({
       allowed: false,
       networkPolicy: "deny-all",
+      reason,
+    });
+  });
+
+  it("authorizes writes while egress is denied by the networking kill switch", () => {
+    const governance = readyGovernance();
+    governance.killSwitchState.sandbox_networking = true;
+
+    // A write touches only /workspace and cannot exfiltrate on its own, so the
+    // egress switch must not block it — while egress itself stays denied.
+    expect(evaluateEveSandboxWrite(governance)).toMatchObject({
+      allowed: true,
+      reason: "governance_allowed",
+    });
+    expect(evaluateEveSandboxNetwork(governance)).toMatchObject({
+      allowed: false,
+      reason: "kill_switch_active",
+    });
+  });
+
+  it.each([
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.emergencyOff = true;
+      },
+      reason: "emergency_off",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.releaseEnabled = false;
+      },
+      reason: "release_disabled",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.killSwitchState.all_automation = true;
+      },
+      reason: "kill_switch_active",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.killSwitchState.active_runs = true;
+      },
+      reason: "kill_switch_active",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.policyStatus = "not_configured";
+      },
+      reason: "policy_not_ready",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.source = "missing";
+      },
+      reason: "governance_unavailable",
+    },
+  ])("denies writes fail-closed with $reason", ({ mutate, reason }) => {
+    const governance = readyGovernance();
+    mutate(governance);
+
+    expect(evaluateEveSandboxWrite(governance)).toMatchObject({
+      allowed: false,
       reason,
     });
   });
