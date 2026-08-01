@@ -232,7 +232,6 @@ export async function resolvePurposeAvailability(
   qualificationPort: DocumentQualificationAvailabilityPort,
 ): Promise<PurposeAvailabilityResult> {
   const { purpose_id, context } = input;
-  const now = (input.now ?? (() => new Date()))();
 
   if (!isDocumentPurposeId(purpose_id)) {
     return {
@@ -295,7 +294,7 @@ export async function resolvePurposeAvailability(
     const qualificationCauses = resolveOfficialQualification(
       purpose_id,
       evidence,
-      now,
+      (input.now ?? (() => new Date()))(),
     );
     if (qualificationCauses.length > 0) {
       return {

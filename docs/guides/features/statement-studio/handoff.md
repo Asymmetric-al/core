@@ -1,19 +1,34 @@
 # Statement Studio Handoff
 
+> [!IMPORTANT]
+> **Implementation route superseded (Phase 18, 2026-07-21).** This handoff is
+> retained only as historical Phase 0 repo evidence and has no implementation
+> authority. All implementation must follow **Phase 18
+> D-prime-amended-and-hardened (D-prime-R)**, the current Phase 18 PRD,
+> authority manifest, implementation spec, renderer qualification protocol,
+> ADRs 0033-0039, and OpenSpec contract. D17 requires an environment-gated
+> destructive pre-production cutover to zero legacy runtime, with no import,
+> backfill, fallback, or dual compatibility; D13 forbids raw provider or signed
+> object URLs as access authority. Do not use this handoff to authorize gradual
+> migration or a preselected DocRaptor path.
+
 Updated: 2026-07-10 Asia/Bangkok
 
 ## Triggers
 
-Use this handoff when picking up Statement Studio after the AL-312 Phase 0
-audit, reviewing a downstream issue, or deciding whether a legacy/native PDF
-path is safe to change.
+Use this handoff only when interpreting the AL-312 Phase 0 audit or older issue
+bodies. For current Phase 18 work, enter through the Phase 18 PRD and authority
+manifest, implementation spec, OpenSpec contract, and current Phase 18 issues.
 
 ## Workflow Steps
 
-1. Read `README.md`, `phase-0-audit-brief.md`, and
-   `phase-0-research-evidence.md`.
-2. Read `openspec/changes/add-statement-studio/` before implementation.
-3. Read the relevant PRD/supporting docs and the live GitHub issue.
+1. For implementation, stop using the retired route in this handoff and read
+   the Phase 18 PRD, authority manifest, implementation spec, renderer
+   qualification protocol, ADRs 0033-0039, and Phase 18 OpenSpec change.
+2. Read `README.md`, `phase-0-audit-brief.md`, and
+   `phase-0-research-evidence.md` only for historical repo evidence.
+3. Read the relevant source-owner PRD and live GitHub issue; block the issue if
+   its body still carries pre-Phase-18 instructions.
 4. Treat source-domain contexts, private artifacts, and role-scoped BFF access
    as gates, not later cleanup.
 5. Load the repo skills/rulebooks for the files being changed.
@@ -29,10 +44,13 @@ path is safe to change.
   completed audit/evidence and proposed OpenSpec change in
   [PR #715](https://github.com/Asymmetric-al/core/pull/715). Before that PR
   merges, its decisions remain proposed; merge records the HITL approval.
-- Canonical implementation issues remain #314 through #364, but their original
-  dependency graph predates the Phase 0 findings.
+- Issues #314 through #364 preserve the historical implementation breakdown but
+  are blocked from dispatch until amended or closed/reissued against Phase 18.
 
-## Phase 0 Decisions
+## Historical Phase 0 Decisions (Superseded)
+
+The bullets below record the earlier decision package. They explain existing
+repo shapes but do not authorize implementation after Phase 18 D1-D17:
 
 - Product name: Statement Studio; existing `/pdf` and `pdf_*` internals migrate
   pragmatically.
@@ -54,39 +72,27 @@ path is safe to change.
 - Unlayer is retire-later; delete nothing before hosted tenant-template
   inventory and verified replacement.
 
-## Recommended Next Work
+## Current next-work rule
 
-After AL-312 is reviewed and merged:
+1. Do not dispatch #314-#364 or any affected Phase 7/14/17 ticket until its body
+   is reconciled with the machine-readable Phase 18 congruence dispositions.
+2. Run the D17 environment assertion. If it proves the no-production premise,
+   delete the prototype runtime/schema/routes/dependencies before enabling the
+   canonical writer. If not, stop before mutation and re-groom.
+3. Run the D3 renderer qualification protocol and record zero or one winner. Do
+   not assume DocRaptor or preserve a losing renderer as fallback.
+4. Implement thin vertical slices through the one canonical service using
+   synthetic proof data first, then source-owned immutable Facts Packages.
 
-1. Re-groom [#322](https://github.com/Asymmetric-al/core/issues/322) with the
-   newer proposed statement issues
-   [#579](https://github.com/Asymmetric-al/core/issues/579),
-   [#580](https://github.com/Asymmetric-al/core/issues/580),
-   [#583](https://github.com/Asymmetric-al/core/issues/583), and
-   [#584](https://github.com/Asymmetric-al/core/issues/584). Canonical facts,
-   run/version ownership, frozen formatting, portal cutover, private artifact
-   authorization, and finance/legal approval are production blockers;
-   completing #320 alone is not sufficient.
-2. Allow [#314](https://github.com/Asymmetric-al/core/issues/314) to proceed only
-   as the Statement Studio shell, starter catalog, tenant-safe foundation, and
-   safe sample preview. Do not turn it into an official statement render.
-3. Implement the OpenSpec foundation in thin vertical slices: same-tenant
-   constraints, immutable versions, assignments, server capabilities, private
-   Storage, artifacts, retention, and tests. Coordinate tenant isolation with
-   #505/#516 and outbound delivery with #552-#554/#581; do not create parallel
-   guard or communication infrastructure.
-4. Prove the pipeline with `letterhead.simple` or the annual starter in
-   non-official sample mode before connecting Giving truth.
-
-Do not begin with legacy Unlayer removal or a second renderer stack.
-
-## Verification Expectations
+## Historical Verification Expectations
 
 For foundation/runtime work:
 
 - Read installed Next.js docs before changing Next.js routes or components.
 - Load the Supabase and Supabase Postgres skills before schema/RLS/Storage work.
-- Verify hosted migration state before assuming committed tables exist.
+- Verify and record the D17 environment assertion before destructive schema or
+  route removal. Do not turn this evidence gate into migration discovery or a
+  compatibility plan.
 - Test cross-tenant foreign keys, immutable versions, capability differences,
   private Storage paths, recipient denial, artifact integrity, and purge
   tombstones through public seams.
@@ -102,9 +108,12 @@ synthetic fixtures and reference public issue/file paths.
 ## Checklist
 
 - [x] Phase 0 audit and evidence are complete.
-- [x] Renderer, canonical persistence, first job, and legacy posture are recorded.
+- [x] The historical renderer, persistence, first-job, and legacy posture are
+      recorded as superseded evidence.
 - [x] The AL-312 HITL decision package is complete; PR #715 merge records
       approval of the proposed decisions.
-- [ ] #322 is re-groomed before production statement work.
-- [ ] Hosted migration and legacy-template state are inspected before cutover.
+- [ ] #314-#364 and affected cross-phase issue bodies are amended or
+      closed/reissued before dispatch.
+- [ ] The D17 environment assertion passes before the destructive clean cut.
+- [ ] The D3 contest records at most one exact production renderer winner.
 - [ ] Each implementation slice uses the appropriate repo skills and checks.

@@ -1,1111 +1,836 @@
-# Donor Anonymity, Guest Giving, and Contribution Identity
+# Guest Giving, Gift Anonymity, And Offline Donor Identity
+
+## Status And Authority
+
+This design is the forward implementation contract for
+`add-guest-giving-and-gift-anonymity`. It aligns the feature with the settled
+phase ownership model:
+
+1. Phase 4 resolves the tenant-scoped Party and owns optional account claiming.
+2. Phase 13 accepts and freezes canonical contribution and legal-donor source
+   truth.
+3. Phase 7 derives and versions official receipt facts and the Statement
+   Subject.
+4. Phase 18 produces the canonical official artifact.
+5. Phase 17 prepares governed message content.
+6. Phase 6 resolves contact/consent, dispatches, and records communication
+   history.
+
+For staff-entered offline gifts, Phase 15 `gift_entry_batches` is the only
+entry and commit gateway before step 2. Quick entry is a batch of one.
+
+Phase 18 alone owns document definitions, immutable publications, Generation
+Requests, exact canonical PDF artifacts, currentness, access, protected
+handoff, and document records/disposal. Portal access and delivery MUST use the
+stored exact artifact bytes and MUST NOT rerender a live contribution, Party
+profile, or receipt snapshot.
+
+This file supersedes its earlier draft wherever that draft described a flat
+legacy gift row, mutable receipt fields, profile-based receipt rendering, or a
+standalone offline write endpoint. Those descriptions were repository evidence,
+not target architecture.
 
-> Leadership decision document provided verbatim by Conrad (2026-07-02) during
-> the OpenSpec refinement session. This is the authoritative design input for
-> this change. Spec deltas in this change are derived from it.
+## 1. Decision
 
-**Product area:** Donor checkout, Contributions Hub, donor CRM, missionary-facing giving views
-**Decision owner:** Conrad / Blake
-**Build target:** `Asymmetric-al/core`
-**Status:** Product/spec decision for implementation
-**Last updated:** 2026-07-02
+Asym will support:
 
----
+- guest-first online giving with no account wall;
+- optional, verified account claiming after an accepted gift;
+- one known legal-donor Party for every accepted online contribution;
+- per-gift anonymity toward missionary and public audiences;
+- staff entry of known-donor and intentionally unknown offline gifts; and
+- one governed facts-to-artifact-to-content-to-delivery pipeline.
+
+The system will not support:
+
+- a client-selected canonical Party;
+- a login created merely because checkout collected an email;
+- a fake or shared anonymous Party;
+- an online contribution whose legal donor is absent;
+- direct staff writes to Phase 13 outside Phase 15;
+- a second receipt or communication state machine beside the owner phases; or
+- identity redaction implemented only in presentation components.
+
+## 2. Ownership Map
+
+| Concern                                   | Owner                                            | This change may do                                             | This change must not do                                  |
+| ----------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------- | -------------------------------------------------------- |
+| Current person/organization identity      | Phase 4 Party services                           | Supply validated tenant-scoped resolution inputs               | Treat email as identity, reveal a match, or bind a login |
+| Account access                            | Phase 4 claim service                            | Offer an optional post-gift claim invitation                   | Grant access without verified possession                 |
+| Accepted gift and allocation truth        | Phase 13                                         | Invoke acceptance and persist source evidence/visibility facts | Create a parallel gift store or mutate posted history    |
+| Staff offline intake                      | Phase 15                                         | Add known/unknown row modes and a one-row quick-entry UX       | Expose a separate offline money writer                   |
+| Receipt eligibility and official identity | Phase 7                                          | Emit the source occurrence after posting                       | Store or infer an official outcome on the contribution   |
+| Official PDF/document                     | Phase 18                                         | Request the exact artifact for an approved facts version       | Render from a live Party profile                         |
+| Message body/template                     | Phase 17                                         | Request governed content using typed facts                     | Build feature-local receipt copy                         |
+| Contact, consent, dispatch, history       | Phase 6                                          | Submit a pinned communication intent                           | Send directly through a provider SDK                     |
+| Role-scoped donor display                 | Phase 3/10 projection boundary plus source facts | Supply per-gift visibility facts                               | Leak identity into a response and hide it later in React |
+
+## 3. Deleted And Superseded Legacy Evidence
+
+The repository contained or described a legacy `public.donations` row,
+`donor_id`, receipt identity/status columns, a profile-based saga, and a
+candidate `POST /api/contributions/offline` route. None is a forward contract.
+
+Implementation MUST delete or leave dead those paths as appropriate to the
+fresh-build cutover. It MUST NOT:
+
+- extend or dual-write `public.donations`;
+- introduce `receipt_status`, `receipt_name`, `receipt_email`, or
+  `receipt_address` on Phase 13 records;
+- create a system/anonymous donor to satisfy a non-null foreign key;
+- retain `POST /api/contributions/offline` as a bypass around Phase 15; or
+- treat a legacy API response, table, or test fixture as target authority.
+
+Neutral lessons may be retained only when they do not preserve the old
+architecture: validated field shapes, idempotency discipline, Stripe-hosted
+credential collection, and plain-language error copy.
+
+## 4. Domain Concepts
+
+### 4.1 Guest
+
+`guest` describes authentication state at checkout. It does not mean the legal
+donor is unknown. Every accepted online contribution has a known,
+tenant-scoped legal-donor Party.
+
+### 4.2 Party
+
+The Party is the current tenant-scoped identity anchor. A Party can exist
+without a login. Checkout supplies identity evidence; only the Phase 4 service
+may resolve or create the canonical Party.
+
+### 4.3 Account claim
+
+An account claim is a separate, optional, verified-possession operation. It
+binds authenticated access to the Party only after the claimant proves control
+of the approved contact point. Gift acceptance neither depends on nor implies
+claim completion.
+
+### 4.4 Legal donor
+
+`legal_donor_party_id` is the accepted contribution's canonical Party
+reference. Phase 13 also freezes the exact identity/contact source evidence
+accepted for the gift. A later Party edit or same-person merge may improve
+current CRM truth but cannot silently rewrite that evidence or an official
+facts version.
+
+### 4.5 Anonymous
+
+Anonymity is a visibility preference, not absence of legal identity. It controls
+what missionary and public audiences can see about one gift. It never hides
+identity from authorized finance/admin users, the donor's own authorized view,
+official-facts derivation, reconciliation, or audit.
+
+### 4.6 Intentionally unknown offline
+
+`unknown_offline` means staff possess valid gift evidence but no sufficient
+legal-donor identity evidence. It is allowed only through Phase 15 and is the
+only state in this feature where `legal_donor_party_id` may be null.
+
+## 5. Online Guest Flow
+
+### 5.1 User flow
+
+1. Resolve tenant, site, locale, currency, Legal Entity, eligible designations,
+   and Settlement Account Binding through their owner contracts.
+2. Show the shortest complete checkout: gift allocation, donor/contact fields,
+   the per-gift visibility choice, and Stripe-hosted payment collection.
+3. Validate client input on the server. Amounts use integer minor units;
+   allocation lines are positive, same-currency, and exactly conserve the
+   payment-group gross amount.
+4. Create or resume the provider operation using product and provider
+   idempotency keys. The browser never decides success.
+5. When the contribution reaches its defined acceptance boundary, call the
+   Phase 4 tenant-scoped Party resolver with normalized identity/contact
+   evidence. The client does not send a Party ID.
+6. In the accepted contribution transaction, Phase 13 records the header,
+   allocation lines/postings, legal-donor Party, exact source evidence,
+   per-gift visibility choices, Legal Entity, Settlement Account Binding,
+   currency, and correlation/idempotency identities.
+7. Return a constant-shape result containing only the contribution reference
+   and honest payment/contribution lifecycle state.
+8. On the thank-you view, show the exact server state. Offer a quiet optional
+   account-claim action after acceptance; do not add it as a checkout step.
+9. Emit durable owner-domain occurrences for Phase 7 and other downstream
+   consumers. No downstream failure rolls back accepted money.
+
+### 5.2 Acceptance boundary
+
+The acceptance boundary must be defined by the Phase 13/payment lifecycle
+contract for the rail. Card success and delayed bank authorization are not the
+same state. The service must be able to resume safely when:
+
+- the provider operation exists but Party resolution has not completed;
+- Party resolution completed but the Phase 13 transaction response was lost;
+- Phase 13 committed but the client did not receive the response; or
+- a delayed provider event arrives after the browser session ended.
+
+Each durable effect uses a stable product idempotency identity. Recovery looks
+up prior results before creating anything.
+
+### 5.3 Required checkout inputs
+
+Required inputs are purpose- and policy-derived:
+
+- integer gross amount and ISO currency;
+- one or more valid allocation lines that conserve the gross amount;
+- tenant/site context resolved server-side, never trusted from display labels;
+- donor name or organization name appropriate to the Party kind;
+- purpose-eligible email when the selected rail or communication policy
+  requires it;
+- billing/address data only when required by payment, fraud, tax, or tenant
+  policy;
+- per-gift missionary/public visibility choices; and
+- an idempotency key.
 
-## 1. Executive answer
+Phone, secondary address lines, marketing consent, and an account password are
+not universal requirements. Marketing consent is purpose-separated and
+unchecked by default. The tax/receipt purpose does not silently enroll anyone
+in marketing.
+
+### 5.4 Party resolution and non-enumeration
+
+The Phase 4 resolver owns normalization, within-tenant matching, duplicate
+handling, and safe create. The guest endpoint:
 
-A donor should be able to **give online without first creating or logging into an account**.
+- never returns match confidence, match type, current Party data, claim state,
+  or account existence;
+- has constant response shape and equivalent user-facing copy for found and
+  created outcomes;
+- applies rate limiting and abuse controls without revealing which addresses
+  are known;
+- stores only the minimum source evidence needed for acceptance and official
+  facts; and
+- creates no Party for rejected or abandoned checkout.
 
-That does **not** mean the gift is truly unknown to the organization. Online card and ACH giving requires enough donor, billing, and payment information to process the payment, prevent fraud, reconcile the gift, issue receipts, handle refunds/chargebacks, and maintain proper financial records.
+Ambiguous identity evidence must not guess between Parties. The Phase 4
+contract may create an unclaimed Party or route a tenant-safe exception while
+preserving the accepted legal-donor source evidence. It may not attach a gift
+to a merely similar Party.
+
+### 5.5 Optional claiming
+
+The thank-you page uses copy such as:
+
+> Your gift is recorded. Want easier access to your history next time? Email me
+> a secure link.
 
-The product decision is:
+Claiming is:
 
-> Online donors can give without a pre-existing account. During checkout, we collect the required donor/payment information, create or match the donor record behind the scenes, and create claimable donor portal access without forcing a separate signup step.
+- optional and never blocks the thank-you view;
+- tenant-branded;
+- magic-link/verified-possession first;
+- expiring and single-use;
+- rate-limited and enumeration-safe;
+- audited separately from contribution acceptance; and
+- retryable without duplicating the Party or gift.
 
-Separately:
+A claim message goes through Phase 17 content and Phase 6 dispatch. Checkout
+does not call an email provider directly.
 
-> A donor may choose to be anonymous to the missionary/public-facing views. That anonymity does not hide the donor from authorized admins/finance users.
+### 5.6 Donor-facing states
 
-For offline gifts:
+The view may summarize independent folds, but must not collapse them into one
+stored status:
 
-> If the donor is truly unknown, staff can enter the gift as an unknown/anonymous offline contribution without inventing fake donor data. If the donor is known, staff should record the donor information and can still mark the gift anonymous to the missionary/public views.
+- `Payment started` for an initiated delayed rail;
+- `Payment received` only when provider finality supports it;
+- `Gift recorded` only when Phase 13 acceptance supports it;
+- `Receipt available` only when Phase 7 and Phase 18 support it; and
+- `Email delivered` only when Phase 6 delivery evidence supports it.
 
----
+Unknown or delayed states use calm, specific copy and a stable refresh/revisit
+path. They never display a false success.
 
-## 2. Important distinction: three different concepts
+## 6. Staff Offline Flow
 
-Do not collapse these into one field.
+### 6.1 One entry doorway
 
-### 2.1 Guest giving
+Mission Control provides:
 
-**Meaning:** The donor does not need to sign in or manually create an account before giving.
+- **Quick entry** for one gift: a concise form backed by a one-row
+  `gift_entry_batches` record; and
+- **Batch entry** for multiple gifts: the full Phase 15 grid/review workflow.
 
-Guest giving is allowed for online checkout.
+Both invoke the same Phase 15 staging, validation, permission, review,
+conservation, audit, deposit-reference, and atomic commit service. The quick
+form hides internal batch vocabulary where it does not help staff; the durable
+record remains a batch.
 
-The donor still provides required information during checkout:
+### 6.2 Known-donor row
 
-- first name
-- last name
-- email address
-- payment method
-- billing details required by the processor/payment method
-- mailing/billing address when required by payment method, fraud controls, ACH, receipts, or organization policy
+The default mode is **Known donor**. Staff:
 
-The checkout flow should feel like:
+1. search the tenant-safe Party picker;
+2. select an existing Party or use the Phase 4-backed create flow;
+3. enter civil date, tender/method, amount, currency, Legal Entity,
+   designation/allocation, deposit/batch evidence, and optional reference;
+4. set the per-gift missionary/public visibility choice; and
+5. validate and commit through Phase 15.
 
-> Give now.
+On commit, Phase 13 freezes the exact same-tenant
+`legal_donor_party_id` and source identity/contact evidence. The Party picker
+must respect role-scoped visibility and must not reveal restricted Parties
+through result counts, timing, or error shape.
 
-Not:
+### 6.3 Unknown-donor row
 
-> Create an account first, then give.
+Staff explicitly chooses **Donor is unknown**. The UI explains:
 
-### 2.2 Donor record / account creation
+> Record this gift without inventing donor details. It will not qualify for an
+> official receipt unless sufficient donor evidence is added through a
+> correction later.
 
-Online checkout creates or matches a donor record behind the scenes.
+Required gift, allocation, dating, Legal Entity, currency, and deposit evidence
+remain unchanged. Name, email, address, and Party are absent rather than filled
+with placeholders. On commit:
 
-This should be transparent but not heavy. The donor should not need to choose a password before giving.
+- `donor_identity_status = unknown_offline`;
+- `legal_donor_party_id = null`;
+- no Party or contact point is created; and
+- Phase 7 records the exact not-receiptable evaluation reason.
 
-Preferred model:
+### 6.4 Draft changes and commit
 
-- create or match the CRM donor record immediately
-- create/link donor portal access as **claimable**
-- use email verification/magic link for later donor dashboard access
-- do not silently create a password
-- do not expose whether an email already belongs to another donor account
+Known/unknown mode may change while the row is a draft. Changing to known
+requires a valid same-tenant Party and source evidence. Changing to unknown
+clears draft identity input after a warning; it does not create a placeholder.
 
-Suggested donor-facing language:
+After commit, identity changes use the Phase 13/Contribution Operations
+correction contract with capability, reason, before/after evidence, and audit.
+The posted row is never reopened or edited in place.
 
-> We’ll use this information to process your gift, send your receipt, and give you access to your giving history.
+### 6.5 Failure behavior
 
-### 2.3 Anonymity
+- Field validation identifies the row, field, reason, and correction without
+  discarding valid draft work.
+- A cross-tenant or restricted Party reference fails closed before commit.
+- An atomic batch commit creates all applicable Phase 13 records or none.
+- If the response is lost after commit, retry returns the prior result using
+  batch/row idempotency identities.
+- Downstream facts, artifact, content, or dispatch failures appear in their
+  owner workspaces and never make the batch falsely appear unposted.
+- No feature surface may fall back to a direct offline insert.
 
-**Meaning:** The donor’s name is hidden from missionary-facing and public-facing views.
+## 7. Canonical Data Contract
 
-Anonymity is a **visibility preference**, not a deletion of donor identity.
+### 7.1 Phase 13 contribution header
 
-Admins/finance users still see the donor information when it exists.
-
-Anonymous to missionary/public does not mean:
-
-- anonymous to finance
-- anonymous to admins
-- anonymous to the payment processor
-- anonymous in audit/reconciliation records
-- deleted from tax/receipt records
-
----
-
-## 3. Core product decisions
-
-| Question                                                       | Decision                                                                                              |
-| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Can a donor give online without signing in first?              | Yes.                                                                                                  |
-| Does online giving require donor information?                  | Yes. Name, email, and payment/billing details required by the payment method and organization policy. |
-| Do we create an account before checkout?                       | No manual account-first wall.                                                                         |
-| Do we create/match donor records behind the scenes?            | Yes.                                                                                                  |
-| Should the donor get future account access?                    | Yes, through claimable/magic-link access, not a forced password step.                                 |
-| Can an online donor be anonymous?                              | Yes, but only to missionary/public views.                                                             |
-| Can admins/finance still see the donor?                        | Yes.                                                                                                  |
-| Can offline gifts be entered with no donor name?               | Yes, only when the donor is truly unknown.                                                            |
-| Should staff type fake names like “Anonymous Anonymous”?       | No. Use an intentional unknown-donor mode.                                                            |
-| Can a known offline donor request anonymity?                   | Yes. Record the donor, then mark the gift anonymous to missionary/public views.                       |
-| Should anonymity be stored per donor or per gift?              | Store it per gift. A donor-level default may exist, but every contribution needs its own snapshot.    |
-| Should receipts be sent for unknown offline cash?              | No, unless sufficient donor information is later provided.                                            |
-| Should online payment success be based on the client UI alone? | No. Success must be confirmed by server-side donation/payment state.                                  |
-
----
-
-## 4. Current repo context checked
-
-These repo facts matter for implementation:
-
-### 4.1 Checkout currently collects basic donor information
-
-`apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx` currently models donor info as first name, last name, and email, and the Details step blocks continuing until those fields are present.
-
-Relevant current shape:
-
-- `DonorInfo` includes `email`, `firstName`, `lastName`.
-- Details step says the information is for tax receipts and donation tracking.
-- Continue button is disabled unless first name, last name, and email exist.
-
-### 4.2 Checkout currently needs real payment wiring
-
-The current checkout still uses raw-looking card inputs in the client and a simulated success flow. That must not become the production payment flow.
-
-Implementation decision:
-
-- Replace raw card/PAN/CVC inputs with Stripe-hosted UI such as Payment Element / Checkout Elements.
-- Card data must tokenize directly through Stripe.
-- PAN/CVC must never touch Asymmetric servers, logs, database, Gitea, GitHub, or app state.
-- The success page must only show success after the server/payment state supports it.
-
-### 4.3 Current donate API is authenticated
-
-`apps/donor/app/api/donate/route.ts` is correctly a thin re-export to `@asym/api/donate`.
-
-`packages/api/src/donate/index.ts` currently uses authenticated context and allows roles `donor`, `admin`, `staff`, and `super_admin`. It calls `begin_donation_saga` with `ctx.profileId` and `ctx.userId`.
-
-That means true guest checkout is not just a UI change. It requires a new or extended server-side path that can create/match a donor record during checkout before calling the donation saga.
-
-### 4.4 Current donation saga is profile-based
-
-`begin_donation_saga` currently:
-
-- requires tenant/profile/user context
-- finds or creates a donor by `tenant_id + profile_id`
-- creates a donation record with `tenant_id`, `donor_id`, `missionary_id`, `fund_id`, amount, currency, and processing status
-- creates an outbox event for payment processing
-
-This is a good foundation, but guest checkout needs the saga to support either:
-
-1. a created/matched profile/user before the saga starts, or
-2. a donor-based guest variant where `donor_id` is server-resolved before creating the donation.
-
-Preferred implementation:
-
-> Keep the saga server-only and extend it so the server can pass a resolved `donor_id` for guest checkout after it creates/matches the donor record. Do not let the client choose `donor_id`.
-
-### 4.5 Current schema already allows important pieces
-
-Current schema includes:
-
-- `profiles` with name/email/role/tenant
-- `donors` with contact fields, address JSON, giving preferences, Stripe customer ID, and gift summary fields
-- `donations` with nullable `donor_id`, designation fields, amount, status, payment method, Stripe payment intent ID, and source-related fields
-- `donor_pledges`, `donor_activities`, and gift summary tables
-
-The nullable `donations.donor_id` is useful for truly unknown offline gifts. Do not force fake donor records if no donor identity exists.
-
-### 4.6 Contributions Hub is already part of Mission Control direction
-
-Mission Control includes a `Contributions Hub` described as:
-
-- all contributions feed
-- offline entry
-- Stripe
-- ACH
-- tie-out
-
-That is the correct home for offline gift entry and batch workflows.
-
-### 4.7 Data access boundary must be preserved
-
-Repo guidance says business database logic belongs in `packages/api/src/*`, and app API routes should stay as thin re-exports.
-
-Implementation must follow that pattern:
-
-- Put guest donation and offline contribution business logic in `packages/api/src/*`.
-- Keep `apps/*/app/api/**/route.ts` thin.
-- Do not move business Supabase logic into app route handlers.
-- Use server-side API contracts and typed DTOs.
-
----
-
-## 5. Online checkout behavior
-
-### 5.1 Flow
-
-Online donor flow:
-
-1. Donor selects amount, frequency, fund/missionary/designation, and optional fee coverage.
-2. Donor enters name and email.
-3. Donor provides payment/billing details through Stripe-hosted UI.
-4. Donor may check: **“Keep my name anonymous from the missionary/public view.”**
-5. Server validates amount, designation, tenant, frequency, dates, and anonymity flags.
-6. Server creates or matches donor record.
-7. Server creates claimable donor portal access if needed.
-8. Server creates donation/payment intent/outbox record.
-9. Client confirms payment through Stripe.
-10. Server/webhook updates final payment status.
-11. Receipt is sent only after the appropriate payment state.
-12. Donor can later access giving history through magic link or account activation.
-
-### 5.2 Required fields
-
-For online checkout, require:
-
-- `first_name`
-- `last_name`
-- `email`
-- processor-required billing/payment details
-- `amount`
-- `currency`
-- `fund_id` or `missionary_id`
-- `frequency`
-- idempotency key
-
-For card payments, postal code/address requirements can follow Stripe/payment-method settings and fraud policy.
-
-For ACH/bank payments, collect whatever authorization and identity details are required by Stripe Financial Connections / ACH mandate flow.
-
-### 5.3 Optional fields
-
-Optional:
-
-- phone
-- full mailing address if not required by payment method
-- donor note/memo
-- organization/church name
-- “give as organization” toggle
-- donor default communication preferences
-- default anonymity preference for future gifts
-
-### 5.4 Online anonymity checkbox
-
-Checkout should include a checkbox:
-
-> Keep my name anonymous from the missionary/public view.
-
-Helper text:
-
-> We’ll still keep your information for receipts, payment processing, and administrative records, but your name will not be shown to the missionary or public giving views.
-
-When checked:
-
-- admin/finance users still see donor identity
-- donor sees the gift in their giving history
-- missionary views show “Anonymous donor”
-- public views show “Anonymous donor”
-- donor identity is not exposed through API responses to missionary/public surfaces
-- anonymity preference is stored on the contribution itself
-
-### 5.5 Online account creation
-
-The donor should not be forced to create a password.
-
-Preferred behavior:
-
-- If the email matches an existing donor in the tenant, attach the gift to that donor record.
-- If no donor exists, create a new donor record.
-- Create or link a claimable donor portal identity using Supabase Auth/magic-link flow.
-- Do not expose whether the email already existed.
-- Send receipt to the provided email.
-- Dashboard access requires email verification/magic link.
-
-Important:
-
-> “Account created behind the scenes” should mean claimable donor access and CRM donor record creation, not surprise password creation.
-
----
-
-## 6. Offline contribution behavior
-
-Offline gifts are entered through Contributions Hub.
-
-### 6.1 Known donor offline gift
-
-Use this when staff has donor information.
-
-Examples:
-
-- check with name/address
-- bank transfer with donor identity
-- cash envelope with name
-- known donor hands cash/check to staff
-
-Flow:
-
-1. Staff searches existing donor.
-2. Staff selects donor or creates donor record.
-3. Staff enters gift details.
-4. Staff selects designation/fund/missionary.
-5. Staff chooses whether the gift is anonymous to missionary/public views.
-6. System stores donation with `donor_id`.
-7. System records receipt eligibility.
-8. System updates donor history and contribution totals.
-9. System audits who entered the gift.
-
-If donor requests anonymity:
-
-- record the donor normally
-- set `anonymous_to_recipient = true`
-- set `anonymous_to_public = true` if public-facing views exist
-- missionary/public views show “Anonymous donor”
-- admin/finance still sees donor identity
-
-### 6.2 Truly unknown offline gift
-
-Use this only when donor identity is unavailable.
-
-Examples:
-
-- anonymous cash
-- offering box cash with no envelope/name
-- gift where donor intentionally gave no identifying information and no receipt can be issued
-
-Do not make staff invent fake donor data.
-
-Flow:
-
-1. Staff selects: **Donor unknown / anonymous offline gift**.
-2. Staff enters gift amount, date, method, batch/deposit info, and designation.
-3. `donor_id` remains null.
-4. System sets donor identity status to unknown.
-5. System sets receipt status to not receiptable unless donor information is later provided.
-6. Missionary/public views show “Anonymous donor”.
-7. Admin/finance can still see contribution details, batch, source, and internal notes.
-
-Suggested admin helper text:
-
-> Use this only when donor identity is truly unavailable. If donor information is known, attach the gift to the donor record and mark it anonymous to recipient if requested.
-
-### 6.3 Offline gift validation
-
-Offline gift entry should require:
-
-- tenant
-- amount
-- currency
-- received date
-- source/method: check, cash, ACH/manual, wire, stock, other
-- designation/fund/missionary
-- batch/deposit reference when applicable
-- entered-by user
-- receipt status
-- anonymity flags
-
-For checks, store check number/reference if needed, but do not store unnecessary bank account details.
-
-For cash, require batch/deposit controls strong enough for finance reconciliation.
-
----
-
-## 7. Visibility rules
-
-### 7.1 Admin and finance views
-
-Admins/finance users can see donor identity when it exists.
-
-They need access for:
-
-- receipts
-- year-end statements
-- reconciliation
-- refunds
-- chargebacks
-- donor support
-- duplicate cleanup
-- fraud review
-- audit history
-- legal/financial recordkeeping
-
-Admin/finance views should clearly display anonymity state:
-
-- `Not anonymous`
-- `Anonymous to missionary/public`
-- `Unknown donor`
-
-### 7.2 Missionary-facing views
-
-Missionaries should see only what they need.
-
-For non-anonymous known gifts, missionary views may show policy-approved donor display data.
-
-For anonymous gifts, missionary views must show:
-
-> Anonymous donor
-
-Missionary views must not show:
-
-- donor name
-- donor email
-- donor address
-- phone
-- payment IDs
-- processor IDs
-- internal notes
-- admin receipt notes
-- donor account ID/profile ID
-- anything that can identify the donor indirectly
-
-Missionary views may show, depending on policy:
-
-- amount
-- date
-- designation
-- frequency/recurring status
-- general note only if staff/donor marked it shareable
-
-### 7.3 Public/campaign views
-
-Public campaign pages should use the same redaction rules as missionary views or stricter.
-
-If `anonymous_to_public` is true, show:
-
-> Anonymous donor
-
-Do not expose donor identity in HTML, JSON payloads, hydration data, metadata, analytics events, or API responses.
-
-### 7.4 Donor dashboard
-
-The donor should see their own gift.
-
-If the gift was marked anonymous, show a small status:
-
-> Shown as anonymous to missionary/public views.
-
-Do not imply the organization does not retain records.
-
----
-
-## 8. Recommended data model
-
-Use explicit fields. Do not rely on notes, display names, or fake donor rows.
-
-### 8.1 Donations / contributions
-
-Add or confirm fields similar to:
-
-```sql
-ALTER TABLE public.donations
-  ADD COLUMN IF NOT EXISTS donor_identity_status TEXT NOT NULL DEFAULT 'known',
-  ADD COLUMN IF NOT EXISTS anonymous_to_recipient BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS anonymous_to_public BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS receipt_status TEXT NOT NULL DEFAULT 'pending',
-  ADD COLUMN IF NOT EXISTS receipt_name TEXT,
-  ADD COLUMN IF NOT EXISTS receipt_email TEXT,
-  ADD COLUMN IF NOT EXISTS receipt_address JSONB,
-  ADD COLUMN IF NOT EXISTS donor_display_name_snapshot TEXT,
-  ADD COLUMN IF NOT EXISTS entered_by_user_id UUID,
-  ADD COLUMN IF NOT EXISTS anonymity_requested_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS anonymity_requested_source TEXT,
-  ADD COLUMN IF NOT EXISTS anonymity_note TEXT;
-```
-
-Suggested values:
+The accepted header carries, at minimum, the owner-defined fields plus:
 
 ```text
 donor_identity_status:
-  known
-  unknown_offline
+  known | unknown_offline
 
-receipt_status:
-  pending
-  sent
-  not_receiptable
-  no_receipt_requested
-  failed
+legal_donor_party_id:
+  UUID, required for known, null only for unknown_offline
 
-anonymity_requested_source:
-  online_checkout
-  donor_request
-  admin_entry
-  import
-  correction
+legal_donor_source_evidence:
+  typed, schema-versioned immutable snapshot accepted for this contribution
+
+anonymous_to_missionary:
+  boolean per-gift fact
+
+anonymous_to_public:
+  boolean per-gift fact
 ```
 
-Constraint guidance:
+The exact source-evidence struct is owned with the Phase 13/Phase 7 contract
+and must be typed rather than an unrestricted bag. It can contain only approved
+legal-donor identity/contact fields, Party kind, provenance, capture time, and
+schema version. It must not contain payment credentials, care fields,
+free-form notes, or unrelated CRM data.
 
-```sql
-CHECK (donor_identity_status IN ('known', 'unknown_offline'));
-
-CHECK (
-  (donor_identity_status = 'unknown_offline' AND donor_id IS NULL)
-  OR
-  (donor_identity_status = 'known' AND donor_id IS NOT NULL)
-);
-```
-
-If the current system needs to support known gifts without donor records temporarily, use a migration-safe transitional constraint, but the target model should be explicit.
-
-### 8.2 Donor-level defaults
-
-Donor records may have default preferences, but these must not replace contribution-level flags.
-
-Store donor defaults in `donors.giving_preferences`, for example:
-
-```json
-{
-  "defaultAnonymousToRecipient": false,
-  "defaultAnonymousToPublic": false,
-  "receiptDelivery": "email"
-}
-```
-
-At checkout, copy the chosen value onto the contribution.
-
-Reason:
-
-> Anonymity is a per-gift decision. A later donor preference change should not silently rewrite historical gift visibility.
-
-### 8.3 Offline unknown donors
-
-Preferred model:
-
-- use `donations.donor_id = null`
-- set `donor_identity_status = 'unknown_offline'`
-- do not create fake donor rows
-
-Fallback only if a downstream system absolutely requires `donor_id`:
-
-- create one system donor per tenant named `Unknown / Anonymous Donor`
-- set `donors.is_system_anonymous = true`
-- never use fake email, fake phone, or fake address
-- keep this system donor out of donor engagement and receipting workflows
-
-Preferred: avoid the fallback unless forced.
-
-### 8.4 Donor identity snapshot
-
-Each contribution should snapshot the receipt identity used at the time of gift.
-
-Reason:
-
-- donor name/address/email can change later
-- receipts and audit records need historical accuracy
-- year-end statements need stable source data
-
-Snapshot fields should not be exposed to missionary/public views.
-
----
-
-## 9. API contracts
-
-### 9.1 Online guest checkout endpoint
-
-Add or extend a server-side API under `packages/api/src/*`.
-
-Possible route:
+Database invariants:
 
 ```text
-POST /api/donate/guest
+known
+  => legal_donor_party_id IS NOT NULL
+
+unknown_offline
+  => legal_donor_party_id IS NULL
+
+online source
+  => donor_identity_status = known
+
+(tenant_id, legal_donor_party_id)
+  => composite same-tenant Party reference
 ```
 
-or extend existing:
+All tenant-scoped tables use the repository's composite-key, FORCE-RLS, and
+Data API posture. Application checks supplement rather than replace structural
+tenant isolation.
 
-```text
-POST /api/donate
-```
+### 7.2 What the contribution header does not own
 
-with explicit support for guest mode.
+The header does not own:
 
-The route handler under `apps/donor/app/api/**/route.ts` must remain a thin re-export.
+- receipt eligibility, number, issue/cancel/replacement state, or Statement
+  Subject — Phase 7;
+- rendered document version, bytes, archival status, or artifact lifecycle —
+  Phase 18;
+- subject/body/layout selection or template binding — Phase 17; or
+- recipient contact resolution, consent snapshot, provider result, delivery
+  state, or communication history — Phase 6.
 
-Request shape:
+Operational staff views join these independently authoritative projections.
+They must not recreate a convenience status column on the header.
+
+### 7.3 Party-level preferences
+
+A current Party preference may seed the checkbox for a new gift. Acceptance
+copies the chosen value onto the contribution. Later preference changes apply
+prospectively and do not rewrite earlier contributions.
+
+### 7.4 Corrections
+
+A donor-identity or visibility correction:
+
+- never updates frozen source evidence in place;
+- records an append-only source/cause-linked correction;
+- requires the capability and reason defined by Contribution Operations;
+- preserves prior and successor values;
+- prompts Phase 7 to evaluate whether official facts require a successor; and
+- never directly renders or sends.
+
+## 8. Service Contracts
+
+Names below describe public seams, not mandatory file placement.
+
+### 8.1 Guest acceptance
 
 ```ts
-type GuestDonationRequest = {
-  // tenant is resolved server-side from host/route/session context and is
-  // never accepted from the client (see server responsibilities, step 1)
-  amount: number;
-  currency: "usd";
-  frequency: "one-time" | "monthly";
-  missionaryId?: string;
-  fundId?: string;
-  coverFees: boolean;
-  donor: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone?: string;
-    billingAddress?: AddressInput;
-  };
-  anonymity: {
-    anonymousToRecipient: boolean;
-    anonymousToPublic?: boolean;
-  };
-  receipt: {
-    email: string;
-    name: string;
-    address?: AddressInput;
-  };
+type GuestContributionInput = {
   idempotencyKey: string;
+  siteReference: string;
+  legalEntityReference: string;
+  currency: string;
+  grossMinor: bigint;
+  allocations: ReadonlyArray<{
+    designationReference: string;
+    amountMinor: bigint;
+  }>;
+  donor: {
+    partyKind: "person" | "organization";
+    displayName: string;
+    email?: string;
+    postalAddress?: StructuredPostalAddress;
+  };
+  visibility: {
+    anonymousToMissionary: boolean;
+    anonymousToPublic: boolean;
+  };
+  paymentMethodReference: string;
+};
+
+type GuestContributionResult = {
+  contributionId: string;
+  paymentLifecycle: "requires_action" | "processing" | "succeeded" | "failed";
+  contributionLifecycle: "awaiting_payment" | "accepted" | "failed";
+  nextAction?: SafeHostedPaymentAction;
 };
 ```
 
 Server responsibilities:
 
-1. Resolve tenant server-side.
-2. Validate amount and currency.
-3. Validate one valid designation: missionary or fund.
-4. Validate donor name/email.
-5. Normalize email.
-6. Create or match donor record by tenant + normalized email.
-7. Create/link claimable donor portal access.
-8. Snapshot receipt identity.
-9. Store anonymity flags on the contribution.
-10. Create Stripe customer/payment intent through server-only Stripe client.
-11. Use idempotency key.
-12. Return only safe client data: `clientSecret`, `donationId`, `publishableKey`, status.
-13. Never return donor existence/match details to the client.
+1. derive tenant/site/Legal Entity/Settlement Account Binding from trusted
+   references;
+2. validate money, currency, allocation, identity, and policy;
+3. create/resume the Stripe operation idempotently;
+4. at the acceptance boundary, invoke Phase 4 Party resolution;
+5. atomically invoke Phase 13 acceptance with Party/source/visibility facts;
+6. write an outbox/source occurrence for downstream owners; and
+7. return a constant-shape result with no Party-resolution metadata.
 
-### 9.2 Authenticated donor checkout
+The service accepts no canonical Party ID and returns none.
 
-If donor is signed in:
-
-- use authenticated donor/profile context
-- prefill donor details
-- allow updates where policy permits
-- still store contribution-level anonymity flags
-- still require server-authoritative amount/designation/payment state
-
-### 9.3 Offline contribution endpoint
-
-Possible route:
-
-```text
-POST /api/contributions/offline
-```
-
-Allowed roles:
-
-- finance
-- admin
-- super_admin
-- other approved staff roles by policy
-
-Request shape:
+### 8.2 Account claim
 
 ```ts
-type OfflineContributionRequest =
+requestClaimInvitation({
+  tenantId,
+  contributionId,
+  purpose: "donor_portal_access",
+});
+```
+
+The service resolves the allowable claim contact from Phase 4-controlled
+evidence, applies rate/abuse controls, records a non-enumerating outcome, and
+routes content and dispatch through Phases 17 and 6. The caller cannot supply a
+different Party or arbitrary destination.
+
+### 8.3 Offline staging and commit
+
+```ts
+type OfflineDonorIdentity =
   | {
-      donorMode: "known";
-      // exactly one identity path is required: attach an existing donor via
-      // donorId, or create one inline via donorInput — never neither, never both
-      donorId?: string;
-      donorInput?: DonorInput;
-      amount: number;
-      currency: "usd";
-      receivedDate: string;
-      method: "check" | "cash" | "manual_ach" | "wire" | "stock" | "other";
-      designation: {
-        missionaryId?: string;
-        fundId?: string;
-      };
-      anonymousToRecipient: boolean;
-      anonymousToPublic?: boolean;
-      receiptRequested: boolean;
-      batchId?: string;
-      referenceNumber?: string;
-      internalNote?: string;
+      mode: "known";
+      partyId: string;
     }
   | {
-      donorMode: "unknown_offline";
-      amount: number;
-      currency: "usd";
-      receivedDate: string;
-      method: "cash" | "other";
-      designation: {
-        missionaryId?: string;
-        fundId?: string;
-      };
-      batchId?: string;
-      referenceNumber?: string;
-      internalNote?: string;
+      mode: "unknown_offline";
     };
+
+stageGiftEntryRow({
+  batchId,
+  rowRevision,
+  donorIdentity,
+  giftFacts,
+  allocations,
+  visibility,
+  depositEvidence,
+});
+
+commitGiftEntryBatch({
+  batchId,
+  expectedRevision,
+  idempotencyKey,
+});
 ```
 
-Server responsibilities:
+The staff UI may create a one-row batch automatically, but it calls these same
+Phase 15 seams. The commit service resolves/re-proves the known Party,
+validates the unknown mode, and writes Phase 13 through its official adapter.
+There is no parallel offline route.
 
-- verify staff permission
-- resolve tenant
-- validate designation
-- prevent fake donor data
-- set `donor_id = null` for unknown offline gifts
-- set receipt status correctly
-- audit who entered/edited the gift
-- update contribution/donor totals where applicable
-- keep donor identity out of missionary/public projections when anonymous
+### 8.4 Role-scoped projection
 
----
+```ts
+projectContributionIdentity({
+  effectiveAccess,
+  contributionId,
+  audience: "finance" | "admin" | "donor_self" | "missionary" | "public",
+});
+```
 
-## 10. Payment processing best practices
+Projection is allow-list based and server-side. A redacted result is constructed
+without restricted fields; it is not a full object with fields removed after
+serialization.
 
-### 10.1 Card data
+## 9. Visibility Contract
 
-Use Stripe-hosted UI components.
+| Audience                             | Known, visible gift                                            | Known, anonymous gift                                             | Unknown offline gift                                                     |
+| ------------------------------------ | -------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Authorized finance/admin             | Legal-donor identity and source evidence allowed by capability | Same, plus visible anonymity indicator                            | Explicit "Unknown donor"; no invented identity                           |
+| Donor viewing own authorized history | Own gift and selected visibility preference                    | Same                                                              | Not claimable until a governed identity correction establishes ownership |
+| Missionary                           | Allowed donor display fields                                   | "Anonymous donor"; no stable donor/contact identifier             | "Anonymous donor" or tenant-approved unknown label with no identifier    |
+| Public                               | Tenant-approved recognition display                            | Anonymous display                                                 | Anonymous display                                                        |
+| Receipt facts                        | Phase 7 legal-donor Statement Subject                          | Same legal donor; audience anonymity does not alter receipt truth | Explicit not-receiptable reason until sufficient evidence exists         |
 
-Do not store or process raw:
+The same projection contract applies to:
 
-- full card number
-- CVC
-- un-tokenized card data
-- bank credentials
+- API responses and server-rendered payloads;
+- exports and print/mail merge data;
+- search and indexing documents;
+- email/message variables;
+- analytics and telemetry attributes;
+- caches and background-job payloads;
+- support/AI tools; and
+- logs and error metadata.
 
-The current raw-looking checkout inputs must be replaced before real payment launch.
+Downstream consumers receive a safe projection or stable owner reference, not
+raw Party data plus a request to remember redaction.
 
-### 10.2 Server-authoritative money state
+## 10. Official Facts, Documents, And Messages
 
-The client cannot decide that a gift succeeded.
-
-The server/payment processor state must decide:
-
-- `processing`
-- `completed`
-- `failed`
-- `refunded`
-- `disputed`
-
-For ACH/bank payments, the donor-facing confirmation should distinguish authorization from settlement.
-
-Good language:
-
-> Bank transfer started. Processing — not yet collected.
-
-Bad language:
-
-> Donation complete.
-
-when ACH has only been authorized but not settled.
-
-### 10.3 Idempotency
-
-All online and offline contribution creation must use idempotency where appropriate.
-
-The existing donation saga already uses idempotency. Preserve and extend that pattern.
-
-### 10.4 Metadata
-
-Stripe metadata can include non-sensitive IDs needed for reconciliation:
-
-- donation ID
-- donor ID
-- tenant ID
-- fund ID
-- missionary ID
-
-Do not put raw PII in metadata unless needed and approved.
-
----
-
-## 11. Receipt and recordkeeping rules
-
-### 11.1 Online gifts
-
-Online gifts should generate receipt records because donor identity is known.
-
-Receipt should be sent after appropriate payment status:
-
-- card: after payment succeeds
-- ACH/bank: after processor state supports receipt/finalization policy
-- recurring: after each successful installment
-
-### 11.2 Offline known gifts
-
-Known offline gifts can be receipted if staff has sufficient donor information.
-
-If the donor requests anonymity, the receipt still uses real donor identity. Anonymity only affects missionary/public visibility.
-
-### 11.3 Offline unknown gifts
-
-Unknown offline gifts are not receiptable unless donor information is later provided.
-
-System should mark:
+### 10.1 Handoff chain
 
 ```text
-receipt_status = not_receiptable
+Phase 13 accepted contribution/source correction
+  -> Phase 7 official-facts evaluation and immutable version
+  -> Phase 18 canonical artifact for that exact facts/template version
+  -> Phase 17 governed message content and binding
+  -> Phase 6 recipient/contact/consent resolution, dispatch, and history
 ```
 
-### 11.4 Year-end statements
-
-Year-end statements should include all receiptable gifts tied to known donor records.
-
-Unknown offline gifts should not appear in a donor’s year-end statement unless later matched to a donor.
-
-### 11.5 Receipt content review
-
-Receipt templates and year-end statements should be reviewed by finance/legal before production use.
-
-For U.S. charitable gifts, receipt language often needs to address whether goods or services were provided in exchange for the gift. Do not let an agent invent final legal language without review.
-
----
-
-## 12. Anonymity enforcement
-
-### 12.1 Do not enforce anonymity only in React
-
-Anonymity must be enforced in server-side DTOs, SQL views, or API projection logic.
-
-Missionary/public endpoints should return already-redacted data.
-
-Bad:
-
-```ts
-return donationWithDonor;
-```
-
-then hide donor name in the UI.
-
-Good:
-
-```ts
-return {
-  amount,
-  date,
-  donorDisplayName: donation.anonymous_to_recipient
-    ? "Anonymous donor"
-    : donor.display_name,
-};
-```
-
-and omit donor email/address/profile ID entirely.
-
-### 12.2 Redaction must apply to all outputs
-
-Apply redaction to:
-
-- missionary dashboard
-- public campaign pages
-- donor lists visible outside admin/finance
-- exports available to missionaries
-- notification/email templates sent to missionaries
-- webhooks or automations that leave admin context
-- analytics events
-- hydrated page props / JSON payloads
-
-### 12.3 Admin override and audit
-
-Changing anonymity after a gift is created should require admin/finance permission and write an audit log:
-
-- who changed it
-- previous value
-- new value
-- reason/source
-- timestamp
-
----
-
-## 13. UX copy
-
-### 13.1 Checkout anonymity checkbox
-
-Label:
-
-> Keep my name anonymous from the missionary/public view.
-
-Helper:
-
-> We’ll still keep your information for receipts, payment processing, and administrative records, but your name will not be shown to the missionary or public giving views.
-
-### 13.2 Guest checkout account language
-
-> No account needed to give. We’ll email your receipt and create secure access to your giving history.
-
-### 13.3 Offline unknown gift option
-
-Label:
-
-> Donor unknown / anonymous offline gift
-
-Helper:
-
-> Use this only when donor identity is truly unavailable. If the donor is known, attach the gift to the donor record and mark it anonymous to recipient if requested.
-
-### 13.4 Admin gift anonymity toggle
-
-Label:
-
-> Show this gift as anonymous to the missionary/public view.
-
-Helper:
-
-> Finance and admins will still see the donor record for receipts, reconciliation, and compliance.
-
-### 13.5 Donor dashboard display
-
-> This gift is shown as anonymous to the missionary/public view.
-
----
-
-## 14. Permissions
-
-### 14.1 Admin/finance
-
-Can:
-
-- see real donor identity when it exists
-- enter offline gifts
-- mark known gifts anonymous to recipient/public
-- edit anonymity flags with audit
-- issue receipts/statements
-- reconcile batches
-- handle refunds/disputes
-
-### 14.2 Missionary
-
-Can:
-
-- see gift amount/date/designation where policy allows
-- see donor name only when not anonymous
-- never see hidden donor contact/payment/admin fields
-
-### 14.3 Donor
-
-Can:
-
-- see their own gift history
-- see whether each gift is anonymous to recipient/public
-- set default anonymity preference for future gifts
-- request corrections through support/admin flow
-
-### 14.4 Public
-
-Can:
-
-- see public campaign donor display only when allowed
-- see “Anonymous donor” when anonymous
-- never receive raw donor identifiers
-
----
-
-## 15. Build instructions for AI/dev agents
-
-When implementing this, follow these rules:
-
-1. Preserve the repo data-access boundary.
-2. Put business logic in `packages/api/src/*`.
-3. Keep app route handlers as thin re-exports.
-4. Do not add raw Supabase business logic inside app routes.
-5. Use Zod schemas before mutation.
-6. Use server-authoritative amount/designation/payment state.
-7. Do not let client-supplied donor IDs, tenant IDs, or payment status decide truth.
-8. Do not store card number, CVC, or un-tokenized bank data.
-9. Use Stripe Elements/Checkout Elements/Payment Element for payment collection.
-10. Add contribution-level anonymity fields, not only donor-level defaults.
-11. Support `donor_id = null` for truly unknown offline gifts.
-12. Do not create fake donor rows for unknown cash.
-13. Snapshot receipt identity on the contribution.
-14. Redact donor identity server-side for missionary/public APIs.
-15. Add audit logs for anonymity changes and offline entry.
-16. Add tests for admin, donor, missionary, and public views.
-17. Add E2E coverage for guest checkout and anonymous gift display.
-18. Treat money, tenant, RLS, auth, receipts, and payment changes as protected areas requiring human review.
-
----
-
-## 16. Acceptance criteria
-
-### 16.1 Online guest giving
-
-- [ ] Donor can complete checkout without signing in first.
-- [ ] Checkout requires first name, last name, email, and payment/billing details needed by payment method.
-- [ ] Checkout creates or matches a donor record server-side.
-- [ ] Donor can later access giving history through verified email/magic link.
-- [ ] Existing donor email matching does not leak account existence.
-- [ ] Payment success is not simulated and is not client-authoritative.
-- [ ] Card/ACH collection uses Stripe-hosted/tokenized UI.
-- [ ] Server validates amount, currency, tenant, and designation.
-- [ ] Donation is idempotent.
-- [ ] Receipt is sent according to payment status.
-
-### 16.2 Online anonymous-to-recipient gift
-
-- [ ] Donor can check anonymity during checkout.
-- [ ] Donation stores anonymity flags on the contribution.
-- [ ] Admin/finance can see the donor.
-- [ ] Missionary/public views show “Anonymous donor.”
-- [ ] Missionary/public API payloads do not include hidden donor identifiers.
-- [ ] Donor dashboard shows the gift and its anonymity status.
-
-### 16.3 Offline known gift
-
-- [ ] Staff can attach gift to existing donor.
-- [ ] Staff can create donor if needed.
-- [ ] Staff can mark gift anonymous to recipient/public.
-- [ ] Admin/finance can still see donor.
-- [ ] Missionary/public views respect anonymity.
-- [ ] Receipt eligibility is recorded.
-- [ ] Entry is audited.
-
-### 16.4 Offline unknown gift
-
-- [ ] Staff can intentionally select unknown/anonymous offline donor.
-- [ ] No fake name/email is required.
-- [ ] `donor_id` remains null or uses an explicit system-anonymous fallback only if absolutely required.
-- [ ] Receipt status defaults to not receiptable.
-- [ ] Gift can still be designated and reconciled.
-- [ ] Missionary/public views show “Anonymous donor.”
-- [ ] Admin/finance can see batch/source/internal notes.
-
-### 16.5 Security and privacy
-
-- [ ] No raw card/PAN/CVC fields ship in production checkout.
-- [ ] No donor PII leaks in missionary/public responses when anonymous.
-- [ ] No donor PII leaks through page props, analytics, exports, emails, or logs.
-- [ ] Anonymity changes are audited.
-- [ ] Protected-area classifier flags money/auth/RLS/tenant/payment/receipt changes.
-- [ ] E2E covers anonymous display and admin visibility.
-
----
-
-## 17. Test plan
-
-### Unit tests
-
-- Zod schema accepts guest donor info and anonymity flags.
-- Zod schema rejects missing online name/email.
-- Zod schema accepts unknown offline donor mode without name/email.
-- Zod schema rejects fake/partial unknown donor modes.
-- Redaction helper returns anonymous display name and omits donor identity.
-- Admin projection includes donor identity.
-- Missionary projection redacts donor identity.
-- Receipt status for unknown offline gifts is not receiptable.
-- Contribution-level anonymity overrides donor default.
-
-### Integration tests
-
-- Guest online donation creates/matches donor record.
-- Guest online donation creates contribution with anonymity flags.
-- Existing donor email match does not leak account existence.
-- Offline known gift creates contribution with donor ID.
-- Offline unknown gift creates contribution with null donor ID.
-- Missionary API returns redacted payload for anonymous gift.
-- Admin API returns full payload for same gift.
-- Donor dashboard returns own gift and anonymity status.
-
-### E2E tests
-
-- Guest donor gives without signing in.
-- Donor checks anonymous box.
-- Payment confirmation uses real server/payment state, not simulated client success.
-- Admin sees donor identity.
-- Missionary sees anonymous donor.
-- Unknown offline cash gift can be entered without fake donor data.
-- Receipt is not sent for unknown offline gift.
-- Known offline anonymous gift is receiptable but redacted from missionary.
-
----
-
-## 18. MVP recommendation
-
-For the Platform MVP, the shortest real value path is:
-
-1. Fix/guard demo RLS and verify tenant isolation.
-2. Replace simulated checkout with server-confirmed donation flow.
-3. Add guest donor record creation/matching.
-4. Add anonymous-to-recipient/public flags.
-5. Add offline known/unknown gift entry in Contributions Hub.
-6. Add receipt status and basic receipt send.
-7. Add missionary/public redacted views.
-8. Add admin/finance full-visibility views.
-9. Add tests and QA gates around money/tenant/auth/RLS.
-
-The first demoable value moment:
-
-> A donor gives online without pre-creating an account, receives a receipt, the gift is tied to a donor record, and if the donor chose anonymity the missionary sees “Anonymous donor” while finance/admins still see the real donor.
-
----
-
-## 19. Open questions for Conrad/Blake
-
-1. Should anonymity apply to missionary-only views, or missionary + public campaign views by default?
-2. Should donor default anonymity be offered in donor settings, or only per gift for MVP?
-3. Should offline unknown gifts support cash only, or also other methods?
-4. Should receipt mailing address be required for all online gifts, or only where payment method/policy requires it?
-5. Should churches/organizations be supported in MVP checkout, or later?
-6. Should donor notes/memos be shareable with missionaries, and if so should anonymous gifts suppress those notes by default?
-7. What staff roles besides finance/admin can enter offline gifts?
-8. What is the exact receipt language approved by finance/legal?
-
----
-
-## 20. Final plain-language decision
-
-A donor can give without logging in first.
-
-For online gifts, they still need to provide name, email, and payment/billing information as part of checkout. The system creates or matches the donor record behind the scenes and gives them claimable access to their giving history.
-
-A donor can choose to be anonymous to the missionary/public views. That does not hide the donor from admins or finance, because the organization still needs the information for payment processing, receipts, donor support, reconciliation, refunds, chargebacks, and required records.
-
-For offline gifts, if the donor is known, record the donor and optionally mark the gift anonymous to recipient/public. If the donor is truly unknown, enter the gift as an unknown offline contribution without fake donor data and mark it not receiptable unless donor information is later provided.
+Each arrow is a durable, idempotent handoff with correlation and owner-specific
+state. No owner writes the next owner's truth preemptively.
+
+### 10.2 Contact and identity separation
+
+Phase 7 freezes the official legal-donor/Statement Subject facts. Phase 6
+selects the current purpose-eligible destination at send time, subject to
+consent, suppression, and destination-succession rules. A changed email does
+not rewrite the artifact; a historical email in official source evidence is
+not automatically the current send destination.
+
+### 10.3 Failure isolation
+
+- Phase 7 ineligible/blocked: no official artifact request; exact reason visible.
+- Phase 18 render failure: money and facts stay correct; retry rendering.
+- Phase 17 content failure: artifact stays correct; use contract-owned recovery.
+- Phase 6 suppression/failure: no false delivery; retry or alternate governed
+  channel under Phase 6 rules.
+- Claim invitation failure: accepted gift and official receipt path continue
+  independently.
+
+## 11. Payment, Idempotency, And Concurrency
+
+- Use Stripe-hosted collection; never submit raw credentials to Asym.
+- Pin every provider call to the accepted Settlement Account Binding and mode.
+- Use separate stable idempotency identities for provider creation, Phase 13
+  acceptance, Phase 15 row commit, facts evaluation, artifact generation,
+  content preparation, and dispatch.
+- Verify webhook signatures and account/mode context before processing.
+- Store provider observations before folding them into product state.
+- Serialize competing acceptance/commit/correction operations at the owning
+  aggregate and reject stale revisions.
+- A retry must return or advance the same business operation, never create a
+  second Party, charge, contribution, artifact, or message.
+- Do not place raw identity/contact payloads in provider metadata. Use only
+  opaque correlation identifiers permitted by the provider contract.
+
+## 12. Security, Privacy, And Tenant Safety
+
+### 12.1 Authorization
+
+- Public checkout may create only the specific guest-gift intent.
+- Party resolution and claim binding are server-only.
+- Staff entry requires the Phase 15 entry capability.
+- Post-acceptance identity/visibility corrections require the granular
+  Contribution Operations capability and reason.
+- Provider identifiers, raw source evidence, and full legal-donor identity are
+  capability-scoped.
+- UI hiding is never authorization.
+
+### 12.2 Tenant isolation
+
+Every Party, contribution, batch, Legal Entity, Settlement Account Binding,
+allocation, correction, official fact, artifact, and communication reference
+must prove the same tenant structurally and at the service boundary. Negative
+tests attempt cross-tenant references for every composite relation.
+
+### 12.3 Data minimization
+
+- No Party before accepted contribution.
+- No login before verified claim.
+- No fake data for unknown gifts.
+- No payment credentials in Asym.
+- No hidden identity in redacted projections, job payloads, analytics, or logs.
+- Source evidence uses typed fields and purpose-owned retention.
+- Free-form staff notes are not legal-donor identity evidence.
+
+### 12.4 Enumeration and abuse
+
+Guest resolution and claim initiation use constant response shape, generic
+copy, bounded timing variance, rate limits, replay protection, and
+CAPTCHA/risk escalation when abuse thresholds require it. Logs may capture safe
+correlation data but not disclose the match outcome to the client.
+
+## 13. UX And Accessibility
+
+### 13.1 Online checkout
+
+- Keep guest giving the default; do not lead with "Create an account."
+- Use one clear visibility checkbox/group near donor identity:
+  "Hide my name from the missionary and public recognition." Explain that the
+  organization still records the donor for receipts and administration.
+- Do not use the legally ambiguous label "anonymous donation" without the
+  audience explanation.
+- Preserve entered non-sensitive fields through recoverable payment errors.
+- Put delayed-rail timing and next steps in the result view.
+- Offer claiming only after acceptance and as a secondary action.
+- Meet WCAG 2.2 AA: programmatic labels, error association and summary,
+  keyboard flow, visible focus, status announcements, 400% zoom/reflow, and
+  adequate touch targets.
+
+### 13.2 Staff quick entry
+
+- Default to the known-donor picker.
+- Place "Donor is unknown" beside the picker, not in an advanced settings
+  drawer.
+- Explain the consequence once, inline; do not make staff complete a legal
+  wizard.
+- Keep the common path to one form and one confirmation.
+- Show "Recorded and posted", "Recorded — awaiting review", or an exact
+  exception outcome from Phase 15 truth.
+- Offer a link to the underlying batch/audit evidence for staff who need it,
+  without forcing batch vocabulary on casual entry.
+
+### 13.3 Batch entry
+
+- Reuse Phase 15 grid, row inspector, accessible row-editor mode, issue rail,
+  autosave/revision conflict, and atomic review/commit behavior.
+- Identity mode is a typed row field with clear chips: `Known donor` or
+  `Unknown donor`.
+- Validation links directly to the row and field and preserves all other valid
+  work.
+- Finance can filter unknown-donor rows before commit and after posting.
+
+### 13.4 Role-scoped display
+
+- Missionary/public views display the tenant-approved anonymous label and no
+  clickable identity affordance.
+- Finance sees a visible "Hidden from missionary/public" indicator so support
+  staff understand why views differ.
+- Donor self-view confirms the selected privacy setting and provides the
+  governed correction/help path where policy permits it.
+
+## 14. Observability And Operations
+
+Record metrics and structured, PII-minimized events for:
+
+- guest attempts, accepted contributions, and abandonment before acceptance;
+- Party found/created/ambiguous outcomes internally, never client-visible;
+- duplicate prevention/idempotency replay;
+- provider-to-Phase-13 handoff age and failures;
+- Phase 15 known/unknown row counts and validation reasons;
+- unknown-offline aging and later identity corrections;
+- role-projection denial/redaction failures;
+- separately labelled Phase 7 facts, Phase 18 artifact, Phase 17 governed
+  content, and Phase 6 dispatch/history handoff backlog and age;
+- claim invitation requested/suppressed/delivered/expired; and
+- cross-tenant guard violations and forbidden legacy-writer attempts.
+
+Alerts are exception-based. They identify the owning phase, correlation ID,
+tenant, safe aggregate reference, age, and next action without logging donor
+PII or provider secrets.
+
+## 15. Performance And Scale
+
+- Guest acceptance p95 budget excludes unavoidable provider challenge time and
+  must not wait for document rendering or message delivery.
+- Party lookup is tenant-scoped and indexed on the Phase 4 canonical normalized
+  fields.
+- Phase 15 uses its certified row/batch ceiling; quick entry does not add a
+  second execution engine.
+- Redaction happens in shared projections suitable for list/batch use; avoid
+  per-row network calls and N+1 Party resolution.
+- Downstream owner handoffs use durable outbox processing with bounded retry,
+  dead-letter visibility, per-tenant fairness, and backpressure.
+
+## 16. Fresh-Build Cutover
+
+This product has no production legacy data to preserve. Build the canonical
+model directly:
+
+1. create/extend the Phase 4, 13, and 15 target contracts;
+2. remove old migrations or forward plans that would create the retired
+   flat-gift/receipt/offline-writer topology;
+3. point checkout and all staff entry surfaces to the canonical services;
+4. add structural tests that fail if a legacy writer or direct provider send
+   reappears; and
+5. seed only canonical development/test fixtures.
+
+No compatibility view, dual-write, data copier, shadow writer, or runtime
+fallback is required. Historical repository examples remain labelled
+superseded and must not be copied into new code.
+
+## 17. Acceptance Criteria
+
+### 17.1 Online
+
+- A donor completes a valid gift without signing in or creating a password.
+- The client neither supplies nor receives a canonical Party identifier.
+- Found versus created Party outcomes are indistinguishable to the client.
+- Abandonment creates no Party or financial/official record.
+- Accepted truth exists in Phase 13 with exact allocation, legal-donor source
+  evidence, and per-gift visibility facts.
+- Raw payment credentials never reach Asym.
+- Browser return before finality shows an honest pending state.
+- Claiming is optional, possession-gated, and failure-isolated.
+
+### 17.2 Anonymity
+
+- Missionary/public payloads contain no hidden Party/contact identifier.
+- Authorized finance sees legal-donor truth and the visibility indicator.
+- The donor's own authorized history shows the gift and selected setting.
+- A correction requires capability/reason and appends complete audit evidence.
+- Exports, search, analytics, messages, caches, and jobs use the same projection
+  rule.
+
+### 17.3 Offline
+
+- One-gift quick entry commits through a one-row `gift_entry_batches` record.
+- Multi-row entry uses the same Phase 15 validation and commit engine.
+- A known row requires a same-tenant Party.
+- An unknown row needs no placeholder identity and keeps the legal-donor Party
+  null.
+- No direct staff offline writer exists.
+- Retry after a lost response cannot duplicate money or downstream effects.
+- A later identity correction preserves the original unknown evidence.
+
+### 17.4 Official documents and communication
+
+- Phase 7 alone determines official facts and eligibility.
+- Phase 18 alone creates the canonical artifact.
+- Phase 17 alone prepares governed message content.
+- Phase 6 alone resolves contact/consent, dispatches, and records delivery.
+- Failures and retries in any one phase do not mutate another phase's truth.
+
+## 18. Test Plan
+
+### Unit
+
+- money/allocation/currency validation;
+- identity-state and Party-nullability invariants;
+- constant-shape guest result mapping;
+- visibility projection allow-lists for every audience;
+- permission/reason policy;
+- source-evidence schema validation and PII rejection;
+- delayed-payment and composite display-state copy; and
+- official-owner routing decisions.
+
+### Integration
+
+- Phase 4 resolve/create → Phase 13 acceptance transaction;
+- idempotent retries at every crash boundary;
+- cross-tenant Party, Legal Entity, binding, allocation, batch, and artifact
+  rejection;
+- one-row quick entry and multi-row atomic Phase 15 commit;
+- unknown-offline Phase 7 evaluation and later correction;
+- outbox handoffs across Phase 7 → 18 → 17 → 6;
+- current-contact delivery with frozen official identity;
+- provider webhook signature/account/mode checks; and
+- forbidden direct offline/legacy/provider-send paths.
+
+### End to end
+
+- first-time guest card gift;
+- returning guest with no account-existence signal;
+- delayed bank payment;
+- optional successful and failed claim invitation;
+- anonymous-to-missionary gift with finance comparison;
+- known-donor quick-entry check;
+- unknown offering-box cash;
+- batch validation recovery and lost-response retry;
+- source correction that creates a successor official-facts version; and
+- keyboard, screen-reader, zoom/reflow, error, and status-announcement coverage
+  for donor checkout and both staff entry modes.
+
+### Property and adversarial
+
+- allocation conservation for generated line sets;
+- repeated/reordered provider and outbox events never duplicate effects;
+- every known contribution has one same-tenant legal-donor Party;
+- every accepted online contribution is known;
+- only intentional offline unknown may have no legal-donor Party;
+- no redacted projection includes a stable donor/contact identifier;
+- current Party edits never rewrite frozen source or official facts; and
+- no execution path can create staff-entered offline money without a Phase 15
+  batch and commit identity.
+
+## 19. Implementation Order
+
+1. Land the Phase 13 identity/visibility source contract and database
+   invariants, consuming Phase 4 tenant-isolation rules.
+2. Extend Phase 15 row types, validation, quick-entry adapter, and commit
+   mapping for known/unknown identity.
+3. Implement guest acceptance with Stripe-hosted collection and Phase 4 →
+   Phase 13 orchestration.
+4. Implement the shared role-scoped identity projection and migrate every
+   consumer to it.
+5. Add optional Phase 4 claim invitation through Phases 17 and 6.
+6. Connect Phase 13 occurrences to Phase 7 → Phase 18 → Phase 17 → Phase 6.
+7. Delete/reject retired writers and add structural CI gates.
+8. Complete security, tenant-isolation, accessibility, performance, and
+   recovery verification before enabling the feature.
+
+## 20. Final Product Rule
+
+Guest giving removes an account barrier; it does not remove legal-donor truth.
+Gift anonymity controls audience visibility; it does not create an unknown
+donor. Intentionally unknown offline gifts are recorded honestly without fake
+identity. Online and offline acceptance converge on Phase 13, all staff entry
+converges on Phase 15, and official output follows the single
+Phase 7 → Phase 18 → Phase 17 → Phase 6 chain.
