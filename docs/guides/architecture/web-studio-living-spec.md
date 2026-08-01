@@ -338,7 +338,7 @@ Handled inside Payload’s default edit view and field components. **Risk:** rep
 | `@payloadcms/db-postgres`         | 4.0.0-internal.1f9ae9a |
 | `@payloadcms/richtext-lexical`    | 4.0.0-internal.1f9ae9a |
 | `@payloadcms/storage-vercel-blob` | 4.0.0-internal.1f9ae9a |
-| `next`                            | 16.2.6                 |
+| `next`                            | 16.2.11                |
 | `react` / `react-dom`             | 19.2.3                 |
 | `@base-ui/react`                  | 1.3.0                  |
 | `@tanstack/react-form`            | 1.28.6                 |
