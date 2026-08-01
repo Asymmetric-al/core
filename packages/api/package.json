@@ -162,7 +162,18 @@
     "./eve/session-ownership": "./src/eve/session-ownership/index.ts",
     "./eve/session-ownership/types": "./src/eve/session-ownership/types.ts",
     "./eve/sandbox": "./src/eve/sandbox/index.ts",
-    "./eve/github-review": "./src/eve/github-review/index.ts"
+    "./eve/github-review": "./src/eve/github-review/index.ts",
+    "./eve/github-operator": "./src/eve/github-operator/index.ts",
+    "./eve/strict-auto-merge": "./src/eve/strict-auto-merge/index.ts",
+    "./eve/subagent-catalog": "./src/eve/subagent-catalog/index.ts",
+    "./eve/shared-context": "./src/eve/shared-context/index.ts",
+    "./eve/dynamic-workflow": "./src/eve/dynamic-workflow/index.ts",
+    "./eve/engineering-monitors": "./src/eve/engineering-monitors/index.ts",
+    "./eve/engineering-monitors/route": "./src/eve/engineering-monitors/route.ts",
+    "./eve/notifications": "./src/eve/notifications/index.ts",
+    "./eve/notifications/route": "./src/eve/notifications/route.ts",
+    "./eve/launch-readiness": "./src/eve/launch-readiness/index.ts",
+    "./eve/launch-readiness/route": "./src/eve/launch-readiness/route.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

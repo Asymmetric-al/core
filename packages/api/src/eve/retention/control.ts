@@ -271,9 +271,21 @@ export async function runEveRetentionExpiry(input: {
     { p_limit: input.limit },
   );
   if (recordError) mapError(recordError);
+  const { data: notificationRecords, error: notificationRecordError } =
+    await input.supabaseAdmin.rpc("expire_eve_notification_records", {
+      p_limit: input.limit,
+    });
+  if (notificationRecordError) mapError(notificationRecordError);
+  const { data: launchManifests, error: launchManifestError } =
+    await input.supabaseAdmin.rpc("expire_eve_launch_manifests", {
+      p_limit: input.limit,
+    });
+  if (launchManifestError) mapError(launchManifestError);
   return {
     claimedArtifacts: rows.length,
     expiredArtifacts: deletedIds.length,
     records,
+    notificationRecords,
+    launchManifests,
   };
 }

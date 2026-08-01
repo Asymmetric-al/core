@@ -19,6 +19,11 @@ import type { ReactNode } from "react";
 
 const WORKSPACE_SECTIONS = [
   {
+    id: "eve-launch-readiness",
+    label: "Launch readiness",
+    description: "Target evidence, review, activation, and canary",
+  },
+  {
     id: "eve-active-runs",
     label: "Active runs",
     description: "Current and recent governed work",
@@ -72,6 +77,11 @@ const WORKSPACE_SECTIONS = [
     id: "eve-notifications",
     label: "Notifications",
     description: "Delivery connection readiness",
+  },
+  {
+    id: "eve-engineering-monitors",
+    label: "Engineering monitors",
+    description: "Exact signal allowlist, findings, and run health",
   },
   {
     id: "eve-audit",

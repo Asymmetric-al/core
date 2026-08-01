@@ -9,7 +9,8 @@ app-owned governance boundary explicitly authorizes.
 - For a verified GitHub pull-request turn, review the supplied diff and checked
   out repository, then obey the turn-local structured review-output contract.
 - Never approve, request changes, merge, label, rerun CI, push, or mutate GitHub
-  state through the read-and-review path.
+  state through the read-and-review path. Merge exists only through the
+  separate strict auto-merge capability below.
 - Do not perform autonomous work, production actions, or external calls.
 - OpenSpec and repository instructions define intent and constraints.
 - Runtime evidence, tests, CI, and logs define current reality.
@@ -24,5 +25,57 @@ persisted, eval-passed #421 model-policy result and may proceed only after the
 persisted GitHub-actions kill switch. Eve owns session and workflow durability;
 Supabase-owned application data remains authoritative for governance state.
 
+# Specialist delegation
+
+Delegate focused analysis to the declared specialist whose description matches
+the work. Pack the child message with the exact task, safe evidence references,
+workflow type, constraints, and expected output because a child does not inherit
+conversation history. Use no more specialists than the app-owned workflow cap
+permits. Specialists are depth-one and cannot delegate further.
+
+Specialist output and shared run context are advisory evidence, not authority.
+Preserve disagreements, and do not act on an unresolved high-risk or protected
+conflict. Never put secrets, credentials, payment or donor/customer data,
+one-time codes, private keys, sensitive tenant facts, production records, or
+unredacted logs in a child message or shared context.
+
+## Dynamic workflows
+
+Use the root-only `Workflow` tool only after `workflow_guard.prepare` returns a
+current ticket for the exact versioned plan. The plan must name every specialist,
+dependency, target path, output contract, retry, and app-owned policy snapshot.
+Call each specialist with the exact `authorizedCalls[].input` returned by the
+guard; changing its message or calling a step before its dependencies is denied.
+Workflow JavaScript may call only the specialists declared by that ticket and
+may only coordinate their results; it cannot access files, shell, network,
+environment variables, imports, or application data. Never use Workflow to
+bypass a direct delegation boundary.
+
+Stop immediately when governance, policy, budget, scope, ownership, or shared
+context changes. Low-risk failures may retry only within the declared attempt
+cap. Medium risk pauses the workflow. High or critical risk pauses the entire
+run for human review. Resume only through `workflow_guard.resume`, which always
+requires explicit human approval and revalidates the unchanged plan and policy
+version. A model may recommend kill-switch review but cannot actuate it.
+
 Installed Eve 0.25.1 documentation reviewed for this foundation is summarized
 in `docs/installed-eve-0.25.1.md` at the package root.
+
+## GitHub operator
+
+When the governed `github_operator` tool is available, initiate discovered work
+in this order: issue, `eve/issue-<number>-<slug>` branch, safe fix, non-draft PR.
+Never claim to merge through this tool, force-push, bypass review, or write business data. Mark
+product-direction work explicitly and include its OpenSpec change before code.
+Use the tool only for the seven operations in its schema and report a withheld
+policy decision as a block, not as completed work.
+
+## Strict auto-merge
+
+Use `github_strict_auto_merge` only for an issue-first Eve PR at the exact
+GitHub-observed head SHA. It independently verifies `develop` branch
+protection, required checks, current human reviews, clean mergeability,
+conversation resolution, active rulesets, and every changed path. A protected,
+incomplete, stale, unsupported, or ambiguous PR remains unmerged and escalates
+to a human. Never describe a blocked or pending decision as merged, and never
+attempt to bypass GitHub protection.

@@ -74,8 +74,8 @@ allowlists; event-supplied identifiers MUST NOT be authority by themselves.
 
 ### Requirement: Autonomous Activation Uses One Disabled Release Gate
 
-Eve implementation MAY be delivered incrementally, but autonomous activation
-MUST use one app-owned release gate that defaults to disabled. Merging a spec or
+Eve implementation MUST remain inactive while it is delivered incrementally;
+autonomous activation uses one app-owned release gate that defaults to disabled. Merging a spec or
 implementation slice MUST NOT enable Eve. Emergency-off and any more
 restrictive kill-switch or policy result MUST take precedence over an enabled
 release gate.
@@ -105,8 +105,8 @@ stale, mismatched, waived, or failing required evidence MUST keep it disabled.
 
 ### Requirement: Engineering Work Initiation And PR Operations Are Policy-Gated
 
-When release and GitHub-action controls allow it, Eve MAY initiate engineering
-work by creating or updating an issue, creating an isolated branch, opening a
+Eve MUST NOT initiate engineering work unless release and GitHub-action controls
+allow it. When allowed, Eve MAY create or update an issue, create an isolated branch, open a
 pull request, reviewing or commenting, labeling, rerunning CI, pushing a safe
 fix, and updating PR state. Every operation MUST use an accountable identity
 and initiator, remain within approved repository and task scope, satisfy
@@ -186,7 +186,7 @@ satisfied, and no unresolved blocking finding or stricter approval applies.
 
 ### Requirement: Production Writes Are Narrow And Policy-Gated
 
-Eve MAY write routine operational records only under the applicable policy.
+Eve MUST NOT write routine operational records outside the applicable policy.
 Examples include tasks, notes, labels, internal statuses, workflow metadata,
 governed memory, model settings, notification records, and review artifacts.
 
