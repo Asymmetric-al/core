@@ -177,9 +177,11 @@ function EveConversation() {
 }
 
 export function EveGlobalPanel() {
-  const { role } = useMC();
+  const { role, user } = useMC();
 
-  if (role !== "admin") {
+  // MCProvider keeps role at "admin" after sign-out while clearing user.
+  // Require both so the panel is absent outside authenticated admin contexts.
+  if (!user || role !== "admin") {
     return null;
   }
 

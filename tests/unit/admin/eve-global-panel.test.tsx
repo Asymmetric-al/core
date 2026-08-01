@@ -4,12 +4,28 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const testState = vi.hoisted(() => ({ role: "admin" }));
+const testState = vi.hoisted(() => ({
+  role: "admin" as string,
+  user: {
+    id: "user-1",
+    email: "admin@example.com",
+    name: "Admin",
+    role: "admin" as const,
+    tenantId: "tenant-1",
+  } as {
+    id: string;
+    email: string;
+    name: string;
+    role: "admin";
+    tenantId: string;
+  } | null,
+}));
 
 vi.mock("@asym/lib/mission-control/context", () => ({
   useMC: () => ({
     role: testState.role,
     tenant: { id: "tenant-1", name: "Give Hope", slug: "give-hope" },
+    user: testState.user,
   }),
 }));
 
@@ -62,6 +78,13 @@ import { EveGlobalPanel } from "../../../apps/admin/app/eve/global-panel";
 describe("EveGlobalPanel", () => {
   beforeEach(() => {
     testState.role = "admin";
+    testState.user = {
+      id: "user-1",
+      email: "admin@example.com",
+      name: "Admin",
+      role: "admin",
+      tenantId: "tenant-1",
+    };
   });
 
   afterEach(() => {
@@ -71,6 +94,15 @@ describe("EveGlobalPanel", () => {
 
   it("does not create an Eve client for non-admin Mission Control roles", () => {
     testState.role = "staff";
+
+    render(<EveGlobalPanel />);
+
+    expect(screen.queryByRole("button", { name: /open eve/i })).toBeNull();
+  });
+
+  it("does not create an Eve client after Mission Control sign-out", () => {
+    testState.user = null;
+    testState.role = "admin";
 
     render(<EveGlobalPanel />);
 
