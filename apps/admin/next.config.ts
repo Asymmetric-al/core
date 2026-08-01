@@ -1,7 +1,9 @@
 import { loadEnvConfig } from "@next/env";
 import { withPayload } from "@payloadcms/next/withPayload";
 import { withSentryConfig } from "@sentry/nextjs";
+import { withEve } from "eve/next";
 
+import { normalizeEveVercelEnvironment } from "./eve-runtime-environment";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
@@ -10,8 +12,9 @@ import type { NextConfig } from "next";
 /** Load the repo-root `.env.local`; app-local files should be symlinks only when needed by external tooling. */
 const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
 loadEnvConfig(WORKSPACE_ROOT);
+normalizeEveVercelEnvironment(process.env);
 
-const nextConfig: NextConfig = {
+export const nextConfig: NextConfig = {
   reactStrictMode: true,
   /** Dev HMR when opening the app via `http://127.0.0.1:3030` instead of `localhost`. */
   allowedDevOrigins: ["127.0.0.1"],
@@ -79,5 +82,11 @@ const nextConfig: NextConfig = {
 const payloadConfig = withPayload(nextConfig, {
   devBundleServerPackages: false,
 });
+const sentryConfig = withSentryConfig(
+  payloadConfig,
+  buildSentryNextConfigOptions(),
+);
 
-export default withSentryConfig(payloadConfig, buildSentryNextConfigOptions());
+export default withEve(sentryConfig, {
+  eveRoot: `${WORKSPACE_ROOT}/packages/eve-runtime`,
+});

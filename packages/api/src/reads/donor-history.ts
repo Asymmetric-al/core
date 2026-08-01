@@ -135,16 +135,14 @@ export async function resolveDonorId(
 ): Promise<string | null> {
   "use cache";
 
-  // Lifetime first: the `!profileId` early return is still a cache entry, and
-  // without a profile it would be stored under the default `expire: never`
-  // rather than the intended minutes-long window. The tags below are keyed on
-  // `profileId`, so they can only be declared once it is known to exist.
-  applyCacheLife();
-
   if (!profileId) {
+    // The early return is still a cache entry, but there is no profile-specific
+    // value available for tags. Set its lifetime directly in this branch.
+    applyCacheLife();
     return null;
   }
 
+  // `applyCacheMetadata` owns the single cacheLife call for this branch.
   applyCacheMetadata([
     READ_CACHE_TAGS.donorProfile,
     READ_CACHE_TAGS.tenant(tenantId),

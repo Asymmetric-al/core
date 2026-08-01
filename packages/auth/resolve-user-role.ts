@@ -1,7 +1,7 @@
 import { DEMO_TENANT_ID } from "./constants";
-import { derivePrimaryRole } from "./permissions";
 
 import type { SupabaseUserRoleReader } from "./middleware";
+import type { RoleSnapshot } from "./permissions";
 import type { UserRole } from "@asym/database/types";
 
 const MEMBERSHIP_ROLES = new Set(["donor", "missionary", "staff"]);
@@ -14,13 +14,11 @@ type MembershipRow = {
 };
 
 /**
- * Resolves a signed-in user's effective role for `createAuthMiddleware`.
+ * Resolves a signed-in user's complete role snapshot for `createAuthMiddleware`.
  *
- * Deliberately derives the answer with the same `derivePrimaryRole` the server
- * side uses (`getAuthContext`) rather than re-deciding precedence here. Two
- * copies of "which role wins" is how an edge gate and an app gate drift into
- * disagreeing, and the disagreement is a security bug in whichever direction it
- * goes.
+ * The edge evaluates the snapshot with the same `hasAnyRole` policy as the
+ * server-side auth context. Keeping every active membership is essential for
+ * users who legitimately access more than one app surface.
  *
  * Reads through the request-scoped client, so RLS applies and a user can only
  * resolve their own role. It never sees the service-role key, which has no
@@ -37,9 +35,9 @@ export async function resolveUserRoleFromDatabase({
 }: {
   userId: string;
   supabase: SupabaseUserRoleReader;
-}): Promise<UserRole | null> {
+}): Promise<RoleSnapshot | null> {
   try {
-    const { data } = await supabase
+    const { data, error: profileError } = await supabase
       .from("profiles")
       .select("tenant_id, role")
       .eq("user_id", userId)
@@ -49,7 +47,7 @@ export async function resolveUserRoleFromDatabase({
       role: string | null;
     } | null;
 
-    if (!profile) {
+    if (profileError || !profile) {
       return null;
     }
 
@@ -69,7 +67,11 @@ export async function resolveUserRoleFromDatabase({
       ? await loadActiveMemberships(supabase, userId, tenantId)
       : [];
 
-    return derivePrimaryRole({ profileRole, memberships });
+    if (!memberships) {
+      return null;
+    }
+
+    return { profileRole, memberships };
   } catch {
     return null;
   }
@@ -80,13 +82,17 @@ async function loadActiveMemberships(
   userId: string,
   tenantId: string,
 ) {
-  const { data: rows } = await supabase
+  const { data: rows, error } = await supabase
     .schema("authz")
     .from("memberships")
     .select("tenant_id, role, staff_role, is_active")
     .eq("user_id", userId)
     .eq("tenant_id", tenantId)
     .eq("is_active", true);
+
+  if (error) {
+    return null;
+  }
 
   return ((rows ?? []) as MembershipRow[])
     .filter(

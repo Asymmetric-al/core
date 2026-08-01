@@ -59,11 +59,9 @@ const ADMIN_ALLOWED_ROLES = ["staff", "admin", "super_admin"] as const;
 /**
  * The only role gate in this app.
  *
- * `apps/admin/proxy.ts` passes `allowedRoles`, but `packages/auth/middleware.ts`
- * consults that list solely inside the E2E-bypass branch; for a real Supabase
- * session it checks presence of a user and never the role. Every layout that
- * fronts admin UI must call this, or an authenticated donor or missionary
- * reaches the admin.
+ * `apps/admin/proxy.ts` rejects wrong-app sessions at the edge. Layouts still
+ * call this defense-in-depth gate to establish the tenant-scoped auth context
+ * used by admin data reads.
  */
 export async function requireAdminAccess(pathname: string) {
   const auth = await getAuthContext();

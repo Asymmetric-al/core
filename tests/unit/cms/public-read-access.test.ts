@@ -7,6 +7,7 @@ type PublicReadModule =
 
 let buildPublicReadRequestContext: PublicReadModule["buildPublicReadRequestContext"];
 let getPublicReadContext: PublicReadModule["getPublicReadContext"];
+let publicMediaReadAccess: PublicReadModule["publicMediaReadAccess"];
 let publicTenantReadAccess: PublicReadModule["publicTenantReadAccess"];
 let publishedPublicReadAccess: PublicReadModule["publishedPublicReadAccess"];
 
@@ -14,6 +15,7 @@ beforeAll(async () => {
   const module = await import("../../../apps/admin/src/cms/access/public-read");
   buildPublicReadRequestContext = module.buildPublicReadRequestContext;
   getPublicReadContext = module.getPublicReadContext;
+  publicMediaReadAccess = module.publicMediaReadAccess;
   publicTenantReadAccess = module.publicTenantReadAccess;
   publishedPublicReadAccess = module.publishedPublicReadAccess;
 });
@@ -132,6 +134,89 @@ describe("publishedPublicReadAccess", () => {
 
     // Anonymous without the marker stays denied, exactly as before.
     expect(access(accessArgs(staffRequest(null)))).toBe(false);
+  });
+});
+
+describe("publicMediaReadAccess", () => {
+  const MEDIA_CAPABILITY = { draftable: false } as const;
+
+  it("serves media file bytes to anonymous static-file requests with a document lookup", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+    const args = {
+      ...accessArgs(staffRequest(null)),
+      data: { filename: "hero.jpg" },
+      isReadingStaticFile: true,
+    };
+
+    expect(access(args)).toEqual({ id: { exists: true } });
+  });
+
+  it("keeps Blob prefix lookups scoped to the authorized filename", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+    const req = staffRequest(null);
+    const filename = "hero-card.webp";
+
+    expect(
+      access({
+        ...accessArgs(req),
+        data: { filename },
+        isReadingStaticFile: true,
+      }),
+    ).toEqual({ id: { exists: true } });
+    expect(access(accessArgs(req))).toEqual({
+      or: [
+        { filename: { equals: filename } },
+        { "sizes.thumbnail.filename": { equals: filename } },
+        { "sizes.card.filename": { equals: filename } },
+      ],
+    });
+  });
+
+  it("denies anonymous static-file reads without a filename", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+    const args = {
+      ...accessArgs(staffRequest(null)),
+      isReadingStaticFile: true,
+    };
+
+    expect(access(args)).toBe(false);
+  });
+
+  it("denies path-traversal filenames on anonymous static-file reads", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+    const args = {
+      ...accessArgs(staffRequest(null)),
+      data: { filename: "../secret.jpg" },
+      isReadingStaticFile: true,
+    };
+
+    expect(access(args)).toBe(false);
+  });
+
+  it("keeps authenticated staff static-file reads tenant scoped", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+    const args = {
+      ...accessArgs(
+        staffRequest({ id: "staff-1", role: "staff", tenantId: "tenant-a" }),
+      ),
+      isReadingStaticFile: true,
+    };
+
+    expect(access(args)).toEqual({ tenant: { equals: "tenant-a" } });
+  });
+
+  it("keeps anonymous document reads without the marker denied", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+
+    expect(access(accessArgs(staffRequest(null)))).toBe(false);
+  });
+
+  it("constrains marked public document reads to the resolved tenant", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+
+    expect(access(accessArgs(publicReadRequest()))).toEqual({
+      and: [{ tenant: { equals: CMS_TENANT_ID } }],
+    });
   });
 });
 

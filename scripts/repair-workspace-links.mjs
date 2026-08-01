@@ -67,6 +67,24 @@ function createBackupPath(linkPath, fileSystem) {
   );
 }
 
+function findInterruptedRepairBackup(linkPath, fileSystem) {
+  const parentDir = path.dirname(linkPath);
+  if (!fileSystem.existsSync(parentDir)) return null;
+
+  const backupPrefix = `${path.basename(linkPath)}.repair-backup-`;
+  const backupNames = fileSystem
+    .readdirSync(parentDir)
+    .filter((entry) => entry.startsWith(backupPrefix));
+
+  if (backupNames.length > 1) {
+    throw new Error(
+      `[repair-workspace-links] Found multiple interrupted repair backups for ${linkPath}; refusing to guess which one to restore.`,
+    );
+  }
+
+  return backupNames[0] ? path.join(parentDir, backupNames[0]) : null;
+}
+
 /**
  * @param {string} repoRoot
  * @returns {{ repaired: string[] }}
@@ -116,10 +134,20 @@ export function repairWorkspaceLinks(repoRoot, fileSystem = fs) {
           );
         }
       } catch {
-        // Missing entirely: Bun legitimately omits links when resolution goes
-        // through the repo root, so only existing-but-broken entries are
-        // repaired.
-        needsRepair = false;
+        const interruptedBackup = findInterruptedRepairBackup(
+          linkPath,
+          fileSystem,
+        );
+        if (interruptedBackup) {
+          fileSystem.renameSync(interruptedBackup, linkPath);
+          needsRepair = !fileSystem.existsSync(
+            path.join(linkPath, "package.json"),
+          );
+        } else {
+          // Missing entirely: Bun legitimately omits links when resolution
+          // goes through the repo root.
+          needsRepair = false;
+        }
       }
 
       if (!needsRepair) continue;

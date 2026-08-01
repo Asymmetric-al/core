@@ -32,10 +32,12 @@ describe("Instant Navigation config (Next.js 16.3)", () => {
     it(`apps/${app} enables Cache Components and Partial Prefetching`, async () => {
       const mod = (await import(configPath)) as {
         default: InstantNavigationConfig;
+        nextConfig?: InstantNavigationConfig;
       };
+      const config = mod.nextConfig ?? mod.default;
 
-      expect(mod.default.cacheComponents).toBe(true);
-      expect(mod.default.partialPrefetching).toBe(true);
+      expect(config.cacheComponents).toBe(true);
+      expect(config.partialPrefetching).toBe(true);
     }, 60_000);
   }
 });

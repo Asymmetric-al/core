@@ -470,7 +470,7 @@ jobs:
           # server, the exact vacuous verdict the rig exists to prevent.
           PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
           PLAYWRIGHT_INCLUDE_ADMIN: "0"
-        run: node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/instant-navigation.spec.ts --project=chromium
+        run: node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/instant-navigation.spec.ts --project=chromium --retries=0
       - name: Upload instant-nav report
         if: always()
         uses: actions/upload-artifact@v7
@@ -513,14 +513,16 @@ jobs:
         (github.event_name == 'pull_request' && github.base_ref == 'production') ||
         (github.event_name == 'push' && github.ref == 'refs/heads/production')
       )
-    needs: [test-e2e]
+    needs: [test-e2e, instant-nav]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if E2E failed on production
         run: |
           echo "test-e2e: ${{ needs['test-e2e'].result }}"
+          echo "instant-nav: ${{ needs['instant-nav'].result }}"
 
-          if [ "${{ needs['test-e2e'].result }}" != "success" ]; then
+          if [ "${{ needs['test-e2e'].result }}" != "success" ] || \
+             [ "${{ needs['instant-nav'].result }}" != "success" ]; then
             echo "E2E gate failed."
             exit 1
           fi

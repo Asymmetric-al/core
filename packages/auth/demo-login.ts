@@ -64,6 +64,7 @@ export function safeNextParam(value: string | null): string | null {
   }
 
   if (parsed.origin !== "http://localhost") return null;
+  if (parsed.pathname.startsWith("//")) return null;
   if (isBlockedNextPath(parsed.pathname)) return null;
 
   return `${parsed.pathname}${parsed.search}${parsed.hash}`;
