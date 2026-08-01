@@ -196,40 +196,58 @@ later sync to donor-facing money history.
 - THEN donor-facing history reflects the corrected truth promptly
 - AND the donor portal does not depend on a delayed side-sync model
 
-### Requirement: Donor Correction Emails Use Email Studio
+### Requirement: Donor Correction Communications Use Governed Content and Shared Dispatch
 
-Donor-facing emails for contribution corrections MUST use Email Studio
-templates, the provider-neutral template/version model, required merge-tag
-validation, tenant notification settings, and the approved Resend delivery
-path.
+The contribution operation MUST own the correction-notification purpose and
+source facts. Phase 17 Email Studio MUST own the provider-neutral
+template/version contract, required merge-tag validation, governed content, and
+sender/reply resolution. Phase 6 MUST own consent evaluation, durable
+communication intent, dispatch through the approved Resend transport,
+communication-event history, and provider outcome.
 
 Contribution operations, automations, and future bulk actions MUST NOT send
 donor-facing contribution correction emails directly through Resend or a
 feature-local email builder.
 
-If a required correction template is missing, inactive, or invalid at send
-time, the contribution action MUST remain complete, the donor email MUST be
-blocked, the notification decision MUST be audited, and follow-up task intent
-MUST be created through the shared task contract.
+If a required correction template is missing, inactive, or invalid during
+Phase 17 resolution or preparation, the contribution action MUST remain
+complete, Phase 6 MUST NOT dispatch a fallback donor email, the notification
+decision MUST be audited, and follow-up task intent MUST be created through the
+shared task contract. Once a correction notification has crossed the durable
+prepared-message boundary, dispatch MUST NOT re-check template activity; it
+re-proves only the current safety fences that apply to the frozen payload.
 
 #### Scenario: A refund notification is sent
 
 - GIVEN a contribution refund action has a donor-facing notification outcome
 - WHEN the notification is sent
-- THEN the email is rendered from the active Email Studio refund template
-  family and variant
-- AND the send records the template version, recipient, provider outcome, and
-  contribution operation audit link
+- THEN Phase 17 prepares the email from the resolved Email Studio refund
+  template family and immutable version
+- AND Phase 6 dispatches it through the shared send seam
+- AND the communication event records the exact template version, recipient,
+  provider outcome, and contribution-operation audit link
 
-#### Scenario: A correction template is invalid at send time
+#### Scenario: A correction template is invalid before preparation
 
 - GIVEN a contribution action succeeds but its required donor correction
-  template is missing, inactive, or missing required merge tags
-- WHEN notification dispatch runs
+  template is missing, inactive, or missing required merge tags when Phase 17
+  resolves or prepares the notification
+- WHEN preparation fails closed
 - THEN no fallback donor email is sent
 - AND the contribution action remains successful
 - AND the blocked notification decision is audited
 - AND a follow-up task is requested for the configured actor or queue
+
+#### Scenario: A prepared correction notification survives later deactivation
+
+- GIVEN a donor correction notification has already crossed the durable
+  prepared-message boundary under an active publication
+- AND that publication is later deactivated
+- WHEN Phase 6 dispatch runs for the frozen prepared payload
+- THEN dispatch does not re-check template activity
+- AND it re-proves only the current safety fences that apply to the frozen
+  payload
+- AND byte-identical recovery remains available while those fences pass
 
 ### Requirement: Bulk Contribution Actions Use The Single-Action Contract
 
@@ -340,8 +358,8 @@ truth and use the same server-side contribution action layer.
 #### Scenario: Staff investigates by gift context
 
 - GIVEN a finance staff user searches by gift date, donor, provider id,
-  payment method, receipt state, refund state, fund, missionary, or related
-  contribution field
+  payment method, derived receipt/document/delivery outcome, refund state,
+  fund, missionary, or related contribution field
 - WHEN the user opens a contribution from the Contribution Hub
 - THEN Mission Control shows a complete contribution detail
 - AND actions from that detail use the shared Contribution Operations Core
@@ -361,9 +379,11 @@ Mission Control contribution detail MUST show staff the operational context of
 a gift and the donor-visible consequence of meaningful corrections before the
 user confirms a high-risk action.
 
-The detail SHOULD include donor, gift, designation, payment, receipt, refund,
-recurring, staged gift, CRM, audit, task, batch, provider, and donor-visible
-state when available.
+The detail SHOULD include donor, gift, designation, payment, the independently
+joined Phase 7 receipt-facts result, Phase 18 artifact, Phase 6 delivery
+outcome, refund, recurring, CRM, audit, task, batch, provider, and donor-visible
+state when available. It MUST NOT collapse those joins into one stored
+contribution receipt status or revive a staged-gift runtime.
 
 #### Scenario: Staff confirms a donor-visible correction
 
@@ -378,8 +398,11 @@ state when available.
 The Contribution Hub MUST support gift-first contribution search and filtering
 for operational investigation. Search and filters SHOULD include donor name,
 donor address/location, phone, gift date range, payment method, payment type,
-safe last-four, status, receipt state, refund state, designation, fund,
-missionary, project, batch, and other contribution fields when available.
+safe last-four, status, derived receipt/document/delivery outcome, refund
+state, designation, fund, missionary, project, batch, and other contribution
+fields when available. Receipt filters MUST compile against the Phase 7 facts,
+Phase 18 artifact, and Phase 6 delivery projections and MUST NOT read a mutable
+receipt-status column on the contribution.
 
 Provider identifier search and filtering, including Stripe PaymentIntent,
 charge, refund, webhook, and replay identifiers, MUST require

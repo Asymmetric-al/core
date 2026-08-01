@@ -10,6 +10,15 @@
 
 > **Founder grill (2026-07-07) — what this session changed.** A formal grill-with-docs pressure-tested the committed PRD and ratified G1–G7, then ran a four-lens adversarial pass (over-engineering / tech-debt / brittleness / safety-congruence). Net effect: a **leaner** phase (dropped a country-risk subscription engine, a trigger-word hook, and premature purge executors) that is simultaneously **safer** (data-layer alias enforcement, sole-entry firewall). Key rulings folded below: person-level `security_level` composes with Phase-3 field sensitivity through the **one** resolver (G1); a **minimal locked room** holds only publication-dangerous identity (G2); **country risk is tenant-sovereign** with an opt-in importable WWL seed and a person-always-wins override (G3); **"Security Clearance" is a capability admins toggle onto any role** (G4); **one `identity_access_grants` object** serves standing / requested / break-glass access (G5); reclassification triggers a **scrub of what we control + an honest-limitation notice** (G6).
 
+> **Phase 18 generated-document amendment (2026-07-21).** Phase 10's
+> strictest alias/withholding/publication policy applies before any generated
+> document field, accessibility text, metadata, bookmark, filename, route,
+> preview fixture, log, export, storage object, or role projection is produced.
+> An already issued exact artifact is never silently rewritten. A current safety
+> change may revoke future access or generation and require source-authorized
+> correction/replacement through Phase 18 while retaining protected historical
+> evidence under the applicable records contract.
+
 ---
 
 ## Problem Statement
@@ -235,3 +244,35 @@ Foundation tickets first (`status:todo`); the rest `status:blocked`. Hard-blocke
 - **T11 · #639** — Permanent negative/safety test tier + structural CI gates (sole-entry lint, alias-at-data-layer, extended column lint) + the Supabase advisors.
 - **T12 · #640** — Phase 10 evidence file (Built/Live/Confirmed; seeded demonstrations; the "did not build" list).
 - **T13 · #641** — **Mission Control → Settings → Security page:** role Security-Clearance toggles + member counts + confirm dialog + breadth stat; the `country_risk` manager + WWL one-click import; the request queue + standing-grants list; audit/break-glass review links. _(scoped to clearance+country+grants; Phase 12 absorbs/deepens)_
+
+## Dated Phase 17 communication-safety amendment (2026-07-19)
+
+**Old statement.** Phase 10 makes restricted identity structurally unreachable
+from public/email/receipt projections and truthfully warns that an already-sent
+email cannot be retracted.
+
+**New winner.** Every Phase 17 preview, review, test, publication, prepared
+message, in-product item, communication-history view, support projection,
+Recent sent copy, portability package, repair case, cache, and metric consumes
+the same Phase 3/10 strictest-wins projection. Restricted/high-risk messages
+retain no readable Recent sent copy. If a person is later raised to a
+restricted/high-risk tier, reads fail closed immediately and any still-readable
+copy or derived cache receives priority, observable purge without revealing the
+old projection.
+
+That observability is restricted to a security-cleared, body-free purge ledger.
+Tenant dashboards, ordinary support views, application logs, traces, analytics,
+and metrics MUST remain aggregate and non-enumerating: they reveal no message or
+cache existence, recipient, storage key, content, purge identifier, or prior
+classification. An already-authorized ordinary surface may show only the generic
+unavailable state required by the current projection, never evidence that a
+specific restricted copy existed.
+
+**Compatibility boundary.** Durable body-free Phase 6 evidence may remain under
+its lawful retention class; issued Phase 18 exact artifacts remain immutable
+while Phase 7 source facts and issuance/correction evidence retain their own
+authority; and external email already delivered cannot be recalled.
+Phase 17 must state those limitations honestly. It never routes legal identity,
+real location/photo, care/security fields, protected destinations, or action
+credentials through a tenant-editable node, fallback, test fixture, export,
+search index, log, trace, or provider tag.
