@@ -654,6 +654,25 @@ export const PHASE_18_VALIDATION_TOOLS: readonly ValidationTool[] = [
   },
 ];
 
+/**
+ * Protocol "Stop conditions": stop the contest or keep production dark when any
+ * of these holds. Frozen with the charter so none can be reinterpreted after
+ * results are inspected.
+ */
+export const PHASE_18_STOP_CONDITIONS: readonly string[] = [
+  "a frozen charter field is missing, changes without reset, or was created after results were inspected",
+  "held-back expectations or fixture identities leak to candidate implementers before sealing",
+  "a candidate receives extra tuning/remediation opportunity",
+  "either finalist is represented by a nondeployable proxy",
+  "a hard gate fails or required evidence is unknown",
+  "a validator/profile/license/security/procurement claim cannot be independently verified",
+  "a managed provider cannot meet required privacy, retention, residency, support-access or outage evidence",
+  "the load/cost/fairness budget is blank or missed",
+  "reviewer independence or evidence integrity is compromised",
+  "the deterministic rule yields no material winner",
+  "activation would require a tenant selector, silent fallback, second renderer runtime, manual PDF repair or historical rerender",
+];
+
 export const PHASE_18_REQUALIFICATION_TRIGGERS: readonly string[] = [
   "renderer family, engine version, build, managed pipeline, endpoint/region, deployment mode or provider account behavior changes",
   "source compiler, candidate adapter, finalizer, signing/seal step, container/OS/runtime or sandbox policy changes",
@@ -707,6 +726,7 @@ deepFreezeProtocol(PHASE_18_EVIDENCE_RULES);
 deepFreezeProtocol(PHASE_18_ABSOLUTE_BUDGETS);
 deepFreezeProtocol(PHASE_18_VALIDATION_TOOLS);
 deepFreezeProtocol(PHASE_18_REQUALIFICATION_TRIGGERS);
+deepFreezeProtocol(PHASE_18_STOP_CONDITIONS);
 
 /**
  * Assemble the complete Phase 18 charter input from the protocol-fixed content
@@ -787,6 +807,7 @@ export function buildPhase18RendererContestInput(
     },
     evidence_rules: PHASE_18_EVIDENCE_RULES,
     requalification_triggers: PHASE_18_REQUALIFICATION_TRIGGERS,
+    stop_conditions: PHASE_18_STOP_CONDITIONS,
     unknown_evidence_rule: "fails_affected_gate",
   });
 }

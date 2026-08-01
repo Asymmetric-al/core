@@ -10,6 +10,7 @@ import {
   PHASE_18_OPERATIONAL_SUITES,
   PHASE_18_QUALIFICATION_GATES,
   PHASE_18_REQUALIFICATION_TRIGGERS,
+  PHASE_18_STOP_CONDITIONS,
   PHASE_18_SCORE_DIMENSIONS,
   PHASE_18_SCORING_RULES,
   PHASE_18_VALIDATION_TOOLS,
@@ -1114,6 +1115,31 @@ export function validateRendererQualificationCharterInput(
       );
     }
   }
+  if (input.stop_conditions.length === 0) {
+    issues.push(
+      issue(
+        "stop_conditions",
+        "charter_incomplete",
+        "The incident stop conditions must be frozen with the charter.",
+      ),
+    );
+  } else {
+    const fixedStops = new Set(PHASE_18_STOP_CONDITIONS);
+    const declaredStops = new Set(input.stop_conditions);
+    const stopsMatch =
+      fixedStops.size === declaredStops.size &&
+      declaredStops.size === input.stop_conditions.length &&
+      [...fixedStops].every((condition) => declaredStops.has(condition));
+    if (!stopsMatch) {
+      issues.push(
+        issue(
+          "stop_conditions",
+          "protocol_fixed_field_changed",
+          "The stop conditions are pre-registered; dropping or inventing one changes when the contest must stop.",
+        ),
+      );
+    }
+  }
   if (input.unknown_evidence_rule !== "fails_affected_gate") {
     issues.push(
       issue(
@@ -1159,6 +1185,7 @@ export function normalizeRendererQualificationCharterInput(
       (item) => `${item.category}:${item.name}`,
     ),
     requalification_triggers: [...clone.requalification_triggers].sort(),
+    stop_conditions: [...clone.stop_conditions].sort(),
     approvals: sortById(
       clone.approvals,
       (item) => `${item.role}:${item.actor}`,

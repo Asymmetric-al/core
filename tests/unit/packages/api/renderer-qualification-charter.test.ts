@@ -342,6 +342,36 @@ describe("freezeRendererQualificationCharter", () => {
     expect(result.failures[0]?.detail).toContain("candidates");
   });
 
+  it("freezes the pre-registered stop conditions", () => {
+    // Protocol line 75: the frozen charter carries the "incident stop
+    // conditions". Pre-registering them is what stops a leak, unequal tuning,
+    // or compromised reviewer independence being reinterpreted after results
+    // are inspected.
+    const charter = freezeRendererQualificationCharter(
+      buildFixtureContestInput(),
+    );
+    expect(charter.stop_conditions).toHaveLength(11);
+    expect(charter.stop_conditions).toContain(
+      "held-back expectations or fixture identities leak to candidate implementers before sealing",
+    );
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.stop_conditions = input.stop_conditions.slice(1);
+        }),
+      ),
+    ).toContain("protocol_fixed_field_changed");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.stop_conditions = [];
+        }),
+      ),
+    ).toContain("charter_incomplete");
+  });
+
   it("rejects wrong or missing candidates and versions", () => {
     expect(
       issueCodes(

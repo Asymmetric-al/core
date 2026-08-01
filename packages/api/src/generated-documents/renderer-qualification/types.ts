@@ -335,6 +335,12 @@ export interface RendererQualificationCharterInput {
   remediation_policy: RemediationPolicy;
   evidence_rules: EvidenceRules;
   requalification_triggers: readonly string[];
+  /**
+   * Protocol: the frozen charter carries the "incident stop conditions". They
+   * are pre-registered so a leak, unequal tuning, or compromised reviewer
+   * independence cannot be reinterpreted once results are inspected.
+   */
+  stop_conditions: readonly string[];
   /** Unknown or missing evidence always fails the affected hard gate. */
   unknown_evidence_rule: "fails_affected_gate";
 }
