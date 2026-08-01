@@ -20,9 +20,9 @@ Do not move OpenPolicy internals into `packages/ui` unless multiple apps genuine
 - `apps/donor/components/openpolicy/terms-of-service.tsx`
 - `apps/donor/components/openpolicy/cookie-policy.tsx`
   Client wrappers for OpenPolicy React components.
-- `apps/donor/app/(public)/privacy/page.tsx`
-- `apps/donor/app/(public)/terms/page.tsx`
-- `apps/donor/app/(public)/cookies/page.tsx`
+- `apps/donor/app/(public)/(solid)/privacy/page.tsx`
+- `apps/donor/app/(public)/(solid)/terms/page.tsx`
+- `apps/donor/app/(public)/(solid)/cookies/page.tsx`
   Thin App Router pages.
 - `apps/donor/scripts/openpolicy.ts`
   Local validation and artifact generation script.
