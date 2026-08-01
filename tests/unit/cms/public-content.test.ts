@@ -273,7 +273,9 @@ describe("public cms tenant resolution", () => {
       .fn()
       .mockResolvedValueOnce({ docs: [] })
       .mockResolvedValueOnce({ docs: [] })
-      .mockResolvedValueOnce({ docs: [{ id: "tenant_preview", slug: "gamma" }] });
+      .mockResolvedValueOnce({
+        docs: [{ id: "tenant_preview", slug: "gamma" }],
+      });
     getPayloadClientMock.mockResolvedValue({ find });
 
     const tenant = await resolveTenantFromRequest(
