@@ -308,13 +308,19 @@ async function GivingWidgetSection({ id }: { id: string }) {
 }
 
 /**
- * Deliberately NOT `export const prefetch = 'allow-runtime'`. The profile is
- * keyed by `params`, which normally keeps it out of the shared App Shell, but
- * `generateStaticParams` above prerenders every worker as its own static page
- * and the directory's `<Link prefetch>` fetches that page directly. Measured
- * both ways against the instant-nav rig: the hero commits under `instant()`
- * either way, so runtime prefetching would only add a server render per
- * visible card. Revisit if workers ever outgrow `generateStaticParams`.
+ * Deliberately NOT `export const prefetch = 'allow-runtime'`.
+ *
+ * The profile is keyed by `params`, so it cannot ride in the App Shell — that
+ * payload is shared by every link to this route. It does not need to:
+ * `generateStaticParams` above prerenders each worker as its own static page,
+ * so the navigation pulls a static file rather than waiting on a render, and
+ * `instant()` only withholds per-request data. The instant-nav rig asserts
+ * exactly that (`tests/e2e/instant-navigation.spec.ts`, the worker-card test).
+ *
+ * `allow-runtime` would buy nothing here and cost one server render per visible
+ * card on the `/workers` grid. Revisit if workers ever outgrow
+ * `generateStaticParams` — at that point the content stops being static and the
+ * trade flips.
  */
 export default async function WorkerProfilePage({ params }: PageProps) {
   const { id } = await params;

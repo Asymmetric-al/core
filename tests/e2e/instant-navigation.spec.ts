@@ -19,7 +19,17 @@ const NAV_TARGETS = [
     path: "/workers",
     shellTestId: "workers-route-shell",
   },
-  { link: "Mission", path: "/about", shellTestId: "about-route-shell" },
+  {
+    link: "Mission",
+    path: "/about",
+    shellTestId: "about-route-shell",
+    // Alone among these markers, /about's carries `min-h-screen`
+    // (`(hero)/about/page.tsx`), so it paints at full height even if its whole
+    // child tree renders nothing — `toBeVisible()` cannot tell an empty shell
+    // from a full one. Pin real shell content too. The other three markers are
+    // bare divs that collapse to 0px when empty, so visibility is enough.
+    shellHeading: /engineered/i,
+  },
   {
     link: "Transparency",
     path: "/financials",
@@ -66,6 +76,12 @@ test.describe("Instant navigation (donor public site)", () => {
       await instant(page, async () => {
         await trigger.click();
         await expect(page.getByTestId(target.shellTestId)).toBeVisible();
+
+        if ("shellHeading" in target) {
+          await expect(
+            page.getByRole("heading", { level: 1, name: target.shellHeading }),
+          ).toBeVisible();
+        }
       });
     });
   }
