@@ -163,6 +163,13 @@ describe("Eve runtime foundation", () => {
     expect(githubOperator).toMatch(/defineDynamic\(/u);
     expect(githubOperator).toMatch(/scanEveSandboxPath\(/u);
     expect(strictAutoMerge).toMatch(/defineDynamic\(/u);
+    // Assert the call form, not the bare name: a substring match also passes
+    // for an unused import or a mention in a comment, which would hide a
+    // guardrail that is wired up but never actually invoked.
+    expect(bash).toMatch(/scanEveSandboxCommand\(/u);
+    expect(bash).toMatch(/recordEveSandboxAction\(/u);
+    expect(writeFile).toMatch(/scanEveSandboxWrite\(/u);
+    expect(writeFile).toMatch(/recordEveSandboxAction\(/u);
     expect(strictAutoMerge).toContain("expectedHeadSha");
 
     const engineeringHealthSchedule = await readFile(
