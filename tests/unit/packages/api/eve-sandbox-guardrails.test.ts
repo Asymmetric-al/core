@@ -95,6 +95,11 @@ describe("Eve sandbox file guardrails", () => {
     "apps/admin/app/admin/users/page.tsx",
     "packages/api/src/cms/public/reader.ts",
     "docs/guides/architecture/data-access-boundary.md",
+    // Exact directory roots, not just descendants
+    "apps/admin/app/admin/users",
+    "apps/admin/src/cms/public",
+    "apps/admin/src/cms/access",
+    "packages/api/src/cms/public",
     "supabase/migrations/20260717000000_change.sql",
     "bun.lock",
   ])("pauses protected path %s for durable approval", (path) => {
