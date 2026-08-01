@@ -28,6 +28,9 @@ describe("public code path scoping", () => {
   it("covers the public route handlers, public server modules, and donor public surface", () => {
     expect(isPublicCodePath(PUBLIC_ROUTE_FILE)).toBe(true);
     expect(isPublicCodePath(PUBLIC_MODULE_FILE)).toBe(true);
+    // Synthetic path: an ungrouped file directly under (public)/. The real home
+    // page moved to (hero)/page.tsx in AL-1038; this case stays covered because
+    // the shape is still legal input to isPublicCodePath.
     expect(isPublicCodePath("apps/donor/app/(public)/page.tsx")).toBe(true);
     expect(isPublicCodePath("apps/donor/lib/cms/client.ts")).toBe(true);
     // Nested route groups under (public) must stay inside the choke point.

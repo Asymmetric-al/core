@@ -59,6 +59,14 @@ function DesktopNav({ isScrolled }: { isScrolled: boolean }) {
   );
 }
 
+/**
+ * Public site navbar. `variant` is required by design.
+ *
+ * @param variant - `"hero"` for full-bleed routes (transparent until scroll),
+ *   `"solid"` for everything else. It is a static prop rather than a
+ *   `usePathname()` lookup so shared chrome stays out of request data and the
+ *   public routes keep prerendering.
+ */
 export function Navbar({ variant }: { variant: NavbarVariant }) {
   return (
     <NavbarClient

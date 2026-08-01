@@ -10,6 +10,10 @@ import { describe, expect, it } from "vitest";
  * request reads staying out of shared chrome. Each regression below produces a
  * perfectly green build while silently emptying the prerendered HTML, so a
  * build gate cannot catch them — only these assertions can.
+ *
+ * The `(dashboard)` assertions ride along rather than living in a separate
+ * suite: the same class of silent regression applies to the Suspense boundary
+ * this change added above the dashboard's auth-gated layout.
  */
 const readRaw = (relativePath: string) =>
   readFileSync(
@@ -26,7 +30,7 @@ const stripComments = (source: string) =>
 
 const read = (relativePath: string) => stripComments(readRaw(relativePath));
 
-describe("donor static shell contract", () => {
+describe("donor shell contract: public static shell + dashboard gate ordering", () => {
   it("keeps the donor root layout free of a Suspense boundary", () => {
     const source = read("apps/donor/app/layout.tsx");
 
@@ -132,6 +136,16 @@ describe("donor static shell contract", () => {
     );
     expect(source).not.toMatch(/\bheaders\b/);
     expect(source).not.toMatch(/\bconnection\b/);
+  });
+
+  it("keeps the dashboard group's Suspense boundary in place", () => {
+    const source = read("apps/donor/app/(dashboard)/layout.tsx");
+
+    // The nested donor-dashboard layout awaits getAuthContext(), and a
+    // loading.tsx cannot wrap its own segment's layout, so the boundary has to
+    // stay one level up. Without it that cookie read blocks the whole group.
+    expect(source).toMatch(/<Suspense/);
+    expect(source).toMatch(/DashboardShellSkeleton/);
   });
 
   it("keeps the donor dashboard role gate ahead of any render", () => {

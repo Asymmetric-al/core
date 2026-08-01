@@ -11,6 +11,10 @@ import { Footer } from "@asym/ui/components/public/footer";
  *
  * Keep this layout free of request reads: everything here lands in the static
  * shell of every public route.
+ *
+ * Every public page must live under `(hero)` or `(solid)`. A `page.tsx` placed
+ * directly in this segment renders with a footer and no navbar at all, which
+ * nothing else would catch — `static-shell-contract.test.ts` asserts it.
  */
 export default function PublicLayout({
   children,
