@@ -96,7 +96,9 @@ const expectConnectionIsolatedInSuspenseChild = (
 
   // The declaration the call sits in is the last one opened before it.
   const owner = [
-    ...source.slice(0, connectionIndex).matchAll(/(?:async function|const)\s+(\w+)/g),
+    ...source
+      .slice(0, connectionIndex)
+      .matchAll(/(?:async function|const)\s+(\w+)/g),
   ].at(-1)?.[1];
   expect(owner).toBeTruthy();
 
@@ -248,7 +250,9 @@ describe("donor shell contract: public static shell + dashboard gate ordering", 
     // A sibling gate redirects *after* children render, so a wrong-role visitor
     // must never reach the app at all. Losing any one of these silently demotes
     // the dashboard to the redirect-only gate above.
-    expect(source).toMatch(/protectedRoutePrefixes:\s*\[[^\]]*"\/donor-dashboard"/);
+    expect(source).toMatch(
+      /protectedRoutePrefixes:\s*\[[^\]]*"\/donor-dashboard"/,
+    );
     expect(source).toMatch(/allowedRoles:\s*\[[^\]]*"donor"/);
     expect(source).toMatch(/resolveUserRole:\s*resolveUserRoleFromDatabase/);
 
