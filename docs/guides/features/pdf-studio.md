@@ -1,8 +1,18 @@
 # PDF Studio
 
+> **Prototype and removal evidence only (Phase 18, 2026-07-21).** This guide
+> accurately documents obsolete repository surfaces but is not current product
+> or implementation authority. Phase 18 D17 requires an environment-gated clean
+> pre-production cutover that removes these Unlayer, native-preview, DocRaptor,
+> legacy receipt-render, flag, and dual-runtime paths before enabling the one
+> canonical generated-document system. Do not preserve them through import,
+> backfill, migration compatibility, or runtime fallback. The Phase 18 renderer
+> remains unselected until the D3 evidence contest, and D13 permits only
+> authenticated Asym access to exact frozen artifacts.
+
 A professional drag-and-drop document editor for tax receipts, donation statements, and letters.
 
-## Current migration status
+## Historical prototype status — superseded
 
 PDF Studio now has a native Asymmetric PDF Document Builder integration behind
 explicit rollout flags. Unlayer remains available and default unless native
@@ -14,11 +24,15 @@ Browser preview in the native builder is authoring feedback only. DocRaptor is
 the production-fidelity and official output path, and every DocRaptor boundary
 is server-only.
 
+The statements above describe only the obsolete prototype as found. They do not
+select a Phase 18 renderer or authorize any flag, fallback, migration, provider,
+or production output path.
+
 ## Overview
 
 PDF Studio provides a visual document builder using Unlayer's `displayMode: 'document'` configuration. It enables non-technical users to design professional PDF templates that can be populated with dynamic data via merge tags.
 
-## Current Implementation Status
+## Historical implementation inventory — removal evidence
 
 | Feature                        | Status   | Location                                                         |
 | ------------------------------ | -------- | ---------------------------------------------------------------- |

@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 
 import type { Metadata } from "next";
 
+import { PublicCmsPageMedia } from "@/components/cms/public-page-media";
 import {
   fetchPublishedCmsPageResult,
+  getPublicCmsBaseUrl,
   resolvePublishedCmsPageRouteState,
 } from "@/lib/cms/client";
 
@@ -64,6 +66,11 @@ export default async function CmsPublicPage({ params }: PageProps) {
           <p className="text-lg text-zinc-600">{page.summary}</p>
         ) : null}
       </header>
+
+      <PublicCmsPageMedia
+        layout={page.layout}
+        cmsBaseUrl={getPublicCmsBaseUrl()}
+      />
 
       <section className="prose prose-zinc max-w-none">
         {renderedContent ? (
