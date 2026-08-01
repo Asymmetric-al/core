@@ -73,11 +73,15 @@ export default defineTool({
 
     const sandbox = await ctx.getSandbox();
     const decision = await resolveEveSandboxNetworkDecision();
-    await sandbox
-      .setNetworkPolicy(decision.networkPolicy)
-      .catch(() => undefined);
     if (!decision.allowed) {
       return blockedOutput(`Sandbox paused: ${decision.reason}.`);
+    }
+    try {
+      await sandbox.setNetworkPolicy(decision.networkPolicy);
+    } catch {
+      return blockedOutput(
+        "Sandbox paused: the governed network policy could not be applied.",
+      );
     }
 
     const runId = crypto.randomUUID();
@@ -86,6 +90,7 @@ export default defineTool({
     );
     const auditStarted = await recordEveSandboxAction({
       action: "command",
+      decision,
       command: input.command,
       findings,
       result: "started",
@@ -96,17 +101,30 @@ export default defineTool({
         : "sandbox-command",
     });
     if (!auditStarted) {
-      await sandbox.setNetworkPolicy("deny-all").catch(() => undefined);
+      try {
+        await sandbox.setNetworkPolicy("deny-all");
+      } catch {
+        return blockedOutput(
+          "Sandbox paused: the network could not be returned to deny-all.",
+        );
+      }
       return blockedOutput("Sandbox paused: command audit is unavailable.");
     }
 
     try {
       const output = (await bash.execute(rawInput, ctx)) as BashOutput;
+      // The delegated tool is not guaranteed to return a numeric exitCode.
+      // Treat a missing one as success, since a genuine failure throws and is
+      // recorded by the catch below; assuming failure would mislabel the trail.
+      const exitCode =
+        typeof output?.exitCode === "number" ? output.exitCode : undefined;
       await recordEveSandboxAction({
         action: "command",
+        decision,
         command: input.command,
         findings,
-        result: output.exitCode === 0 ? "succeeded" : "failed",
+        result:
+          exitCode === undefined || exitCode === 0 ? "succeeded" : "failed",
         runId,
         sessionId: ctx.session.id,
         target: commandMayUseNetwork(input.command)
@@ -117,11 +135,15 @@ export default defineTool({
     } catch (error) {
       await recordEveSandboxAction({
         action: "command",
+        decision,
         command: input.command,
         findings,
         result: "failed",
         runId,
         sessionId: ctx.session.id,
+        target: commandMayUseNetwork(input.command)
+          ? "sandbox-command-with-egress"
+          : "sandbox-command",
       });
       throw error;
     }
