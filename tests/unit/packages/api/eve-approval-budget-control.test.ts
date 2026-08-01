@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
+import type { EveSessionIdentity } from "../../../../packages/api/src/eve/session-ownership/types";
 
 const auth = {
   userId: "user_1",
@@ -15,6 +16,48 @@ const auth = {
 } as AuthenticatedContext;
 
 describe("Eve approval and budget controls", () => {
+  it("consults runtime policy with only verified session identity fields", async () => {
+    const result = {
+      actionId: "engineering.dynamic_workflow.execute",
+      trustZone: "engineering",
+      writeClass: "operational",
+      decision: "allow",
+      reason: "operational_policy_allowed",
+    };
+    const rpc = vi.fn().mockResolvedValue({ data: result, error: null });
+    const identity = {
+      actorId: "github-app:123",
+      identityMode: "service",
+      initiatorId: "installation:123",
+      initiatorType: "system",
+      tenantId: auth.tenantId,
+    } as EveSessionIdentity;
+    const { executeEveRuntimePolicyConsult } =
+      await import("../../../../packages/api/src/eve/approval-budget/control");
+
+    await expect(
+      executeEveRuntimePolicyConsult({
+        actionId: "engineering.dynamic_workflow.execute",
+        identity,
+        sessionId: "root-session",
+        supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+        targetKey: "workflow:review-417",
+      }),
+    ).resolves.toEqual(result);
+    expect(rpc).toHaveBeenCalledWith(
+      "consult_eve_runtime_budget_policy",
+      expect.objectContaining({
+        p_action_id: "engineering.dynamic_workflow.execute",
+        p_actor_id: "github-app:123",
+        p_session_id: "root-session",
+        p_tenant_id: auth.tenantId,
+      }),
+    );
+    const params = rpc.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(params).not.toHaveProperty("p_identity_mode");
+    expect(params).not.toHaveProperty("p_governance_domain");
+    expect(params).not.toHaveProperty("p_request_cost");
+  });
   it("submits only a fixed action id and target, never caller-selected policy fields", async () => {
     const result = {
       actionId: "engineering.review_artifact.write",

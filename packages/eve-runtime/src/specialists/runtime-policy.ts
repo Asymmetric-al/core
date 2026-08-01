@@ -1,5 +1,4 @@
-import { executeEvePolicyTracerAsIdentity } from "@asym/api/eve/approval-budget";
-import { createSessionEveAuditIdentity } from "@asym/api/eve/audit";
+import { executeEveRuntimePolicyConsult } from "@asym/api/eve/approval-budget";
 import { loadEveGovernanceSnapshot } from "@asym/api/eve/governance";
 import {
   loadActiveEveModelBudgetOverrides,
@@ -18,6 +17,9 @@ import type { EveSessionAuthSnapshot } from "@asym/api/eve/session-ownership";
 import type { EveSpecialistId } from "@asym/api/eve/subagent-catalog";
 
 export async function resolveEveSpecialistModel(input: {
+  actionId?:
+    | "engineering.dynamic_workflow.execute"
+    | "engineering.subagent.delegate";
   auth: EveSessionAuthSnapshot | null;
   sessionId: string;
   specialistId: EveSpecialistId;
@@ -51,7 +53,8 @@ export async function resolveEveSpecialistModel(input: {
     governance.emergencyOff ||
     governance.policyStatus !== "ready" ||
     governance.killSwitchState.all_automation ||
-    governance.killSwitchState.active_runs
+    governance.killSwitchState.active_runs ||
+    governance.killSwitchState.dynamic_workflows
   ) {
     return null;
   }
@@ -78,9 +81,10 @@ export async function resolveEveSpecialistModel(input: {
   ) {
     return null;
   }
-  const approvalBudget = await executeEvePolicyTracerAsIdentity({
-    actionId: "engineering.subagent.delegate",
-    identity: createSessionEveAuditIdentity(identity),
+  const approvalBudget = await executeEveRuntimePolicyConsult({
+    actionId: input.actionId ?? "engineering.subagent.delegate",
+    identity,
+    sessionId: input.sessionId,
     supabaseAdmin: admin.client,
     targetKey: `subagent:${input.specialistId}:session:${input.sessionId}`,
   });

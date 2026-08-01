@@ -6,13 +6,17 @@ import type {
 } from "./types";
 import type { EveGovernanceSnapshot } from "../governance/types";
 
-function governanceAllows(snapshot: EveGovernanceSnapshot): boolean {
+function governanceAllows(
+  snapshot: EveGovernanceSnapshot,
+  action: EveActionCatalogEntry | null,
+): boolean {
+  const domain = action?.domain ?? "production_writes";
   return (
     snapshot.releaseEnabled &&
     !snapshot.emergencyOff &&
     snapshot.policyStatus === "ready" &&
     !snapshot.killSwitchState.all_automation &&
-    !snapshot.killSwitchState.production_writes
+    !snapshot.killSwitchState[domain]
   );
 }
 
@@ -34,7 +38,7 @@ export function evaluateEveApprovalBudgetPolicy(input: {
     trustZone: action.trustZone,
     writeClass: action.writeClass,
   };
-  if (!governanceAllows(input.governance))
+  if (!governanceAllows(input.governance, input.action))
     return { ...identity, decision: "deny", reason: "governance_blocked" };
   if (!input.action)
     return { ...identity, decision: "deny", reason: "unknown_action" };

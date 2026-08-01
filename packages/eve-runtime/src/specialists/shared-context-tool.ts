@@ -1,8 +1,5 @@
-import { executeEvePolicyTracerAsIdentity } from "@asym/api/eve/approval-budget";
-import {
-  createEveAuditStore,
-  createSessionEveAuditIdentity,
-} from "@asym/api/eve/audit";
+import { executeEveRuntimePolicyConsult } from "@asym/api/eve/approval-budget";
+import { createEveAuditStore } from "@asym/api/eve/audit";
 import {
   createEveSharedContextStore,
   eveSharedContextWriteSchema,
@@ -55,6 +52,11 @@ export function createEveSharedContextTool(specialistId: EveSpecialistId) {
         sessionId: rootSessionId,
         supabaseAdmin: admin.client,
       });
+      await claimEveSpecialistSession({
+        identity,
+        sessionId: context.session.id,
+        supabaseAdmin: admin.client,
+      });
       const store = createEveSharedContextStore(admin.client);
       if (request.operation === "read") {
         return readEveSharedContext({ identity, rootSessionId, store });
@@ -63,9 +65,10 @@ export function createEveSharedContextTool(specialistId: EveSpecialistId) {
         accountableRunId: rootSessionId,
         auditStore: createEveAuditStore(admin.client),
         authorize: ({ targetKey }) =>
-          executeEvePolicyTracerAsIdentity({
+          executeEveRuntimePolicyConsult({
             actionId: "engineering.shared_context.write",
-            identity: createSessionEveAuditIdentity(identity),
+            identity,
+            sessionId: context.session.id,
             supabaseAdmin: admin.client!,
             targetKey,
           }),

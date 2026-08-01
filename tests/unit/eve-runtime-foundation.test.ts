@@ -110,6 +110,9 @@ describe("Eve runtime foundation", () => {
       "utf8",
     );
     const toolFiles = await readdir(path.join(runtimeRoot, "agent/tools"));
+    const scheduleFiles = await readdir(
+      path.join(runtimeRoot, "agent/schedules"),
+    );
 
     expect(docs).toContain("Installed Eve 0.25.1 review");
     expect(toolFiles.sort()).toEqual(
@@ -122,9 +125,16 @@ describe("Eve runtime foundation", () => {
         "todo.ts",
         "web_fetch.ts",
         "web_search.ts",
+        "workflow.ts",
+        "workflow_guard.ts",
         "write_file.ts",
       ].sort(),
     );
+    expect(scheduleFiles.sort()).toEqual([
+      "engineering-health.ts",
+      "launch-canary-watchdog.ts",
+      "operator-notifications.ts",
+    ]);
 
     const bash = await readFile(
       path.join(runtimeRoot, "agent/tools/bash.ts"),
@@ -153,9 +163,35 @@ describe("Eve runtime foundation", () => {
     expect(githubOperator).toMatch(/defineDynamic\(/u);
     expect(githubOperator).toMatch(/scanEveSandboxPath\(/u);
     expect(strictAutoMerge).toMatch(/defineDynamic\(/u);
-    // expectedHeadSha is a property name rather than a call, so the substring
-    // check is the right assertion for it.
+    // Assert the call form, not the bare name: a substring match also passes
+    // for an unused import or a mention in a comment, which would hide a
+    // guardrail that is wired up but never actually invoked.
+    expect(bash).toMatch(/scanEveSandboxCommand\(/u);
+    expect(bash).toMatch(/recordEveSandboxAction\(/u);
+    expect(writeFile).toMatch(/scanEveSandboxWrite\(/u);
+    expect(writeFile).toMatch(/recordEveSandboxAction\(/u);
     expect(strictAutoMerge).toContain("expectedHeadSha");
+
+    const engineeringHealthSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/engineering-health.ts"),
+      "utf8",
+    );
+    expect(engineeringHealthSchedule).toContain('cron: "*/5 * * * *"');
+    expect(engineeringHealthSchedule).toContain(
+      "runEveEngineeringMonitorSweep",
+    );
+    const notificationSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/operator-notifications.ts"),
+      "utf8",
+    );
+    expect(notificationSchedule).toContain('cron: "* * * * *"');
+    expect(notificationSchedule).toContain("runEveNotificationSweep");
+    const launchWatchdogSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/launch-canary-watchdog.ts"),
+      "utf8",
+    );
+    expect(launchWatchdogSchedule).toContain('cron: "* * * * *"');
+    expect(launchWatchdogSchedule).toContain("runEveLaunchCanaryWatchdog");
   });
 
   it("keeps the runtime off when persisted release is disabled", () => {

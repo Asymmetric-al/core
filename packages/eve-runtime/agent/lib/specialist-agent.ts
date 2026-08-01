@@ -34,6 +34,14 @@ export function createEveSpecialistAgent(specialistId: EveSpecialistId) {
           });
           return selected;
         },
+        "step.started": async (_event, context) => {
+          return resolveEveSpecialistModel({
+            actionId: "engineering.dynamic_workflow.execute",
+            auth: context.session.auth.current,
+            sessionId: context.session.id,
+            specialistId,
+          });
+        },
       },
     }),
     modelContextWindowTokens: 131_072,

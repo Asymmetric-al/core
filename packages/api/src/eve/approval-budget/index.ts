@@ -5,6 +5,7 @@ export { loadEveApprovalBudgetAdminView } from "./store";
 export {
   createEveBudgetEmergencyOverride,
   decideEvePolicyApproval,
+  executeEveRuntimePolicyConsult,
   executeEvePolicyTracer,
   executeEvePolicyTracerAsIdentity,
   requestEvePolicyApproval,
