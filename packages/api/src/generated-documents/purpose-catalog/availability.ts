@@ -13,6 +13,22 @@ import type {
 
 const QUALIFICATION_FRESHNESS_WITHOUT_EXPIRY_MS = 5 * 60 * 1000;
 
+/**
+ * How far ahead of our own clock a port's `checked_at` may sit before we treat
+ * it as a broken or forged clock rather than ordinary skew.
+ *
+ * The resolver samples `now` once on entry and only afterwards awaits the
+ * qualification port, so a port that stamps `checked_at` when it answers is
+ * *always* at or ahead of `now`. With a zero tolerance a single millisecond
+ * tick between the two reads flipped a qualified purpose to `dark`, which made
+ * `document-purpose-availability.test.ts` fail intermittently under load. A
+ * real port is a separate process anyway, so its clock is never exactly ours.
+ *
+ * Five seconds absorbs call latency and normal NTP skew while still rejecting
+ * evidence stamped meaningfully in the future.
+ */
+const QUALIFICATION_MAX_CLOCK_SKEW_MS = 5 * 1000;
+
 export interface ResolvePurposeAvailabilityInput {
   purpose_id: string;
   context: PurposeAvailabilityContext;
@@ -82,7 +98,7 @@ function resolveOfficialQualification(
       if (
         !Number.isFinite(nowMs) ||
         !Number.isFinite(checkedAtMs) ||
-        checkedAtMs > nowMs
+        checkedAtMs - nowMs > QUALIFICATION_MAX_CLOCK_SKEW_MS
       ) {
         return [
           cause(

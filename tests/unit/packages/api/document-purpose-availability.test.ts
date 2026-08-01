@@ -106,6 +106,52 @@ describe("resolvePurposeAvailability", () => {
     expect(sibling.state).toBe("dark");
   });
 
+  it("still supports a purpose when the port stamps checked_at just after the resolver read its clock", async () => {
+    // The resolver samples `now` on entry and only then awaits the port, so a
+    // port that stamps `checked_at` when it answers always lands at or ahead of
+    // `now`. Rejecting that outright made this suite fail intermittently under
+    // load, and would reject a real out-of-process port on any clock skew.
+    const resolverNow = new Date();
+    const portStamp = new Date(resolverNow.getTime() + 1);
+
+    const result = await resolvePurposeAvailability(
+      {
+        purpose_id: "us.contribution_acknowledgment.single@1",
+        context: domainReadyContext(),
+        now: () => resolverNow,
+      },
+      createStaticQualificationPort(
+        { "us.contribution_acknowledgment.single@1": "qualified" },
+        () => portStamp,
+      ),
+    );
+
+    expect(result.state).toBe("supported");
+    expect(result.causes).toEqual([]);
+  });
+
+  it("still rejects evidence stamped meaningfully in the future", async () => {
+    const resolverNow = new Date();
+    const wayAhead = new Date(resolverNow.getTime() + 60 * 60 * 1000);
+
+    const result = await resolvePurposeAvailability(
+      {
+        purpose_id: "us.contribution_acknowledgment.single@1",
+        context: domainReadyContext(),
+        now: () => resolverNow,
+      },
+      createStaticQualificationPort(
+        { "us.contribution_acknowledgment.single@1": "qualified" },
+        () => wayAhead,
+      ),
+    );
+
+    expect(result.state).toBe("dark");
+    expect(result.causes.map((entry) => entry.code)).toContain(
+      "qualification_not_ready",
+    );
+  });
+
   it("treats not-ready, expired, and revoked evidence as dark with distinct safe causes", async () => {
     const cases = [
       { outcome: "not_ready", code: "contract_dark" },
