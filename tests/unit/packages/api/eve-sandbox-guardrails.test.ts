@@ -163,6 +163,24 @@ describe("Eve sandbox network kill switch", () => {
       },
       reason: "policy_not_ready",
     },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.killSwitchState.all_automation = true;
+      },
+      reason: "kill_switch_active",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.killSwitchState.active_runs = true;
+      },
+      reason: "kill_switch_active",
+    },
+    {
+      mutate: (state: EveGovernanceSnapshot) => {
+        state.source = "missing";
+      },
+      reason: "governance_unavailable",
+    },
   ])("fails closed with $reason", ({ mutate, reason }) => {
     const governance = readyGovernance();
     mutate(governance);

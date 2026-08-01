@@ -18,7 +18,17 @@ export default defineSandbox({
     `core-develop-sanitized-v1:${process.env.VERCEL_GIT_COMMIT_SHA ?? "local"}`,
   async bootstrap({ use: acquireSandbox }) {
     const sandbox = await acquireSandbox();
-    await sandbox.setNetworkPolicy("allow-all");
+    // Bootstrap egress is governed like every other sandbox network use. The
+    // clone below reaches the public internet, so refuse to open the network
+    // at all when governance denies it; otherwise a kill switch would still
+    // leave provisioning able to egress.
+    const decision = await resolveEveSandboxNetworkDecision();
+    if (!decision.allowed) {
+      throw new Error(
+        `Sandbox bootstrap is not authorized: ${decision.reason}.`,
+      );
+    }
+    await sandbox.setNetworkPolicy(decision.networkPolicy);
     try {
       const clone = await sandbox.run({
         command:

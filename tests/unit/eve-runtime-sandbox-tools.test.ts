@@ -1,4 +1,21 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({
+  decision: {
+    allowed: true,
+    governanceStateVersion: 1,
+    networkPolicy: "allow-all",
+    reason: "governance_allowed",
+  } as Record<string, unknown>,
+}));
+
+// Only the governance lookup is replaced; the real guardrail scanners stay in
+// place so the approval assertions below still exercise production logic.
+vi.mock("@asym/api/eve/sandbox", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@asym/api/eve/sandbox")>()),
+  recordEveSandboxAction: async () => true,
+  resolveEveSandboxNetworkDecision: async () => mocks.decision,
+}));
 
 import sandboxDefinition from "../../packages/eve-runtime/agent/sandbox";
 import bashTool from "../../packages/eve-runtime/agent/tools/bash";
@@ -45,6 +62,45 @@ describe("Eve sandbox authored controls", () => {
     );
     expect(commands[1]).toMatch(/find \/workspace\/repo .*\.env/u);
     expect(policies).toEqual(["allow-all", "deny-all"]);
+  });
+
+  it("refuses to provision or egress when governance denies the sandbox", async () => {
+    mocks.decision = {
+      allowed: false,
+      networkPolicy: "deny-all",
+      reason: "kill_switch_active",
+    };
+    const commands: string[] = [];
+    const policies: string[] = [];
+    const sandbox = {
+      async run({ command }: { command: string }) {
+        commands.push(command);
+        return { exitCode: 0, stderr: "", stdout: "" };
+      },
+      async setNetworkPolicy(policy: string) {
+        policies.push(policy);
+      },
+    };
+
+    if (!sandboxDefinition.bootstrap) {
+      throw new Error("Expected sandbox template provisioning.");
+    }
+
+    await expect(
+      sandboxDefinition.bootstrap({ use: async () => sandbox } as never),
+    ).rejects.toThrow(/not authorized: kill_switch_active/u);
+
+    // The clone reaches the public internet, so nothing may run and the
+    // network must never be opened when governance says no.
+    expect(commands).toEqual([]);
+    expect(policies).not.toContain("allow-all");
+
+    mocks.decision = {
+      allowed: true,
+      governanceStateVersion: 1,
+      networkPolicy: "allow-all",
+      reason: "governance_allowed",
+    };
   });
 
   it("durably pauses protected commands for user approval", async () => {
