@@ -1,16 +1,22 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
+import { perImporterAtAlias } from "./vitest.per-importer-alias";
+
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
-const srcPath = fileURLToPath(new URL("./src", import.meta.url));
 
 export default defineConfig({
-  plugins: [react()],
+  /**
+   * `@/` resolves per importing file against the workspace's own tsconfig
+   * `paths` mapping (there is no repo-root `src/`); see
+   * vitest.per-importer-alias.ts.
+   */
+  plugins: [perImporterAtAlias(rootDir), react()],
   resolve: {
     alias: {
-      "@": srcPath,
       /** Vitest runs in Node (a server context); the marker must not throw. */
       "server-only": path.join(rootDir, "tests/mocks/server-only.ts"),
       "@tiptap/react/menus": path.join(

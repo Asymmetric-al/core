@@ -62,6 +62,14 @@ have one exact scoped child operation; pre-binding executor provisioning MUST
 target its pre-existing execution leg and complete frozen line/item plan rather
 than a fabricated future binding.
 
+Every recurring group MUST freeze one exact Legal Entity, and every accepted
+billing cohort MUST freeze one exact effective Settlement Account Binding
+before provider creation. Legal Entity, settlement binding, currency, payer,
+authorization, and provider capability are compatibility inputs, not mutable
+defaults. The client MUST NOT choose either identifier. A later default,
+connection, or account change applies prospectively and MUST NOT reroute an
+accepted group, occurrence, event, refund, or recovery command.
+
 A newly created recurring arrangement MUST enter the signed provider-event and
 reconciliation path so normal renewal evidence updates occurrence execution,
 provider payment finality, canonical contribution/ledger posting, and executor
@@ -83,8 +91,8 @@ target write model.
 #### Scenario: A donor starts compatible support for two destinations
 
 - WHEN a donor completes checkout with two monthly destination lines that share
-  one payer, currency, authorization, anchor, collection behavior, tenant
-  account, and provider item capacity
+  one payer, currency, authorization, anchor, collection behavior, tenant,
+  Legal Entity, Settlement Account Binding, and provider item capacity
 - THEN the server creates one explicit group, two stable lines, and one
   compatible billing cohort
 - AND because this scenario uses an ordinary monthly cadence, the Stripe adapter
@@ -139,7 +147,7 @@ target write model.
 #### Scenario: Group-level incompatibility creates separate groups
 
 - WHEN proposed lines differ in Commitment Party, legal payer/collection-
-  authorizer context, tenant, or currency
+  authorizer context, tenant, Legal Entity, or currency
 - THEN the server creates separate explicit recurring groups rather than
   merging incompatible donor agreements
 - AND checkout discloses the resulting group and charge effects before
@@ -148,9 +156,9 @@ target write model.
 #### Scenario: Executor incompatibility forms honest separate cohorts
 
 - GIVEN proposed lines belong to the same explicit recurring group
-- WHEN they differ in cadence, anchor, payment authorization lineage, connected
-  account, collection behavior, provider capability, or another executor
-  requirement
+- WHEN they differ in cadence, anchor, payment authorization lineage, exact
+  Settlement Account Binding, collection behavior, provider capability, or
+  another executor requirement
 - THEN the server forms separate compatible cohorts rather than normalizing the
   lines into one misleading charge
 - AND checkout discloses the exact charge count, amounts, and dates before
@@ -185,3 +193,12 @@ target write model.
   overlap those product-owned commands
 - AND the provider never chooses recovery eligibility, candidate dates, attempt
   budget, or runway
+
+#### Scenario: A settlement default changes after acceptance
+
+- GIVEN an accepted recurring cohort is pinned to one Legal Entity and
+  Settlement Account Binding
+- WHEN the tenant changes its current default processor connection
+- THEN existing occurrences, signed events, refunds, and recovery continue to
+  resolve through the frozen binding
+- AND only a separately authorized prospective replacement may bind later work

@@ -23,8 +23,9 @@
 
 - [ ] 2.1 Add the explicit Phase 16 recurring group, line, schedule epoch,
       occurrence, compatible billing-cohort, provider-binding, and exact item-
-      binding records through additive tenant-safe migrations; do not extend or
-      dual-write `donor_pledges` as the target model.
+      binding records through additive tenant-safe migrations. Store the exact
+      Legal Entity on every group and exact Settlement Account Binding on every
+      cohort; do not extend or dual-write `donor_pledges` as the target model.
 - [ ] 2.2 Server creates the minimum compatible cohorts and explicit execution
       legs. In the current Stripe adapter, ordinary cadences use one
       leg/subscription and twice-monthly uses two monthly legs/subscriptions;
@@ -63,8 +64,9 @@
       schedule-epoch history, separate occurrence/payment/ledger finality, ACH
       processing/finality, and retry no-drift/non-overlap behavior.
 - [ ] 3.3 Real-database tests prove nonnullable tenants, composite same-tenant
-      references, FORCE RLS/service-only writes, immutable facts, unique
-      occurrence/executor/idempotency grains, CAS races, and cross-tenant poison
+      and same-Legal-Entity references, frozen settlement bindings, FORCE
+      RLS/service-only writes, immutable facts, unique occurrence/executor/
+      idempotency grains, CAS races, and cross-tenant or cross-entity poison
       rejection.
 - [ ] 3.4 `bunx @fission-ai/openspec@latest validate --all --strict` passes;
       archive after deployment verification.

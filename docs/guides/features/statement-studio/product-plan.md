@@ -1,31 +1,44 @@
 # Product Plan
 
+> [!IMPORTANT]
+> **Implementation route superseded (Phase 18, 2026-07-21).** This plan is
+> retained only as historical Phase 0 product evidence and has no implementation
+> authority. All implementation must follow **Phase 18
+> D-prime-amended-and-hardened (D-prime-R)**, the current Phase 18 PRD,
+> authority manifest, implementation spec, renderer qualification protocol,
+> ADRs 0033-0039, and OpenSpec contract. D3 leaves the renderer unselected until
+> one bounded production-shaped evidence contest yields at most one exact
+> winner; D17 then performs an environment-gated destructive pre-production
+> cutover to zero legacy runtime. Do not use this file to authorize gradual
+> migration, fallback or dual runtime, or a preselected DocRaptor path.
+
 Statement Studio is a custom Mission Control product surface for staff to build, preview, publish, assign, render, and manage tenant-safe PDFs.
 
 ## Triggers
 
-Use this plan when defining Statement Studio scope, product behavior, implementation phases, or tenant-facing capabilities.
+Use this plan only to inspect the historical Phase 0 product proposal. Do not
+use it to define current scope, behavior, implementation phases, or
+tenant-facing capabilities.
 
 ## Workflow Steps
 
-1. Start from the product north star.
-2. Preserve domain ownership boundaries.
-3. Build in thin vertical slices.
-4. Keep tenant configuration flexible, but enforce platform safety floors.
-5. Keep UX clean, token-driven, and non-technical.
+1. For implementation, stop here and use the current Phase 18 PRD,
+   implementation spec, and OpenSpec contract.
+2. Use the plan below only as historical evidence; do not execute its phased
+   migration or provider-selection route.
 
-## Product North Star
+## Historical Product North Star (Superseded)
 
 - Fully usable staff-facing product inside Mission Control.
 - Own custom Statement Studio surface, not Unlayer and not an email editor.
 - Uses an Asym-owned template schema and provider-neutral render boundary. Phase
-  0 selects the current server-only DocRaptor integration as the provider
-  candidate; production use remains gated on qualification and HITL approval,
-  and renderer replacement requires a later explicit migration decision.
+  18 D3 selects at most one exact production renderer through the bounded
+  evidence contest; DocRaptor or any other candidate has no production
+  authority beforehand and no losing candidate remains as fallback.
 - White-label, tenant-brandable, accessible, printable, and reliable.
 - Tenant-aware across Mission Control, Donor Dashboard, and Missionary Dashboard.
 
-## Scope
+## Historical Scope
 
 Statement Studio owns:
 
@@ -40,23 +53,23 @@ Statement Studio owns:
 
 Owning product surfaces own source facts:
 
-- Giving owns donations, receipts, statements, refunds, pledges, and reconciliation facts.
-- Donor Dashboard owns donor-facing access boundaries.
-- Missionary Dashboard owns missionary-facing access boundaries.
+- Giving/source domains own donation, receipt/statement eligibility, source
+  issuance, correction effect, refund, pledge, and reconciliation facts.
+- Phase 18 owns generated-document access authority; Donor Dashboard and
+  Missionary Dashboard present only their authorized Phase 18 projections.
 - Events owns registrations, tickets, badges, rosters, schedules, meals, and rooms.
 - Care/support owns care and support facts, including redaction/private access.
 - CMS owns project/missionary page media/content context.
 - Legal/signing owns signed documents and audit evidence.
 
-**Phase 7 reconciliation (facts vs. artifact seam):** Phase 7 (Receipt &
-Statement Compliance Rules + Donor Identity/Credit Model) owns the
-receipt/statement **facts** record — receipt versioning and immutable numbering,
-and the statement eligibility/**inclusion snapshot**. Statement Studio consumes
-those facts as **render input** and owns only the render artifact, its
-generated-artifact metadata, and retention. Statement Studio does not author or
-mutate the compliance facts.
+**Canonical owner split:** Phase 7 owns receipt/statement eligibility, facts,
+source issuance, and correction effect. Phase 18 owns document definition,
+publication, request, public reference/version/serial, exact artifact, current
+head, access, and records. Phase 19 owns statement population, cutoff, runs, and
+items. Phase 17 owns message and delivery. Phase 18 consumes immutable Facts
+Packages and never authors or mutates source compliance truth.
 
-## Phases
+## Historical Phase 0 Slice Plan (Superseded)
 
 0. Phase 0 audit brief.
 1. Foundation: schema, RLS, grants, Storage, template JSON, versioning, artifact model.
