@@ -3,6 +3,7 @@ import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
+import { unstable_rethrow } from "next/navigation";
 
 import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "./constants";
 import {
@@ -126,7 +127,11 @@ async function createAuthContextClient(
         },
       },
     });
-  } catch {
+  } catch (error) {
+    // Dynamic-API bailouts (prerender interrupts, redirects, notFound) must
+    // never be swallowed here or Next.js can cache an unauthenticated render.
+    unstable_rethrow(error);
+
     if (!request) {
       return null;
     }
