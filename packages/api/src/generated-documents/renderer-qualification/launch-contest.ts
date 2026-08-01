@@ -482,9 +482,12 @@ export const PHASE_18_OPERATIONAL_SUITES: OperationalSuites = {
     light_tenants: 19,
     light_items_each: 10,
     claim_bound_multiplier: 2,
+    permitted_safety_throttle:
+      "explicitly recorded provider/queue safety throttle; any claim-bound miss must cite it",
   },
   concurrency_staircase: {
     steps: [1, 5, 10, 25, 50],
+    safety_ceiling_concurrent_attempts: 50,
   },
   failure_matrix: {
     injections: [

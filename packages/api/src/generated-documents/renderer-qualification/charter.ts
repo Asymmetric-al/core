@@ -651,7 +651,9 @@ function validateSuites(
     fairness.light_items_each !==
       PHASE_18_OPERATIONAL_SUITES.fairness.light_items_each ||
     fairness.claim_bound_multiplier !==
-      PHASE_18_OPERATIONAL_SUITES.fairness.claim_bound_multiplier
+      PHASE_18_OPERATIONAL_SUITES.fairness.claim_bound_multiplier ||
+    fairness.permitted_safety_throttle !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.permitted_safety_throttle
   ) {
     issues.push(
       issue(
@@ -664,7 +666,10 @@ function validateSuites(
 
   if (
     JSON.stringify(suites.concurrency_staircase.steps) !==
-    JSON.stringify(PHASE_18_OPERATIONAL_SUITES.concurrency_staircase.steps)
+      JSON.stringify(PHASE_18_OPERATIONAL_SUITES.concurrency_staircase.steps) ||
+    suites.concurrency_staircase.safety_ceiling_concurrent_attempts !==
+      PHASE_18_OPERATIONAL_SUITES.concurrency_staircase
+        .safety_ceiling_concurrent_attempts
   ) {
     issues.push(
       issue(

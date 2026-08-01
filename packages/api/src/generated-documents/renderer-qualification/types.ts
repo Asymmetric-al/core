@@ -221,10 +221,22 @@ export interface OperationalSuites {
     light_tenants: number;
     light_items_each: number;
     claim_bound_multiplier: number;
+    /**
+     * Protocol: the claim bound holds "subject only to an explicitly recorded
+     * safety throttle". Unrecorded, any fairness miss can be explained away as
+     * one after the fact.
+     */
+    permitted_safety_throttle: string;
   };
   concurrency_staircase: {
     /** Order-sensitive steps. */
     steps: readonly number[];
+    /**
+     * Protocol: the staircase stops "at the first predeclared safety ceiling
+     * rather than overrunning a managed-provider quota". Predeclared is the
+     * operative word - a ceiling chosen mid-run is not evidence.
+     */
+    safety_ceiling_concurrent_attempts: number;
   };
   failure_matrix: {
     injections: readonly string[];
