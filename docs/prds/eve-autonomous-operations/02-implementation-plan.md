@@ -233,6 +233,10 @@ by issue #427 and ADR-0028.
 
 ### 12. Admin Mount and Global Panel
 
+Implementation: the Next.js 16.2.6-compatible same-origin Eve mount, protected
+admin-only global panel, explicit page-context allowlist, and forwarded-request
+cookie authentication are delivered by issue #428 and ADR-0029.
+
 - Type: HITL
 - Blocked by: 9, 10, 11
 - User stories covered: 25, 26, 27, 28, 73, 74, 75
