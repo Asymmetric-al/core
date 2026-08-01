@@ -133,17 +133,14 @@ export function repairWorkspaceLinks(repoRoot, fileSystem = fs) {
       let needsRepair = false;
       try {
         const stat = fileSystem.lstatSync(linkPath);
-        const missingPackageJson = !fileSystem.existsSync(
-          path.join(linkPath, "package.json"),
-        );
-        if (stat.isSymbolicLink()) {
-          // Dangling links resolve without a package.json.
-          needsRepair = missingPackageJson;
-        } else if (stat.isDirectory()) {
-          // Hollow materialization: a real directory without package.json
-          // (typically only `dist/tsconfig.tsbuildinfo`).
-          needsRepair = missingPackageJson;
-        }
+        // "Broken" means one thing for both entries we own: nothing resolves
+        // behind it. That is a dangling symlink, or a hollow directory Bun
+        // materialized holding only `dist/tsconfig.tsbuildinfo`. Anything else
+        // at this path (a plain file) is not ours to replace.
+        const isRepairableEntry = stat.isSymbolicLink() || stat.isDirectory();
+        needsRepair =
+          isRepairableEntry &&
+          !fileSystem.existsSync(path.join(linkPath, "package.json"));
       } catch {
         const interruptedBackup = findInterruptedRepairBackup(
           linkPath,
@@ -183,7 +180,13 @@ export function repairWorkspaceLinks(repoRoot, fileSystem = fs) {
         fileSystem.symlinkSync(targetDir, linkPath, linkType);
       } catch (error) {
         fileSystem.rmSync(linkPath, { recursive: true, force: true });
-        fileSystem.renameSync(backupPath, linkPath);
+        // A concurrent run in the same worktree can reclaim this backup through
+        // `findInterruptedRepairBackup`, which matches by prefix. Renaming a
+        // path that is already gone throws from inside this catch and destroys
+        // the error we are here to report.
+        if (fileSystem.existsSync(backupPath)) {
+          fileSystem.renameSync(backupPath, linkPath);
+        }
         const code = getErrorCode(error);
         if (SKIPPABLE_SYMLINK_ERROR_CODES.has(code)) {
           console.warn(
