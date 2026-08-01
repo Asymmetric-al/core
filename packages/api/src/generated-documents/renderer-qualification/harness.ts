@@ -190,6 +190,21 @@ async function requirePriorSubmissionSealed(
   }
 }
 
+/**
+ * Evidence records are keyed by this id, so a blank one collapses the
+ * append-only guarantee: the store rejects repeats, but the first blank id is
+ * stored and returned as if it identified something.
+ */
+function requireGeneratedId(id: string, kind: string): string {
+  if (!id.trim()) {
+    throw new QualificationHarnessError(
+      "submission_invalid",
+      `The injected id generator returned a blank ${kind} id; evidence records must be identifiable.`,
+    );
+  }
+  return id;
+}
+
 function parseSubmissionOrdinal(ordinal: unknown): 0 | 1 | 2 {
   if (ordinal === undefined) return 0;
   if (ordinal === 0 || ordinal === 1 || ordinal === 2) return ordinal;
@@ -328,7 +343,10 @@ export async function sealCandidateSubmission(
   }
 
   const record: SealedCandidateSubmission = {
-    submission_id: (input.generateId ?? (() => crypto.randomUUID()))(),
+    submission_id: requireGeneratedId(
+      (input.generateId ?? (() => crypto.randomUUID()))(),
+      "submission",
+    ),
     charter_id: input.charter.charter_id,
     manifest_digest: input.charter.manifest_digest,
     candidate_id: candidateId,
@@ -450,7 +468,10 @@ export async function recordRemediationCycle(
   // `recorded_at` carry attribution, so leaving them outside the digest would
   // let an exported record be edited without breaking its own seal.
   const payload = {
-    cycle_id: (input.generateId ?? (() => crypto.randomUUID()))(),
+    cycle_id: requireGeneratedId(
+      (input.generateId ?? (() => crypto.randomUUID()))(),
+      "remediation cycle",
+    ),
     charter_id: input.charter.charter_id,
     manifest_digest: input.charter.manifest_digest,
     candidate_id: candidateId,

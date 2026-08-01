@@ -443,6 +443,34 @@ describe("freezeRendererQualificationCharter", () => {
     ).toContain("charter_incomplete");
   });
 
+  it("freezes the durable boundaries each failure must be injected after", () => {
+    // Protocol: the eight injections run "after each durable boundary".
+    // Freezing only the injections lets a candidate inject all eight at one
+    // convenient point and still claim the suite.
+    const charter = freezeRendererQualificationCharter(
+      buildFixtureContestInput(),
+    );
+    expect(
+      charter.operational_suites.failure_matrix.durable_boundaries,
+    ).toEqual(PHASE_18_OPERATIONAL_SUITES.failure_matrix.durable_boundaries);
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.operational_suites = {
+            ...input.operational_suites,
+            failure_matrix: {
+              ...input.operational_suites.failure_matrix,
+              durable_boundaries: [
+                ...input.operational_suites.failure_matrix.durable_boundaries,
+              ].reverse(),
+            },
+          };
+        }),
+      ),
+    ).toContain("suite_invalid");
+  });
+
   it("rejects wrong or missing candidates and versions", () => {
     expect(
       issueCodes(

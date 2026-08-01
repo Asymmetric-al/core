@@ -684,13 +684,17 @@ function validateSuites(
     !sameStringSequence(
       suites.failure_matrix.injections,
       PHASE_18_OPERATIONAL_SUITES.failure_matrix.injections,
+    ) ||
+    !sameStringSequence(
+      suites.failure_matrix.durable_boundaries,
+      PHASE_18_OPERATIONAL_SUITES.failure_matrix.durable_boundaries,
     )
   ) {
     issues.push(
       issue(
         "operational_suites.failure_matrix",
         "suite_invalid",
-        "The failure matrix injection sequence is exactly the frozen eight-injection protocol order.",
+        "The failure matrix is exactly the frozen eight injections applied after each frozen durable boundary.",
       ),
     );
   }

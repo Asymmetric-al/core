@@ -240,6 +240,13 @@ export interface OperationalSuites {
   };
   failure_matrix: {
     injections: readonly string[];
+    /**
+     * Protocol: each injection runs "after each durable boundary". Freezing the
+     * injections alone lets a candidate inject all eight at one convenient
+     * point and still claim the suite. Ordered, from the protocol's numbered
+     * attempt sequence.
+     */
+    durable_boundaries: readonly string[];
   };
   outage_recovery: {
     outage_window_minutes: number;

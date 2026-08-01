@@ -500,6 +500,17 @@ export const PHASE_18_OPERATIONAL_SUITES: OperationalSuites = {
       "validator_crash",
       "finalization_race",
     ],
+    // The protocol's numbered attempt sequence; an injection must follow each.
+    durable_boundaries: [
+      "inputs frozen (publication, Facts Package, purpose, locale, assets, fonts, candidate pipeline, metadata clock, output profile)",
+      "candidate bytes rendered",
+      "required byte-changing finalization applied",
+      "read-only machine and product validators run against the final bytes",
+      "manual visual, print, extraction and assistive-technology review completed",
+      "SHA-256 and byte length calculated",
+      "uploaded privately, read back, and SHA-256/length compared",
+      "artifact promoted in a test environment",
+    ],
   },
   outage_recovery: {
     outage_window_minutes: 30,

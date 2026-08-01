@@ -273,6 +273,31 @@ describe("sealCandidateSubmission clock ordering", () => {
   });
 });
 
+describe("evidence record identity", () => {
+  it("refuses a blank generated id", async () => {
+    // The store rejects repeats, but the first blank id would be stored and
+    // returned as if it identified something, collapsing the append-only
+    // guarantee for every later record.
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+
+    await expect(
+      sealCandidateSubmission({
+        charter,
+        expected_manifest_digest: charter.manifest_digest,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        source_digest: syntheticDigest("s"),
+        output_digest: syntheticDigest("o"),
+        generateId: () => "  ",
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "submission_invalid" });
+
+    expect(await store.listSubmissions()).toHaveLength(0);
+  });
+});
+
 describe("recordRemediationCycle", () => {
   it("commits metered effort and attribution to the evidence digest", async () => {
     // hours_spent meters the equal remediation budget and recorded_at carries
