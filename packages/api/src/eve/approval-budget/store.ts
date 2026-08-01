@@ -170,12 +170,14 @@ export async function loadEveApprovalBudgetAdminView(input: {
       .select(
         "budget_id, window_started_at, used_requests, used_usd_micros, used_input_tokens, used_output_tokens",
       )
+      .eq("tenant_id", input.tenantId)
       .order("window_started_at", { ascending: false }),
     input.supabaseAdmin
       .from("eve_budget_emergency_overrides")
       .select(
         "budget_id, additional_requests, additional_usd_micros, additional_input_tokens, additional_output_tokens",
       )
+      .eq("tenant_id", input.tenantId)
       .gt("expires_at", new Date().toISOString()),
     input.supabaseAdmin
       .from("eve_action_approvals")

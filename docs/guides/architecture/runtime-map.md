@@ -12,6 +12,34 @@ For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while
 - For API route handlers specifically, treat `export const runtime = ...` as build-breaking in this repo.
 - Rely on framework defaults and handler-level implementation constraints instead of segment config exports.
 
+## Public Runtime Contract (Phase 5)
+
+Phase 5 (Public Website Runtime Contract) governs how the public tenant
+website reads, caches, and previews content
+(`docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md`;
+ADRs 0026–0030):
+
+- **One reader choke-point.** All public content reads go through the
+  published-content reader (server-only, under `packages/api`), which takes
+  the resolved tenant (and reserved site) as a required argument, always
+  applies tenant-and-published, runs Payload with `overrideAccess: false`
+  under the public-read policy, and returns empty on an unresolved tenant.
+  Raw Payload reads (`payload.find`/`findByID`) in public code paths are
+  forbidden by a hard-blocking lint; the `/api/cms/public/*` routes above are
+  transport behind the reader, never a second rule set.
+- **Function-level caching only.** Published reads cache with `use cache` +
+  `cacheTag` + a bounded `cacheLife`; **cache-key isolation comes from
+  passing the tenant as a function argument** (tags are invalidation-only).
+  Publishing emits an HMAC-signed, constant-time-verified admin→public
+  signal that calls `revalidateTag(..., "max")` in the public app's route
+  handler. Request-specific values (host, headers, draft state) are read
+  outside `use cache` and passed as arguments.
+- **No route-segment cache config.** The segment-config rule above is a hard
+  contract for the public app: no `revalidate`/`dynamic`/etc. anywhere in
+  public routes — a structural CI assertion enforces it. Draft Mode preview
+  requests are dynamic by construction and never populate the published
+  cache.
+
 ## Shared Health Contract
 
 `admin`, `donor`, and `missionary` expose `/api/health` through

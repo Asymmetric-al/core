@@ -1,4 +1,4 @@
-import type { UserRole } from "@asym/database/types";
+import type { MembershipRole, UserRole } from "@asym/database/types";
 
 declare const verifiedEveSessionIdentity: unique symbol;
 
@@ -12,7 +12,9 @@ interface EveSessionIdentityBase {
 }
 
 export interface EveAdminSessionIdentity extends EveSessionIdentityBase {
+  actorMembershipRoles: MembershipRole[];
   actorProfileId: string;
+  actorProfileRole: UserRole | null;
   actorRole: UserRole;
   identityMode: "admin";
   initiatorType: "authenticated_admin";

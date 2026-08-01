@@ -88,12 +88,12 @@ describe("Eve operations workspace", () => {
 
     expect(view.getByRole("heading", { name: "GitHub activity" })).toBeTruthy();
     expect(view.getByRole("heading", { name: "Chat runtime" })).toBeTruthy();
-    expect(view.getAllByText("Unavailable")).toHaveLength(1);
+    expect(view.getAllByText("Unavailable")).toHaveLength(2);
     expect(view.getByText("Mounted")).toBeTruthy();
     expect(
       view.getByText(/no commits, checks, reviews, or issues/i),
     ).toBeTruthy();
-    expect(view.queryByRole("heading", { name: "Notifications" })).toBeNull();
+    expect(view.getByRole("heading", { name: "Notifications" })).toBeTruthy();
     expect(view.getByText(/explicit allowlist for page context/i)).toBeTruthy();
     expect(view.queryByText(/mock activity/i)).toBeNull();
   });

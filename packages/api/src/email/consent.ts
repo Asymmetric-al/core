@@ -35,7 +35,7 @@
  * is treated as marketing (the stricter policy).
  */
 
-import { asString } from "../shared/json-coerce";
+import { asString, isRecord } from "../shared/json-coerce";
 
 import type { getAdminClient } from "@asym/database/supabase/admin";
 import type { EmailMessageType, SuppressionType } from "@asym/email/types";
@@ -43,8 +43,6 @@ import type { EmailMessageType, SuppressionType } from "@asym/email/types";
 type SupabaseAdminClient = NonNullable<
   ReturnType<typeof getAdminClient>["client"]
 >;
-
-type JsonRecord = Record<string, unknown>;
 
 /** Why an outbound email was blocked. */
 export type EmailConsentBlockReason =
@@ -93,10 +91,6 @@ interface DonorConsentFlags {
   doNotContact: boolean;
 }
 
-function isJsonRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 function asBooleanFlag(value: unknown): boolean {
   return value === true;
 }
@@ -133,7 +127,7 @@ async function loadDonorConsentFlags(
     throw new Error(`Failed to load donor consent flags: ${error.message}`);
   }
 
-  if (!isJsonRecord(data)) {
+  if (!isRecord(data)) {
     return null;
   }
 
@@ -171,7 +165,7 @@ async function loadSuppressionTypes(input: {
   }
 
   return data
-    .map((row) => (isJsonRecord(row) ? asString(row.suppression_type) : null))
+    .map((row) => (isRecord(row) ? asString(row.suppression_type) : null))
     .filter((type): type is string => Boolean(type));
 }
 
