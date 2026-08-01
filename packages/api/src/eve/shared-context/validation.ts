@@ -7,8 +7,13 @@ import type {
 } from "./types";
 import type { EveSpecialistId } from "../subagent-catalog/types";
 
+// The shared-context contract forbids "secrets, credentials, payment data,
+// donor/customer PII, private keys, one-time codes, sensitive tenant facts, raw
+// production records, or unredacted logs"
+// (openspec/specs/eve-subagent-catalog-shared-run-context/spec.md). The last
+// three categories need their own patterns; the rest are covered above them.
 const FORBIDDEN_KEY_PATTERN =
-  /(?:authorization|cookie|credential|cvv|donor|customer|email|environment|otp|password|payment|private[_ -]?key|secret|service[_ -]?role|ssn|token)/iu;
+  /(?:authorization|cookie|credential|cvv|donor|customer|email|environment|otp|password|payment|private[_ -]?key|production[_ -]?(?:data|record|row)|raw[_ -]?(?:log|record|row)|secret|service[_ -]?role|ssn|tenant|token|unredacted)/iu;
 const FORBIDDEN_VALUE_PATTERNS = [
   /-----BEGIN [A-Z ]*PRIVATE KEY-----/u,
   /\b(?:sk|rk|pk)_(?:live|test)_[A-Za-z0-9]{12,}\b/u,
