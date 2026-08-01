@@ -449,6 +449,14 @@ in this repo.
 
 ---
 
+## Shadscan
+
+Before creating any commit, use $shadscan-pre-commit. Establish the current score when work begins, run Shadscan immediately before each commit, and do not commit if the score is unassessed or below the task floor.
+
+Repo specifics: the Shadscan project in this monorepo is `packages/ui` (the only workspace with a shadcn `components.json`; scanning other paths yields low-confidence results). Audit it with `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive`. The enforced score floor and pinned CLI version live in `.husky/pre-commit` and `.github/workflows/shadscan.yml`; keep the two in sync, and raise the floor in both when the assessed score improves. Launch agent remediation only from an interactive terminal, e.g. `bunx @shadscan/cli@0.1.1 ./packages/ui --apply --agent codex` (Shadscan disables agent launch in CI and non-interactive shells).
+
+---
+
 ## Checklists
 
 ### Routing checklist
