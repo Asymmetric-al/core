@@ -441,3 +441,207 @@ incomplete or conflicting evidence MAY create a suggestion only.
 - AND missionaries remain cash-first, automatic-recurring-first, view-only, and
   free of payment credentials, provider identifiers, decline details,
   authorization evidence, and pledge-reminder noise
+
+### Requirement: Generated Documents Preserve Source Truth And Exact Artifact Authority
+
+Phase 18 (Receipt & PDF Template System) MUST provide one canonical Document
+Production capability and one product-level Generated Document service. It MUST
+keep immutable Document Definition Publication, source-owned Facts Package,
+idempotent Generation Request, optional source-authorized Issuance, and exact
+private Artifact as separate durable authorities. Source domains MUST own
+eligibility, whether and why issuance/document identity is required, exact
+issuer/recipient/coverage facts, issuance validity, and correction/void/cancel/
+replace authorization and effect. Phase 18's code-owned jurisdiction/identity
+contract MUST own `ACK-*` and exact-issuer `ca_r_v1` allocation, reuse/nonreuse,
+disposition, and artifact linkage. Render Attempts MUST remain subordinate
+technical evidence, and Phase 17 Delivery MUST remain an external linked
+authority. No send, bounce, preview, download, print, or retry may create or
+alter source facts, issuance validity, logical-document identity, or exact
+artifact truth.
+
+Templates and renderers MUST consume only a typed immutable purpose-scoped Facts
+Package. They MUST NOT query mutable source records, select the donor or
+statement population, decide eligibility or jurisdiction, calculate official
+money, allocate a legal identifier, or alter correction/cancellation meaning.
+Only the Generated Document service MAY allocate a Phase 18 reference or serial,
+after admitted request freeze and before identifier-bearing render.
+One pre-registered production-shaped evidence contest MUST yield at most one
+qualified production renderer. Each human-facing publication MUST produce one
+current canonical accessible PDF; purpose-required archival conformance MUST be
+a property of those same exact bytes rather than a peer recipient file.
+
+Tenant authoring freedom MUST remain inside versioned Document Purpose Contracts,
+Approved Data Views, protected truth, immutable publication, code-owned U.S. and
+opt-in Canadian jurisdiction packs, current-object authorization, purpose-owned
+records schedules, and proof-gated release. Staff MUST use one Templates/
+Documents/Batches product, and an authorized recipient MUST see one logical
+document with one current PDF action. Historical or corrected artifacts MUST
+remain exact immutable evidence without appearing as competing current files.
+
+Because Conrad confirmed no production users or irreplaceable generated
+artifacts exist, the initial cutover MUST use a server-authoritative
+environment/data/dependency gate and then remove every prototype receipt,
+statement, template-render, snapshot, scaffold, live-text, hard-coded-send,
+provider-URL, and alternate reader/writer path. If the gate is positive or
+indeterminate, destructive work MUST stop for re-grooming. The platform MUST NOT
+ship a legacy importer, compatibility view, archive, dual path, shadow
+migration, or fabricated history.
+
+#### Scenario: An official document is generated and its email later bounces
+
+- GIVEN the source domain has authorized one immutable purpose-scoped Facts
+  Package and any required issuance intent
+- WHEN the Generated Document service produces a validated private artifact and
+  its later Phase 17 delivery bounces
+- THEN the publication, facts, request, issuance, artifact, and delivery remain
+  separately identifiable
+- AND the bounce does not rerender, renumber, replace, cancel, or invalidate the
+  exact artifact
+
+#### Scenario: Source truth is corrected after issuance
+
+- WHEN the source authority approves a correction or replacement
+- THEN it creates the source-owned successor meaning and Phase 18 creates a new
+  frozen request and exact artifact under that authority
+- AND the prior bytes remain immutable evidence while the logical document has
+  at most one authorized current head
+- AND a template edit, renderer upgrade, resend, or redownload cannot alter the
+  historical artifact
+
+#### Scenario: A recipient opens generated documents
+
+- WHEN an authorized donor or missionary opens a generated-document surface
+- THEN each permitted logical document appears once with one current canonical
+  PDF action
+- AND access is reauthorized against current tenant, role, Party/recipient,
+  purpose, logical head, artifact health, and records state
+- AND storage objects, superseded versions, render attempts, and delivery events
+  do not appear as peer files
+
+#### Scenario: The clean pre-production cutover gate is uncertain
+
+- WHEN the server-authoritative gate cannot prove the environment is disposable
+  and free of production tenants, irreplaceable artifacts, and relied-upon
+  external dependencies
+- THEN no destructive reset or prototype removal runs
+- AND the migration question is re-groomed rather than guessed, backfilled,
+  fabricated, or hidden behind a compatibility fallback
+
+### Requirement: Year-End Statements Run Through One Governed Operations Contract
+
+Phase 19 (Year-End Statement Operations) MUST provide one canonical,
+purpose-pinned Statement Run and one immutable Run Preflight over
+source-authoritative Statement Subjects, exact source closure, participation,
+document and communication resolution, recipient delivery, fulfillment, and
+policy. One atomic release MUST create the reviewed run, item bindings, evidence,
+outbox request, and release barrier without external I/O. Start MUST mean queued
+work only and MUST NOT collapse population, document issuance/currentness,
+portal availability/access, communication delivery, physical fulfillment,
+incident, legal, or staff-completion truth.
+
+Phase 7 MUST retain legal-donor, eligibility, facts, coverage, and correction
+authority; Phase 14 MUST retain recognition authority; Phase 18 MUST retain
+logical-document, current-artifact, and access authority; Phase 17/6 MUST retain
+communication and provider-delivery authority; and Phase 19 MUST own only
+pre-start participation, run release/coordination, physical-fulfillment
+orchestration, cooperative containment, operational completion, recovery
+correlation, and its PII-minimized Run Evidence Record.
+
+Tenant control MUST include compatible Statement Delivery Profiles,
+self-print-first paper posture, exact pre-start participation, bounded review
+strengthening, Pause/Resume/Stop, truthful staff completion, and one target-ready
+date. It MUST NOT permit eligibility, legal-donor, coverage, destination-safety,
+current-artifact, provider-finality, or tenant-fair-capacity overrides.
+Official documents MUST use exact Phase 7 Statement Subjects. Optional household
+and disclosed-DAF recognition MUST use a separate, default-Off
+**Support overview — Not a tax document** purpose and MUST NOT enter official or
+deductible totals.
+
+The donor portal MUST expose one current exact PDF with unmetered authorized
+view, download, and local print plus repeatable bounded outbound-copy
+fulfillment. Late facts, source corrections, destination changes, unknown
+provider outcomes, and additional copies MUST use append-only owner-specific
+recovery rather than reopening a frozen run. The live recomputed annual
+statement text route and every competing run or delivery path MUST be removed
+without a legacy adapter.
+
+#### Scenario: Staff release and operate one annual statement run
+
+- GIVEN Phase 7 supplied exact eligible Statement Subjects and Phase 18/17
+  supplied side-effect-free compatible resolution pins
+- WHEN authorized staff start the exact reviewed Run Preflight
+- THEN one purpose-pinned run becomes durably queued through an atomic release
+  barrier
+- AND each document, portal, communication, and paper operation advances
+  through its own authority and truthful outcome
+- AND staff may contain, recover, and operationally complete the run without
+  rewriting source facts, artifacts, provider evidence, or frozen release
+  history
+
+#### Scenario: A household has recognition but separate legal donors
+
+- WHEN the tenant enables the purpose-separated Support overview
+- THEN official documents remain separate by exact legal-donor Statement
+  Subject
+- AND any permitted household or disclosed-DAF recognition appears only in a
+  separately authorized artifact labeled Not a tax document
+- AND a shared destination or Year Presentation Group does not merge legal
+  ownership, totals, documents, or access
+
+### Requirement: The Public Tenant Website Runs On One Governed Runtime Contract
+
+The public tenant website MUST run on one governed runtime contract, per
+Phase 5 (Public Website Runtime Contract) and
+`docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md`.
+Public content MUST be readable only through one server-only published-content
+choke-point that takes the resolved tenant (and reserved site) as a required
+argument, always applies the tenant-and-published constraint, runs with
+Payload access control enforced (`overrideAccess: false`) under an explicit
+public-read policy, and returns empty — never unfiltered — when no tenant
+resolves. A public request MUST resolve its tenant only from the
+platform-trusted host in production and MUST fail closed to a neutral "site
+not found" on an unknown or disabled host. No draft or unpublished document
+may be reachable through any public route; staff preview goes through Draft
+Mode behind a signed, tenant-checked route and is never cached and never
+indexed. A giving CTA MUST hand off through the server-validated,
+enumeration-safe checkout resolver — every operational reference re-validated
+server-side against the resolved tenant, a preset amount treated as a
+re-validated suggestion — and the handoff carries the reserved
+`site_id` / `source_code` / `currency` / `locale` /
+`entry_method = 'public_checkout'` attribution fields ("channel" stays
+retired). Cached public reads MUST key on the tenant passed as an argument
+(tags are invalidation-only) with a secured admin→public revalidation signal
+and a bounded-staleness backstop, and no route-segment cache config may exist
+in the public app. CMS pages reference operational records
+(reference-not-copy); operational truth wins for identity, money, and
+existence, and a dangling or cross-tenant reference fails safe.
+
+#### Scenario: A visitor requests a public page
+
+- WHEN a public request arrives for a tenant page
+- THEN the tenant resolves only from the platform-trusted host, the page reads
+  published content solely through the choke-point with the resolved tenant as
+  a required argument, and an unknown host or unresolved tenant yields a
+  neutral "site not found" rather than any other tenant's content
+- AND no draft, cross-tenant document, or unserialized Payload internals reach
+  the response
+
+#### Scenario: A giving CTA hands off into checkout
+
+- WHEN a visitor follows a "Give" CTA from a public page
+- THEN checkout re-resolves and validates every operational reference
+  server-side against the resolved tenant and public-eligibility before
+  rendering or charging, the form stays enumeration-safe and constant-time,
+  and the handoff carries the reserved attribution fields
+- AND an invalid, stale, or cross-tenant giving link fails to a friendly
+  "give another way" instead of a mis-designated gift
+
+#### Scenario: Staff preview and publish a draft
+
+- WHEN a staff member previews a draft or publishes a change
+- THEN preview renders the real page through the same reader with drafts on,
+  behind a signed-secret route that authenticates the staff user and checks
+  the tenant, marked noindex and never cached
+- AND publishing emits the secured admin→public invalidation signal so the
+  right cache tags revalidate promptly, with the bounded-staleness backstop
+  self-healing a missed signal

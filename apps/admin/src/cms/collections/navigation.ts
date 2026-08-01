@@ -1,8 +1,11 @@
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
+  PUBLIC_COLLECTION_CAPABILITIES,
+  publishedPublicReadAccess,
+} from "../access/public-read";
+import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
-  tenantScopedReadAccess,
   tenantScopedUpdateAccess,
 } from "../access/tenant-access";
 import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
@@ -36,7 +39,10 @@ export const Navigation: CollectionConfig = {
       : {}),
   },
   access: {
-    read: tenantScopedReadAccess("tenant"),
+    read: publishedPublicReadAccess(
+      "tenant",
+      PUBLIC_COLLECTION_CAPABILITIES["navigation"],
+    ),
     create: tenantScopedCreateAccess("tenant"),
     update: tenantScopedUpdateAccess("tenant"),
     delete: tenantScopedDeleteAccess("tenant"),

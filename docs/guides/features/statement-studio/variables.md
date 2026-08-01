@@ -1,5 +1,11 @@
 # Variables
 
+> **Superseded implementation authority (Phase 18, 2026-07-21).** This file is
+> retained as historical variable-catalog evidence only. Current authority is
+> the Phase 18 contract-owned approved-data-view and variable catalog: templates
+> render approved facts and never gain arbitrary record access. Reconcile every
+> variable with the Phase 18 authority manifest before implementation.
+
 Variables are a first-class Statement Studio product surface. They must be robust enough for many PDF families while staying clean and safe for tenant admins.
 
 ## Triggers

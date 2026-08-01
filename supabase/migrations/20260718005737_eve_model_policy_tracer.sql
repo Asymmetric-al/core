@@ -154,13 +154,6 @@ BEGIN
         RAISE EXCEPTION 'missing_eve_governance_state';
     END IF;
 
-    IF governance.emergency_off
-        OR (governance.kill_switch_state ->> 'all_automation')::BOOLEAN
-        OR (governance.kill_switch_state ->> 'model_policy_changes')::BOOLEAN
-    THEN
-        RAISE EXCEPTION 'eve_model_policy_changes_blocked';
-    END IF;
-
     RETURN governance;
 END;
 $$;
@@ -258,6 +251,30 @@ DECLARE
 BEGIN
     governance := public.assert_eve_model_policy_change_allowed();
 
+    IF governance.emergency_off
+        OR (governance.kill_switch_state ->> 'all_automation')::BOOLEAN
+        OR (governance.kill_switch_state ->> 'model_policy_changes')::BOOLEAN
+    THEN
+        PERFORM public.append_eve_model_policy_audit(
+            p_audit_id, p_tenant_id, p_actor_id, p_actor_profile_id, p_actor_role,
+            p_initiator_type, p_initiator_id, governance.policy_status, governance.state_version,
+            'model_policy.draft', 'model_policy:platform', 'blocked',
+            jsonb_build_object(
+                'governanceStateVersion', governance.state_version,
+                'emergencyOff', governance.emergency_off,
+                'killSwitchState', governance.kill_switch_state,
+                'stateUnchanged', TRUE
+            ),
+            jsonb_build_object(
+                'policyMutationApplied', FALSE,
+                'overrideMutationApplied', FALSE,
+                'governanceMutationApplied', FALSE
+            ),
+            'Persisted Eve governance state blocked the model-policy draft before any state mutation'
+        );
+        RETURN NULL;
+    END IF;
+
     IF p_actor_profile_id IS NULL OR p_policy IS NULL OR p_policy_hash !~ '^[a-f0-9]{64}$' THEN
         RAISE EXCEPTION 'invalid_eve_model_policy_draft';
     END IF;
@@ -318,7 +335,7 @@ CREATE OR REPLACE FUNCTION public.evaluate_eve_model_policy_draft(
     p_initiator_type TEXT,
     p_initiator_id TEXT
 )
-RETURNS VOID
+RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, pg_temp
@@ -328,6 +345,30 @@ DECLARE
     candidate public.eve_model_policies%ROWTYPE;
 BEGIN
     governance := public.assert_eve_model_policy_change_allowed();
+
+    IF governance.emergency_off
+        OR (governance.kill_switch_state ->> 'all_automation')::BOOLEAN
+        OR (governance.kill_switch_state ->> 'model_policy_changes')::BOOLEAN
+    THEN
+        PERFORM public.append_eve_model_policy_audit(
+            p_audit_id, p_tenant_id, p_actor_id, p_actor_profile_id, p_actor_role,
+            p_initiator_type, p_initiator_id, governance.policy_status, governance.state_version,
+            'model_policy.evaluate', 'model_policy:' || p_policy_id, 'blocked',
+            jsonb_build_object(
+                'governanceStateVersion', governance.state_version,
+                'emergencyOff', governance.emergency_off,
+                'killSwitchState', governance.kill_switch_state,
+                'stateUnchanged', TRUE
+            ),
+            jsonb_build_object(
+                'policyMutationApplied', FALSE,
+                'overrideMutationApplied', FALSE,
+                'governanceMutationApplied', FALSE
+            ),
+            'Persisted Eve governance state blocked model-policy evaluation before any state mutation'
+        );
+        RETURN FALSE;
+    END IF;
 
     IF p_eval_status NOT IN ('passed', 'failed') OR jsonb_typeof(p_eval_summary) <> 'object' THEN
         RAISE EXCEPTION 'invalid_eve_model_policy_evaluation';
@@ -361,6 +402,8 @@ BEGIN
         jsonb_build_object('evalStatus', p_eval_status),
         'The server-side model-policy evaluator recorded every required gate check'
     );
+
+    RETURN TRUE;
 END;
 $$;
 
@@ -375,7 +418,7 @@ CREATE OR REPLACE FUNCTION public.activate_eve_model_policy(
     p_initiator_type TEXT,
     p_initiator_id TEXT
 )
-RETURNS VOID
+RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, pg_temp
@@ -386,6 +429,31 @@ DECLARE
     current_active_id UUID;
 BEGIN
     governance := public.assert_eve_model_policy_change_allowed();
+
+    IF governance.emergency_off
+        OR (governance.kill_switch_state ->> 'all_automation')::BOOLEAN
+        OR (governance.kill_switch_state ->> 'model_policy_changes')::BOOLEAN
+    THEN
+        PERFORM public.append_eve_model_policy_audit(
+            p_audit_id, p_tenant_id, p_actor_id, p_actor_profile_id, p_actor_role,
+            p_initiator_type, p_initiator_id, governance.policy_status, governance.state_version,
+            'model_policy.activate', 'model_policy:' || p_policy_id, 'blocked',
+            jsonb_build_object(
+                'governanceStateVersion', governance.state_version,
+                'emergencyOff', governance.emergency_off,
+                'killSwitchState', governance.kill_switch_state,
+                'stateUnchanged', TRUE
+            ),
+            jsonb_build_object(
+                'policyMutationApplied', FALSE,
+                'overrideMutationApplied', FALSE,
+                'governanceMutationApplied', FALSE
+            ),
+            'Persisted Eve governance state blocked model-policy activation before any state mutation'
+        );
+        RETURN FALSE;
+    END IF;
+
     PERFORM pg_advisory_xact_lock(hashtext('eve_model_policy:platform'));
 
     SELECT id INTO current_active_id
@@ -437,6 +505,8 @@ BEGIN
         jsonb_build_object('activePolicyId', p_policy_id, 'previousPolicyId', current_active_id),
         'An authorized AI-settings manager activated a policy only after its immutable hash passed evaluation'
     );
+
+    RETURN TRUE;
 END;
 $$;
 
@@ -450,7 +520,7 @@ CREATE OR REPLACE FUNCTION public.rollback_eve_model_policy(
     p_initiator_type TEXT,
     p_initiator_id TEXT
 )
-RETURNS VOID
+RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, pg_temp
@@ -461,6 +531,31 @@ DECLARE
     prior_policy public.eve_model_policies%ROWTYPE;
 BEGIN
     governance := public.assert_eve_model_policy_change_allowed();
+
+    IF governance.emergency_off
+        OR (governance.kill_switch_state ->> 'all_automation')::BOOLEAN
+        OR (governance.kill_switch_state ->> 'model_policy_changes')::BOOLEAN
+    THEN
+        PERFORM public.append_eve_model_policy_audit(
+            p_audit_id, p_tenant_id, p_actor_id, p_actor_profile_id, p_actor_role,
+            p_initiator_type, p_initiator_id, governance.policy_status, governance.state_version,
+            'model_policy.rollback', 'model_policy:' || p_expected_active_policy_id, 'blocked',
+            jsonb_build_object(
+                'governanceStateVersion', governance.state_version,
+                'emergencyOff', governance.emergency_off,
+                'killSwitchState', governance.kill_switch_state,
+                'stateUnchanged', TRUE
+            ),
+            jsonb_build_object(
+                'policyMutationApplied', FALSE,
+                'overrideMutationApplied', FALSE,
+                'governanceMutationApplied', FALSE
+            ),
+            'Persisted Eve governance state blocked model-policy rollback before any state mutation'
+        );
+        RETURN FALSE;
+    END IF;
+
     PERFORM pg_advisory_xact_lock(hashtext('eve_model_policy:platform'));
 
     SELECT * INTO current_policy
@@ -510,6 +605,8 @@ BEGIN
         jsonb_build_object('activePolicyId', prior_policy.id, 'rolledBackPolicyId', current_policy.id),
         'An authorized AI-settings manager restored the previously evaluated active policy'
     );
+
+    RETURN TRUE;
 END;
 $$;
 
@@ -542,6 +639,30 @@ DECLARE
     override_id UUID := gen_random_uuid();
 BEGIN
     governance := public.assert_eve_model_policy_change_allowed();
+
+    IF governance.emergency_off
+        OR (governance.kill_switch_state ->> 'all_automation')::BOOLEAN
+        OR (governance.kill_switch_state ->> 'model_policy_changes')::BOOLEAN
+    THEN
+        PERFORM public.append_eve_model_policy_audit(
+            p_audit_id, p_tenant_id, p_actor_id, p_actor_profile_id, p_actor_role,
+            p_initiator_type, p_initiator_id, governance.policy_status, governance.state_version,
+            'model_policy.budget_override', p_scope_type || ':' || p_scope_id, 'blocked',
+            jsonb_build_object(
+                'governanceStateVersion', governance.state_version,
+                'emergencyOff', governance.emergency_off,
+                'killSwitchState', governance.kill_switch_state,
+                'stateUnchanged', TRUE
+            ),
+            jsonb_build_object(
+                'policyMutationApplied', FALSE,
+                'overrideMutationApplied', FALSE,
+                'governanceMutationApplied', FALSE
+            ),
+            'Persisted Eve governance state blocked the budget override before any state mutation'
+        );
+        RETURN NULL;
+    END IF;
 
     SELECT * INTO active_policy
     FROM public.eve_model_policies

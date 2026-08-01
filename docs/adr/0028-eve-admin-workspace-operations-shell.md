@@ -56,7 +56,7 @@ metadata only.
 - Verified current-admin identity and ownership: #426 / ADR-0027.
 - Runtime mount and secondary chat surface: #428.
 - GitHub activity: #430.
-- Notification delivery: #432.
+- Notification delivery: #436.
 
 ## Consequences
 

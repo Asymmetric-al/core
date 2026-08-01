@@ -20,7 +20,12 @@ export function buildPublicCmsPagePath(slugSegments: string[]) {
   return buildPublicCmsReadPath({ kind: "page", slugSegments });
 }
 
-function getCmsBaseUrl() {
+/**
+ * The CMS origin the donor app reads public content from — and the origin
+ * serialized relative media URLs resolve against (issue #529). The dev
+ * default matches `scripts/cms/public-media-remote-pattern.mjs`.
+ */
+export function getPublicCmsBaseUrl() {
   return process.env.CMS_BASE_URL ?? "http://127.0.0.1:3030";
 }
 
@@ -68,7 +73,7 @@ async function fetchPublicCmsJSON(
   hostOverride: string | undefined,
   buildCachePolicy: (tenantHost: string) => PublicCmsReadCachePolicy,
 ): Promise<PublicCmsJsonReadResult> {
-  const cmsURL = getCmsBaseUrl();
+  const cmsURL = getPublicCmsBaseUrl();
   const tenantHost = await getForwardedHost(hostOverride);
 
   try {

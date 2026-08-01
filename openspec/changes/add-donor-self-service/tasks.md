@@ -41,24 +41,41 @@
 
 ## 3. Annual statements
 
-- [ ] 3.1 The Giving/statement domain builds the canonical frozen, versioned
-      annual-statement snapshot for receiptable gifts by year and tenant policy,
-      including deductible hard-credit and approved indirect partitions,
-      audit-only exclusion references with source-domain-approved reason codes,
-      corrections, refunds, currency, identity, raw values, frozen display
-      strings/locale, source IDs, and policy version (finance/legal review before
-      production).
-- [ ] 3.2 Statement Studio resolves the assigned immutable template and creates
-      the private artifact by binding frozen official display fields, without
-      recalculating or reformatting source facts.
-- [ ] 3.3 The donor BFF authorizes the recipient on every download, exposes only
-      the current eligible artifact, and records delivery/download.
-- [ ] 3.4 Contribution corrections/refunds/relinks supersede or void stale
-      statement artifacts per policy and link replacement lineage without
-      erasing retained audit history.
-- [ ] 3.5 Outbound delivery uses the approved Phase 6 communication seam and
-      document delivery adapter; authenticated self-download remains available
-      without creating a second send/log path.
+- [ ] 3.1 Phase 7 supplies the exact legal-donor Statement Subject, official
+      eligibility, immutable purpose-scoped Facts Package, coverage,
+      exclusions, corrections, and source-approved reason codes. Phase 19
+      freezes the reviewed Statement Run population, source cutoff,
+      participation, recipient operation, and run identity without merging
+      households or delivery destinations into legal-donor authority.
+- [ ] 3.2 Phase 18 Document Production resolves and freezes one compatible
+      immutable publication, creates one idempotent Generation Request, and
+      produces the private canonical artifact without independently querying,
+      recalculating, or reformatting source truth.
+- [ ] 3.3 The donor BFF remains a thin adapter over Phase 19/18 authorization:
+      it reauthorizes the recipient, Statement Subject, purpose, logical
+      current head, exact artifact, and records state on every request; exposes
+      only the current eligible exact PDF; and keeps view, download, local
+      print, portal availability, and outbound delivery as separate facts.
+- [ ] 3.4 Contribution corrections, refunds, or relinks first create
+      source-owned correction/successor authority. Phase 18 then creates the
+      linked successor request and exact artifact, updates the logical current
+      head only after validation, and preserves the predecessor as restricted
+      immutable evidence.
+- [ ] 3.5 Outbound delivery uses the governed Phase 17/Phase 6 communication
+      seam with the exact artifact reference. Authenticated view, download, and
+      local print remain unmetered while authorized. A deliberate
+      **Send another copy** uses Phase 19's bounded idempotent copy-request
+      contract without creating a second send/history path.
+- [ ] 3.6 The optional Support overview uses
+      `giving.summary.informational@1`, remains visibly **Not a tax document**,
+      and contains only source-authorized household support or disclosed DAF
+      recognition. It never enters an official artifact, deductible total, or
+      ordinary nonparticipant surface.
+- [ ] 3.7 Before any Phase 19 donor statement artifact path becomes available,
+      remove or hard-disable the live recomputed annual-statement route and
+      atomically update its clients, prototype inventory, and closure tests.
+      No year may expose both live-recomputed text and frozen official PDF
+      truth.
 
 ## 4. Verification
 
@@ -68,14 +85,15 @@
       validated, provider-retry non-overlapping, control-quarantined when proof
       is missing, and reflected in Mission Control from the same records.
 - [ ] 4.2 E2E: donor changes one line's next date, pauses and cancels recurring
-      support without mutating a sibling line; updates a payment
-      method; downloads the current statement; verifies deductible lines and
-      totals use only #579-approved settled, receiptable hard-credit gifts for
-      the authorized donor/household subject; keeps approved indirect lines
-      labeled and outside the deductible total; excludes pending/unsettled gifts
-      from rendered deductible and indirect lines/totals while retaining their
-      reason-bearing owning-domain exclusion/audit record; excludes
-      still-unknown-donor gifts from the donor artifact while retaining the
-      source-domain exclusion/audit record when evaluated for the run; and
-      cannot access another subject's or a superseded artifact.
-- [ ] 4.3 Archive this change after deployment verification.
+      support without mutating a sibling line; updates a payment method; views,
+      downloads, and locally prints the exact current official statement;
+      verifies official lines and totals contain only the Phase 7-authorized
+      legal-donor Statement Subject's eligible facts; sees any enabled Support
+      overview as a separate **Not a tax document** artifact; deliberately
+      requests one outbound copy without duplicate submission; and cannot
+      access another subject's, a predecessor's, or an unauthorized artifact.
+- [ ] 4.3 Archive this change after deployment verification and only in an order
+      that ensures the Phase 19 `statement-operations` capability and its
+      `platform-product-intent` delta are available before this change's
+      annual-statement `donation-lifecycle` references become merged product
+      intent.

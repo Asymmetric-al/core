@@ -97,8 +97,11 @@
     "verify:shadcn-token-drift": "node scripts/verify/shadcn-token-drift.mjs",
     "tsconfig:future-audit": "node scripts/tsconfig-future-audit.mjs",
     "verify:bun-version": "node scripts/verify/bun-version.mjs",
+    "verify:bun-lock-drift": "node scripts/verify/bun-lock-drift.mjs",
     "verify:data-boundary": "node scripts/verify/data-boundary-check.mjs",
+    "verify:cms-public-sole-entry": "node scripts/verify/cms-public-sole-entry.mjs",
     "verify:twenty-crm-health": "bun scripts/verify/twenty-crm-health.ts",
+    "cutover:assess:documents": "bun scripts/document-cutover/assess-document-cutover.ts",
     "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs",
     "skills:sync": "node scripts/sync-agent-skills.mjs",
     "skills:verify": "node scripts/verify-skills-sync.mjs",
@@ -166,6 +169,7 @@
     "@asym/pdf-studio-adapter": "file:vendor/react-pdf-packages/asym-pdf-studio-adapter",
     "@asym/pdf-template-schema": "file:vendor/react-pdf-packages/asym-pdf-template-schema",
     "@next/env": "16.2.6",
+    "@supabase/supabase-js": "^2.89.0",
     "@tailwindcss/typography": "^0.5.19",
     "graphql": "16.12.0",
     "graphql-yoga": "5.17.1",
@@ -228,14 +232,10 @@
   },
   "lint-staged": {
     "{apps,packages,tooling}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
-      "eslint --fix",
-      "prettier --write"
+      "eslint --fix"
     ],
-    "{apps,packages,tooling,docs,.github}/**/*.{json,md,yml,yaml}": [
-      "prettier --write"
-    ],
-    "./{README.md,package.json,turbo.json,tsconfig.json}": [
-      "prettier --write"
+    "*": [
+      "prettier --ignore-unknown --write"
     ]
   }
 }
