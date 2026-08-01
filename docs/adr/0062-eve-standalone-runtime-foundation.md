@@ -1,4 +1,4 @@
-# ADR-0026: Establish Eve as an isolated, disabled-by-default runtime package
+# ADR-0062: Establish Eve as an isolated, disabled-by-default runtime package
 
 **Status:** Accepted
 
@@ -70,7 +70,7 @@ that a persisted gate is clear.
 - #426 owns verified admin identity and session ownership.
 - #428 owns the Next.js admin mount.
 - #429 owns an engineering sandbox worker and its network policy.
-- ADR-0026 owns only the isolated, off-by-default Eve runtime foundation and
+- ADR-0062 owns only the isolated, off-by-default Eve runtime foundation and
   its local framework proof.
 
 ## Consequences
