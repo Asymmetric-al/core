@@ -6,6 +6,7 @@ export {
   createEveBudgetEmergencyOverride,
   decideEvePolicyApproval,
   executeEvePolicyTracer,
+  executeEvePolicyTracerAsIdentity,
   requestEvePolicyApproval,
 } from "./control";
 export {

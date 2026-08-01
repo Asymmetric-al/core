@@ -5,6 +5,7 @@ export {
 export {
   createAdminEveAuditIdentity,
   createGithubBotEveAuditIdentity,
+  createSessionEveAuditIdentity,
   createServiceEveAuditIdentity,
   toEveAuditIdentityRpcParams,
 } from "./identity";

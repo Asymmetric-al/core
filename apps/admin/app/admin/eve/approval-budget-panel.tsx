@@ -64,7 +64,12 @@ type MutationBody =
 
 const QUERY_KEY = ["admin", "eve", "approval-budget"] as const;
 const ACTION_LABELS: Record<EvePolicyActionId, string> = {
+  "engineering.github_merge.execute": "Run strict GitHub auto-merge",
+  "engineering.github_operation.write": "Run governed GitHub operation",
   "engineering.review_artifact.write": "Write engineering review artifact",
+  "engineering.shared_context.resolve": "Resolve shared-context conflict",
+  "engineering.shared_context.write": "Write shared run context",
+  "engineering.subagent.delegate": "Delegate to specialist subagent",
   "product.internal_status.write": "Write product/admin internal status",
   "memory.advisory.write": "Write advisory memory tracer",
   "product.donor.write": "Attempt stricter donor-data class",
