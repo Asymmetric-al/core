@@ -173,6 +173,72 @@ describe("Eve admin auth and session ownership", () => {
     ).toBeNull();
   });
 
+  it.each([
+    ["admin", "donor"],
+    ["admin", "missionary"],
+    ["staff", "donor"],
+    ["staff", "missionary"],
+  ] as const)(
+    "preserves the authorizing %s profile role when the primary role is %s",
+    (profileRole, membershipRole) => {
+      const result = createAdminEveSessionIdentity({
+        ...verifiedAdmin,
+        memberships: [
+          {
+            isActive: true,
+            role: membershipRole,
+            staffRole: null,
+            tenantId: TENANT_ID,
+          },
+        ],
+        profileRole,
+        role: membershipRole,
+      });
+      if (!result.ok) throw new Error("expected mixed-role admin identity");
+
+      const snapshot = toEveSessionAuthSnapshot(result.identity);
+
+      expect(snapshot.attributes).toMatchObject({
+        profileRole,
+        role: membershipRole,
+      });
+      expect(identityFromEveSessionAuthSnapshot(snapshot)).toEqual(
+        result.identity,
+      );
+    },
+  );
+
+  it.each(["donor", "missionary"] as const)(
+    "preserves staff-membership authority for a %s profile",
+    (profileRole) => {
+      const result = createAdminEveSessionIdentity({
+        ...verifiedAdmin,
+        memberships: [
+          {
+            isActive: true,
+            role: "staff",
+            staffRole: "mobilizer",
+            tenantId: TENANT_ID,
+          },
+        ],
+        profileRole,
+        role: "staff",
+      });
+      if (!result.ok) throw new Error("expected staff member identity");
+
+      const snapshot = toEveSessionAuthSnapshot(result.identity);
+
+      expect(snapshot.attributes).toMatchObject({
+        membershipRoles: ["staff"],
+        profileRole,
+        role: "staff",
+      });
+      expect(identityFromEveSessionAuthSnapshot(snapshot)).toEqual(
+        result.identity,
+      );
+    },
+  );
+
   it("extracts ownership targets only from Eve session route paths", () => {
     expect(
       getEveSessionIdFromRoute(

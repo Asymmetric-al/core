@@ -93,6 +93,26 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    // Phase 5 public-content contract package (ADR-0027): dependencies point
+    // inward — the package never imports Payload or an app. The single
+    // Payload-touching reader implementation lives in apps/admin. CI lints
+    // packages with cwd=packages/api, so the ENFORCING copy of this block
+    // lives in packages/api/eslint.config.mjs; this one covers root-cwd runs
+    // and editors.
+    files: ["packages/api/src/cms/public/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
+    rules: {
+      "no-restricted-imports": appRestrictedImports({
+        extraPatterns: [
+          {
+            group: ["payload", "payload/*", "@payloadcms/*", "@payloadcms/**"],
+            message:
+              "The public-content contract package must not import Payload; the single Payload-touching reader implementation is co-located in apps/admin (ADR-0027).",
+          },
+        ],
+      }),
+    },
+  },
+  {
     files: ["apps/*/app/api/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
     rules: {
       "no-restricted-imports": appRestrictedImports({

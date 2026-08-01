@@ -10,7 +10,12 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
   { id: "skills-verify", script: "skills:verify" },
   { id: "lint", script: "lint" },
   { id: "verify-data-boundary", script: "verify:data-boundary" },
+  {
+    id: "verify-cms-public-sole-entry",
+    script: "verify:cms-public-sole-entry",
+  },
   { id: "verify-workspace-contract", script: "verify:workspace-contract" },
+  { id: "verify-bun-lock-drift", script: "verify:bun-lock-drift" },
   { id: "verify-eslint", script: "verify:eslint" },
   { id: "verify-shadcn-config", script: "verify:shadcn-config" },
   { id: "verify-shadcn-diff", script: "verify:shadcn-diff" },

@@ -22,6 +22,10 @@ vi.mock("next/cache", () => ({
 }));
 
 import {
+  DELETE as unfirePost,
+  POST as firePost,
+} from "../../packages/api/src/posts/fire";
+import {
   DELETE as unlikePost,
   POST as likePost,
 } from "../../packages/api/src/posts/like";
@@ -146,6 +150,18 @@ const mutationCases: Array<{
     label: "unpray",
     handler: unprayForPost,
     rpcName: "atomic_unpray_for_post",
+    notFoundMessage: "Post not found",
+  },
+  {
+    label: "fire",
+    handler: firePost,
+    rpcName: "atomic_fire_post",
+    notFoundMessage: "Post not found",
+  },
+  {
+    label: "unfire",
+    handler: unfirePost,
+    rpcName: "atomic_unfire_post",
     notFoundMessage: "Post not found",
   },
 ];

@@ -27,6 +27,8 @@ const SECRET_VALUE_PATTERNS: Array<[RegExp, string]> = [
   [/\+?\d(?:[(). -]*\d){9,14}\b/g, "[redacted-phone]"],
   [/\b(?:\d[ -]*?){13,19}\b/g, "[redacted-payment-number]"],
 ];
+const SENSITIVE_TEXT_SECTION_PATTERN =
+  /(^|\r?\n)([ \t]*(?:prompt|response|transcript|request[ _-]?body|chain[ _-]?of[ _-]?thought|hidden[ _-]?reason|system|user|assistant|tool)[ \t]*[:=])[ \t]*[\s\S]*?(?=\r?\n[ \t]*(?:prompt|response|transcript|request[ _-]?body|chain[ _-]?of[ _-]?thought|hidden[ _-]?reason|system|user|assistant|tool)[ \t]*[:=]|$)/gi;
 
 function replaceSensitiveStringValues(value: string): string {
   let sanitized = value;
@@ -49,10 +51,19 @@ function sanitizeString(value: string): string {
 
 /** Redact a bounded artifact body without applying audit-summary truncation. */
 export function redactEveArtifactText(value: string): string {
-  return replaceSensitiveStringValues(value);
+  const redactedLabels = value.replace(
+    SENSITIVE_TEXT_SECTION_PATTERN,
+    `$1$2 ${REDACTED}`,
+  );
+  return replaceSensitiveStringValues(redactedLabels);
 }
 
-export function redactEveAuditValue(value: unknown, depth = 0): unknown {
+function redactEveValue(
+  value: unknown,
+  depth: number,
+  redactMessageBodies: boolean,
+  insideMessages: boolean,
+): unknown {
   if (depth > MAX_DEPTH) {
     return "[depth-limited]";
   }
@@ -72,7 +83,9 @@ export function redactEveAuditValue(value: unknown, depth = 0): unknown {
   if (Array.isArray(value)) {
     return value
       .slice(0, MAX_ARRAY_ITEMS)
-      .map((item) => redactEveAuditValue(item, depth + 1));
+      .map((item) =>
+        redactEveValue(item, depth + 1, redactMessageBodies, insideMessages),
+      );
   }
 
   if (typeof value !== "object") {
@@ -83,15 +96,34 @@ export function redactEveAuditValue(value: unknown, depth = 0): unknown {
     0,
     MAX_OBJECT_KEYS,
   );
+  const messageObject =
+    redactMessageBodies &&
+    (insideMessages || Object.prototype.hasOwnProperty.call(value, "role"));
 
   return Object.fromEntries(
     entries.map(([key, childValue]) => [
       key,
-      SENSITIVE_KEY_PATTERN.test(key) || AUTHORITATIVE_KEY_PATTERN.test(key)
+      SENSITIVE_KEY_PATTERN.test(key) ||
+      AUTHORITATIVE_KEY_PATTERN.test(key) ||
+      (messageObject && /^content$/i.test(key))
         ? REDACTED
-        : redactEveAuditValue(childValue, depth + 1),
+        : redactEveValue(
+            childValue,
+            depth + 1,
+            redactMessageBodies,
+            /^messages$/i.test(key),
+          ),
     ]),
   );
+}
+
+export function redactEveAuditValue(value: unknown, depth = 0): unknown {
+  return redactEveValue(value, depth, false, false);
+}
+
+/** Redact audit-sensitive fields plus bodies in message-shaped replay JSON. */
+export function redactEveReplayValue(value: unknown): unknown {
+  return redactEveValue(value, 0, true, false);
 }
 
 export function summarizeEveAuditValue(value: unknown): string {

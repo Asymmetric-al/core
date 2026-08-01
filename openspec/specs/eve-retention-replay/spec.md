@@ -77,8 +77,9 @@ direct table or security-definer RPC authority.
 
 Expiry MUST be bounded, concurrent-worker safe, hold-aware, and auditable.
 Uploaded artifacts MUST move through `delete_pending`; metadata MUST be finalized
-as expired only after Storage deletion succeeds. Upload-pending metadata MAY be
-expired atomically because no object exists.
+as expired only after Storage deletion succeeds. Upload-pending metadata MUST use
+the same deletion path because object presence is uncertain after an interrupted
+post-upload completion.
 
 #### Scenario: Storage deletion fails transiently
 

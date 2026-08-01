@@ -73,15 +73,17 @@ describe("Eve model-policy control", () => {
       policy,
       policyHash,
     });
-    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const rpc = vi.fn().mockResolvedValue({ data: true, error: null });
     const { evaluateEveModelPolicyDraft } =
       await import("../../../../packages/api/src/eve/model-policy/control");
 
-    await evaluateEveModelPolicyDraft({
-      auth,
-      policyId: "00000000-0000-4000-8000-000000000004",
-      supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
-    });
+    await expect(
+      evaluateEveModelPolicyDraft({
+        auth,
+        policyId: "00000000-0000-4000-8000-000000000004",
+        supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+      }),
+    ).resolves.toBeUndefined();
 
     expect(rpc).toHaveBeenCalledWith(
       "evaluate_eve_model_policy_draft",

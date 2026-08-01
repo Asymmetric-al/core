@@ -10,7 +10,7 @@ import {
 import { decryptResendApiKey } from "../email/crypto";
 import { readTenantEmailSettings } from "../email/settings-store";
 import { ApiHttpError } from "../shared/http-errors";
-import { asString } from "../shared/json-coerce";
+import { asString, isRecord } from "../shared/json-coerce";
 
 import type { ReceiptSnapshotContentV1 } from "../admin/contribution-operations/receipt-delivery";
 import type { getAdminClient } from "@asym/database/supabase/admin";
@@ -43,10 +43,6 @@ interface ReceiptGiftIdentity {
 interface ReceiptSendResult {
   sendLogId: string | null;
   status: "sent" | "failed" | "suppressed";
-}
-
-function isJsonRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function formatMoney(cents: number, currency: string) {
@@ -98,7 +94,7 @@ async function loadDonorReceiptIdentity(input: {
     .eq("id", input.donorId)
     .single();
 
-  if (donorResult.error || !isJsonRecord(donorResult.data)) {
+  if (donorResult.error || !isRecord(donorResult.data)) {
     throw new ApiHttpError(404, "Receipt donor not found.");
   }
 
@@ -116,7 +112,7 @@ async function loadDonorReceiptIdentity(input: {
     if (profileResult.error) {
       throw new Error(profileResult.error.message);
     }
-    const profile: JsonRecord = isJsonRecord(profileResult.data)
+    const profile: JsonRecord = isRecord(profileResult.data)
       ? profileResult.data
       : {};
     email ??= asString(profile.email);
@@ -402,7 +398,7 @@ async function deliverReceiptEmailForGift(input: {
     throw new Error(logInsert.error.message);
   }
 
-  const sendLogId = isJsonRecord(logInsert.data)
+  const sendLogId = isRecord(logInsert.data)
     ? asString(logInsert.data.id)
     : null;
   const updateResult = await input.supabaseAdmin

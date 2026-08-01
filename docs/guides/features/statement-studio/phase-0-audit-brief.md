@@ -1,5 +1,16 @@
 # Statement Studio Phase 0 Audit Brief
 
+> [!IMPORTANT]
+> **Superseded historical evidence only (2026-07-27).** This brief records the
+> audited Phase 0 decision at its stated commit, but it has no implementation
+> authority. Its DocRaptor-first, legacy-retention, gradual-migration,
+> signed-URL, and fallback/dual-runtime recommendations are not current
+> instructions. Current authority is Phase 18 D-prime-R, the Phase 18 PRD, and
+> `openspec/changes/add-statement-studio`: D3 selects at most one exact renderer
+> through one bounded production-shaped evidence contest, D17 performs an
+> environment-gated destructive pre-production cutover to zero legacy runtime,
+> and D13 permits only authenticated Asym access to the exact frozen artifact.
+
 Status: research and the Phase 0 decision package were completed on 2026-07-10
 against `origin/develop` at `25b5aae6`. PR #715 is the merge/approval record;
 provider qualification and the finance/legal gates below remain separate.
@@ -12,7 +23,7 @@ No product code or database migration belongs in AL-312.
 
 ## Triggers
 
-Use this audit before:
+Use this audit only to understand the historical repository evidence behind:
 
 - Implementing Statement Studio issues after AL-312.
 - Adding a production receipt, statement, report, or portal PDF.
@@ -21,8 +32,8 @@ Use this audit before:
 
 ## Workflow Steps
 
-1. Treat the decisions below as the Phase 0 direction; PR #715 merge records
-   repo approval of the decision package.
+1. Treat the findings below as dated evidence, not current direction; PR #715
+   records the historical Phase 0 package only.
 2. Use the evidence appendix when a finding needs exact source paths or test
    boundaries.
 3. Implement only the safe shell/sample-data tracer until the financial and

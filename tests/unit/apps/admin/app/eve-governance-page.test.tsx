@@ -243,4 +243,63 @@ describe("Eve governance admin view", () => {
     expect(view.getByText(/Target: ci:develop/)).toBeTruthy();
     expect(view.getByText("Failed")).toBeTruthy();
   });
+
+  it("keeps the newest failures when truncating across runs and audits", () => {
+    const failedRuns = Array.from({ length: 10 }, (_, index) => ({
+      id: `00000000-0000-4000-8000-00000000010${index}`,
+      action: `run.action.${index}`,
+      decision: "allowed" as const,
+      reason: "governance_allowed",
+      status: "failed" as const,
+      target: "ci:develop",
+      updatedAt: `2026-07-17T00:0${Math.min(index, 9)}:00.000Z`,
+    }));
+    const newerAuditFailure: EveAuditEventRecord = {
+      id: "00000000-0000-4000-8000-000000000200",
+      actorId: "eve",
+      identityMode: "service",
+      initiatorType: "system",
+      initiatorId: "eve-kernel",
+      policyId: "eve-governance-kernel",
+      policyStatus: "ready",
+      action: "audit.failure.latest",
+      result: "failed",
+      modelRole: "orchestrator",
+      evidenceSummary: "Redacted evidence.",
+      changeSummary: "No change applied.",
+      decisionSummary: "Newest audited failure.",
+      debugMetadata: {},
+      redactionVersion: "eve-audit-v1",
+      createdAt: "2026-07-17T01:00:00.000Z",
+    };
+    const view = render(
+      <EveGovernanceView
+        data={{
+          system: {
+            source: "persisted",
+            releaseEnabled: false,
+            emergencyOff: false,
+            killSwitchState: createClearedEveKillSwitchState(),
+            policyStatus: "ready",
+            stateVersion: 2,
+            updatedAt: "2026-07-17T00:00:00.000Z",
+          },
+          auditHistory: [newerAuditFailure],
+          recentRuns: failedRuns,
+        }}
+        isError={false}
+        isLoading={false}
+      />,
+    );
+
+    const failuresCard = view.container.querySelector("#eve-failures");
+    expect(failuresCard).toBeTruthy();
+    const summaries = Array.from(
+      failuresCard!.querySelectorAll("li p.text-sm.font-medium"),
+    ).map((node) => node.textContent);
+
+    expect(summaries).toHaveLength(10);
+    expect(summaries[0]).toBe("audit.failure.latest");
+    expect(summaries).not.toContain("run.action.0");
+  });
 });

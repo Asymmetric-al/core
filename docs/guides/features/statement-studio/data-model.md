@@ -1,52 +1,64 @@
 # Data Model
 
+> [!IMPORTANT]
+> **Implementation route superseded (Phase 18, 2026-07-21).** This file
+> preserves historical Phase 0 design evidence only and has no implementation
+> authority. All implementation must follow **Phase 18
+> D-prime-amended-and-hardened (D-prime-R)**, the current Phase 18 PRD,
+> authority manifest, implementation spec, renderer qualification protocol,
+> ADRs 0033-0039, and OpenSpec contract. D17 requires an environment-gated
+> destructive pre-production cutover to zero legacy runtime, with no import,
+> backfill, fallback, or dual compatibility; D13 forbids raw provider or signed
+> object URLs as access authority. No renderer, including DocRaptor, has
+> production authority before the bounded D3 evidence contest.
+
 The data model must be tenant-safe, Supabase-current, and flexible enough for standard platform jobs plus tenant-created custom assignments.
 
 ## Triggers
 
-Use this doc when planning or changing Statement Studio tables, migrations, RLS, grants, Storage, artifacts, defaults, retention, or purge behavior.
+Use this doc only to inspect the historical Phase 0 data-model evidence. Do not
+use it to plan or change current tables, migrations, RLS, grants, Storage,
+artifacts, defaults, retention, or purge behavior.
 
 ## Workflow Steps
 
-1. Load `docs/ai/skills/supabase/SKILL.md`.
-2. Load `docs/ai/rules/backend.md`.
-3. Load `supabase/AGENTS.md`.
-4. For schema, RLS, indexes, or query performance, load `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`.
-5. Verify current Supabase docs/changelog before implementation.
-6. Add explicit grants and RLS together in migrations.
-7. Run focused SQL/type/route verification.
+1. For implementation, stop here and use the current Phase 18 PRD,
+   implementation spec, and OpenSpec contract.
+2. Use the concepts below only as historical evidence to compare against the
+   current Phase 18 canonical schema and cutover.
 
-## Canonical Persistence (Phase 0 Decision)
+## Historical persistence evidence and current boundary
 
-**Phase 0 (#312) selects one canonical Postgres migration base before SS-01+
-ships schema.** The repo already has native PDF Studio tables from
-`supabase/migrations/20260515140948_native_pdf_studio_foundation.sql`:
+Phase 0 previously selected the existing native PDF Studio tables from
+`supabase/migrations/20260515140948_native_pdf_studio_foundation.sql` as a
+migration base. Phase 18 D17 supersedes that decision. Those tables and their
+callers are prototype/removal evidence, not a schema that implementation should
+extend or preserve for compatibility.
 
-- `pdf_templates`, `pdf_template_versions`, `pdf_template_renders`,
-  `pdf_template_artifacts` (and related native PDF Studio tables).
+After the required pre-production environment assertion passes, implementation
+deletes or replaces the prototype schema and establishes one clean canonical
+`pdf_*` bounded context that satisfies the Phase 18 authority manifest. It does
+not import, backfill, alias, dual-write, shadow-read, or preserve legacy rows.
+If the assertion discovers real production reliance or irreplaceable data, work
+stops before mutation and returns to grooming; the implementation must not
+invent a migration path.
 
-**Decision:** extend these existing `pdf_*` tables rather than introducing a
-parallel `document_*` template/version/render/artifact/audit store. Rename an
-existing table only through an explicit migration/cutover. The missing product
-concepts below do not prescribe SQL identifiers; implementation must map each to
-an existing table/column, an intentional extension, or an explicitly justified
-net-new `pdf_*` table without duplicating truth.
+**Single store module:** `packages/api` exposes one persistence seam. Feature
+slices must not write parallel table families or treat a prototype table as an
+independent source of document truth.
 
-**Single store module:** `packages/api` exposes
-one persistence seam; feature slices must not write parallel table families.
+## Historical Core Persistence Concepts
 
-## Core Persistence Concepts
+The following Phase 0 mapping is retained only as removal and concept evidence:
 
-Phase 0 ratifies these existing table names and roles:
-
-| Product concept                | Canonical persistence direction                                                     |
-| ------------------------------ | ----------------------------------------------------------------------------------- |
-| Tenant template aggregate      | `pdf_templates`                                                                     |
-| Template working/version state | Mutable drafts and immutable published/archive snapshots in `pdf_template_versions` |
-| Render attempts                | `pdf_template_renders`                                                              |
-| Generated artifact metadata    | `pdf_template_artifacts`                                                            |
-| Lifecycle/access/purge audit   | `pdf_template_audit_events`                                                         |
-| Batch orchestration            | `pdf_template_batches` and `pdf_template_batch_jobs`                                |
+| Product concept                | Prototype evidence                                   |
+| ------------------------------ | ---------------------------------------------------- |
+| Tenant template aggregate      | `pdf_templates`                                      |
+| Template working/version state | `pdf_template_versions`                              |
+| Render attempts                | `pdf_template_renders`                               |
+| Generated artifact metadata    | `pdf_template_artifacts`                             |
+| Lifecycle/access/purge audit   | `pdf_template_audit_events`                          |
+| Batch orchestration            | `pdf_template_batches` and `pdf_template_batch_jobs` |
 
 The remaining product concepts are requirements, not approved table names:
 
@@ -56,11 +68,11 @@ The remaining product concepts are requirements, not approved table names:
 - variable catalog and tenant overrides;
 - retention and storage-threshold policy.
 
-The foundation change must map each missing concept to an extension of the
-existing `pdf_*` family, a column/view, or an explicitly justified net-new
-`pdf_*` table. It must not turn conceptual `document_*` labels into a parallel
-template, version, render, artifact, or audit store. User-facing product
-language remains Statement Studio.
+The Phase 18 foundation maps every approved concept to the one final `pdf_*`
+schema. SQL names are subordinate to the authority manifest and must preserve
+separate source issuance, publication, request, artifact, current-head, access,
+delivery, and records axes. User-facing product language remains Statement
+Studio.
 
 ## Defaults
 
