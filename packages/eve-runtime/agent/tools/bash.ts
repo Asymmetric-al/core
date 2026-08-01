@@ -73,11 +73,15 @@ export default defineTool({
 
     const sandbox = await ctx.getSandbox();
     const decision = await resolveEveSandboxNetworkDecision();
-    await sandbox
-      .setNetworkPolicy(decision.networkPolicy)
-      .catch(() => undefined);
     if (!decision.allowed) {
       return blockedOutput(`Sandbox paused: ${decision.reason}.`);
+    }
+    try {
+      await sandbox.setNetworkPolicy(decision.networkPolicy);
+    } catch {
+      return blockedOutput(
+        "Sandbox paused: the governed network policy could not be applied.",
+      );
     }
 
     const runId = crypto.randomUUID();

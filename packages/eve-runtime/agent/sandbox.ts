@@ -36,7 +36,9 @@ export default defineSandbox({
         throw new Error("The Core checkout could not be sanitized.");
       }
     } finally {
-      await sandbox.setNetworkPolicy(denyAllNetwork).catch(() => undefined);
+      // Deny-first: a failed restore must fail the bootstrap rather than cache
+      // a workspace snapshot whose network may still be open.
+      await sandbox.setNetworkPolicy(denyAllNetwork);
     }
   },
   async onSession({ ctx, use: acquireSandbox }) {
@@ -52,7 +54,11 @@ export default defineSandbox({
     });
 
     if (!decision.allowed || !auditRecorded) {
-      await sandbox.setNetworkPolicy(denyAllNetwork).catch(() => undefined);
+      try {
+        await sandbox.setNetworkPolicy(denyAllNetwork);
+      } catch {
+        throw new Error("Sandbox networking could not be denied safely.");
+      }
       return;
     }
 
@@ -77,7 +83,11 @@ export default defineSandbox({
       target: decision.networkPolicy,
     });
     if (!completionRecorded) {
-      await sandbox.setNetworkPolicy(denyAllNetwork).catch(() => undefined);
+      try {
+        await sandbox.setNetworkPolicy(denyAllNetwork);
+      } catch {
+        throw new Error("Sandbox networking could not be denied safely.");
+      }
       throw new Error("Sandbox network authorization could not be audited.");
     }
   },

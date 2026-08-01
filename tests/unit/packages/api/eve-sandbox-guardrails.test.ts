@@ -53,6 +53,11 @@ describe("Eve sandbox file guardrails", () => {
     "/workspace/repo/keys/service-role.pem",
     "/workspace/repo/production-data/customer.dump",
     "../host-secret.txt",
+    // Absolute paths outside /workspace/ escape the sandbox without any ".."
+    "/etc/hosts",
+    "/etc/passwd",
+    "/var/run/docker.sock",
+    "/home/runner/.ssh/id_rsa",
   ])("blocks sensitive or escaping path %s", (path) => {
     const result = scanEveSandboxPath(path);
 

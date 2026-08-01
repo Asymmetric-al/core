@@ -118,8 +118,11 @@ export function scanEveSandboxPath(path: string): EveSandboxScanResult {
   const normalizedPath = normalizePath(path);
   const findings: EveSandboxFinding[] = [];
 
+  // An absolute path that survived normalization never resolved under
+  // /workspace/, so it escapes the sandbox even without any ".." traversal.
   if (
     normalizedPath.length === 0 ||
+    normalizedPath.startsWith("/") ||
     normalizedPath === ".." ||
     normalizedPath.startsWith("../") ||
     normalizedPath.includes("/../")
