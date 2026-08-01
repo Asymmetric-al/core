@@ -88,7 +88,14 @@ export const PROJECTS = [
     project: "donor",
     vercelConfigPath: "apps/donor/vercel.json",
     healthUrl: "https://donor.asymmetric.al/api/health",
-    requiredEnv: COMMON_REQUIRED_ENV,
+    requiredEnv: [
+      ...COMMON_REQUIRED_ENV,
+      // The donor app is the public CMS consumer: apps/donor/lib/cms/client.ts
+      // reads published content over HTTP from the admin app. Without this it
+      // silently falls back to http://127.0.0.1:3030, so every public CMS read
+      // fails in a hosted environment and /[...cmsSlug] throws.
+      required("CMS_BASE_URL", "must be a URL", isUrl),
+    ],
   },
   {
     key: "missionary",
