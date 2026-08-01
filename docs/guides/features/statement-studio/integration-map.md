@@ -1,5 +1,15 @@
 # Integration Map
 
+> **Superseded implementation authority (Phase 18, 2026-07-21).** This map is
+> retained as historical integration evidence only. Do not dispatch it or use it
+> as target architecture. The Phase 18 PRD, authority manifest, renderer
+> qualification protocol, ADRs 0033-0039, and OpenSpec change are controlling.
+> Ownership is split deliberately: Phase 7 owns eligibility, facts, source
+> issuance, and correction effect; Phase 18 owns document definition,
+> publication, requests, exact artifacts, current-head access, and records;
+> Phase 19 owns statement population, runs, and items; Phase 17 owns message and
+> delivery.
+
 Statement Studio is not complete until every PDF-producing or PDF-consuming app surface has an explicit integration map.
 
 ## Triggers
