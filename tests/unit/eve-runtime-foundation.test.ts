@@ -133,10 +133,13 @@ describe("Eve runtime foundation", () => {
       "utf8",
     );
 
-    expect(bash).toContain("scanEveSandboxCommand");
-    expect(bash).toContain("recordEveSandboxAction");
-    expect(writeFile).toContain("scanEveSandboxWrite");
-    expect(writeFile).toContain("recordEveSandboxAction");
+    // Assert the call form, not the bare name: a substring match also passes
+    // for an unused import or a mention in a comment, which would hide a
+    // guardrail that is wired up but never actually invoked.
+    expect(bash).toMatch(/scanEveSandboxCommand\(/u);
+    expect(bash).toMatch(/recordEveSandboxAction\(/u);
+    expect(writeFile).toMatch(/scanEveSandboxWrite\(/u);
+    expect(writeFile).toMatch(/recordEveSandboxAction\(/u);
   });
 
   it("keeps the runtime off when persisted release is disabled", () => {
