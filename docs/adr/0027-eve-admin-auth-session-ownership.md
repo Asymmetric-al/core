@@ -6,7 +6,7 @@
 
 **Issue:** #426
 
-**Builds on:** ADR-0018, ADR-0019, ADR-0020, ADR-0023, ADR-0024, ADR-0025, ADR-0026
+**Builds on:** ADR-0018, ADR-0019, ADR-0020, ADR-0023, ADR-0024, ADR-0025, ADR-0062
 
 ## Context
 
@@ -65,7 +65,7 @@ production session.
 - ADR-0023 owns private admin memory.
 - ADR-0024 owns approval and budget policy.
 - ADR-0025 owns retention and replay lifecycle.
-- ADR-0026 owns Eve session durability and the disabled runtime foundation.
+- ADR-0062 owns Eve session durability and the disabled runtime foundation.
 - #428 owns the Next.js admin mount and transport compatibility.
 - ADR-0027 owns verified route identity and authorization bindings only.
 
