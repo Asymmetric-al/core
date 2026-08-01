@@ -88,12 +88,12 @@ function isPublicPath(pathname: string) {
  * their actual content instead.
  *
  * Safe because `apps/missionary/proxy.ts` enforces `protectedRoutePrefixes:
- * ["/"]` with `allowedRoles: ["missionary", "super_admin"]` on every request,
- * and page data arrives through client hooks under RLS. Redirect timing is
- * unchanged: the gate was already inside the boundary, so `redirect()` already
- * fired post-flush. The accepted trade-off is that a request which bypassed the
- * proxy would briefly paint the static page frame — never data — before the
- * streamed redirect.
+ * ["/"]` with the shared `MISSIONARY_ALLOWED_ROLES` on every request, and page
+ * data arrives through client hooks under RLS. Redirect timing is unchanged:
+ * the gate was already inside the boundary, so `redirect()` already fired
+ * post-flush. The accepted trade-off is that a request which bypassed the proxy
+ * would briefly paint the static page frame — never data — before the streamed
+ * redirect.
  */
 async function MissionaryRoleGate() {
   const pathname = (await headers()).get("x-asym-pathname") ?? "/";

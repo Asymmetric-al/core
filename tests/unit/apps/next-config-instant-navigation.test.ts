@@ -6,26 +6,6 @@ interface InstantNavigationConfig {
   partialPrefetching?: boolean;
 }
 
-/**
- * Next accepts either an object or `(phase, ctx) => config`. Admin exports the
- * function form because `withEve()` wraps its config, so reading `.default`
- * directly would report every flag as `undefined` while the real config is
- * fine. Resolve whichever form the app exports.
- */
-type NextConfigExport =
-  | InstantNavigationConfig
-  | ((
-      phase: string,
-      context: { defaultConfig: Record<string, unknown> },
-    ) => InstantNavigationConfig | Promise<InstantNavigationConfig>);
-
-const resolveNextConfig = async (
-  value: NextConfigExport,
-): Promise<InstantNavigationConfig> =>
-  typeof value === "function"
-    ? await value("phase-production-build", { defaultConfig: {} })
-    : value;
-
 const APP_CONFIGS = [
   {
     app: "admin",
@@ -57,12 +37,18 @@ const APP_CONFIGS = [
 describe("Instant Navigation config (Next.js 16.3)", () => {
   for (const { app, configPath } of APP_CONFIGS) {
     it(`apps/${app} enables Cache Components and Partial Prefetching`, async () => {
-      // Import rather than regex the source: `default` is the wrapped export
-      // (admin is withEve(withSentryConfig(withPayload(nextConfig)))), so this
-      // proves the flags survive every plugin. The 60s budget covers loading
-      // @payloadcms/next and @sentry/nextjs - not a flakiness allowance.
-      const mod = (await import(configPath)) as { default: NextConfigExport };
-      const config = await resolveNextConfig(mod.default);
+      // Prefer the named `nextConfig`: admin's default export is
+      // `withEve(withSentryConfig(withPayload(nextConfig)))`, and `withEve`
+      // returns Next's function form `(phase, ctx) => config`, so reading
+      // `.default` directly reports every flag as `undefined`. Calling it
+      // would also run withEve's Vercel-output side effects inside a unit
+      // test. This locks the source config; that the flags survive the
+      // plugins is what `next build` proves.
+      const mod = (await import(configPath)) as {
+        default: InstantNavigationConfig;
+        nextConfig?: InstantNavigationConfig;
+      };
+      const config = mod.nextConfig ?? mod.default;
 
       expect(config.cacheComponents).toBe(true);
       expect(config.partialPrefetching).toBe(true);

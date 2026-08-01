@@ -6,8 +6,9 @@ import { describe, expect, it } from "vitest";
 /**
  * Companion to `tests/unit/packages/ui/internal-alias.test.ts`: the plugin is
  * workspace-agnostic, so cover an app as well as a package. This uses real
- * app code rather than a fixture — `apps/admin/app/(app)/admin/loading.tsx` already
- * imports through the app's own `@/*` tsconfig mapping.
+ * app code rather than a fixture —
+ * `apps/admin/app/(app)/admin/loading.tsx` already imports through the app's
+ * own `@/*` tsconfig mapping.
  */
 const appModulePath = fileURLToPath(
   new URL(

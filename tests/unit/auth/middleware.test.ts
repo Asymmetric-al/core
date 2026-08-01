@@ -410,6 +410,29 @@ describe("createAuthMiddleware", () => {
     );
   });
 
+  it("redirects a signed-in wrong-role visitor without entering an auth loop", async () => {
+    mockConfigWithUser("user_donor");
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/no-access"],
+      protectedRoutePrefixes: ["/"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/",
+      unauthorizedRedirectTo: "/no-access",
+      allowedRoles: ["staff", "admin", "super_admin"],
+      resolveUserRole: async () => ({
+        profileRole: "donor",
+        memberships: [],
+      }),
+    });
+
+    const response = await middleware(createRequest("/login"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/no-access",
+    );
+  });
+
   it("leaves auth routes alone for an E2E-bypass session with no Supabase user", async () => {
     // The bypass cookie populates `userId` but never a Supabase `user`; keying
     // the redirect off `userId` would bounce the e2e suite off /login.
@@ -516,7 +539,10 @@ describe("edge role enforcement", () => {
       protectedRoutePrefixes: ["/crm"],
       allowedRoles: ["staff", "admin", "super_admin"],
       unauthorizedRedirectTo: "/no-access",
-      resolveUserRole: async () => "donor",
+      resolveUserRole: async () => ({
+        profileRole: "donor",
+        memberships: [],
+      }),
     });
 
     const response = await middleware(createRequest("/crm"));
@@ -532,10 +558,42 @@ describe("edge role enforcement", () => {
       protectedRoutePrefixes: ["/crm"],
       allowedRoles: ["staff", "admin", "super_admin"],
       unauthorizedRedirectTo: "/no-access",
-      resolveUserRole: async () => "staff",
+      resolveUserRole: async () => ({
+        profileRole: "staff",
+        memberships: [],
+      }),
     });
 
     const response = await middleware(createRequest("/crm"));
+
+    expect(response.status).toBe(200);
+  });
+
+  it("allows any active membership instead of only the primary role", async () => {
+    const middleware = createAuthMiddleware({
+      protectedRoutePrefixes: ["/donor-dashboard"],
+      allowedRoles: ["donor"],
+      unauthorizedRedirectTo: "/no-access",
+      resolveUserRole: async () => ({
+        profileRole: "staff",
+        memberships: [
+          {
+            tenantId: "tenant_1",
+            role: "donor",
+            staffRole: null,
+            isActive: true,
+          },
+          {
+            tenantId: "tenant_1",
+            role: "staff",
+            staffRole: null,
+            isActive: true,
+          },
+        ],
+      }),
+    });
+
+    const response = await middleware(createRequest("/donor-dashboard"));
 
     expect(response.status).toBe(200);
   });

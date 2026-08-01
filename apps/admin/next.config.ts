@@ -14,7 +14,7 @@ const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
 loadEnvConfig(WORKSPACE_ROOT);
 normalizeEveVercelEnvironment(process.env);
 
-const nextConfig: NextConfig = {
+export const nextConfig: NextConfig = {
   reactStrictMode: true,
   /** Dev HMR when opening the app via `http://127.0.0.1:3030` instead of `localhost`. */
   allowedDevOrigins: ["127.0.0.1"],

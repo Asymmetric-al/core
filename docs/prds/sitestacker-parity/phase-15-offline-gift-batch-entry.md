@@ -159,7 +159,8 @@ These paths prove the seams, precedents, and infrastructure Phase 15 builds agai
 - **Track-B offline slice (parts inventory, D1.b):**
   `packages/api/src/admin/contributions/` (`offline-entry.ts`,
   `offline-logic.ts`, `offline-route.ts`, and `offline-dependencies.ts` — the
-  501 “Unbound” bridge and `resolveOfflineReceiptStatus` logic to delete) plus
+  501 “Unbound” bridge and the `resolveOfflineReceiptStatus` logic currently
+  housed in `offline-logic.ts`, both to delete) plus
   neutral field-shape lessons in
   `packages/api/src/schemas/contributions-offline.ts` (`batchId` and
   `referenceNumber`). Phase 7 replaces the legacy receipt decision.
@@ -767,7 +768,8 @@ These are cited as evidence, never as brittle build steps. **REAL** = exists on 
 - **REAL — the offline-entry parts** classified by [D1.b]: the offline-gift
   Zod schema supplies neutral input-field lessons (`known` versus
   `unknown_offline`, `batchId`, and reference fields). Its receipt-status
-  logic, the 501 dependency stub (`OfflineEntryUnboundError`), and the
+  logic in `offline-logic.ts`, the 501 dependency stub
+  (`OfflineEntryUnboundError`), and the
   legacy-`donations` persistence plan are temporary bridges that are **never
   wired** and are deleted in slice one.
 - **REAL — the durable seams:** the commit path reuses the donation saga +
@@ -1778,7 +1780,7 @@ poison fixtures ship with the first migration.
 
 ### Repo anchors — REAL vs FORWARD (context only; not build instructions)
 
-**REAL today** (cite as precedent / reuse seam): the dormant editable-grid seed `packages/ui/components/shadcn/data-grid/` (TSV clipboard + undo/redo, no arrow-nav/roving-tabindex — parts, not architecture); the read-only `packages/ui/components/shadcn/data-table/` (`DataTableResponsive`, `useDataTableKeyboard`, `useDataTableVirtualization`); the Contributions hub `apps/admin/app/(app)/contributions/` (`main-body.tsx`, `operation-shell.tsx`, `correction-approval-panel.tsx`, the single-gift offline-gift dialog under `offline-gift/`); neutral field-shape evidence in `packages/api/src/schemas/contributions-offline.ts`; the legacy receipt resolver and 501 bridge under `packages/api/src/admin/contributions/` (**both deleted in slice one**); the donation saga/outbox `packages/api/src/donate/` (`saga.ts`, `outbox.ts`, `payment-intent.ts`, `idempotency.ts`); the fail-closed consent gate `packages/api/src/email/consent.ts`; `contribution_approval_policies` + `contribution_correction_requests` (migration `20260611120000`); `contribution_operation_batches` (migration `20260526202500` — bulk ops over EXISTING gifts, a distinct domain, generic infra reusable, state machine NOT shared); `crm_table_preferences` (migration `20260611160000` — the personal-column-prefs precedent); the durable `stripe_raw_events` ledger + replay; the party resolver `resolveDonorMatch`.
+**REAL today** (cite as precedent / reuse seam): the dormant editable-grid seed `packages/ui/components/shadcn/data-grid/` (TSV clipboard + undo/redo, no arrow-nav/roving-tabindex — parts, not architecture); the read-only `packages/ui/components/shadcn/data-table/` (`DataTableResponsive`, `useDataTableKeyboard`, `useDataTableVirtualization`); the Contributions hub `apps/admin/app/(app)/contributions/` (`main-body.tsx`, `operation-shell.tsx`, `correction-approval-panel.tsx`, the single-gift offline-gift dialog under `offline-gift/`); neutral field-shape evidence in `packages/api/src/schemas/contributions-offline.ts`; the legacy receipt resolver `resolveOfflineReceiptStatus` in `packages/api/src/admin/contributions/offline-logic.ts` and the 501 bridge under `packages/api/src/admin/contributions/` (**both deleted in slice one**); the donation saga/outbox `packages/api/src/donate/` (`saga.ts`, `outbox.ts`, `payment-intent.ts`, `idempotency.ts`); the fail-closed consent gate `packages/api/src/email/consent.ts` as downstream-owner evidence only, never a Phase 15 call; `contribution_approval_policies` + `contribution_correction_requests` (migration `20260611120000`); `contribution_operation_batches` (migration `20260526202500` — bulk ops over EXISTING gifts, a distinct domain, generic infra reusable, state machine NOT shared); `crm_table_preferences` (migration `20260611160000` — the personal-column-prefs precedent); the durable `stripe_raw_events` ledger + replay; the party resolver `resolveDonorMatch`.
 
 **FORWARD (groomed-not-built, named owner)** — the first P15 build ticket lands the substrate these depend on: the Phase 13 `contribution_headers` / `contribution_designation_lines` / `contribution_postings` ledger, `effective_seq` cursor, the BEFORE-UPDATE posting-immutability trigger, and the `credit_recheck` outbox event (**zero SQL today; Phase 13 epic #690 blocked**); the Phase 14 (Donor Credit Operations) `contribution_credits` plus purpose/readiness/coverage machinery (`acknowledgment_request_state` / `acknowledgment_hold_until` on the header, tribute / matching / DAF objects — **epic #719, unbuilt**); `tenant_bank_accounts` and every P15 table below (net-new).
 

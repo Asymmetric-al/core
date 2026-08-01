@@ -13,6 +13,7 @@ import {
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "./e2e-auth";
+import { hasAnyRole, type RoleSnapshot } from "./permissions";
 import {
   isListedRouteMatch,
   matchesListedRoute,
@@ -29,11 +30,11 @@ export interface AuthMiddlewareOptions {
   loginPath?: string;
   redirectAuthenticatedTo?: string;
   unauthorizedRedirectTo?: string;
-  allowedRoles?: UserRole[];
+  allowedRoles?: readonly UserRole[];
   allowApi?: boolean;
   /**
-   * Resolves the signed-in user's effective role so the edge can reject a
-   * wrong-app session before the app renders anything.
+   * Resolves the signed-in user's complete role snapshot so the edge can
+   * reject a wrong-app session before the app renders anything.
    *
    * Injected rather than hard-wired so this stays the one place that decides
    * *whether* a role passes, while *how* a role is looked up (and cached) is
@@ -43,7 +44,7 @@ export interface AuthMiddlewareOptions {
     userId: string;
     supabase: SupabaseUserRoleReader;
     request: NextRequest;
-  }) => Promise<UserRole | null>;
+  }) => Promise<RoleSnapshot | null>;
 }
 
 /**
@@ -154,7 +155,7 @@ function logMissingSupabaseConfig(
  */
 function isRoleAllowedForApp(
   role: UserRole,
-  allowedRoles: UserRole[] | undefined,
+  allowedRoles: readonly UserRole[] | undefined,
 ) {
   if (!allowedRoles || allowedRoles.length === 0) {
     return true;
@@ -304,6 +305,19 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       // bypass populates `userId` from a cookie with no Supabase session, and
       // redirecting those would bounce the e2e suite off /login and /register.
       if (user && redirectAuthenticatedTo) {
+        if (allowedRoles && allowedRoles.length > 0) {
+          const roleSnapshot = resolveUserRole
+            ? await resolveUserRole({ userId: user.id, supabase, request })
+            : null;
+
+          if (!roleSnapshot || !hasAnyRole(roleSnapshot, allowedRoles)) {
+            return redirectWithCookies(
+              buildRedirectUrl(request, unauthorizedRedirectTo),
+              supabaseResponse,
+            );
+          }
+        }
+
         const requestedNext = safeNextParam(
           request.nextUrl.searchParams.get("next"),
         );
@@ -337,11 +351,11 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     //
     // Fails closed: an unresolved role is treated as not allowed.
     if (isProtectedPath && user && allowedRoles && allowedRoles.length > 0) {
-      const role = resolveUserRole
+      const roleSnapshot = resolveUserRole
         ? await resolveUserRole({ userId: user.id, supabase, request })
         : null;
 
-      if (!role || !isRoleAllowedForApp(role, allowedRoles)) {
+      if (!roleSnapshot || !hasAnyRole(roleSnapshot, allowedRoles)) {
         return redirectWithCookies(
           buildRedirectUrl(request, unauthorizedRedirectTo),
           supabaseResponse,

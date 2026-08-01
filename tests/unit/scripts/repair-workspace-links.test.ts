@@ -138,6 +138,26 @@ describe("repairWorkspaceLinks", () => {
     expect(existsSync(hollowBuildInfo)).toBe(true);
   });
 
+  it("recovers an interrupted repair backup before recreating the link", () => {
+    const linkPath = path.join(
+      repoRoot,
+      "apps/admin/node_modules/@asym/mock-data",
+    );
+    const backupPath = `${linkPath}.repair-backup-12345-0`;
+    mkdirSync(path.join(linkPath, "dist"), { recursive: true });
+    writeFileSync(path.join(linkPath, "dist/tsconfig.tsbuildinfo"), "{}");
+    renameSync(linkPath, backupPath);
+
+    const { repaired } = repairWorkspaceLinks(repoRoot);
+
+    expect(repaired).toHaveLength(1);
+    expect(existsSync(backupPath)).toBe(false);
+    expect(lstatSync(linkPath).isSymbolicLink()).toBe(true);
+    expect(realpathSync(linkPath)).toBe(
+      realpathSync(path.join(repoRoot, "packages/mock-data")),
+    );
+  });
+
   it("restores the hollow directory if symlink creation is not supported", () => {
     const hollow = path.join(
       repoRoot,

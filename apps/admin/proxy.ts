@@ -21,7 +21,7 @@ export const proxy = createAuthMiddleware({
   protectedRoutePrefixes: ["/"],
   loginPath: "/login",
   redirectAuthenticatedTo: "/",
-  unauthorizedRedirectTo: "/login",
+  unauthorizedRedirectTo: "/no-access",
   allowedRoles: ["staff", "admin", "super_admin"],
   resolveUserRole: resolveUserRoleFromDatabase,
 });

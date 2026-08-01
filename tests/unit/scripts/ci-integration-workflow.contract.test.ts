@@ -97,10 +97,20 @@ describe("ci-integration workflow contract", () => {
     expect(e2eSmokeGate).toContain("needs: [test-e2e-smoke]");
     expect(e2eSmokeGate).toContain('!= "success"');
 
-    expect(e2eGate).toContain("needs: [test-e2e]");
+    expect(e2eGate).toContain("needs: [test-e2e, instant-nav]");
+    expect(e2eGate).toContain("needs['instant-nav'].result");
     expect(e2eGate).toContain("github.base_ref == 'production'");
     expect(e2eGate).toContain("refs/heads/production");
     expect(e2eGate).not.toContain("develop");
+  });
+
+  it("keeps instant navigation deterministic and production-gated", () => {
+    const instantNav = jobBlock(workflow, "instant-nav");
+    const e2eGate = jobBlock(workflow, "e2e-gate");
+
+    expect(instantNav).toContain("--retries=0");
+    expect(e2eGate).toContain("needs: [test-e2e, instant-nav]");
+    expect(e2eGate).toContain("needs['instant-nav'].result");
   });
 
   it("does not require the broad chromium inventory in CI integration", () => {

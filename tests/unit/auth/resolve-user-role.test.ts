@@ -20,20 +20,33 @@ function fakeSupabase({
   profile = null,
   memberships = [],
   throwOn,
+  returnErrorOn,
 }: {
   profile?: ProfileRow;
   memberships?: MembershipRow[];
   throwOn?: "profiles" | "memberships";
+  returnErrorOn?: "profiles" | "memberships";
 }) {
   const membershipChain = {
     eq() {
       return this;
     },
-    then(resolve: (value: { data: MembershipRow[] }) => unknown) {
+    then(
+      resolve: (value: {
+        data: MembershipRow[] | null;
+        error: Error | null;
+      }) => unknown,
+    ) {
       if (throwOn === "memberships") {
         throw new Error("memberships unavailable");
       }
-      return Promise.resolve({ data: memberships }).then(resolve);
+      return Promise.resolve({
+        data: returnErrorOn === "memberships" ? null : memberships,
+        error:
+          returnErrorOn === "memberships"
+            ? new Error("memberships unavailable")
+            : null,
+      }).then(resolve);
     },
   };
 
@@ -49,7 +62,13 @@ function fakeSupabase({
               if (throwOn === "profiles") {
                 throw new Error("profiles unavailable");
               }
-              return { data: profile };
+              return {
+                data: returnErrorOn === "profiles" ? null : profile,
+                error:
+                  returnErrorOn === "profiles"
+                    ? new Error("profiles unavailable")
+                    : null,
+              };
             },
           }),
         }),
@@ -63,7 +82,7 @@ function fakeSupabase({
 
 describe("resolveUserRoleFromDatabase", () => {
   it("derives the role from the profile and active memberships", async () => {
-    const role = await resolveUserRoleFromDatabase({
+    const snapshot = await resolveUserRoleFromDatabase({
       userId: "user_1",
       supabase: fakeSupabase({
         profile: { tenant_id: "tenant_1", role: "donor" },
@@ -78,8 +97,17 @@ describe("resolveUserRoleFromDatabase", () => {
       }),
     });
 
-    // Membership beats the profile column, matching `derivePrimaryRole`.
-    expect(role).toBe("staff");
+    expect(snapshot).toEqual({
+      profileRole: "donor",
+      memberships: [
+        {
+          tenantId: "tenant_1",
+          role: "staff",
+          staffRole: null,
+          isActive: true,
+        },
+      ],
+    });
   });
 
   it("fails closed when the user has no profile row", async () => {
@@ -113,5 +141,26 @@ describe("resolveUserRoleFromDatabase", () => {
     });
 
     expect(role).toBeNull();
+  });
+
+  it("fails closed when the profile lookup returns an error", async () => {
+    const snapshot = await resolveUserRoleFromDatabase({
+      userId: "user_1",
+      supabase: fakeSupabase({ returnErrorOn: "profiles" }),
+    });
+
+    expect(snapshot).toBeNull();
+  });
+
+  it("fails closed when the membership lookup returns an error", async () => {
+    const snapshot = await resolveUserRoleFromDatabase({
+      userId: "user_1",
+      supabase: fakeSupabase({
+        profile: { tenant_id: "tenant_1", role: "donor" },
+        returnErrorOn: "memberships",
+      }),
+    });
+
+    expect(snapshot).toBeNull();
   });
 });
