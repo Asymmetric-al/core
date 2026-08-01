@@ -121,13 +121,13 @@ export default async function CRMPage() {
 
 Files that import mock data (examples from admin app):
 
-| File                                            | Data Used                       |
-| ----------------------------------------------- | ------------------------------- |
-| `apps/donor/app/(public)/workers/page.tsx`      | `getFieldWorkers()`             |
-| `apps/donor/app/(public)/workers/[id]/page.tsx` | `getFieldWorkerById()`          |
-| `apps/donor/app/(donor)/donor-dashboard/*`      | Donor transactions, pledges     |
-| `apps/admin/features/mission-control/care/*`    | Missionary profiles, activities |
-| `apps/donor/features/donor/components/*`        | Worker feeds                    |
+| File                                                    | Data Used                       |
+| ------------------------------------------------------- | ------------------------------- |
+| `apps/donor/app/(public)/(hero)/workers/page.tsx`       | `getFieldWorkers()`             |
+| `apps/donor/app/(public)/(solid)/workers/[id]/page.tsx` | `getFieldWorkerById()`          |
+| `apps/donor/app/(donor)/donor-dashboard/*`              | Donor transactions, pledges     |
+| `apps/admin/features/mission-control/care/*`            | Missionary profiles, activities |
+| `apps/donor/features/donor/components/*`                | Worker feeds                    |
 
 ### Step 4: Remove Mock Data (Optional)
 
@@ -203,7 +203,7 @@ For a fast deployment with your data:
 1. **Create database tables** matching the types in `packages/mock-data/types.ts`
 2. **Import core data**: profiles, donations, pledges
 3. **Update 3 key files** (per app):
-   - `apps/donor/app/(public)/workers/page.tsx` - Replace `getFieldWorkers()`
+   - `apps/donor/app/(public)/(hero)/workers/page.tsx` - Replace `getFieldWorkers()`
    - `apps/donor/app/(donor)/donor-dashboard/page.tsx` - Replace donor data
    - `apps/admin/features/mission-control/care/constants.ts` - Replace `MOCK_PERSONNEL`
 4. **Test** all dashboard routes

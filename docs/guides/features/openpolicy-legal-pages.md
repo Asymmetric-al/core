@@ -41,9 +41,9 @@ This first pass does not create a new shared legal package. If other apps need l
   Client wrapper for the terms renderer.
 - `apps/donor/components/openpolicy/cookie-policy.tsx`
   Client wrapper for the cookie renderer.
-- `apps/donor/app/(public)/privacy/page.tsx`
-- `apps/donor/app/(public)/terms/page.tsx`
-- `apps/donor/app/(public)/cookies/page.tsx`
+- `apps/donor/app/(public)/(solid)/privacy/page.tsx`
+- `apps/donor/app/(public)/(solid)/terms/page.tsx`
+- `apps/donor/app/(public)/(solid)/cookies/page.tsx`
   Thin App Router pages with route metadata and breadcrumbs.
 - `apps/donor/scripts/openpolicy.ts`
   Donor-local validation and generation CLI wrapper.

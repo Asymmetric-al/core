@@ -12,7 +12,7 @@ import {
 import { cn } from "@asym/ui/lib/utils";
 import { CheckCircle2, PenTool, Download, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import React, { useState, use, useSyncExternalStore } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 
 function useHydrationSafeDate() {
   const subscribe = () => () => {};
@@ -21,12 +21,7 @@ function useHydrationSafeDate() {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
-export default function SignStudioPublicSigningPage({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}) {
-  use(params);
+export default function SignStudioPublicSigningPage() {
   const [step, setStep] = useState<"review" | "signing" | "completed">(
     "review",
   );
