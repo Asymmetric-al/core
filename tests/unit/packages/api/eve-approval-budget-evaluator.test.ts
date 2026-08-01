@@ -36,6 +36,38 @@ const budget: EveBudgetRecord = {
 };
 
 describe("Eve approval and budget policy", () => {
+  it("uses the action governance domain instead of the production-write switch", () => {
+    const action = EVE_ACTION_CATALOG["engineering.dynamic_workflow.execute"];
+    expect(
+      evaluateEveApprovalBudgetPolicy({
+        action,
+        operationalMode: "allow",
+        budget,
+        governance: {
+          ...governance,
+          killSwitchState: {
+            ...governance.killSwitchState,
+            production_writes: true,
+          },
+        },
+      }),
+    ).toMatchObject({ decision: "allow" });
+
+    expect(
+      evaluateEveApprovalBudgetPolicy({
+        action,
+        operationalMode: "allow",
+        budget,
+        governance: {
+          ...governance,
+          killSwitchState: {
+            ...governance.killSwitchState,
+            dynamic_workflows: true,
+          },
+        },
+      }),
+    ).toMatchObject({ decision: "deny", reason: "governance_blocked" });
+  });
   it("allows an engineering operational action under its persisted zone policy", () => {
     expect(
       evaluateEveApprovalBudgetPolicy({

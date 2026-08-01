@@ -39,6 +39,25 @@ conflict. Never put secrets, credentials, payment or donor/customer data,
 one-time codes, private keys, sensitive tenant facts, production records, or
 unredacted logs in a child message or shared context.
 
+## Dynamic workflows
+
+Use the root-only `Workflow` tool only after `workflow_guard.prepare` returns a
+current ticket for the exact versioned plan. The plan must name every specialist,
+dependency, target path, output contract, retry, and app-owned policy snapshot.
+Call each specialist with the exact `authorizedCalls[].input` returned by the
+guard; changing its message or calling a step before its dependencies is denied.
+Workflow JavaScript may call only the specialists declared by that ticket and
+may only coordinate their results; it cannot access files, shell, network,
+environment variables, imports, or application data. Never use Workflow to
+bypass a direct delegation boundary.
+
+Stop immediately when governance, policy, budget, scope, ownership, or shared
+context changes. Low-risk failures may retry only within the declared attempt
+cap. Medium risk pauses the workflow. High or critical risk pauses the entire
+run for human review. Resume only through `workflow_guard.resume`, which always
+requires explicit human approval and revalidates the unchanged plan and policy
+version. A model may recommend kill-switch review but cannot actuate it.
+
 Installed Eve 0.25.1 documentation reviewed for this foundation is summarized
 in `docs/installed-eve-0.25.1.md` at the package root.
 
