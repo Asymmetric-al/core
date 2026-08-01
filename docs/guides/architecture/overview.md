@@ -20,7 +20,7 @@ The "Give Hope" tenant name you may see in UI defaults is a demo/test frontend, 
 
 | Technology       | Purpose                                             |
 | ---------------- | --------------------------------------------------- |
-| Next.js 16.2.6   | Full-stack React framework (App Router + Turbopack) |
+| Next.js 16.2.11  | Full-stack React framework (App Router + Turbopack) |
 | React 19         | UI library with Server Components                   |
 | TypeScript 6.0.3 | Type safety                                         |
 | Tailwind CSS 4   | Styling                                             |

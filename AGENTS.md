@@ -522,7 +522,7 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 1. Read docs from the nearest matching install for the app you are changing:
    - `apps/<app>/node_modules/next/dist/docs/` (if present)
    - then `node_modules/next/dist/docs/` at repo root
-2. This monorepo currently uses `next@16.2.6` across all Next.js apps (root and app `package.json` files; workspace packages align on the same version).
+2. This monorepo currently uses `next@16.2.11` across all Next.js apps (root and app `package.json` files; workspace packages align on the same version).
 3. **Upstream note:** Next.js 16.2+ docs describe adding the minimal `AGENTS.md` block directly when on `v16.2.0-canary.37` or later; on 16.1.x the `npx @next/codemod@latest agents-md` flow may still emit `.next-docs/` — this repo keeps both bundled `node_modules` docs (when installed) and committed `.next-docs/` for sandboxes.
 4. If `node_modules` docs are unavailable or unreadable:
    - run `bunx @next/codemod@canary agents-md`
