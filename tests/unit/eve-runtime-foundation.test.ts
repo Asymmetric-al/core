@@ -171,6 +171,27 @@ describe("Eve runtime foundation", () => {
     expect(writeFile).toMatch(/scanEveSandboxWrite\(/u);
     expect(writeFile).toMatch(/recordEveSandboxAction\(/u);
     expect(strictAutoMerge).toContain("expectedHeadSha");
+
+    const engineeringHealthSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/engineering-health.ts"),
+      "utf8",
+    );
+    expect(engineeringHealthSchedule).toContain('cron: "*/5 * * * *"');
+    expect(engineeringHealthSchedule).toContain(
+      "runEveEngineeringMonitorSweep",
+    );
+    const notificationSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/operator-notifications.ts"),
+      "utf8",
+    );
+    expect(notificationSchedule).toContain('cron: "* * * * *"');
+    expect(notificationSchedule).toContain("runEveNotificationSweep");
+    const launchWatchdogSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/launch-canary-watchdog.ts"),
+      "utf8",
+    );
+    expect(launchWatchdogSchedule).toContain('cron: "* * * * *"');
+    expect(launchWatchdogSchedule).toContain("runEveLaunchCanaryWatchdog");
   });
 
   it("keeps the runtime off when persisted release is disabled", () => {
