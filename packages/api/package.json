@@ -160,7 +160,8 @@
     "./eve/retention/route": "./src/eve/retention/route.ts",
     "./eve/retention/types": "./src/eve/retention/types.ts",
     "./eve/session-ownership": "./src/eve/session-ownership/index.ts",
-    "./eve/session-ownership/types": "./src/eve/session-ownership/types.ts"
+    "./eve/session-ownership/types": "./src/eve/session-ownership/types.ts",
+    "./eve/sandbox": "./src/eve/sandbox/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

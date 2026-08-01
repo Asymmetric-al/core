@@ -5,7 +5,8 @@
 ### Requirement: The Sandbox Provides A Writable Repo Checkout For Engineering Work
 
 The Eve sandbox MUST provide a **writable repo checkout** in which Eve can **inspect, edit, test, commit, and
-push** engineering work. The checkout MUST be a disposable working copy contained within the sandbox, and the
+prepare pushes** for engineering work. Push authentication and GitHub write authority remain separately gated
+by #430 and #431. The checkout MUST be a disposable working copy contained within the sandbox, and the
 sandbox MUST be the **contained environment the #425 runtime executes in**, never the runtime package itself.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:259]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:509]
@@ -13,7 +14,7 @@ sandbox MUST be the **contained environment the #425 runtime executes in**, neve
 #### Scenario: Eve edits and tests in a writable checkout
 
 - GIVEN the sandbox is running with the release switch off for local verification
-- WHEN Eve inspects, edits, tests, commits, and pushes engineering work
+- WHEN Eve inspects, edits, tests, commits, and prepares engineering work for push
 - THEN it operates on a writable repo checkout inside the sandbox
 - AND that checkout is a disposable working copy, not the isolated #425 runtime package
 
@@ -99,7 +100,7 @@ The sandbox MUST resolve **every model through #421's shared policy via the #425
 model or provider), MUST spend **under #423 hard budgets and rate limits**, and MUST stay **disabled by default
 while the release switch is off**. It MUST NOT widen Eve's authority, MUST NOT bypass #417 protected-area /
 production-write / approval limits or #418 emergency-off precedence, and MUST read only persisted app-owned
-governance state. The change itself MUST remain a spec/ADR contract and MUST NOT introduce live sandbox code.
+governance state. Live sandbox code MUST fail closed when those controls are unavailable.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:205]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
 [VERIFIED-REPO: openspec/project.md] [VERIFIED-REPO: AGENTS.md]

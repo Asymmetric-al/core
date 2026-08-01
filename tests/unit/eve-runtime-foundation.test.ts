@@ -104,7 +104,7 @@ describe("Eve runtime foundation", () => {
     expect(appSource.join("\n")).not.toMatch(/@asym\/eve-runtime/);
   });
 
-  it("records the installed-docs review and disables every authority-bearing default", async () => {
+  it("keeps authority-bearing defaults disabled or behind authored guardrails", async () => {
     const docs = await readFile(
       path.join(runtimeRoot, "docs/installed-eve-0.25.1.md"),
       "utf8",
@@ -117,15 +117,29 @@ describe("Eve runtime foundation", () => {
         "agent.ts",
         "ask_question.ts",
         "bash.ts",
-        "glob.ts",
-        "grep.ts",
-        "read_file.ts",
         "todo.ts",
         "web_fetch.ts",
         "web_search.ts",
         "write_file.ts",
       ].sort(),
     );
+
+    const bash = await readFile(
+      path.join(runtimeRoot, "agent/tools/bash.ts"),
+      "utf8",
+    );
+    const writeFile = await readFile(
+      path.join(runtimeRoot, "agent/tools/write_file.ts"),
+      "utf8",
+    );
+
+    // Assert the call form, not the bare name: a substring match also passes
+    // for an unused import or a mention in a comment, which would hide a
+    // guardrail that is wired up but never actually invoked.
+    expect(bash).toMatch(/scanEveSandboxCommand\(/u);
+    expect(bash).toMatch(/recordEveSandboxAction\(/u);
+    expect(writeFile).toMatch(/scanEveSandboxWrite\(/u);
+    expect(writeFile).toMatch(/recordEveSandboxAction\(/u);
   });
 
   it("keeps the runtime off when persisted release is disabled", () => {
