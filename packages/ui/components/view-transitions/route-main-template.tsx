@@ -18,15 +18,20 @@ type RouteMainTemplateProps = {
 /**
  * `template.tsx` variant of {@link RouteMainViewTransitionBoundary}.
  *
- * Identical behaviour minus `key={usePathname()}` — Next.js keys templates per
- * route, so `enter`/`exit` fire without the hook. That matters because
- * `usePathname()` suspends on routes with params `generateStaticParams()`
- * doesn't cover, and this wraps `{children}`, so in a layout it held every page
- * below it out of the static shell. A Suspense boundary can't rescue that: its
- * fallback may not contain `{children}`
- * (https://nextjs.org/docs/messages/blocking-prerender-client-hook).
+ * Same animation contract, but with no `usePathname()` read. A `template.js`
+ * gets a fresh instance — and therefore a remount — from the framework on every
+ * navigation, so Next supplies the key that the boundary variant has to derive
+ * from the pathname itself. Removing that read is what lets a route with a
+ * dynamic param prerender a static shell under Cache Components: a URL read in
+ * a shared layout is request data, and it blocks the whole subtree.
  *
- * Use the boundary version only where the wrapper must persist across navigations.
+ * Templates key per *segment level*, not per full pathname. Navigating between
+ * two children of the same dynamic segment (e.g. `/workers/a` -> `/workers/b`)
+ * therefore may not remount this template; add a nested `template.tsx` in that
+ * segment if enter/exit parity is needed there.
+ *
+ * Render this as a SIBLING of persistent chrome (navbar/footer), never above
+ * it, so route transitions animate only the content region.
  */
 export function RouteMainViewTransitionTemplate({
   children,
@@ -39,16 +44,14 @@ export function RouteMainViewTransitionTemplate({
     supportsViewTransitions &&
     reduceMotion !== true;
 
-  const content = className ? (
-    <div className={className}>{children}</div>
-  ) : (
-    <>{children}</>
-  );
-
   if (!enabled) {
     return (
       <ViewTransitionRouteLayerContext.Provider value={false}>
-        {content}
+        {className ? (
+          <div className={className}>{children}</div>
+        ) : (
+          <>{children}</>
+        )}
       </ViewTransitionRouteLayerContext.Provider>
     );
   }
@@ -60,7 +63,7 @@ export function RouteMainViewTransitionTemplate({
         enter="asym-vt-route-enter"
         exit="asym-vt-route-exit"
       >
-        {content}
+        {className ? <div className={className}>{children}</div> : children}
       </ViewTransition>
     </ViewTransitionRouteLayerContext.Provider>
   );

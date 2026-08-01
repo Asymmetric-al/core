@@ -15,9 +15,17 @@ export function AuthScreenSkeleton({ label }: { label: string }) {
     <main
       className="relative flex min-h-screen items-center justify-center overflow-hidden bg-muted px-4 py-8"
       aria-busy="true"
-      aria-label={label}
     >
-      <div className="flex w-full max-w-md flex-col items-center gap-6">
+      {/*
+       * `role="status"` sits on the inner wrapper, not on `<main>`: an explicit
+       * role would override the `main` landmark, and the real screens render
+       * `<main>` too, so the landmark must not appear only after the swap.
+       */}
+      <div
+        className="flex w-full max-w-md flex-col items-center gap-6"
+        role="status"
+        aria-label={label}
+      >
         <Skeleton className="h-10 w-48" />
         <Skeleton className="h-4 w-72 max-w-full" />
         <Skeleton className="h-64 w-full rounded-xl" />

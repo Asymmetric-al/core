@@ -13,13 +13,15 @@ interface NavLink {
 }
 
 /**
- * `hero` is the transparent-over-artwork treatment; `solid` is the opaque bar.
+ * `hero` routes open on full-bleed artwork, so the bar starts transparent and
+ * solidifies on scroll. `solid` routes are opaque from first paint.
  *
- * This is a prop rather than a `usePathname()` lookup because the navbar lives
- * in a layout, and the variant would otherwise be URL data — which cannot enter
- * a route's prefetched App Shell, so the whole navigation would drop out of it.
- * The route groups `(hero)` and `(solid)` under `app/(public)` each pass the
- * value statically, so every route prerenders the correct bar.
+ * This is a static prop rather than a `usePathname()` lookup on purpose. Under
+ * Cache Components a URL read in shared layout chrome is request data, which
+ * blocks prerendering for every route below it that has a dynamic param — and a
+ * `<Suspense>` fallback here would be shared by all those routes, baking one
+ * navbar variant into each of them. Callers pick the variant instead, via
+ * sibling route groups.
  */
 export type NavbarVariant = "hero" | "solid";
 

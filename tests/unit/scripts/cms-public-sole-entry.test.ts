@@ -28,14 +28,12 @@ describe("public code path scoping", () => {
   it("covers the public route handlers, public server modules, and donor public surface", () => {
     expect(isPublicCodePath(PUBLIC_ROUTE_FILE)).toBe(true);
     expect(isPublicCodePath(PUBLIC_MODULE_FILE)).toBe(true);
+    // Synthetic path: an ungrouped file directly under (public)/. The real home
+    // page moved to (hero)/page.tsx in AL-1038; this case stays covered because
+    // the shape is still legal input to isPublicCodePath.
+    expect(isPublicCodePath("apps/donor/app/(public)/page.tsx")).toBe(true);
     expect(isPublicCodePath("apps/donor/lib/cms/client.ts")).toBe(true);
-  });
-
-  it("covers donor public routes nested in route groups", () => {
-    // The public surface is split into `(hero)` and `(solid)` sibling groups so
-    // the navbar variant is static per route. Route groups add a path segment,
-    // so assert the choke-point pattern still matches through them -- otherwise
-    // the split would silently drop those routes out of the sole-entry gate.
+    // Nested route groups under (public) must stay inside the choke point.
     expect(isPublicCodePath("apps/donor/app/(public)/(hero)/page.tsx")).toBe(
       true,
     );

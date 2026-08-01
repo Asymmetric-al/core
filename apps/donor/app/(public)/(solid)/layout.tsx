@@ -1,8 +1,9 @@
 import { Navbar } from "@asym/ui/components/public/navbar";
 
 /**
- * Routes that open with ordinary content, so the navbar is opaque from the
- * first paint. See `(public)/layout.tsx` for why the variant is a static prop.
+ * Public routes that open on ordinary content rather than full-bleed artwork:
+ * the navbar is opaque from first paint, so the scroll listener never attaches.
+ * See `../(hero)/layout.tsx` for why the variant is a static prop.
  */
 export default function SolidPublicLayout({
   children,

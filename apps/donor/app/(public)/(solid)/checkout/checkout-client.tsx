@@ -60,7 +60,8 @@ import {
   type CheckoutPaymentMethod,
   type ServerDonation,
 } from "./checkout-donation";
-import { getFieldWorkerById } from "../../../../lib/mock-data";
+
+import { getFieldWorkerById } from "@/lib/mock-data";
 
 type Step = "config" | "details" | "payment" | "success";
 type Frequency = CheckoutFrequency;
