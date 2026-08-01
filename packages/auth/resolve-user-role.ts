@@ -20,8 +20,9 @@ type MembershipRow = {
  * server-side auth context. Keeping every active membership is essential for
  * users who legitimately access more than one app surface.
  *
- * Reads through the request-scoped client, so RLS applies and a user can only
- * resolve their own role. It never sees the service-role key, which has no
+ * Reads through the request-scoped client, so a user can only ever resolve
+ * their own role: RLS covers the `profiles` read, and the membership RPC pins
+ * its rows to `auth.uid()`. It never sees the service-role key, which has no
  * business at the edge.
  *
  * Returns `null` when the role cannot be established -- no profile row, an
@@ -64,7 +65,7 @@ export async function resolveUserRoleFromDatabase({
           : null;
 
     const memberships = tenantId
-      ? await loadActiveMemberships(supabase, userId, tenantId)
+      ? await loadActiveMemberships(supabase, tenantId)
       : [];
 
     if (!memberships) {
@@ -77,18 +78,26 @@ export async function resolveUserRoleFromDatabase({
   }
 }
 
+/**
+ * Read through the `public.current_user_memberships` RPC, never through
+ * `.schema("authz")`.
+ *
+ * `authz` is not in the PostgREST `db-schemas` list (`supabase/config.toml`
+ * exposes `public` and `graphql_public`), so a direct schema switch returns
+ * PGRST106 and this resolver fails closed -- locking every signed-in user out
+ * of every role-gated route. The RPC is the one narrow window onto that table:
+ * `20260802041500_current_user_memberships_rpc.sql`.
+ *
+ * It takes no user id. The function pins rows to `auth.uid()` itself, so the
+ * edge cannot resolve anyone else's roles.
+ */
 async function loadActiveMemberships(
   supabase: SupabaseUserRoleReader,
-  userId: string,
   tenantId: string,
 ) {
-  const { data: rows, error } = await supabase
-    .schema("authz")
-    .from("memberships")
-    .select("tenant_id, role, staff_role, is_active")
-    .eq("user_id", userId)
-    .eq("tenant_id", tenantId)
-    .eq("is_active", true);
+  const { data: rows, error } = await supabase.rpc("current_user_memberships", {
+    target_tenant: tenantId,
+  });
 
   if (error) {
     return null;

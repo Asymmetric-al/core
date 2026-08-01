@@ -10,46 +10,32 @@ type MembershipRow = {
   is_active: boolean | null;
 };
 
+type RpcCall = { fn: string; args: Record<string, unknown> };
+
 /**
  * Stands in for the request-scoped Supabase client. A hand-rolled double rather
  * than a mock of the real client: this asserts the resolver's observable
  * contract (what role comes out for a given database state), not which query
  * builder methods it happened to call.
+ *
+ * The one exception is `schema()`, which throws. PostgREST only serves the
+ * schemas in `supabase/config.toml` (`public`, `graphql_public`), so a resolver
+ * that switches to `authz` fails against a real database while a permissive
+ * double stays green -- exactly the gap that shipped a full lockout once.
  */
 function fakeSupabase({
   profile = null,
   memberships = [],
   throwOn,
   returnErrorOn,
+  rpcCalls,
 }: {
   profile?: ProfileRow;
   memberships?: MembershipRow[];
   throwOn?: "profiles" | "memberships";
   returnErrorOn?: "profiles" | "memberships";
+  rpcCalls?: RpcCall[];
 }) {
-  const membershipChain = {
-    eq() {
-      return this;
-    },
-    then(
-      resolve: (value: {
-        data: MembershipRow[] | null;
-        error: Error | null;
-      }) => unknown,
-    ) {
-      if (throwOn === "memberships") {
-        throw new Error("memberships unavailable");
-      }
-      return Promise.resolve({
-        data: returnErrorOn === "memberships" ? null : memberships,
-        error:
-          returnErrorOn === "memberships"
-            ? new Error("memberships unavailable")
-            : null,
-      }).then(resolve);
-    },
-  };
-
   return {
     from(table: string) {
       if (table !== "profiles") {
@@ -74,9 +60,26 @@ function fakeSupabase({
         }),
       };
     },
-    schema: () => ({
-      from: () => ({ select: () => membershipChain }),
-    }),
+    schema(name: string) {
+      throw new Error(
+        `schema("${name}") is not reachable through the Data API; use an RPC`,
+      );
+    },
+    async rpc(fn: string, args: Record<string, unknown>) {
+      rpcCalls?.push({ fn, args });
+
+      if (throwOn === "memberships") {
+        throw new Error("memberships unavailable");
+      }
+
+      return {
+        data: returnErrorOn === "memberships" ? null : memberships,
+        error:
+          returnErrorOn === "memberships"
+            ? new Error("memberships unavailable")
+            : null,
+      };
+    },
   } as never;
 }
 
@@ -108,6 +111,42 @@ describe("resolveUserRoleFromDatabase", () => {
         },
       ],
     });
+  });
+
+  it("reads memberships through the exposed RPC, scoped to the tenant", async () => {
+    // Pins the read to `public.current_user_memberships`
+    // (20260802041500_current_user_memberships_rpc.sql). Querying `authz`
+    // directly returns PGRST106 against a real database, and the resolver
+    // turns that into a redirect for every signed-in user.
+    const rpcCalls: RpcCall[] = [];
+
+    await resolveUserRoleFromDatabase({
+      userId: "user_1",
+      supabase: fakeSupabase({
+        profile: { tenant_id: "tenant_1", role: "donor" },
+        rpcCalls,
+      }),
+    });
+
+    expect(rpcCalls).toEqual([
+      { fn: "current_user_memberships", args: { target_tenant: "tenant_1" } },
+    ]);
+  });
+
+  it("never passes a user id to the membership RPC", async () => {
+    // The function pins rows to auth.uid(); accepting a caller-supplied id
+    // would let the edge resolve someone else's roles.
+    const rpcCalls: RpcCall[] = [];
+
+    await resolveUserRoleFromDatabase({
+      userId: "user_1",
+      supabase: fakeSupabase({
+        profile: { tenant_id: "tenant_1", role: "donor" },
+        rpcCalls,
+      }),
+    });
+
+    expect(Object.keys(rpcCalls[0]?.args ?? {})).toEqual(["target_tenant"]);
   });
 
   it("fails closed when the user has no profile row", async () => {
