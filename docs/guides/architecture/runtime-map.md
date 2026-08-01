@@ -91,9 +91,12 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/crm/webhooks/twenty`                               | Node.js (no `runtime` segment export) | Twenty HMAC webhook, admin client             |
 | admin      | `/api/admin/eve/admin-memory`                                  | Node.js (no `runtime` segment export) | Owner-bound private Eve memory and history    |
 | admin      | `/api/admin/eve/approval-budget`                               | Node.js (no `runtime` segment export) | Audited trust-zone and hard-budget tracer     |
+| admin      | `/api/admin/eve/engineering-monitors`                          | Node.js (no `runtime` segment export) | Safe engineering monitor status and findings  |
 | admin      | `/api/admin/eve/retention`                                     | Node.js (no `runtime` segment export) | Private replay artifacts, holds, and expiry   |
 | admin      | `/api/admin/eve/governance`                                    | Node.js (no `runtime` segment export) | Eve governance, kill switches, and audit      |
+| admin      | `/api/admin/eve/launch-readiness`                              | Node.js (no `runtime` segment export) | Target-bound launch review and control        |
 | admin      | `/api/admin/eve/model-policy`                                  | Node.js (no `runtime` segment export) | Permissioned Eve model-policy control plane   |
+| admin      | `/api/admin/eve/notifications`                                 | Node.js (no `runtime` segment export) | Safe operator notification status and control |
 | admin      | `/api/admin/funds`                                             | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/locations`                                         | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/member-care/activity`                              | Node.js (no `runtime` segment export) | Admin client                                  |

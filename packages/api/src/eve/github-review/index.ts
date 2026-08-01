@@ -8,4 +8,5 @@ export {
   parseEveGithubReviewOutput,
   prepareEveGithubReview,
 } from "./review";
+export * from "./monitor-comment";
 export type * from "./types";

@@ -1,5 +1,85 @@
 # Working Set
 
+## 2026-07-18 (Eve final launch verification)
+
+- Date: 2026-07-18
+- Repo: Asymmetric-al/core
+- Goal: Implement issue #437 as Eve's fail-closed final launch gate and open the last stacked review PR on #870.
+- Primary area:
+  - `packages/api/src/eve/launch-readiness/**`
+  - `packages/eve-runtime/{agent/schedules,src/launch}/**`
+  - `apps/admin/app/{admin,api/admin}/eve/**`
+  - `supabase/migrations/**`
+  - `docs/guides/operations/**`
+  - `tests/unit/**`
+- Stack:
+  - TypeScript
+  - Next.js App Router
+  - Eve schedules
+  - Supabase Postgres
+  - Zod
+  - Vitest
+- Constraints:
+  - No merge, CI, deployment, prompt, model, service, or passing manifest may activate Eve.
+  - Require exact-target evidence, independent reviews, dedicated human permissions, and an atomic state recheck.
+  - Migration and PR must leave release off and grant no launch permissions.
+  - Canary failure or expiry must fail closed through the existing emergency boundary.
+  - Nia is unavailable; use repo-scoped `rg`, direct source reads, installed skills, and package source.
+
+## 2026-07-18 (Eve email and Discord notifications)
+
+- Date: 2026-07-18
+- Repo: Asymmetric-al/core
+- Goal: Implement issue #436 as the policy-gated external notification layer and open a stacked review PR on #869.
+- Primary area:
+  - `packages/api/src/eve/notifications/**`
+  - `packages/eve-runtime/src/notifications/**`
+  - `packages/email/**`
+  - `apps/admin/app/admin/eve/**`
+  - `supabase/migrations/**`
+  - `tests/unit/**`
+  - `openspec/changes/add-eve-email-discord-notifications/**`
+- Stack:
+  - TypeScript
+  - Eve runtime
+  - Resend
+  - Discord webhooks
+  - Supabase Postgres
+  - Zod
+  - Vitest
+- Constraints:
+  - Email only to verified, configured platform owners; runtime content cannot supply recipients.
+  - Discord only to configured operational destinations and urgent severity; rich fields require deterministic per-field approval.
+  - Redact before provider submission, use stable dedupe and idempotency, bounded retry, expiry, budgets, audit, and pause checks.
+  - Ship provider destinations disabled and keep the global release switch off.
+  - Nia is unavailable; use repo-scoped `rg`, direct source reads, installed skills, and package source.
+
+## 2026-07-18 (Eve engineering health monitors)
+
+- Date: 2026-07-18
+- Repo: Asymmetric-al/core
+- Goal: Implement issue #435 as the exact, governed engineering-health monitor set and open a stacked review PR on #868.
+- Primary area:
+  - `packages/api/src/eve/engineering-monitors/**`
+  - `packages/eve-runtime/agent/schedules/**`
+  - `packages/eve-runtime/src/monitors/**`
+  - `supabase/migrations/**`
+  - `tests/unit/**`
+  - `openspec/changes/add-eve-engineering-health-monitors/**`
+- Stack:
+  - TypeScript
+  - Eve schedules
+  - Supabase Postgres
+  - GitHub App REST API
+  - Zod
+  - Vitest
+- Constraints:
+  - Exactly six monitor types; product-opportunity and unknown scanning fail closed.
+  - App-owned persisted configuration, service identity, atomic leases, stable dedupe, safe evidence only.
+  - Reuse #430/#431 for comments/issues and recheck current governance and budgets before every boundary.
+  - Keep every monitor and the global release switch disabled in this PR.
+  - Nia is unavailable; use repo-scoped `rg`, direct source reads, and installed Eve 0.25.1 docs/package source.
+
 ## 2026-07-18 (Eve dynamic workflow orchestration)
 
 - Date: 2026-07-18

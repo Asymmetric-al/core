@@ -373,6 +373,12 @@ absent and belongs to #432.
     alerts, protected-area PRs, and budget/rate-limit issues.
   - Monitors can create audited issues or comments under policy.
   - Product opportunity scanning remains disabled.
+- Implementation evidence:
+  - ADR-0036 and `docs/guides/operations/eve-engineering-health-monitors.md`
+  - `packages/api/src/eve/engineering-monitors/**`
+  - `packages/eve-runtime/agent/schedules/engineering-health.ts`
+  - `packages/eve-runtime/src/monitors/**`
+  - `supabase/migrations/20260718083000_eve_engineering_health_monitors.sql`
 
 ### 20. Email and Discord Notifications
 

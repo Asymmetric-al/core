@@ -21,6 +21,8 @@ export const EVE_POLICY_ACTION_IDS = [
   "engineering.github_merge.execute",
   "engineering.subagent.delegate",
   "engineering.dynamic_workflow.execute",
+  "engineering.monitor.collect",
+  "engineering.notification.deliver",
   "engineering.shared_context.write",
   "engineering.shared_context.resolve",
   "product.internal_status.write",
@@ -52,7 +54,7 @@ export interface EveActionCatalogEntry {
   actionId: EvePolicyActionId;
   budgetScopeId: string;
   budgetScopeType: EveBudgetScopeType;
-  domain: "dynamic_workflows" | "production_writes";
+  domain: "active_runs" | "dynamic_workflows" | "production_writes";
   inputTokenCost: number;
   outputTokenCost: number;
   requestCost: number;
