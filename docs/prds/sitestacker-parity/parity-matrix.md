@@ -32,7 +32,7 @@ Status values also include **`out-of-scope`** (we chose not to pursue).
 | 4   | Role & permission configuration                                               | Partial (v)  | unconf | No         | Mission Control                                          |
 | 5   | Campaign, designation, contribution ledger, giving cart                       | Partial (v)  | unconf | No         | Mission Control + public                                 |
 | 6   | Offline gift batch entry                                                      | Partial (v)  | unconf | No         | Mission Control                                          |
-| 7   | Soft credits, affiliated donors, DAF handling                                 | ? (v)        | unconf | No         | Mission Control (Phase 7 owns)                           |
+| 7   | Soft credits, affiliated donors, DAF handling                                 | ? (v)        | unconf | No         | Mission Control (Phase 14 owns operations)               |
 | 8   | Pledges & recurring commitments                                               | Partial (v)  | unconf | No         | Mission Control + donor                                  |
 | 9   | Receipt & PDF template system                                                 | Partial (v)  | unconf | No         | Mission Control (Phase 7 owns facts/compliance layer)    |
 | 10  | Year-end statement operations                                                 | Partial (v)  | unconf | No         | Mission Control + donor (Phase 7 owns eligibility rules) |
@@ -42,7 +42,7 @@ Status values also include **`out-of-scope`** (we chose not to pursue).
 | 14  | Multi-site, language & currency                                               | ? (v)        | unconf | No         | Platform-wide                                            |
 | 15  | Donor dashboard depth                                                         | Partial (v)  | unconf | No         | Donor portal                                             |
 | 16  | Missionary dashboard depth                                                    | Partial (v)  | unconf | No         | Missionary workspace                                     |
-| 17  | System messages & email template management                                   | Partial (v)  | unconf | No         | Mission Control                                          |
+| 17  | System-message content, sender profiles & template management                 | Partial (v)  | unconf | No         | Email Studio / System Messages                           |
 | 18  | File manager & document management                                            | ? (v)        | unconf | No         | Mission Control                                          |
 | 19  | Mailchimp / newsletter sync                                                   | No (v)       | No     | No         | Mission Control                                          |
 | 20  | Peer-to-peer advocacy campaigns                                               | ? (v)        | unconf | No         | Public + donor                                           |
@@ -143,8 +143,10 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 - **Current state:** offline known/unknown-donor entry **proposed** in
   add-guest-giving (PR #462); batch reconciliation partial. (v)
 - **Depends on:** #5.
-- **Acceptance test:** staff batch-enter a stack of offline checks and reconcile
-  to a bank deposit.
+- **Acceptance test:** staff batch-enter a stack of offline checks through one
+  reviewed Phase 15 commit, preserve source-labelled deposit evidence, and hand
+  the resulting Expected Bank Arrival to Phase 20 Bank Match; QBO/Xero remains
+  authoritative for final bank reconciliation.
 - **Evidence:** add-guest-giving change (PR #462).
 - **Open questions:** batch UI + reconciliation depth. **Resolved by the Phase 15 PRD.**
 
@@ -152,16 +154,20 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 
 - **Benchmark:** SiteStacker soft credits, affiliated donors, donor-advised
   funds. (s)
-- **Current state:** no evidence found; likely not built. Owned by Phase 7
-  (Receipt & Statement Compliance Rules + Donor Identity/Credit Model). (v)
-- **Depends on:** #2 (party graph), #5 (giving pipeline), Phase 4 identity
-  spine (fulfilled by Phase 7).
+- **Current state:** no evidence found; likely not built. Operationally owned
+  by Phase 14 (Donor Credit Operations); Phase 7 consumes approved recognition
+  facts only for receipt/statement compliance. (v)
+- **Depends on:** #2 (Party graph), #5 (Phase 13 giving pipeline), Phase 4
+  identity/claim isolation, and Phase 7 official-facts contract.
 - **Acceptance test:** the D3 credit model holds — a gift carries `0..N` typed
   soft credits with `is_receiptable=FALSE` that never mint a receipt or enter a
-  money total; a DAF gift receipts the sponsor/fund as legal donor and issues
-  the advisor a non-deductible **acknowledgment** (not a tax receipt), excluded
-  from the advisor's year-end deductible total; and a matching gift is two
-  donations (employee gift + company-match receipted to the company).
+  money total; a DAF gift identifies the proved sponsor/fund as legal donor so
+  Phase 7 can evaluate receipt eligibility, while Phase 14 may issue the advisor
+  a non-deductible **acknowledgment** (not a tax receipt), excluded from the
+  advisor's year-end deductible total; and a matching relationship
+  links two canonical Phase 13 contributions, with the matched contribution's
+  frozen legal donor set to its payer of record and Phase 14 owning the
+  expectancy/settlement/recognition link.
 - **Evidence:** needs per-area check.
 - **Open questions:** demand/priority.
 - **Ownership note (2026-07-10):** soft-credit / DAF / tribute / matching-gift
@@ -196,55 +202,104 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 ### 9. Receipt & PDF template system
 
 - **Benchmark:** SiteStacker receipts / PDF templates. (s)
-- **Current state:** PDF Studio template persistence built (phase 10); donation
-  receipts issued from gift records. Receipt facts/compliance layer owned by
-  Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model);
-  Statement Studio remains the render consumer (PDF Studio and Statement
-  Studio are the same surface — see Phase 7 E1). (v)
-- **Depends on:** #5, Phase 7 (receipt facts/compliance layer).
-- **Acceptance test:** staff configure a receipt template and donors receive a
-  correct receipt from it, backed by an immutable, versioned, per-tenant-numbered
-  receipt **facts** record that references `contribution_adjustments`, where a
-  correction or partial refund creates a **new** version (the prior version is
-  retained and void-audited) and numbering is jurisdiction-gated (US
-  non-gapless / CRA gapless).
-- **Evidence:** `docs/ops/phase-evidence/2026-05-15_phase-10_studios-operational-hubs.md`.
-- **Open questions:** template breadth vs SiteStacker.
+- **Current state:** current PDF Studio persistence, live text downloads,
+  `contribution_receipt_snapshots`, `gift_receipt_records`, direct render routes,
+  DocRaptor selection, and Unlayer compatibility are non-production prototypes,
+  not the final authority. Phase 18 is fully specified but not built; its D17
+  clean cut removes those paths rather than migrating or preserving them. The
+  contract is carried by PR #872; epic #907 and children #908–#961 are
+  published under the documented dependency frontier. (v)
+- **Depends on:** #5/Phase 13 ledger truth, Phase 7 receipt/statement facts and
+  optional issuance, and Phase 17 delivery/protected-action governance.
+- **Acceptance test:** staff safely author, prove, publish, generate, batch,
+  correct, access, and manage one logical generated document through one
+  tenant-safe Generated Document service. Every current PDF is the exact
+  validated private artifact over frozen source facts; one U.S. reference or
+  exact-issuer Canadian serial policy applies; a copy preserves bytes/identity;
+  formal replacement retains/cancels the predecessor and advances identity as
+  the jurisdiction contract requires; numbering, signer, retention, and
+  replacement behavior come from the frozen Legal Entity/jurisdiction contract;
+  and no prototype writer/reader remains.
+- **Evidence:**
+  [`phase-18-receipt-pdf-template-system.md`](./phase-18-receipt-pdf-template-system.md),
+  its executable manifest, renderer protocol, 204-row traceability, research,
+  dated congruence, ADRs 0033–0039, and Document Production OpenSpec delta.
+- **Open questions:** none at product-contract level; the pre-registered D3
+  contest may qualify one exact renderer or correctly produce no winner, and
+  legal/accessibility/Canadian approvals are explicit release evidence gates.
 
 ### 10. Year-end statement operations
 
 - **Benchmark:** SiteStacker year-end statements. (s)
-- **Current state:** donor-portal statements exist; annual statement generation
-  **proposed** (add-donor-self-service, PR #462). Statement eligibility rules
-  owned by Phase 7 (Receipt & Statement Compliance Rules + Donor
-  Identity/Credit Model); Statement Studio remains the render consumer. (v)
-- **Depends on:** #5, #9, Phase 7 (statement eligibility rules).
-- **Acceptance test:** a donor downloads a correct year-end statement whose
-  eligibility is issued **on accept** per payment method (card on capture; ACH
-  on `payment_intent.processing` pre-settlement; offline on
-  recorded-received) — settlement is a no-op — and a gift is voided/superseded
-  only on a negative terminal event (e.g. an ACH `charge.dispute.created`
-  return, a lost card dispute, or a refund).
-- **Evidence:** add-donor-self-service change (PR #462).
-- **Open questions:** bulk statement runs for staff.
+- **Current state:** the annual statement runtime remains unbuilt; the existing
+  donor-portal live-text year view is prototype behavior, not the target
+  architecture. Phase 19 is fully groomed through D1–D18 as a planning-only,
+  groomed-not-dispatched contract carried by PR #872. Epic #977 and children
+  #978–#1031 are published and blocked. It delegates eligibility and legal
+  donor truth to Phase 7, exact documents and current access to Phase 18, and
+  message delivery to Phase 17/6. (v)
+- **Depends on:** Phase 6 communication spine; Phase 7 eligibility/facts; Phase
+  12 authorization/review; Phase 13 posted money; Phase 14 optional recognition;
+  Phase 15 check intake/correction; Phase 17 delivery; and Phase 18
+  generation/access.
+- **Acceptance test:** staff review one exact immutable Run Preflight and start
+  it through one idempotent atomic release barrier; the resulting purpose-pinned
+  Legal-Entity-scoped Statement Run preserves frozen source-authoritative
+  membership while document, portal, communication, and paper outcomes remain
+  separately truthful. Staff can contain and recover work, use self-print by
+  default, mark a run complete without erasing live exceptions, and donors can
+  repeatedly access the exact current artifact without creating another
+  document or delivery.
+- **Evidence:** Phase 19 PRD and its authority map,
+  decision-to-test traceability, primary-source research, dated cross-PRD
+  congruence, focused ADRs, and the Statement Operations OpenSpec delta; Phase
+  18 and Phase 17 packages remain the subordinate document and communication
+  authorities; epic #977 and children #978–#1031 carry the blocked issue set.
+- **Open questions:** none requiring another Phase 19 founder decision; D1–D18
+  are ratified. Implementation proofs, provider qualification, issue slicing,
+  and explicit dispatch remain pending.
 
 ### 11. Accounting exports & reconciliation
 
 - **Benchmark:** SiteStacker exports / accounting reconciliation. (s)
-- **Current state:** unknown; needs assessment. (v)
-- **Depends on:** #5.
-- **Acceptance test:** staff export contributions in an accounting-ready format
-  that reconciles to the ledger.
-- **Evidence:** needs per-area check.
-- **Open questions:** target accounting systems.
+- **Current state:** runtime not built. Phase 20 is decision-complete through
+  D1–D20 and implementation-ready: exact Stripe settlement/payout evidence, a
+  bounded source-labelled Bank Match, immutable balanced Accounting Releases,
+  mutually exclusive direct-QBO/direct-Xero or artifact delivery lanes, exact
+  provider readback, drift detection, append-only compensation, and an
+  accounting-ready Phase 21 expense seam. Asym assists finance but does not
+  become the GL or own final bank reconciliation. (v)
+- **Depends on:** Phases 2, 3, 4, 7, 12, 13, 14, and 15; Phase 21 supplies
+  approved expense facts later without blocking the contribution/payout
+  accounting spine.
+- **Acceptance test:** from one exact source-coverage fence, staff can review a
+  balanced immutable release, deliver it once through the selected certified
+  QBO/Xero or artifact lane, inspect exact operation/readback evidence, tie
+  gross gifts, fees, refunds/returns, payout transfer, and expected bank
+  arrival without fuzzy inference, and resolve any later difference by a
+  cause-linked compensating release. QBO/Xero remains authoritative for final
+  books and final bank reconciliation.
+- **Evidence:**
+  [`phase-20-accounting-exports-reconciliation-decision-log.md`](./phase-20-accounting-exports-reconciliation-decision-log.md),
+  [ADRs 0043–0061](../../adr/0043-immutable-accounting-releases-and-exclusive-delivery-lanes.md),
+  and the
+  [`Phase 20 cross-phase congruency audit`](./phase-20-cross-phase-congruency-audit.md).
+- **Open questions:** no unresolved founder-level product decision. The
+  complete implementation/testing contract is in the approved Phase 20 spec;
+  implementation and issue dispatch remain separate work.
 
 ### 12. Public missionary & project page workflow
 
 - **Benchmark:** SiteStacker missionary/project public pages. (s)
 - **Current state:** public `/workers` + profile pages currently render **mock
   data**, not real CRM-backed entities (see PR #462 audit note); CMS foundation
-  built. (v)
-- **Depends on:** #1, #13.
+  built. (v) The runtime contract these pages run on — isolation choke-point,
+  host resolution, reference validation, enumeration-safe checkout handoff,
+  caching, Draft Mode preview — is governed by Phase 5 (Public Website Runtime
+  Contract): PRD `phase-05-public-website-runtime-contract.md`, epic #520,
+  ADRs 0026–0030; the missionary giving page is its proof slice (mock →
+  contract, built as a generalizable template).
+- **Depends on:** #1, #13; Phase 5 (public runtime contract).
 - **Acceptance test:** a real CRM missionary has a public, CMS-managed page with
   native giving.
 - **Evidence:** phase 06/07 CMS evidence; PR #462 project.md current-state note.
@@ -254,8 +309,12 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 
 - **Benchmark:** SiteStacker Site Planner / dynamic content. (s)
 - **Current state:** Payload Web Studio CMS foundation built (phase 06/07);
-  dynamic-content parity partial. (v)
-- **Depends on:** —.
+  dynamic-content parity partial. (v) Public delivery of that content —
+  published-only isolated reads, allowlist serialization, tagged caching with
+  secured invalidation, Draft Mode preview convergence — is governed by
+  Phase 5 (Public Website Runtime Contract): PRD
+  `phase-05-public-website-runtime-contract.md`, epic #520, ADRs 0026–0030.
+- **Depends on:** —; Phase 5 governs the public delivery contract.
 - **Acceptance test:** staff build/publish tenant-branded dynamic pages.
 - **Evidence:** `docs/ops/phase-evidence/2026-05-15_phase-07_web-studio-ux.md`.
 - **Open questions:** dynamic content-type breadth.
@@ -297,13 +356,38 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 ### 17. System messages & email template management
 
 - **Benchmark:** SiteStacker system messages / email templates. (s)
-- **Current state:** Email Studio referenced by contribution-operations; extent
-  partial. (v)
-- **Depends on:** —.
-- **Acceptance test:** staff manage templated system/email messages with
-  merge-tag validation.
-- **Evidence:** contribution-operations spec (PR #462); needs per-area check.
-- **Open questions:** template management surface.
+- **Current state:** **Partial foundation, not the Phase 17 product.** The repo
+  has real `tenant_email_settings`, `email_templates`,
+  `email_template_versions`, `email_template_system_bindings`, Resend send/event
+  logs, suppressions, and test-send paths. The Phase 6 communication-intent/event
+  spine and Phase 17 catalog, immutable publication, typed fact, locale/layout,
+  Delivery Plan, in-product, SMS-governance, sender/reply, recent-copy, recovery,
+  portability, and staff-workspace contracts remain forward. (v)
+- **Depends on:** Phase 6 communication spine, Phase 2 site/locale context, and
+  Phase 3 consent/projection governance. Producer-specific Live contracts also
+  require their source owner and proof bundle.
+- **Acceptance test:** every current producer and prior obligation is accounted
+  for in a cited inventory and stable Reserved/Live/Retired catalog; authorized
+  staff can safely customize, preview with synthetic data, review, publish,
+  resolve, and repair a complete message without accessing arbitrary records or
+  weakening required truth; every external recipient delivery attempt first
+  creates exactly one durable pre-dispatch Phase 6 intent, while its
+  communication event is created only at the send seam after the applicable
+  transition occurs; every `in_product` step becomes one role-safe attention
+  projection; tenant/site/locale, sender/reply, consent, privacy,
+  accessibility, provider-boundary, recovery, and cross-tenant negative tests
+  pass; SMS remains unable to send.
+- **Evidence:** Phase 17 PRD, dated 2026-07-19 cross-PRD congruence package,
+  research-evidence ledger, focused ADRs, and the active
+  `outbound-communications` OpenSpec delta. Current repo anchors remain evidence
+  of the starting point, not proof the target is built.
+- **Open questions:** none requiring another Phase 17 founder decision; D1–D20
+  are ratified. Producer-owned future meanings—such as exact Eve occurrence
+  keys—remain intentionally unminted until their owning producer ratifies the
+  occurrence and fence, and implementation proofs remain pending. Phase 17 is
+  groomed-not-dispatched; epic #873 and children #874–#905 are published, every
+  child remains open with `status:blocked`, and none carries
+  `ready-for-agent`.
 
 ### 18. File manager & document management
 

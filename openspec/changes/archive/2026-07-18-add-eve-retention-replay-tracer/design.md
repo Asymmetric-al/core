@@ -36,7 +36,7 @@ Postgres stores only an allowlisted content
 type, size, SHA-256, redacted summary, category, and lifecycle state. Expiry is
 two-phase: Postgres claims eligible rows with `SKIP LOCKED`, the server deletes
 Storage objects, and only successful deletions are finalized. Upload-pending
-rows need no Storage deletion and expire in the claim transaction.
+rows use the same deletion path because post-upload completion may have failed.
 
 ## Boundaries (relation to sibling changes — do not duplicate)
 

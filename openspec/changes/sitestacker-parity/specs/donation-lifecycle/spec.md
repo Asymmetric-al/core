@@ -18,6 +18,13 @@ donor-disclosed terms; disagreement MUST fail closed or split the cohort. A
 group MUST never be inferred from donor, email, payment method, schedule, date,
 or provider metadata.
 
+Every recurring group MUST freeze one exact Legal Entity, and every accepted
+billing cohort MUST freeze one exact effective Settlement Account Binding
+before provider creation. Those identifiers, currency, payer, authorization,
+and provider capability are compatibility inputs rather than mutable defaults.
+Signed events, refunds, recovery, and reconciliation MUST resolve through the
+frozen tenant, Legal Entity, binding, provider account, and mode tuple.
+
 Product-owned calendar intent and occurrences MUST remain authoritative for
 what the donor scheduled. Provider-confirmed events MUST remain authoritative
 for whether a payment is processing, succeeded, failed, returned, refunded, or
@@ -60,8 +67,9 @@ separately dispatched and verified.
 
 #### Scenario: A recurring invoice is paid
 
-- GIVEN a provider invoice maps through one exact tenant/account/mode binding to
-  one billing-cohort occurrence and its line items
+- GIVEN a provider invoice maps through one exact tenant, Legal Entity,
+  Settlement Account Binding, provider account, and mode tuple to one
+  billing-cohort occurrence and its line items
 - WHEN the provider confirms the invoice payment succeeded
 - THEN the payment-finality fold linked to the named occurrence records success
   and the canonical contribution path posts each effective designation
@@ -106,7 +114,8 @@ separately dispatched and verified.
 #### Scenario: An event cannot be routed to one exact tenant binding
 
 - WHEN a signed provider event's top-level account or live/test mode does not
-  resolve to exactly one expected tenant and executor binding
+  resolve to exactly one expected tenant, Legal Entity, Settlement Account
+  Binding, and executor binding
 - THEN the event is retained as quarantined evidence without a recurring-domain
   write
 - AND metadata does not select a tenant or authorize a mutation

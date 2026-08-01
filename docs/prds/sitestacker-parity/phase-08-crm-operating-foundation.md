@@ -140,6 +140,15 @@ The write-enable tables are **withdrawn** (`crm_write_gates`, `crm_provider_idem
 
 **Phase-6-owned (not created here):** `communication_events.recipient_email` + its exclusive-arc CHECK ship with **Phase 6 T3** (per the Phase-6 A5 amendment); Phase 8 is only a no-person _writer_ of that column via the seam — it does not add the column.
 
+**Phase 17 privacy supersession (2026-07-19).** The preceding ownership/writer
+claim is withdrawn: Phase 8 MUST NOT write a recipient address into
+`communication_events`, and Phase 6 T3 MUST NOT ship that durable address column
+for new governed events. If a legacy deployment already has it, the bounded
+Phase 6 migration fences writers, backfills only independently proved authority
+references, and purges remaining values. Phase 8 may pass an unresolved
+destination only into encrypted, short-lived delivery material through the
+guarded seam; durable history remains body-free and address-free.
+
 **RLS-posture note:** Phase-6's `communication_events` is deliberately RLS-disabled (service-layer + projection + non-null `tenant_id` enforce isolation); Phase-8's own `crm_operations_summary`/`crm_escalations` use composite keys + FORCE RLS. Both are correct and coexist.
 
 **Supabase RLS rules (mandatory on every new tenant table):** wrap the authz call as `(select has_staff_membership(...))` for `initPlan` caching; **`TO authenticated`** on every policy; one policy per operation with a `WITH CHECK`; index the non-leading policy columns (`source`, `state`), not a redundant `tenant_id` index; the authz function is `stable security definer set search_path = ''` in a private (non-exposed) schema, `EXECUTE` to `authenticated` only. **Migrations:** named CHECK constraints; `NOT VALID` → `VALIDATE` in separate statements; run the Supabase security advisors post-migration. **FORCE RLS subjects the table owner only — it does not stop `service_role`/`BYPASSRLS`;** real containment is the private-schema + privilege-revoke + the non-BYPASSRLS scheduler role.

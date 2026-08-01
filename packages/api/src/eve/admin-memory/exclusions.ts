@@ -8,17 +8,18 @@ interface ExclusionRule {
 const EXCLUSION_RULES: ExclusionRule[] = [
   {
     code: "private_key",
-    pattern: /-----BEGIN (?:RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----/i,
+    pattern:
+      /^-----BEGIN (?:PRIVATE KEY|(?:ENCRYPTED|RSA|EC|DSA|ED25519|OPENSSH) PRIVATE KEY|PGP PRIVATE KEY(?: BLOCK)?)-----\r?$/im,
   },
   {
     code: "credential",
     pattern:
-      /\b(?:api[_ -]?key|client[_ -]?secret|password|passwd|credential|access[_ -]?token|refresh[_ -]?token)\s*[:=]\s*\S+/i,
+      /\b(?:api[_ -]?key|client[_ -]?secret|password|passwd|credential|access[_ -]?token|refresh[_ -]?token)(?:\s*[:=]\s*|\s+is\s+)\S+/i,
   },
   {
     code: "secret",
     pattern:
-      /\b(?:bearer\s+[a-z0-9._~+\/-]{12,}|(?:sk|ghp|github_pat|sb_secret)_[a-z0-9_-]{12,}|eyJ[a-z0-9_-]{20,}\.[a-z0-9_-]{10,})/i,
+      /\b(?:bearer\s+[a-z0-9._~+\/-]{12,}|(?:sk[-_]|(?:ghp|github_pat|sb_secret)_)[a-z0-9_-]{12,}|eyJ[a-z0-9_-]{20,}\.[a-z0-9_-]{10,})/i,
   },
   {
     code: "one_time_code",
@@ -37,6 +38,20 @@ const EXCLUSION_RULES: ExclusionRule[] = [
   {
     code: "customer_or_donor_pii",
     pattern: /\b(?:ssn|social security)\s*(?::|is)?\s*\d{3}-?\d{2}-?\d{4}\b/i,
+  },
+  {
+    code: "customer_or_donor_pii",
+    pattern: /\b\d{3}-\d{2}-\d{4}\b/,
+  },
+  {
+    code: "customer_or_donor_pii",
+    pattern:
+      /(?:^|[^A-Z0-9])(?:\+1[ .-]?|1[ .-])?(?:\([2-9]\d{2}\)|[2-9]\d{2})[ .-][2-9]\d{2}[ .-]\d{4}(?:$|[^A-Z0-9])/i,
+  },
+  {
+    code: "customer_or_donor_pii",
+    pattern:
+      /\b\d{1,6}\s+(?:(?:[A-Z][A-Z.'-]*|\d+(?:ST|ND|RD|TH))\s+){1,5}(?:STREET|ST|AVENUE|AVE|ROAD|RD|BOULEVARD|BLVD|LANE|LN|DRIVE|DR|COURT|CT|CIRCLE|CIR|PARKWAY|PKWY|HIGHWAY|HWY|WAY|TERRACE|TER|PLACE|PL)\b(?:\s+(?:APT|APARTMENT|SUITE|UNIT|#)\s*[A-Z0-9-]+)?\b/i,
   },
   {
     code: "customer_or_donor_pii",
