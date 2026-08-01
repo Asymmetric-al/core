@@ -84,6 +84,7 @@ export function fixtureCandidates(): RendererCandidateLock[] {
       configuration_digest: syntheticDigest("config-typst"),
       container_runtime: "distroless-container@sha256-fixture",
       os_libc: "debian12-glibc2.36",
+      engine_binary_digest: syntheticDigest("typst-binary"),
       network_filesystem_policy:
         "killable no-network sandbox; vendored packages, fonts, and assets only",
       ...shared,

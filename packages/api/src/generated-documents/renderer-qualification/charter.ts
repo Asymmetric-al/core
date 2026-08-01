@@ -129,11 +129,18 @@ function validateCandidates(
   }
 
   const typst = byId.get("P18-R-T");
+  // The self-hosted challenger is the one candidate whose runtime we own, so
+  // the protocol makes its binary SHA-256, OS/container digest, and libc part
+  // of what must be frozen: "Only the exact frozen binary and sandbox qualify."
+  // Engine/version/pipeline strings alone would let it freeze unpinned.
   if (
     typst?.eligibility !== "finalist" ||
     typst.engine !== "typst" ||
     typst.engine_version !== "0.15.1" ||
-    typst.pipeline !== "typst-cli@0.15.1"
+    typst.pipeline !== "typst-cli@0.15.1" ||
+    !typst.container_runtime?.trim() ||
+    !typst.os_libc?.trim() ||
+    !/^[0-9a-f]{64}$/.test(typst.engine_binary_digest ?? "")
   ) {
     issues.push(
       issue(

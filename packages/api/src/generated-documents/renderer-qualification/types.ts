@@ -33,6 +33,12 @@ export interface RendererCandidateLock {
   dependency_lock_digest: string;
   container_runtime?: string;
   os_libc?: string;
+  /**
+   * SHA-256 of the exact engine binary. The protocol requires it for the
+   * self-hosted Typst candidate ("Only the exact frozen binary and sandbox
+   * qualify"); the managed pipeline pins its engine through the provider.
+   */
+  engine_binary_digest?: string;
   fonts_assets_packages: readonly {
     name: string;
     version: string;

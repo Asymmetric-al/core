@@ -172,6 +172,46 @@ describe("freezeRendererQualificationCharter", () => {
     }
   });
 
+  it("pins the self-hosted challenger's binary, container, and libc", () => {
+    // Protocol, P18-R-T row: binary SHA-256, OS/container digest, and
+    // libc/runtime are part of what must be frozen - "only the exact frozen
+    // binary and sandbox qualify". Engine/version/pipeline strings alone would
+    // let the one candidate whose runtime we own freeze unpinned.
+    const withTypst = (patch: Record<string, unknown>) =>
+      issueCodes(
+        mutated((input) => {
+          input.candidates = input.candidates.map((item) =>
+            item.candidate_id === "P18-R-T" ? { ...item, ...patch } : item,
+          );
+        }),
+      );
+
+    expect(withTypst({ engine_binary_digest: undefined })).toContain(
+      "candidate_lock_invalid",
+    );
+    expect(withTypst({ engine_binary_digest: "not-a-digest" })).toContain(
+      "candidate_lock_invalid",
+    );
+    expect(withTypst({ container_runtime: "  " })).toContain(
+      "candidate_lock_invalid",
+    );
+    expect(withTypst({ os_libc: "  " })).toContain("candidate_lock_invalid");
+
+    // The managed candidate pins its engine through the provider, so it is not
+    // held to the self-hosted binary requirement.
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.candidates = input.candidates.map((item) =>
+            item.candidate_id === "P18-R-P"
+              ? { ...item, engine_binary_digest: undefined }
+              : item,
+          );
+        }),
+      ),
+    ).not.toContain("candidate_lock_invalid");
+  });
+
   it("rejects wrong or missing candidates and versions", () => {
     expect(
       issueCodes(
