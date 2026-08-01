@@ -5,11 +5,13 @@
   "type": "module",
   "exports": {
     "./admin-session-auth": "./src/admin-session-auth.ts",
-    "./governance-boundary": "./src/governance-boundary.ts"
+    "./governance-boundary": "./src/governance-boundary.ts",
+    "./notification-sweep": "./src/notifications/sweep.ts",
+    "./launch-watchdog": "./src/launch/watchdog.ts"
   },
   "scripts": {
     "build": "eve build",
-    "eval": "eve eval smoke --strict --max-concurrency 1",
+    "eval": "eve eval smoke specialists --strict --max-concurrency 1",
     "info": "eve info",
     "lint": "eslint agent evals src",
     "typecheck": "tsc --noEmit"

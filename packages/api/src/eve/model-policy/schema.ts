@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { EVE_SPECIALIST_CATALOG } from "../subagent-catalog/catalog";
+
 import type { EveModelPolicyDocument } from "./types";
 
 const identifierSchema = z
@@ -146,6 +148,27 @@ export function createDefaultEveModelPolicy(): EveModelPolicyDocument {
     maxUsdMicros: 5_000_000,
   };
 
+  const specialistRoles = Object.values(EVE_SPECIALIST_CATALOG).reduce<
+    EveModelPolicyDocument["roles"]
+  >((roles, specialist) => {
+    roles[specialist.modelRole] = {
+      primary: {
+        route: "vercel_ai_gateway",
+        modelId: "openai/gpt-5.2",
+      },
+      fallbacks: [],
+      reasoning: specialist.reasoning,
+      budget: {
+        maxInputTokens: specialist.budget.maxInputTokensPerSession,
+        maxOutputTokens: specialist.budget.maxOutputTokensPerSession,
+        maxRequestsPerMinute: specialist.budget.maxRequestsPerMinute,
+        maxUsdMicros: specialist.budget.maxUsdMicros,
+      },
+      evalGate: specialist.evalGate,
+    };
+    return roles;
+  }, {});
+
   return {
     schemaVersion: 1,
     scope: "platform",
@@ -183,6 +206,7 @@ export function createDefaultEveModelPolicy(): EveModelPolicyDocument {
         budget: { ...baseBudget },
         evalGate: { suiteId: "eve-judge", minimumScoreBps: 9_000 },
       },
+      ...specialistRoles,
     },
     subagentOverrides: {},
   };

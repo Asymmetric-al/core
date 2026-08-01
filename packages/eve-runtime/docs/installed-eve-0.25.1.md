@@ -16,7 +16,10 @@ summary as a replacement for it.
   `concepts/execution-model-and-durability.md`, `concepts/security-model.md`,
   and `concepts/sessions-runs-and-streaming.md`
 - `guides/auth-and-route-protection.md`, `guides/session-context.md`,
-  `patterns/multi-tenant-auth.md`, and `channels/eve.mdx`
+  `guides/state.md`, `guides/hooks.md`, `guides/dynamic-capabilities.md`,
+  `guides/dynamic-workflows.md`, `schedules.mdx`,
+  `patterns/dynamic-scheduling.md`, `patterns/multi-tenant-auth.md`, and
+  `channels/eve.mdx`
 - `evals/overview.mdx`, `evals/cases.mdx`, `evals/running.mdx`,
   `evals/targets.mdx`, and `evals/assertions.mdx`
 
@@ -62,6 +65,23 @@ summary as a replacement for it.
   or activate a production model, this foundation uses only a clearly named
   deterministic fixture. The app-owned #421 resolver remains the required
   source of any future live model plan.
+- `experimental_workflow({ maxSubagents })` exposes a root-only tool named
+  `Workflow`. Its JavaScript runs in QuickJS with only declared subagent and
+  remote-agent bridges; it has no filesystem, shell, network, environment, or
+  import access. Children receive neither Workflow nor the built-in agent.
+- Every Workflow child emits the normal `subagent.called` and
+  `subagent.completed` events. Authored hooks run after accepted events are
+  durably recorded, allowing the app boundary to stop downstream dispatch.
+- `defineState` is durable per-session state available to tools and hooks; it
+  never crosses into a child. Core uses it for the versioned plan ticket and
+  step state, not for long-term memory or shared application data.
+- Root-authored schedules live under `agent/schedules/`, use path-derived
+  identity, and accept a five-field UTC cron plus exactly one of `markdown` or
+  `run`. Development never fires cron automatically; the dev-only dispatch
+  route executes the production schedule path on demand.
+- The installed dynamic-scheduling pattern recommends one static dispatcher
+  over application-owned rows with atomic leases. Delivery is at least once,
+  so Core supplies stable finding and downstream idempotency keys.
 
 ## Security and ownership consequences
 
@@ -72,8 +92,9 @@ summary as a replacement for it.
   Supabase admin sessions. Loopback-only `localDev()` remains last solely for
   the deterministic local eval; it never creates an app-owned session binding.
 - Every default capability with filesystem, shell, network, question, todo, or
-  delegation authority is disabled in this foundation. No custom tool,
-  connection, schedule, channel, subagent, or sandbox is authored.
+  delegation authority remains explicitly governed. Authored schedules and
+  subagents are root-owned, off by default at the app boundary, and cannot
+  derive authority from prompts or external payloads.
 - The local smoke eval uses the deterministic fixture, performs no provider or
   network call, and spends zero provider budget. The typed governance boundary
   refuses live activation unless persisted governance enables release, #421

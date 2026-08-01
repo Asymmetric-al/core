@@ -75,7 +75,7 @@ export type EveGithubOperatorRequest =
 
 export interface EveGithubOperatorInput {
   accountableTrigger: string;
-  actorProfileId: string;
+  actorProfileId?: string;
   identity: EveVerifiedAuditIdentity;
   installationId: number;
   owner: string;

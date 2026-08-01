@@ -48,7 +48,11 @@ import { useState } from "react";
 
 import { EveAdminMemoryPanel } from "./admin-memory-panel";
 import { EveApprovalBudgetPanel } from "./approval-budget-panel";
+import { EveEngineeringMonitorsPanel } from "./engineering-monitors-panel";
+import { EveLaunchReadinessPanel } from "./launch-readiness-panel";
 import { EveModelPolicyPanel } from "./model-policy-panel";
+import { EveNotificationsPanel } from "./notifications-panel";
+import { EVE_GOVERNANCE_QUERY_KEY } from "./query-keys";
 import { EveRetentionPanel } from "./retention-panel";
 import {
   EveCapabilityConnectionsPanel,
@@ -74,8 +78,6 @@ interface KillSwitchConfirmationRequest {
   enabled: boolean;
   expectedStateVersion: number;
 }
-
-const EVE_GOVERNANCE_QUERY_KEY = ["admin", "eve", "governance"] as const;
 
 const KILL_SWITCH_COPY: Record<
   EveKillSwitchKey,
@@ -689,6 +691,7 @@ export default function EveGovernancePage() {
       }
     >
       <EveWorkspaceIndex />
+      <EveLaunchReadinessPanel />
       <EveGovernanceView
         data={query.data}
         errorMessage={query.error?.message}
@@ -703,6 +706,8 @@ export default function EveGovernancePage() {
       <EveApprovalBudgetPanel />
       <EveModelPolicyPanel />
       <EveAdminMemoryPanel />
+      <EveNotificationsPanel />
+      <EveEngineeringMonitorsPanel />
       <EveRetentionPanel />
       <EveCapabilityConnectionsPanel />
     </PageShell>

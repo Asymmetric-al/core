@@ -5,6 +5,7 @@ import {
   eveModelPolicyDocumentSchema,
   mutateEveModelPolicySchema,
 } from "../../../../packages/api/src/eve/model-policy/schema";
+import { EVE_SPECIALIST_IDS } from "../../../../packages/api/src/eve/subagent-catalog/types";
 
 describe("Eve model-policy schemas", () => {
   it("defines one platform policy with Gateway-primary named roles", () => {
@@ -12,7 +13,12 @@ describe("Eve model-policy schemas", () => {
 
     expect(eveModelPolicyDocumentSchema.parse(policy)).toEqual(policy);
     expect(policy.scope).toBe("platform");
-    expect(Object.keys(policy.roles)).toEqual(["agent", "review", "judge"]);
+    expect(Object.keys(policy.roles)).toEqual([
+      "agent",
+      "review",
+      "judge",
+      ...EVE_SPECIALIST_IDS.map((specialistId) => `specialist.${specialistId}`),
+    ]);
     expect(
       Object.values(policy.roles).every(
         (role) => role.primary.route === "vercel_ai_gateway",

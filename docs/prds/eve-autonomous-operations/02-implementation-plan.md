@@ -334,6 +334,13 @@ absent and belongs to #432.
   - Per-subagent model role, budget, eval gate, and routing policy are defined.
   - Shared context writes require schema, provenance, confidence, risk, source
     evidence, and conflict preservation.
+- Implementation evidence:
+  - ADR-0034 and `docs/guides/operations/eve-subagents-shared-context.md`
+  - `packages/api/src/eve/subagent-catalog/**`
+  - `packages/api/src/eve/shared-context/**`
+  - `packages/eve-runtime/agent/subagents/**`
+  - `packages/eve-runtime/src/specialists/**`
+  - `supabase/migrations/20260718070400_eve_subagent_shared_context.sql`
 
 ### 18. Dynamic Workflow Orchestration
 
@@ -346,6 +353,13 @@ absent and belongs to #432.
   - Dynamic workflows are enabled only behind governance gates.
   - Workflow failures escalate by risk.
   - Suspicious or protected-area behavior pauses the run and records audit.
+- Implementation evidence:
+  - ADR-0035 and `docs/guides/operations/eve-dynamic-workflows.md`
+  - `packages/api/src/eve/dynamic-workflow/**`
+  - `packages/eve-runtime/agent/tools/{workflow,workflow_guard}.ts`
+  - `packages/eve-runtime/agent/hooks/subagent-audit.ts`
+  - `packages/eve-runtime/agent/lib/workflow-state.ts`
+  - `supabase/migrations/20260718074651_eve_dynamic_workflow_policy.sql`
 
 ### 19. Engineering Health Monitors
 
@@ -359,6 +373,12 @@ absent and belongs to #432.
     alerts, protected-area PRs, and budget/rate-limit issues.
   - Monitors can create audited issues or comments under policy.
   - Product opportunity scanning remains disabled.
+- Implementation evidence:
+  - ADR-0036 and `docs/guides/operations/eve-engineering-health-monitors.md`
+  - `packages/api/src/eve/engineering-monitors/**`
+  - `packages/eve-runtime/agent/schedules/engineering-health.ts`
+  - `packages/eve-runtime/src/monitors/**`
+  - `supabase/migrations/20260718083000_eve_engineering_health_monitors.sql`
 
 ### 20. Email and Discord Notifications
 
