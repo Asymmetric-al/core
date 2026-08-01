@@ -36,7 +36,7 @@ export const PHASE_18_PROTOTYPE_ROUTES = [
   "apps/admin/app/api/pdf-templates/native/preview/route.ts",
   "apps/admin/app/api/pdf-templates/native/render/route.ts",
   "apps/admin/app/api/pdf-templates/native/migration-report/route.ts",
-  "apps/admin/app/pdf/page.tsx",
+  "apps/admin/app/(app)/pdf/page.tsx",
   "apps/admin/app/api/admin/contribution-operations/receipt-snapshots/[snapshotId]/pdf/route.ts",
   "apps/admin/app/api/admin/contributions/staged-gifts/[stagedGiftId]/receipt/route.ts",
   "apps/donor/app/api/donor/receipts/[donationId]/route.ts",

@@ -8,9 +8,11 @@ import { DashboardShellSkeleton } from "./dashboard-shell-skeleton";
  * does not wrap the layout of its own segment, so the boundary has to live one
  * level up.
  *
- * That nested layout holds the app's only role enforcement — the edge
- * middleware gates on signed-in, not on role. Keep the gate there; moving it to
- * a redirect-only sibling would render dashboard children to a wrong-role user.
+ * The nested layout's role gate is defence in depth, not the primary one:
+ * `apps/donor/proxy.ts` puts `/donor-dashboard` behind `allowedRoles`, so a
+ * wrong-role visitor is turned away at the edge and never renders children.
+ * Demoting that edge check would make the sibling gate unsafe — both are pinned
+ * by `tests/unit/apps/donor/static-shell-contract.test.ts`.
  */
 export default function DashboardGroupLayout({
   children,

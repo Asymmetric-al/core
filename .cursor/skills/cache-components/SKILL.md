@@ -20,6 +20,8 @@ Use this skill to avoid request-context leaks and to enforce proper cache invali
 - **Prefer code-local caching:** Favor `'use cache'`, `cacheLife`, `cacheTag` over route-segment config (`revalidate`, `dynamic`).
 - **Mutations must invalidate tags:** Use `updateTag` for immediate consistency or `revalidateTag` for background refresh.
 - **PPR + generateStaticParams:** Do not return empty arrays; keep request-specific logic out of the shell.
+- **Instant Navigation (16.3):** with `partialPrefetching: true`, Next.js prefetches one reusable shell per route. Every server `await` is a Stream (`<Suspense>`) / Cache (`'use cache'`) / Block (`export const instant = false` + reason comment) decision; Instant Insights errors link the canonical fix at `nextjs.org/docs/messages/...` — apply that pattern, don't improvise.
+- **Prefetch escalation:** `<Link prefetch={true}>` extends prefetching to build-time-known cached content on that link; `export const prefetch = 'allow-runtime'` extends it to request-time cached content and requires PR justification.
 
 ## Workflow
 
@@ -38,6 +40,7 @@ Use this skill to avoid request-context leaks and to enforce proper cache invali
 - [ ] No request data inside cached scopes
 - [ ] Dynamic UI is isolated behind `<Suspense>`
 - [ ] Cached functions are `async`
+- [ ] Route stays instant (Stream/Cache), or Blocks explicitly via `export const instant = false` with a reason
 - [ ] Mutations invalidate correct tags
 
 ### Review checklist

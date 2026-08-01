@@ -8,6 +8,7 @@ const pageClientPath = join(
   "apps",
   "admin",
   "app",
+  "(app)",
   "pdf",
   "page-client.tsx",
 );

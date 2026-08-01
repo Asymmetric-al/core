@@ -11,13 +11,13 @@ function readRepoFile(path: string) {
 const routeSplits = [
   {
     name: "admin events",
-    wrapperPath: "apps/admin/app/events/page.tsx",
-    clientPath: "apps/admin/app/events/page-client.tsx",
+    wrapperPath: "apps/admin/app/(app)/events/page.tsx",
+    clientPath: "apps/admin/app/(app)/events/page-client.tsx",
   },
   {
     name: "admin reports",
-    wrapperPath: "apps/admin/app/reports/page.tsx",
-    clientPath: "apps/admin/app/reports/page-client.tsx",
+    wrapperPath: "apps/admin/app/(app)/reports/page.tsx",
+    clientPath: "apps/admin/app/(app)/reports/page-client.tsx",
   },
   {
     name: "donor feed",
@@ -52,8 +52,8 @@ const routeSplits = [
 ] as const;
 
 const loadingPaths = [
-  "apps/admin/app/events/loading.tsx",
-  "apps/admin/app/reports/loading.tsx",
+  "apps/admin/app/(app)/events/loading.tsx",
+  "apps/admin/app/(app)/reports/loading.tsx",
   "apps/donor/app/(dashboard)/donor-dashboard/feed/loading.tsx",
   "apps/donor/app/(dashboard)/donor-dashboard/history/loading.tsx",
   "apps/donor/app/(dashboard)/donor-dashboard/wallet/loading.tsx",
@@ -148,7 +148,7 @@ describe("UI route cleanup contracts", () => {
   });
 
   it("keeps admin reports summary dismissible by accessible name", () => {
-    const source = readRepoFile("apps/admin/app/reports/page-client.tsx");
+    const source = readRepoFile("apps/admin/app/(app)/reports/page-client.tsx");
 
     expect(source).toMatch(/aria-label="Dismiss report summary"/);
   });
@@ -159,13 +159,13 @@ describe("UI route cleanup contracts", () => {
 // fallback, so first paint is a skeleton rather than a blank table. Removing
 // the boundary or the fallback from any of these routes must fail here.
 const ADMIN_TABLE_ROUTES = [
-  "apps/admin/app/crm",
-  "apps/admin/app/crm/notes",
-  "apps/admin/app/crm/relationships",
-  "apps/admin/app/crm/projections",
-  "apps/admin/app/contributions",
-  "apps/admin/app/tasks",
-  "apps/admin/app/events",
+  "apps/admin/app/(app)/crm",
+  "apps/admin/app/(app)/crm/notes",
+  "apps/admin/app/(app)/crm/relationships",
+  "apps/admin/app/(app)/crm/projections",
+  "apps/admin/app/(app)/contributions",
+  "apps/admin/app/(app)/tasks",
+  "apps/admin/app/(app)/events",
 ] as const;
 
 describe("admin table routes stream behind a Suspense boundary", () => {
@@ -199,9 +199,11 @@ describe("admin table routes stream behind a Suspense boundary", () => {
 
 describe("support tickets keeps a server-rendered table loading contract", () => {
   it("keeps the server page and loading skeleton aligned to shared metadata", () => {
-    const pageSource = readRepoFile("apps/admin/app/support/tickets/page.tsx");
+    const pageSource = readRepoFile(
+      "apps/admin/app/(app)/support/tickets/page.tsx",
+    );
     const loadingSource = readRepoFile(
-      "apps/admin/app/support/tickets/loading.tsx",
+      "apps/admin/app/(app)/support/tickets/loading.tsx",
     );
 
     expect(pageSource).not.toMatch(/^["']use client["'];/m);

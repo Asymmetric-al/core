@@ -438,7 +438,7 @@
   migration stack into the production branch, clean stale local branches, and
   verify the Vercel production deployment.
 - Primary area:
-  - `apps/admin/app/pdf/**`
+  - `apps/admin/app/(app)/pdf/**`
   - `apps/admin/app/api/pdf-templates/native/**`
   - `packages/api/src/pdf-templates/**`
   - `packages/config/pdf-studio-native.ts`
@@ -664,7 +664,7 @@
   completion gates.
 - Primary area:
   - `apps/{admin,donor,missionary}/app/api/**/route.ts`
-  - `apps/admin/app/contributions/*`
+  - `apps/admin/app/(app)/contributions/*`
   - `apps/donor/app/{api/donate,checkout,donor-dashboard/history}/*`
   - `packages/api/src/{stripe,donations,contributions,email,crm}/*`
   - `packages/database/types/*`
@@ -713,7 +713,7 @@
   and explicit legacy Unlayer handling for existing email templates and PDF
   Studio/document mode.
 - Primary area:
-  - `apps/admin/app/email/*`
+  - `apps/admin/app/(app)/email/*`
   - `apps/admin/app/api/email/*`
   - `packages/ui/components/studio/*`
   - `packages/email/*`
@@ -766,8 +766,8 @@
     `composeReactEmail`, and image upload
   - Resend embed guide for React Email Editor
   - `packages/ui/components/studio/UnlayerEditor.tsx`
-  - `apps/admin/app/email/page-client.tsx`
-  - `apps/admin/app/pdf/page-client.tsx`
+  - `apps/admin/app/(app)/email/page-client.tsx`
+  - `apps/admin/app/(app)/pdf/page-client.tsx`
   - `packages/email/{email-studio-types,types,resend,index}.ts`
   - `packages/api/src/email/{connect,test-send,settings-store}.ts`
   - `supabase/{schema.sql,migrations/20260223120000_resend_email_foundation.sql}`
@@ -827,7 +827,7 @@
   rollback state for donor, missionary, CMS, event, and reporting contexts
   without starting Phase 07.
 - Primary area:
-  - `apps/admin/app/crm/projections/*`
+  - `apps/admin/app/(app)/crm/projections/*`
   - `apps/admin/app/api/admin/crm/projections/route.ts`
   - `packages/api/src/admin/crm/projections/*`
   - `packages/api/src/crm/projections/*`
@@ -880,7 +880,7 @@
   relationship records, CRM search, and relationship reporting while keeping
   finance, care, CMS publish state, and auth authority in Asym.
 - Primary area:
-  - `apps/admin/app/crm/*`
+  - `apps/admin/app/(app)/crm/*`
   - `apps/admin/app/api/admin/crm/*`
   - `packages/api/src/admin/crm/*`
   - `packages/api/src/crm/*`
@@ -932,7 +932,7 @@
   while preserving tenant scope, staff auth, auditability, replay, and rollback
   readiness without proceeding to Phase 05.
 - Primary area:
-  - `apps/admin/app/crm/*`
+  - `apps/admin/app/(app)/crm/*`
   - `apps/admin/app/api/admin/crm/*`
   - `packages/api/src/admin/crm/*`
   - `packages/api/src/crm/*`
@@ -1152,7 +1152,7 @@
 - Primary area:
   - `docs/guides/features/twenty-crm-integration/*`
   - `packages/api/src/admin/crm/*`
-  - `apps/admin/app/crm/*`
+  - `apps/admin/app/(app)/crm/*`
   - `supabase/migrations/*`
   - `docs/guides/architecture/data-access-boundary.md`
   - `docs/guides/development/tanstack-integration.md`
@@ -1301,7 +1301,7 @@
   - `packages/ui/components/shadcn/rich-text-editor/*`
   - `packages/ui/components/shadcn/index.ts`
   - `packages/ui/package.json`
-  - `apps/admin/app/feed/org-updates/page.tsx`
+  - `apps/admin/app/(app)/feed/org-updates/page.tsx`
   - `apps/missionary/app/feed/worker-feed-page-client.tsx`
   - `docs/ai/skills/tiptap/SKILL.md`
 - Constraints:
@@ -1454,7 +1454,7 @@
 - Goal: Complete roster UX with stronger TanStack Table filtering/search semantics, explicit care-priority visibility, and last-contact age indicators while preserving current route ownership.
 - Primary area:
   - `apps/admin/features/mission-control/care/components/PersonnelList.tsx`
-  - `apps/admin/app/care/directory/[id]/page.tsx`
+  - `apps/admin/app/(app)/care/directory/[id]/page.tsx`
 - Constraints:
   - Keep using shared `@asym/ui` table primitives and avoid premature virtualization.
   - Align links with canonical `/care/*` routes.
@@ -1494,9 +1494,9 @@
 - Repo: Asymmetric-al/core
 - Goal: Start the Shepherd-to-Core member care port by extracting reusable, tested derivation utilities and wiring the existing dashboard preview cards to those selectors.
 - Target paths discovered before implementation:
-  - `apps/admin/app/care/page.tsx`
-  - `apps/admin/app/care/directory/page.tsx`
-  - `apps/admin/app/care/directory/[id]/page.tsx`
+  - `apps/admin/app/(app)/care/page.tsx`
+  - `apps/admin/app/(app)/care/directory/page.tsx`
+  - `apps/admin/app/(app)/care/directory/[id]/page.tsx`
   - `apps/admin/features/mission-control/care/components/{CareDashboard,PersonnelList,PersonnelProfile,TimezoneScheduler}.tsx`
   - `apps/admin/features/mission-control/care/hooks/use-care.ts`
   - `apps/admin/features/mission-control/care/{types,constants,utils}.ts`
@@ -1570,7 +1570,7 @@
   - `.next-docs/01-app/03-api-reference/04-functions/use-pathname.mdx`
   - repo-scoped Nia search + direct file reads for missionary/admin route modules and Mission Control shell duplicates
 - Notes:
-  - The `shell/` Mission Control tree is effectively a compatibility surface; only `apps/admin/app/admin/teams/teams-sections.tsx` currently imports it directly.
+  - The `shell/` Mission Control tree is effectively a compatibility surface; only `apps/admin/app/(app)/admin/teams/teams-sections.tsx` currently imports it directly.
   - The biggest page wins in this pass are adjacent extractions (models/hooks/sections), not full feature migrations.
   - Validation should cover `verify:workspace-contract`, scoped lint/typecheck, unit tests, and a vendor-scoped React Doctor script for future audits.
 
@@ -1606,7 +1606,7 @@
 - Repo: Asymmetric-al/core
 - Goal: Rebuild the Mission Control Contributions table into a production-grade infinite virtual admin grid using TanStack Table, Query, DB, and Virtual without replacing the rest of the page chrome.
 - Primary area:
-  - `apps/admin/app/contributions/**`
+  - `apps/admin/app/(app)/contributions/**`
   - `apps/admin/app/api/admin/contributions/**`
   - `packages/api/src/admin/contributions/**`
   - `packages/database/hooks/admin-contributions-infinite.ts`
@@ -1704,7 +1704,7 @@
 - Repo: Asymmetric-al/core
 - Goal: Remove the App Router hydration risk in the Resend `validatedAt` label and add direct regression coverage for the “session exists but profile is unusable” redirect invariant without changing auth or Resend route semantics.
 - Primary area:
-  - `apps/admin/app/settings/integrations/resend/{resend-sections,validated-at}.ts*`
+  - `apps/admin/app/(app)/settings/integrations/resend/{resend-sections,validated-at}.ts*`
   - `packages/auth/{redirects,index,package}.ts`
   - `apps/donor/app/(dashboard)/donor-dashboard/layout.tsx`
   - `apps/missionary/app/layout.tsx`
@@ -1717,7 +1717,7 @@
 - Evidence sources used:
   - `.next-docs/01-app/01-getting-started/05-server-and-client-components.mdx`
   - `docs/ai/rules/testing.md`
-  - `apps/admin/app/settings/integrations/resend/resend-sections.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx`
   - `apps/donor/app/(dashboard)/donor-dashboard/layout.tsx`
   - `apps/missionary/app/layout.tsx`
   - `packages/auth/context.ts`
@@ -1741,7 +1741,7 @@
   - `tests/unit/{script-verifiers,packages/api/email/connect}.test.ts`
   - `packages/api/src/email/connect.ts`
   - `packages/email/types.ts`
-  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/{page,resend-sections}.tsx`
   - `docs/guides/features/resend-integration.md`
 - Constraints:
   - Preserve existing login redirect URLs and missionary public-path handling.
@@ -1762,7 +1762,7 @@
   - `tests/unit/script-verifiers.test.ts`
   - `packages/api/src/email/connect.ts`
   - `packages/email/types.ts`
-  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/{page,resend-sections}.tsx`
   - `docs/guides/features/resend-integration.md`
 - Notes:
   - Nia is not available in this session, so repo-scoped direct file reads and targeted searches are being used instead.
@@ -1836,7 +1836,7 @@
 - Primary area:
   - `packages/api/src/email/{connect,test-send,settings-store}.ts`
   - `packages/email/types.ts`
-  - `apps/admin/app/settings/integrations/resend/page.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/page.tsx`
   - `packages/ui/components/public/navbar-client.tsx`
   - `apps/missionary/app/{layout,icon.svg,apple-icon.tsx,manifest.ts}`
   - `tests/unit/packages/api/email/{connect,test-send}.test.ts`
@@ -1852,7 +1852,7 @@
   - `docs/ai/rules/{general,frontend,backend,testing}.md`
   - `docs/guides/architecture/data-access-boundary.md`
   - `packages/api/src/email/{connect,test-send,settings-store}.ts`
-  - `apps/admin/app/settings/integrations/resend/page.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/page.tsx`
   - `packages/ui/components/public/navbar-client.tsx`
   - `apps/missionary/app/layout.tsx`
 - Notes:
@@ -1869,7 +1869,7 @@
 - Primary area:
   - `packages/email/{resend,types,index}.ts`
   - `packages/api/src/email/{connect,settings-store,test-send}.ts`
-  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/{page,resend-sections}.tsx`
   - `apps/missionary/app/profile/{page,profile-dirty-state}.ts`
   - `playwright{,.admin,.missionary}.config.ts`
   - `tests/e2e/{helpers/demo-auth,usability-smoke,demo-auth-preflight}.ts`
@@ -1888,7 +1888,7 @@
   - `docs/guides/architecture/data-access-boundary.md`
   - official Resend API docs for domain details/records
   - `packages/{api,email}/src/email/*.ts`
-  - `apps/admin/app/settings/integrations/resend/*.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/*.tsx`
   - `apps/missionary/app/profile/page.tsx`
   - `playwright*.config.ts`
 - Notes:
@@ -1913,7 +1913,7 @@
   - `apps/missionary/app/{layout,access}.ts*`
   - `packages/api/src/email/{connect,test-send}.ts`
   - `packages/email/resend.ts`
-  - `apps/admin/app/settings/integrations/resend/resend-sections.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx`
   - `tests/e2e/usability-smoke.spec.ts`
   - `tests/unit/{apps/missionary/app/access,packages/api/email/{connect,test-send},packages/email/resend,packages/ui/components/shadcn/{image-upload-helpers,image-cropper-helpers}}.test.ts`
 - Constraints:
@@ -1981,7 +1981,7 @@
 - Goal: Verify that the current local `epic` state after pulling `origin` still merges and runs cleanly with the previously developed admin auth/locations/Resend compatibility fixes, without downgrading the branch off Next.js 16.2.1.
 - Primary area:
   - `apps/admin/app/{layout,mc-shell,page,dashboard-stats-loader}.tsx`
-  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/{page,resend-sections}.tsx`
   - `apps/admin/app/api/admin/locations/route.ts`
   - `apps/admin/features/mission-control/locations/hooks/use-locations.ts`
   - `apps/admin/lib/authenticated-fetch.ts`
@@ -2055,7 +2055,7 @@
 - Primary area:
   - `packages/email/{constants,resend,index,types}.ts`
   - `packages/api/src/email/{connect,test-send}.ts`
-  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/{page,resend-sections}.tsx`
   - `packages/ui/components/public/{home-hero-animated,home-sections,navbar,navbar-client}.tsx`
   - `tests/unit/packages/{email,api/email}/*.test.ts`
   - `tests/e2e/accessibility.spec.ts`
@@ -2088,8 +2088,8 @@
 - Goal: Replace RHF/manual complex form state in `apps/admin` with TanStack Form where it clearly improves multi-field validation/composition, while keeping simple native or local-state surfaces unchanged.
 - Primary area:
   - `apps/admin/features/mission-control/locations/components/LocationEditor.tsx`
-  - `apps/admin/app/tasks/{task-form,task-form-sections,task-drawer-sections,tasks-content}.tsx`
-  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `apps/admin/app/(app)/tasks/{task-form,task-form-sections,task-drawer-sections,tasks-content}.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/{page,resend-sections}.tsx`
   - `packages/ui/components/shadcn/{form,field}.tsx`
   - `apps/admin/package.json`
   - `packages/ui/package.json`
@@ -2385,7 +2385,7 @@
 - Evidence sources used:
   - `packages/email/{resend.ts,types.ts,constants.ts}`
   - `packages/api/src/email/{connect,test-send,webhooks/resend,settings-store,crypto}.ts`
-  - `apps/admin/app/settings/integrations/resend/{page,resend-sections}.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/{page,resend-sections}.tsx`
   - `supabase/{schema.sql,migrations/20260223120000_resend_email_foundation.sql}`
   - `packages/database/types/{database,index}.ts`
   - `tests/unit/packages/{email,resend,api/email}/*.test.ts`
@@ -2426,7 +2426,7 @@
   - `packages/database/types/database.ts`
   - `supabase/migrations/20250101000000_init_schema.sql`
   - `supabase/seed.sql`
-  - `apps/admin/app/contributions/{page,types,columns}.tsx`
+  - `apps/admin/app/(app)/contributions/{page,types,columns}.tsx`
   - `packages/api/src/reads/{dashboard-stats,donor-history}.ts`
 
 ## 2026-02-23 (prior)
@@ -2434,7 +2434,7 @@
 - Date: 2026-02-23
 - Repo: Asymmetric-al/core
 - Goal: Implement ticket 2.2.7 by creating typed read-model modules and wiring them into admin dashboard/contributions with Next.js Cache Components patterns.
-- Primary area: `packages/api/src/reads/*`, `apps/admin/app/page.tsx`, `apps/admin/app/contributions/*`, `tests/unit/packages/api/reads/*`, `packages/api/package.json`
+- Primary area: `packages/api/src/reads/*`, `apps/admin/app/(app)/page.tsx`, `apps/admin/app/(app)/contributions/*`, `tests/unit/packages/api/reads/*`, `packages/api/package.json`
 - Constraints:
   - Keep changes additive and non-breaking for existing admin UI.
   - Use `'use cache'` + `cacheTag` + explicit `cacheLife` in read-model functions.
@@ -2444,8 +2444,8 @@
   - `supabase/schema.sql`
   - `packages/database/supabase/admin.ts`
   - `packages/auth/context.ts`
-  - `apps/admin/app/page.tsx`
-  - `apps/admin/app/contributions/page.tsx`
+  - `apps/admin/app/(app)/page.tsx`
+  - `apps/admin/app/(app)/contributions/page.tsx`
   - `tests/unit/packages/api/*`
   - `docs/ai/rules/{general,backend,frontend,testing}.md`
 - Notes:
@@ -2471,7 +2471,7 @@
 - Date: 2026-03-10
 - Repo: Asymmetric-al/core
 - Goal: Reconcile PR #68 with current `epic`, keep donor-specific contributions, share settled-status KPI handling, and resolve merge conflicts for admin merge.
-- Primary area: `apps/admin/app/{page,contributions/page}.tsx`, `apps/admin/app/contributions/contributions-client.tsx`, `apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx`, `packages/api/src/reads/*`, `tests/unit/{apps/admin/app,packages/api/reads}/*`
+- Primary area: `apps/admin/app/{page,contributions/page}.tsx`, `apps/admin/app/(app)/contributions/contributions-client.tsx`, `apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx`, `packages/api/src/reads/*`, `tests/unit/{apps/admin/app,packages/api/reads}/*`
 - Constraints:
   - Keep `/contributions` donor-specific and validate `donorId` against the signed-in donor profile.
   - Preserve the existing dashboard shell when KPI stats fail to load.
@@ -2479,9 +2479,9 @@
   - Use one shared settled-status source for dashboard and missionary metrics.
   - Leave the tenant-wide contributions implementation out of this PR.
 - Evidence sources used:
-  - `apps/admin/app/page.tsx`
-  - `apps/admin/app/contributions/page.tsx`
-  - `apps/admin/app/contributions/contributions-client.tsx`
+  - `apps/admin/app/(app)/page.tsx`
+  - `apps/admin/app/(app)/contributions/page.tsx`
+  - `apps/admin/app/(app)/contributions/contributions-client.tsx`
   - `apps/admin/features/mission-control/components/AdminDashboardStatsSection.tsx`
   - `packages/api/src/reads/{dashboard-stats,donor-history,missionary-metrics}.ts`
   - `tests/unit/packages/api/reads/*`
@@ -2496,16 +2496,16 @@
 - Date: 2026-03-09
 - Repo: Asymmetric-al/core
 - Goal: Finish PR #67 for merge by keeping the new donor-specific contributions direction, adding safe dashboard KPI fallback behavior, moving donor lookup into `packages/api/src/reads`, and removing the Greptile informer workflow.
-- Primary area: `packages/api/src/reads/*`, `apps/admin/app/page.tsx`, `apps/admin/app/contributions/page.tsx`, `tests/unit/packages/api/reads/*`, `tests/unit/apps/admin/app/*`, `.github/workflows/greptile-informer.yml`
+- Primary area: `packages/api/src/reads/*`, `apps/admin/app/(app)/page.tsx`, `apps/admin/app/(app)/contributions/page.tsx`, `tests/unit/packages/api/reads/*`, `tests/unit/apps/admin/app/*`, `.github/workflows/greptile-informer.yml`
 - Constraints:
   - Keep `/contributions` donor-specific for this PR.
   - Preserve the existing dashboard shell when KPI stats fail to load.
   - Keep current placeholder contribution labels and visible bulk-action stubs.
   - Move page-level admin-client access into `packages/api/src/reads`.
 - Evidence sources used:
-  - `apps/admin/app/page.tsx`
-  - `apps/admin/app/contributions/page.tsx`
-  - `apps/admin/app/contributions/contributions-client.tsx`
+  - `apps/admin/app/(app)/page.tsx`
+  - `apps/admin/app/(app)/contributions/page.tsx`
+  - `apps/admin/app/(app)/contributions/contributions-client.tsx`
   - `apps/admin/app/mc-shell.tsx`
   - `packages/api/src/reads/{dashboard-stats,donor-history,missionary-metrics}.ts`
   - `tests/unit/packages/api/reads/*`
@@ -2519,7 +2519,7 @@
 - Date: 2026-02-23
 - Repo: Asymmetric-al/core
 - Goal: Implement ticket 2.2.7 by creating typed read-model modules and wiring them into admin dashboard/contributions with Next.js Cache Components patterns.
-- Primary area: `packages/api/src/reads/*`, `apps/admin/app/page.tsx`, `apps/admin/app/contributions/*`, `tests/unit/packages/api/reads/*`, `packages/api/package.json`
+- Primary area: `packages/api/src/reads/*`, `apps/admin/app/(app)/page.tsx`, `apps/admin/app/(app)/contributions/*`, `tests/unit/packages/api/reads/*`, `packages/api/package.json`
 - Constraints:
   - Keep changes additive and non-breaking for existing admin UI.
   - Use `'use cache'` + `cacheTag` + explicit `cacheLife` in read-model functions.

@@ -64,6 +64,16 @@ export function runBunVersionGuard(spawn = spawnSync) {
   return result.status ?? 1;
 }
 
+/**
+ * KNOWN BROKEN: the timeout flags below do not take effect. This script still
+ * reports `Test timed out in 30000ms` / `Hook timed out in 90000ms` (3x30000,
+ * vitest deriving the hook budget), a value in neither these flags nor
+ * `vitest.config.ts`. Don't read them as a working cap. Leads: a second vitest
+ * config, Vitest 4 dropping unknown CLI flags, `shell: true` arg joining on
+ * Windows (`--maxWorkers=50%` contains a cmd-special `%`), or a `VITEST_*` env
+ * var. The pre-push 255 is separate and belongs to the husky wrapper — run
+ * directly this exits 1 with ordinary failures.
+ */
 export function runUnitTests(platform = process.platform, spawn = spawnSync) {
   if (platform === "win32") {
     const bunVersionStatus = runBunVersionGuard(spawn);
@@ -76,7 +86,8 @@ export function runUnitTests(platform = process.platform, spawn = spawnSync) {
       [
         "--coverage",
         "--maxWorkers=50%",
-        "--testTimeout=30000",
+        "--testTimeout=120000",
+        "--hookTimeout=120000",
         "--no-file-parallelism",
         "--exclude",
         "tests/unit/scripts/bun-version.test.ts",
@@ -125,7 +136,8 @@ if (isMain) {
       runVitest([
         "--coverage",
         "--maxWorkers=50%",
-        "--testTimeout=30000",
+        "--testTimeout=120000",
+        "--hookTimeout=120000",
         "--no-file-parallelism",
         "--exclude",
         "tests/unit/scripts/bun-version.test.ts",

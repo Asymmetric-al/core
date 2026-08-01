@@ -25,7 +25,7 @@ Events/audit          email_send_logs + Resend webhook ingestion
 
 Primary files:
 
-- `apps/admin/app/email/page-client.tsx` - admin Email Studio shell.
+- `apps/admin/app/(app)/email/page-client.tsx` - admin Email Studio shell.
 - `packages/ui/components/studio/EmailStudioEditor.tsx` - React Email editor surface (Unlayer removed).
 - `packages/ui/components/studio/ReactEmailEditor.tsx` - React Email Editor wrapper.
 - `packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx` - legacy Unlayer adapter, now used only by PDF Studio.

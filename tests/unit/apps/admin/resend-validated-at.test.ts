@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatValidatedAtUtcLabel } from "../../../../apps/admin/app/settings/integrations/resend/validated-at";
+import { formatValidatedAtUtcLabel } from "../../../../apps/admin/app/(app)/settings/integrations/resend/validated-at";
 
 describe("formatValidatedAtUtcLabel", () => {
   it("returns a deterministic UTC label for valid timestamps", () => {

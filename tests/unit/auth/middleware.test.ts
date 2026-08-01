@@ -6,13 +6,20 @@ import {
   E2E_AUTH_COOKIE_NAMES,
 } from "../../../packages/auth/e2e-auth";
 
+type MockCookieToSet = {
+  name: string;
+  value: string;
+  options?: Record<string, unknown>;
+};
+
 // Stable object identity for hoisted mock factory (reassigning `let` can desync the mock).
 const mockSupabaseConfig = {
   url: null as string | null,
   key: null as string | null,
   keyType: null as "anon" | "publishable" | null,
 };
-const { supabaseSessionRef } = vi.hoisted(() => ({
+const { supabaseCookiesToSetRef, supabaseSessionRef } = vi.hoisted(() => ({
+  supabaseCookiesToSetRef: { cookies: [] as MockCookieToSet[] },
   supabaseSessionRef: { userId: null as string | null },
 }));
 
@@ -21,16 +28,25 @@ vi.mock("@asym/database/supabase/config", () => ({
 }));
 
 vi.mock("@supabase/ssr", () => ({
-  createServerClient: () => ({
+  createServerClient: (
+    _url: string,
+    _key: string,
+    options: { cookies: { setAll: (cookies: MockCookieToSet[]) => void } },
+  ) => ({
     auth: {
-      getUser: () =>
-        Promise.resolve({
+      getUser: () => {
+        if (supabaseCookiesToSetRef.cookies.length > 0) {
+          options.cookies.setAll(supabaseCookiesToSetRef.cookies);
+        }
+
+        return Promise.resolve({
           data: {
             user: supabaseSessionRef.userId
               ? { id: supabaseSessionRef.userId }
               : null,
           },
-        }),
+        });
+      },
     },
   }),
 }));
@@ -76,6 +92,7 @@ function mockNoConfig() {
   mockSupabaseConfig.url = null;
   mockSupabaseConfig.key = null;
   mockSupabaseConfig.keyType = null;
+  supabaseCookiesToSetRef.cookies = [];
   supabaseSessionRef.userId = null;
 }
 
@@ -166,6 +183,7 @@ describe("createAuthMiddleware", () => {
       protectedRoutePrefixes: ["/donor-dashboard"],
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
+      resolveUserRole: async () => null,
     });
     const cookieValue = await createE2EAuthCookieValue({
       userId: "e2e-donor-user",
@@ -194,6 +212,7 @@ describe("createAuthMiddleware", () => {
       protectedRoutePrefixes: ["/donor-dashboard"],
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
+      resolveUserRole: async () => null,
     });
 
     const response = await middleware(
@@ -223,6 +242,7 @@ describe("createAuthMiddleware", () => {
       protectedRoutePrefixes: ["/donor-dashboard"],
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
+      resolveUserRole: async () => null,
     });
 
     const response = await middleware(
@@ -257,6 +277,7 @@ describe("createAuthMiddleware", () => {
       protectedRoutePrefixes: ["/donor-dashboard"],
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
+      resolveUserRole: async () => null,
     });
 
     const response = await middleware(
@@ -283,6 +304,7 @@ describe("createAuthMiddleware", () => {
       protectedRoutePrefixes: ["/donor-dashboard"],
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
+      resolveUserRole: async () => null,
     });
     const cookieValue = await createE2EAuthCookieValue({
       userId: "e2e-admin-user",
@@ -303,6 +325,123 @@ describe("createAuthMiddleware", () => {
     const middleware = createAuthMiddleware({
       publicRoutes: ["/login", "/register", "/auth/callback"],
       loginPath: "/login",
+    });
+
+    const response = await middleware(createRequest("/login"));
+
+    expect(response.status).toBe(200);
+  });
+
+  it("redirects a signed-in visitor away from an auth route when redirectAuthenticatedTo is set", async () => {
+    mockConfigWithUser();
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/donor-dashboard",
+    });
+
+    const response = await middleware(createRequest("/login"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/donor-dashboard",
+    );
+  });
+
+  it("preserves refreshed auth cookies when redirecting a signed-in visitor off an auth route", async () => {
+    mockConfigWithUser();
+    supabaseCookiesToSetRef.cookies = [
+      {
+        name: "sb-access-token",
+        value: "refreshed-access-token",
+        options: { path: "/", httpOnly: true },
+      },
+    ];
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/donor-dashboard",
+    });
+
+    const response = await middleware(createRequest("/login"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/donor-dashboard",
+    );
+    expect(response.cookies.get("sb-access-token")?.value).toBe(
+      "refreshed-access-token",
+    );
+  });
+
+  it("honours a safe next param when redirecting a signed-in visitor off an auth route", async () => {
+    mockConfigWithUser();
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/donor-dashboard",
+    });
+
+    const response = await middleware(
+      createRequest("/login?next=%2Fdonor-dashboard%2Fhistory"),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/donor-dashboard/history",
+    );
+  });
+
+  it("ignores an off-origin next param when redirecting a signed-in visitor", async () => {
+    mockConfigWithUser();
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/donor-dashboard",
+    });
+
+    const response = await middleware(
+      createRequest("/login?next=https%3A%2F%2Fevil.example%2Fsteal"),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/donor-dashboard",
+    );
+  });
+
+  it("redirects a signed-in wrong-role visitor without entering an auth loop", async () => {
+    mockConfigWithUser("user_donor");
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/no-access"],
+      protectedRoutePrefixes: ["/"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/",
+      unauthorizedRedirectTo: "/no-access",
+      allowedRoles: ["staff", "admin", "super_admin"],
+      resolveUserRole: async () => ({
+        profileRole: "donor",
+        memberships: [],
+      }),
+    });
+
+    const response = await middleware(createRequest("/login"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/no-access",
+    );
+  });
+
+  it("leaves auth routes alone for an E2E-bypass session with no Supabase user", async () => {
+    // The bypass cookie populates `userId` but never a Supabase `user`; keying
+    // the redirect off `userId` would bounce the e2e suite off /login.
+    mockConfigWithUser(null);
+    process.env.E2E_AUTH_BYPASS = "true";
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/donor-dashboard",
     });
 
     const response = await middleware(createRequest("/login"));
@@ -386,5 +525,151 @@ describe("createAuthMiddleware", () => {
     expect(errorSpy).toHaveBeenCalledWith(
       expect.stringContaining("E2E bypass blocked"),
     );
+  });
+});
+
+describe("edge role enforcement", () => {
+  beforeEach(() => {
+    process.env.E2E_AUTH_BYPASS = "false";
+    mockConfigWithUser("user_donor");
+  });
+
+  it("redirects a signed-in user whose role is not allowed for the app", async () => {
+    const middleware = createAuthMiddleware({
+      protectedRoutePrefixes: ["/crm"],
+      allowedRoles: ["staff", "admin", "super_admin"],
+      unauthorizedRedirectTo: "/no-access",
+      resolveUserRole: async () => ({
+        profileRole: "donor",
+        memberships: [],
+      }),
+    });
+
+    const response = await middleware(createRequest("/crm"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/no-access",
+    );
+  });
+
+  it("lets a signed-in user with an allowed role through", async () => {
+    const middleware = createAuthMiddleware({
+      protectedRoutePrefixes: ["/crm"],
+      allowedRoles: ["staff", "admin", "super_admin"],
+      unauthorizedRedirectTo: "/no-access",
+      resolveUserRole: async () => ({
+        profileRole: "staff",
+        memberships: [],
+      }),
+    });
+
+    const response = await middleware(createRequest("/crm"));
+
+    expect(response.status).toBe(200);
+  });
+
+  it("allows any active membership instead of only the primary role", async () => {
+    const middleware = createAuthMiddleware({
+      protectedRoutePrefixes: ["/donor-dashboard"],
+      allowedRoles: ["donor"],
+      unauthorizedRedirectTo: "/no-access",
+      resolveUserRole: async () => ({
+        profileRole: "staff",
+        memberships: [
+          {
+            tenantId: "tenant_1",
+            role: "donor",
+            staffRole: null,
+            isActive: true,
+          },
+          {
+            tenantId: "tenant_1",
+            role: "staff",
+            staffRole: null,
+            isActive: true,
+          },
+        ],
+      }),
+    });
+
+    const response = await middleware(createRequest("/donor-dashboard"));
+
+    expect(response.status).toBe(200);
+  });
+
+  /**
+   * The missionary app's shape: everything protected, and the app's own home
+   * page is the dashboard. Listing "/" as public cancels the gate outright,
+   * because the public check returns before authentication runs.
+   */
+  const missionaryLikeMiddleware = (
+    resolveUserRole: () => Promise<{
+      profileRole: "missionary" | "donor";
+      memberships: [];
+    }>,
+  ) =>
+    createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/no-access"],
+      protectedRoutePrefixes: ["/"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/",
+      unauthorizedRedirectTo: "/no-access",
+      allowedRoles: ["missionary", "admin", "staff", "super_admin"],
+      resolveUserRole,
+    });
+
+  it("sends an anonymous visitor on a protected home page to login", async () => {
+    mockConfigWithUser(null);
+    const middleware = missionaryLikeMiddleware(async () => ({
+      profileRole: "missionary",
+      memberships: [],
+    }));
+
+    const response = await middleware(createRequest("/"));
+
+    // A 200 here means the dashboard shell was generated and the redirect was
+    // left to the layout, which arrives after the markup does.
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/login?next=%2F",
+    );
+  });
+
+  it("sends a wrong-role visitor on a protected home page to a terminal page", async () => {
+    const middleware = missionaryLikeMiddleware(async () => ({
+      profileRole: "donor",
+      memberships: [],
+    }));
+
+    const response = await middleware(createRequest("/"));
+
+    expect(response.status).toBe(307);
+    // Not "/": bouncing there re-enters this same failing check and loops.
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/no-access",
+    );
+  });
+
+  it("still serves a protected home page to an allowed role", async () => {
+    const middleware = missionaryLikeMiddleware(async () => ({
+      profileRole: "missionary",
+      memberships: [],
+    }));
+
+    expect((await middleware(createRequest("/"))).status).toBe(200);
+  });
+
+  it("refuses to build a role-gated middleware without a role resolver", () => {
+    // Without this guard the misconfiguration is silent and total: every
+    // signed-in user resolves to a `null` role, fails closed, and is redirected
+    // off every protected path. All three apps set `allowedRoles`, and admin and
+    // missionary protect "/", so that is a full lockout. Fail at construction.
+    expect(() =>
+      createAuthMiddleware({
+        protectedRoutePrefixes: ["/"],
+        allowedRoles: ["staff"],
+      }),
+    ).toThrow(/resolveUserRole/);
   });
 });

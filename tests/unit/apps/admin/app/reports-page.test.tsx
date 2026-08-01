@@ -19,17 +19,17 @@ vi.mock("@asym/database/hooks", () => ({
 
 const repoRoot = process.cwd();
 type ReportsPageComponent =
-  typeof import("../../../../../apps/admin/app/reports/page-client").default;
+  typeof import("../../../../../apps/admin/app/(app)/reports/page-client").default;
 type ReportsPageViewComponent =
-  typeof import("../../../../../apps/admin/app/reports/page-client").ReportsPageView;
+  typeof import("../../../../../apps/admin/app/(app)/reports/page-client").ReportsPageView;
 type DeriveReportKpis =
-  typeof import("../../../../../apps/admin/app/reports/page-client").deriveReportKpis;
+  typeof import("../../../../../apps/admin/app/(app)/reports/page-client").deriveReportKpis;
 type BuildReportSummary =
-  typeof import("../../../../../apps/admin/app/reports/page-client").buildReportSummary;
+  typeof import("../../../../../apps/admin/app/(app)/reports/page-client").buildReportSummary;
 type DeriveGivingByFund =
-  typeof import("../../../../../apps/admin/app/reports/page-client").deriveGivingByFund;
+  typeof import("../../../../../apps/admin/app/(app)/reports/page-client").deriveGivingByFund;
 type DeriveDonorsByFund =
-  typeof import("../../../../../apps/admin/app/reports/page-client").deriveDonorsByFund;
+  typeof import("../../../../../apps/admin/app/(app)/reports/page-client").deriveDonorsByFund;
 
 let ReportsPage: ReportsPageComponent;
 let ReportsPageView: ReportsPageViewComponent;
@@ -90,7 +90,7 @@ const emptyReport = createReport({
   totals: { amountCents: 0, donorCount: 0, giftCount: 0, rowCount: 0 },
 });
 
-describe("apps/admin/app/reports/page-client", () => {
+describe("apps/admin/app/(app)/reports/page-client", () => {
   beforeEach(async () => {
     useAdminCrmReportMock.mockReset();
     process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
@@ -142,7 +142,7 @@ describe("apps/admin/app/reports/page-client", () => {
       !deriveDonorsByFund
     ) {
       const pageClient =
-        await import("../../../../../apps/admin/app/reports/page-client");
+        await import("../../../../../apps/admin/app/(app)/reports/page-client");
       ReportsPage = pageClient.default;
       ReportsPageView = pageClient.ReportsPageView;
       deriveReportKpis = pageClient.deriveReportKpis;
@@ -293,7 +293,7 @@ describe("apps/admin/app/reports/page-client", () => {
   });
 
   it("does not keep mock report data or fake AI generation in the page source", () => {
-    const source = readRepoFile("apps/admin/app/reports/page-client.tsx");
+    const source = readRepoFile("apps/admin/app/(app)/reports/page-client.tsx");
 
     for (const banned of [
       "DONATION_DATA",

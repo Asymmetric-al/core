@@ -72,7 +72,7 @@ docs aligned when behavior or naming changes.
 
 - Package manager and runtime: Bun
 - Task runner: Turborepo (`turbo` 2.9.x)
-- Framework: Next.js `16.2.6` across all Next.js workspaces
+- Framework: Next.js `16.3.0-preview.9` across all Next.js workspaces
 - React: `19.2.x`
 - TypeScript: `6.0.x`
 - Styling: Tailwind CSS `v4`, Base UI, shadcn/ui Maia theme
@@ -80,7 +80,10 @@ docs aligned when behavior or naming changes.
 - Payments: Stripe
 - State and data fetching: TanStack Query
 
-All three Next.js apps currently enable `cacheComponents: true`. In this repo,
+All three Next.js apps currently enable `cacheComponents: true` and
+`partialPrefetching: true` (Instant Navigation, Next.js 16.3): every server
+`await` in a route is an explicit Stream (`<Suspense>`) / Cache (`'use cache'`)
+/ Block (`export const instant = false` + reason) decision. In this repo,
 that means App Router segment config exports such as `runtime`, `revalidate`,
 or `dynamic` are not the normal escape hatch. Follow the existing runtime and
 data-access rules in `docs/ai/rules/backend.md` and the architecture guides.

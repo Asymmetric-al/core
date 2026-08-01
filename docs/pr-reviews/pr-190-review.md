@@ -14,7 +14,7 @@ Local merge into `upstream/production`: failed.
 
 Conflict:
 
-- `apps/admin/app/support/page.tsx`
+- `apps/admin/app/(app)/support/page.tsx`
 
 Tests were not run because the PR does not produce a merged tree against current `production`.
 
@@ -31,7 +31,7 @@ Impact: the final Support Hub page composition cannot be reviewed or tested unti
 Suggested fix:
 
 - Rebase onto current `production`.
-- Resolve `apps/admin/app/support/page.tsx`.
+- Resolve `apps/admin/app/(app)/support/page.tsx`.
 - Run `bun install --frozen-lockfile && bun run ci:preflight` on the resolved merge tree.
 
 ### P1 - Server macro route trusts `authorAgentId` from the request body

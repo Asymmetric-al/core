@@ -132,7 +132,7 @@ describe("boneyard maintenance contract", () => {
         label: "donor dashboard",
       },
       {
-        path: "apps/admin/app/boneyard/contributions/page.tsx",
+        path: "apps/admin/app/(auth)/boneyard/contributions/page.tsx",
         label: "admin contributions",
       },
       {
@@ -149,7 +149,7 @@ describe("boneyard maintenance contract", () => {
   it("renders public boneyard capture routes in snapshot mode", () => {
     const captureRoutes = [
       "apps/donor/app/boneyard/donor-dashboard/page-client.tsx",
-      "apps/admin/app/boneyard/contributions/page-client.tsx",
+      "apps/admin/app/(auth)/boneyard/contributions/page-client.tsx",
       "apps/missionary/app/boneyard/tasks/page-client.tsx",
     ];
 

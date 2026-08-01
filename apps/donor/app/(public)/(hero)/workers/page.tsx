@@ -15,7 +15,9 @@ export default function WorkerListPage() {
           { name: "Missionary Directory", href: "/workers" },
         ]}
       />
-      <WorkersPageClient />
+      <div data-testid="workers-route-shell">
+        <WorkersPageClient />
+      </div>
     </>
   );
 }

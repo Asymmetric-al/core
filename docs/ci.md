@@ -244,7 +244,7 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
   2. `bun run test:e2e:boneyard:admin`, `bun run test:e2e:boneyard:missionary`, and `bun run test:e2e:boneyard:donor` (visual regression smoke by app)
   3. `bun run test:e2e:cms --project=chromium` (portable CMS/admin suite tagged `@cms`, excluding `@manual` and local-seed-only `@cms-local`; CI reuses the same donor/admin servers)
      The job has a 30-minute cap, and individual Playwright suite steps have 5-10 minute caps. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
-- _Branch behavior:_ On `develop`, this job is informational (`continue-on-error: true`). On `production`, `e2e-gate` converts this job into a required production-bound signal.
+- _Branch behavior:_ On `develop`, this job is informational (`continue-on-error: true`). On `production`, `e2e-gate` requires both this job and the deterministic `instant-nav` job (`--retries=0`) to succeed.
 - _Donor-only default projects:_ When a local or CI caller sets
   `PLAYWRIGHT_INCLUDE_ADMIN=0`, `playwright.config.ts` omits the admin web
   server and the default `chromium`/`mobile-chrome` projects ignore specs that

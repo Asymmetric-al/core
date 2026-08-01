@@ -15,7 +15,9 @@ export default function FinancialsPage() {
           { name: "Financial Transparency", href: "/financials" },
         ]}
       />
-      <FinancialsPageClient />
+      <div data-testid="financials-route-shell">
+        <FinancialsPageClient />
+      </div>
     </>
   );
 }

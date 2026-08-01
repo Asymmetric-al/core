@@ -11,9 +11,9 @@ function readRepoFile(path: string) {
 describe("support hub UI structure", () => {
   it("does not nest Button inside Link on support routes", () => {
     for (const path of [
-      "apps/admin/app/support/page-client.tsx",
-      "apps/admin/app/support/tickets/page.tsx",
-      "apps/admin/app/support/tickets/[id]/page.tsx",
+      "apps/admin/app/(app)/support/page-client.tsx",
+      "apps/admin/app/(app)/support/tickets/page.tsx",
+      "apps/admin/app/(app)/support/tickets/[id]/page.tsx",
     ]) {
       const source = readRepoFile(path);
 
@@ -22,13 +22,15 @@ describe("support hub UI structure", () => {
   });
 
   it("links ticket-list rows to canonical ticket detail routes", () => {
-    const source = readRepoFile("apps/admin/app/support/tickets/page.tsx");
+    const source = readRepoFile(
+      "apps/admin/app/(app)/support/tickets/page.tsx",
+    );
 
     expect(source).toMatch(/supportHubRoutes\.ticket\(ticket\.id\)/);
   });
 
   it("keeps the active thread tied to explicit ticket selection", () => {
-    const source = readRepoFile("apps/admin/app/support/page-client.tsx");
+    const source = readRepoFile("apps/admin/app/(app)/support/page-client.tsx");
 
     expect(source).toMatch(/selectedTicketId/);
     expect(source).not.toMatch(
@@ -37,7 +39,9 @@ describe("support hub UI structure", () => {
   });
 
   it("labels ticket filters and avoids placeholder-only controls", () => {
-    const source = readRepoFile("apps/admin/app/support/tickets/page.tsx");
+    const source = readRepoFile(
+      "apps/admin/app/(app)/support/tickets/page.tsx",
+    );
 
     expect(source).toMatch(/htmlFor="support-ticket-search"/);
     expect(source).toMatch(/htmlFor="support-ticket-queue"/);
@@ -45,14 +49,14 @@ describe("support hub UI structure", () => {
   });
 
   it("uses semantic token badge classes instead of raw palette chips", () => {
-    const source = readRepoFile("apps/admin/app/support/page-client.tsx");
+    const source = readRepoFile("apps/admin/app/(app)/support/page-client.tsx");
 
     expect(source).not.toMatch(/bg-(blue|emerald|purple|amber|red|zinc)-50/);
     expect(source).not.toMatch(/text-(blue|emerald|purple|amber|red|zinc)-700/);
   });
 
   it("keeps support metrics compact and six across from tablet widths", () => {
-    const source = readRepoFile("apps/admin/app/support/page-client.tsx");
+    const source = readRepoFile("apps/admin/app/(app)/support/page-client.tsx");
 
     expect(source).toMatch(/grid-cols-2 md:grid-cols-6/);
     expect(source).toMatch(/min-h-24/);
@@ -68,11 +72,11 @@ describe("support hub UI structure", () => {
       ].join("|"),
     );
     for (const path of [
-      "apps/admin/app/support/page-client.tsx",
-      "apps/admin/app/support/tickets/page.tsx",
-      "apps/admin/app/support/tickets/[id]/page.tsx",
-      "apps/admin/app/support/tickets/new/new-ticket-form.tsx",
-      "apps/admin/app/support/knowledge/page.tsx",
+      "apps/admin/app/(app)/support/page-client.tsx",
+      "apps/admin/app/(app)/support/tickets/page.tsx",
+      "apps/admin/app/(app)/support/tickets/[id]/page.tsx",
+      "apps/admin/app/(app)/support/tickets/new/new-ticket-form.tsx",
+      "apps/admin/app/(app)/support/knowledge/page.tsx",
     ]) {
       const source = readRepoFile(path);
 
@@ -88,28 +92,30 @@ describe("support hub UI structure", () => {
   });
 
   it("uses a dashboard loading skeleton instead of a table skeleton", () => {
-    const source = readRepoFile("apps/admin/app/support/loading.tsx");
+    const source = readRepoFile("apps/admin/app/(app)/support/loading.tsx");
 
     expect(source).not.toMatch(/TableSkeleton/);
   });
 
   it("handles knowledge article deep links", () => {
-    const source = readRepoFile("apps/admin/app/support/knowledge/page.tsx");
+    const source = readRepoFile(
+      "apps/admin/app/(app)/support/knowledge/page.tsx",
+    );
 
     expect(source).toMatch(/searchParams/);
     expect(source).toMatch(/article/);
   });
 
   it("uses persistent support reads for inbox, list, and detail paths", () => {
-    const inboxSource = readRepoFile("apps/admin/app/support/page.tsx");
+    const inboxSource = readRepoFile("apps/admin/app/(app)/support/page.tsx");
 
     expect(inboxSource).not.toMatch(/supportHubDemoModel/);
     expect(inboxSource).toMatch(/SupportInbox/);
     expect(inboxSource).toMatch(/SupportWorkspaceShell/);
 
     for (const path of [
-      "apps/admin/app/support/tickets/page.tsx",
-      "apps/admin/app/support/tickets/[id]/page.tsx",
+      "apps/admin/app/(app)/support/tickets/page.tsx",
+      "apps/admin/app/(app)/support/tickets/[id]/page.tsx",
     ]) {
       const source = readRepoFile(path);
 
@@ -119,7 +125,7 @@ describe("support hub UI structure", () => {
   });
 
   it("uses the server-generated support model clock instead of a client render-time clock", () => {
-    const source = readRepoFile("apps/admin/app/support/page-client.tsx");
+    const source = readRepoFile("apps/admin/app/(app)/support/page-client.tsx");
 
     expect(source).not.toMatch(
       /useState\(\(\) => new Date\(\)\.toISOString\(\)\)/,

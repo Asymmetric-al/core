@@ -77,10 +77,10 @@ The first native Mission Control CRM domain is Notes.
 
 ### Native Surface
 
-- Route: `apps/admin/app/crm/notes/page.tsx`
-- Client: `apps/admin/app/crm/notes/page-client.tsx`
-- Columns: `apps/admin/app/crm/notes/columns.tsx`
-- Entry point: `apps/admin/app/crm/page-client.tsx` links the CRM dashboard to
+- Route: `apps/admin/app/(app)/crm/notes/page.tsx`
+- Client: `apps/admin/app/(app)/crm/notes/page-client.tsx`
+- Columns: `apps/admin/app/(app)/crm/notes/columns.tsx`
+- Entry point: `apps/admin/app/(app)/crm/page-client.tsx` links the CRM dashboard to
   `/crm/notes`
 
 The surface keeps the existing Mission Control shell and shared table patterns.

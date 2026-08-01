@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { GiftHistoryViewSwitcher } from "../../../../../apps/admin/app/crm/gift-history-view-switcher";
+import { GiftHistoryViewSwitcher } from "../../../../../apps/admin/app/(app)/crm/gift-history-view-switcher";
 
 import type { CrmNamedView } from "@asym/database/types";
 

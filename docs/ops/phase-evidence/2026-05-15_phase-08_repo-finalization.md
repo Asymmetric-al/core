@@ -38,7 +38,7 @@ database, email-routing, test, and documentation work only:
 
 - Mission Control Support Hub UI and route handlers under:
   - `apps/admin/app/api/admin/support/**`
-  - `apps/admin/app/support/page.tsx`
+  - `apps/admin/app/(app)/support/page.tsx`
   - `apps/admin/features/support-hub/**`
 - Support Hub API package services under:
   - `packages/api/src/admin/support-hub/**`
@@ -53,7 +53,7 @@ database, email-routing, test, and documentation work only:
 - Support Hub tests:
   - `tests/e2e/support-hub.smoke.spec.ts`
   - `tests/e2e/helpers/install-demo-session.ts`
-  - `tests/unit/apps/admin/app/support/support-ui-structure.test.ts`
+  - `tests/unit/apps/admin/app/(app)/support/support-ui-structure.test.ts`
   - `tests/unit/apps/admin/features/support-hub/macro-runner.test.ts`
   - `tests/unit/packages/api/admin/support-hub/**`
   - `tests/unit/packages/api/email/webhooks-resend.test.ts`
@@ -93,7 +93,7 @@ key was staged.
 
 Before committing, the implementation was checked against the Phase 8 evidence:
 
-- `apps/admin/app/support/page.tsx` renders `SupportInbox`.
+- `apps/admin/app/(app)/support/page.tsx` renders `SupportInbox`.
 - `packages/api/src/admin/support-hub/adapter/index.ts` exports
   `supabaseSupportHubAdapter`.
 - `packages/api/src/admin/support-hub/adapter/supabase.ts` throws

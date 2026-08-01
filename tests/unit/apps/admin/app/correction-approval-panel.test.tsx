@@ -4,10 +4,10 @@ import { QueryProvider } from "@asym/database/providers";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CorrectionApprovalPanel } from "../../../../../apps/admin/app/contributions/correction-approval-panel";
+import { CorrectionApprovalPanel } from "../../../../../apps/admin/app/(app)/contributions/correction-approval-panel";
 
-import type { ContributionCorrectionRequestView } from "../../../../../apps/admin/app/contributions/correction-approval-panel";
-import type { ContributionReceiptDeliveryContext } from "../../../../../apps/admin/app/contributions/receipt-delivery-choice";
+import type { ContributionCorrectionRequestView } from "../../../../../apps/admin/app/(app)/contributions/correction-approval-panel";
+import type { ContributionReceiptDeliveryContext } from "../../../../../apps/admin/app/(app)/contributions/receipt-delivery-choice";
 
 vi.mock("@asym/database/hooks", () => ({
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "records", "detail"],
