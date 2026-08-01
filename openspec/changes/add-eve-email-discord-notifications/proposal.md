@@ -12,8 +12,17 @@ and neither a prompt nor a model can choose where a notification goes.
 
 ## What Changes
 
-- Define a channel-neutral notification envelope and lifecycle.
+- Define a channel-neutral safe envelope and notification-level policy lifecycle.
 - Restrict v1 email recipients to verified configured platform owners.
+- Route email through an exact platform-scoped, Asym-fixed Phase 17 contract and
+  compiler/publication plus the Phase 6 Resend delivery spine; do not create a parallel email renderer, provider
+  lifecycle, or history.
+- Treat email as implementation-blocked in the current Phase 17 manifest
+  generation, which contains zero Eve keys. Before any email implementation,
+  enumerate each stable occurrence meaning and source fence, add only
+  meaning-specific platform keys plus the fixed platform profile in a later
+  manifest generation, and pass each platform proof pack. Do not add a generic
+  `eve_alert` key.
 - Restrict Discord to configured operational destinations and urgent operational events.
 - Default Discord to minimal safe content; allow richer detail only after deterministic policy/redaction checks.
 - Define dedupe, retry, suppression, pause/opt-out, delivery outcome, and audit behavior.
@@ -24,7 +33,8 @@ and neither a prompt nor a model can choose where a notification goes.
 ## Impact
 
 - **Affected capability:** `eve-email-discord-notifications` (new)
-- **Dependencies:** #418, #419, #420, #423, #424, #426, #427, and #435
+- **Dependencies:** #418, #419, #420, #423, #424, #426, #427, #435, and the
+  SiteStacker Phase 17 content contract plus Phase 6 outbound-delivery contract
 - **Issue covered:** #436
 - **User stories covered:** 61, 62, 63, and 64
 - **Runtime impact:** none in this PR
@@ -36,6 +46,8 @@ and neither a prompt nor a model can choose where a notification goes.
 - Creating a new global pause or kill-switch owner; #420 remains authoritative.
 - Defining monitor detection; #435 owns monitor findings.
 - Activating the final Eve release switch; #437 owns launch verification.
+- Creating tenant-facing Discord configuration or using the Asym platform Resend
+  connection as fallback for tenant messages.
 
 ## Evidence
 

@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 
-import { asString } from "../shared/json-coerce";
+import { asString, isRecord } from "../shared/json-coerce";
 
 import type { getAdminClient } from "@asym/database/supabase/admin";
 import type Stripe from "stripe";
@@ -51,10 +51,6 @@ interface SupabaseError {
   message?: string;
 }
 
-function isJsonRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 function asBoolean(value: unknown): boolean {
   return typeof value === "boolean" ? value : false;
 }
@@ -65,13 +61,13 @@ function asNumber(value: unknown): number {
 
 function rowRecord(row: JsonRecord, key: string): JsonRecord {
   const value = row[key];
-  return isJsonRecord(value) ? value : {};
+  return isRecord(value) ? value : {};
 }
 
 function parseRawPayload(rawBody: string, event: Stripe.Event): JsonRecord {
   try {
     const parsed = JSON.parse(rawBody) as unknown;
-    if (isJsonRecord(parsed)) {
+    if (isRecord(parsed)) {
       return parsed;
     }
   } catch {}
@@ -88,7 +84,7 @@ function getStripeObjectId(value: unknown): string | null {
     return value;
   }
 
-  if (isJsonRecord(value) && typeof value.id === "string" && value.id) {
+  if (isRecord(value) && typeof value.id === "string" && value.id) {
     return value.id;
   }
 
@@ -96,7 +92,7 @@ function getStripeObjectId(value: unknown): string | null {
 }
 
 function getStripeObjectMetadata(value: unknown): Record<string, string> {
-  if (!isJsonRecord(value) || !isJsonRecord(value.metadata)) {
+  if (!isRecord(value) || !isRecord(value.metadata)) {
     return {};
   }
 
@@ -128,7 +124,7 @@ async function resolveDonationReferenceByPaymentIntent(
     throw new Error(error.message);
   }
 
-  const row: JsonRecord = isJsonRecord(data) ? data : {};
+  const row: JsonRecord = isRecord(data) ? data : {};
   return {
     donationId: asString(row.id),
     tenantId: asString(row.tenant_id),
@@ -140,7 +136,7 @@ export async function resolveStripeEventReferences(
   supabaseAdmin: SupabaseAdminClient | null = null,
 ): Promise<StripeEventReferences> {
   const object = event.data.object as unknown;
-  const objectRecord = isJsonRecord(object) ? object : {};
+  const objectRecord = isRecord(object) ? object : {};
   const metadata = getStripeObjectMetadata(objectRecord);
   const objectType = asString(objectRecord.object);
 
@@ -195,7 +191,7 @@ async function loadStripeRawEventByEventId(
     throw new Error(error.message);
   }
 
-  return isJsonRecord(data) ? toStoredStripeRawEvent(data, true) : null;
+  return isRecord(data) ? toStoredStripeRawEvent(data, true) : null;
 }
 
 async function loadStripeRawEventById(
@@ -208,7 +204,7 @@ async function loadStripeRawEventById(
     .eq("id", rawEventId)
     .single();
 
-  if (error || !isJsonRecord(data)) {
+  if (error || !isRecord(data)) {
     throw new Error(error?.message ?? "Stripe raw event not found.");
   }
 
@@ -266,7 +262,7 @@ export async function storeStripeRawEvent(input: {
     }
   }
 
-  if (error || !isJsonRecord(data)) {
+  if (error || !isRecord(data)) {
     throw new Error(error?.message ?? "Failed to store Stripe raw event.");
   }
 
@@ -277,7 +273,7 @@ function parseClaimedFlag(value: unknown): boolean {
   if (Array.isArray(value)) {
     return parseClaimedFlag(value[0]);
   }
-  if (!isJsonRecord(value)) {
+  if (!isRecord(value)) {
     return false;
   }
   return value.claimed === true;
@@ -402,7 +398,7 @@ export async function recordStripeRawEventFailureIfStillProcessing(input: {
     .eq("id", input.rawEventId)
     .maybeSingle();
 
-  if (loadError || !isJsonRecord(data)) {
+  if (loadError || !isRecord(data)) {
     return;
   }
 

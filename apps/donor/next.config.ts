@@ -1,6 +1,7 @@
 import { loadEnvConfig } from "@next/env";
 import { withSentryConfig } from "@sentry/nextjs";
 
+import { buildPublicCmsImageRemotePatterns } from "../../scripts/cms/public-media-remote-pattern.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
@@ -50,6 +51,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
+      // Public CMS media origins: CMS_BASE_URL (admin-relative uploads) plus
+      // `**.public.blob.vercel-storage.com` for hosted Vercel Blob media
+      // (Phase 5 ruling A12; issue #529).
+      ...buildPublicCmsImageRemotePatterns(process.env.CMS_BASE_URL),
       {
         protocol: "https",
         hostname: "images.unsplash.com",

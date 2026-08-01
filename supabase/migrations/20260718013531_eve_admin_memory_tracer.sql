@@ -37,11 +37,13 @@ CREATE INDEX eve_admin_memory_owner_updated_idx
 CREATE INDEX eve_admin_memory_search_idx
     ON public.eve_admin_memory_entries USING GIN (search_vector);
 
+-- Entry and profile IDs are immutable snapshot data, not foreign keys, so
+-- deleting live records cannot cascade into independently retained history.
 CREATE TABLE public.eve_admin_memory_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     entry_id UUID NOT NULL,
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
-    owner_profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    owner_profile_id UUID NOT NULL,
     version BIGINT NOT NULL CHECK (version > 0),
     action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
     category TEXT NOT NULL
@@ -49,12 +51,9 @@ CREATE TABLE public.eve_admin_memory_history (
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     source TEXT NOT NULL CHECK (source IN ('manual', 'auto_save')),
-    changed_by_profile_id UUID NOT NULL REFERENCES public.profiles(id),
+    changed_by_profile_id UUID NOT NULL,
     changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (entry_id, version),
-    FOREIGN KEY (entry_id, tenant_id, owner_profile_id)
-        REFERENCES public.eve_admin_memory_entries(id, tenant_id, owner_profile_id)
-        ON DELETE CASCADE
+    UNIQUE (entry_id, version)
 );
 
 CREATE INDEX eve_admin_memory_history_owner_idx
@@ -116,15 +115,18 @@ LANGUAGE sql
 IMMUTABLE
 SET search_path = public, pg_temp
 AS $$
-    SELECT COALESCE(p_value, '') ~* '-----BEGIN (RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----'
-        OR COALESCE(p_value, '') ~* '(api[_ -]?key|client[_ -]?secret|password|passwd|credential|access[_ -]?token|refresh[_ -]?token)[[:space:]]*[:=][[:space:]]*[^[:space:]]+'
-        OR COALESCE(p_value, '') ~* '(bearer[[:space:]]+[a-z0-9._~+/-]{12,}|(sk|ghp|github_pat|sb_secret)_[a-z0-9_-]{12,})'
+    SELECT COALESCE(p_value, '') ~* '(^|[\r\n])-----BEGIN (PRIVATE KEY|(ENCRYPTED|RSA|EC|DSA|ED25519|OPENSSH) PRIVATE KEY|PGP PRIVATE KEY( BLOCK)?)-----([\r\n]|$)'
+        OR COALESCE(p_value, '') ~* '(api[_ -]?key|client[_ -]?secret|password|passwd|credential|access[_ -]?token|refresh[_ -]?token)([[:space:]]*[:=][[:space:]]*|[[:space:]]+is[[:space:]]+)[^[:space:]]+'
+        OR COALESCE(p_value, '') ~* '(bearer[[:space:]]+[a-z0-9._~+/-]{12,}|(sk[-_]|(ghp|github_pat|sb_secret)_)[a-z0-9_-]{12,}|eyJ[a-z0-9_-]{20,}[.][a-z0-9_-]{10,})'
         OR COALESCE(p_value, '') ~* '(otp|one[- ]time (code|password)|verification code|2fa code|mfa code)[[:space:]]*(:|is)?[[:space:]]*[0-9]{4,10}'
         OR COALESCE(p_value, '') ~* '(cvv|cvc|routing number|bank account|card number)[[:space:]]*(:|is)?[[:space:]]*[0-9 -]{3,24}'
         OR COALESCE(p_value, '') ~* '([0-9][ -]?){13,19}'
         OR COALESCE(p_value, '') ~* '[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,}'
         OR COALESCE(p_value, '') ~* '(ssn|social security)[[:space:]]*(:|is)?[[:space:]]*[0-9]{3}-?[0-9]{2}-?[0-9]{4}'
-        OR COALESCE(p_value, '') ~* '(phone|mobile|telephone|street address|mailing address)[[:space:]]*(:|is)[[:space:]]*[^[:space:]]+'
+        OR COALESCE(p_value, '') ~* '(^|[^[:alnum:]])[0-9]{3}-[0-9]{2}-[0-9]{4}([^[:alnum:]]|$)'
+        OR COALESCE(p_value, '') ~* '(^|[^[:alnum:]])([+]1[ .-]?|1[ .-])?([(][2-9][0-9]{2}[)]|[2-9][0-9]{2})[ .-][2-9][0-9]{2}[ .-][0-9]{4}([^[:alnum:]]|$)'
+        OR COALESCE(p_value, '') ~* '(^|[^[:alnum:]])[0-9]{1,6}[[:space:]]+(([[:alpha:]][[:alpha:].''-]*|[0-9]+(st|nd|rd|th))[[:space:]]+){1,5}(street|st|avenue|ave|road|rd|boulevard|blvd|lane|ln|drive|dr|court|ct|circle|cir|parkway|pkwy|highway|hwy|way|terrace|ter|place|pl)([[:space:]]+(apt|apartment|suite|unit|#)[[:space:]]*[[:alnum:]-]+)?([^[:alnum:]]|$)'
+        OR COALESCE(p_value, '') ~* '(phone|mobile|telephone|street address|mailing address)[[:space:]]*(:|is)?[[:space:]]*([+]?[0-9]|[0-9]{1,6}[[:space:]]+[[:alpha:]])'
         OR COALESCE(p_value, '') ~* '(donor|customer|tenant)[[:space:]]+(name|email|phone|address|account|balance|gift|giving|payment|identifier)[[:space:]]*(:|is)[[:space:]]*[^[:space:]]+';
 $$;
 
@@ -201,7 +203,16 @@ BEGIN
         RAISE EXCEPTION 'invalid_eve_admin_memory';
     END IF;
     IF public.contains_eve_admin_memory_exclusion(p_title || E'\n' || p_content) THEN
-        RAISE EXCEPTION 'eve_admin_memory_excluded';
+        PERFORM public.append_eve_admin_memory_audit(
+            p_audit_id, p_tenant_id, p_actor_id, p_actor_profile_id, p_actor_role,
+            p_initiator_type, p_initiator_id, 'memory.excluded',
+            'admin_memory:blocked', 'blocked',
+            jsonb_build_object('candidateIncluded', FALSE, 'exclusionSource', 'database_guard'),
+            jsonb_build_object('stored', FALSE),
+            'The database write-time exclusion boundary rejected sensitive data before persistence'
+        );
+        -- Raising here would roll back the audit row. NULL is the rejection sentinel.
+        RETURN NULL;
     END IF;
 
     IF p_source = 'auto_save' THEN
@@ -211,6 +222,9 @@ BEGIN
             OR NOT governance.release_enabled
             OR governance.emergency_off
             OR (governance.kill_switch_state ->> 'all_automation')::BOOLEAN
+            OR (governance.kill_switch_state ->> 'production_writes')::BOOLEAN
+            OR (governance.kill_switch_state ->> 'force_approval')::BOOLEAN
+            OR governance.policy_status <> 'ready'
         THEN
             RAISE EXCEPTION 'eve_admin_memory_auto_save_governance_blocked';
         END IF;
@@ -290,7 +304,16 @@ BEGIN
         OR char_length(btrim(p_content)) NOT BETWEEN 1 AND 4000
     THEN RAISE EXCEPTION 'invalid_eve_admin_memory'; END IF;
     IF public.contains_eve_admin_memory_exclusion(p_title || E'\n' || p_content) THEN
-        RAISE EXCEPTION 'eve_admin_memory_excluded';
+        PERFORM public.append_eve_admin_memory_audit(
+            p_audit_id, p_tenant_id, p_actor_id, p_actor_profile_id, p_actor_role,
+            p_initiator_type, p_initiator_id, 'memory.excluded',
+            'admin_memory:blocked', 'blocked',
+            jsonb_build_object('candidateIncluded', FALSE, 'exclusionSource', 'database_guard'),
+            jsonb_build_object('stored', FALSE),
+            'The database write-time exclusion boundary rejected sensitive data before persistence'
+        );
+        -- Raising here would roll back the audit row. NULL is the rejection sentinel.
+        RETURN NULL;
     END IF;
     next_version := entry.version + 1;
     UPDATE public.eve_admin_memory_entries SET

@@ -7,9 +7,12 @@ import {
 import { pagesGeneratePreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativePagesWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
+  PUBLIC_COLLECTION_CAPABILITIES,
+  publishedPublicReadAccess,
+} from "../access/public-read";
+import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
-  tenantScopedReadAccess,
   tenantScopedUpdateAccess,
 } from "../access/tenant-access";
 import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
@@ -45,7 +48,10 @@ export const Pages: CollectionConfig = {
     ...nativePagesAdmin,
   },
   access: {
-    read: tenantScopedReadAccess("tenant"),
+    read: publishedPublicReadAccess(
+      "tenant",
+      PUBLIC_COLLECTION_CAPABILITIES["pages"],
+    ),
     create: tenantScopedCreateAccess("tenant"),
     update: tenantScopedUpdateAccess("tenant"),
     delete: tenantScopedDeleteAccess("tenant"),
