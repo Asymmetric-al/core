@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  FIXTURE_ROLES,
+  buildFixtureContestInput,
+  fixtureCandidates,
+  syntheticDigest,
+} from "./renderer-qualification-test-fixture";
+import {
   HELD_BACK_CASE_IDS,
   OPEN_CASE_IDS,
   PHASE_18_EVIDENCE_RULES,
   PHASE_18_OPERATIONAL_SUITES,
-  PHASE_18_ABSOLUTE_BUDGETS,
+  type PHASE_18_ABSOLUTE_BUDGETS,
   PHASE_18_QUALIFICATION_GATES,
   RendererCharterValidationError,
   buildPhase18RendererContestInput,
@@ -15,20 +21,10 @@ import {
   freezeRendererQualificationCharter,
   validateRendererQualificationCharterInput,
   verifyRendererQualificationCharter,
+  type FrozenRendererQualificationCharter,
+  type Phase18ContestFreezeInput,
+  type RendererQualificationCharterInput,
 } from "../../../../packages/api/src/generated-documents/renderer-qualification";
-
-import type {
-  FrozenRendererQualificationCharter,
-  Phase18ContestFreezeInput,
-  RendererQualificationCharterInput,
-} from "../../../../packages/api/src/generated-documents/renderer-qualification";
-
-import {
-  FIXTURE_ROLES,
-  buildFixtureContestInput,
-  fixtureCandidates,
-  syntheticDigest,
-} from "./renderer-qualification-test-fixture";
 
 function mutated(
   mutate: (input: RendererQualificationCharterInput) => void,
@@ -145,6 +141,25 @@ describe("freezeRendererQualificationCharter", () => {
     expect(
       freezeRendererQualificationCharter(reorderedAccessLog).manifest_digest,
     ).not.toBe(base.manifest_digest);
+  });
+
+  it("names every protocol role, including operations and records/legal", () => {
+    // The protocol's role table binds eight roles. Without these two a charter
+    // could freeze with nobody accountable for load/recovery/cost evidence, or
+    // for retention, font-license, and purpose prerequisites.
+    for (const role of [
+      "operations_reviewer",
+      "records_legal_evidence_owner",
+    ] as const) {
+      expect(
+        issueCodes(
+          mutated((input) => {
+            input.roles = { ...input.roles, [role]: "   " };
+          }),
+        ),
+        role,
+      ).toContain("role_missing");
+    }
   });
 
   it("rejects wrong or missing candidates and versions", () => {

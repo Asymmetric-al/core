@@ -424,7 +424,11 @@ export async function recordRemediationCycle(
     ...HELD_BACK_CASE_IDS,
   ]);
 
-  const record: RemediationCycleRecord = {
+  // Everything the record asserts is digested, not just the change set.
+  // `hours_spent` meters the equal remediation budget and `recorded_by` /
+  // `recorded_at` carry attribution, so leaving them outside the digest would
+  // let an exported record be edited without breaking its own seal.
+  const payload = {
     cycle_id: (input.generateId ?? (() => crypto.randomUUID()))(),
     charter_id: input.charter.charter_id,
     manifest_digest: input.charter.manifest_digest,
@@ -434,15 +438,13 @@ export async function recordRemediationCycle(
     changes: [...input.changes],
     affected_case_ids: [...input.affected_case_ids].sort(),
     required_rerun_case_ids: [...rerunSet].sort(),
-    evidence_digest: digestQualificationValue({
-      charter: input.charter.manifest_digest,
-      candidate: candidateId,
-      ordinal,
-      changes: input.changes,
-      affected: [...input.affected_case_ids].sort(),
-    }),
     recorded_at: (input.now ?? (() => new Date()))().toISOString(),
     recorded_by: input.actor,
+  };
+
+  const record: RemediationCycleRecord = {
+    ...payload,
+    evidence_digest: digestQualificationValue(payload),
   };
 
   await input.store.appendRemediationCycle(record);

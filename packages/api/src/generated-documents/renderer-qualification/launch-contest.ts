@@ -672,11 +672,6 @@ export interface Phase18ContestFreezeInput {
   max_remediation_hours_per_cycle?: number;
 }
 
-/**
- * Assemble the complete Phase 18 charter input from the protocol-fixed content
- * plus the freeze-time provenance. `freezeRendererQualificationCharter` still
- * validates the result; this builder cannot bypass any freeze rule.
- */
 function deepFreezeProtocol<T>(value: T): T {
   if (typeof value !== "object" || value === null) return value;
   for (const child of Object.values(value as Record<string, unknown>)) {
@@ -698,6 +693,11 @@ deepFreezeProtocol(PHASE_18_ABSOLUTE_BUDGETS);
 deepFreezeProtocol(PHASE_18_VALIDATION_TOOLS);
 deepFreezeProtocol(PHASE_18_REQUALIFICATION_TRIGGERS);
 
+/**
+ * Assemble the complete Phase 18 charter input from the protocol-fixed content
+ * plus the freeze-time provenance. `freezeRendererQualificationCharter` still
+ * validates the result; this builder cannot bypass any freeze rule.
+ */
 export function buildPhase18RendererContestInput(
   input: Phase18ContestFreezeInput,
 ): RendererQualificationCharterInput {

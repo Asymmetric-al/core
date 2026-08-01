@@ -29,6 +29,8 @@ export const FIXTURE_ROLES: QualificationRoles = {
   },
   independent_reviewers: ["reviewer-avery", "reviewer-blair"],
   security_privacy_reviewer: "security-rowan",
+  operations_reviewer: "operations-harper",
+  records_legal_evidence_owner: "records-sloan",
   final_approver: "approver-emerson",
 };
 

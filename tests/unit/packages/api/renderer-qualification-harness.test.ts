@@ -228,6 +228,39 @@ describe("sealCandidateSubmission", () => {
 });
 
 describe("recordRemediationCycle", () => {
+  it("commits metered effort and attribution to the evidence digest", async () => {
+    // hours_spent meters the equal remediation budget and recorded_at carries
+    // attribution. Outside the digest, an exported record could be edited
+    // without breaking its own seal.
+    const digestFor = async (overrides: {
+      hours_spent?: number;
+      recordedAt?: string;
+    }) => {
+      const charter = frozenCharter();
+      const store = new InMemoryRendererQualificationStore();
+      await sealInitialSubmission(charter, store, "P18-R-P");
+      const cycle = await recordRemediationCycle({
+        charter,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        hours_spent: overrides.hours_spent ?? 12,
+        changes: ["fix table header repetition in the adapter"],
+        affected_case_ids: ["O16"],
+        store,
+        generateId: () => "fixed-cycle-id",
+        now: () => new Date(overrides.recordedAt ?? "2026-07-22T10:00:00.000Z"),
+      });
+      return cycle.evidence_digest;
+    };
+
+    const baseline = await digestFor({});
+    expect(await digestFor({})).toBe(baseline);
+    expect(await digestFor({ hours_spent: 13 })).not.toBe(baseline);
+    expect(
+      await digestFor({ recordedAt: "2026-07-22T11:00:00.000Z" }),
+    ).not.toBe(baseline);
+  });
+
   it("meters both finalists equally: one initial attempt, two cycles, a third rejected", async () => {
     const charter = frozenCharter();
     const store = new InMemoryRendererQualificationStore();

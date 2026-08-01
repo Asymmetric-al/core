@@ -266,6 +266,10 @@ export interface QualificationRoles {
   candidate_operators: Readonly<Record<RendererCandidateId, string>>;
   independent_reviewers: readonly [string, string];
   security_privacy_reviewer: string;
+  /** Proves load, fairness, failure recovery, cost, capacity, and rollback. */
+  operations_reviewer: string;
+  /** Confirms profile, font-license, retention, and purpose prerequisites. */
+  records_legal_evidence_owner: string;
   final_approver: string;
 }
 

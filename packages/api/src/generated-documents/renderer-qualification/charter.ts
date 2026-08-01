@@ -818,6 +818,8 @@ function validateBudgetsValidatorsRoles(
     ["independent_reviewers.0", roles.independent_reviewers[0]],
     ["independent_reviewers.1", roles.independent_reviewers[1]],
     ["security_privacy_reviewer", roles.security_privacy_reviewer],
+    ["operations_reviewer", roles.operations_reviewer],
+    ["records_legal_evidence_owner", roles.records_legal_evidence_owner],
     ["final_approver", roles.final_approver],
   ];
   for (const [rolePath, actor] of nonOperatorRoles) {
