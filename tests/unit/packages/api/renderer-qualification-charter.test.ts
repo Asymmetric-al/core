@@ -407,6 +407,65 @@ describe("freezeRendererQualificationCharter", () => {
     ).toContain("held_back_not_sealed");
   });
 
+  it("requires a unique combined fixture identity for every corpus case", () => {
+    const sharedFactsDigest = syntheticDigest("shared-fixture-facts");
+    const sharedDocumentDigest = syntheticDigest("shared-fixture-document");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          const openFixture = input.open_corpus.find(
+            (item) => item.case_id === "O01",
+          )?.fixture;
+          if (!openFixture)
+            throw new Error("O01 fixture missing from test data");
+
+          input.held_back_corpus = input.held_back_corpus.map((item) =>
+            item.case_id === "H12"
+              ? { ...item, fixture: { ...openFixture } }
+              : item,
+          );
+        }),
+      ),
+    ).toContain("fixture_identity_conflict");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.open_corpus = input.open_corpus.map((item) => ({
+            ...item,
+            fixture: { ...item.fixture, facts_digest: sharedFactsDigest },
+          }));
+          input.held_back_corpus = input.held_back_corpus.map((item) => ({
+            ...item,
+            fixture: { ...item.fixture, facts_digest: sharedFactsDigest },
+          }));
+        }),
+      ),
+    ).not.toContain("fixture_identity_conflict");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.open_corpus = input.open_corpus.map((item) => ({
+            ...item,
+            fixture: {
+              ...item.fixture,
+              document_digest: sharedDocumentDigest,
+            },
+          }));
+          input.held_back_corpus = input.held_back_corpus.map((item) => ({
+            ...item,
+            fixture: {
+              ...item.fixture,
+              document_digest: sharedDocumentDigest,
+            },
+          }));
+        }),
+      ),
+    ).not.toContain("fixture_identity_conflict");
+  });
+
   it("requires a pinned font/asset entry to be identifiable and its approval to say something", () => {
     expect(
       issueCodes(

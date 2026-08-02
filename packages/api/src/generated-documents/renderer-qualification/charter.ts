@@ -848,6 +848,27 @@ function validateCorpus(
   for (const item of input.held_back_corpus)
     validateCase("held_back", item, issues);
 
+  const caseIdByFixtureIdentity = new Map<string, string>();
+  for (const item of [...input.open_corpus, ...input.held_back_corpus]) {
+    const { facts_digest: factsDigest, document_digest: documentDigest } =
+      item.fixture;
+    if (!isSha256Hex(factsDigest) || !isSha256Hex(documentDigest)) continue;
+
+    const fixtureIdentity = `${factsDigest}:${documentDigest}`;
+    const existingCaseId = caseIdByFixtureIdentity.get(fixtureIdentity);
+    if (existingCaseId) {
+      issues.push(
+        issue(
+          `corpus.${item.case_id}.fixture`,
+          "fixture_identity_conflict",
+          `Cases ${existingCaseId} and ${item.case_id} reuse the same facts/document digest pair.`,
+        ),
+      );
+      continue;
+    }
+    caseIdByFixtureIdentity.set(fixtureIdentity, item.case_id);
+  }
+
   if (input.held_back_seal.custodian !== input.roles.corpus_custodian) {
     issues.push(
       issue(
