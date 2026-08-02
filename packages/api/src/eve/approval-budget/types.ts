@@ -4,9 +4,19 @@ export const EVE_TRUST_ZONES = [
   "memory",
 ] as const;
 export type EveTrustZone = (typeof EVE_TRUST_ZONES)[number];
+export const EVE_RECORDED_TRUST_ZONES = [
+  ...EVE_TRUST_ZONES,
+  "unclassified",
+] as const;
+export type EveRecordedTrustZone = (typeof EVE_RECORDED_TRUST_ZONES)[number];
 
 export const EVE_WRITE_CLASSES = ["operational", "business_data"] as const;
 export type EveWriteClass = (typeof EVE_WRITE_CLASSES)[number];
+export const EVE_RECORDED_WRITE_CLASSES = [
+  ...EVE_WRITE_CLASSES,
+  "unclassified",
+] as const;
+export type EveRecordedWriteClass = (typeof EVE_RECORDED_WRITE_CLASSES)[number];
 
 export const EVE_APPROVAL_MODES = [
   "allow",
@@ -45,6 +55,7 @@ export type EvePolicyDecision = "allow" | "deny" | "pause" | "override";
 export type EvePolicyDecisionReason =
   | "approval_required"
   | "budget_exhausted"
+  | "budget_not_configured"
   | "governance_blocked"
   | "operational_policy_allowed"
   | "policy_denied"
@@ -107,8 +118,8 @@ export interface EvePolicyDecisionRecord {
   id: string;
   reason: EvePolicyDecisionReason | string;
   targetKey: string;
-  trustZone: EveTrustZone;
-  writeClass: EveWriteClass;
+  trustZone: EveRecordedTrustZone;
+  writeClass: EveRecordedWriteClass;
 }
 
 export interface EveApprovalBudgetAdminView {

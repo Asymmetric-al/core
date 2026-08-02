@@ -41,6 +41,15 @@ describe("Eve dynamic workflow runtime", () => {
     ]);
 
     expect(hook).toContain("executeEveRuntimePolicyConsult");
+    const requested = hook.slice(
+      hook.indexOf('async "actions.requested"'),
+      hook.indexOf('"subagent.called"'),
+    );
+    expect(requested).toContain("await runtimeBoundary");
+    expect(requested).toContain('action.kind === "subagent-call"');
+    expect(requested).not.toContain(
+      'action.kind === "subagent-call" &&\n          ["prepared", "running", "paused"].includes(current.status)',
+    );
     expect(hook).toContain("dispatchEveDynamicWorkflowStep");
     expect(hook).toContain("classifyEveDynamicWorkflowFailure");
     expect(factory).toContain('"step.started"');

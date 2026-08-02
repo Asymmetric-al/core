@@ -2,7 +2,14 @@ import { EVE_SPECIALIST_CATALOG } from "@asym/api/eve/subagent-catalog";
 import { defineAgent, defineDynamic } from "eve";
 import { mockModel } from "eve/evals";
 
-import { resolveEveSpecialistModel } from "../../src/specialists/runtime-policy";
+import {
+  createEveSpecialistModelStepKey,
+  eveSpecialistBudgetState,
+  reserveEveSpecialistModelStepInState,
+  resolveEveSpecialistBudgetLimits,
+  toEveSpecialistModelUsageSnapshot,
+} from "./specialist-budget";
+import { resolveEveSpecialistActivation } from "../../src/specialists/runtime-policy";
 
 import type { EveSpecialistId } from "@asym/api/eve/subagent-catalog";
 
@@ -12,6 +19,21 @@ const verificationModel = mockModel({
   respond: ({ lastUserMessage }) =>
     `Eve specialist is release-gated. Received: ${lastUserMessage}`,
 });
+
+function isStepStartedEvent(
+  event: unknown,
+): event is { data: { stepIndex: number; turnId: string } } {
+  if (!event || typeof event !== "object" || !("data" in event)) return false;
+  const data = event.data;
+  return (
+    !!data &&
+    typeof data === "object" &&
+    "stepIndex" in data &&
+    typeof data.stepIndex === "number" &&
+    "turnId" in data &&
+    typeof data.turnId === "string"
+  );
+}
 
 /**
  * Builds one declared specialist from the app-owned catalog. The static
@@ -26,21 +48,33 @@ export function createEveSpecialistAgent(specialistId: EveSpecialistId) {
     model: defineDynamic({
       fallback: verificationModel,
       events: {
-        "session.started": async (_event, context) => {
-          const selected = await resolveEveSpecialistModel({
-            auth: context.session.auth.current,
-            sessionId: context.session.id,
-            specialistId,
-          });
-          return selected;
-        },
-        "step.started": async (_event, context) => {
-          return resolveEveSpecialistModel({
+        "step.started": async (event, context) => {
+          if (!isStepStartedEvent(event)) return null;
+          const nowMs = Date.now();
+          const currentBudget = eveSpecialistBudgetState.get();
+          const activation = await resolveEveSpecialistActivation({
             actionId: "engineering.dynamic_workflow.execute",
             auth: context.session.auth.current,
             sessionId: context.session.id,
             specialistId,
+            usage: toEveSpecialistModelUsageSnapshot({
+              nowMs,
+              state: currentBudget,
+            }),
           });
+          if (!activation) return null;
+
+          const resolvedLimits = resolveEveSpecialistBudgetLimits({
+            catalog: specialist.budget,
+            policy: activation.limits,
+          });
+          const allowed = reserveEveSpecialistModelStepInState({
+            limits: resolvedLimits,
+            nowMs,
+            state: eveSpecialistBudgetState,
+            stepKey: createEveSpecialistModelStepKey(event.data),
+          });
+          return allowed ? activation.model : null;
         },
       },
     }),

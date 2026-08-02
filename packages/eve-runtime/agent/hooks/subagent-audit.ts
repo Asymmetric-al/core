@@ -167,7 +167,7 @@ function failureSignals(value: unknown): EveDynamicWorkflowFailureSignal[] {
  */
 export default defineHook({
   events: {
-    "actions.requested"(event) {
+    async "actions.requested"(event, context) {
       const current = eveDynamicWorkflowState.get();
       for (const action of event.data.actions) {
         if (
@@ -179,14 +179,19 @@ export default defineHook({
             "Workflow requires a current app-owned workflow ticket.",
           );
         }
-        if (
-          action.kind === "subagent-call" &&
-          ["prepared", "running", "paused"].includes(current.status)
-        ) {
+        if (action.kind === "subagent-call") {
+          if (current.status === "paused") {
+            throw new Error("Dynamic workflow is paused pending human review.");
+          }
           authorizeEveDynamicWorkflowSubagentRequest({
             state: current,
             specialistId: action.subagentName,
             requestInput: action.input,
+          });
+          await runtimeBoundary({
+            rootSessionId: context.session.id,
+            sessionAuth: context.session.auth.current,
+            specialistId: action.subagentName,
           });
         }
       }
@@ -197,11 +202,6 @@ export default defineHook({
         if (current.status === "paused") {
           throw new Error("Dynamic workflow is paused pending human review.");
         }
-        await runtimeBoundary({
-          rootSessionId: context.session.id,
-          sessionAuth: context.session.auth.current,
-          specialistId: event.data.name,
-        });
         eveDynamicWorkflowState.update(
           (latest) =>
             dispatchEveDynamicWorkflowStep({

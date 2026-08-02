@@ -1,5 +1,31 @@
 # Working Set
 
+## 2026-08-01 (Eve guardrail hardening — P1 pass)
+
+- Date: 2026-08-01
+- Repo: Asymmetric-al/core
+- Goal: Reproduce and close the eight deferred Eve containment P1 findings plus
+  the sensitive-PR-file loading P1, then publish one focused PR to `develop`.
+- Primary area:
+  - `packages/api/src/eve/**`
+  - `packages/eve-runtime/agent/**`
+  - `packages/eve-runtime/src/**`
+  - `tests/unit/**/eve/**`
+- Stack:
+  - TypeScript
+  - Bun
+  - Vitest
+  - Eve 0.25.1
+  - GitHub webhooks and API
+- Constraints:
+  - Resolve Eve 0.25.1 types before budget enforcement changes.
+  - Treat shell findings 1–3 as one resolved-effects architecture problem.
+  - Add a failing-then-passing regression test for every reproduced P1.
+  - Do not include deferred P2/P3 findings.
+  - Preserve the disabled-by-default, fail-closed release posture.
+  - Validate typecheck, lint, and full unit tests without weakening gates.
+  - Nia is unavailable in this session; use repo-scoped `rg` and direct reads.
+
 ## 2026-07-18 (Eve final launch verification)
 
 - Date: 2026-07-18
