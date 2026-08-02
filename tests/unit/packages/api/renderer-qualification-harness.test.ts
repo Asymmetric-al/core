@@ -37,6 +37,15 @@ async function sealInitialSubmission(
   });
 }
 
+describe("InMemoryRendererQualificationStore", () => {
+  it("does not expose unchecked evidence append methods", () => {
+    const store = new InMemoryRendererQualificationStore();
+
+    expect("appendSubmission" in store).toBe(false);
+    expect("appendRemediationCycle" in store).toBe(false);
+  });
+});
+
 describe("loadCandidateWorkPacket", () => {
   it("discloses open fixtures and held-back schemas but never held-back expectations", () => {
     const charter = frozenCharter();
@@ -134,12 +143,7 @@ describe("sealCandidateSubmission", () => {
     expect(submission.manifest_digest).toBe(charter.manifest_digest);
     expect(submission.candidate_lock_digest).toMatch(/^[0-9a-f]{64}$/);
     expect(submission.remediation_cycle_ordinal).toBe(0);
-    expect(await store.listSubmissions()).toHaveLength(1);
-
-    // Evidence records are append-only.
-    await expect(store.appendSubmission(submission)).rejects.toThrow(
-      /append-only/,
-    );
+    expect(await store.listSubmissions()).toEqual([submission]);
   });
 
   it("rejects sealing against the wrong charter digest, wrong actor, or invalid charter", async () => {
@@ -816,34 +820,45 @@ describe("remediation accounting hardening", () => {
     expect(fresh.ordinal).toBe(1);
   });
 
-  it("routes append-only conflicts through the typed error", async () => {
+  it("routes concurrent cycle conflicts through the typed error", async () => {
     const charter = frozenCharter();
     const store = new InMemoryRendererQualificationStore();
     await sealInitialSubmission(charter, store);
 
-    const cycle = await recordRemediationCycle({
-      charter,
-      candidate_id: "P18-R-P",
-      actor: "operator-prince",
-      hours_spent: 1,
-      changes: ["fix"],
-      affected_case_ids: ["O01"],
-      store,
-    });
+    const results = await Promise.allSettled([
+      recordRemediationCycle({
+        charter,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        hours_spent: 1,
+        changes: ["first concurrent fix"],
+        affected_case_ids: ["O01"],
+        generateId: () => "concurrent-cycle-1",
+        store,
+      }),
+      recordRemediationCycle({
+        charter,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        hours_spent: 1,
+        changes: ["second concurrent fix"],
+        affected_case_ids: ["O01"],
+        generateId: () => "concurrent-cycle-2",
+        store,
+      }),
+    ]);
 
-    await expect(store.appendRemediationCycle(cycle)).rejects.toMatchObject({
-      name: "QualificationHarnessError",
-      code: "evidence_append_conflict",
-    });
-
-    // The duplicate cycle_id above is caught by identity alone. A fresh id
-    // replaying the same ordinal is the case that actually exercises the
-    // anti-replay guard, and it must be rejected too.
-    await expect(
-      store.appendRemediationCycle({ ...cycle, cycle_id: "replayed-cycle" }),
-    ).rejects.toMatchObject({
-      name: "QualificationHarnessError",
-      code: "evidence_append_conflict",
+    expect(
+      results.filter((result) => result.status === "fulfilled"),
+    ).toHaveLength(1);
+    expect(
+      results.find((result) => result.status === "rejected"),
+    ).toMatchObject({
+      status: "rejected",
+      reason: {
+        name: "QualificationHarnessError",
+        code: "evidence_append_conflict",
+      },
     });
     expect(await store.listRemediationCycles()).toHaveLength(1);
   });

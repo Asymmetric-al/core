@@ -38,49 +38,102 @@ export class QualificationHarnessError extends Error {
   }
 }
 
-/**
- * Append-only evidence store for sealed submissions and remediation cycles.
- * Records are never edited; a rerun appends a new record.
- */
-export class InMemoryRendererQualificationStore {
-  private readonly submissions = new Map<string, SealedCandidateSubmission>();
-  private readonly submissionMeterKeys = new Map<string, string>();
-  private readonly cycles = new Map<string, RemediationCycleRecord>();
+interface RendererQualificationStoreState {
+  readonly submissions: Map<string, SealedCandidateSubmission>;
+  readonly submissionMeterKeys: Map<string, string>;
+  readonly cycles: Map<string, RemediationCycleRecord>;
+}
 
-  private static meterKey(record: {
-    manifest_digest: string;
-    candidate_id: RendererCandidateId;
-    remediation_cycle_ordinal?: number;
-    ordinal?: number;
-  }): string {
-    const ordinal = record.remediation_cycle_ordinal ?? record.ordinal ?? 0;
-    return `${record.manifest_digest}:${record.candidate_id}:${ordinal}`;
+const storeStates = new WeakMap<
+  InMemoryRendererQualificationStore,
+  RendererQualificationStoreState
+>();
+
+function storeState(
+  store: InMemoryRendererQualificationStore,
+): RendererQualificationStoreState {
+  const state = storeStates.get(store);
+  if (!state) {
+    throw new Error("Renderer qualification store is not initialized.");
   }
+  return state;
+}
 
-  async appendSubmission(record: SealedCandidateSubmission): Promise<void> {
-    if (this.submissions.has(record.submission_id)) {
+function meterKey(record: {
+  manifest_digest: string;
+  candidate_id: RendererCandidateId;
+  remediation_cycle_ordinal?: number;
+  ordinal?: number;
+}): string {
+  const ordinal = record.remediation_cycle_ordinal ?? record.ordinal ?? 0;
+  return `${record.manifest_digest}:${record.candidate_id}:${ordinal}`;
+}
+
+async function appendSubmission(
+  store: InMemoryRendererQualificationStore,
+  record: SealedCandidateSubmission,
+): Promise<void> {
+  const state = storeState(store);
+  if (state.submissions.has(record.submission_id)) {
+    throw new QualificationHarnessError(
+      "evidence_append_conflict",
+      `Submission ${record.submission_id} already exists; evidence records are append-only.`,
+    );
+  }
+  // The metering key is unique at the store so a duplicate attempt loses
+  // even under concurrent sealing.
+  const recordMeterKey = meterKey(record);
+  if (state.submissionMeterKeys.has(recordMeterKey)) {
+    throw new QualificationHarnessError(
+      "submission_already_sealed",
+      `Candidate ${record.candidate_id} already sealed a submission for ordinal ${record.remediation_cycle_ordinal} under this charter.`,
+    );
+  }
+  state.submissionMeterKeys.set(recordMeterKey, record.submission_id);
+  state.submissions.set(record.submission_id, structuredClone(record));
+}
+
+async function appendRemediationCycle(
+  store: InMemoryRendererQualificationStore,
+  record: RemediationCycleRecord,
+): Promise<void> {
+  const state = storeState(store);
+  if (state.cycles.has(record.cycle_id)) {
+    throw new QualificationHarnessError(
+      "evidence_append_conflict",
+      `Remediation cycle ${record.cycle_id} already exists; evidence records are append-only.`,
+    );
+  }
+  const recordMeterKey = meterKey(record);
+  for (const existing of state.cycles.values()) {
+    if (meterKey(existing) === recordMeterKey) {
       throw new QualificationHarnessError(
         "evidence_append_conflict",
-        `Submission ${record.submission_id} already exists; evidence records are append-only.`,
+        `Candidate ${record.candidate_id} already recorded remediation cycle ${record.ordinal} under this charter; ordinals never repeat.`,
       );
     }
-    // The metering key is unique at the store so a duplicate attempt loses
-    // even under concurrent sealing.
-    const meterKey = InMemoryRendererQualificationStore.meterKey(record);
-    if (this.submissionMeterKeys.has(meterKey)) {
-      throw new QualificationHarnessError(
-        "submission_already_sealed",
-        `Candidate ${record.candidate_id} already sealed a submission for ordinal ${record.remediation_cycle_ordinal} under this charter.`,
-      );
-    }
-    this.submissionMeterKeys.set(meterKey, record.submission_id);
-    this.submissions.set(record.submission_id, structuredClone(record));
+  }
+  state.cycles.set(record.cycle_id, structuredClone(record));
+}
+
+/**
+ * Read-only evidence store for sealed submissions and remediation cycles.
+ * Validated harness operations append records through module-private helpers;
+ * consumers cannot write unchecked evidence directly.
+ */
+export class InMemoryRendererQualificationStore {
+  constructor() {
+    storeStates.set(this, {
+      submissions: new Map(),
+      submissionMeterKeys: new Map(),
+      cycles: new Map(),
+    });
   }
 
   async listSubmissions(
     manifestDigest?: string,
   ): Promise<SealedCandidateSubmission[]> {
-    const all = Array.from(this.submissions.values(), (item) =>
+    const all = Array.from(storeState(this).submissions.values(), (item) =>
       structuredClone(item),
     );
     return manifestDigest
@@ -88,30 +141,13 @@ export class InMemoryRendererQualificationStore {
       : all;
   }
 
-  async appendRemediationCycle(record: RemediationCycleRecord): Promise<void> {
-    if (this.cycles.has(record.cycle_id)) {
-      throw new QualificationHarnessError(
-        "evidence_append_conflict",
-        `Remediation cycle ${record.cycle_id} already exists; evidence records are append-only.`,
-      );
-    }
-    const meterKey = InMemoryRendererQualificationStore.meterKey(record);
-    for (const existing of this.cycles.values()) {
-      if (InMemoryRendererQualificationStore.meterKey(existing) === meterKey) {
-        throw new QualificationHarnessError(
-          "evidence_append_conflict",
-          `Candidate ${record.candidate_id} already recorded remediation cycle ${record.ordinal} under this charter; ordinals never repeat.`,
-        );
-      }
-    }
-    this.cycles.set(record.cycle_id, structuredClone(record));
-  }
-
   async listRemediationCycles(
     candidateId?: RendererCandidateId,
     manifestDigest?: string,
   ): Promise<RemediationCycleRecord[]> {
-    return Array.from(this.cycles.values(), (item) => structuredClone(item))
+    return Array.from(storeState(this).cycles.values(), (item) =>
+      structuredClone(item),
+    )
       .filter(
         (item) =>
           candidateId === undefined || item.candidate_id === candidateId,
@@ -380,7 +416,7 @@ export async function sealCandidateSubmission(
     sealed_by: input.actor,
   };
 
-  await input.store.appendSubmission(record);
+  await appendSubmission(input.store, record);
   return record;
 }
 
@@ -511,6 +547,6 @@ export async function recordRemediationCycle(
     evidence_digest: digestQualificationValue(payload),
   };
 
-  await input.store.appendRemediationCycle(record);
+  await appendRemediationCycle(input.store, record);
   return record;
 }
