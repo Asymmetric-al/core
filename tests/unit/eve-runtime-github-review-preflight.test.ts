@@ -108,6 +108,26 @@ describe("Eve GitHub review preflight", () => {
     ).resolves.toBe(false);
   });
 
+  it("blocks copied files whose source path is sensitive", async () => {
+    const github = githubWithFiles([
+      {
+        filename: "docs/example.env",
+        patch: "+SAFE=x",
+        previous_filename: ".env.production",
+        status: "copied",
+      },
+    ]);
+
+    await expect(
+      preflightEveGithubReview({
+        github,
+        owner: "Asymmetric-al",
+        pullRequestNumber: 864,
+        repo: "core",
+      }),
+    ).resolves.toBe(false);
+  });
+
   it("allows protected source to be reviewed but fails closed without patch data", async () => {
     const protectedFile = githubWithFiles([
       {

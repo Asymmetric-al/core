@@ -28,7 +28,7 @@ function changedFileIsSafe(file: EveGithubReviewFile): boolean {
 
   if (typeof file.patch !== "string") return false;
   const paths = [file.filename];
-  if (file.status === "renamed") {
+  if (file.status === "renamed" || file.status === "copied") {
     if (
       typeof file.previous_filename !== "string" ||
       file.previous_filename.length === 0
