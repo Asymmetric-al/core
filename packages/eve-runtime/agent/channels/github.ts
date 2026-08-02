@@ -20,6 +20,7 @@ import {
 } from "eve/channels/github";
 
 import { eveGithubCredentials } from "../../src/github/credentials";
+import { preflightEveGithubReview } from "../../src/github/review-preflight";
 import {
   eveStrictAutoMergeRunId,
   runEveStrictAutoMergeTool,
@@ -63,6 +64,17 @@ function githubServicePrincipal(): GithubServicePrincipal | null {
 
 function accountableTrigger(ctx: GitHubInboundContext): string {
   return `github_sender:${ctx.sender.id}:delivery:${ctx.delivery.id}`;
+}
+
+function githubReviewAuth(ctx: GitHubInboundContext) {
+  const auth = defaultGitHubAuth(ctx);
+  return {
+    ...auth,
+    attributes: {
+      ...auth.attributes,
+      session_purpose: "github_review",
+    },
+  };
 }
 
 async function evaluateCompletedCheckSuite(
@@ -325,13 +337,25 @@ export default githubChannel({
     ) {
       return null;
     }
+    const pullRequestNumber = ctx.conversation.pullRequestNumber;
+    if (
+      !pullRequestNumber ||
+      !(await preflightEveGithubReview({
+        github: ctx.github,
+        owner: ctx.repository.owner,
+        pullRequestNumber,
+        repo: ctx.repository.name,
+      }))
+    ) {
+      return null;
+    }
     const allowed = await authorizeTrigger(
       ctx,
-      `${ctx.repository.fullName}#${ctx.conversation.pullRequestNumber ?? "review-thread"}`,
+      `${ctx.repository.fullName}#${pullRequestNumber}`,
     );
     return allowed
       ? {
-          auth: defaultGitHubAuth(ctx),
+          auth: githubReviewAuth(ctx),
           context: [EVE_GITHUB_REVIEW_OUTPUT_INSTRUCTIONS],
         }
       : null;
@@ -344,13 +368,23 @@ export default githubChannel({
   async onPullRequest(ctx, pullRequest) {
     if (ctx.repository.fullName !== CORE_REPOSITORY) return null;
     if (!REVIEW_TRIGGER_ACTIONS.has(pullRequest.action)) return null;
+    if (
+      !(await preflightEveGithubReview({
+        github: ctx.github,
+        owner: ctx.repository.owner,
+        pullRequestNumber: pullRequest.pullRequestNumber,
+        repo: ctx.repository.name,
+      }))
+    ) {
+      return null;
+    }
     const allowed = await authorizeTrigger(
       ctx,
       `${ctx.repository.fullName}#${pullRequest.pullRequestNumber}`,
     );
     return allowed
       ? {
-          auth: defaultGitHubAuth(ctx),
+          auth: githubReviewAuth(ctx),
           context: [EVE_GITHUB_REVIEW_OUTPUT_INSTRUCTIONS],
         }
       : null;

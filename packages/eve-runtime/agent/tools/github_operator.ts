@@ -6,6 +6,7 @@ import { defineDynamic, defineTool } from "eve/tools";
 import { z } from "zod";
 
 import { eveGithubRequest, githubPathPart } from "../../src/github/client";
+import { isEveGithubOperatorSessionPurpose } from "../../src/github/session-purpose";
 import {
   eveGithubOperationRunId,
   runEveGithubOperatorTool,
@@ -33,7 +34,6 @@ const operatorInput = z
       "update_pull_request",
       "push_safe_fix",
     ]),
-    productDirection: z.boolean().optional(),
     pullRequestNumber: z.number().int().positive().optional(),
     state: z.enum(["open", "closed"]).optional(),
     targetNumber: z.number().int().positive().optional(),
@@ -70,11 +70,13 @@ export default defineDynamic({
       const installation = auth?.attributes.installation_id;
       const deliveryId = auth?.attributes.delivery_id;
       const login = auth?.attributes.user_login;
+      const sessionPurpose = auth?.attributes.session_purpose;
       const installationId =
         typeof installation === "string" ? Number(installation) : Number.NaN;
       if (
         auth?.authenticator !== "github-webhook" ||
         repository !== "Asymmetric-al/core" ||
+        !isEveGithubOperatorSessionPurpose(sessionPurpose) ||
         typeof deliveryId !== "string" ||
         deliveryId.length === 0 ||
         typeof login !== "string" ||
@@ -113,8 +115,9 @@ export default defineDynamic({
             accountableTrigger: `${auth.principalId}:delivery:${deliveryId}`,
             installationId,
             request,
-            runId: eveGithubOperationRunId(deliveryId, request),
+            runId: eveGithubOperationRunId(deliveryId, sessionPurpose, request),
             sandbox,
+            sessionPurpose,
           });
         },
       });

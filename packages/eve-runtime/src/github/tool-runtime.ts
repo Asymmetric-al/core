@@ -13,7 +13,9 @@ import {
 import { createEveGovernanceStore } from "@asym/api/eve/governance";
 
 import { performEveGithubOperation } from "./operator";
+import { isEveGithubProductDirectionPurpose } from "./session-purpose";
 
+import type { EveGithubOperatorSessionPurpose } from "./session-purpose";
 import type { SandboxSession } from "eve/sandbox";
 
 const UUID_PATTERN =
@@ -37,7 +39,6 @@ export interface EveGithubToolRequest {
     | "push_safe_fix"
     | "rerun_failed_workflow"
     | "update_pull_request";
-  productDirection?: boolean;
   pullRequestNumber?: number;
   state?: "closed" | "open";
   targetNumber?: number;
@@ -53,14 +54,15 @@ function required<T>(value: T | undefined, name: string): T {
 function toOperationRequest(
   input: EveGithubToolRequest,
   changedFiles: EveGithubChangedFile[],
+  sessionPurpose: EveGithubOperatorSessionPurpose,
 ): EveGithubOperatorRequest {
+  const productDirection = isEveGithubProductDirectionPurpose(sessionPurpose);
   switch (input.operation) {
     case "create_issue":
       return {
         operation: input.operation,
         body: required(input.body, "body"),
         labels: input.labels,
-        productDirection: input.productDirection,
         title: required(input.title, "title"),
       };
     case "create_branch":
@@ -78,7 +80,7 @@ function toOperationRequest(
         branch: required(input.branch, "branch"),
         changedPaths: input.changedPaths,
         issueNumber: required(input.issueNumber, "issueNumber"),
-        productDirection: input.productDirection,
+        productDirection,
         title: required(input.title, "title"),
       };
     case "add_labels":
@@ -116,7 +118,7 @@ function toOperationRequest(
         changedFiles,
         commitMessage: required(input.commitMessage, "commitMessage"),
         issueNumber: required(input.issueNumber, "issueNumber"),
-        productDirection: input.productDirection,
+        productDirection,
       };
   }
 }
@@ -191,10 +193,11 @@ async function loadChangedFiles(
 
 export function eveGithubOperationRunId(
   deliveryId: string,
+  sessionPurpose: EveGithubOperatorSessionPurpose,
   request: EveGithubToolRequest,
 ): string {
   const hex = createHash("sha256")
-    .update(JSON.stringify({ deliveryId, request }))
+    .update(JSON.stringify({ deliveryId, request, sessionPurpose }))
     .digest("hex");
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
 }
@@ -206,6 +209,7 @@ export async function runEveGithubOperatorTool(input: {
   request: EveGithubToolRequest;
   runId: string;
   sandbox: SandboxSession;
+  sessionPurpose: EveGithubOperatorSessionPurpose;
 }) {
   const actorProfileId = process.env.EVE_GITHUB_ACTOR_PROFILE_ID?.trim();
   const tenantId = process.env.EVE_GITHUB_TENANT_ID?.trim();
@@ -249,7 +253,11 @@ export async function runEveGithubOperatorTool(input: {
       installationId: input.installationId,
       owner: "Asymmetric-al",
       repo: "core",
-      request: toOperationRequest(input.request, changedFiles),
+      request: toOperationRequest(
+        input.request,
+        changedFiles,
+        input.sessionPurpose,
+      ),
       runId: input.runId,
     },
     {

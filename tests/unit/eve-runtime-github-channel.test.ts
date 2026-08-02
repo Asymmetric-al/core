@@ -20,6 +20,8 @@ describe("Eve GitHub channel boundary", () => {
     expect(source).toContain("runEveStrictAutoMergeTool");
     expect(source).toContain("event: review.event");
     expect(source).toContain("progress: { reactions: false }");
+    expect(source).toContain('session_purpose: "github_review"');
+    expect(source.match(/preflightEveGithubReview\(/gu)).toHaveLength(2);
     expect(source).toContain('"turn.failed"()');
     expect(source).not.toMatch(/labels|mergePullRequest|rerun|createIssue/iu);
   });

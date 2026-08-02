@@ -423,6 +423,52 @@ describe("Eve dynamic workflow control", () => {
         requiresApproval: false,
       }),
     ).toEqual({ allowed: false, reason: "governance_blocked" });
+
+    expect(
+      evaluateEveDynamicWorkflowControl({
+        approvalGranted: true,
+        currentGovernance: {
+          ...governance,
+          killSwitchState: {
+            ...governance.killSwitchState,
+            active_runs: true,
+          },
+        },
+        hasBlockingContextConflict: false,
+        policy: allowedPolicy,
+        requiresApproval: false,
+      }),
+    ).toEqual({ allowed: false, reason: "governance_blocked" });
+  });
+
+  it("honors an app-owned approval when force approval is enabled", () => {
+    const forceApprovalGovernance = {
+      ...governance,
+      killSwitchState: {
+        ...governance.killSwitchState,
+        force_approval: true,
+      },
+    };
+
+    expect(
+      evaluateEveDynamicWorkflowControl({
+        approvalGranted: true,
+        currentGovernance: forceApprovalGovernance,
+        hasBlockingContextConflict: false,
+        policy: allowedPolicy,
+        requiresApproval: true,
+      }),
+    ).toEqual({ allowed: true, reason: "workflow_allowed" });
+
+    expect(
+      evaluateEveDynamicWorkflowControl({
+        approvalGranted: false,
+        currentGovernance: forceApprovalGovernance,
+        hasBlockingContextConflict: false,
+        policy: allowedPolicy,
+        requiresApproval: true,
+      }),
+    ).toEqual({ allowed: false, reason: "governance_blocked" });
   });
 });
 

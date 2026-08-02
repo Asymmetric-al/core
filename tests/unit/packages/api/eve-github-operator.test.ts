@@ -85,6 +85,7 @@ describe("Eve GitHub operator guardrails", () => {
         baseBranch: "develop",
         title: "fix: safe improvement",
         body: "Explains the bounded engineering change.",
+        productDirection: false,
       }),
     );
     expect(
@@ -111,6 +112,7 @@ describe("Eve GitHub operator guardrails", () => {
           issueNumber: 431,
           branch: "eve/issue-431-safe-fix",
           commitMessage: "fix: update configuration",
+          productDirection: false,
           changedFiles: [
             { path: ".env.production", status: "added", content: "SAFE=x" },
           ],
@@ -124,6 +126,7 @@ describe("Eve GitHub operator guardrails", () => {
           issueNumber: 431,
           branch: "eve/issue-431-safe-fix",
           commitMessage: "fix: update workflow",
+          productDirection: false,
           changedFiles: [
             {
               path: ".github/workflows/ci.yml",
@@ -157,6 +160,21 @@ describe("Eve GitHub operator guardrails", () => {
     ).toThrow(/update OpenSpec/u);
   });
 
+  it("fails closed without an app-owned product-direction classification", () => {
+    expect(() =>
+      prepareEveGithubOperation(
+        input({
+          operation: "open_pull_request",
+          issueNumber: 431,
+          branch: "eve/issue-431-safe-fix",
+          baseBranch: "develop",
+          title: "fix: safe improvement",
+          body: "Explains the bounded engineering change.",
+        } as EveGithubOperatorInput["request"]),
+      ),
+    ).toThrow(/product-direction classification/u);
+  });
+
   it("blocks business data found inside a proposed source change", () => {
     expect(() =>
       prepareEveGithubOperation(
@@ -165,6 +183,7 @@ describe("Eve GitHub operator guardrails", () => {
           issueNumber: 431,
           branch: "eve/issue-431-safe-fix",
           commitMessage: "fix: update safe documentation",
+          productDirection: false,
           changedFiles: [
             {
               path: "docs/guide.md",
