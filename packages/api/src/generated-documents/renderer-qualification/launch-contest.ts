@@ -460,13 +460,31 @@ export const PHASE_18_SCORE_DIMENSIONS: readonly ScoreDimension[] = [
 
 export const PHASE_18_SCORING_RULES: ScoringRules = {
   reviewer_count: 2,
+  reviewer_method: "independent",
+  score_above_three_requires_written_beyond_gate_evidence: true,
+  scoring_eligibility: "both_finalists_pass_every_hard_gate",
+  reviewer_total_aggregation: "mean",
   min_uncertainty_band_points: 2,
+  uncertainty_band_formula:
+    "max_minimum_or_half_absolute_reviewer_total_difference",
   material_lead_points: 5,
+  material_lead_rule:
+    "mean_difference_at_least_threshold_and_strict_uncertainty_band_separation",
   tie_break_order: [
     "fewer new production execution/dependency surfaces and less translation from the canonical Asym semantic source",
     "lower measured operational, security, procurement, support and upgrade burden at the frozen launch/year-end workload",
     "greater measured capacity headroom without weakening isolation, accessibility, archival or recovery proof",
   ],
+  selection_order: [
+    "neither_finalist_passes_every_hard_gate:no_winner",
+    "exactly_one_finalist_passes_every_hard_gate:select_exact_passing_frozen_pipeline",
+    "both_finalists_pass_and_one_has_material_lead:select_exact_material_leader",
+    "both_finalists_pass_without_material_lead:compare_frozen_tie_break_evidence_in_order",
+    "all_tie_break_steps_equivalent_or_uncertain:no_winner",
+  ],
+  tie_break_resolution_rule:
+    "first_documented_material_advantage_else_no_winner",
+  candidate_preference: "none",
 };
 
 export const PHASE_18_OPERATIONAL_SUITES: OperationalSuites = {
@@ -527,6 +545,7 @@ export const PHASE_18_OPERATIONAL_SUITES: OperationalSuites = {
 
 export const PHASE_18_EVIDENCE_RULES: EvidenceRules = {
   package_schema_version: "1",
+  decision_record_format: "phase-18-protocol-decision-record/v1",
   redaction_policy:
     "synthetic data and PII-safe diagnostics only; neutral candidate IDs during visual and accessibility review",
   retention_owner: "phase-18-evidence-owner",

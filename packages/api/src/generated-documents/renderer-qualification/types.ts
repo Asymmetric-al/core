@@ -235,12 +235,23 @@ export interface ScoreDimension {
 
 export interface ScoringRules {
   reviewer_count: 2;
+  reviewer_method: "independent";
+  /** Protocol: a 4 or 5 needs written benefit evidence beyond the hard gate. */
+  score_above_three_requires_written_beyond_gate_evidence: true;
+  scoring_eligibility: "both_finalists_pass_every_hard_gate";
+  reviewer_total_aggregation: "mean";
   /** Uncertainty band = max(this, half the reviewer-total difference). */
   min_uncertainty_band_points: number;
+  uncertainty_band_formula: "max_minimum_or_half_absolute_reviewer_total_difference";
   /** Material lead requires at least this mean difference plus band separation. */
   material_lead_points: number;
+  material_lead_rule: "mean_difference_at_least_threshold_and_strict_uncertainty_band_separation";
   /** Order-sensitive deterministic tie-break evidence comparison. */
   tie_break_order: readonly [string, string, string];
+  /** Ordered, inert charter policy. T6 owns execution and the decision record. */
+  selection_order: readonly [string, string, string, string, string];
+  tie_break_resolution_rule: "first_documented_material_advantage_else_no_winner";
+  candidate_preference: "none";
 }
 
 export interface OperationalSuites {
@@ -409,6 +420,8 @@ export interface RemediationPolicy {
 
 export interface EvidenceRules {
   package_schema_version: string;
+  /** T6 owns the record type; T3 freezes the format identity it must implement. */
+  decision_record_format: "phase-18-protocol-decision-record/v1";
   redaction_policy: string;
   retention_owner: string;
   retention_days: number;

@@ -94,10 +94,33 @@ const VALIDATION_TOOL_FIELDS = [
 ] as const;
 const EVIDENCE_RULE_FIELDS = [
   "package_schema_version",
+  "decision_record_format",
   "redaction_policy",
   "retention_owner",
   "retention_days",
   "validator_warning_policy",
+] as const;
+const SCORE_DIMENSION_FIELDS = [
+  "dimension_id",
+  "title",
+  "weight",
+  "anchors",
+  "evidence_basis",
+] as const;
+const SCORING_RULE_FIELDS = [
+  "reviewer_count",
+  "reviewer_method",
+  "score_above_three_requires_written_beyond_gate_evidence",
+  "scoring_eligibility",
+  "reviewer_total_aggregation",
+  "min_uncertainty_band_points",
+  "uncertainty_band_formula",
+  "material_lead_points",
+  "material_lead_rule",
+  "tie_break_order",
+  "selection_order",
+  "tie_break_resolution_rule",
+  "candidate_preference",
 ] as const;
 const VALIDATOR_WARNING_POLICY_FIELDS = [
   "retain_all_warnings",
@@ -1079,6 +1102,7 @@ function validateGatesAndScoring(
     const fixed = fixedDimensions.get(dimension.dimension_id);
     if (!fixed) continue;
     if (
+      !hasExactOwnFields(dimension, SCORE_DIMENSION_FIELDS) ||
       dimension.title !== fixed.title ||
       dimension.evidence_basis !== fixed.evidence_basis ||
       JSON.stringify(dimension.anchors) !== JSON.stringify(fixed.anchors)
@@ -1094,14 +1118,17 @@ function validateGatesAndScoring(
   }
 
   const rules = input.scoring_rules;
+  const tieBreakOrderHasExpectedLength =
+    Array.isArray(rules.tie_break_order) &&
+    rules.tie_break_order.length ===
+      PHASE_18_SCORING_RULES.tie_break_order.length;
   if (
     rules.reviewer_count !== PHASE_18_SCORING_RULES.reviewer_count ||
     rules.min_uncertainty_band_points !==
       PHASE_18_SCORING_RULES.min_uncertainty_band_points ||
     rules.material_lead_points !==
       PHASE_18_SCORING_RULES.material_lead_points ||
-    rules.tie_break_order.length !==
-      PHASE_18_SCORING_RULES.tie_break_order.length
+    !tieBreakOrderHasExpectedLength
   ) {
     issues.push(
       issue(
@@ -1112,14 +1139,29 @@ function validateGatesAndScoring(
     );
   }
   if (
+    !hasExactOwnFields(rules, SCORING_RULE_FIELDS) ||
+    rules.reviewer_method !== PHASE_18_SCORING_RULES.reviewer_method ||
+    rules.score_above_three_requires_written_beyond_gate_evidence !==
+      PHASE_18_SCORING_RULES.score_above_three_requires_written_beyond_gate_evidence ||
+    rules.scoring_eligibility !== PHASE_18_SCORING_RULES.scoring_eligibility ||
+    rules.reviewer_total_aggregation !==
+      PHASE_18_SCORING_RULES.reviewer_total_aggregation ||
+    rules.uncertainty_band_formula !==
+      PHASE_18_SCORING_RULES.uncertainty_band_formula ||
+    rules.material_lead_rule !== PHASE_18_SCORING_RULES.material_lead_rule ||
     JSON.stringify(rules.tie_break_order) !==
-    JSON.stringify(PHASE_18_SCORING_RULES.tie_break_order)
+      JSON.stringify(PHASE_18_SCORING_RULES.tie_break_order) ||
+    JSON.stringify(rules.selection_order) !==
+      JSON.stringify(PHASE_18_SCORING_RULES.selection_order) ||
+    rules.tie_break_resolution_rule !==
+      PHASE_18_SCORING_RULES.tie_break_resolution_rule ||
+    rules.candidate_preference !== PHASE_18_SCORING_RULES.candidate_preference
   ) {
     issues.push(
       issue(
-        "scoring_rules.tie_break_order",
+        "scoring_rules",
         "protocol_fixed_field_changed",
-        "The deterministic tie-break steps and their order are pre-registered by the protocol.",
+        "Independent scoring, written beyond-gate evidence, calculation formulas, ordered no-winner-capable selection policy, material tie-break resolution, and no candidate preference are pre-registered by the protocol.",
       ),
     );
   }
@@ -1506,12 +1548,17 @@ export function validateRendererQualificationCharterInput(
     );
   }
   const warningPolicy = evidenceRules.validator_warning_policy;
-  if (warningPolicy && !evidenceRuleFieldsMatch) {
+  if (
+    warningPolicy &&
+    (!evidenceRuleFieldsMatch ||
+      evidenceRules.decision_record_format !==
+        PHASE_18_EVIDENCE_RULES.decision_record_format)
+  ) {
     issues.push(
       issue(
         "evidence_rules",
         "protocol_fixed_field_changed",
-        "The evidence rules freeze an exact field set; undeclared exception or suppression fields are forbidden.",
+        "The evidence rules freeze an exact field set and decision-record format identity; undeclared exception or suppression fields are forbidden.",
       ),
     );
   }
