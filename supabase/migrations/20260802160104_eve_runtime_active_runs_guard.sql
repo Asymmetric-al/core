@@ -1,21 +1,6 @@
 -- Recheck the global active-runs pause at the same atomic policy boundary as
 -- every dynamic-workflow action. The action catalog still owns the narrower
 -- domain check; active_runs independently stops all already-started work.
-ALTER TABLE public.eve_policy_decisions
-    DROP CONSTRAINT IF EXISTS eve_policy_decisions_trust_zone_check;
-ALTER TABLE public.eve_policy_decisions
-    ADD CONSTRAINT eve_policy_decisions_trust_zone_check
-    CHECK (
-        trust_zone IN (
-            'engineering', 'product_admin', 'memory', 'unclassified'
-        )
-    );
-ALTER TABLE public.eve_policy_decisions
-    DROP CONSTRAINT IF EXISTS eve_policy_decisions_write_class_check;
-ALTER TABLE public.eve_policy_decisions
-    ADD CONSTRAINT eve_policy_decisions_write_class_check
-    CHECK (write_class IN ('operational', 'business_data', 'unclassified'));
-
 CREATE OR REPLACE FUNCTION public.consult_eve_runtime_budget_policy(
     p_action_id TEXT,
     p_target_key TEXT,
