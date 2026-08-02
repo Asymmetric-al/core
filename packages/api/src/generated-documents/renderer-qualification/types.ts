@@ -520,6 +520,8 @@ export interface SealedCandidateSubmission {
 
 export interface RemediationCycleRecord {
   cycle_id: string;
+  /** Caller-stable identity used to replay one logical cycle exactly once. */
+  operation_key: string;
   charter_id: string;
   manifest_digest: string;
   candidate_id: RendererCandidateId;

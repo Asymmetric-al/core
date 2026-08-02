@@ -42,6 +42,17 @@ interface RendererQualificationStoreState {
   readonly submissions: Map<string, SealedCandidateSubmission>;
   readonly submissionMeterKeys: Map<string, string>;
   readonly cycles: Map<string, RemediationCycleRecord>;
+  readonly cycleOperationKeys: Map<string, string>;
+}
+
+interface RemediationCycleRequest {
+  readonly manifest_digest: string;
+  readonly candidate_id: RendererCandidateId;
+  readonly operation_key: string;
+  readonly hours_spent: number;
+  readonly changes: readonly string[];
+  readonly affected_case_ids: readonly QualificationCaseId[];
+  readonly recorded_by: string;
 }
 
 const storeStates = new WeakMap<
@@ -67,6 +78,39 @@ function meterKey(record: {
 }): string {
   const ordinal = record.remediation_cycle_ordinal ?? record.ordinal ?? 0;
   return `${record.manifest_digest}:${record.candidate_id}:${ordinal}`;
+}
+
+function cycleOperationKey(record: {
+  manifest_digest: string;
+  candidate_id: RendererCandidateId;
+  operation_key: string;
+}): string {
+  return `${record.manifest_digest}:${record.candidate_id}:${record.operation_key}`;
+}
+
+function sameStringSequence(
+  left: readonly string[],
+  right: readonly string[],
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  );
+}
+
+function matchesRemediationRequest(
+  record: RemediationCycleRecord,
+  request: RemediationCycleRequest,
+): boolean {
+  return (
+    record.manifest_digest === request.manifest_digest &&
+    record.candidate_id === request.candidate_id &&
+    record.operation_key === request.operation_key &&
+    record.hours_spent === request.hours_spent &&
+    sameStringSequence(record.changes, request.changes) &&
+    sameStringSequence(record.affected_case_ids, request.affected_case_ids) &&
+    record.recorded_by === request.recorded_by
+  );
 }
 
 async function appendSubmission(
@@ -96,8 +140,21 @@ async function appendSubmission(
 async function appendRemediationCycle(
   store: InMemoryRendererQualificationStore,
   record: RemediationCycleRecord,
-): Promise<void> {
+  request: RemediationCycleRequest,
+): Promise<RemediationCycleRecord> {
   const state = storeState(store);
+  const operationScope = cycleOperationKey(record);
+  const existingCycleId = state.cycleOperationKeys.get(operationScope);
+  if (existingCycleId) {
+    const existing = state.cycles.get(existingCycleId);
+    if (existing && matchesRemediationRequest(existing, request)) {
+      return structuredClone(existing);
+    }
+    throw new QualificationHarnessError(
+      "evidence_append_conflict",
+      `Remediation operation ${record.operation_key} was already used with different evidence for ${record.candidate_id} under this charter.`,
+    );
+  }
   if (state.cycles.has(record.cycle_id)) {
     throw new QualificationHarnessError(
       "evidence_append_conflict",
@@ -113,7 +170,9 @@ async function appendRemediationCycle(
       );
     }
   }
+  state.cycleOperationKeys.set(operationScope, record.cycle_id);
   state.cycles.set(record.cycle_id, structuredClone(record));
+  return structuredClone(record);
 }
 
 /**
@@ -127,6 +186,7 @@ export class InMemoryRendererQualificationStore {
       submissions: new Map(),
       submissionMeterKeys: new Map(),
       cycles: new Map(),
+      cycleOperationKeys: new Map(),
     });
   }
 
@@ -190,40 +250,35 @@ function requireKnownCandidate(
   return candidate;
 }
 
-async function hasSealedSubmission(
-  store: InMemoryRendererQualificationStore,
-  manifestDigest: string,
-  candidateId: RendererCandidateId,
-  ordinal: 0 | 1 | 2,
-): Promise<boolean> {
-  const submissions = await store.listSubmissions(manifestDigest);
-  return submissions.some(
-    (submission) =>
-      submission.candidate_id === candidateId &&
-      submission.remediation_cycle_ordinal === ordinal,
-  );
-}
-
 async function requirePriorSubmissionSealed(
   store: InMemoryRendererQualificationStore,
   manifestDigest: string,
   candidateId: RendererCandidateId,
   ordinal: 1 | 2,
-): Promise<void> {
+): Promise<SealedCandidateSubmission> {
+  const submissions = await store.listSubmissions(manifestDigest);
+  let immediatePrior: SealedCandidateSubmission | undefined;
   for (let priorOrdinal = 0; priorOrdinal < ordinal; priorOrdinal += 1) {
-    const priorSealed = await hasSealedSubmission(
-      store,
-      manifestDigest,
-      candidateId,
-      priorOrdinal as 0 | 1,
+    const priorSubmission = submissions.find(
+      (submission) =>
+        submission.candidate_id === candidateId &&
+        submission.remediation_cycle_ordinal === priorOrdinal,
     );
-    if (!priorSealed) {
+    if (!priorSubmission) {
       throw new QualificationHarnessError(
         "initial_submission_missing",
         `Remediation cycle ${ordinal} requires candidate ${candidateId} to seal submission ordinal ${priorOrdinal} first.`,
       );
     }
+    immediatePrior = priorSubmission;
   }
+  if (!immediatePrior) {
+    throw new QualificationHarnessError(
+      "initial_submission_missing",
+      `Remediation cycle ${ordinal} requires a prior sealed submission for ${candidateId}.`,
+    );
+  }
+  return immediatePrior;
 }
 
 /**
@@ -239,6 +294,41 @@ function requireGeneratedId(id: string, kind: string): string {
     );
   }
   return id;
+}
+
+const REMEDIATION_OPERATION_KEY = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/;
+
+function requireRemediationOperationKey(operationKey: unknown): string {
+  if (
+    typeof operationKey !== "string" ||
+    !REMEDIATION_OPERATION_KEY.test(operationKey)
+  ) {
+    throw new QualificationHarnessError(
+      "remediation_incomplete",
+      "A remediation cycle requires a caller-stable operation key using 1-128 letters, numbers, dots, underscores, colons, slashes, or hyphens.",
+    );
+  }
+  return operationKey;
+}
+
+function replayedRemediationCycle(
+  store: InMemoryRendererQualificationStore,
+  request: RemediationCycleRequest,
+): RemediationCycleRecord | undefined {
+  const state = storeState(store);
+  const existingCycleId = state.cycleOperationKeys.get(
+    cycleOperationKey(request),
+  );
+  if (!existingCycleId) return undefined;
+
+  const existing = state.cycles.get(existingCycleId);
+  if (existing && matchesRemediationRequest(existing, request)) {
+    return structuredClone(existing);
+  }
+  throw new QualificationHarnessError(
+    "evidence_append_conflict",
+    `Remediation operation ${request.operation_key} was already used with different evidence for ${request.candidate_id} under this charter.`,
+  );
 }
 
 function parseSubmissionOrdinal(ordinal: unknown): 0 | 1 | 2 {
@@ -348,6 +438,7 @@ export async function sealCandidateSubmission(
   }
 
   const ordinal = parseSubmissionOrdinal(input.remediation_cycle_ordinal);
+  let requiredCycle: RemediationCycleRecord | undefined;
   if (ordinal !== 0) {
     await requirePriorSubmissionSealed(
       input.store,
@@ -359,7 +450,8 @@ export async function sealCandidateSubmission(
       candidateId,
       input.charter.manifest_digest,
     );
-    if (!cycles.some((cycle) => cycle.ordinal === ordinal)) {
+    requiredCycle = cycles.find((cycle) => cycle.ordinal === ordinal);
+    if (!requiredCycle) {
       throw new QualificationHarnessError(
         "remediation_cycle_missing",
         `Submission ordinal ${ordinal} requires recorded remediation cycle ${ordinal} for ${candidateId} under this charter first.`,
@@ -399,6 +491,15 @@ export async function sealCandidateSubmission(
       `Submission cannot be sealed at ${sealedAt.toISOString()}, before the charter froze at ${input.charter.frozen_at}.`,
     );
   }
+  if (
+    requiredCycle &&
+    sealedAt.getTime() < Date.parse(requiredCycle.recorded_at)
+  ) {
+    throw new QualificationHarnessError(
+      "submission_invalid",
+      `Submission ordinal ${ordinal} cannot be sealed at ${sealedAt.toISOString()}, before its remediation cycle was recorded at ${requiredCycle.recorded_at}.`,
+    );
+  }
 
   const record: SealedCandidateSubmission = {
     submission_id: requireGeneratedId(
@@ -424,6 +525,7 @@ export interface RecordRemediationCycleInput {
   charter: FrozenRendererQualificationCharter;
   candidate_id: string;
   actor: string;
+  operation_key: string;
   hours_spent: number;
   changes: readonly string[];
   affected_case_ids: readonly QualificationCaseId[];
@@ -457,7 +559,13 @@ export async function recordRemediationCycle(
       `Only the registered operator for ${candidateId} may record its remediation.`,
     );
   }
-  if (input.changes.length === 0 || input.affected_case_ids.length === 0) {
+  if (
+    input.changes.length === 0 ||
+    input.changes.some(
+      (change) => typeof change !== "string" || !change.trim(),
+    ) ||
+    input.affected_case_ids.length === 0
+  ) {
     throw new QualificationHarnessError(
       "remediation_incomplete",
       "A remediation cycle documents its changes and identifies the affected cases.",
@@ -486,6 +594,21 @@ export async function recordRemediationCycle(
     );
   }
 
+  const affectedCaseIds = [
+    ...new Set<QualificationCaseId>(input.affected_case_ids),
+  ].sort();
+  const request: RemediationCycleRequest = {
+    manifest_digest: input.charter.manifest_digest,
+    candidate_id: candidateId,
+    operation_key: requireRemediationOperationKey(input.operation_key),
+    hours_spent: input.hours_spent,
+    changes: [...input.changes],
+    affected_case_ids: affectedCaseIds,
+    recorded_by: input.actor,
+  };
+  const replay = replayedRemediationCycle(input.store, request);
+  if (replay) return replay;
+
   // Allowances are scoped to the exact charter digest: a reset contest starts
   // a fresh equal budget and prior-charter cycles never consume it.
   const prior = await input.store.listRemediationCycles(
@@ -499,7 +622,7 @@ export async function recordRemediationCycle(
       "Each finalist receives at most two remediation cycles; a third is rejected.",
     );
   }
-  await requirePriorSubmissionSealed(
+  const prerequisiteSubmission = await requirePriorSubmissionSealed(
     input.store,
     input.charter.manifest_digest,
     candidateId,
@@ -507,7 +630,7 @@ export async function recordRemediationCycle(
   );
 
   const rerunSet = new Set<QualificationCaseId>([
-    ...input.affected_case_ids,
+    ...affectedCaseIds,
     ...HELD_BACK_CASE_IDS,
   ]);
 
@@ -520,6 +643,12 @@ export async function recordRemediationCycle(
       `Remediation cycle cannot be recorded at ${recordedAt.toISOString()}, before the charter froze at ${input.charter.frozen_at}.`,
     );
   }
+  if (recordedAt.getTime() < Date.parse(prerequisiteSubmission.sealed_at)) {
+    throw new QualificationHarnessError(
+      "remediation_incomplete",
+      `Remediation cycle ${ordinal} cannot be recorded at ${recordedAt.toISOString()}, before prerequisite submission ${ordinal - 1} was sealed at ${prerequisiteSubmission.sealed_at}.`,
+    );
+  }
 
   // Everything the record asserts is digested, not just the change set.
   // `hours_spent` meters the equal remediation budget and `recorded_by` /
@@ -530,13 +659,14 @@ export async function recordRemediationCycle(
       (input.generateId ?? (() => crypto.randomUUID()))(),
       "remediation cycle",
     ),
+    operation_key: request.operation_key,
     charter_id: input.charter.charter_id,
     manifest_digest: input.charter.manifest_digest,
     candidate_id: candidateId,
     ordinal: ordinal as 1 | 2,
     hours_spent: input.hours_spent,
-    changes: [...input.changes],
-    affected_case_ids: [...input.affected_case_ids].sort(),
+    changes: [...request.changes],
+    affected_case_ids: [...request.affected_case_ids],
     required_rerun_case_ids: [...rerunSet].sort(),
     recorded_at: recordedAt.toISOString(),
     recorded_by: input.actor,
@@ -547,6 +677,5 @@ export async function recordRemediationCycle(
     evidence_digest: digestQualificationValue(payload),
   };
 
-  await appendRemediationCycle(input.store, record);
-  return record;
+  return appendRemediationCycle(input.store, record, request);
 }

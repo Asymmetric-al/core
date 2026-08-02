@@ -23,6 +23,9 @@ import type {
  * describe real artifacts the harness cannot invent.
  */
 
+export const PHASE_18_REMEDIATION_PERMITTED_CHANGES =
+  "adapter/translation fixes against the same frozen semantic requirements; no fixture-ID-specific branches; no manual edits to generated PDFs";
+
 export const OPEN_CASE_DEFINITIONS: Record<
   OpenCaseId,
   {
@@ -862,8 +865,7 @@ export function buildPhase18RendererContestInput(
       initial_attempts: 1,
       max_cycles: 2,
       max_hours_per_cycle: input.max_remediation_hours_per_cycle ?? 40,
-      permitted_changes:
-        "adapter/translation fixes against the same frozen semantic requirements; no fixture-ID-specific branches; no manual edits to generated PDFs",
+      permitted_changes: PHASE_18_REMEDIATION_PERMITTED_CHANGES,
     },
     evidence_rules: PHASE_18_EVIDENCE_RULES,
     requalification_triggers: PHASE_18_REQUALIFICATION_TRIGGERS,

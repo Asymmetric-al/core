@@ -9,11 +9,38 @@ import {
   QualificationHarnessError,
   freezeRendererQualificationCharter,
   loadCandidateWorkPacket,
-  recordRemediationCycle,
+  recordRemediationCycle as recordRemediationCycleApi,
   sealCandidateSubmission,
 } from "../../../../packages/api/src/generated-documents/renderer-qualification";
 
-import type { FrozenRendererQualificationCharter } from "../../../../packages/api/src/generated-documents/renderer-qualification";
+import type {
+  FrozenRendererQualificationCharter,
+  RecordRemediationCycleInput,
+} from "../../../../packages/api/src/generated-documents/renderer-qualification";
+
+type TestRemediationCycleInput = Omit<
+  RecordRemediationCycleInput,
+  "operation_key"
+> & {
+  operation_key?: string;
+};
+
+function recordRemediationCycle(input: TestRemediationCycleInput) {
+  const operationKey =
+    input.operation_key ??
+    syntheticDigest(
+      JSON.stringify({
+        candidate_id: input.candidate_id,
+        hours_spent: input.hours_spent,
+        changes: input.changes,
+        affected_case_ids: [...input.affected_case_ids].sort(),
+      }),
+    );
+  return recordRemediationCycleApi({
+    ...input,
+    operation_key: operationKey,
+  });
+}
 
 function frozenCharter(): FrozenRendererQualificationCharter {
   return freezeRendererQualificationCharter(buildFixtureContestInput());
@@ -33,6 +60,7 @@ async function sealInitialSubmission(
     actor,
     source_digest: syntheticDigest(`${candidate_id}-initial-source`),
     output_digest: syntheticDigest(`${candidate_id}-initial-output`),
+    now: () => new Date("2026-07-22T12:30:00.000Z"),
     store,
   });
 }

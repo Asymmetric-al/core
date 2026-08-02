@@ -9,6 +9,7 @@ import {
   PHASE_18_EVIDENCE_RULES,
   PHASE_18_OPERATIONAL_SUITES,
   PHASE_18_QUALIFICATION_GATES,
+  PHASE_18_REMEDIATION_PERMITTED_CHANGES,
   PHASE_18_REQUALIFICATION_TRIGGERS,
   PHASE_18_STOP_CONDITIONS,
   PHASE_18_SCORE_DIMENSIONS,
@@ -103,6 +104,12 @@ const VALIDATOR_WARNING_POLICY_FIELDS = [
   "adjudicate_warnings_individually",
   "rule_override_requires_charter_reset_and_rerun",
   "profile_declaration_is_not_a_pass",
+] as const;
+const REMEDIATION_POLICY_FIELDS = [
+  "initial_attempts",
+  "max_cycles",
+  "max_hours_per_cycle",
+  "permitted_changes",
 ] as const;
 
 const isSha256Hex = (value: string | undefined): boolean =>
@@ -1459,6 +1466,19 @@ export function validateRendererQualificationCharterInput(
         "remediation_policy",
         "charter_incomplete",
         "Equal effort is one initial attempt and at most two bounded remediation cycles per finalist.",
+      ),
+    );
+  }
+  if (
+    !hasExactOwnFields(input.remediation_policy, REMEDIATION_POLICY_FIELDS) ||
+    input.remediation_policy.permitted_changes !==
+      PHASE_18_REMEDIATION_PERMITTED_CHANGES
+  ) {
+    issues.push(
+      issue(
+        "remediation_policy.permitted_changes",
+        "protocol_fixed_field_changed",
+        "Remediation is limited to adapter or translation fixes against the same frozen semantic requirements; fixture-specific branches, manual PDF edits, and undeclared exception fields are forbidden.",
       ),
     );
   }
