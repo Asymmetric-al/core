@@ -519,7 +519,9 @@ a Phase 18 artifact. D26 separately governs its semantic package and Coverage
 Manifest, records-schedule binding/resolution, retention meaning, external-copy
 and destination-custody assertions, and requested hold/disposition truth. Phase
 29 alone executes physical package-byte staging, storage, delivery, hold, and
-disposal and returns exact execution evidence; neither domain changes Phase 18
+disposal, and only after current Phase 3/10/12 classification, authorization,
+step-up, and egress decisions succeed. Phase 29 returns exact execution evidence
+but does not own or weaken those decisions; neither domain changes Phase 18
 authority. Missing, lawfully disposed, quarantined, unavailable, or unauthorized
 Phase 18 bytes receive their truthful manifest disposition and are never called
 included or silently regenerated. A D26 records archive is not a donor document,

@@ -198,8 +198,12 @@ ratification edit.
 4. Product binds only the tenant options supported by that reconciled evidence;
    unsupported periods, promises, or destinations remain structurally absent.
 5. The named owners record one source-linked approval package. Any later
-   material policy, provider, retention, backup, restore, or lifecycle change
-   reruns the affected gate before prospective activation.
+   material change to a jurisdiction pack, MSA/DPA, public policy, tenant choice,
+   records-policy representation, offboarding/export promise, storage or
+   subprocessor term, custody location or transfer path, hold/disposition
+   behavior, provider-copy handling, retention period, backup/restore behavior,
+   or lifecycle implementation reruns the affected gate before prospective
+   activation.
 
 ### Pass/fail checklist
 
@@ -212,7 +216,7 @@ ratification edit.
       representative restore behavior have production-shaped evidence.
 - [ ] Publication evidence identifies the exact reviewed public-policy version;
       documentation ratification alone is not treated as publication.
-- [ ] `bunx @fission-ai/openspec@latest validate add-field-account-operations --strict`
+- [ ] `bunx @fission-ai/openspec@1.7.0 validate add-field-account-operations --strict`
       and `bun run format:check` pass for the governing documentation change;
       the release manifest also names and passes the exact runtime tests for
       every activated lifecycle path.

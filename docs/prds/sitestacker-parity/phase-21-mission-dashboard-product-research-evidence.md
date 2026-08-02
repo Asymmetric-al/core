@@ -4987,13 +4987,14 @@ capacity, payment, accounting, and reconciliation.
     reproof at the Decision instant. A later correction remains a valid
     append-only fact and triggers cause-owned review.
 13. **Phase 20 accepts a closed catalog only.** Separately certified advance
-    issuance, approved-expense application, claimant-return, and cause-linked
-    correction occurrences may cross under accountant-confirmed policy and an
-    independent Phase 20 D17 owner. Policy, Requirement, task, residual, raw evidence,
+    issuance and approved-expense application, source-qualified Claimant
+    Repayment Occurrence with exactly one immutable `cash_claimant_return` or
+    `expense_advance_return` family, and cause-linked correction occurrences may
+    cross under accountant-confirmed policy and an independent Phase 20 D17 owner. Policy, Requirement, task, residual, raw evidence,
     dispute, restitution review, and Field Account reservation remain
     accounting-dark. A Requirement becomes a receivable only under a separately
-    accountant-certified policy/source contract; the later cash and advance
-    return remain distinct typed occurrences.
+    accountant-certified policy/source contract; the later cash claimant return
+    and expense advance return remain distinct typed occurrences.
 14. **Launch is artifact/evidence complete without money movement.** `Handle
 outside Asym` is the permanent complete lane. D16 does not copy D15's
     provider operation portfolio, hold claimant bank details, or create a
@@ -5026,6 +5027,14 @@ Claimant Repayment Occurrence
   = exact Claimant Repayment Coverage
   + typed unapplied residual
 ```
+
+Every source-qualified occurrence carries exactly one immutable source-owned
+`return_family`: `cash_claimant_return` or `expense_advance_return`. The family
+is never inferred from sign, predecessor, Requirement, memo, account, or
+downstream posting recipe. An expense advance return pins the exact Expense
+Advance Issuance Occurrence root and unused-advance coverage. A genuine family
+reclassification appends a correction of the original plus a new non-overlapping
+occurrence rather than retagging history.
 
 Each application and return uses one exact ISO settlement currency and checked
 integer minor units. Coverage is immutable and non-overlapping; corrections

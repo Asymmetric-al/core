@@ -106,9 +106,12 @@ Accounting objects remain reachable only through Phase 20.
 Phase 21 D16 precision-amends the D18 source catalog without reopening Phase 20
 D1-D20. Only an evidence-qualified Expense Advance Issuance Occurrence, a
 separately certified Expense Advance Application typed accounting effect where
-applicable, a Claimant Repayment Occurrence, and cause-linked corrections may
-enter the compiler. Cash claimant return and advance return stay distinct typed
-occurrences. Policy versions, authorization, operational settlement,
+applicable, a source-qualified Claimant Repayment Occurrence explicitly typed as
+a cash claimant return, a source-qualified Claimant Repayment Occurrence
+explicitly typed as an expense advance return, and cause-linked corrections may
+enter the compiler. The explicit Phase 21 return-family fact—not sign,
+predecessor, Requirement, memo, account, or posting recipe—keeps those returns
+distinct. Policy versions, authorization, operational settlement,
 Repayment Subject Determination, Claimant Repayment Decision, uncertified
 Claimant Repayment Requirement, residual position, tasks, raw evidence
 observations, disputes, Repayment Restitution Review, and Field Account Funding
@@ -271,11 +274,17 @@ carry one immutable payment source plus complete obligation and originating-
 snapshot coverage without an invented primary snapshot. Phase 21 D16 sources
 carry exactly one of `phase21_d16.expense_advance_issuance@1`,
 `phase21_d16.expense_advance_application_effect@1`,
-`phase21_d16.claimant_repayment@1`, or
+`phase21_d16.cash_claimant_return@1`,
+`phase21_d16.expense_advance_return@1`, or
 `phase21_d16.cause_linked_correction@1`; each carries the exact source root and
-predecessor coverage required by its independently certified contract. The
-correction discriminator additionally names one admitted predecessor. These
-identifiers are unrelated to Phase 20 D16 Accounting Delivery Packages.
+predecessor coverage required by its independently certified contract. Cash
+claimant return preserves the exact Claimant Repayment Occurrence, complete
+Claimant Repayment Coverage, and typed residual. Expense advance return also
+preserves the exact Expense Advance Issuance Occurrence root and exact unused-
+advance coverage being returned. The correction discriminator names the admitted predecessor's exact
+discriminator, source identity/version, and corrected coverage and cannot retag
+one return family as the other. These identifiers are unrelated to Phase 20 D16
+Accounting Delivery Packages.
 Outbound reimbursement does not enter Bank Match.
 A reimbursement-only payment conserves exact Reimbursement Payment Coverage
 plus signed residual dispositions. A mixed compensation/reimbursement payment

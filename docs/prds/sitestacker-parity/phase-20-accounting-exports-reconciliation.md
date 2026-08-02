@@ -1126,20 +1126,31 @@ The launch occurrence catalog is closed:
 - evidence-qualified Expense Advance Issuance Occurrence;
 - separately certified Expense Advance Application typed accounting effect
   where applicable;
-- Claimant Repayment Occurrence; and
+- source-qualified Claimant Repayment Occurrence explicitly typed as a cash
+  claimant return;
+- source-qualified Claimant Repayment Occurrence explicitly typed as an expense
+  advance return; and
 - cause-linked corrections for admitted source families.
 
 The versioned Phase 21 D16 source-discriminator catalog is closed:
 
-| Discriminator                                      | Exact admitted source                                                                                   |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `phase21_d16.expense_advance_issuance@1`           | Evidence-qualified Expense Advance Issuance Occurrence                                                  |
-| `phase21_d16.expense_advance_application_effect@1` | Separately certified Expense Advance Application typed accounting effect                                |
-| `phase21_d16.claimant_repayment@1`                 | Claimant Repayment Occurrence                                                                           |
-| `phase21_d16.cause_linked_correction@1`            | Cause-linked correction naming one admitted Phase 21 D16 predecessor and its exact predecessor coverage |
+| Discriminator                                      | Exact admitted source                                                                                                                                          |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `phase21_d16.expense_advance_issuance@1`           | Evidence-qualified Expense Advance Issuance Occurrence                                                                                                         |
+| `phase21_d16.expense_advance_application_effect@1` | Separately certified Expense Advance Application typed accounting effect                                                                                       |
+| `phase21_d16.cash_claimant_return@1`               | Source-qualified Claimant Repayment Occurrence whose immutable Phase 21 return family is explicitly `cash_claimant_return`, with complete repayment coverage   |
+| `phase21_d16.expense_advance_return@1`             | Source-qualified Claimant Repayment Occurrence whose immutable Phase 21 return family is explicitly `expense_advance_return`, with exact returned-advance root |
+| `phase21_d16.cause_linked_correction@1`            | Cause-linked correction naming one admitted Phase 21 D16 predecessor discriminator, source identity/version, and exact corrected coverage                      |
 
-The catalog preserves cash claimant return and advance return as distinct typed
-occurrences and is unrelated to Phase 20 D16 Accounting Delivery Packages.
+The two return families are source-owned and never inferred from amount sign,
+predecessor type, Requirement, memo, account, or posting recipe. Cash claimant
+return preserves its exact Claimant Repayment Occurrence root, complete Claimant
+Repayment Coverage, and typed residual. Expense advance return additionally
+preserves the exact Expense Advance Issuance Occurrence root and exact unused-
+advance coverage being returned. A correction cannot retag one return family as the other; a genuine
+reclassification appends a correction for the original plus a newly admitted,
+non-overlapping occurrence under the correct discriminator. The catalog is
+unrelated to Phase 20 D16 Accounting Delivery Packages.
 Expense Advance and Claimant Repayment Policy
 Versions, Expense Advance Authorization Versions, Expense Settlement
 Determinations, Repayment Subject Determinations, Claimant Repayment Decisions,
@@ -1941,9 +1952,10 @@ rollback/kill switches.
   External Payment Occurrence may qualify through that path.
 - Only evidence-qualified Expense Advance Issuance Occurrence, separately
   certified Expense Advance Application typed accounting effect where
-  applicable, Claimant Repayment Occurrence, and cause-linked corrections may
-  enter from the Phase 21 D16 family under the closed `@1` discriminator
-  catalog. Policies, authorization, operational settlement,
+  applicable, source-qualified Claimant Repayment Occurrences explicitly typed
+  as cash claimant return or expense advance return, and cause-linked
+  corrections may enter from the Phase 21 D16 family under the closed `@1`
+  discriminator catalog. Policies, authorization, operational settlement,
   subject or repayment decisions, uncertified Requirements, residuals, tasks,
   raw observations, disputes, restitution review, and Field Account coverage
   remain rejected.
@@ -1953,11 +1965,13 @@ rollback/kill switches.
 - Organization-paid expense, Reimbursement Obligation, evidence-qualified
   External Payment Occurrence for reimbursement, evidence-qualified Expense
   Advance Issuance Occurrence, separately certified Expense Advance Application
-  typed accounting effect where applicable, Claimant Repayment Occurrence, and
-  cause-linked correction compile through closed distinct intent families.
-- Cash claimant return and advance return remain distinct typed occurrences;
-  neither may be represented as a negative ordinary expense or inferred from
-  the other.
+  typed accounting effect where applicable, source-qualified cash claimant
+  return, source-qualified expense advance return, and cause-linked correction
+  compile through closed distinct intent families.
+- Cash claimant return and expense advance return remain distinct typed
+  occurrences; neither may be represented as a negative ordinary expense,
+  inferred from the other, or classified from amount sign, predecessor,
+  Requirement, memo, account, or posting recipe.
 - A Claimant Repayment Requirement stays accounting-dark unless a separately
   accountant-certified source contract recognizes the exact receivable, and
   every admitted Phase 21 D16 occurrence resolves its Phase 20 D17 posting owner
@@ -2588,11 +2602,14 @@ claimant-return, collections, payroll-deduction, accounts-payable, banking,
 outbound Bank Match, or Field Account workflow to Phase 20. The closed D18
 source catalog now admits only the evidence-qualified Expense Advance Issuance
 Occurrence, separately certified Expense Advance Application typed accounting
-effect where applicable, Claimant Repayment Occurrence, and cause-linked
+effect where applicable, source-qualified Claimant Repayment Occurrence
+explicitly typed as a cash claimant return, source-qualified Claimant Repayment
+Occurrence explicitly typed as an expense advance return, and cause-linked
 corrections.
 
-A cash claimant return and an advance return remain distinct typed accounting
-occurrences. Neither can be inferred from authorization, application readiness,
+A cash claimant return and an expense advance return remain distinct typed
+accounting occurrences. Neither can be inferred from sign, predecessor,
+Requirement, memo, account, posting recipe, authorization, application readiness,
 Field Account capacity, bank evidence, accounting delivery, or provider
 reconciliation. Neither can be silently netted against reimbursement,
 compensation, another requirement, or a later expense.

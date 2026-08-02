@@ -16,12 +16,13 @@ Expense Handoff**. The handoff may contain a closed catalog of Cleared
 Organization-Paid Expense, Approved Reimbursement Obligation,
 evidence-qualified external Reimbursement Payment, evidence-qualified Expense
 Advance Issuance Occurrence, separately certified Expense Advance Application
-typed accounting effect where applicable, Claimant Repayment Occurrence, and
-cause-linked correction occurrences plus exact **Reimbursement Payment
-Coverage**. Phase 20 validates those facts and compiles the existing immutable
-Accounting Release; it does not own expense approval, Field Account Funding
-Coverage, AP balances, payment execution, card-liability settlement, payroll
-or tax adjudication, or final reconciliation.
+typed accounting effect where applicable, source-qualified Claimant Repayment
+Occurrence whose immutable `return_family` is exactly `cash_claimant_return` or
+`expense_advance_return`, and cause-linked correction occurrences plus exact
+**Reimbursement Payment Coverage**. Phase 20 validates those facts and compiles
+the existing immutable Accounting Release; it does not own expense approval,
+Field Account Funding Coverage, AP balances, payment execution, card-liability
+settlement, payroll or tax adjudication, or final reconciliation.
 
 Each expense or obligation occurrence references exactly one applicable
 Approved Expense Snapshot lineage. A report remains a review workspace and may
@@ -129,10 +130,12 @@ finance** rather than silently upgraded to provider-confirmed payment.
 Phase 21 D16 supplies the separately certified advance and claimant-repayment
 source boundary. Only an evidence-qualified **Expense Advance Issuance
 Occurrence**, a separately certified **Expense Advance Application** typed
-accounting effect where applicable, a **Claimant Repayment Occurrence**, and
-their cause-linked corrections may cross. A cash claimant return and an
-advance return remain distinct typed occurrences; neither is a negative
-ordinary expense or a mutable claimant balance.
+accounting effect where applicable, a source-qualified **Claimant Repayment
+Occurrence** whose immutable `return_family` is exactly
+`cash_claimant_return` or `expense_advance_return`, and their cause-linked
+corrections may cross. The two return families remain distinct typed
+occurrences; neither is a negative ordinary expense or a mutable claimant
+balance.
 
 Expense Advance Policy Version, Claimant Repayment Policy Version, Expense
 Advance Authorization Version, Expense Settlement Determination,

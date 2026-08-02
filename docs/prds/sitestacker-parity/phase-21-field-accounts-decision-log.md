@@ -6036,6 +6036,15 @@ Claimant Repayment Occurrence
   + typed unapplied residual
 ```
 
+Every source-qualified occurrence carries exactly one immutable source-owned
+`return_family`: `cash_claimant_return` or `expense_advance_return`. The family
+cannot be inferred from amount sign, predecessor type, Requirement, memo,
+account, or downstream posting recipe. An expense advance return also pins the
+exact Expense Advance Issuance Occurrence root and unused-advance coverage being
+returned. A correction names the predecessor family, source identity/version,
+and corrected coverage; a genuine family reclassification appends correction of
+the original plus a new non-overlapping occurrence instead of retagging it.
+
 Every atomic occurrence is homogeneous by Tenant, Legal Entity, authoritative
 claimant, ISO currency, external execution owner, and evidence class.
 Cross-claimant or cross-currency groups are envelopes only. A conflict,
@@ -6079,8 +6088,8 @@ capacity.
   evidence observation, Restitution Review, and Field Account reservation are
   accounting-dark. A Claimant Repayment Requirement remains accounting-dark
   unless a separately accountant-certified policy/source contract recognizes a
-  receivable; the later cash occurrence and an advance return remain distinct
-  typed accounting occurrences.
+  receivable; the later cash claimant return and expense advance return remain
+  distinct typed accounting occurrences.
 - QBO/Xero objects and bank reconciliation cannot establish Claimant Repayment
   Occurrence truth or alter any Phase 21 source record.
 

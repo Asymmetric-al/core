@@ -36,8 +36,9 @@ are separately certified and its exact D17 owner is pinned.
 **Phase 21 D16 advances-and-repayments precision (2026-07-31).** The later
 source contract activates only evidence-qualified Expense Advance Issuance
 Occurrence, separately certified Expense Advance Application typed accounting
-effect where applicable, Claimant Repayment Occurrence, and their cause-linked
-corrections. Operational policies, authorization, settlement determination,
+effect where applicable, source-qualified Claimant Repayment Occurrence
+explicitly typed as cash claimant return or expense advance return, and their
+cause-linked corrections. Operational policies, authorization, settlement determination,
 responsibility and repayment decisions, uncertified requirements, residuals,
 tasks, raw observations, disputes, restitution review, and Field Account
 coverage remain accounting-dark. Each admitted family independently resolves
@@ -522,8 +523,8 @@ Phase 21 D16 now supplies the complete tested source boundary for:
 - Claimant Repayment Occurrence; and
 - cause-linked corrections for those admitted families.
 
-The source discriminator keeps cash claimant return and advance return as
-distinct typed occurrences. Neither is a negative new expense, an offset, a
+The source discriminator keeps cash claimant return and expense advance return
+as distinct typed occurrences. Neither is a negative new expense, an offset, a
 mutable claimant balance, or proof that another source family was paid.
 
 Expense Advance Policy Version, Claimant Repayment Policy Version, Expense
@@ -837,9 +838,9 @@ new admissible sources are:
 - Claimant Repayment Occurrence; and
 - cause-linked corrections for those admitted source families.
 
-A cash claimant return and an advance return remain distinct typed accounting
-occurrences and cannot be represented as a negative expense or automatic net.
-Policies, authorization, the operational Expense Settlement Determination,
+A cash claimant return and an expense advance return remain distinct typed
+accounting occurrences and cannot be represented as a negative expense or
+automatic net. Policies, authorization, the operational Expense Settlement Determination,
 Repayment Subject Determination, Claimant Repayment Decision, uncertified
 Claimant Repayment Requirement, residual position, tasks, raw observations,
 disputes, Repayment Restitution Review, and Field Account Funding Coverage fail
@@ -850,8 +851,8 @@ receivable, which still does not establish returned cash.
 D17 independently assigns the posting owner of each admitted D16 occurrence.
 No policy, authorization, requirement, Field Account record, handoff package,
 bank observation, or QBO/Xero record may infer that ownership or replace source
-truth. Cash-return and advance-return accounting effects remain distinct even
-when they reference the same claimant or external evidence.
+truth. Accounting effects for cash claimant returns and expense advance returns
+remain distinct even when they reference the same claimant or external evidence.
 
 ## Phase 21 D22 precision note — 2026-08-01
 

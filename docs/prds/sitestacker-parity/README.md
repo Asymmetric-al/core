@@ -724,11 +724,20 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   P21-101. Those tickets are published and dependency-governed; no Phase 21
   runtime or production authorization is claimed.
   Reproducible contract checks are
-  `bunx @fission-ai/openspec@latest validate add-field-account-operations --strict`,
-  `bunx @fission-ai/openspec@latest validate --all --strict`,
+  `bunx @fission-ai/openspec@1.7.0 validate add-field-account-operations --strict`,
+  `bunx @fission-ai/openspec@1.7.0 validate --all --strict`,
   `bun run format:check`, and `bun run skills:verify`. Publication and
   traceability are proved from the live native sub-issue/blocking graph under
-  #1109, not from prose status. The blast radius is planning-only: the Phase 21
+  #1109, not from prose status. PR
+  [#1235 Files changed](https://github.com/Asymmetric-al/core/pull/1235/files) is
+  the exact changed-path inventory. Its
+  [required checks](https://github.com/Asymmetric-al/core/pull/1235/checks) and
+  persistent Shadscan report are the final machine-check evidence once CI is
+  green. The assessed pre-commit `packages/ui` baseline is 29/100 against the
+  enforced floor of 29, using
+  `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive`; because no UI
+  path is changed by this planning publication, final CI must prove the same
+  floor without remediation. The blast radius is planning-only: the Phase 21
   PRD, decision evidence, ADRs, OpenSpec change, and named cross-phase contract
   amendments; it grants no runtime authority.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`

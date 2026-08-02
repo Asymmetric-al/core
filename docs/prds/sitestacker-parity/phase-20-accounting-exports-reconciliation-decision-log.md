@@ -5854,12 +5854,21 @@ blob:
 - Phase 21 D16 sources carry exactly one versioned discriminator:
   `phase21_d16.expense_advance_issuance@1`,
   `phase21_d16.expense_advance_application_effect@1`,
-  `phase21_d16.claimant_repayment@1`, or
+  `phase21_d16.cash_claimant_return@1`,
+  `phase21_d16.expense_advance_return@1`, or
   `phase21_d16.cause_linked_correction@1`. Each carries the exact source root
   and predecessor coverage required by its independently certified source-
-  family contract. The correction discriminator additionally names one
-  admitted Phase 21 D16 predecessor. These values are unrelated to Phase 20
-  D16 Accounting Delivery Packages.
+  family contract. The two return discriminators require Phase 21's immutable,
+  explicit return-family fact; Phase 20 never derives one from amount sign,
+  predecessor type, requirement, memo, account, or posting recipe. A cash-
+  claimant-return source preserves its exact Claimant Repayment Occurrence and
+  complete Claimant Repayment Coverage plus typed residual. An expense-advance-
+  return source additionally preserves the exact Expense Advance Issuance
+  Occurrence root and exact unused-advance coverage being returned. The correction
+  discriminator names the exact admitted predecessor discriminator, source
+  identity/version, and corrected coverage; it cannot retag one return family
+  as the other. These values are unrelated to Phase 20 D16 Accounting Delivery
+  Packages.
 
 A grouped payment never requires or invents an arbitrary primary snapshot.
 
@@ -6022,11 +6031,16 @@ source contracts for these additional accounting-ready families:
 - evidence-qualified Expense Advance Issuance Occurrence;
 - separately certified Expense Advance Application typed accounting effect
   where applicable;
-- Claimant Repayment Occurrence; and
+- source-qualified Claimant Repayment Occurrence explicitly typed as a cash
+  claimant return;
+- source-qualified Claimant Repayment Occurrence explicitly typed as an expense
+  advance return; and
 - cause-linked corrections for those admitted source families.
 
-The source discriminator keeps a cash claimant return and an advance return as
-distinct typed occurrences. Neither is a negative new expense, a mutable
+The exact source discriminator keeps a cash claimant return and an expense
+advance return as distinct typed occurrences. The family is source-owned and
+cannot be inferred from sign, predecessor, requirement, memo, account, or
+posting recipe. Neither is a negative new expense, a mutable
 claimant balance, an offset against a later reimbursement or compensation
 amount, or evidence that another source family was paid or settled.
 
@@ -7345,13 +7359,18 @@ catalog with only:
 - evidence-qualified Expense Advance Issuance Occurrence;
 - separately certified Expense Advance Application typed accounting effect
   where applicable;
-- Claimant Repayment Occurrence; and
+- source-qualified Claimant Repayment Occurrence explicitly typed as a cash
+  claimant return;
+- source-qualified Claimant Repayment Occurrence explicitly typed as an expense
+  advance return; and
 - cause-linked corrections for those admitted source families.
 
-A cash claimant return and an advance return remain distinct typed accounting
-occurrences. Phase 20 cannot collapse them into a negative expense, net them
-against reimbursement or compensation, infer one from bank or QBO/Xero
-evidence, or let either occurrence reuse another family's source coverage.
+A cash claimant return and an expense advance return remain distinct typed
+accounting occurrences. Phase 20 cannot infer either family from sign,
+predecessor, requirement, memo, account, or posting recipe; collapse them into
+a negative expense; net them against reimbursement or compensation; infer one
+from bank or QBO/Xero evidence; or let either occurrence reuse another family's
+source coverage.
 
 The following remain rejected before Posting Intent: Expense Advance Policy
 Version, Claimant Repayment Policy Version, Expense Advance Authorization

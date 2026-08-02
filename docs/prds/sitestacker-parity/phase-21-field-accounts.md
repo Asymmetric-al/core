@@ -286,11 +286,15 @@ traceability contract.
   adapters delegate to typed commands and permission-safe queries on this
   service.
 - The service is constructed with the trusted server-resolved validated
-  principal and actual actor, Tenant, environment, active Phase 12 access
-  decision and governance epoch, Legal Entity, purpose, Support Assignment,
-  Field Account, ISO currency, and trace context. Command payloads cannot
-  assert authoritative tenant, actor, role, capability, membership, Legal
-  Entity, or assurance.
+  principal and actual actor, Tenant Authorization Context, Tenant, Legal
+  Entity, environment, active Phase 12 access decision and governance epoch,
+  purpose, assurance, and trace context. Support Assignment, Field Account, and
+  ISO currency are optional at construction and supplied as exact resource
+  scope only for operations that require them; those operations fail closed
+  when an applicable value is absent, while Tenant- or Legal-Entity-scoped
+  operations use no sentinel identifier. Command payloads cannot assert
+  authoritative tenant, actor, role, capability, membership, Legal Entity, or
+  assurance.
 - Commands expose expected versions, semantic identities, and exact source
   references. They return discriminated outcomes such as applied, exact replay,
   stale, semantic conflict, blocked, invalid, not permitted or not found, and
@@ -463,8 +467,13 @@ traceability contract.
   default. Advance authorization, issuance, readiness, optional advance
   application, residual,
   repayment decision, requirement, occurrence, evidence, and coverage remain
-  separate. Asym does not collect money, initiate payroll deduction, adjudicate
-  debt, add interest, or operate collections.
+  separate. Every source-qualified Claimant Repayment Occurrence carries exactly
+  one immutable source-owned `return_family`: `cash_claimant_return` or
+  `expense_advance_return`. The family is never inferred; an expense advance
+  return also pins the exact issuance root and unused-advance coverage, and a
+  genuine reclassification is append-only. Asym does not collect money,
+  initiate payroll deduction, adjudicate debt, add interest, or operate
+  collections.
 
 ### D17–D21 opening, travel, assignments, costs, and noncash support
 

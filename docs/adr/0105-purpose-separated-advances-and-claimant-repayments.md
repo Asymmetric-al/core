@@ -97,8 +97,12 @@ mint a duplicate or silently upgrade evidence strength. Exact many-to-many
 currency across requirements plus a typed unapplied residual. A different
 source currency requires exact externally owned source and settlement amounts,
 conversion authority/rate, rounding, and residual; Asym never supplies FX.
-Failure, return, correction,
-dispute, and reissue append facts rather than editing history.
+Each source-qualified occurrence has exactly one immutable source-owned return
+family: `cash_claimant_return` or `expense_advance_return`. That family is never
+inferred from sign or lineage. An expense advance return also pins the exact
+returned Expense Advance Issuance Occurrence root and exact unused-advance
+coverage being returned. Failure, return, correction, dispute, and reissue
+append facts rather than editing history.
 
 If source truth changes after money was returned, Phase 21 preserves the
 original decision and occurrence and opens a **Repayment Restitution Review**.
@@ -112,11 +116,22 @@ coverage; it does not choose an accounting lane or discriminator. Phase 20
 alone may derive its closed admission mapping: Expense Advance Issuance
 Occurrence to `phase21_d16.expense_advance_issuance@1`; a separately certified
 Expense Advance Application accounting effect to
-`phase21_d16.expense_advance_application_effect@1`; Claimant Repayment
-Occurrence to `phase21_d16.claimant_repayment@1`; and a cause-linked correction
-to `phase21_d16.cause_linked_correction@1`. Unknown, unversioned, incomplete, or
-multiply mapped sources fail closed. No mapping proves posting, reconciliation,
-payment, or a Field Account effect.
+`phase21_d16.expense_advance_application_effect@1`; a Claimant Repayment
+Occurrence whose immutable source-owned return family is explicitly
+`cash_claimant_return` to `phase21_d16.cash_claimant_return@1`; a Claimant
+Repayment Occurrence explicitly typed `expense_advance_return` to
+`phase21_d16.expense_advance_return@1`; and a cause-linked correction to
+`phase21_d16.cause_linked_correction@1`. Return family is never inferred from
+sign, predecessor, Requirement, memo, account, or posting recipe. Each return
+preserves its exact occurrence root and complete Claimant Repayment Coverage;
+the expense-advance-return family additionally preserves the returned Expense
+Advance Issuance Occurrence root and exact unused-advance coverage being
+returned. A Phase 21 source correction names the predecessor's source-owned
+return family, source identity/version, and corrected coverage and cannot retag
+one family as the other. Phase 20's cause-linked correction admission
+additionally names the exact mapped predecessor discriminator. Unknown,
+unversioned, incomplete, or multiply mapped sources fail closed. No mapping
+proves posting, reconciliation, payment, or a Field Account effect.
 
 The complete launch execution lane is **Handle outside Asym**. Asym does not
 connect claimant bank accounts, collect money, initiate payroll deductions,
@@ -135,9 +150,9 @@ occurrences under accountant-confirmed policy and an independently assigned
 Phase 20 D17 posting owner. Policies, tasks, residual projections, disputes, raw
 evidence, Requirements, and Field Account reservations remain accounting-dark.
 A Requirement becomes a receivable only under a separately accountant-certified
-policy/source contract; the cash return and advance return remain distinct
-typed occurrences. QBO/Xero and bank reconciliation never establish Phase 21
-return truth.
+policy/source contract; the cash claimant return and expense advance return
+remain distinct typed occurrences. QBO/Xero and bank reconciliation never
+establish Phase 21 return truth.
 
 The claimant experience shows only active, role-scoped work using calm copy
 such as **Advance being processed**, **Advance to account for**, **Not yet

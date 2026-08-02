@@ -30,12 +30,13 @@
       QBO/Xero Accounting object, or claimant-repayment source. Add D16 fixtures
       admitting only evidence-qualified Expense Advance Issuance Occurrence,
       separately certified Expense Advance Application typed accounting effect
-      where applicable, Claimant Repayment Occurrence, and cause-linked
-      corrections. Reject policy, authorization, operational settlement,
+      where applicable, source-qualified Claimant Repayment Occurrence
+      explicitly typed as cash claimant return or expense advance return, and
+      cause-linked corrections. Reject policy, authorization, operational settlement,
       subject/repayment decision, uncertified Requirement, residual, task, raw
       observation, dispute/restitution-review, and Field Account coverage
-      records; prove cash claimant return and advance return remain distinct and
-      every admitted occurrence independently resolves D17 posting ownership.
+      records; prove the two return families remain distinct and every admitted
+      occurrence independently resolves D17 posting ownership.
       Add a D20 rejection fixture proving organization-support-cost
       observations, economic roots, bearing policies, applications,
       determinations, manifests, carryforwards, Field Account Funding Coverage,
@@ -236,9 +237,10 @@
       payment and no standalone reimbursement release under external
       payroll/AP ownership; do not create outbound Bank Match, an AP subledger,
       or a payment system. Extend the closed catalog only with the certified
-      D16 advance-issuance, advance-application-effect, claimant-repayment, and
-      cause-linked correction families while preserving distinct cash-return
-      and advance-return typed occurrences.
+      D16 expense-advance-issuance, expense-advance-application-effect,
+      cash-claimant-return, expense-advance-return, and cause-linked-correction
+      families; require the exact source-owned return family rather than
+      inferring it, and preserve the two return occurrences independently.
 - [ ] 8.3 Add organization-absorbed processor costs by default and the optional
       fee-cover-first designation-borne uncovered-cost mode with immutable
       same-currency largest-remainder allocation evidence, central expense
@@ -282,7 +284,7 @@
       family cutover. Verify no dual write, date-only ownership, fuzzy
       adoption, silent lane switching, or whole-history replay remains.
 - [ ] 10.4 Targeted and full strict OpenSpec validation pass:
-      `bunx @fission-ai/openspec@latest validate add-accounting-exports-reconciliation --strict`
-      and `bunx @fission-ai/openspec@latest validate --all --strict`.
+      `bunx @fission-ai/openspec@1.7.0 validate add-accounting-exports-reconciliation --strict`
+      and `bunx @fission-ai/openspec@1.7.0 validate --all --strict`.
 - [ ] 10.5 Archive only after deployed behavior is verified and the merged
       `accounting-operations` and `platform-boundaries` specs match production.

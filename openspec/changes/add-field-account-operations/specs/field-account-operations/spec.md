@@ -989,6 +989,19 @@ navigation, forms, counts, API fields, DOM nodes, notifications, search results,
 reports, and empty states MUST be absent rather than displayed as zero or
 disabled workflow.
 
+Every source-qualified Claimant Repayment Occurrence MUST carry exactly one
+immutable source-owned `return_family`: `cash_claimant_return` or
+`expense_advance_return`. The family MUST NOT be inferred from amount sign,
+predecessor type, Repayment Requirement, memo, account, or a downstream posting
+recipe. A `cash_claimant_return` MUST preserve the exact occurrence root,
+complete Claimant Repayment Coverage, and typed residual. An
+`expense_advance_return` MUST additionally preserve the exact Expense Advance
+Issuance Occurrence root and exact unused-advance coverage being returned. A cause-linked correction of
+either return MUST name the predecessor return family, source identity/version,
+and exact corrected coverage and MUST NOT retag it in place. A genuine family
+reclassification requires an append-only correction of the original plus a new
+non-overlapping occurrence with the correct explicit family.
+
 Independently of those optional policy families,
 `FieldAccountOperationsService` MUST support one core, Approved-Expense-
 Snapshot-rooted **Expense Settlement Determination** for claimant-reimbursable
@@ -1011,12 +1024,16 @@ coverage without choosing an accounting lane. The Phase 20 boundary alone MAY
 derive its closed admission discriminator mapping: Expense Advance Issuance
 Occurrence to `phase21_d16.expense_advance_issuance@1`; a separately certified
 Expense Advance Application accounting effect to
-`phase21_d16.expense_advance_application_effect@1`; Claimant Repayment
-Occurrence to `phase21_d16.claimant_repayment@1`; and a cause-linked correction
-to `phase21_d16.cause_linked_correction@1`. Unknown, unversioned, incomplete, or
-multiply mapped sources MUST fail closed. The mapping MUST NOT make Phase 21 an
-accounting owner or imply posting, reconciliation, payment, or Field Account
-effect.
+`phase21_d16.expense_advance_application_effect@1`; a Claimant Repayment
+Occurrence explicitly typed `cash_claimant_return` to
+`phase21_d16.cash_claimant_return@1`; a Claimant Repayment Occurrence explicitly
+typed `expense_advance_return` to `phase21_d16.expense_advance_return@1`; and a
+cause-linked correction to `phase21_d16.cause_linked_correction@1`. The
+correction mapping MUST preserve the admitted predecessor's exact discriminator,
+source identity/version, return family where applicable, and corrected
+coverage. Unknown, unversioned, incomplete, or multiply mapped sources MUST
+fail closed. The mapping MUST NOT make Phase 21 an accounting owner or imply
+posting, reconciliation, payment, or Field Account effect.
 
 One serializable **Expense Settlement Determination** MUST conserve exact
 same-currency Approved Expense Snapshot coverage among non-overlapping Advance
@@ -1064,6 +1081,26 @@ generic permission for ordinary activity to create a deficit.
   claimant instructions
 - AND it does not call the amount debt, paid, settled, reconciled, or deductible
   from payroll
+
+#### Scenario: A return is published with an exact source family
+
+- GIVEN externally handled return evidence qualifies one Claimant Repayment
+  Occurrence
+- WHEN Phase 21 publishes its typed D16 source fact
+- THEN the occurrence carries exactly one immutable `cash_claimant_return` or
+  `expense_advance_return` family and the required exact root and coverage
+- AND missing, conflicting, or inferred family evidence fails closed rather
+  than publishing a generic claimant-repayment source
+
+#### Scenario: A return-family correction is append-only
+
+- GIVEN a published cash claimant return or expense advance return was assigned
+  the wrong source family
+- WHEN the source owner corrects it
+- THEN Phase 21 appends a cause-linked correction naming the original family,
+  source identity/version, and corrected coverage
+- AND publishes any correctly reclassified economic return as a new,
+  non-overlapping occurrence instead of retagging the predecessor
 
 #### Scenario: A mandatory adverse correction exceeds remaining capacity
 

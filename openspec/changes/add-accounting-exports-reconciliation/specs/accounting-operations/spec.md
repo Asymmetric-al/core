@@ -1591,19 +1591,30 @@ Repayment Restitution Reviews, and Field Account Funding Coverage. Those
 objects MUST NOT create a Posting Intent. A Claimant Repayment Requirement MUST
 remain accounting-dark unless a separately accountant-certified policy and
 source contract recognizes the exact receivable, and such recognition MUST NOT
-prove returned money. A cash claimant return and an advance return MUST remain
-distinct typed occurrences. Every admitted D16 occurrence MUST independently
-resolve its D17 posting owner.
+prove returned money. A cash claimant return and an expense advance return MUST
+remain distinct typed occurrences. Their family MUST come from Phase 21's
+immutable explicit source fact and MUST NOT be inferred from amount sign,
+predecessor type, Requirement, memo, account, or posting recipe. Every admitted
+D16 occurrence MUST independently resolve its D17 posting owner.
 
 The Phase 21 D16 admission discriminator MUST be exactly one of
 `phase21_d16.expense_advance_issuance@1`,
 `phase21_d16.expense_advance_application_effect@1`,
-`phase21_d16.claimant_repayment@1`, or
+`phase21_d16.cash_claimant_return@1`,
+`phase21_d16.expense_advance_return@1`, or
 `phase21_d16.cause_linked_correction@1`. Each value MUST preserve its exact
-source root and predecessor coverage. The correction value MUST name one
-admitted Phase 21 D16 predecessor. Unknown or unversioned values MUST fail
-closed, and these values MUST NOT be interpreted as Phase 20 D16 Accounting
-Delivery Packages.
+source root and source-family predecessor coverage. A cash-claimant-return
+admission MUST preserve the exact Claimant Repayment Occurrence, complete
+Claimant Repayment Coverage, and typed residual. An expense-advance-return
+admission MUST additionally preserve the exact Expense Advance Issuance
+Occurrence root and exact unused-advance coverage being returned. The correction value MUST name one
+admitted Phase 21 D16 predecessor by its exact discriminator and source
+identity/version and MUST carry the exact corrected coverage. It MUST NOT retag
+one return family as the other; a genuine family reclassification requires an
+append-only correction of the original and a newly admitted non-overlapping
+occurrence under the correct discriminator. Unknown, unversioned, incomplete,
+or multiply mapped values MUST fail closed, and these values MUST NOT be
+interpreted as Phase 20 D16 Accounting Delivery Packages.
 
 Phase 21 D22 MUST retain every prospective-authorization posture, request,
 private evidence reference, Governance Resolution, operation-scoped Approval
@@ -1855,17 +1866,43 @@ final reconciliation.
 - AND no separately certified typed accounting-effect contract applies
 - WHEN Phase 20 evaluates the application
 - THEN the application remains accounting-dark
-- AND no generic expense, journal, offset, or inferred advance-return entry is
-  created
+- AND no generic expense, journal, offset, or inferred expense-advance-return
+  entry is created
 
 #### Scenario: A claimant return is recorded under its exact source contract
 
 - GIVEN Phase 21 publishes one source-qualified Claimant Repayment Occurrence
+- AND its immutable return family is exactly `cash_claimant_return` or
+  `expense_advance_return`
 - WHEN Phase 20 validates its exact amount, currency, cause lineage, source
-  evidence class, and independently applicable D17 posting owner
-- THEN the occurrence may compile through its own typed intent family
+  evidence class, required source root and coverage, and independently
+  applicable D17 posting owner
+- THEN the occurrence may compile only through the corresponding
+  `phase21_d16.cash_claimant_return@1` or
+  `phase21_d16.expense_advance_return@1` intent family
 - AND its exact typed cause and return family are preserved rather than
   collapsing it into a negative ordinary expense or another return family
+
+#### Scenario: Return family is missing, ambiguous, or inferred
+
+- GIVEN a source-qualified Claimant Repayment Occurrence lacks one explicit
+  return family or presents conflicting family evidence
+- WHEN a mapper could guess cash claimant return or expense advance return from
+  amount sign, predecessor type, Requirement, memo, account, or posting recipe
+- THEN Phase 20 fails closed before Posting Intent
+- AND no generic claimant-repayment discriminator or inferred return entry is
+  created
+
+#### Scenario: A correction cannot retag a return family
+
+- GIVEN an admitted cash claimant return or expense advance return needs
+  correction
+- WHEN Phase 20 admits a cause-linked correction
+- THEN it requires the predecessor's exact discriminator, source
+  identity/version, and corrected coverage
+- AND a true family reclassification appends correction of the original plus a
+  newly admitted non-overlapping occurrence under the correct return
+  discriminator rather than mutating or retagging the predecessor
 
 #### Scenario: A repayment requirement lacks receivable authority
 

@@ -149,9 +149,10 @@
 > certified contract.
 > D16 supplies that bounded contract: evidence-qualified Expense Advance
 > Issuance Occurrence, separately certified Expense Advance Application typed
-> accounting effect where applicable, Claimant Repayment Occurrence, and their
-> cause-linked corrections may cross D18. Cash claimant return and advance
-> return remain distinct. Policies, authorization, operational settlement,
+> accounting effect where applicable, source-qualified Claimant Repayment
+> Occurrence explicitly typed as cash claimant return or expense advance return,
+> and their cause-linked corrections may cross D18. The two return families
+> remain distinct. Policies, authorization, operational settlement,
 > subject and repayment decisions, uncertified requirements, residuals, tasks,
 > raw observations, disputes/restitution review, and Field Account coverage
 > remain accounting-dark. A Requirement can support receivable recognition only
@@ -1541,9 +1542,10 @@ gates are checked. OpenSpec and GitHub dispatch remain separate, visible gates:
       restitution-review, and Field Account coverage truth. Phase 20 admits
       only evidence-qualified Expense Advance Issuance Occurrence, separately
       certified Expense Advance Application typed accounting effect where
-      applicable, Claimant Repayment Occurrence, and their cause-linked
-      corrections, with distinct cash-return/advance-return discriminators and
-      independent Phase 20 D17 posting ownership.
+      applicable, source-qualified Claimant Repayment Occurrence explicitly typed
+      as cash claimant return or expense advance return, and their cause-linked
+      corrections, with separate cash-claimant-return and expense-advance-return
+      discriminators and independent Phase 20 D17 posting ownership.
 - [x] Phase 21 D8 owns the Missionary Support Activity and Support Balances
       source projections plus their strict finance-safe external field floor;
       Phase 31 owns each recipient-scoped Missionary Support Feed Projection,
@@ -1664,9 +1666,9 @@ external provider, bank, or QBO/Xero record exists.
 
 Phase 20 D18 admits only evidence-qualified Expense Advance Issuance
 Occurrence, separately certified Expense Advance Application typed accounting
-effect where applicable, Claimant Repayment Occurrence, and cause-linked
-corrections. Cash claimant return and advance return stay distinct typed
-occurrences. A Claimant Repayment Requirement remains accounting-dark unless a
+effect where applicable, source-qualified Claimant Repayment Occurrence
+explicitly typed as cash claimant return or expense advance return, and
+cause-linked corrections. The two return families stay distinct typed occurrences. A Claimant Repayment Requirement remains accounting-dark unless a
 separate accountant-certified policy and source contract recognizes the exact
 receivable; receivable recognition still does not prove returned money.
 

@@ -112,10 +112,10 @@ or accounting-provider authority.
   20-only.
 - Phase 21 D16 advances and claimant repayments remain source-owned operational
   lifecycles. Phase 20 admits only evidence-qualified Expense Advance Issuance
-  Occurrence, separately certified Expense Advance Application typed
-  accounting effect where applicable, Claimant Repayment Occurrence, and their
-  cause-linked corrections. Cash claimant return and advance return remain
-  distinct typed occurrences. Policies, authorization, operational settlement,
+  Occurrence, separately certified Expense Advance Application typed accounting
+  effect where applicable, source-qualified Claimant Repayment Occurrence
+  explicitly typed as cash claimant return or expense advance return, and their
+  cause-linked corrections. The two return families remain distinct typed occurrences. Policies, authorization, operational settlement,
   subject and repayment decisions, uncertified requirements, residuals, tasks,
   raw observations, disputes/restitution review, and Field Account coverage
   remain accounting-dark. A Requirement may support receivable recognition

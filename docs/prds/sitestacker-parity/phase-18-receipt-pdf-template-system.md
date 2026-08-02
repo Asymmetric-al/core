@@ -689,7 +689,9 @@ hold/disposition command. D26 may manage its semantic package and Coverage
 Manifest, records-schedule binding/resolution, retention meaning, external-copy
 and destination-custody assertions, and requested hold/disposition truth. Phase
 29 alone executes physical package-byte staging, storage, delivery, hold, and
-disposal and returns exact execution evidence. None of those operations changes
+disposal, and only after current Phase 3/10/12 classification, authorization,
+step-up, and egress decisions succeed. Phase 29 returns exact execution evidence
+but does not own or weaken those decisions. None of those operations changes
 Phase 18 artifact authority or lifecycle state.
 Missing, disposed, quarantined, or unauthorized Phase 18 bytes are never
 silently regenerated or labelled included, and a D26 download, external-copy

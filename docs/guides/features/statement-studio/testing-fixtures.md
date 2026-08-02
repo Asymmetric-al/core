@@ -32,7 +32,20 @@ High-risk documents need stronger coverage:
   `Closed`, and append-only late-correction fixtures. Authorization checks cover
   exact Tenant, Legal Entity, Support Assignment, ISO currency, and Support
   Cycle scope before any statement existence, count, row, or artifact is
-  exposed.
+  exposed. D9/D12 publication fixtures additionally cover:
+  - publication `Off` and balance-hidden profiles, proving zero statement
+    placeholders, existence signals, counts, rows, search results, alerts,
+    exports, notifications, cache entries, or artifact lookups for that audience;
+  - recipient-scoped publication, proving only the currently authorized exact
+    recipient principal can enumerate, view, range-read, or download the
+    statement;
+  - explicit, bounded historical publication, proving current publication does
+    not expose prior cycles and only the specifically previewed and authorized
+    historical scope becomes visible; and
+  - immediate access removal, proving the next enumeration, view, full-download,
+    and range request reauthorizes and reveals zero existence signal after the
+    recipient or publication scope is revoked, including through stale caches or
+    short-lived delivery mechanisms.
 - Finance/bookkeeping reports.
 - Event badges and rosters.
 - Legal/audit documents.
@@ -61,4 +74,6 @@ Fixture edge cases:
 - [ ] Production resolvers are tested with realistic tenant scopes.
 - [ ] Render smoke checks cover blank/missing/overflow risks.
 - [ ] High-risk documents have regression fixtures.
+- [ ] D9/D12 statement fixtures prove Off/hidden non-enumeration, exact recipient
+      scope, explicit historical publication, and immediate access removal.
 - [ ] Tests are scoped and not over-engineered.
