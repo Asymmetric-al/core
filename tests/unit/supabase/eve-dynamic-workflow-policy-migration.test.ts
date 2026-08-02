@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -6,6 +6,18 @@ import { describe, expect, it } from "vitest";
 const migrationPath = path.resolve(
   import.meta.dirname,
   "../../../supabase/migrations/20260718074651_eve_dynamic_workflow_policy.sql",
+);
+const activeRunsGuardPath = path.resolve(
+  import.meta.dirname,
+  "../../../supabase/migrations/20260802160104_eve_runtime_active_runs_guard.sql",
+);
+const unclassifiedConstraintsPath = path.resolve(
+  import.meta.dirname,
+  "../../../supabase/migrations/20260802160053_eve_policy_decision_unclassified_constraints.sql",
+);
+const migrationsDirectory = path.resolve(
+  import.meta.dirname,
+  "../../../supabase/migrations",
 );
 
 describe("Eve dynamic workflow policy migration", () => {
@@ -44,6 +56,101 @@ describe("Eve dynamic workflow policy migration", () => {
     );
     expect(sql).toContain(
       "used_requests = used_requests + action_row.request_cost",
+    );
+  });
+
+  it("checks active_runs independently before runtime budget consumption", async () => {
+    const sql = await readFile(activeRunsGuardPath, "utf8");
+
+    expect(sql).toContain(
+      "CREATE OR REPLACE FUNCTION public.consult_eve_runtime_budget_policy",
+    );
+    expect(sql).toContain("governance.kill_switch_state ->> 'active_runs'");
+    expect(sql).toContain(
+      "governance.kill_switch_state ->> action_row.governance_domain",
+    );
+    expect(sql).toContain(
+      "used_requests = used_requests + action_row.request_cost",
+    );
+
+    const activeRunsCheck = sql.indexOf(
+      "governance.kill_switch_state ->> 'active_runs'",
+    );
+    const budgetConsumption = sql.indexOf(
+      "used_requests = used_requests + action_row.request_cost",
+    );
+    expect(activeRunsCheck).toBeGreaterThan(-1);
+    expect(budgetConsumption).toBeGreaterThan(activeRunsCheck);
+    expect(sql).toContain("tenant_id, budget_id, window_started_at");
+    expect(sql).toContain("p_tenant_id, budget_row.id, window_start");
+    expect(sql).toContain(
+      "ON CONFLICT (tenant_id, budget_id, window_started_at) DO NOTHING",
+    );
+    expect(sql).toContain("WHERE tenant_id = p_tenant_id");
+    expect(sql).toContain(
+      "WHERE tenant_id = p_tenant_id\n          AND id = usage_row.id",
+    );
+  });
+
+  it("records unclassified actions and missing budgets truthfully", async () => {
+    const sql = await readFile(activeRunsGuardPath, "utf8");
+    const constraintSql = await readFile(unclassifiedConstraintsPath, "utf8");
+
+    expect(sql).toContain("reason := 'unknown_action'");
+    expect(sql).toContain("reason := 'budget_not_configured'");
+    expect(sql.match(/reason := 'budget_exhausted'/gu)).toHaveLength(1);
+    expect(sql).toContain("COALESCE(resolved_trust_zone, 'unclassified')");
+    expect(sql).toContain("COALESCE(resolved_write_class, 'unclassified')");
+    expect(constraintSql).toMatch(
+      /trust_zone IN \(\s*'engineering', 'product_admin', 'memory', 'unclassified'\s*\)/u,
+    );
+    expect(constraintSql).toContain(
+      "write_class IN ('operational', 'business_data', 'unclassified')",
+    );
+    expect(sql).not.toContain("resolved_trust_zone TEXT := 'product_admin'");
+    expect(sql).not.toContain("resolved_write_class TEXT := 'business_data'");
+  });
+
+  it("accepts unclassified decisions before the RPC and validates later", async () => {
+    const migrationNames = await readdir(migrationsDirectory);
+    const constraintMigration = migrationNames.find((name) =>
+      name.endsWith("_eve_policy_decision_unclassified_constraints.sql"),
+    );
+    const rpcMigration = migrationNames.find((name) =>
+      name.endsWith("_eve_runtime_active_runs_guard.sql"),
+    );
+    const validationMigration = migrationNames.find((name) =>
+      name.endsWith(
+        "_eve_policy_decision_unclassified_constraint_validation.sql",
+      ),
+    );
+
+    expect(constraintMigration).toBeDefined();
+    expect(rpcMigration).toBeDefined();
+    expect(validationMigration).toBeDefined();
+    expect(constraintMigration! < rpcMigration!).toBe(true);
+    expect(rpcMigration! < validationMigration!).toBe(true);
+
+    const constraintSql = await readFile(
+      path.join(migrationsDirectory, constraintMigration!),
+      "utf8",
+    );
+    const rpcSql = await readFile(
+      path.join(migrationsDirectory, rpcMigration!),
+      "utf8",
+    );
+    const validationSql = await readFile(
+      path.join(migrationsDirectory, validationMigration!),
+      "utf8",
+    );
+
+    expect(constraintSql.match(/NOT VALID/gu)).toHaveLength(2);
+    expect(rpcSql).not.toContain("ADD CONSTRAINT");
+    expect(validationSql).toContain(
+      "VALIDATE CONSTRAINT eve_policy_decisions_trust_zone_check",
+    );
+    expect(validationSql).toContain(
+      "VALIDATE CONSTRAINT eve_policy_decisions_write_class_check",
     );
   });
 

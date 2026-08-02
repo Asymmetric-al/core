@@ -27,7 +27,6 @@ export type EveGithubOperatorRequest =
       title: string;
       body: string;
       labels?: string[];
-      productDirection?: boolean;
     }
   | {
       operation: "create_branch";
@@ -43,7 +42,7 @@ export type EveGithubOperatorRequest =
       title: string;
       body: string;
       changedPaths?: string[];
-      productDirection?: boolean;
+      productDirection: boolean;
     }
   | {
       operation: "add_labels";
@@ -70,7 +69,7 @@ export type EveGithubOperatorRequest =
       commitMessage: string;
       changedFiles: EveGithubChangedFile[];
       approvalId?: string;
-      productDirection?: boolean;
+      productDirection: boolean;
     };
 
 export interface EveGithubOperatorInput {

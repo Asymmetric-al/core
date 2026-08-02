@@ -154,6 +154,15 @@ export function prepareEveGithubOperation(
   if (
     (request.operation === "open_pull_request" ||
       request.operation === "push_safe_fix") &&
+    typeof request.productDirection !== "boolean"
+  ) {
+    throw new Error(
+      "GitHub operator requires an app-owned product-direction classification.",
+    );
+  }
+  if (
+    (request.operation === "open_pull_request" ||
+      request.operation === "push_safe_fix") &&
     request.productDirection === true
   ) {
     const paths = productDirectionPaths(request);

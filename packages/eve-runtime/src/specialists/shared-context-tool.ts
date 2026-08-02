@@ -2,8 +2,10 @@ import { executeEveRuntimePolicyConsult } from "@asym/api/eve/approval-budget";
 import { createEveAuditStore } from "@asym/api/eve/audit";
 import {
   createEveSharedContextStore,
+  eveSharedContextResolutionSchema,
   eveSharedContextWriteSchema,
   readEveSharedContext,
+  resolveEveSharedContextConflict,
   writeEveSharedContext,
 } from "@asym/api/eve/shared-context";
 import { defineTool } from "eve/tools";
@@ -24,6 +26,12 @@ const sharedContextInput = z.discriminatedUnion("operation", [
       write: eveSharedContextWriteSchema,
     })
     .strict(),
+  z
+    .object({
+      operation: z.literal("resolve"),
+      resolution: eveSharedContextResolutionSchema,
+    })
+    .strict(),
 ]);
 
 /**
@@ -34,7 +42,7 @@ const sharedContextInput = z.discriminatedUnion("operation", [
 export function createEveSharedContextTool(specialistId: EveSpecialistId) {
   return defineTool({
     description:
-      "Read or append safe, attributed claims in the current governed run context. Never include secrets, credentials, PII, payment data, raw production records, or unredacted logs.",
+      "Read, append safe attributed claims, or resolve a recorded disagreement in the current governed run context. Never include secrets, credentials, PII, payment data, raw production records, or unredacted logs.",
     inputSchema: sharedContextInput,
     async execute(request, context) {
       const rootSessionId =
@@ -60,6 +68,23 @@ export function createEveSharedContextTool(specialistId: EveSpecialistId) {
       const store = createEveSharedContextStore(admin.client);
       if (request.operation === "read") {
         return readEveSharedContext({ identity, rootSessionId, store });
+      }
+      if (request.operation === "resolve") {
+        return resolveEveSharedContextConflict({
+          accountableRunId: rootSessionId,
+          auditStore: createEveAuditStore(admin.client),
+          authorize: ({ targetKey }) =>
+            executeEveRuntimePolicyConsult({
+              actionId: "engineering.shared_context.resolve",
+              identity,
+              sessionId: context.session.id,
+              supabaseAdmin: admin.client!,
+              targetKey,
+            }),
+          identity,
+          resolution: request.resolution,
+          store,
+        });
       }
       return writeEveSharedContext({
         accountableRunId: rootSessionId,

@@ -6,8 +6,10 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 const emptyResult = { data: [], error: null };
 
-function createQuery() {
-  const result = Promise.resolve({ data: [], error: null });
+function createQuery(
+  resultValue: { data: unknown[]; error: null } = emptyResult,
+) {
+  const result = Promise.resolve(resultValue);
   const query = {
     eq: vi.fn(),
     gt: vi.fn(),
@@ -135,5 +137,44 @@ describe("Eve approval and budget store", () => {
     expect(
       queries.get("eve_budget_emergency_overrides")?.eq,
     ).toHaveBeenCalledWith("tenant_id", "00000000-0000-4000-8000-000000000001");
+  });
+
+  it("preserves an explicitly unclassified policy decision", async () => {
+    const decisionResult = {
+      data: [
+        {
+          action_id: "unknown.action",
+          created_at: "2026-08-02T00:00:00.000Z",
+          decision: "deny",
+          id: "00000000-0000-4000-8000-000000000003",
+          reason: "unknown_action",
+          target_key: "workflow:unknown",
+          trust_zone: "unclassified",
+          write_class: "unclassified",
+        },
+      ],
+      error: null,
+    };
+    const client = {
+      from: vi.fn((table: string) =>
+        createQuery(
+          table === "eve_policy_decisions" ? decisionResult : emptyResult,
+        ),
+      ),
+    } as unknown as AdminSupabaseClient;
+
+    const view = await loadEveApprovalBudgetAdminView({
+      supabaseAdmin: client,
+      tenantId: "00000000-0000-4000-8000-000000000001",
+    });
+
+    expect(view.decisions).toEqual([
+      expect.objectContaining({
+        actionId: "unknown.action",
+        reason: "unknown_action",
+        trustZone: "unclassified",
+        writeClass: "unclassified",
+      }),
+    ]);
   });
 });
