@@ -40,6 +40,7 @@ import {
 } from "./types";
 
 import type {
+  CharterApproval,
   CharterValidationIssue,
   FrozenRendererQualificationCharter,
   QualificationCaseManifest,
@@ -86,6 +87,8 @@ const FLOATING_PIN_SEGMENT =
   /(?:^|[-_.@/])(latest|current|stable|next|x)(?:$|[-_.@/])/i;
 const EXACT_VERSIONED_COMPONENT = /^[A-Za-z0-9][A-Za-z0-9._@/-]*$/;
 const EXACT_COMPONENT_NAME = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/;
+const EXPLICIT_OFFSET_TIMESTAMP =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|([+-])(\d{2}):(\d{2}))$/;
 const DEFERRED_VALIDATION_PIN =
   /(?:\b(?:current|latest|stable|next|tbd|unknown|placeholder)\b|to[-_ ]be[-_ ]chosen|independently[-_ ]chosen)/i;
 const VALIDATION_COMPONENT_FIELDS = ["name", "version", "digest"] as const;
@@ -203,6 +206,12 @@ const SYNTHETIC_CORPUS_PROOF_FIELDS = [
   "proof_digest",
 ] as const;
 const SYNTHETIC_CORPUS_PROCEDURE_FIELDS = ["id", "version", "digest"] as const;
+const CHARTER_APPROVAL_FIELDS = [
+  "actor",
+  "role",
+  "approved_at",
+  "statement",
+] as const;
 
 const isSha256Hex = (value: string | undefined): boolean =>
   SHA256_HEX.test(value ?? "");
@@ -218,6 +227,96 @@ function hasExactOwnFields(
     expectedFields.every((field) =>
       Object.prototype.hasOwnProperty.call(value, field),
     )
+  );
+}
+
+interface ParsedExplicitOffsetTimestamp {
+  epochSeconds: number;
+  fractionalSecond: string;
+}
+
+function parseExplicitOffsetTimestamp(
+  value: unknown,
+): ParsedExplicitOffsetTimestamp | undefined {
+  if (typeof value !== "string") return undefined;
+
+  const match = EXPLICIT_OFFSET_TIMESTAMP.exec(value);
+  if (!match) return undefined;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  const fraction = match[7]?.slice(1) ?? "";
+  const zone = match[8];
+  const offsetSign = match[9];
+  const offsetHour = zone === "Z" ? 0 : Number(match[10]);
+  const offsetMinute = zone === "Z" ? 0 : Number(match[11]);
+
+  const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [
+    31,
+    isLeapYear ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ];
+  const maxDay = daysInMonth[month - 1];
+  if (
+    year === 0 ||
+    month < 1 ||
+    month > 12 ||
+    maxDay === undefined ||
+    day < 1 ||
+    day > maxDay ||
+    hour > 23 ||
+    minute > 59 ||
+    second > 59 ||
+    offsetHour > 23 ||
+    offsetMinute > 59
+  ) {
+    return undefined;
+  }
+
+  const localDate = new Date(0);
+  localDate.setUTCFullYear(year, month - 1, day);
+  localDate.setUTCHours(hour, minute, second, 0);
+
+  const direction = offsetSign === "+" ? 1 : -1;
+  const offsetMilliseconds =
+    zone === "Z" ? 0 : direction * (offsetHour * 60 + offsetMinute) * 60_000;
+  const epochSeconds = (localDate.getTime() - offsetMilliseconds) / 1_000;
+  if (!Number.isFinite(epochSeconds)) return undefined;
+
+  return {
+    epochSeconds,
+    fractionalSecond: fraction.replace(/0+$/, ""),
+  };
+}
+
+function compareParsedTimestamps(
+  left: ParsedExplicitOffsetTimestamp,
+  right: ParsedExplicitOffsetTimestamp,
+): number {
+  if (left.epochSeconds < right.epochSeconds) return -1;
+  if (left.epochSeconds > right.epochSeconds) return 1;
+
+  const precision = Math.max(
+    left.fractionalSecond.length,
+    right.fractionalSecond.length,
+  );
+  return compareQualificationKeys(
+    left.fractionalSecond.padEnd(precision, "0"),
+    right.fractionalSecond.padEnd(precision, "0"),
   );
 }
 
@@ -356,8 +455,10 @@ function hasValidPrinceSubstitutionReset(
 
   const supersededCharterId = reset.superseded_charter_id;
   const currentCharterId = input.charter_id;
-  const supersededFrozenAt = Date.parse(reset.superseded_frozen_at ?? "");
-  const currentFrozenAt = Date.parse(input.frozen_at);
+  const supersededFrozenAt = parseExplicitOffsetTimestamp(
+    reset.superseded_frozen_at,
+  );
+  const currentFrozenAt = parseExplicitOffsetTimestamp(input.frozen_at);
   return (
     Boolean(supersededCharterId?.trim()) &&
     supersededCharterId === supersededCharterId.trim() &&
@@ -365,9 +466,9 @@ function hasValidPrinceSubstitutionReset(
     supersededCharterId !== currentCharterId &&
     EXACT_SEMVER.test(reset.superseded_charter_version ?? "") &&
     isSha256Hex(reset.superseded_manifest_digest) &&
-    !Number.isNaN(supersededFrozenAt) &&
-    !Number.isNaN(currentFrozenAt) &&
-    supersededFrozenAt < currentFrozenAt &&
+    supersededFrozenAt !== undefined &&
+    currentFrozenAt !== undefined &&
+    compareParsedTimestamps(supersededFrozenAt, currentFrozenAt) < 0 &&
     isSha256Hex(reset.superseded_held_back_seal_digest) &&
     reset.superseded_held_back_seal_digest !==
       input.held_back_seal.sealed_expectations_digest &&
@@ -580,11 +681,12 @@ function validateSyntheticCorpusProof(
     );
   }
 
-  const attestedAtMs = Date.parse(proof.attested_at ?? "");
-  const frozenAtMs = Date.parse(input.frozen_at);
+  const attestedAt = parseExplicitOffsetTimestamp(proof.attested_at);
+  const frozenAt = parseExplicitOffsetTimestamp(input.frozen_at);
   if (
-    Number.isNaN(attestedAtMs) ||
-    (!Number.isNaN(frozenAtMs) && attestedAtMs > frozenAtMs)
+    attestedAt === undefined ||
+    (frozenAt !== undefined &&
+      compareParsedTimestamps(attestedAt, frozenAt) > 0)
   ) {
     issues.push(
       issue(
@@ -1114,8 +1216,8 @@ function validateCorpus(
         ),
       );
     }
-    const accessedAtMs = Date.parse(entry.at);
-    if (Number.isNaN(accessedAtMs)) {
+    const accessedAt = parseExplicitOffsetTimestamp(entry.at);
+    if (accessedAt === undefined) {
       issues.push(
         issue(
           entryPath,
@@ -1123,33 +1225,45 @@ function validateCorpus(
           "Every held-back access must record a valid timestamp.",
         ),
       );
-    } else if (accessedAtMs > Date.parse(input.frozen_at)) {
+    } else {
+      const frozenAt = parseExplicitOffsetTimestamp(input.frozen_at);
+      if (
+        frozenAt !== undefined &&
+        compareParsedTimestamps(accessedAt, frozenAt) > 0
+      ) {
+        issues.push(
+          issue(
+            entryPath,
+            "held_back_not_sealed",
+            "A held-back access cannot be dated after the charter freezes.",
+          ),
+        );
+      }
+    }
+  }
+  const sealedAt = parseExplicitOffsetTimestamp(input.held_back_seal.sealed_at);
+  if (sealedAt === undefined) {
+    issues.push(
+      issue(
+        "held_back_seal.sealed_at",
+        "held_back_not_sealed",
+        "The held-back seal must record a valid explicit-offset timestamp.",
+      ),
+    );
+  } else {
+    const frozenAt = parseExplicitOffsetTimestamp(input.frozen_at);
+    if (
+      frozenAt !== undefined &&
+      compareParsedTimestamps(sealedAt, frozenAt) > 0
+    ) {
       issues.push(
         issue(
-          entryPath,
+          "held_back_seal.sealed_at",
           "held_back_not_sealed",
-          "A held-back access cannot be dated after the charter freezes.",
+          "The held-back seal must exist before the charter freezes.",
         ),
       );
     }
-  }
-  const sealedAtMs = Date.parse(input.held_back_seal.sealed_at);
-  if (Number.isNaN(sealedAtMs)) {
-    issues.push(
-      issue(
-        "held_back_seal.sealed_at",
-        "held_back_not_sealed",
-        "The held-back seal must record a valid timestamp.",
-      ),
-    );
-  } else if (sealedAtMs > Date.parse(input.frozen_at)) {
-    issues.push(
-      issue(
-        "held_back_seal.sealed_at",
-        "held_back_not_sealed",
-        "The held-back seal must exist before the charter freezes.",
-      ),
-    );
   }
 }
 
@@ -1465,6 +1579,137 @@ function validateGatesAndScoring(
   }
 }
 
+function isCanonicalVisibleApprovalIdentity(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  return (
+    value.length > 0 &&
+    value === value.trim() &&
+    !INVISIBLE_ACTOR_CHARACTERS.test(value)
+  );
+}
+
+function validateApprovals(
+  input: RendererQualificationCharterInput,
+  issues: CharterValidationIssue[],
+): void {
+  const frozenAt = parseExplicitOffsetTimestamp(input.frozen_at);
+  const actorsByRole = new Map<string, Set<string>>();
+  let hasValidFinalApproval = false;
+
+  for (const [index, rawApproval] of input.approvals.entries()) {
+    const path = `approvals.${index}`;
+    if (
+      !rawApproval ||
+      typeof rawApproval !== "object" ||
+      Array.isArray(rawApproval)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "approval_invalid",
+          "Every approval must be an object with the exact frozen approval fields.",
+        ),
+      );
+      continue;
+    }
+
+    const approval = rawApproval as Partial<CharterApproval>;
+    let approvalIsValid = true;
+    if (!hasExactOwnFields(approval, CHARTER_APPROVAL_FIELDS)) {
+      issues.push(
+        issue(
+          path,
+          "approval_invalid",
+          "Every approval freezes exactly actor, role, approved_at, and statement.",
+        ),
+      );
+      approvalIsValid = false;
+    }
+
+    const actorIsCanonical = isCanonicalVisibleApprovalIdentity(approval.actor);
+    const roleIsCanonical = isCanonicalVisibleApprovalIdentity(approval.role);
+    if (!actorIsCanonical || !roleIsCanonical) {
+      issues.push(
+        issue(
+          path,
+          "approval_invalid",
+          "Every approval must name canonical visible actor and role identities.",
+        ),
+      );
+      approvalIsValid = false;
+    }
+
+    if (typeof approval.statement !== "string" || !approval.statement.trim()) {
+      issues.push(
+        issue(
+          path,
+          "approval_invalid",
+          "Every approval must carry a non-blank statement of what was authorized.",
+        ),
+      );
+      approvalIsValid = false;
+    }
+
+    const approvedAt = parseExplicitOffsetTimestamp(approval.approved_at);
+    if (
+      approvedAt === undefined ||
+      (frozenAt !== undefined &&
+        compareParsedTimestamps(approvedAt, frozenAt) > 0)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "approval_invalid",
+          "Every approval must have a valid explicit-offset timestamp no later than charter freeze.",
+        ),
+      );
+      approvalIsValid = false;
+    }
+
+    if (
+      actorIsCanonical &&
+      roleIsCanonical &&
+      typeof approval.actor === "string" &&
+      typeof approval.role === "string"
+    ) {
+      const actor = approval.actor;
+      const role = approval.role;
+      const actors = actorsByRole.get(role) ?? new Set<string>();
+      if (actors.has(actor)) {
+        issues.push(
+          issue(
+            path,
+            "approval_duplicate",
+            "An actor may record at most one approval for the same role.",
+          ),
+        );
+        approvalIsValid = false;
+      } else {
+        actors.add(actor);
+        actorsByRole.set(role, actors);
+      }
+    }
+
+    if (
+      approvalIsValid &&
+      approval.actor === input.roles.final_approver &&
+      approval.role === "final_approver"
+    ) {
+      hasValidFinalApproval = true;
+    }
+  }
+
+  if (!hasValidFinalApproval) {
+    issues.push(
+      issue(
+        "approvals",
+        "approval_missing",
+        "The charter freezes only with a valid recorded approval from the final approver.",
+      ),
+    );
+  }
+}
+
 function validateBudgetsValidatorsRoles(
   input: RendererQualificationCharterInput,
   issues: CharterValidationIssue[],
@@ -1700,45 +1945,7 @@ function validateBudgetsValidatorsRoles(
       );
     }
   }
-  const finalApproval = input.approvals.find(
-    (approval) =>
-      approval.actor === roles.final_approver &&
-      approval.role === "final_approver",
-  );
-  if (!finalApproval) {
-    issues.push(
-      issue(
-        "approvals",
-        "approval_missing",
-        "The charter freezes only with the final approver's recorded approval.",
-      ),
-    );
-  } else {
-    const approvedAtMs = Date.parse(finalApproval.approved_at);
-    const frozenAtMs = Date.parse(input.frozen_at);
-    if (
-      Number.isNaN(approvedAtMs) ||
-      (!Number.isNaN(frozenAtMs) && approvedAtMs > frozenAtMs)
-    ) {
-      issues.push(
-        issue(
-          "approvals",
-          "approval_missing",
-          "The final approver must record a valid approval timestamp before the charter freezes.",
-        ),
-      );
-    }
-    // The statement is the only captured proof of what was authorized.
-    if (!finalApproval.statement.trim()) {
-      issues.push(
-        issue(
-          "approvals",
-          "approval_missing",
-          "The final approval must carry a non-blank statement of what was authorized.",
-        ),
-      );
-    }
-  }
+  validateApprovals(input, issues);
 }
 
 export function validateRendererQualificationCharterInput(
@@ -1779,12 +1986,12 @@ export function validateRendererQualificationCharterInput(
       ),
     );
   }
-  if (Number.isNaN(Date.parse(input.frozen_at))) {
+  if (parseExplicitOffsetTimestamp(input.frozen_at) === undefined) {
     issues.push(
       issue(
         "frozen_at",
         "charter_incomplete",
-        "The freeze time must be a valid timestamp.",
+        "The freeze time must be a valid RFC3339 timestamp with Z or an explicit numeric offset.",
       ),
     );
   }
@@ -1950,6 +2157,17 @@ function sortById<T>(items: readonly T[], key: (item: T) => string): T[] {
   );
 }
 
+function compareApprovals(
+  left: CharterApproval,
+  right: CharterApproval,
+): number {
+  for (const field of ["role", "actor", "approved_at", "statement"] as const) {
+    const comparison = compareQualificationKeys(left[field], right[field]);
+    if (comparison !== 0) return comparison;
+  }
+  return 0;
+}
+
 /**
  * Normalize order-insensitive collections so a shuffled but semantically
  * identical input freezes to the same digest. Order-sensitive protocols
@@ -1984,10 +2202,7 @@ export function normalizeRendererQualificationCharterInput(
     ),
     requalification_triggers: [...clone.requalification_triggers].sort(),
     stop_conditions: [...clone.stop_conditions].sort(),
-    approvals: sortById(
-      clone.approvals,
-      (item) => `${item.role}:${item.actor}`,
-    ),
+    approvals: [...clone.approvals].sort(compareApprovals),
   };
 }
 

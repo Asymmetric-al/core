@@ -115,6 +115,7 @@ describe("renderer qualification synthetic-corpus proof contract", () => {
     ["wrong schema", { schema_version: "future-proof/v2" }],
     ["wrong assurance", { assurance: "redacted_real_data" }],
     ["wrong custodian", { attested_by: "operator-prince" }],
+    ["zone-less attestation", { attested_at: "2026-07-22T11:00:00" }],
     ["post-freeze attestation", { attested_at: "2026-07-22T12:01:00.000Z" }],
     [
       "malformed evidence digest",

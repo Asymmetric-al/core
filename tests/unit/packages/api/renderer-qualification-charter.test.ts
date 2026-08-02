@@ -792,6 +792,16 @@ describe("freezeRendererQualificationCharter", () => {
     expect(() => issueCodes(malformedReset)).not.toThrow();
     expect(issueCodes(malformedReset)).toContain("candidate_lock_invalid");
 
+    const zoneLessReset = structuredClone(selfHosted);
+    const zoneLessPrince = zoneLessReset.candidates.find(
+      (candidate) => candidate.candidate_id === "P18-R-P",
+    ) as CandidateLock & {
+      substitution_reset: { superseded_frozen_at: string };
+    };
+    zoneLessPrince.substitution_reset.superseded_frozen_at =
+      "2026-07-22T12:00:00";
+    expect(issueCodes(zoneLessReset)).toContain("candidate_lock_invalid");
+
     const reusedIdentity = structuredClone(selfHosted);
     const reusedPrince = reusedIdentity.candidates.find(
       (candidate) => candidate.candidate_id === "P18-R-P",
