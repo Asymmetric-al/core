@@ -13,6 +13,7 @@ import {
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "./e2e-auth";
+import { hasAnyRole, type RoleSnapshot } from "./permissions";
 import {
   isListedRouteMatch,
   matchesListedRoute,
@@ -29,12 +30,29 @@ export interface AuthMiddlewareOptions {
   loginPath?: string;
   redirectAuthenticatedTo?: string;
   unauthorizedRedirectTo?: string;
-  allowedRoles?: UserRole[];
+  allowedRoles?: readonly UserRole[];
   allowApi?: boolean;
-  resolveSession?: (
-    request: NextRequest,
-  ) => Promise<{ userId: string | null; role: UserRole | null }>;
+  /**
+   * Resolves the signed-in user's complete role snapshot so the edge can
+   * reject a wrong-app session before the app renders anything.
+   *
+   * Injected rather than hard-wired so this stays the one place that decides
+   * *whether* a role passes, while *how* a role is looked up (and cached) is
+   * the caller's concern. Returning `null` is treated as "not allowed".
+   */
+  resolveUserRole?: (args: {
+    userId: string;
+    supabase: SupabaseUserRoleReader;
+    request: NextRequest;
+  }) => Promise<RoleSnapshot | null>;
 }
+
+/**
+ * The slice of the Supabase client the role resolver needs. Narrowed to a
+ * structural type so tests can hand over a plain object instead of standing up
+ * a real client.
+ */
+export type SupabaseUserRoleReader = ReturnType<typeof createServerClient>;
 
 export interface UnauthenticatedRedirectRule {
   prefix: string;
@@ -100,6 +118,14 @@ function buildUnauthenticatedRedirectUrl(
   return buildRedirectUrl(request, redirectPath, next);
 }
 
+function redirectWithCookies(url: URL, cookieSource: NextResponse) {
+  const response = NextResponse.redirect(url);
+  cookieSource.cookies.getAll().forEach((cookie) => {
+    response.cookies.set(cookie);
+  });
+  return response;
+}
+
 function logMissingSupabaseConfig(
   pathname: string,
   config: SupabasePublicConfig,
@@ -129,7 +155,7 @@ function logMissingSupabaseConfig(
  */
 function isRoleAllowedForApp(
   role: UserRole,
-  allowedRoles: UserRole[] | undefined,
+  allowedRoles: readonly UserRole[] | undefined,
 ) {
   if (!allowedRoles || allowedRoles.length === 0) {
     return true;
@@ -145,6 +171,21 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const loginPath = options.loginPath ?? "/login";
   const allowApi = options.allowApi ?? true;
   const allowedRoles = options.allowedRoles;
+  const redirectAuthenticatedTo = options.redirectAuthenticatedTo;
+  const unauthorizedRedirectTo = options.unauthorizedRedirectTo ?? loginPath;
+  const resolveUserRole = options.resolveUserRole;
+
+  // A role gate with no way to resolve a role fails closed on every request, so
+  // the misconfiguration presents as "nobody can sign in anywhere" rather than
+  // as an error. Refuse to build instead: loud at boot beats a silent lockout,
+  // and the alternative default (skip the check) would be a silent hole.
+  if (allowedRoles && allowedRoles.length > 0 && !resolveUserRole) {
+    throw new Error(
+      "createAuthMiddleware: `allowedRoles` was provided without `resolveUserRole`. " +
+        "Role enforcement fails closed, so every signed-in user would be redirected " +
+        "from every protected route. Pass a `resolveUserRole` implementation.",
+    );
+  }
 
   return async function authMiddleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
@@ -259,6 +300,33 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     if (isAuthRoute) {
+      // Send an already-signed-in visitor on to the app instead of rendering a
+      // sign-in form. Gate on the Supabase `user`, never on `userId`: the E2E
+      // bypass populates `userId` from a cookie with no Supabase session, and
+      // redirecting those would bounce the e2e suite off /login and /register.
+      if (user && redirectAuthenticatedTo) {
+        if (allowedRoles && allowedRoles.length > 0) {
+          const roleSnapshot = resolveUserRole
+            ? await resolveUserRole({ userId: user.id, supabase, request })
+            : null;
+
+          if (!roleSnapshot || !hasAnyRole(roleSnapshot, allowedRoles)) {
+            return redirectWithCookies(
+              buildRedirectUrl(request, unauthorizedRedirectTo),
+              supabaseResponse,
+            );
+          }
+        }
+
+        const requestedNext = safeNextParam(
+          request.nextUrl.searchParams.get("next"),
+        );
+        return redirectWithCookies(
+          buildRedirectUrl(request, requestedNext ?? redirectAuthenticatedTo),
+          supabaseResponse,
+        );
+      }
+
       return supabaseResponse;
     }
 
@@ -270,6 +338,29 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
           unauthenticatedRedirects,
         ),
       );
+    }
+
+    // Authentication is not authorization: without this, any signed-in user of
+    // any app reaches every other app's protected routes, because the check
+    // above only proves *someone* is signed in.
+    //
+    // Gated on the Supabase `user`, never on `userId`. The E2E bypass above
+    // populates `userId` from a cookie with no Supabase session and has already
+    // applied `isRoleAllowedForApp` to it; re-resolving that id here would look
+    // up a user who does not exist, resolve `null`, and bounce the suite.
+    //
+    // Fails closed: an unresolved role is treated as not allowed.
+    if (isProtectedPath && user && allowedRoles && allowedRoles.length > 0) {
+      const roleSnapshot = resolveUserRole
+        ? await resolveUserRole({ userId: user.id, supabase, request })
+        : null;
+
+      if (!roleSnapshot || !hasAnyRole(roleSnapshot, allowedRoles)) {
+        return redirectWithCookies(
+          buildRedirectUrl(request, unauthorizedRedirectTo),
+          supabaseResponse,
+        );
+      }
     }
 
     return supabaseResponse;

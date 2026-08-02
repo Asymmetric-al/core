@@ -1,0 +1,20 @@
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+
+/**
+ * `register/page.tsx` awaits `createClient()` + `getUser()`. With `children`
+ * rendered outside the layout's role-gate boundary, this route needs a boundary
+ * of its own or it cannot prerender under `cacheComponents`.
+ */
+export default function Loading() {
+  return (
+    <div
+      className="flex min-h-[50vh] flex-col items-center justify-center gap-6 p-6"
+      aria-busy="true"
+      aria-label="Loading"
+    >
+      <Skeleton className="h-10 w-48" />
+      <Skeleton className="h-4 w-72 max-w-full" />
+      <Skeleton className="h-64 w-full max-w-md rounded-xl" />
+    </div>
+  );
+}

@@ -174,7 +174,7 @@ docs/features/support-hub/release-notes.md                    # rollout + Phase 
 
 ### Files explicitly NOT touched in this phase
 
-- `apps/admin/app/mc-shell.tsx`, `apps/admin/app/layout.tsx`, `apps/admin/app/support/page.tsx`
+- `apps/admin/app/mc-shell.tsx`, `apps/admin/app/layout.tsx`, `apps/admin/app/(app)/support/page.tsx`
 - `packages/ui/components/shadcn/page-shell.tsx`, `packages/ui/styles/globals.css`, any token files
 - `supabase/migrations/*` — no migration this phase
 - `supabase/seed.sql` — no seed change this phase

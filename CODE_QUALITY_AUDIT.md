@@ -4,7 +4,7 @@
 **Audit date:** 2026-05-22  
 **Snapshot commit:** `02105e43` on `develop` (line counts and greps are valid as of this SHA)  
 **Package manager / task runner:** Bun `1.3.4`, Turborepo (`turbo.json`, `envMode: "loose"`)  
-**Next.js:** `16.2.6` with `cacheComponents: true` in all three apps (`apps/admin`, `apps/donor`, `apps/missionary`)
+**Next.js:** `16.3.0-preview.9` with `cacheComponents: true` and `partialPrefetching: true` in all three apps (`apps/admin`, `apps/donor`, `apps/missionary`)
 
 This document is a **claims-backed** maintainability and repo-health audit. Every material finding below was checked against files and commands in this repository. Items that could not be verified are called out explicitly.
 

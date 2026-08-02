@@ -17,7 +17,7 @@ gift, task, notification, automation, or batch truth.
 
 Shipped contribution-operations implementation areas:
 
-- `apps/admin/app/contributions/*`
+- `apps/admin/app/(app)/contributions/*`
 - `packages/api/src/admin/contributions/*`
 - `packages/api/src/admin/contribution-operations/*`
 - `packages/api/src/admin/contribution-batches/*`
@@ -35,7 +35,7 @@ Shipped contribution-operations implementation areas:
 
 Prior art only, not the shared contribution task boundary:
 
-- `apps/admin/app/tasks/*`
+- `apps/admin/app/(app)/tasks/*`
 - `packages/api/src/missionary-portal/tasks.ts`
 
 ## Cross-cutting rules

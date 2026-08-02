@@ -6,7 +6,7 @@ This guide documents the current state of the Mission Control teams surface and 
 
 - Route: `/system-admin/teams` inside `apps/admin`
 - Entry point: `apps/admin/app/system-admin/teams/page.tsx`
-- Shared UI surface: `apps/admin/app/admin/teams/teams-sections.tsx`
+- Shared UI surface: `apps/admin/app/(app)/admin/teams/teams-sections.tsx`
 - Admin hub entry page: `apps/admin/app/system-admin/page.tsx`
 
 The page presents a polished team-management experience with:
@@ -32,7 +32,7 @@ Plain language:
 
 ## How the UI is wired
 
-`apps/admin/app/admin/teams/teams-sections.tsx` uses the shared tile registry from `@asym/config/tiles` to render module-level permission previews. That means the UI stays aligned with the current Mission Control navigation model, even though the permission choices are still mock data.
+`apps/admin/app/(app)/admin/teams/teams-sections.tsx` uses the shared tile registry from `@asym/config/tiles` to render module-level permission previews. That means the UI stays aligned with the current Mission Control navigation model, even though the permission choices are still mock data.
 
 The permission levels shown in the UI are:
 

@@ -20,7 +20,7 @@ let formatSupportRelativeTime: DerivedHelpers["formatSupportRelativeTime"];
 
 beforeAll(async () => {
   const mod = (await import(
-    new URL("apps/admin/app/support/support-hub.derived.ts", root).href
+    new URL("apps/admin/app/(app)/support/support-hub.derived.ts", root).href
   )) as DerivedHelpers;
   deriveSupportHubStats = mod.deriveSupportHubStats;
   deriveSupportQueueSummaries = mod.deriveSupportQueueSummaries;

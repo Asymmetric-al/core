@@ -18,9 +18,18 @@ loadEnvConfig(WORKSPACE_ROOT);
 const BONEYARD_JS_ALIAS = "apps/donor/node_modules/boneyard-js";
 const BONEYARD_JS_REACT_ALIAS = `${BONEYARD_JS_ALIAS}/dist/react.js`;
 
-const nextConfig: NextConfig = {
+/**
+ * The two flags Instant Navigation needs are pinned in the type, not just set
+ * in the literal: dropping either one, or flipping it to false, then fails
+ * this app's typecheck instead of silently un-instanting every route.
+ */
+const nextConfig: NextConfig & {
+  cacheComponents: true;
+  partialPrefetching: true;
+} = {
   reactStrictMode: true,
   cacheComponents: true,
+  partialPrefetching: true,
   reactCompiler: {
     compilationMode: "annotation",
   },
@@ -48,6 +57,10 @@ const nextConfig: NextConfig = {
     globalNotFound: true,
     viewTransition: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],
+    /** Instant-navigation e2e rig only (see instant-nav.rig.md); preview deploys only. */
+    exposeTestingApiInProductionBuild:
+      process.env.EXPOSE_TESTING_API === "1" &&
+      process.env.VERCEL_ENV === "preview",
   },
   images: {
     remotePatterns: [

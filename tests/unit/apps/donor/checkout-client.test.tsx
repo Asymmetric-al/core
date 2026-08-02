@@ -446,6 +446,36 @@ describe("CheckoutPageClient live card confirmation", () => {
     ).toBeNull();
   });
 
+  it("recovers the runtime config fetch after an effect cleanup aborts it (StrictMode remount)", async () => {
+    fetchMock().mockImplementation((_input, init) => {
+      return init?.method === "POST"
+        ? initializedDonationResponse("pk_live_tenant")
+        : checkoutConfigResponse(null);
+    });
+
+    render(
+      <React.StrictMode>
+        <CheckoutPageClient
+          searchParams={{
+            amount: "100",
+            missionary_id: TEST_MISSIONARY_ID,
+            workerId: TEST_WORKER_ID,
+          }}
+        />
+      </React.StrictMode>,
+    );
+    advanceToPayment();
+
+    // The double-invoked mount effect aborts the first fetch; the payment step
+    // must still resolve instead of hanging on "Preparing secure checkout".
+    const configurationError = await screen.findByRole("alert");
+    expect(configurationError.textContent).toMatch(/checkout configuration/i);
+    expect(
+      screen.getByRole("heading", { name: /secure payment/i }),
+    ).toBeTruthy();
+    expect(screen.queryByText(/preparing secure checkout/i)).toBeNull();
+  });
+
   it("remounts with the server returned publishable key and prevents confirmation when keys differ", async () => {
     fetchMock().mockImplementation(() =>
       initializedDonationResponse("pk_test_rotated"),

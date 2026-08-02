@@ -31,6 +31,7 @@ describe("auth/demo-login", () => {
     expect(safeNextParam("")).toBeNull();
     expect(safeNextParam("https://evil.example")).toBeNull();
     expect(safeNextParam("//evil.example")).toBeNull();
+    expect(safeNextParam("/..//evil.example")).toBeNull();
     expect(safeNextParam("javascript:alert(1)")).toBeNull();
     expect(safeNextParam("/login")).toBeNull();
     expect(safeNextParam("/register")).toBeNull();

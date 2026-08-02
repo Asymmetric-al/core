@@ -25,6 +25,12 @@ Use this when adding tests, modifying critical flows, or verifying changes.
   evidence. It complements but never replaces committed `@playwright/test`
   specs or the package scripts below.
 - **Performance:** Playwright-based Web Vitals assertions.
+- **Instant navigation:** Use the `instant()` helper from `@next/playwright`
+  (root devDependency) to assert what must render immediately after a link
+  click, without waiting for the network (pattern:
+  `tests/e2e/instant-navigation.spec.ts`; rules:
+  `docs/ai/rules/frontend.md` → Instant Navigation). Add `instant()` coverage
+  when building or changing navigation-critical routes.
 - **Local CI parity:** Run `bun run ci:preflight` before push/PR-ready to mirror blocking GitHub checks.
 - **Fast local gate:** `bun run check` runs `lint`, `typecheck`, and `test:unit` only. Use it for tight iteration loops.
 - **Pre-push mirror:** `bun run ci:preflight` runs `scripts/verify/ci-preflight.mjs`, which mirrors the blocking stages in `.github/workflows/ci.yml` (through `test:unit`). It does **not** run `verify:deployment-discipline`; use `bun run verify:deployment-discipline` or `bun run release:production` when branch-protection or Vercel release posture changes.

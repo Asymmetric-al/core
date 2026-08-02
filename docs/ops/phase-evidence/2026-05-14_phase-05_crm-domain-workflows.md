@@ -81,7 +81,7 @@ reconciliation proof: crm-replay-reconciliation.test.ts now includes donation CR
 
 ## Files Changed
 
-- `apps/admin/app/crm/page-client.tsx`
+- `apps/admin/app/(app)/crm/page-client.tsx`
 - `apps/admin/app/api/admin/crm/records/[recordId]/route.ts`
 - `apps/admin/app/api/admin/crm/reports/route.ts`
 - `apps/admin/app/api/admin/crm/reports/export/route.ts`

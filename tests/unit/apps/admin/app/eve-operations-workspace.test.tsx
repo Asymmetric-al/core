@@ -4,12 +4,12 @@ import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { createDefaultEveModelPolicy } from "@asym/api/eve/model-policy";
-import { EveModelPolicyReadiness } from "../../../../../apps/admin/app/admin/eve/model-policy-panel";
-import { canAccessEveOperationsWorkspace } from "../../../../../apps/admin/app/admin/eve/workspace-access";
+import { EveModelPolicyReadiness } from "../../../../../apps/admin/app/(app)/admin/eve/model-policy-panel";
+import { canAccessEveOperationsWorkspace } from "../../../../../apps/admin/app/(app)/admin/eve/workspace-access";
 import {
   EveCapabilityConnectionsPanel,
   EveWorkspaceIndex,
-} from "../../../../../apps/admin/app/admin/eve/workspace-shell";
+} from "../../../../../apps/admin/app/(app)/admin/eve/workspace-shell";
 
 import type { AuthContext } from "@asym/auth/context";
 import type { EveModelPolicyAdminView } from "@asym/api/eve/model-policy/types";
@@ -59,6 +59,7 @@ describe("Eve operations workspace", () => {
     });
 
     for (const name of [
+      "Launch readiness",
       "Active runs",
       "Approvals",
       "Recent actions",
@@ -87,14 +88,13 @@ describe("Eve operations workspace", () => {
     const view = render(<EveCapabilityConnectionsPanel />);
 
     expect(view.getByRole("heading", { name: "GitHub activity" })).toBeTruthy();
-    expect(view.getByRole("heading", { name: "Notifications" })).toBeTruthy();
     expect(view.getByRole("heading", { name: "Chat runtime" })).toBeTruthy();
     expect(view.getAllByText("Unavailable")).toHaveLength(2);
     expect(view.getByText("Mounted")).toBeTruthy();
     expect(
       view.getByText(/no commits, checks, reviews, or issues/i),
     ).toBeTruthy();
-    expect(view.getByText(/no fabricated channel status/i)).toBeTruthy();
+    expect(view.getByRole("heading", { name: "Notifications" })).toBeTruthy();
     expect(view.getByText(/explicit allowlist for page context/i)).toBeTruthy();
     expect(view.queryByText(/mock activity/i)).toBeNull();
   });

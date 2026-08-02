@@ -270,6 +270,11 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
 
 ### 14. GitHub App Read and Review Path
 
+Implementation: Eve 0.25.1's native verified GitHub App channel, automatic PR
+review trigger, policy-gated summary plus inline findings, protected-area
+visibility, output data-boundary enforcement, and accountable #419 audit are
+delivered by issue #430 and ADR-0063.
+
 - Type: AFK
 - Blocked by: 3, 7, 9, 13
 - User stories covered: 8, 9, 10, 32, 34, 60
@@ -281,6 +286,12 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
   - Protected-area detection is visible in review output.
 
 ### 15. Autonomous PR Operator and Work Initiation
+
+Implementation: the dynamically scoped seven-operation GitHub tool, issue-first
+branch and PR contracts, sandbox-observed safe-fix push path, business-data and
+protected-area guardrails, dedicated hard budget, accountable audit, and
+replay-safe mutations are delivered by issue #431 and ADR-0032. Merge remains
+absent and belongs to #432.
 
 - Type: AFK
 - Blocked by: 7, 13, 14
@@ -294,6 +305,7 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
 
 ### 16. Strict Auto-Merge Policy
 
+- Status: implemented in #432; release switch remains off
 - Type: HITL
 - Blocked by: 14, 15
 - User stories covered: 12, 13, 31, 32
@@ -303,6 +315,12 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
   - Auto-merge passes for safe PRs with required checks and reviews satisfied.
   - Auto-merge blocks for repo-aware protected areas.
   - Human escalation path is explicit.
+- Implementation evidence:
+  - ADR-0033 and `docs/guides/operations/eve-strict-auto-merge.md`
+  - `packages/api/src/eve/strict-auto-merge/**`
+  - `packages/eve-runtime/agent/tools/github_strict_auto_merge.ts`
+  - `packages/eve-runtime/src/github/strict-auto-merge*.ts`
+  - `supabase/migrations/20260718063523_eve_strict_auto_merge_policy_action.sql`
 
 ### 17. Subagent Catalog and Shared Run Context
 
@@ -316,6 +334,13 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
   - Per-subagent model role, budget, eval gate, and routing policy are defined.
   - Shared context writes require schema, provenance, confidence, risk, source
     evidence, and conflict preservation.
+- Implementation evidence:
+  - ADR-0034 and `docs/guides/operations/eve-subagents-shared-context.md`
+  - `packages/api/src/eve/subagent-catalog/**`
+  - `packages/api/src/eve/shared-context/**`
+  - `packages/eve-runtime/agent/subagents/**`
+  - `packages/eve-runtime/src/specialists/**`
+  - `supabase/migrations/20260718070400_eve_subagent_shared_context.sql`
 
 ### 18. Dynamic Workflow Orchestration
 
@@ -328,6 +353,13 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
   - Dynamic workflows are enabled only behind governance gates.
   - Workflow failures escalate by risk.
   - Suspicious or protected-area behavior pauses the run and records audit.
+- Implementation evidence:
+  - ADR-0035 and `docs/guides/operations/eve-dynamic-workflows.md`
+  - `packages/api/src/eve/dynamic-workflow/**`
+  - `packages/eve-runtime/agent/tools/{workflow,workflow_guard}.ts`
+  - `packages/eve-runtime/agent/hooks/subagent-audit.ts`
+  - `packages/eve-runtime/agent/lib/workflow-state.ts`
+  - `supabase/migrations/20260718074651_eve_dynamic_workflow_policy.sql`
 
 ### 19. Engineering Health Monitors
 
@@ -341,6 +373,12 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
     alerts, protected-area PRs, and budget/rate-limit issues.
   - Monitors can create audited issues or comments under policy.
   - Product opportunity scanning remains disabled.
+- Implementation evidence:
+  - ADR-0036 and `docs/guides/operations/eve-engineering-health-monitors.md`
+  - `packages/api/src/eve/engineering-monitors/**`
+  - `packages/eve-runtime/agent/schedules/engineering-health.ts`
+  - `packages/eve-runtime/src/monitors/**`
+  - `supabase/migrations/20260718083000_eve_engineering_health_monitors.sql`
 
 ### 20. Email and Discord Notifications
 

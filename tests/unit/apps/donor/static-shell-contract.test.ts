@@ -30,6 +30,97 @@ const stripComments = (source: string) =>
 
 const read = (relativePath: string) => stripComments(readRaw(relativePath));
 
+/**
+ * The balanced `{...}` body of the function declared at or after `fromIndex`.
+ *
+ * Skips the parameter list first: `function Page({ params }: PageProps)` opens
+ * a brace before the body does, and reading that one instead makes every
+ * assertion about the body pass vacuously.
+ */
+const functionBodyAt = (source: string, fromIndex: number) => {
+  let cursor = source.indexOf("(", fromIndex);
+  if (cursor === -1) {
+    return "";
+  }
+
+  let parens = 0;
+  for (; cursor < source.length; cursor += 1) {
+    if (source[cursor] === "(") {
+      parens += 1;
+    } else if (source[cursor] === ")") {
+      parens -= 1;
+      if (parens === 0) {
+        cursor += 1;
+        break;
+      }
+    }
+  }
+
+  const open = source.indexOf("{", cursor);
+  if (open === -1) {
+    return "";
+  }
+
+  let depth = 0;
+  for (let i = open; i < source.length; i += 1) {
+    if (source[i] === "{") {
+      depth += 1;
+    } else if (source[i] === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return source.slice(open, i + 1);
+      }
+    }
+  }
+
+  return source.slice(open);
+};
+
+/**
+ * The real invariant behind "no `connection()` on this route": the route may
+ * defer one child at request time, but the page body itself must stay
+ * prerenderable. `connection()` in the default export opts the whole route out
+ * and empties the crawler-visible HTML; inside a `<Suspense>` child it defers
+ * only that child.
+ *
+ * Anchored on behaviour, not on a component name: the owner is read out of the
+ * source and then required to be the component the boundary renders, so a
+ * rename cannot quietly make the guard vacuous.
+ */
+const expectConnectionIsolatedInSuspenseChild = (
+  source: string,
+  defaultExportName: string,
+) => {
+  const connectionIndex = source.indexOf("await connection()");
+  expect(connectionIndex).toBeGreaterThan(-1);
+
+  // The declaration the call sits in is the last one opened before it.
+  const owner = [
+    ...source
+      .slice(0, connectionIndex)
+      .matchAll(/(?:async function|const)\s+(\w+)/g),
+  ].at(-1)?.[1];
+  expect(owner).toBeTruthy();
+
+  // No nested `<Suspense>` may sit between the boundary and the owner, or a
+  // component under some *other* boundary would satisfy this.
+  expect(source).toMatch(
+    new RegExp(`<Suspense(?:(?!</?Suspense)[\\s\\S])*?<${owner}[\\s\\S]*?/>`),
+  );
+
+  // Matching `async` too matters: the search returns -1 the moment the page
+  // becomes async, and an unanchored slice would pass against the exact
+  // regression this guards.
+  const defaultExportIndex = source.search(
+    new RegExp(`export default (?:async )?function ${defaultExportName}\\b`),
+  );
+  expect(defaultExportIndex).toBeGreaterThan(-1);
+
+  const body = functionBodyAt(source, defaultExportIndex);
+  expect(body).toMatch(/return \(/);
+  expect(body).not.toMatch(/await connection\(\)/);
+};
+
 describe("donor shell contract: public static shell + dashboard gate ordering", () => {
   it("keeps the donor root layout free of a Suspense boundary", () => {
     const source = read("apps/donor/app/layout.tsx");
@@ -96,10 +187,17 @@ describe("donor shell contract: public static shell + dashboard gate ordering", 
       "apps/donor/app/(public)/(solid)/workers/[id]/page.tsx",
     );
 
-    // connection() opts the whole route out of prerendering, which drops the
-    // profile copy and its JSON-LD from the crawler-visible HTML.
-    expect(source).not.toMatch(/^\s*import\s+\{[^}]*\bconnection\b/m);
-    expect(source).not.toMatch(/await connection\(\)/);
+    // connection() in the page body opts the whole route out of prerendering,
+    // which drops the profile copy and its JSON-LD from the crawler-visible
+    // HTML. Inside a Suspense-isolated child it only defers that child, which
+    // is how the request-fresh giving widget stays out of the static shell.
+    expectConnectionIsolatedInSuspenseChild(source, "WorkerProfilePage");
+
+    // The JSON-LD is the crawler payload; it has to sit above every boundary.
+    const jsonLdIndex = source.indexOf("<WorkerJsonLd");
+    const firstSuspenseIndex = source.indexOf("<Suspense");
+    expect(jsonLdIndex).toBeGreaterThan(-1);
+    expect(firstSuspenseIndex).toBeGreaterThan(jsonLdIndex);
   });
 
   it("keeps the sign route's connection() inside its Suspense child", () => {
@@ -109,21 +207,7 @@ describe("donor shell contract: public static shell + dashboard gate ordering", 
 
     // connection() in the default export opts the whole route out of
     // prerendering; it only stays cheap while it is isolated in its own child.
-    expect(source).toMatch(
-      /const RequestTimeMetadataBoundary = async \(\) => \{\s*await connection\(\)/,
-    );
-    expect(source).toMatch(/<Suspense[\s\S]*?<RequestTimeMetadataBoundary \/>/);
-
-    // Matching `async` too matters: `indexOf("export default function Page")`
-    // returns -1 the moment the page becomes async, and slice(-1) would make
-    // the assertion below pass against the exact regression it guards.
-    const defaultExportIndex = source.search(
-      /export default (?:async )?function Page/,
-    );
-    expect(defaultExportIndex).toBeGreaterThan(-1);
-    expect(source.slice(defaultExportIndex)).not.toMatch(
-      /await connection\(\)/,
-    );
+    expectConnectionIsolatedInSuspenseChild(source, "Page");
   });
 
   it("keeps the home route's request read below a Suspense boundary", () => {
@@ -148,19 +232,34 @@ describe("donor shell contract: public static shell + dashboard gate ordering", 
     expect(source).toMatch(/DashboardShellSkeleton/);
   });
 
-  it("keeps the donor dashboard role gate ahead of any render", () => {
+  it("keeps the donor dashboard role gate in the layout", () => {
     const source = read(
       "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
     );
 
-    // The dashboard group boundary wraps this layout from above; the gate below
-    // is the app's only role enforcement, so it must still run before children.
+    // Defence in depth. It renders as a sibling of {children} so the dashboard
+    // still gets a static shell, which is only safe while the edge below is the
+    // primary gate — the two assertions have to move together.
     expect(source).toMatch(/hasAnyContextRole/);
     expect(source).toMatch(/redirect\("\/no-access"\)/);
+  });
 
-    const gateIndex = source.indexOf("hasAnyContextRole");
-    const renderIndex = source.indexOf("return (");
-    expect(gateIndex).toBeGreaterThan(-1);
-    expect(renderIndex).toBeGreaterThan(gateIndex);
+  it("keeps the edge as the primary role gate for the dashboard", () => {
+    const source = read("apps/donor/proxy.ts");
+
+    // A sibling gate redirects *after* children render, so a wrong-role visitor
+    // must never reach the app at all. Losing any one of these silently demotes
+    // the dashboard to the redirect-only gate above.
+    expect(source).toMatch(
+      /protectedRoutePrefixes:\s*\[[^\]]*"\/donor-dashboard"/,
+    );
+    expect(source).toMatch(/allowedRoles:\s*\[[^\]]*"donor"/);
+    expect(source).toMatch(/resolveUserRole:\s*resolveUserRoleFromDatabase/);
+
+    // publicRoutes is checked before authentication and returns early, so an
+    // entry here would cancel every check above it.
+    const publicRoutes = source.match(/publicRoutes:\s*\[([\s\S]*?)\]/)?.[1];
+    expect(publicRoutes).toBeTruthy();
+    expect(publicRoutes).not.toMatch(/"\/donor-dashboard"/);
   });
 });

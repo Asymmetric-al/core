@@ -11,6 +11,7 @@ import { ArrowLeft, Rss, Heart, MessageCircle, Share2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { GivingWidget } from "./giving-widget";
@@ -90,16 +91,7 @@ const PUBLIC_UPDATES = [
   },
 ];
 
-/**
- * Cached because `<SafeHtml>` sanitizes through isomorphic-dompurify, which
- * reads the clock. Under Cache Components a Server Component may not read the
- * current time before touching request data, and the whole point of this route
- * is that it touches none — so the sanitized markup is cached instead. The
- * input is a module constant, so the cache entry is stable.
- */
-async function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
-  "use cache";
-
+function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
   return (
     <article className="group relative pl-8 pb-12 last:pb-0">
       <div
@@ -212,7 +204,14 @@ function StoryContent({ worker }: { worker: { description: string } }) {
   );
 }
 
-function UpdatesContent({ workerTitle }: { workerTitle: string }) {
+/**
+ * Cached so the sanitized update HTML (DOMPurify reads `new Date()`
+ * internally) prerenders into the static shell; the demo updates are static
+ * content, so one cache entry per worker is correct.
+ */
+async function UpdatesContent({ workerTitle }: { workerTitle: string }) {
+  "use cache";
+
   return (
     <>
       <div className="flex items-center justify-between mb-8">
@@ -280,12 +279,48 @@ function GivingWidgetSkeleton() {
 }
 
 /**
- * No `await connection()` here on purpose: it forced every profile to render at
- * request time, and `getFieldWorkerById` is a synchronous in-memory lookup, so
- * the `generateStaticParams` profiles prerender with their JSON-LD.
+ * Giving progress must stay request-fresh, so the `connection()` read lives
+ * inside this Suspense-wrapped leaf instead of at the page top — the rest of
+ * the profile stays in the prerendered static shell for instant navigation.
+ */
+async function GivingWidgetSection({ id }: { id: string }) {
+  await connection();
+  const worker = getFieldWorkerById(id);
+
+  if (!worker) {
+    return null;
+  }
+
+  const percentRaised =
+    worker.goal !== null
+      ? Math.min(100, Math.round((worker.raised / worker.goal) * 100))
+      : null;
+
+  return (
+    <GivingWidget
+      missionaryId={worker.givingMissionaryId}
+      workerId={worker.id}
+      raised={worker.raised}
+      goal={worker.goal}
+      percentRaised={percentRaised}
+    />
+  );
+}
+
+/**
+ * Deliberately NOT `export const prefetch = 'allow-runtime'`.
  *
- * When worker data moves to Supabase, reach for `"use cache"` + `cacheTag`
- * (pattern: `packages/api/src/reads/dashboard-stats.ts`), not `connection()`.
+ * The profile is keyed by `params`, so it cannot ride in the App Shell — that
+ * payload is shared by every link to this route. It does not need to:
+ * `generateStaticParams` above prerenders each worker as its own static page,
+ * so the navigation pulls a static file rather than waiting on a render, and
+ * `instant()` only withholds per-request data. The instant-nav rig asserts
+ * exactly that (`tests/e2e/instant-navigation.spec.ts`, the worker-card test).
+ *
+ * `allow-runtime` would buy nothing here and cost one server render per visible
+ * card on the `/workers` grid. Revisit if workers ever outgrow
+ * `generateStaticParams` — at that point the content stops being static and the
+ * trade flips.
  */
 export default async function WorkerProfilePage({ params }: PageProps) {
   const { id } = await params;
@@ -294,11 +329,6 @@ export default async function WorkerProfilePage({ params }: PageProps) {
   if (!worker) {
     notFound();
   }
-
-  const percentRaised =
-    worker.goal !== null
-      ? Math.min(100, Math.round((worker.raised / worker.goal) * 100))
-      : null;
 
   return (
     <>
@@ -318,7 +348,10 @@ export default async function WorkerProfilePage({ params }: PageProps) {
         ]}
       />
 
-      <div className="min-h-screen bg-zinc-50 font-sans pt-16">
+      <div
+        className="min-h-screen bg-zinc-50 font-sans pt-16"
+        data-testid="worker-profile-route-shell"
+      >
         <div className="bg-white border-b border-zinc-100">
           <div className="container mx-auto px-4 h-12 flex items-center">
             <Link
@@ -348,13 +381,7 @@ export default async function WorkerProfilePage({ params }: PageProps) {
             >
               <div className="sticky top-24 space-y-6">
                 <Suspense fallback={<GivingWidgetSkeleton />}>
-                  <GivingWidget
-                    missionaryId={worker.givingMissionaryId}
-                    workerId={worker.id}
-                    raised={worker.raised}
-                    goal={worker.goal}
-                    percentRaised={percentRaised}
-                  />
+                  <GivingWidgetSection id={worker.id} />
                 </Suspense>
 
                 <div className="flex gap-4 justify-center">

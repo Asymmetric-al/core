@@ -18,17 +18,17 @@ This document provides a comprehensive overview of the codebase architecture for
 **Asymmetric.al** is a multi-tenant platform for mission-focused organizations built with:
 The "Give Hope" tenant name you may see in UI defaults is a demo/test frontend, not the organization.
 
-| Technology       | Purpose                                             |
-| ---------------- | --------------------------------------------------- |
-| Next.js 16.2.11  | Full-stack React framework (App Router + Turbopack) |
-| React 19         | UI library with Server Components                   |
-| TypeScript 6.0.3 | Type safety                                         |
-| Tailwind CSS 4   | Styling                                             |
-| shadcn/ui        | Component library                                   |
-| Supabase         | Database (PostgreSQL) + Auth + Storage              |
-| TanStack Query   | Server state management                             |
-| TanStack DB      | Client-side collections                             |
-| Stripe           | Payment processing                                  |
+| Technology               | Purpose                                             |
+| ------------------------ | --------------------------------------------------- |
+| Next.js 16.3.0-preview.9 | Full-stack React framework (App Router + Turbopack) |
+| React 19                 | UI library with Server Components                   |
+| TypeScript 6.0.3         | Type safety                                         |
+| Tailwind CSS 4           | Styling                                             |
+| shadcn/ui                | Component library                                   |
+| Supabase                 | Database (PostgreSQL) + Auth + Storage              |
+| TanStack Query           | Server state management                             |
+| TanStack DB              | Client-side collections                             |
+| Stripe                   | Payment processing                                  |
 
 ### Application Sections
 

@@ -34,9 +34,17 @@ function toErrorMessage(error: QueryError, fallback: string): string {
   return error?.message || fallback;
 }
 
-function applyCacheMetadata(tags: string[]): void {
+function applyCacheLife(): void {
   try {
     cacheLife("minutes");
+  } catch {
+    // Unit tests execute outside Next's Cache Components runtime.
+  }
+}
+
+function applyCacheMetadata(tags: string[]): void {
+  applyCacheLife();
+  try {
     for (const tag of tags) {
       cacheTag(tag);
     }
@@ -128,9 +136,13 @@ export async function resolveDonorId(
   "use cache";
 
   if (!profileId) {
+    // The early return is still a cache entry, but there is no profile-specific
+    // value available for tags. Set its lifetime directly in this branch.
+    applyCacheLife();
     return null;
   }
 
+  // `applyCacheMetadata` owns the single cacheLife call for this branch.
   applyCacheMetadata([
     READ_CACHE_TAGS.donorProfile,
     READ_CACHE_TAGS.tenant(tenantId),

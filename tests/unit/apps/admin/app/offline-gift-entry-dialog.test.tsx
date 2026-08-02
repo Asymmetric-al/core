@@ -9,7 +9,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { OfflineGiftEntryDialog } from "../../../../../apps/admin/app/contributions/offline-gift/offline-gift-entry-dialog";
+import { OfflineGiftEntryDialog } from "../../../../../apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog";
 
 /**
  * TDD — offline gift entry dialog (Contributions Hub UI). Verifies the form

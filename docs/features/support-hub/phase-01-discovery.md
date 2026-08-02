@@ -86,7 +86,7 @@ MotionProvider → Suspense → NuqsAdapter → MCShell`.
 
 ### 2.2 Existing `/support` page
 
-- `apps/admin/app/support/page.tsx` is a static placeholder built from
+- `apps/admin/app/(app)/support/page.tsx` is a static placeholder built from
   `PageShell`, `Card`, and motion tiles. It will be **replaced** in a later
   phase with the real inbox; this phase only documents the replacement.
 
@@ -166,7 +166,7 @@ Inbound retrieval helpers exist:
   filter/search forms can be native or `next/form`, no Zustand.
 - `apps/admin/next.config.ts` enables `cacheComponents: true` and
   `reactCompiler.compilationMode = "annotation"`. Keep
-  `apps/admin/app/support/page.tsx` as a Server Component wrapper and mount
+  `apps/admin/app/(app)/support/page.tsx` as a Server Component wrapper and mount
   an interactive `SupportInbox` client surface beneath it. Server reads in
   `packages/api` must remain request-scoped.
 
@@ -235,7 +235,7 @@ See [`file-map.md`](./file-map.md). Summary:
 
 - `apps/admin/features/support-hub/*` for client feature code (mirrors
   `apps/admin/features/mission-control/care/*`).
-- `apps/admin/app/support/page.tsx` becomes the inbox shell wrapper.
+- `apps/admin/app/(app)/support/page.tsx` becomes the inbox shell wrapper.
 - `apps/admin/app/api/admin/support/**` for thin route handlers.
 - `packages/api/src/admin/support-hub/*` for all business logic.
 - `packages/database/hooks/support-hub.ts` for typed query/mutation hooks.
@@ -418,7 +418,7 @@ table below.
 | Conflict           | Resolution                                                                                                                                                                                                                                                                                |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Shell ownership    | Keep `MCShell`. Inbox renders inside `<PageShell>`. No alternative shell.                                                                                                                                                                                                                 |
-| Shared tokens      | No new tokens. Map donor's sky/amber/emerald/rose status colors to our existing dot-and-badge pattern (see `apps/admin/app/contributions/main-body.tsx` for the precedent).                                                                                                               |
+| Shared tokens      | No new tokens. Map donor's sky/amber/emerald/rose status colors to our existing dot-and-badge pattern (see `apps/admin/app/(app)/contributions/main-body.tsx` for the precedent).                                                                                                         |
 | Forced light theme | `MCShell` forces light. Drop all `dark:*` classes from any code we adapt from the donor.                                                                                                                                                                                                  |
 | TipTap reuse       | Use `@asym/ui/components/shadcn/rich-text-editor` for replies and notes. Do **not** repeat the legacy `Textarea` placeholder pattern in `apps/admin/features/mission-control/care/components/RichTextEditor.tsx`.                                                                         |
 | TanStack stack     | TanStack Query 5 + Table 8 + Virtual 3 + `nuqs` 2 + the repo's mutation/realtime hooks. No TanStack DB collections in MVP.                                                                                                                                                                |
@@ -484,9 +484,9 @@ table below.
      `SnoozeMenu.tsx`, `ContactSidecar.tsx`.
    - `hooks/use-support-inbox-state.ts` (nuqs-backed search-param state).
 7. **Page wiring**
-   - `apps/admin/app/support/page.tsx` becomes a thin shell:
+   - `apps/admin/app/(app)/support/page.tsx` becomes a thin shell:
      `<PageShell><SupportInbox /></PageShell>`.
-   - `apps/admin/app/support/loading.tsx` shows the inbox skeleton.
+   - `apps/admin/app/(app)/support/loading.tsx` shows the inbox skeleton.
 8. **Tests**
    - Vitest: inbound router (threading), reads/mutations (auth gates,
      happy path, RLS smoke).

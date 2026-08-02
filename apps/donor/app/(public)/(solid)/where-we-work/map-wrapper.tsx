@@ -581,6 +581,11 @@ function DetailDialog({
               <>
                 <Link
                   href={`/workers/${location.linked_id}`}
+                  // Matches the directory's links: the shared /workers/[id] App
+                  // Shell carries no per-worker content, so only a full prefetch
+                  // pulls that worker's prerendered page. One dialog is open at a
+                  // time, so this costs a single prefetch.
+                  prefetch={true}
                   className="flex-1"
                 >
                   <Button className="w-full h-11 rounded-xl font-semibold gap-2">
@@ -693,6 +698,8 @@ function MobileDetailSheet({
               <>
                 <Link
                   href={`/workers/${location.linked_id}`}
+                  // See the desktop dialog above: one sheet is open at a time.
+                  prefetch={true}
                   className="flex-1"
                 >
                   <Button className="w-full h-12 rounded-xl font-semibold gap-2">

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -10,6 +13,60 @@ import {
 } from "../../../scripts/verify/ci-build.mjs";
 
 describe("ci-build command planning", () => {
+  it("keeps the workspace-link repair wired into CI and postinstall", () => {
+    // CI correctness depends on these two call sites, but neither is reachable
+    // from a unit test - only the repair script's own tests exercise the logic.
+    // Without this contract, deleting either call passes the whole suite.
+    const ciBuildSource = readFileSync(
+      path.resolve("scripts/verify/ci-build.mjs"),
+      "utf8",
+    );
+    const packageJson = JSON.parse(
+      readFileSync(path.resolve("package.json"), "utf8"),
+    );
+
+    expect(ciBuildSource).toContain("repairWorkspaceLinks(REPO_ROOT)");
+    // Once at entry, and again inside the per-app loop: a turbo cache hit
+    // during an earlier app's build can re-hollow a junction mid-pipeline.
+    expect(
+      ciBuildSource.split("repairAndLogWorkspaceLinks()").length - 1,
+    ).toBeGreaterThanOrEqual(2);
+    expect(packageJson.scripts.postinstall).toContain(
+      "node scripts/repair-workspace-links.mjs",
+    );
+  });
+
+  it("routes app package build scripts through ci-build link repair", () => {
+    const packageJson = JSON.parse(
+      readFileSync(path.resolve("package.json"), "utf8"),
+    );
+
+    expect(packageJson.scripts["build:strict"]).toBe(
+      "node scripts/verify/ci-build.mjs --strict",
+    );
+    expect(packageJson.scripts["build:admin"]).toBe(
+      "node scripts/verify/ci-build.mjs --app admin",
+    );
+    // The `:strict` variants must forward `--strict` so ci-build skips the CI
+    // env defaults; without it they are indistinguishable from the plain
+    // scripts and the distinction is silently lost.
+    expect(packageJson.scripts["build:admin:strict"]).toBe(
+      "node scripts/verify/ci-build.mjs --app admin --strict",
+    );
+    expect(packageJson.scripts["build:donor"]).toBe(
+      "node scripts/verify/ci-build.mjs --app donor",
+    );
+    expect(packageJson.scripts["build:donor:strict"]).toBe(
+      "node scripts/verify/ci-build.mjs --app donor --strict",
+    );
+    expect(packageJson.scripts["build:missionary"]).toBe(
+      "node scripts/verify/ci-build.mjs --app missionary",
+    );
+    expect(packageJson.scripts["build:missionary:strict"]).toBe(
+      "node scripts/verify/ci-build.mjs --app missionary --strict",
+    );
+  });
+
   it("uses the first available Windows Turbo binary candidate", () => {
     // resolveTurboBin builds paths with the OS-native separator, so on Windows
     // `result` and the mocked candidates use "\\". Normalize to forward slashes
@@ -81,9 +138,32 @@ describe("ci-build command planning", () => {
           "node_modules/.bin/turbo",
           "run",
           "build",
-          "--filter=!@asym/admin",
-          "--filter=!@asym/donor",
-          "--filter=!@asym/missionary-app",
+          "--filter=@asym/admin^...",
+          "--filter=@asym/donor^...",
+          "--filter=@asym/missionary-app^...",
+          "--concurrency=1",
+        ],
+      },
+    ]);
+  });
+
+  it("keeps strict builds off CI env defaults while using ci-build repair", () => {
+    expect(
+      getSharedPackageBuildSteps({
+        platform: "linux",
+        strict: true,
+        turboBin: "node_modules/.bin/turbo",
+      }),
+    ).toEqual([
+      {
+        label: "shared packages",
+        command: "node_modules/.bin/turbo",
+        args: [
+          "run",
+          "build",
+          "--filter=@asym/admin^...",
+          "--filter=@asym/donor^...",
+          "--filter=@asym/missionary-app^...",
           "--concurrency=1",
         ],
       },

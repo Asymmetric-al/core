@@ -101,7 +101,7 @@ The implementation is not production-complete until Phase 07 evidence exists. Th
 
 - Status: Verified.
 - Evidence:
-  - `apps/admin/app/crm/notes/`
+  - `apps/admin/app/(app)/crm/notes/`
   - `apps/admin/app/api/admin/crm/notes/`
   - `packages/api/src/admin/crm/notes/`
   - `tests/unit/packages/api/crm-notes.test.ts`
@@ -114,7 +114,7 @@ The implementation is not production-complete until Phase 07 evidence exists. Th
 
 - Status: Verified.
 - Evidence:
-  - `apps/admin/app/crm/relationships/`
+  - `apps/admin/app/(app)/crm/relationships/`
   - `apps/admin/app/api/admin/crm/relationships/`
   - `packages/api/src/admin/crm/relationships/`
   - `tests/unit/packages/api/crm-relationships.test.ts`
@@ -127,7 +127,7 @@ The implementation is not production-complete until Phase 07 evidence exists. Th
 
 - Status: Verified for no-env runtime and database shape.
 - Evidence:
-  - `apps/admin/app/crm/projections/`
+  - `apps/admin/app/(app)/crm/projections/`
   - `apps/admin/app/api/admin/crm/projections/`
   - `packages/api/src/admin/crm/projections/`
   - `packages/database/types/database.ts`

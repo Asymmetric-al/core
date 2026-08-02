@@ -14,11 +14,20 @@ const WORKSPACE_ROOT = resolveMonorepoRoot(import.meta.url);
 loadEnvConfig(WORKSPACE_ROOT);
 normalizeEveVercelEnvironment(process.env);
 
-const nextConfig: NextConfig = {
+/**
+ * The two flags Instant Navigation needs are pinned in the type, not just set
+ * in the literal: dropping either one, or flipping it to false, then fails
+ * this app's typecheck instead of silently un-instanting every route.
+ */
+export const nextConfig: NextConfig & {
+  cacheComponents: true;
+  partialPrefetching: true;
+} = {
   reactStrictMode: true,
   /** Dev HMR when opening the app via `http://127.0.0.1:3030` instead of `localhost`. */
   allowedDevOrigins: ["127.0.0.1"],
   cacheComponents: true,
+  partialPrefetching: true,
   async redirects() {
     return [
       { source: "/mc", destination: "/", permanent: false },
@@ -55,6 +64,10 @@ const nextConfig: NextConfig = {
     globalNotFound: true,
     viewTransition: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],
+    /** Instant-navigation e2e rig only (see instant-nav.rig.md); preview deploys only. */
+    exposeTestingApiInProductionBuild:
+      process.env.EXPOSE_TESTING_API === "1" &&
+      process.env.VERCEL_ENV === "preview",
   },
   images: {
     remotePatterns: [

@@ -45,10 +45,10 @@ Overall: **Partially aligned** with Next.js/React best practices.
 Evidence:
 
 - Many App Router pages start with `'use client'`, e.g.:
-  - `apps/admin/app/admin/page.tsx`
-  - `apps/admin/app/contributions/page.tsx`
+  - `apps/admin/app/(app)/admin/page.tsx`
+  - `apps/admin/app/(app)/contributions/page.tsx`
   - `apps/missionary/app/tasks/page.tsx`
-  - `apps/admin/app/pdf/page.tsx`
+  - `apps/admin/app/(app)/pdf/page.tsx`
 
 Why this matters:
 

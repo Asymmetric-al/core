@@ -302,7 +302,9 @@ describe("Eve retention controls", () => {
       .mockResolvedValueOnce({
         data: { auditRecords: 2, runSummaries: 1 },
         error: null,
-      });
+      })
+      .mockResolvedValueOnce({ data: 3, error: null })
+      .mockResolvedValueOnce({ data: 4, error: null });
     const remove = vi
       .fn()
       .mockResolvedValueOnce({ error: null })
@@ -318,7 +320,12 @@ describe("Eve retention controls", () => {
           storage: { from: () => ({ remove }) },
         } as unknown as AdminSupabaseClient,
       }),
-    ).resolves.toMatchObject({ claimedArtifacts: 2, expiredArtifacts: 1 });
+    ).resolves.toMatchObject({
+      claimedArtifacts: 2,
+      expiredArtifacts: 1,
+      notificationRecords: 3,
+      launchManifests: 4,
+    });
     expect(rpc).toHaveBeenNthCalledWith(
       5,
       "finalize_eve_replay_artifact_expiry",
@@ -331,6 +338,12 @@ describe("Eve retention controls", () => {
       "release_eve_replay_artifact_deletion",
       { p_id: "b" },
     );
+    expect(rpc).toHaveBeenNthCalledWith(7, "expire_eve_notification_records", {
+      p_limit: 100,
+    });
+    expect(rpc).toHaveBeenNthCalledWith(8, "expire_eve_launch_manifests", {
+      p_limit: 100,
+    });
   });
 
   it("skips storage deletion when a hold wins after the initial claim", async () => {
@@ -350,7 +363,9 @@ describe("Eve retention controls", () => {
       .mockResolvedValueOnce({
         data: { auditRecords: 0, runSummaries: 0 },
         error: null,
-      });
+      })
+      .mockResolvedValueOnce({ data: 0, error: null })
+      .mockResolvedValueOnce({ data: 0, error: null });
     const remove = vi.fn();
     const { runEveRetentionExpiry } =
       await import("../../../../packages/api/src/eve/retention/control");

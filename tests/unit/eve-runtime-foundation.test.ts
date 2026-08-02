@@ -110,6 +110,9 @@ describe("Eve runtime foundation", () => {
       "utf8",
     );
     const toolFiles = await readdir(path.join(runtimeRoot, "agent/tools"));
+    const scheduleFiles = await readdir(
+      path.join(runtimeRoot, "agent/schedules"),
+    );
 
     expect(docs).toContain("Installed Eve 0.25.1 review");
     expect(toolFiles.sort()).toEqual(
@@ -117,12 +120,21 @@ describe("Eve runtime foundation", () => {
         "agent.ts",
         "ask_question.ts",
         "bash.ts",
+        "github_operator.ts",
+        "github_strict_auto_merge.ts",
         "todo.ts",
         "web_fetch.ts",
         "web_search.ts",
+        "workflow.ts",
+        "workflow_guard.ts",
         "write_file.ts",
       ].sort(),
     );
+    expect(scheduleFiles.sort()).toEqual([
+      "engineering-health.ts",
+      "launch-canary-watchdog.ts",
+      "operator-notifications.ts",
+    ]);
 
     const bash = await readFile(
       path.join(runtimeRoot, "agent/tools/bash.ts"),
@@ -130,6 +142,14 @@ describe("Eve runtime foundation", () => {
     );
     const writeFile = await readFile(
       path.join(runtimeRoot, "agent/tools/write_file.ts"),
+      "utf8",
+    );
+    const githubOperator = await readFile(
+      path.join(runtimeRoot, "agent/tools/github_operator.ts"),
+      "utf8",
+    );
+    const strictAutoMerge = await readFile(
+      path.join(runtimeRoot, "agent/tools/github_strict_auto_merge.ts"),
       "utf8",
     );
 
@@ -140,6 +160,33 @@ describe("Eve runtime foundation", () => {
     expect(bash).toMatch(/recordEveSandboxAction\(/u);
     expect(writeFile).toMatch(/scanEveSandboxWrite\(/u);
     expect(writeFile).toMatch(/recordEveSandboxAction\(/u);
+    expect(githubOperator).toMatch(/defineDynamic\(/u);
+    expect(githubOperator).toMatch(/scanEveSandboxPath\(/u);
+    expect(strictAutoMerge).toMatch(/defineDynamic\(/u);
+    // expectedHeadSha is a property name rather than a call, so the substring
+    // check is the right assertion for it.
+    expect(strictAutoMerge).toContain("expectedHeadSha");
+
+    const engineeringHealthSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/engineering-health.ts"),
+      "utf8",
+    );
+    expect(engineeringHealthSchedule).toContain('cron: "*/5 * * * *"');
+    expect(engineeringHealthSchedule).toContain(
+      "runEveEngineeringMonitorSweep",
+    );
+    const notificationSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/operator-notifications.ts"),
+      "utf8",
+    );
+    expect(notificationSchedule).toContain('cron: "* * * * *"');
+    expect(notificationSchedule).toContain("runEveNotificationSweep");
+    const launchWatchdogSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/launch-canary-watchdog.ts"),
+      "utf8",
+    );
+    expect(launchWatchdogSchedule).toContain('cron: "* * * * *"');
+    expect(launchWatchdogSchedule).toContain("runEveLaunchCanaryWatchdog");
   });
 
   it("keeps the runtime off when persisted release is disabled", () => {

@@ -8,7 +8,7 @@ import {
   hubSharedFilterColumnVisibility,
   matchesHubPaymentStatusSelection,
   matchesHubSharedFilterSelection,
-} from "../../../../../apps/admin/app/contributions/shared-filters";
+} from "../../../../../apps/admin/app/(app)/contributions/shared-filters";
 import {
   matchesSharedContributionFilter,
   SHARED_CONTRIBUTION_FILTERS,
@@ -17,7 +17,7 @@ import {
   SHARED_REFUND_STATE_LABELS,
 } from "../../../../../packages/api/src/admin/contribution-shared";
 
-import type { Contribution } from "../../../../../apps/admin/app/contributions/types";
+import type { Contribution } from "../../../../../apps/admin/app/(app)/contributions/types";
 
 function makeContribution(
   sharedOverrides: Partial<Contribution["shared"]> = {},
@@ -99,7 +99,7 @@ function makeContribution(
   };
 }
 
-describe("apps/admin/app/contributions/shared-filters", () => {
+describe("apps/admin/app/(app)/contributions/shared-filters", () => {
   it("builds one chip per shared filter id, in registry order, except payment_status (Status chip) and the deferred designation_issue", () => {
     const expectedIds = SHARED_CONTRIBUTION_FILTERS.map(
       (definition) => definition.id,

@@ -133,7 +133,7 @@ Use this map when extending behavior:
   - `apps/admin/app/api/email/templates/**/route.ts`
   - `apps/admin/app/api/email/assets/upload/route.ts`
   - `apps/admin/app/api/email/webhooks/resend/route.ts`
-  - `apps/admin/app/settings/integrations/resend/page.tsx`
+  - `apps/admin/app/(app)/settings/integrations/resend/page.tsx`
 - Persistence/schema/types:
   - `supabase/schema.sql`
   - `supabase/migrations/20260402090000_resend_email_foundation_backfill.sql`

@@ -4,9 +4,9 @@ import {
   connectResendSchema,
   testResendEmailSchema,
   toResendConnectPayload,
-} from "../../../../../../../../apps/admin/app/settings/integrations/resend/resend-form-schema";
+} from "../../../../../../../../apps/admin/app/(app)/settings/integrations/resend/resend-form-schema";
 
-describe("apps/admin/app/settings/integrations/resend/resend-form-schema", () => {
+describe("apps/admin/app/(app)/settings/integrations/resend/resend-form-schema", () => {
   it("accepts valid Resend connection values", () => {
     const parsed = connectResendSchema.parse({
       apiKey: "re_123456789",

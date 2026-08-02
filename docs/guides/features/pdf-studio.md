@@ -37,7 +37,7 @@ PDF Studio provides a visual document builder using Unlayer's `displayMode: 'doc
 | Feature                        | Status   | Location                                                         |
 | ------------------------------ | -------- | ---------------------------------------------------------------- |
 | Legacy Unlayer Document Editor | Complete | `packages/ui/components/studio/legacy/UnlayerDocumentEditor.tsx` |
-| PDF Studio Page                | Complete | `apps/admin/app/pdf/page-client.tsx`                             |
+| PDF Studio Page                | Complete | `apps/admin/app/(app)/pdf/page-client.tsx`                       |
 | Configuration System           | Complete | `packages/config/pdf-studio.ts`                                  |
 | Type Definitions               | Complete | `apps/admin/lib/pdf-studio.ts`                                   |
 | Setup Status Component         | Complete | `packages/ui/components/studio/PDFStudioSetupStatus.tsx`         |
@@ -46,7 +46,7 @@ PDF Studio provides a visual document builder using Unlayer's `displayMode: 'doc
 | Template Save (API)            | Complete | `apps/admin/app/api/pdf-templates/**` thin routes                |
 | Template CRUD                  | Complete | `@asym/api/pdf-templates` with tenant-scoped storage             |
 | Database Storage               | Complete | `pdf_templates` table in Supabase                                |
-| Native Builder (flagged)       | Complete | `apps/admin/app/pdf/page-client.tsx`                             |
+| Native Builder (flagged)       | Complete | `apps/admin/app/(app)/pdf/page-client.tsx`                       |
 | Native Adapter Routes          | Complete | `apps/admin/app/api/pdf-templates/native/**`                     |
 | Native Server Adapter          | Complete | `@asym/api/pdf-templates/native-adapter`                         |
 | Native Storage Migration       | Added    | `20260515140948_native_pdf_studio_foundation.sql`                |

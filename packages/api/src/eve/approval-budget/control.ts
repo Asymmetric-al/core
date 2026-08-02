@@ -1,18 +1,30 @@
 import { ApiHttpError } from "../../shared/api-http-error";
-import { createAdminEveAuditIdentity } from "../audit/identity";
+import {
+  createAdminEveAuditIdentity,
+  type EveVerifiedAuditIdentity,
+} from "../audit";
 
 import type {
   EveBudgetScopeType,
   EvePolicyActionId,
   EvePolicyConsultResult,
 } from "./types";
+import type { EveSessionIdentity } from "../session-ownership/types";
 import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 function identityParams(auth: AuthenticatedContext) {
-  const identity = createAdminEveAuditIdentity(auth, {
-    tenantId: auth.tenantId,
-  });
+  return verifiedIdentityParams(
+    createAdminEveAuditIdentity(auth, { tenantId: auth.tenantId }),
+  );
+}
+
+function verifiedIdentityParams(identity: EveVerifiedAuditIdentity) {
+  if (!identity.actorProfileId || !identity.tenantId) {
+    throw new Error(
+      "Eve policy consultation requires a tenant-linked actor profile.",
+    );
+  }
   return {
     p_actor_id: identity.actorId,
     p_actor_profile_id: identity.actorProfileId,
@@ -39,13 +51,59 @@ function mapError(error: { message: string } | null): never {
     throw new ApiHttpError(400, "The approval or budget request is invalid.");
   if (message.includes("actor_tenant_mismatch"))
     throw new ApiHttpError(403, "Actor ownership could not be verified.");
+  if (message.includes("runtime_session_identity_mismatch"))
+    throw new ApiHttpError(
+      403,
+      "Runtime session ownership could not be verified.",
+    );
   throw new Error(message);
+}
+
+export async function executeEveRuntimePolicyConsult(input: {
+  actionId: EvePolicyActionId;
+  identity: EveSessionIdentity;
+  sessionId: string;
+  supabaseAdmin: AdminSupabaseClient;
+  targetKey: string;
+}): Promise<EvePolicyConsultResult> {
+  const { data, error } = await input.supabaseAdmin.rpc(
+    "consult_eve_runtime_budget_policy",
+    {
+      p_action_id: input.actionId,
+      p_target_key: input.targetKey,
+      p_decision_id: crypto.randomUUID(),
+      p_audit_id: crypto.randomUUID(),
+      p_session_id: input.sessionId,
+      p_actor_id: input.identity.actorId,
+      p_tenant_id: input.identity.tenantId,
+    },
+  );
+  if (error || !data) return mapError(error);
+  return data as unknown as EvePolicyConsultResult;
 }
 
 export async function executeEvePolicyTracer(input: {
   actionId: EvePolicyActionId;
   approvalId?: string;
   auth: AuthenticatedContext;
+  supabaseAdmin: AdminSupabaseClient;
+  targetKey: string;
+}): Promise<EvePolicyConsultResult> {
+  return executeEvePolicyTracerAsIdentity({
+    actionId: input.actionId,
+    approvalId: input.approvalId,
+    identity: createAdminEveAuditIdentity(input.auth, {
+      tenantId: input.auth.tenantId,
+    }),
+    supabaseAdmin: input.supabaseAdmin,
+    targetKey: input.targetKey,
+  });
+}
+
+export async function executeEvePolicyTracerAsIdentity(input: {
+  actionId: EvePolicyActionId;
+  approvalId?: string;
+  identity: EveVerifiedAuditIdentity;
   supabaseAdmin: AdminSupabaseClient;
   targetKey: string;
 }): Promise<EvePolicyConsultResult> {
@@ -57,7 +115,7 @@ export async function executeEvePolicyTracer(input: {
       p_approval_id: input.approvalId ?? null,
       p_decision_id: crypto.randomUUID(),
       p_audit_id: crypto.randomUUID(),
-      ...identityParams(input.auth),
+      ...verifiedIdentityParams(input.identity),
     },
   );
   if (error || !data) return mapError(error);

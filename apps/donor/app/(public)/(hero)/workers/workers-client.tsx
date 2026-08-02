@@ -54,6 +54,14 @@ function WorkerCard({
       <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-zinc-900 shadow-xl shadow-zinc-200/50 ring-1 ring-black/5 transition-[box-shadow,transform] duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-2xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-zinc-300/60 [@media(hover:hover)_and_(pointer:fine)]:group-hover:-translate-y-1 [@media(hover:hover)_and_(pointer:fine)]:group-hover:ring-emerald-500/20">
         <Link
           href={`/workers/${worker.id}`}
+          // The App Shell is shared across every link to /workers/[id], so it
+          // cannot carry per-worker content. That content is still instant
+          // because `generateStaticParams` prerenders each worker as its own
+          // static page — the click pulls a static file, not a server render,
+          // which is why the route deliberately skips `prefetch =
+          // 'allow-runtime'` (one server render per visible card, for content
+          // that is already static). Giving progress streams in after.
+          prefetch={true}
           className="absolute inset-0 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-2xl"
           aria-label={`View ${worker.title}'s profile`}
         >
@@ -92,6 +100,10 @@ function WorkerCard({
           <h2 className="text-xl sm:text-2xl font-semibold text-white leading-tight mb-4">
             <Link
               href={`/workers/${worker.id}`}
+              // Same target as the card link above, so it must prefetch the same
+              // way — siblings that disagree leave this one committing a shell
+              // with no worker content.
+              prefetch={true}
               className="group/name inline-flex items-center gap-2 cursor-pointer hover:text-emerald-300 transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-sm"
             >
               <SharedNamedViewTransition
