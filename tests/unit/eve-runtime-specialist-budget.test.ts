@@ -5,6 +5,7 @@ import {
   createEveSpecialistBudgetState,
   failEveSpecialistModelStep,
   reserveEveSpecialistModelStep,
+  reserveEveSpecialistModelStepInState,
   resolveEveSpecialistBudgetLimits,
 } from "../../packages/eve-runtime/agent/lib/specialist-budget";
 
@@ -131,5 +132,32 @@ describe("Eve specialist model budget", () => {
       maxRequestsPerMinute: 4,
       maxUsdMicros: 750_000,
     });
+  });
+
+  it("reserves against the live state instead of overwriting concurrent usage", () => {
+    const concurrent = reserveEveSpecialistModelStep({
+      limits,
+      nowMs: 10,
+      state: createEveSpecialistBudgetState(),
+      stepKey: "turn:concurrent",
+    });
+    if (!concurrent.allowed)
+      throw new Error("Expected concurrent reservation.");
+    let liveState = concurrent.state;
+
+    const allowed = reserveEveSpecialistModelStepInState({
+      limits,
+      nowMs: 11,
+      state: {
+        update(updater) {
+          liveState = updater(liveState);
+        },
+      },
+      stepKey: "turn:stale-caller",
+    });
+
+    expect(allowed).toBe(false);
+    expect(liveState.pendingStepKeys).toEqual(["turn:concurrent"]);
+    expect(liveState.requestStartedAtMs).toEqual([10]);
   });
 });

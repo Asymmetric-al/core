@@ -3,7 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import { preflightEveGithubReview } from "../../packages/eve-runtime/src/github/review-preflight";
 
 function githubWithFiles(
-  files: Array<{ filename?: unknown; patch?: unknown; status?: unknown }>,
+  files: Array<{
+    filename?: unknown;
+    patch?: unknown;
+    previous_filename?: unknown;
+    status?: unknown;
+  }>,
 ) {
   return {
     request: vi.fn(async () => ({ body: files })),
@@ -51,6 +56,45 @@ describe("Eve GitHub review preflight", () => {
         filename: "packages/ui/legacy-config.ts",
         patch: "-SUPABASE_SERVICE_ROLE_KEY=not-a-real-key",
         status: "removed",
+      },
+    ]);
+
+    await expect(
+      preflightEveGithubReview({
+        github,
+        owner: "Asymmetric-al",
+        pullRequestNumber: 864,
+        repo: "core",
+      }),
+    ).resolves.toBe(false);
+  });
+
+  it("blocks renamed files whose previous path is sensitive", async () => {
+    const github = githubWithFiles([
+      {
+        filename: "docs/example.env",
+        patch: "+SAFE=x",
+        previous_filename: ".env.production",
+        status: "renamed",
+      },
+    ]);
+
+    await expect(
+      preflightEveGithubReview({
+        github,
+        owner: "Asymmetric-al",
+        pullRequestNumber: 864,
+        repo: "core",
+      }),
+    ).resolves.toBe(false);
+  });
+
+  it("fails closed when a renamed file omits its previous path", async () => {
+    const github = githubWithFiles([
+      {
+        filename: "docs/example.env",
+        patch: "+SAFE=x",
+        status: "renamed",
       },
     ]);
 

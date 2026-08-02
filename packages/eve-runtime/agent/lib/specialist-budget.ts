@@ -130,6 +130,34 @@ export function reserveEveSpecialistModelStep(input: {
   };
 }
 
+/**
+ * Reserves against the state handle's live value so an async policy lookup
+ * cannot overwrite usage recorded while that lookup was in flight.
+ */
+export function reserveEveSpecialistModelStepInState(input: {
+  limits: EveSpecialistBudget;
+  nowMs: number;
+  state: {
+    update(
+      updater: (state: EveSpecialistBudgetState) => EveSpecialistBudgetState,
+    ): void;
+  };
+  stepKey: string;
+}): boolean {
+  let allowed = false;
+  input.state.update((state) => {
+    const reservation = reserveEveSpecialistModelStep({
+      limits: input.limits,
+      nowMs: input.nowMs,
+      state,
+      stepKey: input.stepKey,
+    });
+    allowed = reservation.allowed;
+    return reservation.allowed ? reservation.state : state;
+  });
+  return allowed;
+}
+
 interface EveSpecialistStepUsage {
   readonly costUsd?: number;
   readonly inputTokens?: number;

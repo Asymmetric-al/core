@@ -9,6 +9,7 @@ const MAX_FILE_PAGES = 30;
 interface EveGithubReviewFile {
   filename?: unknown;
   patch?: unknown;
+  previous_filename?: unknown;
   status?: unknown;
 }
 
@@ -26,8 +27,22 @@ function changedFileIsSafe(file: EveGithubReviewFile): boolean {
   }
 
   if (typeof file.patch !== "string") return false;
-  return !hasBlockingSandboxFinding(
-    scanEveSandboxWrite({ content: file.patch, path: file.filename }),
+  const paths = [file.filename];
+  if (file.status === "renamed") {
+    if (
+      typeof file.previous_filename !== "string" ||
+      file.previous_filename.length === 0
+    ) {
+      return false;
+    }
+    paths.push(file.previous_filename);
+  }
+
+  return paths.every(
+    (path) =>
+      !hasBlockingSandboxFinding(
+        scanEveSandboxWrite({ content: file.patch as string, path }),
+      ),
   );
 }
 

@@ -27,9 +27,11 @@ export function evaluateEveDynamicWorkflowControl(input: {
     return { allowed: false, reason: "governance_blocked" };
   }
   const activeRuns = evaluateEveGovernance(input.currentGovernance, {
+    approvalGranted: input.approvalGranted,
     domain: "active_runs",
   });
   const dynamicWorkflows = evaluateEveGovernance(input.currentGovernance, {
+    approvalGranted: input.approvalGranted,
     domain: "dynamic_workflows",
   });
   if (!activeRuns.allowed || !dynamicWorkflows.allowed) {

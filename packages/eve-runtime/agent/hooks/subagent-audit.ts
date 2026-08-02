@@ -179,10 +179,7 @@ export default defineHook({
             "Workflow requires a current app-owned workflow ticket.",
           );
         }
-        if (
-          action.kind === "subagent-call" &&
-          ["prepared", "running", "paused"].includes(current.status)
-        ) {
+        if (action.kind === "subagent-call") {
           if (current.status === "paused") {
             throw new Error("Dynamic workflow is paused pending human review.");
           }

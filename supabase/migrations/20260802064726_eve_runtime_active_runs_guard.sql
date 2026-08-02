@@ -131,13 +131,14 @@ BEGIN
             * budget_row.window_seconds
         );
         INSERT INTO public.eve_budget_usage_windows (
-            budget_id, window_started_at
+            tenant_id, budget_id, window_started_at
         ) VALUES (
-            budget_row.id, window_start
-        ) ON CONFLICT (budget_id, window_started_at) DO NOTHING;
+            p_tenant_id, budget_row.id, window_start
+        ) ON CONFLICT (tenant_id, budget_id, window_started_at) DO NOTHING;
         SELECT * INTO usage_row
         FROM public.eve_budget_usage_windows
-        WHERE budget_id = budget_row.id
+        WHERE tenant_id = p_tenant_id
+          AND budget_id = budget_row.id
           AND window_started_at = window_start
         FOR UPDATE;
 
@@ -180,7 +181,8 @@ BEGIN
             used_input_tokens = used_input_tokens + action_row.input_token_cost,
             used_output_tokens = used_output_tokens + action_row.output_token_cost,
             updated_at = NOW()
-        WHERE id = usage_row.id;
+        WHERE tenant_id = p_tenant_id
+          AND id = usage_row.id;
     END IF;
 
     INSERT INTO public.eve_policy_decisions (

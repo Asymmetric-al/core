@@ -46,6 +46,10 @@ describe("Eve dynamic workflow runtime", () => {
       hook.indexOf('"subagent.called"'),
     );
     expect(requested).toContain("await runtimeBoundary");
+    expect(requested).toContain('action.kind === "subagent-call"');
+    expect(requested).not.toContain(
+      'action.kind === "subagent-call" &&\n          ["prepared", "running", "paused"].includes(current.status)',
+    );
     expect(hook).toContain("dispatchEveDynamicWorkflowStep");
     expect(hook).toContain("classifyEveDynamicWorkflowFailure");
     expect(factory).toContain('"step.started"');

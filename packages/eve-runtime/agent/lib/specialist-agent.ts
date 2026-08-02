@@ -5,7 +5,7 @@ import { mockModel } from "eve/evals";
 import {
   createEveSpecialistModelStepKey,
   eveSpecialistBudgetState,
-  reserveEveSpecialistModelStep,
+  reserveEveSpecialistModelStepInState,
   resolveEveSpecialistBudgetLimits,
   toEveSpecialistModelUsageSnapshot,
 } from "./specialist-budget";
@@ -68,16 +68,13 @@ export function createEveSpecialistAgent(specialistId: EveSpecialistId) {
             catalog: specialist.budget,
             policy: activation.limits,
           });
-          const reservation = reserveEveSpecialistModelStep({
+          const allowed = reserveEveSpecialistModelStepInState({
             limits: resolvedLimits,
             nowMs,
-            state: currentBudget,
+            state: eveSpecialistBudgetState,
             stepKey: createEveSpecialistModelStepKey(event.data),
           });
-          if (!reservation.allowed) return null;
-
-          eveSpecialistBudgetState.update(() => reservation.state);
-          return activation.model;
+          return allowed ? activation.model : null;
         },
       },
     }),

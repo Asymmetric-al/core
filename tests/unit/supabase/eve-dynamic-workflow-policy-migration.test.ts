@@ -64,6 +64,24 @@ describe("Eve dynamic workflow policy migration", () => {
     expect(sql).toContain(
       "used_requests = used_requests + action_row.request_cost",
     );
+
+    const activeRunsCheck = sql.indexOf(
+      "governance.kill_switch_state ->> 'active_runs'",
+    );
+    const budgetConsumption = sql.indexOf(
+      "used_requests = used_requests + action_row.request_cost",
+    );
+    expect(activeRunsCheck).toBeGreaterThan(-1);
+    expect(budgetConsumption).toBeGreaterThan(activeRunsCheck);
+    expect(sql).toContain("tenant_id, budget_id, window_started_at");
+    expect(sql).toContain("p_tenant_id, budget_row.id, window_start");
+    expect(sql).toContain(
+      "ON CONFLICT (tenant_id, budget_id, window_started_at) DO NOTHING",
+    );
+    expect(sql).toContain("WHERE tenant_id = p_tenant_id");
+    expect(sql).toContain(
+      "WHERE tenant_id = p_tenant_id\n          AND id = usage_row.id",
+    );
   });
 
   it("persists a service-safe decision and redacted audit in one function", async () => {
