@@ -84,6 +84,7 @@ export function verifyRendererQualificationCharter(
   ] as const;
   const requiredObjects = [
     "roles",
+    "synthetic_corpus_proof",
     "held_back_seal",
     "operational_suites",
     "scoring_rules",

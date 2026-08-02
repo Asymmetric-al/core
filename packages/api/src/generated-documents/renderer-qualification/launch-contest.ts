@@ -766,6 +766,8 @@ export interface Phase18ContestFreezeInput {
       { facts_digest: string; document_digest: string }
     >
   >;
+  /** Custodian-supplied proof that the bound corpus was synthetically generated. */
+  synthetic_corpus_proof: RendererQualificationCharterInput["synthetic_corpus_proof"];
   /** Custodian-sealed expected-result digests for every held-back case. */
   sealed_expectations: Readonly<Record<HeldBackCaseId, string>>;
   held_back_seal: RendererQualificationCharterInput["held_back_seal"];
@@ -879,6 +881,7 @@ export function buildPhase18RendererContestInput(
     candidates: input.candidates,
     open_corpus,
     held_back_corpus,
+    synthetic_corpus_proof: input.synthetic_corpus_proof,
     held_back_seal: input.held_back_seal,
     operational_suites: PHASE_18_OPERATIONAL_SUITES,
     gates: PHASE_18_QUALIFICATION_GATES,

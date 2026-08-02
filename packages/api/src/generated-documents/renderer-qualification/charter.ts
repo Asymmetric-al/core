@@ -18,6 +18,10 @@ import {
   PHASE_18_VALIDATION_TOOLS,
 } from "./launch-contest";
 import {
+  digestSyntheticCorpusFixtureManifest,
+  digestSyntheticCorpusProof,
+} from "./synthetic-corpus-proof";
+import {
   HELD_BACK_CASE_IDS,
   OPEN_CASE_IDS,
   QUALIFICATION_GATE_IDS,
@@ -26,6 +30,7 @@ import {
   REQUIRED_BUDGET_METRICS,
   SCORE_DIMENSION_IDS,
   SCORE_DIMENSION_WEIGHTS,
+  SYNTHETIC_CORPUS_PROOF_SCHEMA_VERSION,
   VALIDATOR_CATEGORIES,
 } from "./types";
 
@@ -35,6 +40,7 @@ import type {
   QualificationCaseManifest,
   RendererCandidateLock,
   RendererQualificationCharterInput,
+  SyntheticCorpusProof,
   ValidationTool,
 } from "./types";
 
@@ -180,6 +186,18 @@ const OUTAGE_RECOVERY_SUITE_FIELDS = [
   "outage_window_minutes",
   "proof",
 ] as const;
+const SYNTHETIC_CORPUS_PROOF_FIELDS = [
+  "proof_id",
+  "schema_version",
+  "assurance",
+  "fixture_manifest_digest",
+  "procedure",
+  "generation_evidence_digest",
+  "attested_by",
+  "attested_at",
+  "proof_digest",
+] as const;
+const SYNTHETIC_CORPUS_PROCEDURE_FIELDS = ["id", "version", "digest"] as const;
 
 const isSha256Hex = (value: string | undefined): boolean =>
   SHA256_HEX.test(value ?? "");
@@ -378,6 +396,7 @@ const CHARTER_INPUT_FIELDS = new Set([
   "candidates",
   "open_corpus",
   "held_back_corpus",
+  "synthetic_corpus_proof",
   "held_back_seal",
   "operational_suites",
   "gates",
@@ -424,6 +443,133 @@ function scanForRealData(
       );
       return;
     }
+  }
+}
+
+function validateSyntheticCorpusProof(
+  input: RendererQualificationCharterInput,
+  issues: CharterValidationIssue[],
+): void {
+  const path = "synthetic_corpus_proof";
+  const proof = input.synthetic_corpus_proof as
+    | Partial<SyntheticCorpusProof>
+    | undefined;
+
+  if (!proof || typeof proof !== "object" || Array.isArray(proof)) {
+    issues.push(
+      issue(
+        path,
+        "corpus_synthetic_proof_invalid",
+        "The corpus requires a custodian-supplied synthetic-generation proof.",
+      ),
+    );
+    return;
+  }
+
+  const procedure = proof.procedure as
+    | Partial<SyntheticCorpusProof["procedure"]>
+    | undefined;
+  if (
+    !hasExactOwnFields(proof, SYNTHETIC_CORPUS_PROOF_FIELDS) ||
+    !hasExactOwnFields(procedure, SYNTHETIC_CORPUS_PROCEDURE_FIELDS)
+  ) {
+    issues.push(
+      issue(
+        path,
+        "corpus_synthetic_proof_invalid",
+        "The synthetic-generation proof and procedure must use their exact declared field sets.",
+      ),
+    );
+  }
+
+  if (
+    !ARTIFACT_ID.test(proof.proof_id ?? "") ||
+    proof.schema_version !== SYNTHETIC_CORPUS_PROOF_SCHEMA_VERSION ||
+    proof.assurance !== "synthetic_generation" ||
+    !ARTIFACT_ID.test(procedure?.id ?? "") ||
+    !EXACT_SEMVER.test(procedure?.version ?? "")
+  ) {
+    issues.push(
+      issue(
+        path,
+        "corpus_synthetic_proof_invalid",
+        "The proof must pin the synthetic-generation assurance and one canonical, exactly versioned procedure.",
+      ),
+    );
+  }
+
+  if (
+    !isSha256Hex(proof.fixture_manifest_digest) ||
+    !isSha256Hex(procedure?.digest) ||
+    !isSha256Hex(proof.generation_evidence_digest) ||
+    !isSha256Hex(proof.proof_digest)
+  ) {
+    issues.push(
+      issue(
+        path,
+        "corpus_synthetic_proof_invalid",
+        "The fixture manifest, procedure, retained generation evidence, and proof must be content-addressed with lowercase SHA-256 digests.",
+      ),
+    );
+  }
+
+  const fixtureManifestDigest = digestSyntheticCorpusFixtureManifest(
+    [...input.open_corpus, ...input.held_back_corpus].map((item) => ({
+      case_id: item.case_id,
+      facts_digest: item.fixture.facts_digest,
+      document_digest: item.fixture.document_digest,
+    })),
+  );
+  if (proof.fixture_manifest_digest !== fixtureManifestDigest) {
+    issues.push(
+      issue(
+        `${path}.fixture_manifest_digest`,
+        "corpus_synthetic_proof_invalid",
+        "The synthetic-generation proof must attest to the exact frozen facts/document digest pair for every corpus case.",
+      ),
+    );
+  }
+
+  const attestor = proof.attested_by;
+  const attestorIsCanonical =
+    typeof attestor === "string" &&
+    attestor === attestor.trim() &&
+    attestor.length > 0 &&
+    !INVISIBLE_ACTOR_CHARACTERS.test(attestor);
+  if (!attestorIsCanonical || attestor !== input.roles.corpus_custodian) {
+    issues.push(
+      issue(
+        `${path}.attested_by`,
+        "corpus_synthetic_proof_invalid",
+        "The named corpus custodian must attest the synthetic-generation proof.",
+      ),
+    );
+  }
+
+  const attestedAtMs = Date.parse(proof.attested_at ?? "");
+  const frozenAtMs = Date.parse(input.frozen_at);
+  if (
+    Number.isNaN(attestedAtMs) ||
+    (!Number.isNaN(frozenAtMs) && attestedAtMs > frozenAtMs)
+  ) {
+    issues.push(
+      issue(
+        `${path}.attested_at`,
+        "corpus_synthetic_proof_invalid",
+        "The custodian attestation must have a valid timestamp no later than charter freeze.",
+      ),
+    );
+  }
+
+  const proofDigest = digestSyntheticCorpusProof(proof as SyntheticCorpusProof);
+  if (proof.proof_digest !== proofDigest) {
+    issues.push(
+      issue(
+        `${path}.proof_digest`,
+        "corpus_synthetic_proof_invalid",
+        "The synthetic-generation proof content does not match its proof digest.",
+      ),
+    );
   }
 }
 
@@ -847,6 +993,8 @@ function validateCorpus(
   for (const item of input.open_corpus) validateCase("open", item, issues);
   for (const item of input.held_back_corpus)
     validateCase("held_back", item, issues);
+
+  validateSyntheticCorpusProof(input, issues);
 
   const caseIdByFixtureIdentity = new Map<string, string>();
   for (const item of [...input.open_corpus, ...input.held_back_corpus]) {

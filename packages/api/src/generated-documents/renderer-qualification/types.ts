@@ -173,6 +173,28 @@ export interface QualificationCaseManifest {
   sealed_expectation_digest?: string;
 }
 
+export const SYNTHETIC_CORPUS_PROOF_SCHEMA_VERSION =
+  "phase-18-synthetic-corpus-proof/v1";
+
+export interface SyntheticCorpusProof {
+  proof_id: string;
+  schema_version: typeof SYNTHETIC_CORPUS_PROOF_SCHEMA_VERSION;
+  assurance: "synthetic_generation";
+  /** Digest of every case ID and its exact facts/document digest pair. */
+  fixture_manifest_digest: string;
+  procedure: {
+    id: string;
+    version: string;
+    digest: string;
+  };
+  /** Retained evidence that the pinned procedure generated this corpus. */
+  generation_evidence_digest: string;
+  attested_by: string;
+  attested_at: string;
+  /** Digest of every proof field except this field itself. */
+  proof_digest: string;
+}
+
 export const QUALIFICATION_GATE_IDS = [
   "G01",
   "G02",
@@ -448,6 +470,7 @@ export interface RendererQualificationCharterInput {
   candidates: readonly RendererCandidateLock[];
   open_corpus: readonly QualificationCaseManifest[];
   held_back_corpus: readonly QualificationCaseManifest[];
+  synthetic_corpus_proof: SyntheticCorpusProof;
   held_back_seal: HeldBackSeal;
   operational_suites: OperationalSuites;
   gates: readonly QualificationGate[];

@@ -5,15 +5,19 @@ import {
   OPEN_CASE_IDS,
   PHASE_18_VALIDATION_TOOLS,
   buildPhase18RendererContestInput,
+  digestSyntheticCorpusFixtureManifest,
+  digestSyntheticCorpusProof,
 } from "../../../../packages/api/src/generated-documents/renderer-qualification";
 
 import type {
   HeldBackCaseId,
   OpenCaseId,
   Phase18ContestFreezeInput,
+  QualificationCaseId,
   QualificationRoles,
   RendererCandidateLock,
   RendererQualificationCharterInput,
+  SyntheticCorpusProof,
 } from "../../../../packages/api/src/generated-documents/renderer-qualification";
 
 export function syntheticDigest(seed: string): string {
@@ -156,6 +160,39 @@ export function fixtureCandidates(): RendererCandidateLock[] {
   ];
 }
 
+export function buildFixtureSyntheticCorpusProof(
+  fixtures: Phase18ContestFreezeInput["fixtures"],
+): SyntheticCorpusProof {
+  const fixture_manifest_digest = digestSyntheticCorpusFixtureManifest(
+    (
+      Object.entries(fixtures) as Array<
+        [QualificationCaseId, { facts_digest: string; document_digest: string }]
+      >
+    ).map(([case_id, fixture]) => ({ case_id, ...fixture })),
+  );
+  const claims: Omit<SyntheticCorpusProof, "proof_digest"> = {
+    proof_id: "phase-18-corpus-generation-proof",
+    schema_version: "phase-18-synthetic-corpus-proof/v1",
+    assurance: "synthetic_generation",
+    fixture_manifest_digest,
+    procedure: {
+      id: "phase-18-synthetic-fixture-generator",
+      version: "1.0.0",
+      digest: syntheticDigest("synthetic-fixture-generator-1.0.0"),
+    },
+    generation_evidence_digest: syntheticDigest(
+      "synthetic-corpus-generation-evidence",
+    ),
+    attested_by: FIXTURE_ROLES.corpus_custodian,
+    attested_at: "2026-07-22T10:59:00.000Z",
+  };
+
+  return {
+    ...claims,
+    proof_digest: digestSyntheticCorpusProof(claims),
+  };
+}
+
 export function buildFixtureContestInput(
   overrides: Partial<Phase18ContestFreezeInput> = {},
 ): RendererQualificationCharterInput {
@@ -195,6 +232,7 @@ export function buildFixtureContestInput(
     ],
     candidates: fixtureCandidates(),
     fixtures,
+    synthetic_corpus_proof: buildFixtureSyntheticCorpusProof(fixtures),
     sealed_expectations,
     held_back_seal: {
       custodian: "custodian-quinn",

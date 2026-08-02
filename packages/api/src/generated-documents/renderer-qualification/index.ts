@@ -14,6 +14,11 @@ export {
   verifyRendererQualificationCharter,
 } from "./verify";
 export {
+  digestSyntheticCorpusFixtureManifest,
+  digestSyntheticCorpusProof,
+  type SyntheticCorpusFixtureBinding,
+} from "./synthetic-corpus-proof";
+export {
   InMemoryRendererQualificationStore,
   QualificationHarnessError,
   loadCandidateWorkPacket,
