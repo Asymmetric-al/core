@@ -1109,3 +1109,49 @@ plumbing + A9 merge contract; Phase 7 §D/T4 as amended (C2). **Soft:**
 Phase 8 re-groom (#603) for the Audit-tab socket content; Phase 17 for governed
 message content/sender/reply configuration and Phase 6 for consent-aware
 dispatch/outcomes/history behind the comms/secure-link sockets.
+
+## Dated Phase 21 D19 Support Assignment relationship boundary (2026-08-01)
+
+Phase 9 continues to own Party, household, spouse, teammate, leadership, coach,
+and other relationship truth. A Phase 21 Support Assignment is not a Party,
+household, team, or relationship node, and none of those edges creates a
+Support Assignment Participant Membership, Support Workspace grant, claimant/
+reviewer/payee authority, notification preference, donor-purpose mapping, or
+financial effect.
+
+Phase 21 may reference exact current Phase 9 relationship evidence only where a
+source command requires it and must still record its own prospective membership
+or invoke the Phase 12 authorization owner explicitly. A Party merge preserves
+historical Party/principal references and enters explicit access,
+responsibility, and notification reconciliation; it never unions permissions,
+merges Support Assignments or Field Accounts, changes balances, or rewrites
+closed history.
+
+## Dated Phase 21 D24 expense-collaboration relationship boundary (2026-08-02)
+
+Phase 9 continues to own spouse, household, teammate, assistant, manager,
+leader, coach, employment, and other Party relationship truth. A D24 Expense
+Collaboration Assignment is a separate prospective operational record, not a
+relationship edge. A relationship may be shown as a safe assignment suggestion
+only; it cannot create an invitation, Assignment, evidence projection,
+claimant confirmation, preparation or submission power, notification
+eligibility, review/approval role, or financial authority.
+
+Every claimant and helper retains an exact Party and principal identity. Party
+merge, relationship change, spouse separation, manager replacement, team
+membership, or leadership succession never transfers or resurrects D24 access.
+Phase 21 records an explicit Assignment successor where appropriate, while
+Phase 12 reauthorizes the current principal and Phase 4 re-proves any new
+identity binding. Historical claimant, helper, preparer, submitter, confirmer,
+reviewer, approver, beneficiary/payee, and actual actor principal references
+remain immutable and are never collapsed by relationship repair.
+
+## Dated Phase 21 D25 expense-resolution relationship boundary (2026-08-02)
+
+A Phase 9 relationship may suggest a responsible person for an exact D25
+follow-up, but it cannot open or complete a Resolution Case, answer as the
+claimant, establish unavailability, choose or satisfy a reviewer, inherit a
+helper assignment, invoke a financial correction, or become a downstream
+disposition. Relationship change and Party merge preserve immutable actors and
+cause history and require explicit owner-domain succession; they never transfer
+recovery authority.

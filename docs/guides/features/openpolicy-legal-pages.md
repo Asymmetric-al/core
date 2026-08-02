@@ -156,3 +156,69 @@ The Vite plugin path is not used because it does not match this app's runtime or
 ## Upstream CLI note
 
 As of March 31, 2026, the published `@openpolicy/cli@0.0.17` tarball is incomplete on Bun/Windows and cannot execute its documented commands in this repo. The donor app therefore ships a thin local CLI wrapper in `apps/donor/scripts/openpolicy.ts` that uses the published `@openpolicy/core` and `@openpolicy/renderers` packages to provide equivalent `validate` and `generate` workflows.
+
+## Phase 21 D26 records-policy production gate (2026-08-02)
+
+### Trigger
+
+Run this gate before activating or materially changing any Phase 21 D26 tenant
+schedule choice, records-policy representation, offboarding/export promise,
+custody-transfer path, hold/disposition behavior, provider-copy handling, or
+backup/restore claim in production.
+
+D26 ratification does not change public legal text or prove that lifecycle
+controls exist. Before any Phase 21 Records policy, tenant schedule choice,
+offboarding promise, export/custody claim, hold, return, deletion, provider-copy,
+backup, or restore outcome activates in production, qualified legal, privacy,
+security, product, and operations owners must reconcile the applicable
+jurisdiction pack, MSA/DPA, this public policy, `apps/donor/openpolicy.ts`,
+storage/subprocessor terms, actual lifecycle jobs, backup/restore behavior, and
+the tenant choices the product exposes.
+
+The current fixed public periods and the evidence map's unproved-enforcement
+qualification are explicit blockers to contradictory configurable schedules or
+strong disposal claims. Product guidance remains informational and source-
+linked; an acknowledgement or disclaimer cannot substitute for legal review or
+erase Asym's duties for copies in its custody. Changes to public terms require
+their own reviewed publication and runtime evidence, not a D26 documentation
+ratification edit.
+
+### Workflow
+
+1. Product and operations inventory the exact record families, jurisdictions,
+   tenant choices, storage/provider copies, lifecycle jobs, and public or
+   contractual claims in the proposed activation cohort.
+2. Legal and privacy reconcile that inventory against the applicable
+   jurisdiction pack, MSA/DPA, public OpenPolicy text, and subprocessor/storage
+   terms. An unresolved conflict blocks activation.
+3. Security and operations prove purpose-scoped access, copy inventory, holds,
+   lifecycle execution, backup and representative restore behavior, provider-
+   copy handling, offboarding/export behavior, and truthful failure recovery for
+   the exact cohort.
+4. Product binds only the tenant options supported by that reconciled evidence;
+   unsupported periods, promises, or destinations remain structurally absent.
+5. The named owners record one source-linked approval package. Any later
+   material change to a jurisdiction pack, MSA/DPA, public policy, tenant choice,
+   records-policy representation, offboarding/export promise, storage or
+   subprocessor term, custody location or transfer path, hold/disposition
+   behavior, provider-copy handling, retention period, backup/restore behavior,
+   or lifecycle implementation reruns the affected gate before prospective
+   activation.
+
+### Pass/fail checklist
+
+- [ ] Legal, privacy, security, product, and operations owners have approved the
+      same exact cohort and evidence generation.
+- [ ] Tenant choices match actual lifecycle jobs and do not contradict public
+      terms, the MSA/DPA, provider terms, backup/restore behavior, or copies in
+      Asym custody.
+- [ ] Holds, access, export, custody, retention, disposition, failure, and
+      representative restore behavior have production-shaped evidence.
+- [ ] Publication evidence identifies the exact reviewed public-policy version;
+      documentation ratification alone is not treated as publication.
+- [ ] `bunx @fission-ai/openspec@1.7.0 validate add-field-account-operations --strict`
+      and `bun run format:check` pass for the governing documentation change;
+      the release manifest also names and passes the exact runtime tests for
+      every activated lifecycle path.
+- [ ] Any missing, stale, conflicting, or unproved item leaves only the affected
+      capability blocked; no acknowledgement or staff override bypasses it.

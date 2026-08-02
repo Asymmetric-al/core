@@ -44,6 +44,47 @@ purpose with independently authoritative run, artifact, access, delivery,
 correction, and completion truth; it never enters or blocks an official
 document.
 
+## Phase 21 Field Account Support-statement authority amendment
+
+Phase 21 D11 remains authoritative for every Support Cycle Close, exact
+Support Cycle Integrity Manifest, covered Field Account Occurrence, opening
+and closing Finance-confirmed Field Account Balance, correction meaning,
+reservation or obligation meaning, scope, and ISO currency. Phase 21 D12 owns
+the code-defined **Field Account Support Statement Approved Data View**,
+statement eligibility, exact recipient meaning, and financial correction
+semantics.
+
+When the effective D9 Support Workspace Publication Profile authorizes
+missionary access, a post-close idempotent Phase 21 projection produces one
+immutable Facts Package for `field_account.support_statement@1`. Phase 18
+never queries live Field Account history, infers an arbitrary period, merges
+currencies, recalculates balances, chooses recipients, or changes financial
+meaning. Phase 18 owns the one logical document, exact current accessible
+artifact, immutable same-facts artifact successors, retention, and private
+artifact access. Phase 17/6 may optionally communicate readiness through the
+protected document-artifact seam, but delivery is not document or financial
+truth.
+
+The manifest row below reserves a future additive contract. It does not claim
+that the current executable purpose catalog, Approved Data View registry,
+fixture pack, or renderer supports this purpose during grooming. Phase 21
+implementation must add those artifacts through the existing Phase 18 service
+and pass purpose-specific certification before the global purpose can leave
+Reserved. Separately, every request requires an effective tenant D9 publication
+profile and current Phase 12 principal authorization for the exact Support
+Assignment; Support Assignment Participant Membership alone never authorizes a
+document. Global qualification never activates a tenant or grants access.
+
+This purpose is distinct from Phase 19's donor-oriented
+`giving.summary.informational@1`, Phase 7/19 year-end statements, Phase 16
+pledge statements, payroll documents, bank statements, and accounting
+artifacts. Each logical item is scoped to one exact Tenant, Legal Entity,
+Support Assignment, currently authorized recipient principal, charitable
+purpose, Field Account, Support Cycle, and ISO currency. It contains no donor
+roster or donor contact data and makes
+no tax, bank, payroll, payment, ownership, availability, withdrawability,
+reconciliation, or QBO/Xero-posting claim.
+
 ## Document Purpose Contract schema
 
 Every code-owned purpose version MUST freeze the following fields as one immutable unit:
@@ -75,21 +116,30 @@ Every code-owned purpose version MUST freeze the following fields as one immutab
 
 Unknown, missing, stale, or ambiguous authority is a blocking result. Callers cannot provide jurisdiction, issuer, recipient, signer, serial, case, current publication, output policy, records schedule, or delivery authority.
 
-## Launch purpose catalog
+## Normative purpose registry
 
-| Purpose key                               | Lane and source owner                                                                      | Recipient and coverage                                                                                           | Protected outcome                                                                                             | Output                  | Launch state                                                                 |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------------------------------------------------------- |
-| `us.contribution_acknowledgment.single@1` | `official_tax`; Phases 7/13                                                                | Legal contributor for one source-eligible posted contribution                                                    | Source-selected U.S. acknowledgment case and `ACK-XXXXX-XXXXX` logical reference                              | `accessible-archive-v1` | Dark until U.S. legal/finance and D3 gates pass                              |
-| `us.contribution_acknowledgment.annual@1` | `official_tax`; Phase 7 owns eligibility/subject/facts; Phase 19 freezes population        | Exact source-owned legal contributor; exact frozen annual item set                                               | Itemized acknowledgment; each gift preserves its own date, amount/property, and case                          | `accessible-archive-v1` | Dark until Phase 19 seam and U.S. gates pass                                 |
-| `us.qcd.acknowledgment@1`                 | `official_tax`; Phases 7/13                                                                | Source-approved QCD recipient and exact distribution                                                             | Separate QCD wording; never enters ordinary deductible-contribution totals                                    | `accessible-archive-v1` | Dark until U.S. gates pass                                                   |
-| `ca.official_receipt.individual_cash@1`   | `official_tax`; Phase 7 issuance + Phase 13 money                                          | True donor for one eligible cash gift under one issuance-admitted verified issuer epoch                          | CRA ordinary cash case, `ca_r_v1` serial, current signer                                                      | `accessible-archive-v1` | New generation only while the exact issuer epoch admits issuance             |
-| `ca.official_receipt.cumulative_cash@1`   | `official_tax`; Phase 7 owns plan/coverage/issuance; Phase 19 freezes population           | True donor; nonoverlapping source-frozen annual-cumulative cash plan/coverage                                    | CRA cumulative cash case, one `ca_r_v1` serial                                                                | `accessible-archive-v1` | New generation only while issuance and coverage proof both pass              |
-| `ca.official_receipt.non_cash@1`          | `official_tax`; Phases 7/13                                                                | True donor for one eligible noncash gift                                                                         | Property, FMV/deemed-value and eligible-amount facts required by Canadian contract                            | `accessible-archive-v1` | New generation only while the exact issuer epoch admits this case            |
-| `ca.official_receipt.advantage_split@1`   | `official_tax`; Phases 7/13                                                                | True donor for one eligible split-receipting event                                                               | Payment/value, advantage description/FMV, eligible amount, protected wording                                  | `accessible-archive-v1` | New generation only while the exact issuer epoch admits this case            |
-| `giving.summary.informational@1`          | `governed_business`; Phases 7/13 direct facts + Phase 14 recognition + Phase 19 population | Exact authorized Recognition Subject; direct support plus frozen household-support/DAF-recommendation allow-list | **Support overview — Not a tax document**; no legal-donor, deductible, cash, receipt, or official-total claim | `accessible-v1`         | Default Off; supported only after Phase 7/13/14/19 purpose and privacy proof |
-| `tribute.notification@1`                  | `governed_business`; Phase 14                                                              | Source-selected tribute recipient with privacy-governed facts                                                    | Recognition notice; no deductible amount or legal-donor claim                                                 | `accessible-v1`         | Supported after Phase 14 contract proof                                      |
-| `pledge.statement@1`                      | `governed_business`; Phase 16                                                              | Commitment Party/authorized recipient                                                                            | Frozen commitment plan, fulfillment and non-debt meaning; never invents balance                               | `accessible-v1`         | Supported after Phase 16 contract proof                                      |
-| `custom.business_document@1`              | `general_custom`; owning Approved Data View                                                | Purpose-approved deterministic recipient                                                                         | Tenant-composed content over safe facts; never official/tax                                                   | `accessible-v1`         | Supported only for registered safe data views                                |
+This registry may name a future contract in `Reserved` state before that
+contract enters the executable catalog. The currently executable catalog is
+the exact eleven-purpose subset that excludes
+`field_account.support_statement@1`. Phase 21 implementation must first add
+the reserved contract to the executable catalog as runtime `dark`; only its
+separate release evidence may later make it available. This explicit mapping
+does not mutate or weaken the existing eleven contracts.
+
+| Purpose key                               | Lane and source owner                                                                      | Recipient and coverage                                                                                                                                                | Protected outcome                                                                                                                                      | Output                  | Launch state                                                                                                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `us.contribution_acknowledgment.single@1` | `official_tax`; Phases 7/13                                                                | Legal contributor for one source-eligible posted contribution                                                                                                         | Source-selected U.S. acknowledgment case and `ACK-XXXXX-XXXXX` logical reference                                                                       | `accessible-archive-v1` | Dark until U.S. legal/finance and D3 gates pass                                                                                           |
+| `us.contribution_acknowledgment.annual@1` | `official_tax`; Phase 7 owns eligibility/subject/facts; Phase 19 freezes population        | Exact source-owned legal contributor; exact frozen annual item set                                                                                                    | Itemized acknowledgment; each gift preserves its own date, amount/property, and case                                                                   | `accessible-archive-v1` | Dark until Phase 19 seam and U.S. gates pass                                                                                              |
+| `us.qcd.acknowledgment@1`                 | `official_tax`; Phases 7/13                                                                | Source-approved QCD recipient and exact distribution                                                                                                                  | Separate QCD wording; never enters ordinary deductible-contribution totals                                                                             | `accessible-archive-v1` | Dark until U.S. gates pass                                                                                                                |
+| `ca.official_receipt.individual_cash@1`   | `official_tax`; Phase 7 issuance + Phase 13 money                                          | True donor for one eligible cash gift under one issuance-admitted verified issuer epoch                                                                               | CRA ordinary cash case, `ca_r_v1` serial, current signer                                                                                               | `accessible-archive-v1` | New generation only while the exact issuer epoch admits issuance                                                                          |
+| `ca.official_receipt.cumulative_cash@1`   | `official_tax`; Phase 7 owns plan/coverage/issuance; Phase 19 freezes population           | True donor; nonoverlapping source-frozen annual-cumulative cash plan/coverage                                                                                         | CRA cumulative cash case, one `ca_r_v1` serial                                                                                                         | `accessible-archive-v1` | New generation only while issuance and coverage proof both pass                                                                           |
+| `ca.official_receipt.non_cash@1`          | `official_tax`; Phases 7/13                                                                | True donor for one eligible noncash gift                                                                                                                              | Property, FMV/deemed-value and eligible-amount facts required by Canadian contract                                                                     | `accessible-archive-v1` | New generation only while the exact issuer epoch admits this case                                                                         |
+| `ca.official_receipt.advantage_split@1`   | `official_tax`; Phases 7/13                                                                | True donor for one eligible split-receipting event                                                                                                                    | Payment/value, advantage description/FMV, eligible amount, protected wording                                                                           | `accessible-archive-v1` | New generation only while the exact issuer epoch admits this case                                                                         |
+| `giving.summary.informational@1`          | `governed_business`; Phases 7/13 direct facts + Phase 14 recognition + Phase 19 population | Exact authorized Recognition Subject; direct support plus frozen household-support/DAF-recommendation allow-list                                                      | **Support overview — Not a tax document**; no legal-donor, deductible, cash, receipt, or official-total claim                                          | `accessible-v1`         | Default Off; supported only after Phase 7/13/14/19 purpose and privacy proof                                                              |
+| `field_account.support_statement@1`       | `governed_business`; Phase 21 D11/D12/D19                                                  | Exact currently Phase 12-authorized recipient principal for one Support Assignment × Field Account × Support Cycle × ISO currency; participation alone grants nothing | Finance-closed organization-controlled support activity; no tax, bank, payroll, payment, ownership, availability, withdrawal, or converted-total claim | `accessible-v1`         | Reserved future additive purpose; unavailable until Phase 18 artifact/renderer and Phase 21 D11/D12/D19 purpose/access certification pass |
+| `tribute.notification@1`                  | `governed_business`; Phase 14                                                              | Source-selected tribute recipient with privacy-governed facts                                                                                                         | Recognition notice; no deductible amount or legal-donor claim                                                                                          | `accessible-v1`         | Supported after Phase 14 contract proof                                                                                                   |
+| `pledge.statement@1`                      | `governed_business`; Phase 16                                                              | Commitment Party/authorized recipient                                                                                                                                 | Frozen commitment plan, fulfillment and non-debt meaning; never invents balance                                                                        | `accessible-v1`         | Supported after Phase 16 contract proof                                                                                                   |
+| `custom.business_document@1`              | `general_custom`; owning Approved Data View                                                | Purpose-approved deterministic recipient                                                                                                                              | Tenant-composed content over safe facts; never official/tax                                                                                            | `accessible-v1`         | Supported only for registered safe data views                                                                                             |
 
 `Specialist Document Obligation` is a durable obligation record, not a generic document purpose. Each native specialty document requires its own future code-owned purpose contract and release evidence. External completion is allowed only with the obligation's exact governed evidence; no generic mark-done path exists.
 
@@ -186,22 +236,24 @@ The only tenant presentation predicates are `has_value`, `is_empty`, `is_yes`, `
 
 ## Durable authorities and write ownership
 
-| Authority                              | Owner                                                          | Mutability and Phase 18 rights                                                                                                                            |
-| -------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Document definition draft              | Phase 18                                                       | Mutable through CAS autosave; single-writer UX; conflict creates review/copy, never hidden merge                                                          |
-| Document definition publication        | Phase 18                                                       | Immutable complete executable graph; currentness only through publication head CAS                                                                        |
-| Approved Data View                     | Source owner + Phase 11 field policy                           | Immutable typed semantic contract; Phase 18 reads approved projection only                                                                                |
-| Facts Package                          | Source owner                                                   | Immutable exact values/version/digest; Phase 18 pins and renders, never patches                                                                           |
-| Generation Request                     | Phase 18                                                       | Sole orchestration state machine; immutable pins after atomic admission                                                                                   |
-| Render Attempt                         | Phase 18                                                       | Append-only subordinate operational evidence; never document identity/currentness                                                                         |
-| Issuance authorization/validity        | Phase 7/applicable source pack                                 | Optional; source owns whether/why identity is required, issuer/recipient/coverage, validity and correction effect; Phase 18 links/pins                    |
-| Generated-document identity            | Phase 18 D9/D11 code-owned policy                              | Allocates U.S. reference or exact-issuer Canadian serial only after source authorization/admission; owns version/nonreuse/disposition/artifact linkage    |
-| Artifact                               | Phase 18                                                       | Exact immutable bytes/hash/length/object generation/validation/custody evidence                                                                           |
-| Logical-document head                  | Phase 18 projection constrained by source validity             | At most one current eligible publication; CAS only                                                                                                        |
-| Delivery and communication event       | Phase 17                                                       | Phase 18 hands off exact artifact identity; cannot send or infer delivery/read                                                                            |
-| Statement eligibility/subject/facts    | Phase 7/applicable source pack                                 | Phase 19 and Phase 18 consume exact immutable authority; neither may infer, merge, or override it                                                         |
-| Statement participation/population/run | Phase 19                                                       | Tenant-authorized participation and exact source eligibility produce a frozen Run Preflight; Phase 18 accepts item-authoritative generation requests only |
-| Records schedule/hold/disposal         | Phase 18 for Phase 18 records; source owners for their records | Effective-dated contract; monotonic hold; owner-coordinated disposal; no cross-domain cascade                                                             |
+| Authority                              | Owner                                                          | Mutability and Phase 18 rights                                                                                                                                         |
+| -------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Document definition draft              | Phase 18                                                       | Mutable through CAS autosave; single-writer UX; conflict creates review/copy, never hidden merge                                                                       |
+| Document definition publication        | Phase 18                                                       | Immutable complete executable graph; currentness only through publication head CAS                                                                                     |
+| Approved Data View                     | Source owner + Phase 11 field policy                           | Immutable typed semantic contract; Phase 18 reads approved projection only                                                                                             |
+| Facts Package                          | Source owner                                                   | Immutable exact values/version/digest; Phase 18 pins and renders, never patches                                                                                        |
+| Generation Request                     | Phase 18                                                       | Sole orchestration state machine; immutable pins after atomic admission                                                                                                |
+| Render Attempt                         | Phase 18                                                       | Append-only subordinate operational evidence; never document identity/currentness                                                                                      |
+| Issuance authorization/validity        | Phase 7/applicable source pack                                 | Optional; source owns whether/why identity is required, issuer/recipient/coverage, validity and correction effect; Phase 18 links/pins                                 |
+| Generated-document identity            | Phase 18 D9/D11 code-owned policy                              | Allocates U.S. reference or exact-issuer Canadian serial only after source authorization/admission; owns version/nonreuse/disposition/artifact linkage                 |
+| Artifact                               | Phase 18                                                       | Exact immutable bytes/hash/length/object generation/validation/custody evidence                                                                                        |
+| Logical-document head                  | Phase 18 projection constrained by source validity             | At most one current eligible publication; CAS only                                                                                                                     |
+| Delivery and communication event       | Phase 17                                                       | Phase 18 hands off exact artifact identity; cannot send or infer delivery/read                                                                                         |
+| Statement eligibility/subject/facts    | Phase 7/applicable source pack                                 | Phase 19 and Phase 18 consume exact immutable authority; neither may infer, merge, or override it                                                                      |
+| Statement participation/population/run | Phase 19                                                       | Tenant-authorized participation and exact source eligibility produce a frozen Run Preflight; Phase 18 accepts item-authoritative generation requests only              |
+| Field Account Support-statement facts  | Phase 21 D11/D12                                               | D11 close/manifest stays authoritative; the D12 Approved Data View supplies one immutable purpose- and recipient-safe Facts Package; Phase 18 cannot live-recompute it |
+| Field Account statement publication    | Phase 21 D9/D12 profile + current access authority             | Prospective profile permits source admission and presentation only; Phase 18 cannot widen audience, retro-publish history, or treat retained evidence as access        |
+| Records schedule/hold/disposal         | Phase 18 for Phase 18 records; source owners for their records | Effective-dated contract; monotonic hold; owner-coordinated disposal; no cross-domain cascade                                                                          |
 
 ## Closed state vocabularies
 
@@ -451,3 +503,27 @@ No staff override, feature flag, fallback renderer, draft, mutable template, dir
 ## Explicit anti-overengineering boundary
 
 Build one bounded relational module, semantic editor, publication lifecycle, qualified renderer port, request state machine, exact-PDF finalizer, private custody/access boundary, timeline, and grouped repair surface. Include only the narrow Asym-native authoring package above. Do not build legacy/foreign import or migration, dual reads/writes, a Word/Canva clone, arbitrary query/formula/rules language, event-sourcing platform, microservice fleet, multi-renderer runtime, tenant legal DSL, workflow engine, release calendar, generic records/eDiscovery system, file-sharing product, identity platform, PKI console, second delivery history, or second statement population engine.
+
+## Dated Phase 21 D26 records-export boundary (2026-08-02)
+
+Phase 18 remains the sole resolver for generated-document purpose, issuer,
+Facts Package admission, Logical Document, exact artifact generation and
+currentness, recipient access, correction, Records Schedule Contract, hold,
+Canadian records posture, and verified disposition. A Phase 21 D26 export
+request must ask Phase 18 for one current-authorized exact copy or an explicit
+owner-domain reference and record the result in D26's Coverage Manifest.
+
+D26 cannot publish, rerender, reclassify, change currentness, place or release a
+Phase 18 hold, change the Phase 18 Records Schedule Contract, dispose, or certify
+a Phase 18 artifact. D26 separately governs its semantic package and Coverage
+Manifest, records-schedule binding/resolution, retention meaning, external-copy
+and destination-custody assertions, and requested hold/disposition truth. Phase
+29 alone executes physical package-byte staging, storage, delivery, hold, and
+disposal, and only after current Phase 3/10/12 classification, authorization,
+step-up, and egress decisions succeed. Phase 29 returns exact execution evidence
+but does not own or weaken those decisions; neither domain changes Phase 18
+authority. Missing, lawfully disposed, quarantined, unavailable, or unauthorized
+Phase 18 bytes receive their truthful manifest disposition and are never called
+included or silently regenerated. A D26 records archive is not a donor document,
+document delivery, Canadian closure substitute, Phase 19 fulfillment package,
+or generic generated-document backup.

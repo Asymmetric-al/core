@@ -33,3 +33,20 @@ Use it before changing `apps/donor/openpolicy.ts`. Do not silently promote repo 
 | EEA / UK targeting posture                     | Config keeps a US-focused jurisdiction baseline and an operational note that the hosted service does not intentionally target individuals in the EEA or UK at this time. | Human-provided drafting input approved on 2026-03-31.                                                                                                    | Medium     | Yes                 | Reassess before region-specific marketing, onboarding, or monitoring is added.                                                |
 | Security and storage wording                   | Policy should use conservative safeguards language and avoid claiming universal private-by-default storage or complete tenant isolation.                                 | Human-provided drafting input plus repo evidence from storage/public-bucket and RLS-related migrations/docs.                                             | High       | Yes                 | Keep final public wording conservative unless production controls are independently verified.                                 |
 | Effective dates                                | Policy effective dates are set to `April 2, 2026`.                                                                                                                       | Explicit human instruction approved on 2026-03-31.                                                                                                       | High       | Yes                 | Treat this as the current default publication date and update it if the launch timing changes.                                |
+
+## Phase 21 D26 future evidence dependency (2026-08-02)
+
+D26 adds no current implementation evidence. Its production activation remains
+conditional until counsel-reviewed records-schedule and responsibility wording,
+the MSA/DPA and public policy, supported tenant choices, provider/subprocessor
+copy behavior, exact export fidelity, offboarding return/retrieval, legal holds,
+active-copy deletion, backup treatment, restore suppression, and actual runtime
+jobs are mutually congruent and production-proved.
+
+The table's current **Retention schedule** row remains human-approved drafting,
+not proof of operational enforcement. `apps/donor/openpolicy.ts` must not be
+silently changed by D26 ratification; its fixed periods and backup/deletion
+statements are named inputs to the later qualified review. Until that gate
+passes, no product surface may claim a tenant-selected configuration is legally
+compliant, that download transfers custody, that an external-copy assertion
+authorizes Asym deletion, or that any record was deleted everywhere.

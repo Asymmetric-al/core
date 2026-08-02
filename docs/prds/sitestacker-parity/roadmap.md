@@ -87,8 +87,9 @@ its own grooming):
   Foundation** (the early safety layer; full member-care operations stay
   later, at 38).
 - **Phase 21 — Missionary Field Accounts & Support Balances** (deputized
-  fund-accounting concerns: balances, disbursements, expenses — distinct from
-  donation ledger truth).
+  fundraising operations: finance-closed organization-controlled support
+  balances, expense obligations, and external payment evidence — distinct
+  from donation, accounting, and payroll truth).
 - **Phase 26 — Support Hub & Conversation Management** (inbound
   email/conversations/routing — distinct from outbound comms truth).
 - **Phase 31 — Platform API, Webhooks & Connector Framework** (one governed
@@ -117,51 +118,51 @@ Legend — **Hard deps**: must ship first (a number in **bold** is a firm,
 locked dependency from `phase-00-baseline.md`). **Soft / consumes**: improves
 or feeds this phase but does not gate its start; "enhanced by" links point
 forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
-`future (needs PRD)`.
+`grilling in progress` / `future (needs PRD)`.
 
-| #      | Slug                         | Phase                                                                                                                             | Hard deps                                   | Soft / consumes / enhanced by                         | Owner surface / system                                          | Status                                                          |
-| ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------- |
-| **0**  | `baseline`                   | [Baseline, Governance & Evidence](./phase-00-baseline.md)                                                                         | —                                           | —                                                     | Docs, OpenSpec, parity matrix, evidence                         | `PRD exists`                                                    |
-| **1**  | `ownership-matrix`           | [Source-of-Truth Ownership Matrix](./phase-01-source-of-truth-ownership-matrix.md)                                                | 0                                           | —                                                     | OpenSpec, architecture docs, `packages/api`                     | `PRD exists` (ruled 2026-07-06)                                 |
-| **2**  | `site-locale-currency`       | [Site, Locale & Currency Foundation](./phase-02-site-locale-currency-foundation.md)                                               | 1                                           | —                                                     | Tenant/site settings, public context, giving primitives         | `PRD exists` (epic #477)                                        |
-| **3**  | `permission-floor`           | [Minimum Permission & Role-Scoped Projection Foundation](./phase-03-minimum-permission-role-scoped-projection-foundation.md)      | 1, 2                                        | —                                                     | `packages/api` authz/projections, Mission Control               | `PRD exists` (epic #489)                                        |
-| **4**  | `identity-claiming`          | [Identity & Account-Claiming Foundation](./phase-04-identity-account-claiming-foundation.md)                                      | 2, 3                                        | —                                                     | Identity services, account claiming, tenant membership          | `PRD exists` (epic #503)                                        |
-| **5**  | `public-runtime`             | [Public Website Runtime Contract](./phase-05-public-website-runtime-contract.md)                                                  | 2, 3, 4                                     | —                                                     | Public Website, Web Studio, Payload, donor public routes        | `PRD exists` (epic #520)                                        |
-| **6**  | `comms-event-model`          | [Shared Communication Event Model](./phase-06-shared-communication-event-model.md)                                                | 2, 3, 4, 5                                  | —                                                     | Communication services, CRM timeline, provider adapters         | `PRD exists` (epic #550)                                        |
-| **7**  | `receipt-rules-credit`       | [Receipt & Statement Compliance Rules + Donor Identity/Credit Model](./phase-07-receipt-statement-compliance-and-donor-credit.md) | **4, 6, 3** (PRD C1–C3)                     | 2, 5                                                  | Receipt/statement services, finance rules, party/credit model   | `PRD exists` (epic #566)                                        |
-| **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_        | none (build-now core)                       | 6 (emailed path), 9 (reserved sockets)                | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)       |
-| **9**  | `crm-depth-graph`            | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md)                                            | **4, 7, 3**                                 | 8 (operations visibility only)                        | Mission Control CRM (Asym Postgres)                             | `PRD exists` (epic #604 + #605–#627)                            |
-| **10** | `sensitive-safety`           | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md)                      | **3, 9**                                    | 4, 5, 6                                               | Mission Control, security projections, Member Care seams        | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)        |
-| **11** | `custom-fields`              | Custom Fields & Custom Collections                                                                                                | 9, 10, 3                                    | —                                                     | Mission Control CRM configuration                               | `PRD exists` (epic #645 + #646–#664)                            |
-| **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11                                   | —                                                     | Mission Control Admin, `packages/api` authz                     | `PRD exists` (epic #665 + #666–#687)                            |
-| **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7                            | —                                                     | Contributions/giving, public checkout, MC finance               | `PRD exists` (epic #690 + #691–#713)                            |
-| **14** | `donor-credit-ops`           | [Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts](./phase-14-donor-credit-operations.md)                   | 13, 7, 9                                    | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `PRD exists` (epic #719 + #720–#741)                            |
-| **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7                               | 9; enhanced by 16 (fulfillment matching)              | Mission Control Contributions                                   | `PRD exists (epic #758 + #759–#786)`                            |
-| **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15** | enhanced by 17 (message rendering/delivery)           | Contributions and CRM                                           | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)    |
-| **17** | `system-messages`            | [System Messages & Template Management](./phase-17-system-messages-template-management.md)                                        | 6, 2, 3, 7                                  | —                                                     | Email Studio / System Messages                                  | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)    |
-| **18** | `document-templates`         | [Receipt & PDF Template System](./phase-18-receipt-pdf-template-system.md)                                                        | 7, **13**, 17                               | 6                                                     | Document Studio / Generated Documents                           | `PRD exists` (epic #907 + #908–#961; #908–#910 ready frontier)  |
-| **19** | `statement-operations`       | [Year-End Statement Operations](./phase-19-year-end-statement-operations.md)                                                      | 6, 7, 12, **13**, 14, 15, 17, 18            | 9, 4                                                  | Mission Control Contributions/Finance                           | `PRD exists` (epic #977 + #978–#1031; blocked/not-dispatched)   |
-| **20** | `accounting-exports`         | [Accounting Exports & Reconciliation](./phase-20-accounting-exports-reconciliation.md)                                            | **2, 3, 4, 7, 12, 13, 14, 15**              | 16                                                    | Mission Control Accounting                                      | `PRD exists` (implementation-ready 2026-07-27; not implemented) |
-| **21** | `field-accounts`             | Missionary Field Accounts & Support Balances                                                                                      | 13, 20, 3, 4                                | 16                                                    | Mission Control Finance, Missionary Workspace projection        | `future (needs PRD)` — **new in v2**                            |
-| **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3                             | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                            |
-| **23** | `web-studio-cms`             | CMS / Site Planner Dynamic Content Parity                                                                                         | 5, 3, 2                                     | 22                                                    | Web Studio, Payload, Public Website                             | `future (needs PRD)` — deps allow an early start after Phase 5  |
-| **24** | `multi-site-management`      | Full Multi-Site, Language & Currency Management                                                                                   | 2, 5, 13, 20, 23                            | 17                                                    | Tenant settings, Web Studio, Contributions settings             | `future (needs PRD)`                                            |
-| **25** | `donor-portal-depth`         | Donor Dashboard Depth                                                                                                             | 4, 3, 13, 7, 6                              | 17, 19                                                | Donor Portal                                                    | `future (needs PRD)`                                            |
-| **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17                              | —                                                     | Support Hub, communication services, `packages/api`             | `future (needs PRD)` — **new in v2**                            |
-| **27** | `donor-development`          | Donor Development & Portfolio Management _(beyond-parity differentiator)_                                                         | **9**, 3, 6, 13                             | consumes 14, 16; 26; enhanced by 33, 34               | Mission Control CRM (Development)                               | `future (needs PRD)` (was v1 Phase 33)                          |
-| **28** | `missionary-workspace-depth` | Missionary Workspace Depth & Support-Raising CRM                                                                                  | 9, 13, 16, 6, 3, 27                         | 26                                                    | Missionary Workspace                                            | `future (needs PRD)`                                            |
-| **29** | `files-documents`            | File Manager & Document Management                                                                                                | 3, 9                                        | 18, 26, the shipped workflow-orchestration runtime    | Documents/File Manager, CRM, Workflows, Web Studio              | `future (needs PRD)`                                            |
-| **30** | `imports-migration`          | Imports & Migration Tools                                                                                                         | 9, 13, 11, 29, 4, 3                         | 14                                                    | Mission Control Data Tools                                      | `future (needs PRD)`                                            |
-| **31** | `platform-api`               | Platform API, Webhooks & Connector Framework                                                                                      | 1, 3, 4, 6                                  | 9, 13                                                 | Platform API, Integrations, Admin                               | `future (needs PRD)` — **new in v2**                            |
-| **32** | `newsletter-sync`            | Mailchimp / Newsletter Sync with Suppression Handling                                                                             | 6, 3, 28, 4, 31                             | —                                                     | Missionary Workspace settings, MC integrations                  | `future (needs PRD)`                                            |
-| **33** | `reporting-bi`               | Reporting & BI / Report Studio                                                                                                    | 9, 13, 7, 6, 3                              | 11, 15, 16, 30                                        | Report Studio                                                   | `future (needs PRD)` — deps allow an early start (see lanes)    |
-| **34** | `workflow-engine`            | Configurable Automation & Workflow Engine                                                                                         | 9, 11, 12, 29, 17, 6                        | 13 (registration fees), 33                            | Automations/Workflows in Mission Control                        | `future (needs PRD)`                                            |
-| **35** | `contribution-triggers`      | Spark-Style Contribution Triggers                                                                                                 | **34**, 13, 6, 3                            | 33                                                    | Automations, Contributions                                      | `future (needs PRD)` (confirmed separate from 34)               |
-| **36** | `p2p-campaigns`              | Peer-to-Peer & Advocacy Campaigns                                                                                                 | 5, 13, 25, 3, 22                            | —                                                     | Public Website, Donor Portal, Contributions                     | `future (needs PRD)`                                            |
-| **37** | `events-groups`              | Event / Opportunity Workflows & Group Management                                                                                  | 5, 9, 13, 6, 29, 34, 36                     | 10                                                    | Event Hub, Public Website, CRM, Workflows                       | `future (needs PRD)`                                            |
-| **38** | `member-care-ops`            | Member Care, Crisis & Restricted-Ministry Operations                                                                              | 10, 3, 4, 9, 29                             | 6, 12, 26, 34                                         | Member Care, Mission Control, security-sensitive projections    | `future (needs PRD)` — **new in v2**                            |
-| **39** | `field-first-ux`             | Mobile, Low-Bandwidth & Conflict-Safe Field Experience                                                                            | 3, 4, 9, 28                                 | 31                                                    | Cross-surface UX, `packages/api` concurrency contracts          | `future (needs PRD)` — **new in v2**                            |
-| **40** | `data-stewardship-ai`        | Data Stewardship, Global Search & AI Operator Workbench                                                                           | 3, 4, 8, 9, 13, 30, 33                      | 6, 11, 34                                             | Mission Control, Data Tools, Search, AI Assist                  | `future (needs PRD)` — **new in v2**                            |
+| #      | Slug                         | Phase                                                                                                                             | Hard deps                                             | Soft / consumes / enhanced by                         | Owner surface / system                                          | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **0**  | `baseline`                   | [Baseline, Governance & Evidence](./phase-00-baseline.md)                                                                         | —                                                     | —                                                     | Docs, OpenSpec, parity matrix, evidence                         | `PRD exists`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **1**  | `ownership-matrix`           | [Source-of-Truth Ownership Matrix](./phase-01-source-of-truth-ownership-matrix.md)                                                | 0                                                     | —                                                     | OpenSpec, architecture docs, `packages/api`                     | `PRD exists` (ruled 2026-07-06)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **2**  | `site-locale-currency`       | [Site, Locale & Currency Foundation](./phase-02-site-locale-currency-foundation.md)                                               | 1                                                     | —                                                     | Tenant/site settings, public context, giving primitives         | `PRD exists` (epic #477)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **3**  | `permission-floor`           | [Minimum Permission & Role-Scoped Projection Foundation](./phase-03-minimum-permission-role-scoped-projection-foundation.md)      | 1, 2                                                  | —                                                     | `packages/api` authz/projections, Mission Control               | `PRD exists` (epic #489)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **4**  | `identity-claiming`          | [Identity & Account-Claiming Foundation](./phase-04-identity-account-claiming-foundation.md)                                      | 2, 3                                                  | —                                                     | Identity services, account claiming, tenant membership          | `PRD exists` (epic #503)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **5**  | `public-runtime`             | [Public Website Runtime Contract](./phase-05-public-website-runtime-contract.md)                                                  | 2, 3, 4                                               | —                                                     | Public Website, Web Studio, Payload, donor public routes        | `PRD exists` (epic #520)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **6**  | `comms-event-model`          | [Shared Communication Event Model](./phase-06-shared-communication-event-model.md)                                                | 2, 3, 4, 5                                            | —                                                     | Communication services, CRM timeline, provider adapters         | `PRD exists` (epic #550)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **7**  | `receipt-rules-credit`       | [Receipt & Statement Compliance Rules + Donor Identity/Credit Model](./phase-07-receipt-statement-compliance-and-donor-credit.md) | **4, 6, 3** (PRD C1–C3)                               | 2, 5                                                  | Receipt/statement services, finance rules, party/credit model   | `PRD exists` (epic #566)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_        | none (build-now core)                                 | 6 (emailed path), 9 (reserved sockets)                | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| **9**  | `crm-depth-graph`            | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md)                                            | **4, 7, 3**                                           | 8 (operations visibility only)                        | Mission Control CRM (Asym Postgres)                             | `PRD exists` (epic #604 + #605–#627)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **10** | `sensitive-safety`           | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md)                      | **3, 9**                                              | 4, 5, 6                                               | Mission Control, security projections, Member Care seams        | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **11** | `custom-fields`              | Custom Fields & Custom Collections                                                                                                | 9, 10, 3                                              | —                                                     | Mission Control CRM configuration                               | `PRD exists` (epic #645 + #646–#664)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11                                             | —                                                     | Mission Control Admin, `packages/api` authz                     | `PRD exists` (epic #665 + #666–#687)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7                                      | —                                                     | Contributions/giving, public checkout, MC finance               | `PRD exists` (epic #690 + #691–#713)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **14** | `donor-credit-ops`           | [Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts](./phase-14-donor-credit-operations.md)                   | 13, 7, 9                                              | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `PRD exists` (epic #719 + #720–#741)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7                                         | 9; enhanced by 16 (fulfillment matching)              | Mission Control Contributions                                   | `PRD exists (epic #758 + #759–#786)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**           | enhanced by 17 (message rendering/delivery)           | Contributions and CRM                                           | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **17** | `system-messages`            | [System Messages & Template Management](./phase-17-system-messages-template-management.md)                                        | 6, 2, 3, 7                                            | —                                                     | Email Studio / System Messages                                  | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **18** | `document-templates`         | [Receipt & PDF Template System](./phase-18-receipt-pdf-template-system.md)                                                        | 7, **13**, 17                                         | 6                                                     | Document Studio / Generated Documents                           | `PRD exists` (epic #907 + #908–#961; #908–#910 ready frontier)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **19** | `statement-operations`       | [Year-End Statement Operations](./phase-19-year-end-statement-operations.md)                                                      | 6, 7, 12, **13**, 14, 15, 17, 18                      | 9, 4                                                  | Mission Control Contributions/Finance                           | `PRD exists` (epic #977 + #978–#1031; blocked/not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **20** | `accounting-exports`         | [Accounting Exports & Reconciliation](./phase-20-accounting-exports-reconciliation.md)                                            | **2, 3, 4, 7, 12, 13, 14, 15**                        | 16                                                    | Mission Control Accounting                                      | `PRD exists` (implementation-ready 2026-07-27; not implemented)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **21** | `field-accounts`             | [Missionary Field Accounts & Support Balances](./phase-21-field-accounts.md)                                                      | **1**, 3, 4, 6, **9, 10, 12**, 13, **15**, 17, 18, 20 | 16                                                    | Mission Control Finance/Admin, Missionary Workspace projection  | `PRD exists` (implementation-ready 2026-08-02; spec #1108; epic #1109 + lane epics #1110–#1120 + P21-01–P21-101 published and dependency-governed; not implemented; D1-D28 scope-frozen; D17/D27 activation requires certified Phase 29 opening-source private-byte custody and Phase 30 import-session staging; selected private-byte-bearing D10/D14/D18/D22/D24/D25/D28 and D26 package/lifecycle slices require their exact owner seams, while metadata/manual/feed paths remain separate; D28 requires Phase 29/30 only for its selected private-byte/bulk lane and otherwise weakens no owning-phase prerequisite) |
+| **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3                                       | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **23** | `web-studio-cms`             | CMS / Site Planner Dynamic Content Parity                                                                                         | 5, 3, 2                                               | 22                                                    | Web Studio, Payload, Public Website                             | `future (needs PRD)` — deps allow an early start after Phase 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **24** | `multi-site-management`      | Full Multi-Site, Language & Currency Management                                                                                   | 2, 5, 13, 20, 23                                      | 17                                                    | Tenant settings, Web Studio, Contributions settings             | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **25** | `donor-portal-depth`         | Donor Dashboard Depth                                                                                                             | 4, 3, 13, 7, 6                                        | 17, 19                                                | Donor Portal                                                    | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17                                        | —                                                     | Support Hub, communication services, `packages/api`             | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **27** | `donor-development`          | Donor Development & Portfolio Management _(beyond-parity differentiator)_                                                         | **9**, 3, 6, 13                                       | consumes 14, 16; 26; enhanced by 33, 34               | Mission Control CRM (Development)                               | `future (needs PRD)` (was v1 Phase 33)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **28** | `missionary-workspace-depth` | Missionary Workspace Depth & Support-Raising CRM                                                                                  | 9, 13, 16, 6, 3, 27                                   | 26                                                    | Missionary Workspace                                            | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **29** | `files-documents`            | File Manager & Document Management                                                                                                | 3, 9                                                  | 18, 26, the shipped workflow-orchestration runtime    | Documents/File Manager, CRM, Workflows, Web Studio              | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **30** | `imports-migration`          | Imports & Migration Tools                                                                                                         | 9, 13, 11, 29, 4, 3                                   | 14                                                    | Mission Control Data Tools                                      | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **31** | `platform-api`               | Platform API, Webhooks & Connector Framework                                                                                      | 1, 3, 4, 6                                            | 9, 13                                                 | Platform API, Integrations, Admin                               | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **32** | `newsletter-sync`            | Mailchimp / Newsletter Sync with Suppression Handling                                                                             | 6, 3, 28, 4, 31                                       | —                                                     | Missionary Workspace settings, MC integrations                  | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **33** | `reporting-bi`               | Reporting & BI / Report Studio                                                                                                    | 9, 13, 7, 6, 3                                        | 11, 15, 16, 30                                        | Report Studio                                                   | `future (needs PRD)` — deps allow an early start (see lanes)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **34** | `workflow-engine`            | Configurable Automation & Workflow Engine                                                                                         | 9, 11, 12, 29, 17, 6                                  | 13 (registration fees), 33                            | Automations/Workflows in Mission Control                        | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **35** | `contribution-triggers`      | Spark-Style Contribution Triggers                                                                                                 | **34**, 13, 6, 3                                      | 33                                                    | Automations, Contributions                                      | `future (needs PRD)` (confirmed separate from 34)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| **36** | `p2p-campaigns`              | Peer-to-Peer & Advocacy Campaigns                                                                                                 | 5, 13, 25, 3, 22                                      | —                                                     | Public Website, Donor Portal, Contributions                     | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **37** | `events-groups`              | Event / Opportunity Workflows & Group Management                                                                                  | 5, 9, 13, 6, 29, 34, 36                               | 10                                                    | Event Hub, Public Website, CRM, Workflows                       | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **38** | `member-care-ops`            | Member Care, Crisis & Restricted-Ministry Operations                                                                              | 10, 3, 4, 9, 29                                       | 6, 12, 26, 34                                         | Member Care, Mission Control, security-sensitive projections    | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **39** | `field-first-ux`             | Mobile, Low-Bandwidth & Conflict-Safe Field Experience                                                                            | 3, 4, 9, 28                                           | 31                                                    | Cross-surface UX, `packages/api` concurrency contracts          | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **40** | `data-stewardship-ai`        | Data Stewardship, Global Search & AI Operator Workbench                                                                           | 3, 4, 8, 9, 13, 30, 33                                | 6, 11, 34                                             | Mission Control, Data Tools, Search, AI Assist                  | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 **Out of scope (deliberate):** **child sponsorship** (tracked as an
 out-of-scope row in [`parity-matrix.md`](./parity-matrix.md)).
@@ -758,6 +759,25 @@ phase (14–21, 33, 35) writes to or reads from this spine.
   missionary/project/campaign, default-designation rules — replacing today's
   read-only fund directory and denormalized `funds.current_amount`. Phase 20 D6
   owns the prospective Designation-to-Accounting-Reporting-Target mapping.
+- **Accepted source-purpose authority for downstream reallocation**: every
+  accepted posted line freezes exact Designation identity,
+  restriction-or-preference classification, purpose and excess-use policy
+  version, source-posting coverage, and one closed provenance variant: the
+  exact source-owned publication kind/reference/digest when governed content
+  was presented or captured, or typed `not_applicable`/`not_captured` plus the
+  exact source-purpose evidence reference/digest. Phase 22 owns a public
+  giving-page publication only when that page was the accepted source, over
+  Phase 23's CMS substrate; Phase 17 owns a message publication only when a
+  governed communication was the accepted source. Offline, imported, and
+  remittance producers supply owner-labelled Designation, memo, remittance, or
+  acceptance evidence to the Phase 13 resolver; they never fabricate a
+  publication or choose their own legal classification. This producer contract
+  applies to public/runtime, offline batch, recurring, import, migration, and
+  integration sources owned by Phases 5/15/16/22/30/31. Phase 21 D5 may
+  consume this immutable projection but never reconstruct it from current
+  labels, pages, or organization discretion. Any later purpose-authority
+  succession preserves the original terms and requires the exact
+  jurisdiction-permitted donor, legal, court, or regulator authority.
 - **Persistent giving cart** (the SiteStacker parity anchor): unlimited
   designations per checkout, mixed one-time + recurring lines, donor
   fee-cover as a separate ledger line with deterministic correction
@@ -1026,7 +1046,9 @@ Phase 17 owns editable message content; Phase 12 owns authorization; Stripe
 executes but does not own Asym intent. No status label, dashboard total,
 provider object, retry counter, or fulfillment suggestion may become a second
 writable truth. Daily giving is excluded. No stale Phase 13 recurring ticket
-may be dispatched without the dated Phase 16 supersession.
+may be dispatched without the dated Phase 16 supersession. A Phase 21 exit
+manifest may request retirement or succession, but Phase 16 alone accepts the
+required donor or tenant authorization and changes future recurring terms.
 
 **Grooming close-out.** D1–D19 resolve aggregate boundaries, grouping,
 cadences, donor anchors, pause/cancel semantics, card and ACH recovery,
@@ -1312,6 +1334,19 @@ PII-minimized Accounting-Ready Expense Handoff. Asym never becomes the GL:
 QBO/Xero owns accepted records, books, periods, translation/revaluation, and
 final bank reconciliation.
 
+Phase 21 D5 identifies one future source root, but the current Phase 20
+generation keeps the entire support-reallocation source family unsupported and
+accounting-dark. A later separately approved Phase 20 change must certify its
+source schema, accountant semantics, Posting Profile recipe, and Phase 20 D17 ownership
+behavior before any close-covered Support Reallocation Accounting Occurrence
+may enter this doorway. No reallocation request, policy, coverage, Decision,
+open-cycle pair, Charitable Succession Handoff, payment evidence, unknown
+result, generic journal, manual journal, or artifact fallback may bypass that
+gate, and Phase 21 never writes QBO or Xero **Accounting** directly. This does
+not prohibit a later exact Phase 21 regional Xero **Payroll** draft-input
+adapter certified under D7; payroll draft input and accounting delivery remain
+different capabilities and authorities.
+
 **What this phase is (plain language).** The org's bookkeeper must be able
 to (a) tie every bank deposit back to gross gifts, fees, and refunds, and
 (b) import clean journal entries into their accounting system. Today the
@@ -1363,83 +1398,701 @@ the implementation-ready Phase 20 specification.
 ### Phase 21 — Missionary Field Accounts & Support Balances (`field-accounts`)
 
 **What this phase is (plain language).** The financial heart of the
-**deputized-fundraising model**: every gift legally belongs to the org and
-is only _preferenced_ toward a worker or ministry purpose. Each worker has an
-organization-owned **Field Account** whose support balance is derived from
-explicit operational entries: gross support allocations, separate assessments
-or permitted costs, approved disbursements, expenses, transfers, and exact
-reversals. The missionary gets one calm, understandable view; finance gets the
-source coverage, policy versions, and exception detail needed to trust it.
+**deputized-fundraising model**: every gift legally belongs to the organization;
+its approved purpose may be a donor preference or a legally enforceable
+restriction, and Phase 21 admits only the immutable Phase 13 source-purpose
+authority. When a tenant activates
+one organization-controlled Support Assignment and its currency-scoped Field
+Accounts for that purpose, the organization-owned
+balance is derived from explicit operational entries: gross support
+allocations, separate assessments or permitted costs, compensation-funding
+coverage, expenses, Support Reallocation occurrences, and exact reversals.
+Tenant-scheduled finance closes turn provisional activity into a dated
+confirmed balance. Tenants that do not use or publish balances retain a calm
+activity- and planning-capable workspace without fake zeroes or setup noise;
+finance gets the exact source coverage, policy versions, and exception detail
+for every activated authority.
 
-**Why it sits here.** It builds on the Phase 13 contribution ledger and Phase
-20 accounting doorway, plus the identity, permission, and restricted-worker
-floors. A Field Account is a **source-authoritative operational allocation
-subledger**, not a second general ledger and not a mirror of the current QBO or
-Xero balance. It links to contribution, expense, and payment facts only through
-explicit immutable coverage. Final accounting delivery and reconciliation stay
-in Phase 20 and QBO/Xero respectively.
+**Why it sits here.** It builds on the Phase 13 contribution ledger, Phase 15
+offline/noncash source and disposition projection, Phase 18 generated-document
+service, and Phase 20 accounting doorway, plus the identity, permission, and
+restricted-worker floors. Optional statement-ready
+communication uses the existing Phase 17 contract and Phase 6 delivery spine.
+A Field Account is a **source-authoritative operational allocation subledger**,
+not a second general ledger and not a mirror of the current QBO or Xero balance.
+It links to contribution, expense, and payment facts only through explicit
+immutable coverage. Final accounting delivery and reconciliation stay in Phase
+20 and QBO/Xero respectively.
 
 **What it covers.**
 
-- **Field Account authority**: first-class Tenant-, Legal-Entity-, worker- or
-  project-, and currency-scoped accounts with append-only balanced operational
-  entries, immutable source coverage, deterministic correction/succession, and
-  **derived per-currency balances**. Pending, reserved, available, released,
-  paid, and accounting-delivered meanings remain separate; no mutable balance
-  column or cross-currency scalar is authoritative.
-- **Gross support allocation**: an eligible Phase 13 Designation allocation
+- **Support Assignment and Field Account authority**: one immutable
+  organization-controlled, Tenant- and Legal-Entity-scoped Support Assignment
+  is the stable subject. Exactly one Field Account may exist per Support
+  Assignment and ISO currency, with append-only balanced operational entries,
+  immutable source coverage, deterministic correction/succession, and
+  **derived per-currency balances**. Support recorded in an open cycle remains
+  separate from the **Finance-confirmed Field Account Balance** through the
+  last closed cycle. Pending, confirmed, reserved, obligation, released,
+  externally paid, and accounting-delivered meanings remain separate; no
+  mutable balance column or cross-currency scalar is authoritative.
+  Each Field Account has one immutable currency. Every Legal Entity has one
+  explicit prospective **Default Field Account Currency Version**, and a
+  tenant may activate a sibling currency-scoped Field Account only through one
+  prospective, source-family-specific **Field Account Currency Activation
+  Version** proving an organization-controlled same-currency admission path.
+  The default orders suggestions and presentation only; it never converts or
+  relabels history. Activation, source readiness, close, Phase 20 accounting,
+  and external payroll/AP payment remain independently authoritative.
+- **Support Assignment participants, access, and collaboration**: a Support
+  Assignment may have zero, one, or many prospective, effective-dated Party
+  memberships recorded as **Support Assignment Participant Memberships**, and
+  one Party may participate in several Support Assignments. Participation,
+  Phase 12 request-time workspace authorization,
+  source-owned operational responsibility, and recipient-scoped notification
+  preference remain independent. D10/D13 own expense claimant, submitter,
+  reviewer, and approval-route facts; D4 plus the external Engagement Authority
+  own compensation and payee facts; Phase 28 owns support-raising coaching and
+  task assignment; and Phase 12 owns capabilities. One quiet
+  **People & access** surface offers tenant-safe presets and one literal
+  consequence review, but every spouse, teammate, leader, coach, and staff
+  member retains separate Party, principal, invitation, access, responsibility,
+  and preference identity. Access is server-authorized through Phase 12's sole
+  PDP over forced coarse Tenant RLS; Realtime is signal-only. Life events use
+  deny-first revocation and append-only succession, and people changes never
+  move money or rewrite closed history.
+- **Reconciled Opening Position and operational cutover**: an established
+  tenant starts one complete Tenant × Legal Entity × ISO-currency activation
+  cohort from one immutable, precedence-explicit **Opening Source Package** and
+  exhaustive **Opening Coverage Manifest**. Every pre-cutover source fact has
+  exactly one non-overlapping disposition—certified exact history, opening
+  residual, structurally inert reference-only history, proved
+  non-balance-bearing exclusion, or unresolved—and unresolved coverage blocks
+  activation. Per-account and cohort proof requires certified exact history
+  plus one balanced nonzero **Field Account Opening Position** residual to equal
+  the reconciled boundary position in exact minor units. A zero position uses
+  manifest coverage only; a negative legacy position blocks activation until
+  already source-authoritative obligation or lifecycle-disposition evidence is
+  resolved under the applicable owner domain (D5 only for a real exit or
+  succession cause), rather than becoming a negative Field Account. Private
+  chunked, resumable,
+  non-authoritative staging and shadow reconciliation lead to one short
+  finance-authorized, CAS-guarded **Field Account Operational Cutover** at an
+  exact half-open boundary for every predecessor source family plus one common
+  operational through boundary proved complete by every source. That common
+  cut starts the first D11 business interval. The cutover also pins the captured
+  ingestion cursor that becomes the predecessor for the first D11 Support Cycle
+  close and carries forward exact independently live reservations, obligations,
+  compensation/reimbursement coverage, reallocations, unresolved payments, and
+  other balance-capacity effects without replaying them as new occurrences.
+  Atomic source groups receive one group-complete disposition; assessment
+  history may be certified only as one complete, non-overlapping D3 Assessment
+  Period Determination, including its explicit partial-period policy and every
+  component/correction. A D6 source-conserving group spanning currencies is
+  canonical exact history only if wholly contained or all affected cohorts
+  activate behind one linked barrier; otherwise it remains reference-only and
+  each currency uses its reconciled residual. Activation
+  is side-effect-dark and D9-publication-gated: it sends no receipts,
+  communications, notices, statements, feed events, accounting, payroll/AP, or
+  reimbursement work. Late facts append idempotent Opening Position Corrections
+  and manifest successors; no destructive rollback or replay exists. Phase 30
+  owns transport and mapping mechanics, Phase 21 D17 owns opening authority,
+  and Phase 20 D17 alone owns separately proved accounting-gap delivery.
+  Every Phase 21 decision other than D17 follows its own dependency path, but
+  Phase 21 D17 activation stays feature-gated until certified Phase 29 private-
+  byte/access and Phase 30 import-session transport/staging seams exist or are
+  explicitly pulled forward under their owning phases; this grooming decision
+  does not claim those runtimes exist.
+- **Evidence-gated production activation**: one immutable **Phase 21 Release
+  Generation**, one prospective **Field Accounts Adoption Plan Version**, and
+  one content-addressed **Field Accounts Go-Live Readiness Manifest** compose
+  the applicable D1-D26 and owning-phase proofs for the exact Tenant, Legal
+  Entity, ISO currency, complete Support Assignment and source-family census,
+  environment, code/schema generation, and D17 half-open authority boundary.
+  D17 remains the sole CAS-guarded Operational Cutover and D11 remains the sole
+  close/integrity authority; D27 creates neither a second enablement state nor
+  a second financial truth. Synthetic demonstration, provider sandbox, and
+  complete-cohort D17 production-shaped opening shadow evidence are labelled
+  separately. D27 invokes that existing D17 shadow rather than owning a second
+  financial calculation or reconciliation, and the shadow remains structurally
+  side-effect-dark and non-authoritative.
+  Finance receives one accessible, exception-first consequence review and one
+  literal start action. Optional capabilities activate independently only when
+  their own applicable proofs pass; a named missionary pilot may narrow only
+  D19/Phase 12 publication, never the financial cohort. One disposable,
+  through-dated **Field Accounts Operational Readiness Projection** keeps
+  healthy tenants quiet. Post-start drift opens a cause-owned exception and
+  applies the smallest prospective containment that preserves immutable
+  history, authorized reads, D26 custody export, established obligations,
+  mandatory adverse corrections, artifact/manual continuity, and append-only
+  recovery.
+- **Gross support allocation**: an eligible Phase 13 posted money Designation
+  allocation, or one exact source-final Phase 21 D21 Realized Support Basis,
   creates at most one covered gross Field Account credit under the frozen
-  recognition policy. Refunds, returns, redesignations, and source corrections
-  append exact linked effects; Phase 21 never derives balances by summing live
-  donation rows or changes legal-donor, receipt, or Designation truth.
-- **Assessment/admin-cost policy**: prospective, effective-dated,
-  tenant-configurable rules with explicit scope, exemptions, minimums, caps,
-  preview, and one-time source coverage. A support allocation remains gross and
-  an assessment is a separate debit, so “net support” is a transparent derived
-  result rather than a rewritten gift. Rate shapes and legal treatment are
-  tenant policy confirmed by qualified advisers, never hard-coded from one
-  missions organization.
+  recognition policy. An original noncash recognized value, FMV, appraisal, or
+  estimate is structurally ineligible. One prospective, tenant-owned **Support Allocation
+  Readiness Policy** defines the rail-specific evidence required before a
+  positive allocation may enter a Support Cycle close. Its guided setting uses
+  exact provider settlement evidence for Stripe and deposited/direct-credit
+  evidence for offline money; bounded source-family choices may recognize a
+  posted gift earlier or require exact bank evidence later. Exact provider
+  `available` remains finance evidence and never becomes missionary-facing
+  availability. Refunds, returns, redesignations, and source corrections append
+  exact linked effects; known adverse effects cannot be deferred, and both
+  sides of a redesignation or D5-qualified Support Reallocation occurrence
+  enter atomically. Phase 21 never derives balances by summing live donation
+  rows or changes legal-donor, receipt, or Designation truth. A Gross Support
+  Allocation is current-cycle activity; it does not by itself advance the
+  Finance-confirmed Field Account Balance or authorize compensation or
+  reimbursement.
+  When the source header and Field Account gross use different currencies, one
+  immutable, admission-contract-owned **Support Currency Allocation Manifest**
+  binds the complete effective Phase 13 hard-tender line set—including
+  fee-cover and other non-support lines—to one exact typed
+  organization-controlled target allocation basis such as
+  `provider_balance_gross`, `bank_credited_amount`, or another D2-qualified
+  basis. It conserves source and target totals independently, uses the existing
+  deterministic largest-remainder minor-unit seam, preserves exact
+  provider/bank conversion provenance and only separately observed costs, and
+  prevents double coverage. Only eligible non-fee-cover designation target
+  portions create Gross Support Allocations; `gross` means before separate
+  Phase 21 assessment and cost effects, not that every rail exposed processor
+  gross. Each later cross-currency adverse occurrence receives its own
+  immutable successor/correction manifest bounded by remaining original
+  coverage. The manifest is not gift, receipt, accounting, rate, or balance
+  truth; no current rate, staff rate, synthetic `1.0`, or Phase 21 FX engine
+  exists.
+- **Noncash Support Realization**: Phase 21 D21 preserves the original Phase 13
+  noncash Contribution, legal donor, accepted purpose, gift date, valuation,
+  receipt, supporter, and fundraising truth and never creates support from that
+  asset's recorded value. Only exact source-final Phase 15 disposition proceeds
+  may enter one immutable, source-mode-honest realization manifest. The manifest
+  freezes Tenant, Legal Entity, source role/legal recipient, asset lot and exact
+  quantity, purpose, ISO currency, finality evidence, gross/cost/net or
+  legitimate exact-net-only facts, treatment, deterministic allocations and
+  residuals, non-overlapping source/opening coverage, D6 conversion evidence,
+  source/policy versions, semantic idempotency, and append-only correction
+  lineage. `net_realized` is the zero-setup default; prospective
+  organization-absorbed exact costs require certified gross, eligible-cost, and
+  net proof. D3 assesses only the resulting Realized Support Basis. Partial,
+  pooled, installment, corporate-action, and terminal nonmonetary dispositions
+  require exact quantity and minor-unit conservation; retained, used,
+  donated-onward, abandoned, worthless, or donated-service outcomes create no
+  positive support. D2/D11 alone admit one balanced close occurrence, D5 owns
+  valid purpose succession, D17 owns pre-cutover coverage, D19 owns participant
+  access, and Phase 20 alone may later certify one nonduplicate accounting
+  source. Relevant staff use one conditional contribution lifecycle and the
+  existing exception workspace; missionaries see at most one quiet grouped
+  story and only closed support effects—never valuation, custody, liquidation,
+  accounting, availability, payment, or a second gift.
+- **Administrative Assessment Profiles**: every Tenant and Legal Entity starts
+  with an explicit immutable **No administrative assessment** profile, so a
+  tenant that does not charge assessments has no setup burden or zero-value
+  missionary UI. A bounded prospective catalog supports source-family
+  percentage, percentage with a monthly minimum and/or cap, fixed monthly,
+  percentage plus a separately recorded monthly-service component, exact-
+  account negotiated flat, and narrower exemption. Profiles never stack: one
+  fixed specificity model resolves exactly one account profile, then selects a
+  finite frozen source-family treatment inside it. An ambiguous same-rank
+  assignment blocks the affected account rather than silently choosing a
+  charge. Source-linked percentage entries and monthly
+  **Assessment Period Determinations** remain different immutable occurrences;
+  one separate period adjustment owns a minimum top-up or cap credit even when
+  Support Cycles are biweekly. Gift-linked variable assessment reverses from
+  original coverage, while minimum/cap/fixed/service effects remeasure through
+  append-only period correction. Gross support remains unchanged and the
+  transparent result is **support credited**, never a rewritten gift or
+  availability claim. Staff activate through one production-shaped preview;
+  tenants choose a bounded honest missionary presentation without hiding a
+  nonzero assessment.
 - **Optional processor-cost effect**: Phase 20 D19 never silently changes a
   Field Account. If a tenant separately enables a compatible Phase 21 policy,
   it consumes the exact immutable Processor Cost Attribution Manifest once,
   records a distinct Field Account entry, and cannot allocate across currencies
-  or charge the same provider cost twice.
-- **Approved draw and underfunding operations**: prospective approved support
-  or disbursement plans, scheduled occurrences, funding checks, partial
-  execution coverage, and an explicit shortfall/held state. A shortfall does
-  not create negative spendable support, wages, debt, a payable, or “backpay”
-  merely because a schedule existed. Payroll and payment providers execute
-  outside Asym; confirmed source evidence and Phase 20 own the downstream
-  accounting handoff.
+  or charge the same provider cost twice. Processor cost is never an
+  Administrative Assessment Profile component or part of its assessable base.
+- **Optional Organization Support Cost Applications**: Phase 21 D20 is an
+  absent-unless-enabled residual lane for exact source-final, purpose-compatible
+  organization services and direct costs whose canonical semantic family is
+  not owned by D3 assessment, D4 compensation, D10/D13 expense, or Phase 20 D19
+  processor-cost attribution. One source-family admission contract and
+  canonical economic root prevent fallback ownership and duplicate economics.
+  A prospective finite bearing policy defaults to **Organization covers it**
+  and may instead target a support balance, make one reviewed exact split, or
+  require review. Allocation distributes an exact source amount; it never
+  calculates a cost from gifts, balances, participants, budgets, or arbitrary
+  formulas. One immutable per-currency manifest conserves every minor unit;
+  unresolved target work is not close-complete, exact coverage is non-reusable,
+  and an ordinary application never authorizes a discretionary overdraft. A
+  mandatory source-owned adverse correction still appends even when it exposes
+  a visible deficit, and D1 close alone recognizes a D11-balanced occurrence.
+  Optional bounded carryforward has explicit amount, age,
+  and append-only successor disposition and is never debt, AP, availability,
+  payment, or a silent expiry. Source-linked credits and corrections use the
+  original policy/evidence versions and later closes. D6 exact external
+  conversion evidence is required for a different-currency result; Phase 21
+  supplies no FX engine. A PII-minimized Support Cost Accounting Candidate
+  Handoff stays Phase 20 accounting-dark until a later separately approved
+  source contract proves semantics, nonduplicate posting ownership, and
+  admission. The ordinary product has no D20 navigation, card, queue, empty
+  state, notification, or existence signal; enabled clean work reuses the
+  Support Cycle review, exceptions reuse D11, and only authorized grouped
+  post-close effects enter existing missionary activity/statements.
+- **Support-cycle and compensation planning**: tenant-scheduled cycles use a
+  monthly guided default and a supported biweekly alternative, with one clear
+  `Collecting → Finance review → Closed` progression. A close freezes its
+  exact boundary, entries, policy versions, tie-out evidence, actor, and time;
+  later facts append as linked corrections.
+- **Contract-referenced compensation funding**: compensation planning starts
+  `Not managed in Asym`. A tenant may activate one prospective Plan Version,
+  pinned to an exact Engagement Authority Reference, for one worker/payee,
+  Legal Entity, Field Account, Field Account funding currency, external
+  compensation/payment currency, and destination using exactly one bounded
+  method: **Finance enters each cycle**, **Fixed approved target**, or **Up to
+  an approved maximum**. The Plan Version owns a prospective half-open
+  configuration-effective interval and cadence, not a cycle's Compensation
+  Funding Period. Each proposal/decision instantiates one exact half-open
+  Compensation Funding Period; overlapping plan intervals and duplicate
+  current same-scope/period decisions fail through uniqueness plus CAS. The
+  Engagement Authority Reference pins an exact provider source when available
+  or a governed tenant-issued authority record, so artifact-only tenants are
+  supported without Asym inferring classification. Both currencies are equal
+  by default; a different pair requires exact external conversion authority,
+  amounts, rounding, residual, and provenance. Support Cycles, Compensation
+  Funding Periods, and external payroll/AP periods remain distinct even when
+  they align. A disposable proposal may use only Finance-confirmed capacity,
+  non-reusable prior coverage, and one optional support-balance floor. One
+  immutable Compensation Funding Decision separates Field Account-covered,
+  separately organization-covered, and unresolved amounts; its purpose-typed
+  Field Account Funding Coverage reserves capacity but does not debit, create
+  wages or liability, authorize payment, or prove payment. Shortfalls become
+  exceptions—never automatic wage reduction, negative balance, debt, backpay,
+  or arrears.
+- **Artifact-always compensation handoff**: every authorized decision creates
+  one content-addressed, schema-versioned, PII-minimized Compensation Handoff
+  Package. The artifact always remains usable evidence, while exactly one
+  executable lane owns delivery: staff artifact fulfillment, an exact
+  capability-certified provider-draft input, or a certified Phase 20 source
+  handoff. Artifact existence is not a second execution. Provider automation
+  is draft-input-only; QBO
+  Accounting, QuickBooks Workforce, Xero Accounting, and regional Xero Payroll
+  products are separate capabilities, and an accounting connection never
+  implies payroll access. Asym does not classify workers, calculate wages,
+  taxes, deductions, benefits, or net pay, submit or run payroll, move
+  compensation money, or archive raw paystubs.
+  The optional Phase 20 lane is only a source handoff: the funding decision or
+  reservation creates no Posting Intent, payable, expense, or Accounting
+  Release until a separately certified evidence-qualified source occurrence,
+  accountant-confirmed semantics, and Phase 20 D17 posting owner authorize it.
+- **Capability-honest launch adapter portfolio**: Phase 21 fully builds the
+  lifecycle appropriate to each exact provider capability: provider- and
+  region-pinned Gusto Employee Payroll Draft, ADP Workforce Now Pay Data Input,
+  and separately certified Xero Payroll AU and NZ draft-input adapters;
+  QuickBooks Workforce and Xero Payroll UK receive complete readback and
+  artifact workflows because no equivalent safe per-run write is currently
+  proved. The Phase 21 multi-provider launch is incomplete until at least two
+  distinct direct-write adapters hold current production authorization and pass
+  a production-shaped canary and certification. One prospective immutable
+  Compensation Draft
+  Delivery Profile Version pins Tenant, Legal Entity, provider organization,
+  product, country, environment, external provider participant/payee reference,
+  currency, pay cycle, component
+  role, operation, and certification. Staff receive an exact provider-native
+  preflight/diff and one literal release action. Each attempt becomes an
+  immutable Provider Draft Operation with destination serialization,
+  concurrency proof, exact readback when available, drift evidence, and
+  per-unit `confirmed_updated`, `proven_not_updated`, or `outcome_unknown`
+  coverage. Only proved non-updates enter a residual successor; unknown work
+  remains quarantined and cannot be blindly retried or switched to another
+  lane. Provider acceptance proves only accepted input. Tenant external
+  HR/legal authority and configured provider records own classification and
+  entitlement; payroll/AP providers own calculation, approval, submission,
+  posting, completion, and payment. Xero Accounting draft bills and QBO Bills
+  remain Phase 20 accounting concerns, not Phase 21 adapter shortcuts.
+- **Independent compensation result and effect truth**: the External
+  Compensation Result, External Payment Occurrence, Compensation Field Account
+  Effect, and QBO/Xero accounting remain independently authoritative. Each
+  Legal Entity pins one prospective recognition policy: the guided default
+  recognizes a finalized external result; the bounded alternative recognizes
+  exact external payment evidence only when that occurrence carries an exact
+  source-qualified Field Account organization-cost basis or links to a
+  finalized result that does. Net cash alone is insufficient. Plans,
+  approvals, reservations, downloads, provider drafts or acknowledgments,
+  posted pay runs, accounting entries, and payslips cannot create a Field
+  Account effect or prove payment. Recognition atomically transitions the
+  exact effect-backed coverage to `fulfilled`, never `released`, so projected
+  capacity subtracts the reservation before the effect and the debit
+  afterward—never both. Only a non-overlapping remainder may be released, with
+  proof that it was never handed off/submitted or cannot execute after exact
+  downstream cancellation/reversal; an unknown outcome remains reserved in an
+  exception and no timer silently frees it. Every effect carries a
+  component-level application manifest that conserves qualified
+  organization-cost basis into Field Account-applied, separately
+  organization-funded, and unresolved variance without exceeding coverage or
+  authorization or silently reprioritizing sources. Mixed
+  compensation/reimbursement payments use one payment currency, exact typed
+  coverage, one signed typed resolved residual, and exact FX evidence for any
+  different-currency source component. Corrections, failures, partial
+  reversals, and reversals append without rewriting prior closes, and only the
+  policy-selected recognition authority may correct the Field Account effect.
+  Payroll/AP accounting has exactly one posting owner, so Phase 20 never
+  duplicates journals already posted externally.
 - **Expense operations and accounting-ready handoff**: report, line,
-  itemization, receipt, mixed-funding, approval, hold-until-funded
-  reimbursement, exact payment-coverage, successor, and correction truth stay
-  source-authoritative here. Phase 21 produces the immutable Approved Expense
-  Snapshot and PII-minimized Accounting-Ready Expense Handoff adopted by Phase
-  20 D18. Phase 20 validates and posts that projection through its single
-  accounting doorway; Phase 21 does not create another QBO/Xero connector. At
-  Phase 21 launch, expense evidence uses the existing private signed-upload
-  and storage substrate. Phase 29 may later adopt those bytes into its common
-  storage/access lifecycle without changing Phase 21 evidence identity,
-  report/line linkage, sufficiency, approval, correction, or accounting
-  coverage.
-- **Transfers** (worker→project, worker→worker, worker→org) with caps,
-  approvals, same-Tenant/Legal-Entity/currency conservation, and immutable
-  source/target coverage; **exit-disposition workflow** for departing workers
-  keeps balances organization property and applies only an approved,
-  prospective tenant policy. A cross-entity or cross-currency movement is not
-  disguised as an ordinary transfer.
-- **Missionary-facing projection** (Workspace): balance, months-of-runway,
-  income/expense by month, new-support notifications, scheduled digests,
-  low-balance alerts, and downloadable monthly activity artifacts. Amounts,
-  freshness, as-of time, pending/available meaning, assessments, and
-  corrections remain clear; donor and restricted-worker details obey Phase
-  3/10 projections. Phase 21 owns the activity facts, recipient purpose, and
-  alert eligibility; Phase 18 renders generated artifacts, Phase 17 owns and
-  prepares governed message content, and Phase 6 sends and records communication
-  history. Phase 21 never calls Resend or another transport directly. Staff
-  work from one exception-first Field Accounts workspace, not raw journal
-  jargon or a second accounting console.
+  itemization, receipt, mixed-funding, **Expense Claim**, policy decision,
+  immutable Approved Expense Snapshot, any resulting **Reimbursement
+  Obligation**, **Field Account Funding Coverage**, external Payment
+  Occurrence, exact payment coverage, successor, and correction truth stay
+  source-authoritative here. Insufficient Field Account capacity may block a
+  prospective spending authorization or create a finance exception, but it
+  cannot automatically erase or relabel an already established obligation.
+  Every claim pins its effective employee, independent-contractor, volunteer,
+  or unresolved/other relationship and applicable jurisdiction; unresolved
+  classification permits capture but blocks automatic downstream disposition.
+  Phase 21 produces the PII-minimized Accounting-Ready Expense Handoff adopted
+  by Phase 20 D18. Phase 20 validates and posts that projection through its
+  single accounting doorway; Phase 21 does not create another QBO/Xero
+  Accounting connector or payment rail. One atomic mixed
+  compensation/reimbursement
+  payment uses a complete typed coverage manifest and one Phase 20 D17 posting owner;
+  when payroll/AP owns accounting for the whole payment, the expense slice does
+  not create a standalone Accounting Release. A Compensation Handoff Package,
+  Compensation Draft Delivery Profile Version, Provider Draft Operation, or
+  provider acceptance/readback cannot enter through the D18 expense lane. At
+  D10, the immutable **Expense Claim Version** is the smallest claimant-authored
+  source fact. An optional Expense Report Draft and immutable Expense Report
+  Submission provide one adaptive report-first experience but no aggregate
+  approval, obligation, funding, payment, or accounting authority. Every exact
+  item/split receives a conserving policy disposition; clean claims may advance
+  while selected claims use linked successor recovery. Each approved Claim
+  Version yields at most one non-overlapping Approved Expense Snapshot for its
+  exact coverage, and later approval/correction appends a supplement, successor,
+  or cause-linked correction.
+  Receipt Evidence Assets remain private and immutable, with exact many-to-many
+  Expense Evidence Link coverage. The repo has **no existing safe receipt
+  substrate**: `document-uploads` is public and prohibited for this use. Before
+  D10 ships, it must use a genuinely private Phase-29-compatible byte seam with
+  opaque identity, safe upload finalization, malware/file hygiene, short-lived
+  authorized access, access audit, retention, and hold behavior. Phase 29 later
+  owns that common byte/access lifecycle without changing Phase 21 evidence
+  identity, linkage, sufficiency, approval, correction, obligation, funding,
+  payment, or accounting coverage.
+  Receipt OCR and matching are suggestion-only consumers of the shared
+  tenant-owned AI control plane: write-only Credential Revisions, prospective
+  purpose-specific capability-certified AI Capability Binding Versions,
+  classification-gated minimum-data egress, immutable invocation provenance,
+  explicit human confirmation, and a complete manual path. No public receipt,
+  AI suggestion, credential, report status, or provider model field enters
+  Phase 20 truth.
+  D13 keeps that experience quiet until one immutable prospective Expense
+  Program Activation Version enables it for the exact Tenant and Legal Entity.
+  One guided Expense Governance Profile Version default plus bounded,
+  source-backed relationship, jurisdiction, Expense Policy Cohort, certified
+  expense-family, purpose/project/grant, or exact-claimant assignments resolves
+  exactly one non-stacking incurred-date winner for every item or split.
+  Same-rank ambiguity blocks only affected coverage; staff never order rules or
+  author scripts, formulas, or workflow graphs. Exact ISO-currency thresholds
+  use integer minor units and an explicit amount basis, with no implicit FX.
+  Expense Approval Route Versions are separate finite review contracts:
+  submission freezes one Approval Assignment Snapshot, while every human
+  decision rechecks current authority and conflict-of-interest. The ordinary
+  path is one independent reviewer, with conditional project, finance,
+  specialist, or named independent small-tenant review only when the active
+  contract requires it. Governed delegation and reassignment preserve the
+  original snapshot and grant no decision power. Clean-only
+  **Approve clean claims** shows the exact consequences before confirmation
+  and records one Expense Review Action per item or split; self-, AI-, timeout-,
+  and automatic approval do not exist. A typed Reviewer Exception records the
+  violated clauses, reason, authority, and independent review inside the
+  Expense Policy Decision without mutating the Profile or creating a generic
+  override. Phase 20 receives only PII-minimized frozen approved-snapshot
+  lineage and never receives Profiles, Routes, Assignments, receipt evidence,
+  reviewer identity, or internal review workflow.
+- **Optional exact Prospective Expense Authorization**: D22 remains
+  independently off by default and structurally absent from requester, staff,
+  notification, reporting, and API surfaces. An authorized tenant may make one
+  secondary **Plan an expense** action available when helpful or require it for
+  exact D13-selected scopes without changing the complete **Add expense** path.
+  The short flow captures the plan, maximum and ISO currency, expected half-
+  open incurrence window, and purpose. Immutable requester versions,
+  submission-time governance and assignment snapshots, current-authority human
+  review, narrowing-only decisions, exact later D10 item/split coverage,
+  partial/multi-claim use, and append-only correction remain distinct from the
+  actual claim. The guided consequence is approval-only. A separately
+  certified advanced scope may atomically reserve exact same-purpose, same-
+  currency D1 planning capacity; failure cannot yield partial approval or
+  silently downgrade. Expiry ends new reliance but never releases an unproved
+  residual. Missing required authorization becomes a typed D13 exception and
+  never blocks actual claim/evidence capture. Planning or approval never means
+  incurred, substantiated, reimbursable, owed, available, payable, paid,
+  posted, synced, or reconciled, and creates no procurement, card, payment,
+  payroll, or accounting authority.
+- **Source-family-specific Expense Field Account Effect Recognition**: D23
+  resolves exactly when one approved expense slice may enter the operational
+  support balance without pretending to recognize accounting. One immutable
+  prospective profile is scoped by Tenant, Legal Entity, purpose, Field
+  Account, ISO currency, and certified source family. Claimant-paid
+  reimbursement uses the D16 settlement partition and defaults to exact
+  obligation plus funding; a tenant may prospectively certify an exact-payment
+  alternative. Organization-card, organization cash/debit/direct-payment, and
+  certified-payable paths instead root directly in their exact D10/D13 approved
+  economic-payer coverage and source occurrence, never a fabricated D16
+  settlement. One common Effect Basis, exact non-overlapping Effect Coverage,
+  and immutable Funding Coverage Dispositions ensure a reservation and debit
+  never both consume capacity. Initial adoption uses D17's no-gap/no-overlap
+  cutover coverage; later profile replacement uses a complete D11 boundary,
+  cursor, and in-flight manifest. D4, D16, D20, and D21 remain exclusive
+  effect owners. Corrections are source- and cause-linked later-cycle deltas or
+  atomic ownership succession. Clean work is zero-action; staff and
+  missionaries see independently labelled approval, support-balance,
+  reimbursement/payment, and accounting truth with no availability, payment,
+  or GAAP claim.
+- **Own-identity, exact-claim-bounded expense collaboration**: D24 adds one
+  optional Tenant-controlled Expense Collaboration Assignment Version for one
+  exact claimant, helper, Expense Program, stable claim, item/split/purpose/
+  evidence scope, and half-open interval. A separate authority-free, one-time,
+  expiring invitation must be accepted by the helper's verified principal.
+  The quiet default is prepare-only. A separately enabled mechanical submit
+  operation is allowed only for a complete unchanged Claim Version whose
+  material facts and evidence links are pinned by immutable authenticated
+  Claimant Confirmation or a tenant-admitted claimant-authored external
+  attestation meeting Asym's proof floor. Every request reuses Phase 12 as the
+  sole policy decision point and applies the code-owned collaboration-mode and
+  Evidence Access Projection ceilings; stricter Phase 3/10 classification may
+  only subtract. Access is non-transitive, requester-specific, and revocable
+  for future retrieval without pretending to recall delivered bytes. Claimant,
+  payer, evidence contributor, preparer, submitter, confirmer, reviewer,
+  approver, payee, and actual principal remain separate immutable truth.
+  Commit-time reauthorization and current-version/epoch CAS prevent stale
+  submission. D24 creates no review, approval, payment, Field Account,
+  accounting, payroll, notification, relationship, or successor authority.
+- **Exact, cause-owned Expense Claim resolution**: D25 adds one exceptional-
+  only immutable Resolution Case per exact root-cause fingerprint and
+  item/split/purpose/ISO-currency coverage. Seven code-owned causes supply one
+  literal source-owned next action; tenants may choose bounded queue owners,
+  reminders, existing D13 routes, and help copy but no custom causes, states,
+  scripts, timers, financial meanings, or workflow graph. Same-cause repeats
+  converge, overlapping unresolved cases relate/order or fail visibly, and
+  clean separable siblings continue. Immutable actual-actor Occurrences and a
+  proportional complete Downstream Impact Manifest let the current projection
+  explain **Needs your update**, **With finance**, **Waiting on source**,
+  **Correction in progress**, or **Complete** without becoming authority.
+  Completion derives only from root-source proof plus an explicit disposition
+  for every affected owner family. D10, D13, D15/D16, D23/D1/D11, D12, Phase
+  20, payroll/AP, and providers append their own successors or corrections;
+  Phase 12 remains the sole PDP, Phase 29 owns private evidence bytes, Phase
+  6/17 owns communication, and Mission Control/Phase 34 may mirror follow-up
+  only. Case or task completion proves no approval, obligation, payment, Field
+  Account inclusion, statement correction, accounting delivery, posting, or
+  reconciliation.
+- **Purpose-owned records schedules and exact tenant custody exports**: D26
+  applies one owner-qualified catalog of immutable, qualified-review-backed
+  Records Schedule Contract Versions to six closed Phase 21 record families,
+  with a quiet reviewed default, bounded prospective tenant bindings,
+  per-record resolutions, holds, and complete successor-impact coverage. Every
+  authorized tenant can repeatedly create one source-watermarked, open-format,
+  manifest-complete Records Export Package per Legal Entity; one tenant-wide
+  action fans out under one index. Canonical JSONL, bounded spreadsheet-safe
+  CSV, accessible PDF/HTML, authorized originals, exact relationships,
+  versions, ordered parts, and digests remain representation-labelled. Every
+  selected record receives one explicit inclusion, restricted-lane, owner-
+  reference, authority-exclusion, disposed, unavailable, or not-applicable
+  disposition. Download, print, Tenant External Copy Assertion, Verified
+  Destination Custody Transfer, retention, hold, termination, and copy-specific
+  disposal remain separate truths. Phase 21 owns schedule, package, and
+  manifest meaning; Phase 29 owns byte custody, staging, hold/disposal
+  execution, backups, and restore suppression; Phases 3/10/12 own egress;
+  Phase 30 stays inbound; Phase 31 owns any later destination adapter; and
+  Phase 38 owns privacy requests. The tenant owns external-copy choices while
+  Asym retains its actual obligations for copies in Asym custody.
+- **Optional organization-card transaction evidence**: D14 adds one
+  tenant-off-by-default, organization-card-only **Upload card activity** lane
+  over the complete D10 manual Expense Claim path. A Tenant-, Legal-Entity-,
+  Organization-Card-Source-, billing-currency-, and immutable Organization Card
+  Import Profile Version-scoped staged CSV produces one complete immutable
+  Organization Card Activity Import Manifest. Structural file defects commit
+  no evidence; a structurally valid manifest atomically records every row
+  disposition while safe rows may create immutable Organization Card
+  Transaction Evidence Versions. Exact file repeats are no-ops, cross-file
+  convergence requires a certified stable source identifier, and similarity
+  creates only a reviewable Possible overlap. Effective-dated Organization Card
+  Assignment Versions route work without becoming claimant, classification,
+  policy, or approval authority. Same-billing-currency Organization Card
+  Evidence Coverage conserves each source-final posted purchase through
+  business Claim coverage, a nonbusiness/personal portion, and unresolved
+  remainder; typed Organization Card Source Adjustment Evidence appends rather
+  than rewriting history. Original merchant currency and issuer conversion or
+  fee data remain attributed provenance—never an Asym FX result. Raw files use
+  the private Phase 29 byte lifecycle; uploads containing unmasked PAN or
+  sensitive authentication data fail acceptance and are quarantined. Import,
+  assignment, linkage, classification, or approval creates no Reimbursement
+  Obligation, Field Account effect, payment, Accounting Release, issuer
+  settlement, card-liability payment, or reconciliation. Only an eligible
+  D10/D13 Approved Expense Snapshot may cross the existing PII-minimized Phase
+  20 doorway. Claimants get a quiet camera-first completion task; finance gets
+  one cause-grouped **Card activity** workspace; inactive tenants see no setup
+  or empty-state noise.
+- **Artifact-always reimbursement handoff with qualified execution**: D15
+  creates one immutable, content-addressed, schema-versioned, PII-minimized
+  Reimbursement Handoff Package for exact Reimbursement Obligations. Package
+  creation, preview, protected retrieval, download, and redownload are
+  non-executing and may exist with zero Execution Claims. Only explicit release
+  atomically creates one unique Reimbursement Execution Claim and exact
+  non-overlapping Reimbursement Handoff Coverage for one executable lane.
+  **Handle outside Asym** is the complete quiet default and uses an explicit
+  Handoff Attestation that proves only external handoff. Connected payroll or
+  AP options appear only for exact capability-certified pre-execution
+  draft/input operations whose endpoint and effective tenant automation cannot
+  approve, calculate, submit, schedule, fund, or send money. QBO and Xero
+  Accounting objects remain Phase 20-only. D15 may reuse D7's technical
+  concurrency, idempotency, readback, drift, backpressure, and ambiguity kernel
+  but retains separate reimbursement packages, commands, coverage, operations,
+  and statuses. Each unit is `confirmed_handed_off`,
+  `proven_not_handed_off`, or `outcome_unknown`; only proved non-handoff
+  residual may enter a successor, while unknown outcomes stay quarantined.
+  Provider draft readback is handoff evidence only. Separately authoritative
+  External Payment Occurrence evidence retains source and strength, exact
+  many-to-many payment coverage, typed residual conservation, and append-only
+  return/reversal/correction/reissue. Staff evidence says **Payment recorded by
+  finance** and is never silently upgraded to **Payment confirmed**. D15 does
+  not move money, hold beneficiary-bank data, collect claimant repayment,
+  become AP/payroll, or infer payment from handoff, provider, accounting, or
+  bank evidence.
+- **Purpose-separated advances and claimant repayments**: D16 keeps one quiet,
+  tenant-off-by-default setup that compiles into independently activatable,
+  immutable prospective Expense Advance and Claimant Repayment Policy Versions.
+  Authorization, exact economic issuance, **Advance Application Readiness**, and
+  one Approved-Expense-Snapshot-rooted Expense Settlement Determination remain
+  distinct. The settlement atomically applies only readiness-qualified advance
+  coverage and creates only the remaining Reimbursement Obligation plus typed
+  residuals; it never creates a gross obligation and reduces it later. When a
+  tenant funds an advance from organization-controlled support capacity, the
+  exact approved funding component of the Expense Advance Authorization creates
+  non-reusable `expense_advance` Field Account Funding Coverage; only a
+  separately qualified Field Account Effect fulfills it, and a proved external
+  return drives its own cause-owned adverse or reversal effect. A source-final
+  review candidate cannot become a return request until an immutable Repayment
+  Subject Determination proves the responsible Party, relationship,
+  jurisdiction, conflict route, actor, and version. Only the
+  `request_external_return` decision creates an operational Claimant Repayment
+  Requirement, never adjudicated debt or a bookable receivable by default.
+  Externally handled returns use exact Claimant Repayment Occurrences,
+  source-labelled observations, many-to-many coverage, typed residuals, and
+  append-only correction. Cross-currency expense application requires exact
+  externally owned source and settlement amounts, conversion authority, rate,
+  rounding, and residual; Phase 21 supplies no FX engine. Phase 20 may admit
+  only separately certified PII-minimized economic occurrences with an
+  independently assigned posting owner. Policies, authorizations, observations,
+  tasks, disputes, reservations, and Requirements remain accounting-dark unless
+  an accountant-certified contract separately recognizes a receivable.
+- **Support reallocation and exit disposition**: one bounded
+  organization-authorized Support Reallocation Case coordinates an optional
+  nonbinding missionary preference, one prospective tenant policy, exact Phase
+  13 accepted-source purpose authority, deterministic close-aware capacity,
+  immutable Decision, and independently authoritative outcomes. Internal
+  same-Tenant, same-Legal-Entity, same-currency source/destination entries
+  append atomically and advance both Finance-confirmed balances only through
+  one later Support Cycle Close. Exit activates only from an exact Worker
+  Lifecycle Authority Reference and uses one conserving Exit Disposition
+  Manifest whose internal, external, continuing-authority, and
+  organization-retained lines preserve every purpose and currency. External
+  charitable succession is optional and proof-gated; Asym does not move money,
+  and payment evidence alone is insufficient. A qualified external disposition
+  appends one balanced Field Account occurrence—source debit plus a typed
+  organization-control/disposition counter-entry—and both sides enter the same
+  close; the counter-entry is not a recipient account or GL truth. Source
+  domains own lifecycle, Designation, recurring, assessment, compensation, and
+  page succession; late facts use append-only recovery rather than target
+  clawback. A close-covered
+  occurrence is the sole eligible future Phase 20 source root, but the current
+  Phase 20 generation deliberately keeps this family dark until a separately
+  approved Phase 20 source certification exists. Staff use one exception-first
+  doorway; missionary requests are absent unless enabled and never present a
+  balance as available or transferable.
+- **Missionary-facing Support Workspace**: one quiet, privacy-filtered
+  missionary CRM surface whose current Support Workspace Publication Profile
+  selects only authorized source-backed modules. It may include Support
+  Activity, income/expense by month, expense/reimbursement progress,
+  downloadable support-cycle activity artifacts (monthly by default), and
+  tenant-enabled notifications or digests. Balance, Balance Coverage, Reserve
+  Position, commitments, goals, and
+  alerts are absent unless their independent authorities, exact prerequisites,
+  audience authorization, and current publication profile permit them. When
+  published, a Finance-confirmed support balance carries its through/as-of date,
+  Balance Coverage uses the D9 conservative same-currency Planning Coverage
+  Base, and Support recorded since close remains separately labelled. The
+  surface feels like a small, calm missionary CRM, not a finance console or a
+  second donor CRM. When the exact D3 winner is No Assessment,
+  assessment UI is absent. Otherwise the tenant chooses **Compact
+  transparent** (guided), **Balanced**, or **Detailed** presentation while the
+  exact detail and immutable statement always preserve **Gross support
+  recorded**, **Organization assessment**, separately governed costs when
+  applicable, and **Support credited**. Percentage detail may accompany the
+  affected gift; minimum, cap-credit, flat, and service components remain
+  separate period activity. An honest custom label or explanation cannot
+  disguise an assessment as processor cost, tax, payroll deduction,
+  withdrawal, or worker-owned money. Ordinary recent gift rows show useful
+  relationship context without repetitive success badges. Material adverse
+  outcomes remain visible, while an accessible **View details** disclosure or
+  optional hidden-by-default Status column reveals plain terms such as
+  `Recorded`, `Processing`, `Received`, `Not received`, `Returned`,
+  `Refunded`, `Reversed`, or `Corrected`; optional detail may say `Declined`
+  only when the exact source proves that outcome. Those terms project source
+  truth; they never expose internal
+  close readiness, raw gateway reasons, deposit/payout/Bank Match detail, or
+  QBO/Xero state, and `Received` never means irrevocable or available to the
+  worker. The surface shows a compensation amount only from an authoritative
+  approved plan or payroll result and uses `Paid` only with external payment
+  evidence. It composes Phase 13 effective contribution facts, Phase 14's
+  `getSupporterRoster`, Phase 16's safe recurring-support statements, and the
+  Phase 3/10/12 projection and authorization floor. The Phase 14
+  consumer-specific field floor governs supporter identity; Phase 21 owns no
+  contact fields, donor edits, notes, tasks, appeals, newsletters, or coaching.
+  Restricted and anonymous facts are removed before counts, totals, search,
+  pagination, notifications, exports, and caching. Phase 28 remains the
+  support-raising CRM owner.
+  Phase 21 owns activity facts, recipient purpose, and alert eligibility;
+  Phase 18 renders artifacts, Phase 17 owns and prepares governed message
+  content, and Phase 6 sends and records communication history. Phase 21 never
+  calls Resend or another transport directly. Staff work from one
+  exception-first Field Accounts workspace, not raw journal jargon or a second
+  accounting console.
+  When the current Support Workspace Publication Profile Version authorizes
+  missionary balance publication, one active currency appears as one exact,
+  ISO-labelled balance with no multicurrency controls. When sibling currencies
+  exist, every balance authorized as part of that publication family remains
+  simultaneously visible with its own ISO code and through date; the grouping
+  has no writable or converted total. When balance publication is off, the
+  missionary sees no balance or balance-derived placeholder while every
+  finance balance and close remains live. Activity may mix currencies only
+  with an ISO label on every amount and no mixed subtotal. Support statements
+  remain separate per exact Field Account, Support Cycle, and ISO currency;
+  the workspace may group sibling same-period statements but never converts
+  or sums them. Any later Phase 33 reporting estimate remains visibly
+  secondary and cannot drive Field Account behavior.
+- **Optional Approved Support Plan and bounded publication**: D9 defaults each
+  exact Tenant, Legal Entity, Support Assignment, purpose, currency, and
+  applicable Field Account scope to **Support planning not managed in Asym**.
+  A tenant may prospectively activate one winning immutable **Approved Support
+  Plan Version** with a positive recurring need, bounded dated needs, and one
+  optional same-currency diagnostic reserve target. Phase 13/21 activity,
+  Phase 16 commitments, D1 balances, D4 compensation funding, and Phase 28
+  Support-Raising Goals remain independently authoritative. One finite
+  **Support Workspace Publication Profile Version** selects only authorized
+  source-backed modules for each audience under Phase 12 capabilities. Guided
+  starting profiles are Activity only, Goal and activity, Balance and activity,
+  and Support planning; unused modules are absent rather than zero-filled.
+  Personal reorder/collapse never widens access or changes truth.
+  **Balance Coverage** divides one conservative same-currency
+  Finance-confirmed Planning Coverage Base by the positive recurring need. The
+  Base begins with the D1 balance, subtracts qualified negative open-cycle
+  effects plus still-active non-reusable compensation/reimbursement and
+  reallocation coverage exactly once, and never adds provisional positive
+  support. Reserve Position remains diagnostic and Commitment Forecast remains
+  an optional Phase 16 view. Missing, stale, future, conflicting,
+  unauthorized, or currency-incompatible inputs produce no derived value, not
+  zero or infinity. Creating a Phase 28 goal from a Plan is an explicit
+  copy-with-provenance action; neither authority live-synchronizes. D9 grants
+  no D8/Phase 31 feed field.
 - **Purpose and compliance boundary**: donor preference versus legal
   restriction, organization discretion and control, solicitation wording, and
   receipt/message language remain split by authority: Phase 7 owns legal
@@ -1448,28 +2101,540 @@ in Phase 20 and QBO/Xero respectively.
   only the public page and presentation projection; it cannot decide legal
   facts, certification, or governed message language. Phase 21 records
   operational support effects; it does not provide legal or tax certification.
-- **Clean future handoffs**: Phase 28 owns the missionary's support-raising and
-  coaching goal; Phase 21 owns approved operational support/disbursement
-  policy. Phase 29 may manage expense-evidence bytes and access but cannot own
-  expense meaning. Phase 31 may expose a governed TntConnect/DonorHub-compatible
-  projection but cannot create another ledger or QBO/Xero connector.
+- **Clean future handoffs**: Phase 14 owns `getSupporterRoster`; Phase 16 owns
+  safe recurring-support and payment-health statements; Phase 28 owns the
+  missionary's contact permissions, support-raising workflow, tasks, notes,
+  appeals, newsletters, coaching, and goal. Phase 21 owns Support Cycle,
+  assessment, expense/reimbursement, Compensation Funding Plan/Decision,
+  Compensation Handoff Package semantic identity, External Compensation
+  Result, Field Account Effect, and payment-evidence projections and composes
+  those read authorities without copying them. Phase 29 may manage
+  expense-evidence and Compensation Handoff Package bytes and access but
+  cannot own their business meaning, digest, or purpose-retention authority.
+  D8 adds one disposable **Missionary Support Feed Projection**. Phase 21 owns
+  the Missionary Support Activity Projection, separately through-dated
+  per-currency Support Balances Projection, and their strict finance-safe
+  external field/publication floor. Phase 31 composes those source projections
+  exactly once without directly rejoining or re-owning Phase 14 supporter and
+  Phase 16 commitment truth. Phase 28 may contribute only a separately
+  ratified, purpose-authorized relationship/contactability resource family,
+  and it can never widen the Phase 21 field floor. Phase 31 alone owns the
+  composite feed protocol:
+  prospective subscriptions, authorization, provider serialization, no-gap
+  snapshot/page/change delivery, cursor reset, signed reconciliation hints,
+  tenant-fair backpressure, connection health, and delivery evidence. Phase 30
+  owns inbound migration. Phase 20 remains the only accounting doorway.
+- **Source-authoritative continuity feed**: D8 bounds one exact Tenant-,
+  Legal-Entity-, destination-, recipient-, Missionary-Support-Feed-Subject-, purpose-,
+  Designation/Field-Account-, resource/field-, history-, currency-, schema-,
+  certification-, and authorization-epoch-scoped Subscription Version. One
+  immutable Coverage Manifest and atomic snapshot-through cut produce
+  resumable page cursors followed by an opaque authorization-bound
+  at-least-once change cursor with finite retention and explicit reset. Each
+  feed namespace binds one recipient and one Missionary Support Feed Subject,
+  which D19 defines as an exact Support Assignment; bulk setup creates
+  independent Subscription Versions rather than a multi-recipient or multi-
+  subject cursor.
+  The projection is rebuildable; only subscription, coverage, change-envelope,
+  delivery, and source-version evidence is immutable. Authorization and
+  privacy apply before enumeration, counts, arithmetic, pagination, caching,
+  hints, or diagnostics. Visible records use destination-recipient-scoped
+  pseudonyms; private gifts retain only occurrence identity needed for
+  correction and deduplication, never a stable hidden Party. Restricted and
+  high-risk workers are excluded from ordinary activation. **Stop sharing**
+  denies future egress first and reports downstream removal as confirmed,
+  unsupported, or unknown without claiming deletion. TntConnect is supported
+  only through a vendor-authorized, production-certified DonorHub pathway and
+  MPDX only for explicitly authorized installed-base organizations. The feed
+  never claims support is available, withdrawable, payroll-ready, payable, or
+  paid and never creates an authoritative converted total.
+- **Layered Field Account integrity and cause-owned repair**: every Tenant ×
+  Legal Entity × ISO-currency scope uses immutable source-addressed atomic
+  balanced occurrences with independently persisted bounded
+  organization-control-side entries, checked minor-unit arithmetic, exact
+  source conservation, semantic idempotency, and per-account version fences.
+  Every close publishes one fresh immutable Support Cycle Integrity Manifest
+  over an exact half-open business boundary and captured monotonic Phase 21
+  ingestion cursor. Workload-shaped resumable verification plus bounded
+  historical re-verification creates one typed root-cause Field Account
+  Integrity Case with the smallest proved containment radius; mandatory adverse
+  corrections remain appendable. Clean cycles require one prepared staff
+  review and one close action. Exceptions expose one cause, affected scope,
+  owner, and safe source-owned next action. Tenant cadence, closers, routing,
+  reminders, optional proportional review, compatible presentation, and
+  stricter advisories are configurable; arithmetic, isolation, currency,
+  source coverage, pair atomicity, immutability, and adverse-correction
+  continuity are not waivable. Mission Control owns follow-up only, while
+  Phase 20 and QBO/Xero retain separately authoritative accounting delivery
+  and final-reconciliation truth.
+- **Immutable Support Cycle statements with automatic tenant publication**:
+  D11's Support Cycle Integrity Manifest and covered occurrences remain the
+  sole statement-facts authority. Every close commits only one durable
+  post-close source occurrence; a deterministic Phase 21 Approved Data View
+  then supplies one immutable Phase 18 Facts Package for
+  `field_account.support_statement@1` when the effective D9 Support Workspace
+  Publication Profile authorizes it. The profile supplies one-time prospective
+  tenant control and compatible guided defaults; hidden-balance profiles expose
+  no statement or existence signal, and an optional ready notice is Off by
+  default. A clean cycle requires no statement-specific date, recipient,
+  template, approval, Publish, retry, render-count, or resend work.
+  Missionaries receive one HTML-first history and one currently authorized PDF
+  action per exact Field Account, Support Cycle, and ISO currency, with
+  finance-confirmed through dates and no converted total. Financial
+  corrections append through a later qualified close; a same-facts
+  presentation/accessibility repair creates an immutable Phase 18 artifact
+  successor. Rendering, access, communication, QBO/Xero, payroll,
+  reimbursement payment, and provider truth never block or mutate close truth.
+- **Clean D1-D28 implementation**: Phase 21 must not reuse the dormant `Available Funds` /
+  `Withdraw` component, mutable `current_funding` or `funds.current_amount`
+  counters, donation sums as balances, fabricated analytics amounts, or public
+  promises that a gift goes directly to a worker. It also must not reuse the
+  dormant missionary donor CRUD/projection that exposes contact fields, notes,
+  household details, stable anonymous identifiers, tasks, or staff-only facts.
+  Assessment implementation also rejects hidden gross-to-net rewriting,
+  mutable current-rate lookup, stackable fees, source-only modelling of monthly
+  effects, and zero-dollar missionary assessment noise.
+  Compensation implementation also rejects donation-triggered or
+  percentage-of-balance pay, automatic debits from plans or reservations,
+  classification inference from the missionary role, universal payroll
+  adapters, a generic QBO/Xero-connected capability, duplicate payroll
+  accounting, and one collapsed `Complete`, `Processed`, or `Paid` state. D7
+  additionally rejects logo-only connectors, one universal payroll payload,
+  regional-product collapse, mutable delivery profiles, name-only target
+  matching, adjacent-object substitution, destructive overwrite, blind retry,
+  dual delivery, provider-acceptance-as-completion, and launch claims backed
+  only by sandbox or pending provider approval.
+  Production activation additionally rejects a tenant-global enable bit,
+  arbitrary flag or workflow matrices, random-row financial canaries, mutable
+  readiness truth, shadow side effects, repeated manual certification,
+  sandbox-as-production proof, blind retry, force-close, destructive rollback,
+  or any second activation state beside D17's sole cutover.
+  Reallocation implementation also rejects wallet/withdrawal language, worker
+  execution authority, arbitrary destinations or workflows, current-label
+  purpose inference, interested self-approval, non-atomic internal pairs,
+  blind bulk approval, timer-released external coverage, target clawback,
+  payment-evidence-only charitable completion, and direct accounting writes.
+  Expense/AI implementation additionally rejects the display-only missionary
+  `LedgerEntry` type as a financial source model, public `document-uploads` or
+  Cloudinary URLs for receipt evidence, mutable whole-report approval/payment
+  state, and the dormant `/mc/admin/ai` or `/mc/admin/keys` navigation links as
+  an existing control plane. Those routes are placeholders, not an
+  implementation seam. It also rejects feature-local provider SDK calls,
+  per-feature key columns, one global tenant AI key, secret readback, arbitrary
+  endpoints/models, and AI-authored expense or biography truth.
+  The cutover inventory includes
+  `packages/missionary/components/balance-card.tsx`, missionary dashboard
+  `raisedCents`, `packages/api/src/missionary-portal/model.ts`,
+  `packages/api/src/public-giving/{projection,columns,types}.ts`,
+  `supabase/schema.sql` and its `current_funding` lineage, related unit tests,
+  public-worker direct-to-field copy, and donor FAQ ownership claims.
+  `packages/config/payouts.ts` remains Mission Control configuration and cannot
+  become a compensation adapter.
+  Donation-only views remain clearly labelled activity until a source-owned
+  Phase 21 projection exists.
+  Public support progress consumes an approved public-goal projection and
+  never exposes an internal Field Account balance or ministry-expense capacity.
+  Currency implementation also rejects implicit USD, mutable account currency,
+  destructive merge, selector-only balance discovery, mixed-currency totals,
+  provider-rate inference, a generic readiness flag, provider calls during
+  close, and QBO/Xero as Field Account authority. Existing counters or donation
+  sums cannot become opening balances without exact source-covered
+  per-currency evidence. Phase 21 D17 opening implementation additionally rejects
+  double-counted history and residuals, arbitrary-row cohorts, fuzzy identity,
+  silent exclusions, fabricated history, mutable balance scalars, negative
+  Field Accounts, giant transactions, universal external-lock claims, dual
+  write, destructive rollback, whole-history replay, public evidence storage,
+  and replay of downstream communication, document, feed, accounting,
+  payroll/AP, reimbursement, or workflow effects. Feed implementation
+  additionally rejects duplicate
+  Phase 14/16 reads, mutable integration copies, global IDs, stable anonymous
+  Party identities, all-history defaults, cursor-as-authorization, date-only
+  polling or recovery, arbitrary fields, bidirectional writes, pre-filter
+  counts, false `Synced` or deletion claims, destructive resync, and provider
+  support inferred from a logo, public query API, sandbox, or local adapter.
+  D9 implementation additionally rejects mandatory Plans, commitments,
+  balances, reserves, or alerts; false zeroes; arbitrary financial formulas or
+  dashboard builders; UI hiding as authorization; raw balance as an
+  overstated planning numerator; commitment or provisional-support balance
+  uplift; automatic Plan/Goal synchronization; cross-currency coverage or
+  totals; retroactive Plan mutation; and silent expansion of D8/Phase 31.
+  D12 implementation additionally rejects live historical statement
+  recomputation, a second facts store or monthly scheduler, a Phase 19-style
+  run, per-cycle Publish work, stable artifact bearer URLs, retroactive mass
+  publication, routine attachments, duplicate user-visible versions,
+  retained-evidence-as-current-access, and donor/contact-data expansion.
+  D13 implementation additionally rejects mandatory expense setup; mutable or
+  stacking policies; admin-authored rule order, scripts, formulas, or arbitrary
+  workflow graphs; report-wide policy or approval; mixed-currency threshold
+  arithmetic; implicit FX; assignment-as-authority; interested self-review;
+  AI-, timeout-, or automatic approval; broad evidence bypass; generic
+  override; retroactive policy mutation; and copying Profiles, Routes,
+  Assignments, review workflow, or Receipt Evidence into Phase 20.
+  D14 implementation additionally rejects bare Statement UI, personal-card
+  batch browsing, a general importer, PDF/OCR/XLSX-derived financial truth,
+  pending-as-final evidence, heuristic auto-deduplication, silent row drops,
+  destructive undo, historical assignment retargeting, full PAN or sensitive
+  authentication data, import-as-claim or approval, automatic reimbursement,
+  Phase 21 accounting delivery, and false `synced`, `paid`, `settled`,
+  `available`, or `reconciled` status.
+  D15 implementation additionally rejects package access as release, download
+  as handoff, Handoff Attestation or provider draft readback as payment,
+  whole-report routing or `Paid`, dual delivery, timer fallback, blind retry,
+  fuzzy payment matching, mutable route or package history, QBO/Xero
+  Accounting as an AP-input shortcut, beneficiary-bank custody, direct money
+  movement, automatic payroll/AP execution, or claimant-repayment source truth
+  outside the separately ratified D16 contract.
+  D16 implementation additionally rejects authorization-as-issuance,
+  issuance-as-readiness, application-as-Field-Account-effect, card assignment or
+  personal classification as repayment-subject authority,
+  gross-obligation-then-reduction accounting, mutable source-finality, implicit
+  FX, cross-currency netting, claimant debt or collections language, in-product
+  money collection, payroll deduction initiation, task completion as returned
+  money, evidence-strength upgrades, and policy, Requirement, reservation,
+  observation, dispute, or workflow records entering accounting by default.
+  D18 implementation additionally rejects a second travel policy, assignment,
+  resolver, queue, workflow, or application; live approval-time government,
+  map, or route lookup; one universal nonprofit rate; claimant-selected policy;
+  mutable or destructively deleted schedules/calculations; arbitrary,
+  natural-language, or order-dependent financial rules; preview consumption of
+  cumulative capacity; mandatory GPS; implicit jurisdiction, classification,
+  currency conversion, or tax treatment; silent fallback, retroactive
+  recalculation, or stacked mileage/per-diem coverage; and copy that treats a
+  calculation or approval as available, payable, tax-free, reimbursed, paid,
+  payroll-ready, posted, or reconciled.
+  D19 implementation additionally rejects person-, login-, household-, or
+  team-owned Field Accounts; a polymorphic owner; shared credentials; broad
+  account sharing; implicit spouse/team/leader access; participation as
+  claimant, approver, payee, notification, donor-purpose, or financial
+  authority; one combined membership/access/preference record; a Phase 21 ACL
+  engine; assignment-aware RLS; fine grants in JWTs or client state; reuse of
+  Support Hub's `public.support_assignments`; raw financial or membership
+  `postgres_changes`; cascade deletion; destructive Party merge; combined
+  cross-assignment balances; and participation-driven money movement.
+  D20 implementation additionally rejects fallback ownership from disabled or
+  unconfigured D3/D4/D10/D13/Phase 20 D19; processor-cost duplication; whole-
+  ledger ingestion; record-exists-as-finality; arbitrary debits, journals,
+  formulas, participant-derived splits, or current-balance charges; unresolved-
+  as-close-complete; nonconserving or cross-currency arithmetic; negative Field
+  Accounts; silent carryforward expiry; mutable source/policy/history;
+  retroactive reclassification or ordinary backfill; live-provider close
+  dependency; candidate-handoff-as-accounting-ready; duplicate QBO/Xero posting;
+  sensitive source disclosure; and a standalone module, queue, zero card,
+  setup nag, or per-cost missionary notification.
+  D22 implementation additionally rejects implicit enablement from D13 or D19;
+  hidden-but-live off-state resources; mandatory preapproval; mutable requests
+  or decisions; claimant-selected reviewers; self-, AI-, automatic-, email-
+  link-, broad-admin-, blind-bulk-, or timeout approval; widening an approval
+  without a requester-authored successor; approval-as-funding; partial or non-
+  atomic reservation; fuzzy or overlapping claim coverage; timer-based release;
+  implicit FX; public plan evidence; a second workflow or reservation engine;
+  procurement, cards, purchase orders, travel booking, direct payment, payroll,
+  or accounting authority; and any copy that says planned or approved means
+  incurred, substantiated, reimbursable, owed, available, payable, paid, posted,
+  synced, or reconciled.
+  D23 implementation additionally rejects generic `approved`, `paid`, or
+  `posted` qualification; per-claim mode, rate, or date overrides; capacity-
+  created partial effects; simultaneous reservation and debit subtraction;
+  synthetic D16 settlements for organization-paid sources; pending-card,
+  card-statement-payment, claimant-repayment, or accounting-state inference;
+  observation revisions as new economic roots; date-only or replay-based
+  adoption; live provider or FX dependency during close; D4/D23 double
+  ownership; mutable close/effect history; blind retry; and QBO/Xero bill,
+  payment, home amount, readback, drift, or Bank Match as Field Account effect
+  authority.
+  D24 implementation additionally rejects shared credentials, whole-account
+  impersonation or visibility, a second policy decision point, generic or
+  transitive delegation, membership/spouse/team/manager/email-derived
+  authority, invitation-as-authority, stale or reusable evidence URLs,
+  helper-created claimant consent, helper-selected review, self-approval,
+  automatic lifecycle succession, mutable actor provenance, blind retry, and
+  any helper action creating approval, payment/payroll, Field Account,
+  accounting, notification, or public/supporter truth. Assignment and access
+  checks must remain exact-claim-bounded, requester-specific, deny-first,
+  commit-time reauthorized, and CAS-guarded.
+  D25 implementation additionally rejects a case for every healthy claim,
+  report-wide blocking or reopen, a fifth D13 disposition, mutable status or
+  comments-as-evidence, tenant-authored `other`, custom actions/statuses/
+  formulas/scripts/timers/workflow graphs, generic Resolve/Close/Reopen/
+  Unapprove/Override/Edit-as-claimant/Mark-paid/rollback, broad administrator or
+  service-role authority, relationship/helper/lifecycle succession, silence/
+  notification/AI/provider ambiguity as proof, destructive deletion,
+  overlapping last-created-wins cases, float or cross-currency arithmetic,
+  reusable evidence URLs, hidden partial success, blind retry, task state as
+  case completion, or case completion as approval, payment, Field Account,
+  statement, accounting, posting, or reconciliation truth.
+  D26 implementation additionally rejects a universal retention period,
+  mutable `expires_at`, tenant-authored legal DSL, arbitrary timer, casual
+  forever, direct delete, floor weakening, unsupported privacy-ceiling breach,
+  export-triggered disposal, download-as-transfer, paper/PDF as universal
+  original, silent package omission, generic database dump, Phase 19 Audit
+  Package or Phase 20 Accounting Delivery Package reuse, QBO/Xero backup
+  claims, reusable package URLs, email attachment, broad restricted-person
+  export, giant transaction/archive, cross-owner deletion, Phase 30 outbound
+  ownership, launch-time connector sprawl, restore resurrection, or a
+  disclaimer purporting to erase Asym's duties.
 
 **Boundaries & guardrails.** A Field Account balance is organization-owned
 operational truth, not a donor asset, worker-owned bank balance, contribution
 ledger total, donor receipt fact, bank reconciliation, payroll record, AP
 ledger, or general-ledger balance. UI must never frame a gift as irrevocably
-earmarked to an individual (“give to John's account”). Expense approval,
-reimbursement obligation, payment execution, Field Account effect, Accounting
-Release, provider delivery, and final reconciliation remain independently
-truthful even when one screen summarizes their progress.
+earmarked to an individual (“give to John's account”), as `your money`,
+`available salary`, `withdrawable`, or `available to cash out`. Expense Claim,
+policy decision, Approved Expense Snapshot, Reimbursement Obligation, Field
+Account Funding Coverage, external payment execution/evidence, Field Account
+effect, Accounting Release, provider delivery, and final reconciliation remain
+independently truthful even when one screen summarizes their progress. Worker
+classification and applicable wage, reimbursement, accountable-plan, and
+international rules remain tenant/adviser-owned; Phase 21 cannot universalize
+one agency's short-check, deficit, or hold-until-funded practice.
 
-**Open questions for grooming.** The exact source event and safety evidence
-that move support from pending to available; the bounded launch catalog for
-assessments, minimums, draws, transfers, and exit dispositions; whether
-multiple active Field Account currency lanes ship at launch; exact
-missionary-visible gross/assessment/cost detail; payroll/payment handoff
-formats; and the Phase 21/28 projection contract consumed by a future Phase 31
-TntConnect/DonorHub-compatible feed.
+**Grooming status.** D1-D28 are ratified and scope-frozen as the complete
+founder product authority. The implementation-ready PRD and OpenSpec contract
+are published; any later mechanical refinement creates no D29. D8
+resolves the exact Phase 21-to-31
+read-projection contract and leaves provider activation subject to exact vendor
+authorization and production certification. D9 resolves optional
+organization-approved Support Plans, conservative purpose-separated planning
+projections, and bounded native workspace publication without conflating Phase
+28 goals, Phase 16 commitments, D4 compensation funding, or D1 balances.
+D10 resolves claim-level expense truth, report-first review, private
+many-to-many receipt evidence, exact selective approval/recovery, and the
+minimal shared purpose-routed tenant AI foundation without making AI, a report,
+or Phase 20 authoritative for expense facts.
+D11 resolves exact Field Account occurrence/control invariants, cursor-fenced
+close proof, workload-shaped re-verification, smallest-scope containment,
+cause-owned repair, and one quiet machine-prepared close without making
+Mission Control tasks or QBO/Xero Field Account authority.
+D12 resolves immutable Support Cycle statement facts, the Phase 21-to-18
+Approved Data View and purpose boundary, one-time prospective tenant
+publication, zero-routine-work close operation, exact per-currency missionary
+access, append-only correction, same-facts artifact succession, and
+exception-only recovery without creating another statement run or financial
+authority.
+D13 resolves one quiet tenant-enabled Expense Program, bounded immutable
+prospective Expense Governance Profile and finite Approval Route versions,
+deterministic item/split-level incurred-date policy resolution,
+submission-time assignment snapshots with current-authority rechecks,
+conflict-free human review, clean-only consequence-previewed bulk approval,
+typed independently authorized Reviewer Exceptions, and the PII-minimized
+approved-snapshot-only Phase 20 boundary without creating an arbitrary policy
+engine, generic workflow system, or accounting/payment authority.
+D14 resolves one optional file-first organization-card evidence product over
+the complete manual claim path: bounded immutable CSV interpretation, atomic
+manifest acceptance, exact identity tiers, overlap-to-review, effective-dated
+routing assignments, same-currency coverage conservation, append-only source
+adjustments, private raw-file handling, quiet claimant and exception-first
+finance UX, and the existing approved-snapshot-only Phase 20 boundary. It does
+not create a general importer, card ledger, repayment or reimbursement engine,
+payment rail, accounting connector, or reconciliation authority.
+D15 resolves one immutable artifact-always reimbursement handoff, explicit
+coverage-scoped release ownership, a complete outside-Asym default, bounded
+capability-certified payroll/AP pre-execution inputs, D7 technical-kernel reuse
+without domain conflation, ambiguity quarantine and residual-only succession,
+separately qualified payment evidence and strength, exact append-only payment
+coverage/recovery, quiet staff and claimant stages, and the Phase-20-only
+QBO/Xero Accounting boundary. It does not move money, store beneficiary bank
+details, calculate or execute payroll/AP, infer payment from provider or
+accounting state, or certify claimant repayment.
+D16 resolves independently activatable prospective advance and repayment
+policies, exact authorization/issuance/Advance Application Readiness separation,
+atomic expense settlement, authorization-created `expense_advance` Field Account
+Funding Coverage fulfilled only by a qualified Field Account Effect, immutable
+Repayment Subject Determination, operational rather than debt-framed return
+requirements, exact externally handled repayment occurrences and evidence,
+append-only correction, externally evidenced cross-currency application, and a
+closed Phase 20 admission boundary that keeps non-economic workflow and policy
+records accounting-dark by default.
+Phase 21 D17 resolves one finance-authorized, per-Field-Account and per-currency
+reconciled immutable Opening Position over a complete Tenant × Legal Entity ×
+ISO-currency activation cohort; one precedence-explicit Opening Source Package,
+five-way exact coverage disposition, complete Opening Coverage Manifest,
+private resumable staging, final reproof, one short CAS-guarded Asym-side
+operational cutover, first-close cursor continuity, independently live coverage
+carry-forward, D9-gated side-effect-dark activation, append-only late-fact
+correction, smallest-scope containment, and independently authoritative Phase
+20/21/30 boundaries. It does not reconstruct unverifiable history, write a
+balance scalar, make QBO/Xero authoritative for Field Accounts, replay
+downstream effects, or claim Asym locked an external source.
+Phase 21 D18 resolves one optional policy-pinned Travel Allowance Calculation
+inside the single winning D13 Expense Governance Profile, with an explicit
+Actual-expenses-only default; tenant/adviser-owned applicability; individually
+certified immutable official Source Packages or bounded tenant-owned schedules;
+typed mileage, fixed-allowance, actual-against-limit, and external-calculation
+modes; exact source/input/component/rounding/coverage evidence; deterministic
+serialized cumulative capacity; duplicate-reimbursement prevention;
+prospective production-shaped preview and CAS activation; append-only source-
+revision and late-fact recovery; low-friction manual, odometer, optional route/
+GPS, per-day, and offline claimant paths; and one quiet exception-first finance
+experience. The calculation remains D10 claim evidence, freezes only through an
+Approved Expense Snapshot, and creates no approval, availability, obligation,
+Field Account, payment, payroll/tax, or Phase 20 accounting authority.
+Phase 21 D19 resolves one immutable organization-controlled Support Assignment
+as the canonical Field Account subject, one Field Account per Support
+Assignment and ISO currency, and prospective zero-to-many Support Assignment
+Participant Memberships. Participation may exist without a login. Participation,
+Phase 12 request-time Support Workspace authorization, D10/D13 expense
+responsibility, D4/external Engagement Authority compensation/payee identity,
+Phase 28 support-raising coaching/task truth, and recipient-scoped Support
+Workspace Notification Preference Versions stay independently
+authoritative even when one quiet **People & access** action coordinates their
+explicit commands. It supports couples, teams, participant-free projects,
+several assignments per person, scoped leaders, mobile invitation recovery,
+deny-first revocation, life-event succession, exact assignment/currency
+navigation, forced coarse Tenant RLS, one server PDP, and signal-only Realtime
+without relationship-derived access, shared credentials, destructive merge,
+another ACL engine, or people-driven financial effects.
+Phase 21 D20 resolves one absent-unless-enabled, source-authoritative residual
+Organization Support Cost Application lane with configuration-independent
+semantic ownership, including an explicit exclusion for Phase 20 D19 processor
+costs. Exact source-family admission, one economic root, organization-absorbed
+default, finite tenant bearing treatments, evidence-backed allocation, one
+immutable per-currency conserving manifest, purpose-typed non-reusable
+coverage, D1/D11-only close recognition, no discretionary overdraft, mandatory
+adverse-correction continuity even when it exposes a visible deficit, optional
+bounded carryforward, source-pinned append-only correction, exact external
+currency evidence, and complete Tenant/Legal-Entity/Support-Assignment/Field-
+Account isolation are binding. All Support Cost Accounting Candidate Handoffs
+remain Phase 20 accounting-dark pending a separate certified contract. Disabled,
+zero-work, unauthorized, and unaffected scopes expose no feature signal; clean
+work and exceptions reuse existing close and D11 surfaces, and missionaries see
+only authorized grouped post-close effects.
+Phase 21 D21 resolves the noncash-to-support bridge without treating valuation
+as money or creating a second gift. Phase 13 retains the original Contribution
+and donor/receipt/fundraising truth; Phase 15 retains exact asset, disposition,
+proceeds, finality, evidence, and correction truth; and one immutable D21
+Noncash Support Realization Manifest may derive only an exact source-final
+Realized Support Basis. The no-setup default uses exact net proceeds, while a
+prospective organization-absorbed exact-cost treatment requires complete proof.
+Exact quantity and per-currency minor-unit coverage, deterministic purpose
+allocation, D6 conversion, D17 non-overlap, append-only corrections, and D2/D11
+CAS-guarded admission are binding. D3 assesses only the realized basis. Phase 20
+must separately certify one nonduplicate accounting source before any delivery;
+QBO/Xero remain authoritative for asset derecognition, gain/loss, cash, and
+reconciliation. The experience stays conditional, exception-first, and one
+grouped lifecycle, with no availability, payment, or accounting claim.
+Phase 21 D22 resolves one independently optional, structurally absent-by-
+default Prospective Expense Authorization inside the existing Expenses doorway
+and D13 governance kernel. One short requester flow, immutable request versions,
+submission-time governance and finite assignment snapshots, current-authority-
+rechecked human review, narrowing-only decisions, exact later D10 item/split
+coverage, partial and multi-claim use, and append-only succession are binding.
+The guided default is approval-only; a separately certified advanced scope may
+atomically reserve exact same-purpose and same-currency D1 planning capacity.
+Expiry stops new reliance but never proves unused residual or releases capacity,
+and uncertain in-flight work remains quarantined. Missing required authorization
+does not block actual claim or evidence capture; D13 records the exact exception.
+Phase 20 rejects all D22 prospective objects, and D22 adds no procurement,
+cards, wallets, spend limits, purchase orders, travel booking, payment, payroll,
+or accounting authority.
+Phase 21 D23 resolves ordinary approved-expense support-balance inclusion
+through one prospective certified-source-family profile and one immutable
+Approved-Expense-Snapshot-rooted Effect Basis. Claimant-paid families use D16's
+settlement partition; organization-paid families bind approved economic-payer
+coverage directly. Exact per-currency Effect Coverage and append-only Funding
+Coverage Dispositions conserve every slice, prevent reservation-plus-debit
+double subtraction, and restore a successor reservation atomically when an
+exact-payment return leaves the obligation live. Initial adoption uses D17's
+no-gap/no-overlap cutover manifest; later profile replacement uses a complete
+D11 boundary/cursor and in-flight manifest. D4, D16, D20, and D21 remain
+exclusive owners; D1/D11 alone admits and closes the operational occurrence;
+and Phase 20 independently admits only its closed accounting sources. QBO/Xero
+delivery and reconciliation cannot qualify or rewrite D23. The clean path is
+automatic and the experience separates approval, support-balance inclusion,
+reimbursement/payment, and accounting without claiming availability, payment,
+or GAAP recognition. See
+[ADR-0112](../../adr/0112-source-family-expense-field-account-effect-recognition.md).
+Phase 21 D24 resolves optional own-identity expense help through one exact-
+claim-bounded Assignment Version, authority-free invitation and verified
+acceptance, a prepare-only default, and one separately enabled claimant-
+confirmed mechanical submit operation. Phase 12 remains the sole request-time
+authorization authority; the collaboration-mode and Evidence Access Projection
+versions are ceilings, not grants. Every route, job, retrieval, export, and
+commit rechecks the current requester and exact assignment scope, while
+commit-time epoch/version CAS blocks stale work. Private evidence retrieval is
+short-lived and non-cacheable; revocation ends future access without claiming
+to recall delivered bytes. Distinct claimant, payer, contributor, preparer,
+submitter, confirmer, reviewer, approver, payee, and principal provenance is
+immutable. D24 creates no approval, obligation, payment, Field Account effect,
+payroll, Phase 20 accounting, notification, relationship, or successor
+authority. See
+[ADR-0113](../../adr/0113-own-identity-claim-bounded-expense-collaboration.md).
+Phase 21 D25 resolves exceptional actual-expense recovery through one immutable
+exact-scope Expense Claim Resolution Case, seven code-owned causes, separately
+attributed actors, one literal next safe action, and one proportional complete
+Downstream Impact Manifest. Same-cause repeats converge, distinct cases may be
+grouped for presentation only, and clean separable siblings continue. Case
+completion derives from root-source proof plus an explicit disposition for
+every affected owner family; no generic Resolve/Reopen/Unapprove/Override,
+tenant workflow builder, broad admin bypass, relationship/AI/timer authority,
+or destructive mutation exists. Phase 12 remains the sole PDP; D10/D13,
+D15/D16, D23/D1/D11, D12, Phase 20, payroll/AP, and providers alone append
+their own source results. The claimant receives one quiet contextual update,
+finance reuses **Expenses → Needs attention**, and Mission Control/Phase 34 may
+mirror follow-up only. **Complete** never means approved, reimbursable, owed,
+funded, available, payable, paid, Field Account-included, statement-corrected,
+accounting-delivered, provider-accepted, posted, synced, or reconciled. See
+[ADR-0114](../../adr/0114-cause-owned-expense-claim-resolution.md).
+Phase 21 D26 resolves Phase 21 records policy and exact tenant custody exports
+through six closed source-purpose record families, immutable schedule contract
+and prospective binding versions, per-record retention resolutions, complete
+successor-impact and export coverage manifests, and one sealed open-format
+Records Export Package per Legal Entity. Contextual copy/print, complete
+archive, offboarding snapshot-plus-delta, Tenant External Copy Assertion, and
+Verified Destination Custody Transfer are explicitly different actions. A
+package is **Ready** only when manifest coverage closes; **Ready with issues**
+remains truthfully partial and may receive an append-only residual. Phase 21
+owns meaning, Phase 29 owns physical lifecycle execution for Phase-21-owned
+evidence and D26 package bytes, and Phase 18 retains its generated-document
+artifact bytes and lifecycle. Phases 3/10/12 own egress, Phase 30 remains
+inbound, Phase 31 owns optional destination transport, and Phase 38 owns privacy
+requests. No export changes source
+retention, releases a hold, proves legal sufficiency, posts accounting, or
+erases either the tenant's external-copy responsibility or Asym's own custody
+duties. See
+[ADR-0115](../../adr/0115-purpose-owned-phase21-records-schedules-and-exact-custody-exports.md).
+Phase 21 D27 resolves one evidence-gated Core Field Accounts Production
+Activation Contract composed through D17's sole Operational Cutover. One
+immutable Release Generation, one prospective Adoption Plan Version, and one
+content-addressed Go-Live Readiness Manifest bind the complete financial cohort,
+exact authority boundary, environment, and code/schema generation while
+referencing rather than recreating every applicable D1-D26 and owning-phase
+proof. Synthetic, sandbox, and production-shadow evidence stay distinct; the
+complete-cohort production shadow is non-authoritative and side-effect-dark.
+One quiet consequence review and literal start action perform final reproof
+inside D17's idempotent CAS cutover. Optional capability bindings remain
+independent, a named missionary pilot narrows publication only, and one derived
+through-dated readiness projection opens only cause-owned exceptions. Live
+drift receives smallest-scope prospective containment and append-only recovery,
+not a global disable, second activation state, force-close, or destructive
+rollback. See
+[ADR-0116](../../adr/0116-evidence-gated-core-field-accounts-production-activation.md).
+Phase 21 D28 resolves native cumulative Travel Allowance adoption through one
+source-defined clean-period default, immutable Opening Cumulative State, stable
+Capacity Key Contract, and complete opening-plus-continuity Admission Manifest
+for every exact pool or indivisible group before first native use. A clean reset
+proves only opening zero, never prospective completeness; missing never becomes
+zero, later pools receive the same proof, and uncertain or externally changing
+scope remains fully usable through D18's external-calculation lane. First use is
+group-atomic and CAS-guarded, late predecessor facts append through affected-
+suffix correction, D27 may reference but never own the proof, and no D28 fact
+creates a claim, approval, Field Account, obligation, payment, payroll/tax,
+statement, accounting, posting, or reconciliation truth. See
+[ADR-0117](../../adr/0117-proof-gated-opening-cumulative-travel-allowance-admission.md).
+The post-D28 completeness audit found no remaining Phase 21-owned founder seam.
+Implementation prerequisites, provider/source certification, and verification
+matrices now belong to the implementation-ready specification rather than a
+new product decision.
+
+**Status.** `PRD exists` — D1-D28 are scope-frozen and the complete
+implementation-ready PRD/OpenSpec contract was published on 2026-08-02 as
+[#1108](https://github.com/Asymmetric-al/core/issues/1108). The approved
+implementation graph is epic
+[#1109](https://github.com/Asymmetric-al/core/issues/1109), lane epics
+[#1110](https://github.com/Asymmetric-al/core/issues/1110) through
+[#1120](https://github.com/Asymmetric-al/core/issues/1120), and P21-01 through
+P21-101. Tickets are published and governed by their native blockers; Phase 21
+runtime and production authorization are not claimed.
 
 ---
 
@@ -1503,11 +2668,23 @@ designations (CTAs carry designation + source code + site/locale context).
   currency and period; a converted comparison is a visibly labelled Phase 33
   reporting projection, never source truth. It never exposes or substitutes a
   Phase 21 Field Account balance, available-to-spend amount, assessment,
-  expense, or accounting total.
+  expense, or accounting total. When donor-facing assessment disclosure is
+  required, Phase 22 may render only the approved general policy-language
+  projection; it never exposes an account-specific profile, rate,
+  determination, or support-credited result and never recalculates progress
+  from those effects.
 - **Missionary edit workflow**: workspace-submitted drafts → staff review
   queue → publish, consuming Phase 10's publication firewall + review-verdict
   contract and photo/EXIF scrubbing in the pipeline; shareable expiring review
   links.
+- **Optional AI drafting assistance**: a tenant may bind an independently
+  authorized public-profile drafting purpose through the shared D10 AI Provider
+  Connection, write-only Credential Revision, and prospective
+  capability-certified Binding Version. Phase 22—not Phase 21 or the model—owns
+  biography draft meaning, source selection, human acceptance, moderation,
+  consent, review, and publication. The feature is suggestion-only, never reads
+  receipt evidence, never bypasses the Phase 10 firewall, and has a complete
+  manual writing path.
 - **Giving CTAs** preserving site, source code, locale, currency, and
   designation through the Phase 5 checkout handoff into the Phase 13 cart.
   The server resolves the designation's exact Legal Entity and
@@ -1515,9 +2692,12 @@ designations (CTAs carry designation + source code + site/locale context).
   never defines or overrides financial ownership.
 - **Project/campaign pages** with the same mechanics (designation-backed,
   progress from ledger truth).
-- **Page lifecycle**: created on mobilization, retired safely (redirects) on
-  departure — no orphaned giving pages collecting gifts for departed
-  workers.
+- **Page lifecycle**: created on mobilization and retired safely on departure.
+  Phase 21 D5's exact Worker Lifecycle Authority Reference may trigger the
+  presentation task, but Phase 22 retires or redirects only after Phase 13/16
+  proves the financial destination or recurring-term successor. A page never
+  chooses or silently redirects money, and no orphaned page continues
+  collecting for an inactive destination.
 
 **Boundaries & guardrails.** Public pages are presentation, never
 operational identity or financial truth. Missionary edits route through
@@ -1527,8 +2707,10 @@ model is the anti-pattern).
 
 **Open questions for grooming.** Slug policy for restricted workers (never
 name-derived); page templates per org vs per-missionary customization
-latitude; whether staff can override a missionary's page entirely; departed-
-worker giving flow (redirect to org fund vs message).
+latitude; whether staff can override a missionary's page entirely; and, after
+source-owned financial succession is proved, whether the departed-worker page
+redirects to the approved successor presentation or shows an explanatory
+message.
 
 ---
 
@@ -1627,14 +2809,18 @@ Studio shell) and Phase 2/5 (primitives + runtime).
   the exact Tenant, Legal Entity, SettlementAccountBinding, current
   Stripe-region capability, matching-currency payout destination, and QBO or
   Xero currency path. Provider fees, minimums, availability, and limits are
-  live source-labelled facts rather than roadmap constants.
+  live source-labelled facts rather than roadmap constants. Donor presentment
+  never creates or selects a Phase 21 Field Account, Default Field Account
+  Currency Version, or source-family-specific Field Account Currency
+  Activation Version.
 
 **Boundaries & guardrails.** This phase manages context; it creates **no new
 money truth** outside the ledger. Currency correctness is type-level
 (minor-unit integers with currency exponent — ¥/BHD edge cases) everywhere
 amounts render. It may enable donor presentment and certified settlement lanes
 prospectively, but cannot convert, merge, or rewrite Phase 21 Field Account
-currency lanes or any frozen Phase 20 Accounting Release.
+currency, Activation Version, Support Currency Allocation Manifest, or any
+frozen Phase 20 Accounting Release.
 
 **Open questions for grooming.** Whether the donor portal lives on tenant
 domains or a platform domain; brand-theming depth per site. Phase 24 only
@@ -1854,15 +3040,17 @@ rollups land here vs Phase 33.
 **What this phase is (plain language).** The missionary's personal
 support-raising (MPD) home — the MPDX/TntConnect capability rebuilt
 first-party. Because Asym owns both the org CRM **and** the missionary's
-supporter data in one database, the entire DonorHub middleware category
-(daily sync from org accounting into personal MPD tools) is **structurally
-eliminated**: a gift lands and the missionary's thank-you task exists in
-near-real-time.
+supporter data in one database, DonorHub-style middleware is not required for
+normal Asym operation: a gift lands and the missionary's thank-you task exists
+in near-real-time. Phase 21 D8 and Phase 31 nevertheless preserve one optional,
+tenant-controlled, read-only continuity feed for a certified DonorHub pathway
+or an explicitly authorized installed-base MPDX organization without making
+either provider a source of truth.
 
 **Why it sits here.** After the kernel exists: parties (9), ledger (13),
 commitments (16), comms (6), projections (3), and the shared cultivation
-objects (27), with Phase 10 safety and the exact Phase 21 Field Account
-projection already available.
+objects (27), with Phase 10 safety and the exact authorized Phase 21 source
+projections available when their tenant-selected modules are active.
 
 **What it covers.**
 
@@ -1871,7 +3059,8 @@ projection already available.
   Decision → Partner-Financial/Special/Prayer) with the **terminal/
   suppression tail** (Not Interested, Unresponsive, Never Ask, Research
   Abandoned, Expired Referral) — Never Ask wired into the consent gate.
-- **Commitment tracking vs goal**: multiple concurrent commitments per
+- **Optional commitment tracking vs goal**: when a tenant uses commitments or
+  goals, preserve multiple concurrent commitments per
   partner (TntConnect's single-pledge limit is a known pain — beat it),
   source-authoritative Phase 16 commitment and occurrence attention states
   (frequency math, grace windows, and ambiguity rules specced precisely), and
@@ -1896,35 +3085,61 @@ projection already available.
   consent-gated sends through Phases 17 and 6; **newsletter-preference seam**
   (Phase 9 Contact tab) fulfilled here; Mailchimp sync itself is Phase 32.
   Phase 28 never calls Resend or another transport directly.
-- **Dashboard**: monthly support vs goal, gained/lost this week/month,
-  13-month trend, commitments/occurrences needing attention, appeal progress,
-  and the exact Phase 21 Field Account projection by currency with its as-of
-  time, freshness, availability meaning, and any exception state. Phase 28
-  never recomputes the balance from gifts or accounting records.
+- **Dashboard**: a bounded, role-safe composition that may include monthly
+  support vs goal, gained/lost this week/month, a 13-month trend,
+  commitments/occurrences needing attention, appeal progress, and only the
+  Phase 21 modules published for the exact Support Assignment by the current
+  Support Workspace Publication Profile Version and authorized for the current
+  principal by Phase 12. A Support Assignment Participant Membership alone
+  grants nothing. Each module requires its own current source, configuration,
+  and authorization. Activity, goal, commitment, Plan, balance,
+  Balance Coverage, and Reserve Position remain independent. A tenant that
+  does not use commitments or publish balances sees no empty or zero-valued
+  cards. When the balance family is enabled, every authorized parallel
+  Finance-confirmed Field Account Balance is simultaneously discoverable,
+  separately ISO-labelled, and independently through-dated; there is no
+  authoritative converted aggregate or selector-only discovery. The projection
+  may also show provisional support recorded since close,
+  next-compensation date/status/tenant-visible amount only from the exact
+  Compensation Funding Plan Version, Compensation Funding Decision, External
+  Compensation Result, and External Payment Occurrence safe projection,
+  optional policy-derived ministry-expense capacity, and expense/reimbursement
+  progress. It consumes D3's exact assessment
+  presentation—including the quiet No-Assessment state, bounded tenant-selected
+  detail mode, canonical gross/assessment/support-credited values, and
+  period-level components—without resolving profiles or recalculating
+  assessment from gifts. Phase 28 never recomputes or relabels these facts from
+  gifts, commitments, support-raising goals, or accounting records.
 - **Coaching/accountability views** with **PII redaction by design**
   (coach sees weekly appointments vs target, dials, new partners, support
   gained/lost, trends — initials + amounts only; read-only, invite-based;
   weekly qualitative self-report) — redaction enforced in the Phase 3
   projection layer, not component code; targets org-configurable, not
   hard-coded to one org's methodology.
-- **Goal setting**: support-raising/coaching goal, MPD start/end dates, and
-  weekly targets — the denominators for every coaching metric. Phase 21
-  separately owns operational draw, disbursement, assessment, and
-  available-support policy; neither goal silently changes the other.
+- **Goal setting**: the Phase 28 Support-Raising Goal Version owns the
+  fundraising/coaching goal, MPD start/end dates, and weekly targets—the
+  denominators for coaching metrics. An authorized user may explicitly create
+  a new Phase 28 Goal Version from an Approved Support Plan Version with exact
+  provenance. Later Plan changes produce only a compare/update suggestion;
+  neither authority live-synchronizes or rewrites the other. Phase 21
+  separately owns finance-closed Support Cycles, assessments, compensation
+  funding coverage, and optional policy-derived ministry-expense capacity.
 - **Interaction log shared with staff** (one log, permission-scoped
   visibility — the same phone call is never logged twice or lost).
 
 **Boundaries & guardrails.** The workspace is not a second Mission Control:
 it can only see/enumerate parties with an active supporter-or-referral
 relationship to that missionary (Phase 9 guardrail), with approved exports
-obeying donor privacy and suppression. Org-owned data stays org-owned.
+obeying donor privacy and suppression. Org-owned data stays org-owned. The
+optional Phase 21 D8/Phase 31 continuity feed is an outbound, read-only
+transition lane for an incumbent external tool, not middleware inside the
+Asym-native workspace. Phase 28 contributes no feed resource until its
+relationship/contactability purpose contract is separately ratified.
 
 **Open questions for grooming.** Private prospect contacts (personal
 network, not yet org CRM) — allowed? promotion/dedupe workflow, staff
 visibility rules; coach identity (staff role vs external invite); Gmail/
-calendar sync scope (MPDX parity) vs manual logging v1; TntConnect/MPDX
-feed compatibility (with 21/31) for orgs whose missionaries won't switch
-day one.
+calendar sync scope (MPDX parity) vs manual logging v1.
 
 ---
 
@@ -1943,8 +3158,11 @@ storage/access mechanics, malware hygiene, and access audit.
 Files socket) and Phase 3 (permissioned access); before imports (30, which
 ingest files), workflows (34, file-request tasks), and member care (38,
 restricted documents). Phase 18 may store exact generated artifacts here;
-Phase 21 may later adopt expense-evidence bytes into this lifecycle; Phase 26
-supplies conversation attachments. None transfers semantic authority.
+Phase 21 D10 requires a bounded Phase-29-compatible private receipt-byte seam
+before expense evidence can ship; Phase 29 later adopts that seam into this
+common lifecycle. Phase 21 may likewise adopt Compensation Handoff Package
+bytes; Phase 26 supplies conversation attachments. None transfers semantic
+authority.
 
 **What it covers.**
 
@@ -1981,9 +3199,103 @@ supplies conversation attachments. None transfers semantic authority.
 - **Expense-evidence byte lifecycle** (21): Phase 29 supplies the private
   storage, access, malware-hygiene, retention, and deletion mechanics for
   receipt images and other expense evidence. Phase 21 owns the expense
-  evidence's business meaning, report/line linkage, qualification,
-  approval/correction state, and accounting-ready coverage; moving or
-  deleting bytes cannot silently rewrite that source truth.
+  evidence's business meaning, immutable Receipt Evidence Asset identity,
+  exact Claim Version/item coverage links, qualification,
+  approval/correction state, and accounting-ready coverage. The D10
+  predecessor seam and Phase 29 lifecycle use the same opaque byte identity;
+  adoption is not a file rewrite. Moving or deleting bytes cannot silently
+  rewrite that source truth.
+- **Expense-collaboration evidence retrieval** (21): D24 reuses the same
+  private-byte lifecycle; it does not create a helper file store. Phase 21 owns
+  the exact claim/item/split/evidence collaboration scope, Evidence Access
+  Projection Version, current purpose authorization, assignment lifecycle, and
+  action provenance. Phase 29 owns immutable byte identity, private storage,
+  malware hygiene, retention, hold, quarantine, disposition, access audit, and
+  short-lived requester-authorized delivery. Retrieval must be non-public and
+  non-cacheable, and reusable bearer URLs are forbidden. Revocation blocks
+  future retrieval without claiming that bytes already delivered can be
+  recalled; storage movement or deletion cannot create, expand, or rewrite
+  D24 assignment, consent, approval, submission, payment, Field Account, or
+  accounting truth.
+- **Expense-resolution evidence boundary** (21): D25 reuses the exact D10
+  Receipt Evidence identity and D24/Phase 12 current-access contract; it creates
+  no file store, duplicate evidence asset, or new byte family. Phase 29 owns
+  immutable bytes, scan, private retrieval, access audit, retention, hold,
+  quarantine, and authorized disposition. D25 owns only typed evidence
+  references and source-attributed coordination. Storage movement, deletion,
+  quarantine, or access failure cannot supply a claimant response, prove
+  evidence unavailable or sufficient, resolve a case, satisfy a downstream
+  disposition, or trigger a financial correction.
+- **Phase 21 records-package byte lifecycle** (21): D26 owns its six closed
+  record-family meanings, Records Schedule Contract and Binding Versions,
+  per-record Retention Resolutions, successor-impact coverage, package schema
+  and selected content, Coverage Manifest, representation labels, and business
+  completeness. Phase 29 alone owns immutable private package bytes, encrypted
+  staging, scan/quarantine, copy inventory, authenticated streaming and access
+  audit, short package-byte expiry, owner-authorized hold/disposition
+  execution, provider-copy outcomes, backup treatment, and restore suppression.
+  A download, print, Tenant External Copy Assertion, or expired staging copy
+  cannot make Phase 29 infer completeness, legal sufficiency, verified
+  destination custody, source retention, hold release, or source disposal.
+- **Prospective-expense-evidence byte lifecycle** (21): D22 quotes,
+  itineraries, estimates, budgets, and other plan evidence use a separate
+  Phase 21 semantic identity from D10 Receipt Evidence. Phase 29 owns immutable
+  byte identity, private storage/retrieval, malware hygiene, access audit,
+  retention, hold, quarantine, and disposition; Phase 21 owns meaning,
+  request-version coverage, classification purpose, and decision lineage.
+  Bytes cannot become a claim, receipt, approval, reservation, reimbursement,
+  payment, or accounting fact. Evidence-bearing D22 activation waits for the
+  certified private-byte seam; an attachment-free manual plan path remains
+  complete wherever the tenant's winning policy permits it.
+- **Travel-route and location-evidence byte lifecycle** (21): route files,
+  optional GPS artifacts, odometer images, map-provider evidence, destinations,
+  and similar D18 travel inputs are separately purpose-labelled expense evidence,
+  not generic attachments. Phase 29 owns private byte identity, malware/file
+  hygiene, short-lived purpose-bound retrieval, access audit, tenant-visible
+  retention, holds, quarantine, and disposition. Phase 21 owns their evidence
+  meaning, exact claim/item coverage, qualification, calculation lineage, and
+  retention purpose; Phase 10 supplies the strictest worker/location
+  classification and egress floor. A manual evidence path remains available,
+  and no broad export, support view, ordinary approved artifact, or accounting
+  package receives raw route/GPS content by default.
+- **Travel cumulative-admission evidence byte lifecycle** (21): any D28
+  predecessor export, attestation support, associated-scope proof, or continuing-
+  completeness feed artifact remains private purpose-labelled calculation-
+  admission evidence. Phase 29 owns immutable byte identity, malware/file
+  hygiene, short-lived authorized retrieval, access audit, retention, hold,
+  quarantine, and disposition. Phase 21 owns the Opening Cumulative State,
+  Capacity Key Contract, evidence class, pool/group meaning, Admission Manifest,
+  first-use authority, correction, and containment. A file, digest, upload,
+  restore, or storage result cannot prove zero or completeness, admit native
+  calculation, create a historical claim, or establish downstream financial
+  truth.
+- **Compensation-handoff byte lifecycle** (21): Phase 29 stores and serves the
+  exact immutable artifact bytes, enforces private access and access audit, and
+  executes disposition under Phase 21's retention purpose. Phase 21 retains
+  Compensation Handoff Package semantic identity, schema, content digest,
+  source coverage, currentness, provider-operation lineage, and retention
+  authority. Moving or disposing bytes cannot turn a decision into payroll,
+  payment, or accounting truth.
+- **Organization-card activity file lifecycle** (21): Phase 29 supplies private
+  byte storage, malware and sensitive-card-data hygiene, short-lived authorized
+  access, access audit, retention, hold, quarantine, and disposition mechanics
+  for Organization Card Activity File Assets. Phase 21 owns their purpose,
+  immutable identity, Organization Card Source and Import Profile relationship,
+  manifest linkage, parser provenance, transaction meaning, and retention
+  reference. Moving, quarantining, or disposing bytes cannot rewrite accepted
+  transaction evidence, assignments, coverage, corrections, claims, approval,
+  payment, accounting, or reconciliation truth.
+- **Field Account opening-evidence byte lifecycle** (21): Phase 29 supplies
+  private byte storage, content identity, malware/file hygiene, short-lived
+  authorized retrieval, access audit, retention, hold, quarantine, and
+  disposition mechanics for artifacts in a Phase 21 D17 Opening Source Package.
+  Phase 21 owns source precedence, package and manifest identity, source-fact
+  dispositions, exact-history qualification, cohort reconciliation,
+  conservation, activation, corrections, evidence-purpose retention, and what
+  remains structurally inert reference history. Moving, restoring,
+  quarantining, or disposing bytes cannot activate Field Accounts, alter an
+  Opening Position, make reference history authoritative, replay side effects,
+  or create accounting truth. Opening evidence is never public storage.
 
 **Boundaries & guardrails.** Storage providers hold bytes only. Phase 29 owns
 generic storage-object metadata, signed access, and access audit; the source
@@ -2053,14 +3365,43 @@ templates from the field catalog), files (29), identity/merge (4).
   the target phase and its typed import command exist; Phase 30 never defines
   a target domain's schema or bypasses its invariants. Source-authoritative
   Field Account opening/history and expense records, if supported, enter only
-  through Phase 21 import commands that produce explicit provenance,
-  per-currency entries, and reconciliation evidence. An import never writes a
-  balance scalar or replays historic Accounting Releases into QBO/Xero.
-  Adoption of prior accounting history obeys Phase 20 D17's
+  through owner-domain commands. For Phase 21 D17, Phase 29 owns private byte
+  identity, storage/access, malware hygiene, and access audit. Phase 30 owns
+  import-session/upload UX and transport, replaceable parsing, mapping
+  mechanics, chunked resumable staging, and review mechanics only. Phase 21
+  owns source precedence and mapping admissibility, the complete Tenant × Legal Entity ×
+  ISO-currency cohort, exact-history certification, five-way coverage
+  disposition, residual Opening Position, conservation, independently live
+  coverage carry-forward, first-close predecessor cursor, manifest,
+  activation, and correction. General fuzzy matching or auto-merge is forbidden
+  for Phase 21 D17 financial identity. A Phase 30 import `commit`, `complete`, or `undo`
+  state never implies Field Account activation, and imported exact or reference
+  history remains side-effect-dark. An import never writes a balance scalar or
+  replays historic Accounting Releases into QBO/Xero. Adoption of prior
+  accounting history obeys Phase 20 D17's
   source-family-specific Posting Ownership Cutover: exact half-open ownership
   intervals, a source-complete coverage manifest, preserved previous-owner
   evidence, and optional gap-only backfill for proved-unposted work—never
-  dual-write, fuzzy adoption, or whole-backlog replay.
+  dual-write, fuzzy adoption, or whole-backlog replay. Phase 20 and Phase 21
+  boundaries remain independently authoritative even when intentionally
+  aligned.
+- **D28 cumulative-travel adoption remains owner-controlled**: Phase 30 may
+  provide a downloadable opaque-ID template, private upload session, parsing,
+  mapping, chunked resumable staging, row validation, and correction-file
+  mechanics for a large opening census. Phase 21 alone defines qualifying
+  quantity, source period/unit/pool/group semantics, evidence class, opening and
+  continuity dispositions, complete Admission Manifest, first-use CAS,
+  correction, and external fallback. A Phase 30 dry run, commit, complete, or
+  undo state cannot prove opening zero or prospective completeness, activate
+  native D18 calculation, fabricate predecessor claims, or alter an admitted
+  cumulative pool.
+- **Operational source ingestion remains owner-domain work**: recurring intake
+  of one operational source artifact under a fixed, certified source contract—
+  including Phase 21 organization-card activity under D14—is owned by that
+  source domain, not by this general migration workbench. Phase 30 may not
+  reinterpret, heuristically deduplicate, destructively undo, replay, or bypass
+  Phase 21 card evidence, manifest, assignment, coverage, correction, or
+  approval invariants.
 - **The SiteStacker migration kit as a named deliverable**: field-catalog
   bootstrap from a SiteStacker entity export, mapping presets for its basic
   CRM fields, donations/pledges/relationship import order, and
@@ -2072,7 +3413,19 @@ templates from the field catalog), files (29), identity/merge (4).
 **Boundaries & guardrails.** Imports write through each owning domain's typed
 service (authorization, validation, consent, dedupe, classification,
 idempotency, and audit) — never raw table loads. Historic-giving imports never
-mint receipts for pre-platform gifts.
+mint receipts for pre-platform gifts. The Phase 21 D8 outbound continuity feed
+and every Phase 31 resnapshot/reset are not imports or migrations. A resnapshot
+rebuilds only the recipient-scoped export projection and delivery cursor from
+current source-authoritative versions; it never writes Phase 14, 16, 21, or 28
+truth, destructively merges records, or erases or claims deletion of
+provider-owned work.
+
+Phase 21 D26 outbound records archives, offboarding retrieval, browser
+downloads, and custody delivery are not imports or migration transport. Phase
+30 may provide no outbound destination adapter, package staging, transfer
+claim, or disposition authority; any optional certified external destination
+uses Phase 31 while Phase 29 retains byte custody and Phase 21 retains package
+meaning.
 
 **Open questions for grooming.** Importer build-vs-embed; the reversible undo
 window for otherwise eligible work; whether historic gifts live in the main
@@ -2126,27 +3479,48 @@ rides the framework instead of defining it ad hoc.
   build-vs-buy.
 - **API/audit trail** queryable by tenant admins; sensitive-field access
   flagged.
-- Candidate early consumers: a governed TntConnect/DonorHub-compatible
-  support and Field Account projection (21/28), read-only Phase 20 accounting
-  evidence where explicitly authorized, and church-management syncs. Phase 20
-  remains the only Stripe/QBO/Xero authorization, delivery, and recovery
-  doorway; Phase 31 must not generalize that provider-specific financial
-  authority into a second connector. Financial projections carry explicit
-  Legal Entity, currency, source, and as-of semantics and never expose provider
-  credentials.
+- **First concrete feed consumer**: Phase 21 D8's recipient-scoped Missionary
+  Support Feed Projection. Phase 21 owns the Missionary Support Activity and
+  Support Balances source projections plus their finance-safe external field
+  floor; Phase 14 and Phase 16 retain supporter and commitment truth; Phase 28
+  contributes relationship/contactability only after a separate ratified
+  purpose contract. The feed subject is one exact Support Assignment, not a
+  Party participant, household, relationship, or access grant. Phase 31 owns
+  the recipient-scoped composite, complete
+  scoped snapshot, monotonic change cursor, reset/resnapshot protocol, signed
+  reconciliation hints where certified, provider mappings, and delivery
+  evidence. Later candidates include read-only Phase 20 accounting evidence
+  where explicitly authorized and church-management syncs. Phase 20 remains
+  the only Stripe/QBO/Xero authorization, delivery, and recovery doorway;
+  Phase 31 must not generalize that provider-specific financial authority into
+  a second connector. Financial projections carry explicit Legal Entity,
+  currency, source, and as-of semantics and never expose provider credentials.
+- **Optional D26 records destination**: only after D26's complete browser lane
+  exists, Phase 31 may certify a tenant-owned storage destination using
+  provider-native authorization, exact destination identity, least privilege,
+  package-manifest write and readback, integrity, ambiguity-safe retry, drift,
+  revocation, residency, preserved holds/restrictions, and exit behavior.
+  Phase 21 owns package and custody semantics; Phase 29 owns staged bytes;
+  Phase 31 owns connection and transport evidence. There is no launch-time
+  Drive/Dropbox/Box/SharePoint/S3/SFTP marketplace, raw-key flow, or claim that
+  upload acceptance proves durable custody.
 
 **Boundaries & guardrails.** Connectors cannot bypass permissions or
 source-of-truth rules. A feed exports governed projections and stable
 references; it does not create another contribution ledger, Field Account
-subledger, accounting release, or final reconciliation. No GraphQL, no
+subledger, accounting release, or final reconciliation. A reset or resnapshot
+can replace only disposable Phase 31 projection/delivery state; it cannot write
+an owning source, erase provider-owned records, or claim downstream deletion.
+No GraphQL, no
 tenant-authored server-side scripting, no third-party app marketplace —
 post-parity. Don't hand-roll the importer grid, webhook delivery, and
 connector OAuth simultaneously (each is a whole company's product — the
 build-vs-buy triage is a grooming deliverable).
 
-**Open questions for grooming.** First concrete consumer (drive the API
-from a design partner, not speculation); webhook delivery build-vs-buy;
-whether the public API v1 is read-only with writes trailing.
+**Open questions for grooming.** Webhook delivery build-vs-buy; whether the
+public API v1 is read-only with writes trailing. Phase 21 D8 is the first
+concrete feed consumer; its provider activation still requires an authorized
+design partner and production certification.
 
 ---
 
@@ -2249,6 +3623,12 @@ Release values are not blended into one authoritative total. Numbers must
 agree with finance surfaces (19/20/21) when comparing like-for-like facts,
 but Phase 33 never becomes final bank or QBO/Xero reconciliation.
 
+A Phase 33 report export is a current governed analytical projection, not a
+Phase 21 D26 Records Export Package, records-retention artifact, offboarding
+archive, or custody transfer. Report filters and scheduled runs never define
+archival completeness, source-family watermarks, original-byte coverage,
+retention, hold, or disposition.
+
 **Open questions for grooming.** Semantic-layer build-vs-adopt (Cube Core
 vs in-house definitions); which rollups are materialized vs live;
 donor/missionary-facing report surfaces (portal impact views ride the same
@@ -2322,6 +3702,21 @@ Phase 10 classification. A workflow may request a permitted Phase 21 command
 through the domain service and observe its result; it cannot write Field
 Account entries, approve expense truth, generate an Accounting Release, or
 mutate provider-delivery state directly.
+
+D25 ships complete without Phase 34. A later workflow may subscribe to an exact
+D25 occurrence, mirror a follow-up task, and invoke only an already permitted
+typed D25 or source-owner command through the authoritative service. It cannot
+add causes, actions, states, SLAs, financial meanings, select a reviewer, author
+claimant facts, resolve a case, satisfy a Downstream Impact Manifest, or mutate
+any owner-domain truth. Timer or task completion is never case completion.
+
+D26 also ships complete without Phase 34. A later workflow may mirror a
+records-review or offboarding reminder and invoke only an independently
+authorized typed Phase 21 or Phase 29 command. It cannot decide legal
+applicability, author or weaken a schedule, release a hold, dispose a copy,
+mark export coverage complete, record a tenant assertion as another actor, or
+verify destination custody. Timer, task, or workflow completion supplies none
+of those facts.
 
 **Open questions for grooming.** Definition-versioning UX for staff;
 per-role dashboard composition surface; whether Support Hub rules migrate
@@ -2557,6 +3952,12 @@ Handoff, Accounting Release, provider artifact, or QBO/Xero payload. Expense
 operations may carry only the minimum approved business-purpose evidence
 allowed by the Phase 10 egress policy.
 
+A D26 tenant business-record archive is not an individual's subject-access,
+portability, correction, restriction, or erasure response. Phase 38 privacy-
+request authority may constrain or request owner-filtered D26 records, but it
+cannot treat an unredacted tenant archive as the response or use export as
+deletion or hold authority.
+
 **Open questions for grooming.** Sealing default depth (invisible vs
 visible-with-audit for org owners — tenant-configurable within a floor?);
 break-glass authority configuration; retention defaults per record class;
@@ -2594,6 +3995,26 @@ exist first.
   exponential backoff, ordered replay for dependent ops, **visible
   pending/synced state** ($synced/$origin row metadata → WhatsApp-style
   indicators).
+- **D22 offline boundary**: only a visibly device-local, non-authoritative
+  Prospective Expense Plan Draft may be resumed offline after the device-
+  security contract is certified. Submit, withdraw, request-information,
+  review, decide, reserve, apply coverage, release, correct, and notify remain
+  online, server-confirmed actions; they are never offline-queued or rendered
+  optimistically as committed.
+- **D25 offline boundary**: a visibly device-local response text draft may be
+  retained only under the certified device contract and must remain labelled
+  **Not sent**. Evidence upload/finalization, response submission, withdrawal,
+  request-another-review, source correction, Resolution Occurrence, downstream
+  disposition, and case completion remain online and server-confirmed. The UI
+  never shows **Sent**, **Complete**, approved, paid, or financially corrected
+  before authoritative commit.
+- **D26 offline boundary**: package request, scope preview, manifest seal,
+  authorization reproof, external-copy assertion, verified transfer, hold, and
+  disposition remain online and server-confirmed. A deliberate authenticated
+  download may create an external device copy that Asym cannot recall, but a
+  service worker or ordinary offline cache must never silently retain archive
+  bytes; offline UI cannot claim **Stored**, **Verified**, **Complete**, or
+  **Transferred**.
 - **Conflict policy per entity, decided up front** (TanStack DB explicitly
   does not solve conflicts): LWW-safe fields vs must-surface fields with
   human-readable choices — no silent merges.
@@ -2630,6 +4051,15 @@ record summaries, next-action drafts, anomaly flags) and a **human commits
 every change**. Deliberately last: AI on top of unstable truth,
 permissions, or audit summarizes garbage confidently.
 
+The generalized workbench remains deliberately last. Phase 21 D10 pulls forward
+only the small shared execution foundation needed by earlier bounded features:
+AI Provider Connections, write-only Credential Revisions, closed Feature
+Purposes, prospective capability-certified AI Capability Binding Versions,
+minimum-data Egress Manifests, immutable Invocation Evidence, and the
+non-authoritative Suggestion Version contract. Phase 40 consumes and extends
+that foundation; it does not create a second key store, model router, egress
+ledger, or suggestion authority.
+
 **Why it sits here.** Hard on the permission/identity floors (3/4), health
 infrastructure (8), Phase 10 classification, Phase 12 capabilities, mature
 truth (9/13), imports (30 — the data it stewards), and reporting (33 — the
@@ -2654,6 +4084,13 @@ the actions it drafts) enrich it.
   and append-only correction rules. A stale suggestion fails safely and must
   be re-previewed; the suggestion itself grants no authority. Suggested vs
   confirmed data is a first-class distinction.
+- **Shared AI control-plane continuation**: add generalized feature purposes
+  only through the D10 code-owned registry and current capability-certification
+  process. Reuse Provider Connections, Credential Revisions, Binding Versions,
+  Egress Manifests, Invocation Evidence, purpose budgets, health, revocation,
+  and kill switches. Feature domains still own suggestion interpretation and
+  acceptance commands; a Phase 40 workbench never gains generic write
+  authority.
 - **Tiered autonomy + review-by-exception**: conservative thresholds first;
   expand only as override rates drop (<~30%); human corrections captured as
   feedback, not discarded. Advisory-first merge (the shipped Dynamics 365
@@ -2681,9 +4118,10 @@ accounting destination, release or retry an Accounting Release, resolve an
 ambiguous Bank Match, reconnect a provider, select a posting period, or attest
 provider readback.
 
-**Open questions for grooming.** Model/provider posture (tenant data
-processing agreements; on-platform vs API models); which suggestion
-domains ship v1 (dedupe + summaries recommended); search infrastructure
+**Open questions for grooming.** Which capability-certified providers/models
+serve the generalized Phase 40 purposes under tenant data-processing
+agreements and D10 bindings; which suggestion domains ship v1 (dedupe +
+summaries recommended); search infrastructure
 (Postgres FTS/pg_trgm scale-up vs dedicated engine) — decided with real
 data volumes.
 

@@ -240,6 +240,22 @@ The Kubernetes/SRE **level-triggered reconcile + observe, heal only what is safe
 
 **Evidence file** (Phase-2..7 style, authored at completion, Built/Live/Confirmed): migrations applied; the full test suite incl. the negative tier passing; route/API checks; the Supabase-advisor output; and an explicit list of what Phase 8 intentionally did **not** build (the reserved seams above) — **no live provider round-trip exists or is required** (the provider is retired).
 
+## Dated Phase 21 D11 integrity boundary (2026-07-30)
+
+Phase 21 owns Field Account invariants, financial verification, Support Cycle
+Integrity Manifests, verdicts, containment radius, and Field Account Integrity
+Cases. Phase 8 may surface only a PII- and amount-minimized health count, age,
+execution state, and authorized deep link. A `crm_escalation` acknowledgment,
+snooze, or completion cannot become the financial case, establish its repair,
+or clear it.
+
+Phase 8's reserved heal may rebuild a disposable projection when the existing
+Disposition Predicate permits it. It may not replay a money occurrence,
+correct or offset Field Account truth, change source coverage, create a plug or
+suspense entry, force balance, force close, or widen a Phase 21 containment
+scope. Any Phase 21 financial repair runs through the owning domain and remains
+subject to D11's fresh-proof clearance.
+
 ---
 
 ## Tracking Issues (epic #587 + children #588–#601)

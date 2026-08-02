@@ -1037,7 +1037,7 @@ Create issues from this PRD as epics and thin vertical slices:
 - Retention/purge/storage threshold issue.
 - First production annual giving statement issue.
 - Donor receipt issue.
-- Missionary monthly statement issue.
+- Missionary support-cycle statement issue (monthly by guided default).
 - Table/repeater rendering issue.
 - Finance/bookkeeping PDF issue group.
 - Event badge/receipt/roster issue group.

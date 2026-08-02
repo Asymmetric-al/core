@@ -33,6 +33,26 @@ never proves that implementation exists.
 > independent from every official document. Older generic "statement
 > population" or mixed recognition language below is read through this split.
 
+> **Controlling Phase 21 Field Account Support-statement amendment
+> (2026-07-30).** Phase 21 D11 owns the immutable Support Cycle Close,
+> Integrity Manifest, covered Field Account Occurrences, finance-confirmed
+> opening/closing balances, correction meaning, scope, and ISO currency.
+> Phase 21 D12 owns the exact Field Account Support Statement Approved Data
+> View, eligibility, recipient meaning, and prospective D9 publication
+> authorization. Phase 18 accepts only the resulting immutable Facts Package
+> through `field_account.support_statement@1` and owns the one logical current
+> accessible artifact and same-facts artifact successors. It never queries
+> live Field Account history, invents a period, combines currencies, reruns a
+> close, chooses a recipient, or changes financial meaning. This purpose is
+> separate from donor year-end statements,
+> `giving.summary.informational@1`, pledge statements, payroll, bank, and
+> accounting artifacts. Retention never grants portal access. The purpose key
+> is a reserved future additive contract during Phase 21 grooming; the current
+> executable purpose catalog remains unchanged until Phase 21 implementation
+> adds purpose-specific fixtures and certifies it through the existing Phase 18
+> service. Global purpose certification and tenant D9 activation are separate
+> gates.
+
 ## Problem statement
 
 The repository currently has several incompatible prototypes:
@@ -77,13 +97,16 @@ This phase removes rather than adapts the repository's non-production receipt, s
 
 ## Goals
 
-- Consolidate every generated receipt, official statement, optional purpose-separated Support overview, tribute notification, pledge statement, and approved custom document onto one canonical `pdf_*` bounded context.
+- Consolidate every generated receipt, official statement, optional
+  purpose-separated Support overview, Field Account Support statement, tribute
+  notification, pledge statement, and approved custom document onto one
+  canonical `pdf_*` bounded context.
 - Define durable identity, authority, state, correction, access, retention, and evidence contracts before product code is written.
 - Provide structured visual authoring that is fast for ordinary nonprofit staff, accessible without drag-and-drop, and safe by construction.
 - Qualify at most one exact production renderer through a pre-registered production-shaped evidence contest.
 - Produce one universally accessible canonical PDF and escalate the same artifact to an archival profile when the purpose requires it.
 - Make tenant isolation, exact issuer scope, object authorization, idempotency, concurrency fencing, and private storage database/application invariants rather than UI conventions.
-- Preserve clear ownership with Phases 7, 10, 11, 12, 13, 14, 16, 17, 19, 29, and 38.
+- Preserve clear ownership with Phases 7, 10, 11, 12, 13, 14, 16, 17, 19, 21, 29, and 38.
 
 ## Implementation decisions
 
@@ -650,3 +673,27 @@ Phase 18 is done only when every user story and traceability row passes through 
   `status:todo` plus `ready-for-agent`; #911–#961 remain `status:blocked`.
   Publication and frontier labels do not claim that any behavior is built, and
   this PRD does not authorize further dispatch beyond that explicit frontier.
+
+## Dated Phase 21 D26 records-export boundary (2026-08-02)
+
+Phase 21 D11/D12 financial facts and approved support-statement view may be
+represented in a D26 records package, but Phase 18 alone owns the admitted Facts
+Package, Logical Document, exact artifact bytes, currentness, correction,
+recipient access, and generated-document Records Schedule Contract. A D26
+package resolves current authority through Phase 18 and may include only the
+authorized exact artifact or one explicit owner-domain reference.
+
+D26 is not document publication, donor delivery, a Phase 19 Audit/print
+fulfillment package, Canadian-issuer activation or closure proof, or an artifact
+hold/disposition command. D26 may manage its semantic package and Coverage
+Manifest, records-schedule binding/resolution, retention meaning, external-copy
+and destination-custody assertions, and requested hold/disposition truth. Phase
+29 alone executes physical package-byte staging, storage, delivery, hold, and
+disposal, and only after current Phase 3/10/12 classification, authorization,
+step-up, and egress decisions succeed. Phase 29 returns exact execution evidence
+but does not own or weaken those decisions. None of those operations changes
+Phase 18 artifact authority or lifecycle state.
+Missing, disposed, quarantined, or unauthorized Phase 18 bytes are never
+silently regenerated or labelled included, and a D26 download, external-copy
+assertion, or verified destination transfer does not change Phase 18 retention,
+access, currentness, or custody obligations.

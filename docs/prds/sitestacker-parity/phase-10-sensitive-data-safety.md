@@ -276,3 +276,295 @@ Phase 17 must state those limitations honestly. It never routes legal identity,
 real location/photo, care/security fields, protected destinations, or action
 credentials through a tenant-editable node, fallback, test fixture, export,
 search index, log, trace, or provider tag.
+
+## Dated Phase 21 D8 external-feed safety amendment (2026-07-30)
+
+The Missionary Support Feed is external publication and must pass the Phase 10
+publication firewall before any row, identifier, count, total, page, cursor,
+watermark, hint, cache entry, log, metric, diagnostic, or support bundle exists.
+Restricted and high-risk workers are ineligible for ordinary activation. No
+tenant switch, role, named grant, provider acknowledgment, mapping rule, or
+previously valid cursor may substitute an alias-only pathway or reveal that a
+restricted person or relationship exists. Any future restricted-ministry
+external pathway requires its own separately ratified and production-certified
+safety contract.
+
+When current authorization or classification removes a projection object,
+future access and queued egress stop first. A recipient-only revocation may
+refer only to a pseudonymous object that the same Missionary Support Feed
+Recipient previously
+received and may disclose no present identity, restriction reason, hidden
+relationship, or pre-filter arithmetic. The revocation means only that the
+object is no longer available through that subscription. The product
+separately records whether revocation was delivered, provider removal was
+confirmed, removal is unsupported, or the downstream outcome is unknown.
+
+Disconnect, revocation, or a privacy tombstone never proves that an external
+provider, local database, file, export, or backup erased an earlier copy.
+Staff-facing copy and audit must state that limitation plainly while keeping
+the affected person's identity and prior existence out of ordinary tenant
+health, logs, alerts, and diagnostics.
+
+## Dated Phase 21 D10 receipt-AI egress amendment (2026-07-30)
+
+Every remote receipt-extraction or expense-match invocation is an external
+egress and must cross the Phase 3/10 authorization, strictest-classification,
+and publication/egress firewall before a job, cache, provider request, metric,
+diagnostic, or support record can expose source content or existence.
+
+Tenant-supplied provider credentials do not waive classification, consent,
+need-to-know, or restricted-worker policy. Receipt pixels may reveal legal
+identity, exact location, travel, payment fragments, health/care context, or
+restricted-ministry relationships before OCR can redact them. Therefore
+restricted, high-risk, care, security, and any other prohibited content remains
+ineligible for remote model egress under the current ruling. Redaction after
+remote OCR is not a control for those inputs.
+
+An allowed invocation releases only the minimum exact evidence version and
+fields recorded in one AI Egress Manifest through a purpose- and
+capability-certified server adapter. Receipt content is untrusted data and
+receives no tools, browsing, URL retrieval, code execution, tenant search, or
+write authority. Ordinary logs, traces, analytics, job payloads, support views,
+and audits contain no provider credential, raw receipt, unrestricted prompt or
+model output, hidden person identity, or sensitive extracted text.
+
+Phase 10 owns the classification and egress decision, not AI execution or
+expense truth. Phase 21 owns suggestion meaning and authorized confirmation.
+Denied, unavailable, unsafe, unsupported, or unconfigured AI always leaves the
+private source evidence intact and the complete manual expense path available.
+
+## Dated Phase 21 D16 advance and claimant-repayment safety amendment (2026-07-31)
+
+Advance and claimant-repayment evidence is private, purpose-bound finance data.
+Repayment Subject Determinations, source evidence, relationship and
+jurisdiction authority, conflict/dispute routes, return instructions, evidence
+observations, and Repayment Restitution Reviews must pass the Phase 3/10 floor
+before any row, count, task, message, attachment, export, provider request,
+cache, audit projection, support bundle, log, metric, or diagnostic can expose
+their content or existence. Evidence retrieval uses short-lived authorization
+for the exact case and purpose, and ordinary telemetry retains no personal bank
+or card identifiers, receipt/payment fragments, private dispute detail,
+restricted-ministry relationship, or unredacted provider payload.
+
+The claimant projection is minimum necessary: exact authorized amount and ISO
+currency, calm current stage, applicable organization-policy date or return
+instructions, and the bounded actions to share evidence or ask finance to
+review. It does not expose Field Account capacity, internal policy logic,
+reviewer or specialist identity, another claimant, accounting treatment, or
+unrelated evidence. The product must not infer or publish **Debt**,
+**Collections**, **Available balance**, **Repay now**, **Deduct from payroll**,
+generic **Paid**, **Settled**, or **Reconciled**. **Return recorded by finance**
+may appear only from its exact source-labelled observation; **Return confirmed**
+requires the separately qualified stronger-evidence contract.
+
+Cross-currency display uses only the immutable source and settlement amounts,
+exact externally owned conversion authority and rate, rounding, and residual
+already admitted by the approved source. No live quote, inferred rate, converted
+grand total, or hidden FX arithmetic enters the projection. Relationship or
+security reclassification, source-version correction, authority loss,
+repayment-subject succession, dispute, or evidence conflict stops future access
+and queued disclosure before any detail or existence signal while retaining
+immutable owner-domain evidence under its lawful purpose, hold, and disposition
+contract.
+
+## Dated Phase 21 D17 opening-position safety amendment (2026-07-31)
+
+Opening Source Package artifacts, exact/reference history, source identities,
+mapping conflicts, exclusion reasons, independently live obligations and
+reservations, control totals, manifest evidence, and correction evidence are
+private, purpose-bound finance data. Their bytes use the Phase 29 private
+storage/access lifecycle; Phase 21 supplies classification and retention
+purpose. Client-supplied names and paths never determine classification or
+scope, uploads receive content-type and malware/file-hygiene checks, and access
+uses short-lived exact-purpose authorization with immutable audit evidence.
+
+The Phase 3/10 floor applies before any source or account row, count, total,
+difference, mapping suggestion, exception, success/failure count, preview,
+cache, export, support bundle, log, metric, trace, or diagnostic can expose
+content or existence. Ordinary telemetry contains no raw artifacts, donor or
+worker legal identity, bank/account fragments, payroll/tax content, restricted-
+ministry relationship, source filenames, or unredacted parser/provider payload.
+Pre-filter counts and cross-tenant or cross-Legal-Entity deduplication do not
+exist.
+
+Restricted-worker mapping must use approved aliases or opaque stable identities
+where exact proof is possible without legal-identity disclosure. Inspecting
+restricted identity requires separate security clearance; reconciling or
+activating a Field Account requires separate finance authority. Break-glass
+identity access does not activate, and finance authority does not reveal
+otherwise restricted identity.
+
+D9 remains the sole missionary publication authority. If balance or reference
+history publication is off, the source data is not queried, cached, exported,
+counted, or leaked to that surface. If on, only the exact ISO-labelled balance,
+through date, and separately authorized privacy-filtered reference history may
+appear. Raw opening evidence, mappings, exclusions, other accounts, internal
+coverage, and finance actors never appear. A post-cutover current-state refresh
+may occur through the authorized projection contract; imported historical
+events and side effects never replay.
+
+## Dated Phase 21 D18 travel-location safety amendment (2026-08-01)
+
+Travel Allowance source and calculation evidence may reveal exact routes,
+destinations, companions, vehicles, schedules, recurring movements, home or
+ministry locations, and restricted-worker relationships. Those fields and
+artifacts are separately purpose-labelled and classified before storage,
+retrieval, mapping, model use, export, support access, audit projection, logging,
+or diagnostics. A generic expense-review, finance, AI, map-provider, or audit
+capability never implies access to exact route or location evidence.
+
+Raw route or optional GPS evidence uses the Phase 29 private-byte lifecycle,
+short-lived exact-purpose authorization, field-level access audit, tenant-visible
+retention, and the strictest applicable worker or relationship classification.
+Ordinary logs, traces, analytics, events, caches, support bundles, and accounting
+handoffs contain no raw coordinates, unrestricted route geometry, sensitive
+place names, companion identity, image metadata, or provider payload. Approved
+expense and Phase 20 projections carry only the minimum immutable calculation
+result and source lineage required by their contracts.
+
+GPS collection is never required when an exact manual, odometer, receipt, or
+other policy-qualified evidence path can satisfy the tenant's rule. Map or AI
+egress is optional, explicit, purpose-scoped, provider-certified, and preceded by
+the Phase 3/10 firewall; denied or unavailable egress preserves a complete manual
+path. Removing bytes or access cannot rewrite the immutable D18 calculation or
+coverage record, and retaining that record cannot silently retain raw location
+evidence beyond its owning retention purpose.
+
+## Dated Phase 21 D19 participant and assignment safety amendment (2026-08-01)
+
+A Support Assignment's existence, participant roster, association dates,
+leadership/coach relationship, donor activity, balance, receipt evidence,
+payee/payroll data, and notification eligibility may each be restricted or
+physical-safety-sensitive. Phase 10 classification and alias floors apply before
+enumeration, counts, arithmetic, search, navigation, cache fill, export,
+Realtime signal, support tooling, audit retrieval, or communication release.
+No spouse, household, teammate, leader, coach, or participant inference may
+widen a field family or reveal that a restricted Support Assignment or person
+exists.
+
+Immediate safety quarantine revokes principal access and queued notification
+eligibility independently from a prospective Support Assignment Participant
+Membership end. A life-event flow may coordinate those commands but cannot
+weaken the floor, require the affected person to approve emergency removal, or
+move Field Account money. Alias-safe projection and notification content never
+changes canonical Party, participant, assignment, or financial truth.
+
+## Dated Phase 21 D22 prospective-plan safety amendment (2026-08-01)
+
+Planned-expense quotes, estimates, itineraries, destinations, vendors,
+attendees, companions, budgets, free text, health/security context, restricted
+locations, and relationship facts are independently purpose-labelled and
+classified before storage, retrieval, list/queue projection, notification, AI
+egress, log, metric, trace, export, support access, or audit retrieval. A
+Prospective Expense Evidence Asset is private plan evidence, not D10 Receipt
+Evidence, and a D22 request or review grant never authorizes remote-model use.
+
+Ordinary rows and notifications carry only an opaque reference and safe action
+or stage. They omit evidence, itinerary/location, private notes, health or
+security context, unnecessary amounts, and reviewer internals. Raw plan
+evidence uses the Phase 29-compatible private-byte lifecycle with short-lived
+purpose-bound retrieval and access audit; public buckets, bearer URLs, broad
+support views, and accounting artifacts are forbidden.
+
+Revocation fences future reads and actions, invalidates stale queues and
+notifications before disclosure, and preserves immutable request/decision
+evidence without retaining raw bytes beyond their authorized purpose. Phase
+10 classification loss or uncertainty contains only the affected projection;
+it never rewrites the organization decision or silently widens another user.
+
+## Dated Phase 21 D23 expense-effect safety amendment (2026-08-01)
+
+The full Expense Field Account Effect Basis and its source, payment, funding,
+and correction lineage are server-only, independently classified finance data.
+Only the PII-minimized signed amount, source-safe label, ISO currency, and
+through date may reach an independently authorized balance-only participant.
+Receipt and merchant content, travel or location detail, claimant/payee
+identity, payment or bank identifiers, provider payloads, tax treatment,
+accounting detail, and internal exception evidence cannot leak through activity
+labels, counts, search, audit summaries, telemetry, exports, support bundles,
+notifications, or diagnostics.
+
+Ordinary metrics contain only bounded reason and correlation codes, never raw
+Party, claimant, claim, merchant, payment, bank, or provider identifiers. D23
+creates no new byte asset, AI purpose, or remote-model egress authority; Phase
+29-compatible private bytes and the D10/D18/D22 purpose contracts remain
+independently governed. Loss or ambiguity of an evidence classification
+quarantines only the affected positive effect path while mandatory adverse
+correction continuity remains available under its exact source purpose.
+
+## Dated Phase 21 D24 collaboration-evidence safety amendment (2026-08-02)
+
+D24 receipt/evidence access uses one immutable, code-owned **Evidence Access
+Projection Version** containing an explicit allow-list of evidence families and
+fields for one exact collaboration scope. The Assignment records only a maximum
+ceiling; it never grants the projection. Phase 3/10's strictest applicable
+projection, classification, and alias floors and Phase 12's current decision
+can only narrow that allow-list. A scalar `classification_level`, role name, relationship,
+invitation, prior access, OCR/AI output, sender, or match cannot widen it.
+
+Private evidence remains non-exposed and Phase 29-owned. Collaborator retrieval
+is application-mediated, request-time authorized, access-audited, and returned
+with `Cache-Control: private, no-store`; public buckets, reusable object URLs,
+and raw evidence Realtime payloads are forbidden. Revocation guarantees that no
+new retrieval is authorized after the revocation commit, without claiming to
+retract bytes already delivered or an already accepted response. Upload
+finalization reauthorizes the current Assignment, claim, purpose, and evidence
+projection; a revoked or stale upload is quarantined as an unbound object and
+cannot become claim evidence.
+
+Lists, notifications, logs, metrics, traces, exports, support tools, and audit
+summaries use opaque references and bounded reason codes only. They omit raw
+receipt bytes, merchant/location detail, claimant-only assertions, private
+notes, evidence filenames or URLs, and unnecessary Party or claim identifiers.
+Classification loss or uncertainty contains the smallest affected positive
+path, while immutable actor/conflict evidence and permitted adverse-correction
+continuity remain available under their own exact purposes.
+
+## Dated Phase 21 D25 expense-resolution safety amendment (2026-08-02)
+
+D25 queues, notifications, telemetry, support views, and protected audit use a
+minimum purpose-specific projection. Receipt/OCR content, evidence filenames or
+URLs, merchant and location detail, health or security context, claimant-only
+facts, lifecycle reasons, private notes, reviewer internals, and provider or
+accounting detail remain independently classified and absent unless the exact
+current purpose authorizes them.
+
+Evidence stays D10/Phase-29 private, request-authorized, non-enumerable, and
+`private, no-store`; D25 retains typed references rather than bytes or reusable
+bearer URLs. Quarantine contains only the affected positive path and cannot
+manufacture a claimant response, evidence sufficiency, case completion, or
+financial correction. PII-minimized cause, owner, age, denial, CAS, and outbox
+signals remain sufficient for cause-owned operations.
+
+## Dated Phase 21 D26 records-export safety amendment (2026-08-02)
+
+A Phase 21 Records Export Package adopts the strictest classification and
+handling requirement of any included record, relationship, derivative,
+original byte, policy history item, or manifest fact. Ordinary archives cannot
+bulk-bypass restricted-person controls: exact protected scope uses a separate
+clearance-, purpose-, step-up-, rate-, and audit-gated package, while the
+ordinary manifest records only the safe
+`restricted_separate_package_required` disposition. Missing or ambiguous
+classification blocks the smallest affected positive inclusion and cannot be
+converted to ordinary access by an administrator, service role, export purpose,
+offboarding state, tenant assertion, or package compiler.
+
+Package names, part paths, filenames, errors, progress, manifests,
+notifications, logs, metrics, traces, caches, browser history, support tools,
+and audit summaries are PII-minimized and cannot expose restricted identities,
+locations, health/security context, donor or claimant facts, merchant detail,
+payroll/payee data, evidence names, or source identifiers without their own
+current purpose. Package bytes remain private, encrypted, opaque-path,
+authenticated, audience-bound, short-lived, `no-store`, and reauthorized at
+every retrieval. Public buckets, predictable paths, reusable bearer URLs,
+email attachments, unbounded signed links, and raw package Realtime events are
+forbidden.
+
+Download and print trigger prominent but calm custody and representation
+language for the actual scope. A Tenant External Copy Assertion stores only the
+minimum attributable package reference and safe destination class; it grants no
+new access and proves neither security nor transfer. A Verified Destination
+Custody Transfer requires a separately certified Phase 31 lane with exact
+destination identity, manifest acceptance/readback, integrity, restrictions,
+holds, and revocation evidence. Neither event authorizes Phase 29 disposal or
+weakens Asym's duties for copies that remain in its custody.

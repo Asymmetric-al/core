@@ -290,11 +290,456 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   evidence-always artifact delivery, bounded Bank Match, append-only
   corrections, and a PII-minimized Phase 21 expense handoff. Groomed
   2026-07-26 through ratified D1–D20 and specified 2026-07-27. Planning only;
-  not implemented or dispatched. See the
+  epic #1040 and children #1041–#1105 are published, dependency-governed, and
+  not implemented. See the
   [`decision log`](./phase-20-accounting-exports-reconciliation-decision-log.md),
   [`OpenSpec change`](../../../openspec/changes/add-accounting-exports-reconciliation/proposal.md),
   and
   [`cross-phase congruency audit`](./phase-20-cross-phase-congruency-audit.md).
+- [`phase-21-field-accounts.md`](./phase-21-field-accounts.md)
+  — the implementation-ready Phase 21 specification, published as
+  [#1108](https://github.com/Asymmetric-al/core/issues/1108). Its
+  [`decision log`](./phase-21-field-accounts-decision-log.md) preserves the
+  `/grill-with-docs` authority. D1-D28 were ratified through
+  2026-08-02:
+  tenant-scheduled, finance-closed support cycles with independently
+  authoritative Field Account, accounting, payroll/AP, reimbursement
+  obligation, External Payment Occurrence, and dashboard truth; plus
+  rail-qualified positive-support admission, mandatory adverse corrections,
+  atomic paired movements, tenant-owned organizational-use decisions, and a quiet
+  privacy-filtered missionary Support Activity projection whose plain-language
+  gift status is disclosed only when useful or requested. Phase 14 owns its
+  bounded supporter roster and Phase 28 owns contact and relationship workflow;
+  Phase 21 creates neither a donor CRM nor an availability claim. D3 adds an
+  explicit zero-assessment default, bounded prospective Administrative
+  Assessment Profiles with exactly one deterministic winner, monthly
+  period-correct minimum/cap/flat/service effects, component-correct
+  append-only correction, preview-first activation, and bounded transparent
+  tenant presentation. D4 adds tenant-owned, contract-referenced compensation
+  funding through a source-pinned Engagement Authority Reference, three bounded
+  prospective plan methods, exact Compensation Funding Periods, an immutable
+  finance decision, and non-reusable coverage that reserves without debiting
+  or paying. It requires one artifact-always handoff, permits exactly one
+  executable artifact-fulfillment, capability-certified provider-draft, or
+  Phase 20 source-handoff lane, and keeps
+  finalized compensation results, Field Account effects, external payment,
+  and single-owner QBO/Xero accounting independent. Underfunding becomes an
+  exception rather than an automatic wage reduction, negative balance, debt,
+  or backpay; Asym does not classify workers, calculate or submit payroll, move
+  compensation money, or call an export, posted pay run, accounting entry, or
+  payslip `Paid`. D5 adds one bounded, organization-authorized,
+  purpose-compatible Support Reallocation Case with a staff-only safe default
+  and optional nonbinding missionary requests. It requires exact Phase 13
+  accepted-source purpose authority, deterministic capacity that never adds
+  provisional positive support, conflict-aware approval, atomic
+  same-Tenant/Legal-Entity/currency internal pairs, and one conserving exit
+  manifest activated only by exact lifecycle authority. External charitable
+  succession remains covered until a jurisdiction-appropriate handoff and
+  matching authoritative result are proved; payment evidence alone is
+  insufficient. Source domains own future-writer succession, late facts append
+  recovery, and only a separately certified close-covered occurrence may enter
+  Phase 20—never direct QBO/Xero Accounting. See
+  [ADR-0094](../../adr/0094-organization-authorized-support-reallocation-and-exit-disposition.md).
+  D6 adds one explicit quiet Legal-Entity default plus tenant-authorized,
+  prospective, source-family-specific proof-gated parallel currency-scoped
+  Field Accounts. Every account and financial effect remains single-currency;
+  a converted source requires one immutable Support Currency Allocation
+  Manifest over the complete effective Phase 13 hard-tender line set, while
+  only eligible non-fee-cover target portions create support allocations.
+  Source readiness, Field Account close, Phase 20 accounting, and external
+  payment remain independent. When the current D9 Support Workspace Publication
+  Profile authorizes missionary balance publication, the missionary sees every
+  exact balance in that publication family ISO-labelled and through-dated in one
+  quiet Support balances projection, with no converted total or Phase 21 FX
+  engine. When balance publication is off, no balance or balance-derived
+  placeholder appears while finance truth and closes remain live. See
+  [ADR-0095](../../adr/0095-proof-gated-parallel-currency-field-accounts.md).
+  D7 fixes a capability-honest launch portfolio: direct draft/input adapters
+  for exact provider- and region-pinned Gusto Employee Payroll Draft, ADP
+  Workforce Now Pay Data Input, and separately certified Xero Payroll AU and
+  NZ; complete QuickBooks Workforce and Xero Payroll UK readback-and-artifact
+  adapters where no equivalent per-run write is proved. The Phase 21
+  multi-provider launch is incomplete until at least two distinct direct-write
+  adapters hold current production authorization and pass a production-shaped
+  canary and certification. One
+  prospective Compensation Draft Delivery Profile Version pins the exact
+  Tenant, Legal Entity, provider organization, product, country, environment,
+  participant, currency, pay cycle, component, and operation. Every explicit
+  attempt becomes an immutable Provider Draft Operation with concurrency
+  protection, exact readback where available, drift evidence, and per-unit
+  `confirmed_updated`, `proven_not_updated`, or `outcome_unknown` recovery.
+  Only proved non-updates may enter a residual successor; unknown work is
+  quarantined, never blindly retried or switched to a second lane. Tenant
+  external HR/legal and configured provider authority retains classification
+  and entitlement; payroll/AP providers retain calculation, approval,
+  submission, posting, completion, and payment authority. Phase 20 remains the
+  only accounting doorway. See
+  [ADR-0096](../../adr/0096-capability-honest-multi-provider-compensation-handoffs.md).
+  D8 fixes one disposable, rebuildable, recipient- and purpose-scoped
+  Missionary Support Feed Projection composed exactly once from the existing
+  Phase 21 activity and per-currency balance projections. Phase 31 alone owns
+  prospective subscriptions, authorization, provider mappings, no-gap
+  snapshot/page/change delivery, cursor reset, backpressure, and connection
+  health. Completeness is bounded by one immutable Coverage Manifest and
+  atomic snapshot-through cut; delivery is at-least-once, cursor possession is
+  never authority, private gifts receive no stable hidden Party identity, and
+  privacy applies before enumeration or arithmetic. TntConnect is available
+  only through an exact vendor-authorized, production-certified DonorHub
+  pathway; MPDX is installed-base-only. Stop sharing denies future egress but
+  never falsely promises deletion of provider, local, exported, or backed-up
+  copies. Phase 28 may later add separately ratified
+  relationship/contactability resources but owns no supporter, contribution,
+  commitment, or Field Account truth. See
+  [ADR-0097](../../adr/0097-source-authoritative-missionary-support-feed.md).
+  D9 defaults support planning to not managed in Asym and lets an authorized
+  tenant prospectively activate one immutable Approved Support Plan Version
+  plus one bounded Support Workspace Publication Profile Version. The profile
+  selects only independently authorized, source-backed modules; it is not a
+  dashboard builder or financial authority. Plans, Phase 28 goals, Phase 16
+  commitments, D1 Finance-confirmed balances, D4 compensation funding, and
+  activity remain distinct. Balance Coverage uses a conservative same-currency
+  Planning Coverage Base that subtracts qualified negative open-cycle effects
+  and active non-reusable coverage exactly once and never adds provisional
+  positive support. Missing, hidden, stale, unauthorized, or incompatible facts
+  produce no derived value—not zero or infinity. A Phase 28 goal may be created
+  from a Plan only by explicit copy with provenance; neither source
+  live-synchronizes, and D9 does not expand D8 or Phase 31. See
+  [ADR-0098](../../adr/0098-optional-approved-support-plans-and-bounded-workspace-publication.md).
+  D10 makes the immutable Expense Claim Version the smallest claimant-authored
+  expense fact inside one adaptive report-first experience. Clean claims may
+  advance while selected claims use exact needs-information, rejection,
+  exclusion, successor, supplement, or append-only correction paths. Private
+  Receipt Evidence uses explicit many-to-many coverage and cannot use the
+  public `document-uploads` bucket. D10 also pulls forward one shared
+  tenant-owned AI execution foundation with write-only Credential Revisions,
+  prospective purpose-specific capability-certified Binding Versions,
+  classification-gated minimum-data egress, immutable invocation evidence,
+  suggestion-only OCR/matching, explicit human confirmation, and complete
+  manual continuity. Report, policy, obligation, Field Account funding,
+  external payment, Phase 20 accounting, and QBO/Xero truth remain independent.
+  See
+  [ADR-0099](../../adr/0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md).
+  D11 makes Field Account integrity a layered product-owned guarantee: exact
+  Tenant × Legal Entity × ISO-currency occurrences balance atomically against
+  independently persisted bounded control-side entries, conserve unique source
+  coverage, and use checked minor-unit arithmetic, semantic idempotency, and
+  account-version fences. Every close publishes one fresh immutable Support
+  Cycle Integrity Manifest over its exact business-date and captured monotonic
+  Phase 21 ingestion boundaries. Workload-shaped verification opens one typed
+  cause-owned Field Account Integrity Case at the smallest proved containment
+  scope and clears it only after an authorized repair plus fresh proof.
+  Mission Control owns follow-up only. A clean cycle needs one staff review and
+  one close action; tenants may configure cadence, closers, routing, reminders,
+  optional proportional review, and stricter advisories but cannot waive the
+  invariants or use force, tolerance, plug, suspense, direct edit, or generic
+  mark-fixed repair. Phase 20 and QBO/Xero remain independently authoritative
+  for accounting delivery and final reconciliation. See
+  [ADR-0100](../../adr/0100-layered-field-account-integrity-and-cause-owned-repair.md).
+  D12 keeps D11's Support Cycle Integrity Manifest as the sole statement-facts
+  authority. One post-close source occurrence and deterministic Phase 21
+  Approved Data View supply the exact immutable Phase 18 Facts Package for
+  `field_account.support_statement@1`; no second facts store or statement run
+  exists. The existing D9 profile prospectively controls automatic missionary
+  publication, with compatible balance-profile defaults, no hidden-balance
+  existence signal, no per-cycle finance work, and optional ready notices Off
+  by default. Missionaries receive one quiet HTML-first statement history and
+  one currently authorized PDF action per exact Field Account, Support Cycle,
+  and ISO currency. Rendering, access, communication, Phase 20 accounting,
+  payroll, reimbursement payment, and provider outcomes remain separate from
+  close truth; financial corrections append through later cycles and
+  same-facts document repairs create immutable artifact successors. See
+  [ADR-0101](../../adr/0101-immutable-support-cycle-statements-with-automatic-tenant-publication.md).
+  D13 enables expense operations only through one quiet, immutable prospective
+  Expense Program Activation Version. Bounded Expense Governance Profile
+  Versions resolve exactly one non-stacking incurred-date winner per exact
+  Expense Claim Version item or split; finite Expense Approval Route Versions
+  resolve at submission into immutable Approval Assignment Snapshots while
+  every decision rechecks current authority and conflicts. The ordinary path
+  remains one independent human reviewer, with conditional project, finance,
+  specialist, or named independent small-tenant review only where required.
+  Clean-only consequence-previewed bulk approval records one Expense Review
+  Action per covered decision; self-, AI-, timeout-, and automatic approval are
+  forbidden. Typed Reviewer Exceptions preserve the violated clauses, reason,
+  authority, and independent review without mutating policy. Phase 20 receives
+  only PII-minimized frozen approved-snapshot lineage—never Profiles, Routes,
+  Assignments, Receipt Evidence, reviewer identity, or internal review
+  workflow. See
+  [ADR-0102](../../adr/0102-bounded-prospective-expense-governance-profiles.md).
+  D14 adds one optional tenant-off-by-default, file-first organization-card
+  transaction-evidence product over the complete manual Expense Claim path.
+  One source- and profile-scoped staged CSV produces immutable, atomic manifests
+  with exact repeat handling, overlap-to-review, effective-dated assignments,
+  same-currency business/nonbusiness/unresolved coverage, append-only source
+  adjustments, private Phase 29-backed files, and quiet claimant and
+  exception-first finance UX. Imported evidence never becomes a Claim,
+  approval, Field Account effect, payment, Accounting Release, issuer
+  settlement, card-liability payment, or reconciliation; only the existing
+  approved-snapshot handoff may enter Phase 20. See
+  [ADR-0103](../../adr/0103-file-first-organization-card-transaction-evidence.md).
+  D15 adds one immutable, content-addressed, PII-minimized Reimbursement
+  Handoff Package with non-executing access, one explicit coverage-scoped
+  Execution Claim at release, and a complete quiet **Handle outside Asym**
+  default. Connected payroll/AP choices appear only for exact certified
+  pre-execution draft/input operations that cannot approve, calculate, submit,
+  schedule, fund, or send money. D7's operation kernel may be reused without
+  reusing compensation truth. Unknown outcomes stay quarantined; only proved
+  non-handoff residual may enter a successor. Handoff, provider readback,
+  External Payment Occurrence evidence strength, Phase 20 posting ownership,
+  QBO/Xero Accounting, and final reconciliation remain independent. Staff
+  evidence says **Payment recorded by finance** and is never silently upgraded.
+  See
+  [ADR-0104](../../adr/0104-artifact-always-reimbursement-handoff.md).
+  D16 adds independently activatable, prospective Expense Advance and Claimant
+  Repayment policies over exact purpose-separated occurrences. Authorization,
+  issuance, Advance Application Readiness, atomic Expense Advance Application,
+  Reimbursement Obligation, Repayment Subject Determination, operational
+  Claimant Repayment Requirement, externally handled Claimant Repayment
+  Occurrence, and evidence strength remain distinct. A reviewed advance funding
+  component may create exact `expense_advance` Field Account Funding Coverage,
+  but only a separately qualified Field Account Effect fulfills it; an
+  application alone does not. Cross-currency applications require exact
+  externally owned source and settlement evidence, while Phase 20 admits only
+  separately certified economic occurrences. Policies, observations, tasks,
+  disputes, reservations, and Requirements remain accounting-dark unless an
+  accountant-certified contract separately recognizes a receivable. See
+  [ADR-0105](../../adr/0105-purpose-separated-advances-and-claimant-repayments.md).
+  D17 adds one finance-authorized, per-Field-Account and per-currency
+  reconciled immutable Opening Position over a complete Tenant × Legal Entity ×
+  ISO-currency cohort. One precedence-explicit Opening Source Package and
+  exhaustive Opening Coverage Manifest partition every pre-cutover fact exactly
+  once into certified exact history, opening residual, structurally inert
+  reference history, proved non-balance-bearing exclusion, or unresolved
+  coverage; unresolved coverage blocks activation. Private, chunked, resumable
+  staging leads to one short CAS-guarded Asym-side Operational Cutover after
+  final reproof. It pins the first-close cursor, preserves independently live
+  obligations/reservations and other capacity effects, never replays downstream
+  effects, and recovers late facts append-only. Phase 30 owns transport, Phase
+  21 owns opening authority, Phase 20 alone owns separately proved accounting
+  gaps, and D9 still governs whether missionaries may see the resulting calm,
+  exact, through-dated balance. Every Phase 21 decision other than D17 follows
+  its own dependency path; D17 activation remains feature-gated until certified
+  Phase 29 private-byte/access and Phase 30 import-session transport/staging
+  seams exist or are pulled forward under their owning phases. See
+  [ADR-0106](../../adr/0106-reconciled-field-account-opening-position-and-operational-cutover.md).
+  D18 adds one optional, policy-pinned Travel Allowance Calculation inside the
+  single winning D13 Expense Governance Profile, with an Actual-expenses-only
+  default, bounded certified or tenant-owned schedules, exact source and
+  calculation evidence, serialized cumulative bands, duplicate-coverage
+  protection, prospective previewed activation, optional privacy-minimized
+  route assistance, permanent actual/external fallback, and no second travel
+  policy engine, live approval-time lookup, implicit FX, tax/legal inference,
+  or payment/accounting authority. See
+  [ADR-0107](../../adr/0107-certified-policy-pinned-travel-allowance-calculations.md).
+  D19 makes one organization-controlled, Tenant- and Legal-Entity-scoped
+  Support Assignment the canonical Field Account subject, with exactly one
+  Field Account per Support Assignment and ISO currency and zero-to-many
+  prospective Support Assignment Participant Memberships. Participation,
+  request-time Phase
+  12 Support Workspace authorization, source-owned operational responsibility,
+  and recipient-scoped notification preference remain four independent truths.
+  D10/D13 own expense claimant, submitter, reviewer, and approval-route facts;
+  D4 plus the external Engagement Authority own compensation and payee facts;
+  Phase 28 owns support-raising coaching and task assignment; and Phase 12 owns
+  capabilities. One quiet **People & access**
+  surface may orchestrate explicitly selected commands with tenant-safe presets
+  and a literal consequence review, but every person keeps separate Party,
+  principal, invitation, access, claimant, responsibility, and preference
+  identity. D19 supports couples, teams, participant-free projects, several
+  assignments per person, scoped leadership, deny-first revocation, and life-
+  event succession without shared credentials, person/household ownership,
+  implicit relationship access, a Phase 21 ACL, assignment-aware RLS, raw
+  financial Realtime, destructive merge, or participation-driven money
+  movement. See
+  [ADR-0108](../../adr/0108-organization-controlled-support-assignments-and-separated-access.md).
+  D20 adds one absent-unless-enabled, source-authoritative residual
+  Organization Support Cost Application lane. Canonical semantic ownership
+  prevents D3 assessments, D4 compensation costs, D10/D13 expenses, and Phase
+  20 D19 processor-cost effects from falling through or being applied twice.
+  Exact source-final occurrences use one economic root, prospective source
+  admission and bearing policy, an organization-absorbed default, per-currency
+  conserving manifest, nonnegative capacity, optional bounded carryforward,
+  append-only correction, and D1/D11 close recognition. Every candidate handoff
+  remains Phase 20 accounting-dark until a separate source contract is
+  certified; disabled, zero-work, unauthorized, and unaffected scopes remain
+  structurally absent. See
+  [ADR-0109](../../adr/0109-source-authoritative-organization-support-cost-applications.md).
+  D21 adds one immutable, source-mode-honest Noncash Support Realization bridge.
+  Phase 13 retains the original noncash Contribution, donor, purpose, gift-date,
+  valuation, receipt, supporter, and fundraising truth; Phase 15 retains exact
+  asset-lot, disposition, proceeds, finality, evidence, and correction truth.
+  Original noncash value can never become monetary support. Only an exact
+  source-final Realized Support Basis with non-overlapping quantity and
+  per-currency minor-unit coverage may enter D2/D11 close. Exact net proceeds are
+  the no-setup default; prospective organization-absorbed exact costs require
+  full proof. D3 assesses only the realized basis, D6 owns external conversion,
+  D17 owns pre-cutover coverage, D19 owns access, and Phase 20 alone may later
+  certify one nonduplicate accounting source. Staff see a conditional,
+  exception-first lifecycle and missionaries at most one quiet grouped story—
+  never a second gift, valuation-as-cash, availability, payment, or accounting
+  claim. See
+  [ADR-0110](../../adr/0110-source-mode-honest-noncash-support-realization.md).
+  D22 adds one independently optional, Tenant- and Legal-Entity-off-by-default
+  Prospective Expense Authorization inside the existing D13 Expense Program.
+  Tenants may make the short four-question `Plan an expense` flow available
+  when helpful or require it only for exact selected scopes. Immutable request,
+  governance, assignment, human review, decision, later-claim coverage, and
+  residual facts remain separate; `Approve with changes` can narrow only. The
+  guided consequence is approval-only, while a separately certified advanced
+  scope may atomically reserve exact same-purpose, same-currency D1 capacity.
+  Expiry never releases capacity by itself, actual D10 claims remain capturable
+  when authorization is missing, and Phase 20 rejects every prospective object.
+  Disabled tenants receive no navigation, queue, report, notification, setup,
+  or API noise. See
+  [ADR-0111](../../adr/0111-optional-exact-prospective-expense-authorization.md).
+  D23 adds one immutable prospective, certified-source-family-specific Expense
+  Field Account Effect Recognition Profile. The obligation-qualified claimant
+  reimbursement path is the guided default; an exact-payment-qualified path is
+  a bounded prospective alternative, while source-final organization card,
+  direct organization payment, and separately certified organization payable
+  sources retain their exact owners. Claimant-paid sources bind the D16
+  settlement partition; organization-paid sources bind the exact D10/D13
+  Approved Expense Snapshot economic-payer slice directly. One common Effect
+  Basis, non-overlapping per-currency Effect Coverage, and append-only Funding
+  Coverage Disposition conserve each slice so a reservation and debit never
+  both consume capacity. D4, D16, D20, and D21 remain exclusive effect owners;
+  D1/D11 owns close; and Phase 20/QBO/Xero accounting remains independent and
+  cannot qualify or rewrite D23. Clean work needs no staff action, while the UI
+  separates approval, support-balance inclusion, reimbursement/payment, and
+  accounting and makes no availability, payment, or GAAP claim. See
+  [ADR-0112](../../adr/0112-source-family-expense-field-account-effect-recognition.md).
+  D24 adds one tenant-controlled, exact-claim-bounded Expense Collaboration
+  Assignment Version for a verified helper using their own login. It is absent
+  unless enabled, defaults to prepare-only, and may expose only exact assigned
+  claim/item/split/evidence scope through current Phase 12 authorization and a
+  purpose-specific Evidence Access Projection Version. A separately enabled
+  mechanical submit action requires an unchanged complete Claim Version plus
+  immutable authenticated Claimant Confirmation or an admitted claimant-
+  authored external attestation. Invitation is authority-free until accepted;
+  revocation is immediate for future access but cannot pretend to recall bytes
+  already delivered. Assignment, relationship, invitation, OCR, match, or AI
+  never implies authorization, approval, payment, Field Account effect, or
+  accounting truth. See
+  [ADR-0113](../../adr/0113-own-identity-claim-bounded-expense-collaboration.md).
+  D25 adds one exceptional-only immutable Expense Claim Resolution Case over
+  exact cause and item/split/purpose/ISO-currency coverage. Seven code-owned
+  causes produce one literal source-owned next action; same-cause repeats
+  converge, clean separable siblings continue, and a complete Downstream
+  Impact Manifest makes later consequences inspectable. Claimants see one
+  quiet contextual update and finance reuses **Expenses → Needs attention**;
+  no case-management module or workflow builder is created. Completion derives
+  only from root-source proof plus an explicit disposition for every affected
+  owner family. Phase 12 remains the sole PDP, each financial/source domain
+  appends its own correction, and case or task **Complete** never proves
+  approval, obligation, payment, Field Account inclusion, statement correction,
+  accounting delivery, posting, or reconciliation. See
+  [ADR-0114](../../adr/0114-cause-owned-expense-claim-resolution.md).
+  D26 adds one owner-qualified Phase 21 records-policy catalog and exact
+  tenant-custody export contract. Immutable schedule contracts, bounded
+  prospective bindings, per-record resolutions, and successor-impact coverage
+  preserve purpose and trigger truth; one source-watermarked, open-format,
+  manifest-complete Records Export Package is sealed per Legal Entity, with a
+  tenant-wide request fanning out under one index. Download, print, external-
+  copy assertion, verified destination transfer, retention, hold, termination,
+  and copy-specific disposition stay independently authoritative. Phase 21
+  owns schedule and package meaning; Phase 29 owns the physical lifecycle of
+  Phase-21-owned evidence and D26 package bytes; Phase 18 retains its generated-
+  document artifact bytes and lifecycle; Phases 3/10/12 own egress; Phase 30
+  remains inbound-only; and Phase 31 owns any later certified destination
+  adapter. The tenant controls copies in its custody while Asym
+  retains its actual duties for copies in Asym custody. See
+  [ADR-0115](../../adr/0115-purpose-owned-phase21-records-schedules-and-exact-custody-exports.md).
+  D27 adds one quiet, evidence-gated Core Field Accounts Production Activation
+  Contract composed through D17's sole Operational Cutover. One immutable
+  Release Generation, one prospective Adoption Plan Version, and one content-
+  addressed Go-Live Readiness Manifest bind the exact complete financial
+  cohort, authority boundary, environment, and code/schema generation while
+  referencing every applicable D1-D26 and owning-phase proof. Synthetic,
+  sandbox, and D17 production-shaped opening-shadow evidence stay explicitly
+  distinct. D27 invokes that existing D17 shadow rather than owning a second
+  financial calculation or reconciliation; it remains non-authoritative and
+  side-effect-dark.
+  Final reproof occurs inside D17's idempotent CAS cutover after one quiet
+  consequence review and literal start action. Optional capabilities remain
+  independently proof-gated, a named missionary pilot narrows publication only,
+  and live drift uses a disposable readiness projection, cause-owned exceptions,
+  smallest-scope containment, and append-only recovery rather than a second
+  activation state or destructive rollback. See
+  [ADR-0116](../../adr/0116-evidence-gated-core-field-accounts-production-activation.md).
+  The
+  [`research evidence`](./phase-21-mission-dashboard-product-research-evidence.md)
+  records mission-agency dashboard, compensation, expense-product, receipt,
+  tenant-owned AI, assessment, policy-UX, Field Account integrity, cursor-fenced
+  close proof, exception-first repair, immutable Support-statement publication,
+  organization-card CSV/file security, exact overlap/idempotency,
+  claimant/finance UX, reimbursement handoff and payment-evidence boundaries,
+  purpose-separated advance and repayment controls, finance-control UX, and
+  exact Gusto, ADP, QuickBooks Workforce, and regional Xero Payroll capability
+  patterns; plus reconciled opening positions, exact/reference-history
+  partitioning, source-family operational cutover, first-close continuity, and
+  no-side-effect migration; and official/tenant travel-rate authority,
+  cumulative mileage, per-diem, source certification, optional GPS/manual
+  continuity, and exact calculation-explanation patterns; plus canonical Field
+  Account subject identity, spouse/team/project collaboration, independently
+  authoritative participation/access/responsibility/notification truth,
+  Supabase/PostgreSQL forced-coarse-RLS and sole-PDP boundaries, invitation and
+  revocation recovery, assignment-scoped navigation, and accessible
+  progressive **People & access** UX; plus source-final residual support-cost
+  ownership, provider drift, per-currency conservation, carryforward,
+  accounting-dark candidate handoff, and absent-unless-relevant D20 UX; plus
+  noncash legal-recipient/source-mode classification, exact lot/proceeds
+  coverage, partial and terminal dispositions, realized-basis cost treatment,
+  and one grouped D21 lifecycle; plus optional pre-spend request patterns,
+  current-authority human review, exact partial/multi-claim authorization
+  coverage, capacity-reservation conservation, privacy-minimized notifications,
+  mobile/offline draft continuity, and absent-unless-enabled D22 UX; plus
+  obligation-, payment-, organization-card-, direct-payment-, and payable-
+  qualified D23 source families, exact effect/funding coverage conservation,
+  append-only qualification and correction, no-gap adoption, accounting-dark
+  Phase 20 boundaries, serializable concurrency, and quiet independently
+  labelled missionary/finance truth; plus own-identity, exact-claim-bounded
+  helper collaboration, claimant-confirmed optional mechanical submission,
+  purpose-scoped evidence access, current-authority revocation, immutable actor
+  provenance, and strict Phase 12/20/29 authority separation for D24; plus
+  exceptional-only exact D25 cause contracts, actor-attributed resolution
+  occurrences, proportional downstream-impact coverage, source-owned
+  correction, derived completion, quiet claimant/finance recovery UX, and
+  strict Phase 6/12/17/20/29/34 authority separation; plus purpose-owned D26
+  record families, qualified schedule/binding/resolution history, exact open-
+  format package conservation, restricted and owner-reference dispositions,
+  independent custody/disposal truths, offboarding snapshot-plus-delta,
+  responsibility boundaries, and Phase 3/10/12/29/30/31/38 separation; plus
+  D27 evidence-class separation, complete-cohort production-shadow proof,
+  content-addressed readiness evidence, generation-pinned final reproof, quiet
+  activation UX, independently gated optional capabilities, and cause-owned
+  smallest-scope live containment; plus D28 source-defined opening cumulative
+  state, stable capacity-pool identity, independently proved prospective
+  completeness, group-atomic first use, append-only affected-suffix correction,
+  and fully usable external-calculation continuity.
+  Grilling is product-complete at D1-D28 and `/to-spec` is complete. The PRD and
+  [`add-field-account-operations`](../../../openspec/changes/add-field-account-operations/proposal.md)
+  OpenSpec change are implementation-ready planning. The approved execution
+  graph is epic [#1109](https://github.com/Asymmetric-al/core/issues/1109), lane
+  epics [#1110](https://github.com/Asymmetric-al/core/issues/1110) through
+  [#1120](https://github.com/Asymmetric-al/core/issues/1120), and P21-01 through
+  P21-101. Those tickets are published and dependency-governed; no Phase 21
+  runtime or production authorization is claimed.
+  Reproducible contract checks are
+  `bunx @fission-ai/openspec@1.7.0 validate add-field-account-operations --strict`,
+  `bunx @fission-ai/openspec@1.7.0 validate --all --strict`,
+  `bun run format:check`, and `bun run skills:verify`. Publication and
+  traceability are proved from the live native sub-issue/blocking graph under
+  #1109, not from prose status. PR
+  [#1235 Files changed](https://github.com/Asymmetric-al/core/pull/1235/files) is
+  the exact changed-path inventory. Its
+  [required checks](https://github.com/Asymmetric-al/core/pull/1235/checks) and
+  persistent Shadscan report are the final machine-check evidence once CI is
+  green. The assessed pre-commit `packages/ui` baseline is 29/100 against the
+  enforced floor of 29, using
+  `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive`; because no UI
+  path is changed by this planning publication, final CI must prove the same
+  floor without remediation. The blast radius is planning-only: the Phase 21
+  PRD, decision evidence, ADRs, OpenSpec change, and named cross-phase contract
+  amendments; it grants no runtime authority.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
@@ -302,15 +747,14 @@ bolted-on module or push admin depth into donor/missionary surfaces.
 
 ## Related in-flight work
 
-PR [#872](https://github.com/Asymmetric-al/core/pull/872) carries the Phase
-17–20 PRDs, ADRs, and OpenSpec packages for review before they merge into
-`develop`. Its live issue sets already exist: Phase 17 epic #873 +
-#874–#905, Phase 18 epic #907 + #908–#961, and Phase 19 epic #977 +
-#978–#1031. Phase 20 has the specification issue
-[#1036](https://github.com/Asymmetric-al/core/issues/1036); no Phase 20
-implementation children have been generated or dispatched. Publishing planning
-issues does not authorize implementation; current labels and dependency
-relationships still control readiness.
+PR [#872](https://github.com/Asymmetric-al/core/pull/872) merged the Phase
+17–20 PRDs, ADRs, and OpenSpec packages into `develop` on 2026-07-27. Their live
+issue sets are Phase 17 epic `#873` + `#874–#905`, Phase 18 epic `#907` +
+`#908–#961`, Phase 19 epic `#977` + `#978–#1031`, and Phase 20 specification issue
+[#1036](https://github.com/Asymmetric-al/core/issues/1036) plus epic
+[#1040](https://github.com/Asymmetric-al/core/issues/1040) and children
+`#1041–#1105`. Publishing planning issues does not prove implementation; current
+labels and dependency relationships still control readiness.
 
 OpenSpec PR #462 refines the platform specs and adds capability specs
 (donation-lifecycle, crm-core, contribution-operations, identity-and-access,
