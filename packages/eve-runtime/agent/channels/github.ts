@@ -299,6 +299,13 @@ async function publishCompletedReview(
   );
 }
 
+// The GitHub App may be installed on repositories other than Core. Every
+// handler below drives governed review and publication against the event's own
+// owner/repo, so an event from anywhere else must be dropped before it can
+// reach a session. The sibling tools (workflow_guard, github_strict_auto_merge,
+// github_operator) already pin this same constant.
+const CORE_REPOSITORY = "Asymmetric-al/core";
+
 const botName =
   process.env.EVE_GITHUB_APP_SLUG?.trim() ||
   process.env.GITHUB_APP_SLUG?.trim() ||
@@ -311,6 +318,7 @@ export default githubChannel({
     excludedFiles: ["**/*.generated.*", "**/dist/**", "**/.next/**"],
   },
   async onComment(ctx, comment) {
+    if (ctx.repository.fullName !== CORE_REPOSITORY) return null;
     if (
       ctx.conversation.kind === "issue" ||
       !isBotMention(comment.body, botName)
@@ -329,10 +337,12 @@ export default githubChannel({
       : null;
   },
   async onCheckSuite(ctx, checkSuite) {
+    if (ctx.repository.fullName !== CORE_REPOSITORY) return null;
     await evaluateCompletedCheckSuite(ctx, checkSuite);
     return null;
   },
   async onPullRequest(ctx, pullRequest) {
+    if (ctx.repository.fullName !== CORE_REPOSITORY) return null;
     if (!REVIEW_TRIGGER_ACTIONS.has(pullRequest.action)) return null;
     const allowed = await authorizeTrigger(
       ctx,

@@ -24,6 +24,26 @@ describe("Eve GitHub channel boundary", () => {
     expect(source).not.toMatch(/labels|mergePullRequest|rerun|createIssue/iu);
   });
 
+  it("drops events from repositories other than Core", async () => {
+    const source = await readFile(channelPath, "utf8");
+
+    // The App can be installed elsewhere, and every handler drives publication
+    // against the event's own owner/repo, so each entry point must reject a
+    // foreign repository before any session is created.
+    expect(source).toContain('const CORE_REPOSITORY = "Asymmetric-al/core";');
+    const guards = source.match(
+      /ctx\.repository\.fullName !== CORE_REPOSITORY/gu,
+    );
+    expect(guards).toHaveLength(3);
+    for (const handler of ["onComment", "onCheckSuite", "onPullRequest"]) {
+      const start = source.indexOf("async " + handler + "(");
+      expect(start).toBeGreaterThan(-1);
+      expect(source.slice(start, start + 240)).toContain(
+        "ctx.repository.fullName !== CORE_REPOSITORY",
+      );
+    }
+  });
+
   it("requires tenant-linked service identity before dispatch", async () => {
     const source = await readFile(channelPath, "utf8");
 

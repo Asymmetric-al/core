@@ -89,6 +89,15 @@ describe("Eve shared run context", () => {
     ["payment number", "4111 1111 1111 1111"],
     ["secret-shaped key", { access_token: "redacted-but-still-forbidden" }],
     ["one-time code", "OTP: 123456"],
+    // The contract also forbids sensitive tenant facts, raw production
+    // records and unredacted logs, not only secrets and PII.
+    ["tenant fact", { tenantId: "00000000-0000-4000-8000-000000000001" }],
+    ["nested tenant fact", { context: { tenantPlan: "enterprise" } }],
+    ["production record", { productionRecord: { id: 42 } }],
+    ["production row", { production_row: { amount: 1000 } }],
+    ["raw log", { rawLog: "2026-07-18 GET /api/admin 200" }],
+    ["raw record", { raw_record: { id: 7 } }],
+    ["unredacted payload", { unredactedPayload: "anything" }],
   ])(
     "rejects forbidden sensitive content before persistence: %s",
     (_label, value) => {
