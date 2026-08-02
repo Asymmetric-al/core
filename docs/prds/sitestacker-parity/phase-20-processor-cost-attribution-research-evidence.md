@@ -262,13 +262,16 @@ own approval bureaucracy.
 
 Donor disclosure for the optional mode should be short and prospective:
 
-> Processing costs may reduce the amount available to the ministry or fund you
-> support. If you choose to help cover these costs, your additional gift
-> offsets them first. Actual costs may differ from the estimate.
+> Processing costs may reduce the amount ultimately attributed to the ministry
+> or fund you support. If you choose to help cover these costs, your additional
+> gift offsets them first. Actual costs may differ from the estimate.
 
-Staff and missionary finance views may show **Gross support**, **Processing
-costs**, and **Net available**. Donor gift history and receipts continue to
-show the full contribution truth.
+Staff finance views may show **Gross designated support**, **Processing-cost
+attribution**, and **Net attributable after processing costs**. Phase 21 may
+then show **Support credited** only after it consumes the exact immutable
+Processor Cost Attribution Manifest under its independently authoritative
+policy. Neither view describes worker availability. Donor gift history and
+receipts continue to show the full contribution truth.
 
 ## Required correctness and observability checks
 
@@ -316,3 +319,23 @@ law, provincial rule, or tenant solicitation permits a charge. The tenant
 remains responsible for its policy and should obtain accountant or counsel
 review for unusual restrictions. The product must not claim that a setting is
 "GAAP certified," "legally approved," or "CRA approved."
+
+## Phase 21 D21 noncash-cost exclusion — 2026-08-01
+
+Phase 21 D21 does not widen this D19 processor-cost catalog. Brokerage,
+liquidation, appraisal, valuation, custody, transfer, sale, and other costs of
+receiving or disposing of noncash property are not payment-processing costs,
+even when a provider reports them beside proceeds. They cannot enter a
+Processor Cost Attribution Manifest, be allocated by the fee-cover-first mode,
+or be relabelled as Phase 21 D20 Organization Support Cost.
+
+Phase 13 preserves the original noncash Contribution and donor-facing truth;
+Phase 15 owns canonical asset-lot, disposition, proceeds, finality, evidence,
+and correction facts; and Phase 21 D21 owns only the derivative Realized
+Support Basis and Field Account effect. The current Phase 20 generation keeps
+both the Phase 15 disposition and the D21 derivative accounting-dark. A future
+Phase 20 change must certify exactly one non-overlapping accounting source so
+the same economic event cannot post once from the disposition and again from
+the Field Account effect. QBO/Xero and the tenant's accountant retain asset
+derecognition, gain/loss, cash, fee, period, books, and final-reconciliation
+authority.

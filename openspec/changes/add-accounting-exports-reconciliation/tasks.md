@@ -8,8 +8,82 @@
 - [ ] 1.2 Gate each source family independently on its exact predecessor-owned
       occurrence/version contract: Phase 13 posted contribution/ledger,
       Phase 14 admitted credit adjustment, Phase 15 frozen Deposit Group, and
-      Phase 21 approved expense/payment. Keep only the dependent family dark
-      when proof is missing; add no direct-table compatibility shim.
+      Phase 21 approved obligation or External Payment Occurrence
+      evidence. Keep only the dependent family dark when proof is missing; add
+      no direct-table compatibility shim. Add one rejection fixture proving
+      Phase 21 D5 support-reallocation requests, Decisions, Handoffs/Results,
+      open-cycle and close-covered occurrences, exceptional JournalEntry or
+      ManualJournal, and artifacts remain unsupported in this generation until
+      a later separately approved source contract is certified; do not add a
+      D5 posting recipe or adapter in this phase. Add a second rejection fixture
+      proving Phase 21 D7 Compensation Handoff Packages, Compensation Draft
+      Delivery Profile Versions, Provider Draft Operations, provider
+      acceptance/readback or staff confirmation, and delivery coverage create
+      no Posting Intent, Accounting Release, QBO/Xero Accounting object, or
+      Xero `DRAFT ACCPAY` without a separately certified evidence-qualified
+      compensation source contract, accountant-confirmed semantics, and exact
+      D17 owner. Add a third rejection fixture proving Phase 21 D15
+      Reimbursement Handoff Packages, Delivery Profile Versions, Execution
+      Claims, Handoff Coverage, Handoff Attestations, Handoff Operations,
+      provider draft/input acceptance/readback, and operation ambiguity create
+      no External Payment Occurrence, Posting Intent, Accounting Release,
+      QBO/Xero Accounting object, or claimant-repayment source. Add D16 fixtures
+      admitting only evidence-qualified Expense Advance Issuance Occurrence,
+      separately certified Expense Advance Application typed accounting effect
+      where applicable, Claimant Repayment Occurrence, and cause-linked
+      corrections. Reject policy, authorization, operational settlement,
+      subject/repayment decision, uncertified Requirement, residual, task, raw
+      observation, dispute/restitution-review, and Field Account coverage
+      records; prove cash claimant return and advance return remain distinct and
+      every admitted occurrence independently resolves D17 posting ownership.
+      Add a D20 rejection fixture proving organization-support-cost
+      observations, economic roots, bearing policies, applications,
+      determinations, manifests, carryforwards, Field Account Funding Coverage,
+      closed effects, and the Support Cost Accounting Candidate Handoff create
+      no D18 source, Posting Intent, Accounting Release, delivery artifact, or
+      provider operation. Prove D20 cannot duplicate Phase 20 D19 processor-cost
+      attribution or its Processor Cost Attribution Manifest, and add no D20
+      posting recipe or adapter in this phase. Add a D21 rejection fixture
+      proving Phase 13 retains the original noncash Contribution, Phase 15
+      retains canonical asset-lot/disposition source truth, and the Phase 15
+      disposition plus derivative D21 realization, Realized Support Basis,
+      close-covered Field Account effect, and corrections remain
+      accounting-dark without a separately certified exactly-one-source
+      contract. Prove no posting, artifact, adapter, Expected Bank Arrival, or
+      Bank Match is created and the disposition plus derivative effect cannot
+      both post for the same coverage. Add a D22 rejection fixture proving every
+      prospective posture, request, private evidence reference, governance or
+      assignment snapshot, review action, decision, compatible capacity
+      reservation, later-claim Authorization Coverage, unused-scope declaration,
+      residual, successor, and correction is rejected before D18 source
+      admission and creates no Posting Intent, Accounting Release, artifact,
+      provider operation, Expected Bank Arrival, Bank Match, or QBO/Xero object.
+      Add a D23 rejection fixture proving every Expense Field Account Effect
+      Recognition Profile, Effect Basis, Field Account Funding Coverage or
+      Disposition, Effect Coverage, operational Expense Field Account Effect,
+      Support Cycle inclusion/through date, exception, and correction creates
+      zero accounting work. Add an independent-positive-source fixture proving
+      an eligible approved expense, obligation, source-final organization-paid
+      occurrence, payment occurrence, or correction may still enter D18 without
+      inheriting D23 mode, effect identity, close, or date. Prove QBO/Xero bill,
+      payment, home amount, readback, drift, and Bank Match cannot qualify or
+      rewrite D23. Add a D24 rejection fixture proving Expense Collaboration
+      Assignment Versions, invitations and acceptance, Evidence Access
+      Projection Versions, Claimant Confirmations or admitted external
+      attestations, helper actions, and actor provenance create zero accounting
+      work and cannot replace Phase 12 authorization or prove approval,
+      obligation, payment, Field Account effect, posting, or reconciliation.
+      Add an independent-positive-source fixture proving minimum D24 actor
+      provenance may accompany an otherwise qualified handoff without granting,
+      revoking, expanding, satisfying, or rewriting collaboration authority.
+      Add a D25 rejection fixture proving every Expense Claim Resolution Cause
+      Contract Version, Case, Occurrence, Projection, Downstream Impact
+      Manifest/disposition, task/message/response, source-owner request, and
+      completion proof creates zero accounting work. Add an independent-source
+      fixture proving a genuine correction can enter its existing D18 lane
+      without inheriting D25 cause, action, completion, or disposition
+      authority, while Phase 20 alone owns compensating release, provider
+      readback/drift, and Accounting Exception Case truth.
 - [ ] 1.3 Inventory every existing accounting export, settlement, deposit,
       provider-credential, and expense-handoff writer. Record one source-family
       posting owner and keep only that source family dark until its cutover
@@ -123,16 +197,54 @@
 ## 8. Expense Cost And Currency Handoffs
 
 - [ ] 8.1 Keep expense accounting dark until Phase 21 supplies one immutable,
-      PII-minimized, discriminated Accounting-Ready Expense Handoff with either
-      one exact Approved Expense Snapshot or one payment source plus complete
-      obligation/snapshot coverage and no invented primary snapshot.
+      PII-minimized, closed-family-discriminated Accounting-Ready Expense
+      Handoff with one exact Approved Expense Snapshot, one External Payment
+      Occurrence source plus complete obligation/snapshot coverage and no
+      invented primary snapshot, or the exact D16 source root and predecessor
+      coverage required by its certified contract; reject Compensation Handoff
+      Packages, Compensation Draft
+      Delivery Profile Versions, Provider Draft Operations, provider
+      acceptance/readback or staff confirmation, Funding Decisions, and
+      reservations on this lane. Also reject Reimbursement Handoff Packages,
+      Delivery Profile Versions, Execution Claims, Handoff Coverage, Handoff
+      Attestations, Handoff Operations, and provider draft/input
+      acceptance/readback as payment or accounting authority. Prove that a
+      Handoff Attestation alone cannot create an External Payment Occurrence and
+      that only the independently eligible obligation or source-qualified
+      payment occurrence may qualify through its own discriminator. Keep
+      Claimant Repayment Requirement accounting-dark unless a separately
+      accountant-certified source contract recognizes the exact receivable,
+      which still cannot prove returned money.
+      Add D19 fixtures proving exact Support Assignment lineage is preserved
+      when present, while participant membership, workspace access, operational
+      responsibility, notification preference, and `People & access` changes
+      create no accounting work; cannot alter, re-export, or deliver an existing
+      release; and cannot trigger any execution lane. Prove an independently
+      eligible participant-free Support Assignment is not rejected merely
+      because it has no participant Party.
+      Reject every D23 operational profile, basis, funding disposition, effect
+      coverage, effect, close inclusion, exception, and correction before D18;
+      preserve at most minimum non-authoritative lineage on an independently
+      eligible source and prove the same economic coverage cannot be posted from
+      both that source and the D23 operational effect.
 - [ ] 8.2 Support the closed launch expense occurrence catalog and exact
-      homogeneous Reimbursement Payment Coverage without creating outbound Bank
-      Match, an AP subledger, or a payment system.
+      homogeneous Reimbursement Payment Coverage plus complete typed
+      compensation/reimbursement payment manifests in one payment currency,
+      with one signed typed resolved residual and exact conversion evidence for
+      different-currency source components; fail closed on unresolved residual
+      or FX ambiguity while enforcing one D17 posting owner for the whole
+      payment and no standalone reimbursement release under external
+      payroll/AP ownership; do not create outbound Bank Match, an AP subledger,
+      or a payment system. Extend the closed catalog only with the certified
+      D16 advance-issuance, advance-application-effect, claimant-repayment, and
+      cause-linked correction families while preserving distinct cash-return
+      and advance-return typed occurrences.
 - [ ] 8.3 Add organization-absorbed processor costs by default and the optional
       fee-cover-first designation-borne uncovered-cost mode with immutable
       same-currency largest-remainder allocation evidence, central expense
-      fallback, and missing-mapping readiness block.
+      fallback, and missing-mapping readiness block. Explicitly reject
+      brokerage, liquidation, appraisal, valuation, custody, transfer, sale,
+      and other noncash-disposition costs from D19 and from Phase 21 D20.
 - [ ] 8.4 Add quiet local/home-currency settlement by default, exact provider
       conversion evidence, ordinary Stripe/payout-bank/provider currency
       equality, one-currency effect/release/plan/package/arrival/match/
@@ -160,8 +272,9 @@
 
 - [ ] 10.1 Prove D1-D20 happy paths, edge cases, failures, replay, races,
       ambiguous provider outcomes, tenant isolation, exact balance and
-      allocation conservation, source coverage, and append-only recovery at the
-      accepted public seam.
+      allocation conservation, source coverage, append-only recovery, and the
+      Phase 21 D21-D26 negative accounting boundaries at the accepted
+      public seam.
 - [ ] 10.2 Run QBO and Xero provider-contract, sandbox or production-shaped,
       package-conformance, performance, tenant-fairness, outage, reconnect, and
       drift certification for every enabled destination profile.

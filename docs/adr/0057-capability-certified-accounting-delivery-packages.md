@@ -29,3 +29,13 @@ separate append-only evidence. Re-download returns the original bytes;
 re-import is never retry. Partial or uncertain outcomes use the existing D13
 exception contract, and a recovery package may contain only exact work proved
 not to have been imported.
+
+## Phase 21 D26 precision amendment (2026-08-02)
+
+A Phase 21 Records Export Package is never an Accounting Delivery Package,
+Provider Delivery Plan, QBO/Xero import surface, Accounting Release, provider
+operation, readback, drift result, or reconciliation evidence. It may contain a
+currently authorized Phase 20 owner reference or exact evidence copy, but
+downloading, storing, transferring, or importing that records package creates
+no accounting work and cannot post, reverse, reconcile, clear an exception, or
+serve as a QBO/Xero company-file backup.

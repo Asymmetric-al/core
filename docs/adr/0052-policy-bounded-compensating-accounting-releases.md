@@ -30,3 +30,12 @@ retains the artifact lane when direct delivery is unavailable. Asym never
 changes provider lock settings, stores a close password, determines GAAP
 materiality, prepares financial-statement restatements, or becomes the general
 ledger.
+
+**Phase 21 D25 precision amendment (2026-08-02).** A D25 Expense Claim
+Resolution Case may request and observe a Phase 20 correction only after an
+independently authoritative source correction qualifies through the closed
+accounting admission contract. D25 cannot choose accounting treatment or
+posting period, create or deliver a Compensating Accounting Release, retry an
+ambiguous operation, satisfy readback, or declare drift resolved. Phase 20,
+the tenant's accountant, provider-period controls, and QBO/Xero retain those
+authorities; D25 stores at most opaque correlation and the manifested result.

@@ -2028,3 +2028,45 @@ receipt/official-statement eligibility. Phase 17 never derives or changes
 those recipients or facts and cannot expose deductibility fields in
 acknowledgments or per-gift amounts in tribute notifications. Phase 7 retains
 the three-document wall; Phase 6 retains delivery/history.
+
+## Dated Phase 21 D8 supporter-feed amendment (2026-07-30)
+
+`getSupporterRoster` remains the sole Phase 14 supporter identity and
+recognition read model. Phase 21's Missionary Support Activity Projection
+already composes its permitted roster fields, so Phase 31 consumes that
+Phase 21 projection exactly once and MUST NOT independently join
+`contribution_credits`, the recognition fold, remittance attribution, or
+`getSupporterRoster` into a competing feed interpretation. Phase 14 source
+versions and safe provenance may travel through the projection without
+becoming another read path or copied source of truth.
+
+Recognition and contactability remain separate permissions. A party may be
+visible for source-authorized recognition while email, phone, mail,
+solicitation, export, or another external-CRM use remains forbidden. Phase 28
+may later contribute only a separately ratified relationship/contactability
+resource family; it cannot reinterpret Phase 14 identity, direct/via paths,
+legal-versus-recognition meaning, anonymity, or commitment status.
+
+The feed preserves the existing missionary field floor: visible-not-contactable
+stays non-contactable, anonymous presentations gain no stable hidden Party
+identity, restricted rows are omitted without arithmetic or count shadows, and
+internal Party/credit/provenance identifiers never leave Asym. Corrections,
+merges, supersessions, and recognition changes remain source-versioned Phase
+14 facts and reach the feed as append-only projected changes rather than
+external edits or destructive merges.
+
+## Dated Phase 21 D19 Support Assignment roster-access amendment (2026-08-01)
+
+Any Phase 21 missionary-safe supporter/activity projection resolves one exact
+Support Assignment and its current Phase 12-authorized principal, purpose,
+field floor, source versions, and Legal Entity scope before Phase 14 supplies
+recognition-safe roster facts. A Support Assignment Participant Membership,
+missionary role, spouse/household/team/leader relationship, public-page
+association, or prior feed/notification grant provides zero supporter-identity
+or contactability authority.
+
+The same Party may participate in several Support Assignments, but each roster,
+count, amount, cache, export, feed subject, and notification remains separately
+scoped and filtered before enumeration or arithmetic. Anonymous and restricted
+facts retain their existing no-shadow behavior. D19 access changes never alter
+Phase 14 credit, recognition, merge, anonymity, or contactability truth.

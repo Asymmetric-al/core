@@ -27,7 +27,7 @@ High-risk documents need stronger coverage:
 
 - Donor receipts.
 - Annual giving statements.
-- Missionary monthly statements.
+- Missionary support-cycle statements (monthly by guided default).
 - Finance/bookkeeping reports.
 - Event badges and rosters.
 - Legal/audit documents.

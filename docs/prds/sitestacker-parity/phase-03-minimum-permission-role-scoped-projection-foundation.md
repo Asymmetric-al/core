@@ -408,3 +408,377 @@ blocking provider evidence alongside current product consent/contact authority
 without claiming that a send-only key proves provider-list absence. Provider
 remediation may supersede that evidence only through the owning Phase 3/contact
 policy and never silently restores product consent.
+
+## Dated Phase 21 D8 external-feed projection amendment (2026-07-30)
+
+The Missionary Support Feed is an external egress surface and therefore remains
+behind the same fail-closed `resolveProjection` boundary as every first-party
+missionary view and governed export. The current Tenant, Legal Entity,
+destination, Missionary Support Feed Recipient, Missionary Support Feed Subject,
+purpose, Designation or Field Account scope, authorized resource/field
+families, history horizon, currencies, schema version, adapter certification,
+and authorization epoch are required inputs. A provider grant, cursor, cached
+page, prior successful read, tenant role, or arbitrary field mapping never
+widens that decision.
+
+Authorization, anonymity, restricted-worker protection, split-line scope, and
+the consumer-specific field floor apply before enumeration, search, counts,
+arithmetic, aggregation, pagination, cursor sequencing, caching, hint creation,
+logging, metrics, or diagnostics. Omitted rows leave no count, subtotal,
+pagination, cursor, watermark, or error-shape shadow. External identifiers are
+minted only after projection and are unlinkable outside the exact authorized
+destination-recipient-participant namespace; an anonymous support occurrence
+may retain a scoped occurrence identity for correction and deduplication but
+never a stable hidden Party identity.
+
+Phase 31 may compose and transport only the rows that survive those source
+projections. It cannot query raw tables, replace a named source read model,
+expose sibling designation lines, make an all-history export the default, or
+let a provider serializer weaken the Phase 3 floor. Scope contraction fails
+closed immediately and invalidates prior feed cursors before any queued
+egress.
+
+## Dated Phase 21 D13 expense-governance projection amendment (2026-07-30)
+
+Phase 21 D13 registers each of these as a distinct record type in the Phase 3
+record/projection/egress census when built:
+
+- Expense Program Activation Version;
+- Expense Policy Cohort;
+- Expense Policy Cohort Membership Version;
+- Expense Governance Profile Version;
+- Expense Governance Assignment;
+- Expense Governance Resolution;
+- Expense Approval Route Version;
+- Approval Assignment Snapshot;
+- Expense Review Action; and
+- the Expense Policy Decision fields that carry an authorized Reviewer
+  Exception.
+
+Every record type ships complete field-census rows, sensitivity
+classifications, row-scope predicates, and surface/export decisions before any
+reader, count, search, queue, cache, notification, artifact, audit projection,
+or integration can expose it. Missing classification is the strictest
+`internal`/non-exportable posture. Tenant, Legal Entity, claimant/relationship,
+Expense Policy Cohort and Membership Version, jurisdiction, expense purpose,
+exact Expense Claim Version item-or-split coverage, incurred-date governance,
+submission-time route, current capability, conflict-of-interest, and
+evidence-purpose floors are applied before enumeration.
+
+A composite expense screen, report, queue, bulk action, or audit view receives
+only the intersection of the independently authorized constituent
+projections—the strictest surviving projection wins. Report membership,
+Profile or Route visibility, Approval Assignment Snapshot membership, task
+assignment, reviewer eligibility, AI output, or possession of an opaque
+identifier never widens another record type. Missionary surfaces receive only
+the bounded claimant-safe policy explanation and status fields explicitly
+classified for them; private Receipt Evidence, reviewer identity, internal
+routing, exception authority, audit evidence, and unrelated claim coverage
+remain absent unless a narrower purpose-specific projection explicitly
+authorizes them.
+
+## Dated Phase 21 D14 organization-card evidence projection amendment (2026-07-31)
+
+Phase 21 D14 registers Organization Card Source, Organization Card Import
+Profile Version, Organization Card Activity Import Manifest, Organization Card
+Transaction Evidence Version and revision, Organization Card Assignment
+Version, Organization Card Evidence Coverage, possible-overlap decision, and
+Organization Card Source Adjustment Evidence as separate record types in the
+Phase 3 census.
+Organization Card Activity File Assets remain private evidence resources with
+separately classified metadata and purpose-bound retrieval; their bytes never
+enter a general role-scoped record projection.
+
+Tenant, Legal Entity, Organization Card Source, billing currency, safe card
+identity, effective Organization Card Assignment Version, claimant, exact
+occurrence coverage, evidence purpose, and current capability are applied before
+file, row, count, search, preview, queue, task, cache, artifact, audit, or
+diagnostic enumeration. An import manifest, profile, assignment, similarity
+suggestion, claim relationship, or opaque identifier never widens another
+record type.
+
+The missionary projection may expose only an assigned purchase reported as
+posted under the pinned import-profile finality contract and the claimant-safe
+facts required for D10/D13 completion. It excludes other cards and
+participants, raw files, import profiles, control totals, unresolved overlap
+candidates, issuer/account identifiers beyond the approved safe label, full
+PAN, internal assignment history, personal-card data, and finance-only
+exceptions. A revoked or corrected assignment contains positive disclosure
+immediately without deleting immutable source evidence or revealing a
+replacement participant.
+
+## Dated Phase 21 D15 reimbursement-handoff projection amendment (2026-07-31)
+
+Phase 21 D15 registers Reimbursement Handoff Package metadata, Reimbursement
+Delivery Profile Version, Reimbursement Execution Claim, Reimbursement Handoff
+Coverage, Handoff Attestation, Reimbursement Handoff Operation, operation
+readback/drift evidence, External Payment Occurrence evidence strength, and
+Reimbursement Payment Coverage as separate record types in the Phase 3 census.
+Package bytes remain private evidence resources with purpose-bound,
+short-lived, current-authorized retrieval; they never enter a general
+role-scoped record projection.
+
+Tenant, Legal Entity, source-owned claimant relationship, authoritative payee,
+reimbursement family, ISO currency, external execution owner, provider
+organization/product/country/environment, participant, cadence/cycle,
+certified operation, exact Reimbursement Obligation and handoff/payment
+coverage, evidence purpose and strength, and current capability are applied
+before package, profile, claim, row, count, search, preview, queue, task,
+artifact, cache, audit, readback, or diagnostic enumeration. A package digest,
+download, Handoff Attestation, provider identifier, task assignment, accounting
+role, or opaque ID never widens another record type.
+
+The claimant-safe projection may expose only the exact authorized amount and
+currency, calm current stage, evidence-qualified expected external-cycle date,
+and bounded next-step explanation for that claimant. It excludes package
+bytes, other payees or claims, profile dimensions, provider request/response or
+error payloads, internal participant IDs, route and accounting ownership,
+credentials, evidence attachments, and unrelated finance exceptions.
+**Payment recorded by finance** remains distinct from stronger
+**Payment confirmed** evidence. Handoff, draft acceptance, payroll status,
+payslip, Accounting Release, QBO/Xero readback, or bank reconciliation never
+widens the projection to a paid state.
+
+`outcome_unknown` immediately removes any action that could create a second
+execution lane while retaining the claimant-safe **Finance is processing it**
+or **Needs attention** state authorized for that person. Scope contraction,
+claimant-relationship succession, provider quarantine, or evidence revocation
+fails closed before enumeration without deleting immutable history or exposing
+a replacement claimant.
+
+## Dated Phase 21 D16 advance and claimant-repayment projection amendment (2026-07-31)
+
+Phase 21 D16 registers Expense Advance Policy Version, Claimant Repayment Policy
+Version, Expense Advance Authorization Version, Expense Advance Issuance
+Occurrence, Advance Evidence Observation, Advance Application Readiness,
+Expense Settlement Determination, Expense Advance Application, Advance Residual
+Position, Repayment Subject Determination, Claimant Repayment Decision, Claimant
+Repayment Requirement, Claimant Repayment Occurrence, Repayment Evidence
+Observation, Claimant Repayment Coverage, and Repayment Restitution Review as
+separate record or governed-predicate types in the Phase 3 census. Any
+`expense_advance` Field Account Funding Coverage and qualified Field Account
+Effect retain their existing, separately scoped Field Account projections.
+
+Every reader applies Tenant, Legal Entity, authoritative claimant and
+relationship version, jurisdiction, purpose/source family, ISO currency,
+policy/authorization/evidence version, responsible Party, conflict/dispute
+route, exact approved-expense or repayment coverage, external execution owner,
+evidence purpose and strength, current capability, and Phase 3/10 floor before
+enumerating a row, count, total, search result, task, queue, notification,
+artifact, cache, audit, export, integration, or diagnostic. A card assignment,
+personal/nonbusiness classification, worker page, portal role, task assignment,
+Requirement, accounting record, provider identifier, or opaque ID never widens
+another record type or proves the repayment subject.
+
+The claimant-safe projection is quiet when no current action exists. When
+authorized, it may expose only the claimant's exact amount and ISO currency,
+calm source-proved stage, policy date or return instructions, and bounded
+actions to share evidence or ask finance to review. It excludes other
+claimants, private source evidence, account/card/bank identifiers, policy and
+authority internals, conflict or specialist detail, reviewer identity, Field
+Account capacity, accounting treatment, and unrelated exceptions. **Return
+recorded by finance** remains distinct from **Return confirmed**; authorization,
+issuance, Advance Application Readiness, a Requirement, task completion,
+provider or payroll state, Accounting Release, QBO/Xero readback, and bank
+reconciliation cannot widen the projection to returned money, debt, available
+funds, or a paid/reconciled state.
+
+Cross-currency application is projected only from the immutable approved source
+and settlement amounts plus exact externally owned conversion authority, rate,
+rounding, and residual. It never yields a mutable converted total or Phase 21 FX
+claim. Scope contraction, source-version correction, repayment-subject
+succession, evidence conflict, or quarantine fails closed before enumeration
+and retains only the minimum claimant-safe follow-up state without deleting
+immutable history or revealing another Party.
+
+## Dated Phase 21 D17 opening-position projection amendment (2026-07-31)
+
+Phase 21 D17 registers Opening Source Package metadata, Opening Position
+Activation Cohort, Opening Coverage Disposition, Opening Coverage Manifest,
+Field Account Opening Position, Field Account Operational Cutover, Opening
+Position Correction, staging-generation status, source/mapping exceptions, and
+post-activation overlap/gap cases as separate record or governed-predicate types
+in the Phase 3 census. Phase 29 private byte objects and Phase 30 import-session
+mechanics retain separate projections and never imply Phase 21 activation.
+
+Every reader filters before enumeration by Tenant, Legal Entity, ISO currency,
+complete activation cohort, Field Account/purpose, predecessor source family and
+environment, source boundary/cursor, source and staging generation,
+mapping/parser/adapter version, exact evidence purpose and classification,
+current capability, D9 publication posture for missionary surfaces, and the
+Phase 3/10 floor. This rule applies before any row, count, control total,
+difference, success/failure count, search result, exception, preview, cache,
+log, trace, export, audit, or diagnostic. A partial authorized subset cannot be
+shown or counted as a complete cohort and cannot be activated.
+
+Ordinary finance projections use approved aliases or stable opaque source
+identities for restricted workers when exact mapping can be proved without
+exposing legal identity. Security clearance to inspect restricted identity and
+finance authority to reconcile or activate remain separate; neither implies
+the other. The final activation projection is fail-closed and requires a fresh,
+complete authorization and generation check rather than reusing the preview's
+decision.
+
+Missionary projections remain absent unless D9 independently authorizes the
+exact balance/reference module. When authorized, they expose only the exact
+ISO-labelled Finance-confirmed balance and through date plus separately
+permitted privacy-filtered reference history. They never expose source files,
+mapping or exclusion details, control totals, other accounts, finance actors,
+restricted identity, activation internals, or a claim of availability. One
+post-cutover current-state projection transition is allowed; imported
+historical event replay is not.
+
+## Dated Phase 21 D19 Support Assignment projection amendment (2026-08-01)
+
+Phase 3 registers the Phase 21 Support Assignment, Support Assignment
+Participant Membership, safe invitation/access explanation, and independently
+published Support Workspace modules as distinct record types and field
+families. A Support
+Assignment Participant Membership is relationship truth only and cannot widen
+a projection. Raw Field Account, participant, access/grant, responsibility,
+notification-preference, receipt, payroll/payee, and donor-identity tables are
+never browser projections.
+
+Every roster, activity, balance, statement, expense, coaching, project/team,
+search, count, aggregate, cache, export, and Realtime-triggered refetch applies
+the current Phase 10/12 floor and exact Tenant, Legal Entity, Support
+Assignment, purpose, projection, and field policy before enumeration or
+arithmetic. Denied and missing assignments remain indistinguishable. A safe
+alias or published module does not authorize the principal or reveal a hidden
+participant, restricted assignment, or unauthorized sibling currency.
+
+## Dated Phase 21 D22 prospective-expense-authorization projection amendment (2026-08-01)
+
+Phase 3 registers the D22 posture, request versions, private plan-evidence
+metadata, Governance Resolutions, operation-scoped Approval Assignment
+Snapshots, Review Actions, Authorization Decisions, compatible capacity
+reservations, later-claim Authorization Coverage, unused-scope declarations,
+residuals, successors, and corrections as separate projection families. D22 is
+structurally absent when disabled: no row, count, navigation, search result,
+queue, report, reminder, notification, setup state, API resource, cache entry,
+or Realtime-triggered refetch may reveal it.
+
+Every enabled projection filters before enumeration by exact principal, Active
+Tenant Assignment, Tenant, Legal Entity, claimant Party, submitter/preparer,
+source-owned relationship version, purpose, certified expense family, ISO
+currency, planned half-open interval, request and source/policy version, route
+step, evidence purpose/classification, current capability, and the Phase 10/12
+floor. Disabled, denied, missing, revoked, stale, and out-of-scope remain
+uniformly absent.
+
+A claimant-facing projection may expose only the authorized plan, calm current
+stage, exact approved terms, owner role, target review date labelled as a
+target, one next action, and privacy-filtered history. It never exposes
+reviewer identity or private notes, unrelated requests, evidence not separately
+authorized, internal balance/capacity arithmetic, or a claim that planning or
+approval means incurred, reimbursable, available, payable, paid, posted, or
+reconciled.
+
+## Dated Phase 21 D23 expense-effect projection amendment (2026-08-01)
+
+Phase 3 registers the Expense Field Account Effect Recognition Profile,
+Expense Field Account Effect Basis, Expense Field Account Effect, Expense
+Field Account Effect Coverage, Field Account Funding Coverage Disposition, and
+cause-owned exception/correction as separate projection families. Every
+projection filters before enumeration by exact principal, Active Tenant
+Assignment, Tenant, Legal Entity, Support Assignment, purpose, Field Account,
+ISO currency, certified source family, current participant membership where
+required, capability, evidence purpose/classification, and the Phase 3/10/12
+floor. This applies to rows, counts, totals, search, export, cache,
+notifications, Realtime-triggered refetch, audit, support tooling, and
+diagnostics.
+
+An authorized missionary-facing activity projection may expose only the signed
+ISO-currency amount, one source-safe plain-language label, and the exact through
+date. It never implies availability, reimbursement, payment, accounting, or
+reconciliation. D9 decides whether the activity/balance module exists, D12
+alone publishes immutable statement artifacts, D19 membership proves only a
+participant relationship, and Phase 12 current capability is additionally
+required. Hidden means absent before enumeration from detail, count, search,
+export, cache, notification, and error wording. Winning-profile internals, receipt/merchant/location detail,
+claimant or payee identity, payment/provider/bank evidence, tax treatment,
+accounting dates, and QBO/Xero state require their own narrower authority and
+remain absent from unauthorized counts, search results, exports, caches, and
+notifications. Staff projections keep source qualification, support-balance
+effect, reimbursement/payment, and accounting truth in independently labelled
+sections rather than one completion status.
+
+## Dated Phase 21 D24 expense-collaboration projection amendment (2026-08-02)
+
+Phase 3 registers the Expense Collaboration Assignment Version, authority-free
+invitation state, Claim Version confirmation or admitted external attestation,
+Evidence Access Projection Version, helper action provenance, and
+conflict/recovery evidence as distinct projection families. An Assignment
+defines a maximum collaboration ceiling and explains historical involvement;
+it never grants access. Every projection still requires the current Phase 12
+decision and strictest Phase 10 floor before enumeration.
+
+Rows, counts, totals, search, queues, caches, exports, Realtime-triggered
+refetches, notifications, support tools, and audit views filter by the exact
+principal, Active Tenant Assignment, Tenant, Legal Entity, claimant Party,
+helper Party, Expense Program, purpose/claim family, Claim Version, operation,
+current Assignment Version and interval, evidence projection and purpose,
+classification, capability, and governance epoch. Pending invitations, stale
+or revoked Assignments, superseded Claim Versions, absent claimant proof, and
+denied or missing resources remain uniformly absent before pagination or
+aggregation.
+
+The ordinary helper projection shows only who is being helped, one stable
+Expense Claim per Assignment, permitted preparation state, one safe next
+action, and the helper's own attributed work. A batch view is only a list of
+independently authorized exact-claim Assignments. Receipt bytes, sensitive receipt fields, private
+notes, unrelated balances or claims, reviewer internals, and claimant-only
+assertions require their own exact projection and never leak through labels,
+counts, errors, or cache keys. Claimant, preparer, submitter, confirmer,
+reviewer, approver, beneficiary/payee, economic payer, and actual actor principal remain separate
+fields rather than one ambiguous `owner` or `actor` projection.
+
+## Dated Phase 21 D25 expense-resolution projection amendment (2026-08-02)
+
+Phase 3 registers D25 Expense Claim Resolution Case bases, immutable
+Occurrences, Downstream Impact Manifests, and disposable current-action
+Projections as separate purpose-scoped families. Before counts, pagination,
+search, queues, caches, exports, Realtime signals, notifications, jobs, support,
+or audit, every family filters exact Tenant, Legal Entity, claimant, claim and
+triggering version, item/split, purpose, ISO currency, cause contract, evidence
+classification, current capability, and governance version. A denied or absent
+case is uniformly absent.
+
+The ordinary projection exposes only the current actor's minimum safe context,
+one literal action or wait reason, and source-attributed history. **Needs your
+update**, **With finance**, **Waiting on source**, **Correction in progress**,
+and **Complete** are derived coordination copy. They grant no authority and
+prove no claim, approval, obligation, payment, Field Account, statement,
+accounting, provider, or reconciliation outcome.
+
+## Dated Phase 21 D26 records-policy and export-projection amendment (2026-08-02)
+
+Phase 3 registers Phase 21 Records Schedule Contract and Binding Versions,
+per-record Retention Resolutions, Successor Impact Manifests, export requests,
+Records Export Coverage Manifests, package/part metadata, external-copy
+assertions, verified-transfer evidence, and copy-specific disposition outcomes
+as distinct purpose-scoped projection families. A current-view export, readable
+record copy, complete records archive, final offboarding archive, tenant
+external-copy assertion, and verified destination transfer remain separately
+labelled resources; none is projected as another.
+
+Every count, scope preview, exception, package family, manifest disposition,
+part, original, human-readable projection, owner-domain reference, policy
+history item, download, print view, external-copy assertion, destination
+transfer, audit record, job status, support view, cache, and diagnostic filters
+before enumeration by the exact principal and actual principal, Active Tenant
+Assignment, Tenant, Legal Entity, record family and purpose, subject/account
+scope where applicable, source and half-open/version watermark, contract and
+binding versions, strictest Phase 10 classification, restricted-person lane,
+current Phase 12 capability and authorization epoch, package purpose, and
+requested operation. Denied, missing, stale, expired, quarantined, and separate-
+lane coverage cannot leak through counts, filenames, part lists, progress,
+errors, or timing.
+
+Canonical JSONL preserves typed values and relationships; bounded CSV views use
+the shared spreadsheet-safe serializer and are never the lossless authority;
+accessible PDF/HTML and print are human views; exact originals retain their
+representation and provenance. The package compiler consumes only allow-listed
+owner projections and never performs a generic table dump. An owner-domain
+reference cannot be expanded through Phase 21 authority. Package staging and
+delivery remain Phase 29 execution behind this governed projection contract.

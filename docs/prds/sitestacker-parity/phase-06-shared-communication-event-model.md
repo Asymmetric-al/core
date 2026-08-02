@@ -645,3 +645,103 @@ inside the one Phase 6 spine; they are not a promise to support another provider
 Any future provider adoption requires a separately ratified product decision,
 congruence review, migration plan, and evidence package rather than activating a
 dormant abstraction.
+
+## Dated Phase 21 D19 Support Workspace notification amendment (2026-08-01)
+
+Phase 21 owns each prospective Support Workspace Notification Preference
+Version and the source event's Support-Assignment/event-family eligibility.
+Phase 6 remains the sole owner of recipient-specific communication intent,
+send-time suppression and consent evaluation, dispatch, provider evidence,
+delivery reduction, and communication history. Phase 17 owns governed content
+and sender preparation where a message is required.
+
+A preference grants no workspace or source-data access. Immediately before
+intent release, Phase 6 re-proves the exact recipient principal/Party binding,
+Active Tenant Assignment, Tenant, Legal Entity, Support Assignment, purpose,
+Phase 12 projection authorization and floor, current preference version,
+source fence, contact point, consent, and suppression. Revoked access,
+superseded preference, ended eligibility, stale queued work, or a restricted
+recipient is suppressed before disclosure and recorded through the existing
+safe outcome/recovery contract. Participation, relationship labels, prior
+delivery, or possession of a queued intent never substitutes for that proof.
+
+## Dated Phase 21 D22 prospective-expense notification amendment (2026-08-01)
+
+Phase 21 owns D22 notification eligibility and the exact source stage; Phase 17
+owns governed content and sender preparation; Phase 6 alone owns recipient-
+specific intent, send-time consent/suppression, dispatch, evidence, outcome,
+and history. D22 activation creates no blanket subscription, and disabled or
+unauthorized scopes create no notification signal.
+
+Immediately before release, Phase 6 re-proves the exact recipient binding,
+Active Tenant Assignment, Tenant, Legal Entity, request and claimant scope,
+purpose, source fence, current Phase 12 capability and floor, contact point,
+consent, and suppression. Revoked authority, stale assignment, superseded
+request, ended posture, or resolved work suppresses queued content. Messages
+contain only an opaque reference, safe stage/action, and minimal due/target
+context; they never include private evidence, itinerary/location, health or
+security context, private notes, unnecessary amount, reviewer internals, or a
+financial promise.
+
+## Dated Phase 21 D24 expense-collaboration communication amendment (2026-08-02)
+
+Phase 21 owns whether one exact D24 invitation, preparation, claimant-
+confirmation, conflict, revocation, or safe next-action occurrence is eligible
+for notice. Phase 12 owns current recipient authorization; Phase 17 owns only
+governed content and preparation; and Phase 6 remains the sole owner of
+recipient intent, send-time consent and suppression, dispatch, delivery
+evidence, outcome, and history. An Assignment, invitation, prior message, or
+delivery result never subscribes or authorizes a recipient.
+
+Immediately before release, Phase 6 re-proves the exact recipient
+principal/Party binding, Active Tenant Assignment, Tenant, Legal Entity,
+claimant and helper scope, Expense Program, purpose/claim family, current Claim
+and Assignment Versions, evidence-safe projection, Phase 12 capability and
+governance epoch, contact point, consent, and suppression. Revocation,
+principal disablement, stale confirmation, superseded claim or assignment,
+ended scope, or resolved conflict suppresses queued work before disclosure.
+
+Messages carry only an opaque reference, a safe plain-language stage or action,
+and the minimum timing context. They omit receipt or evidence content, private
+notes, claimant-only assertions, sensitive merchant/location data, unnecessary
+amounts, reviewer internals, and broad financial context. Communication history
+preserves recipient and message evidence separately from claimant, economic
+payer, evidence contributor, preparer, submitter, confirmer or attestor,
+reviewer, approver, beneficiary/payee, and actual actor principal.
+
+## Dated Phase 21 D25 expense-resolution communication amendment (2026-08-02)
+
+Phase 21 owns whether one exact D25 request, response, source-owner result,
+wait-reason change, or material completion occurrence is eligible for notice.
+Phase 12 owns current recipient authorization; Phase 17 owns governed content
+and protected-action presentation; Phase 6 alone owns recipient intent,
+send-time consent and suppression, dispatch, delivery evidence, outcome, and
+history. Send and protected-link open both reauthorize current Tenant, Legal
+Entity, recipient, claimant/claim scope, purpose, case/cause/version,
+classification, capability, and governance epoch.
+
+Messages contain only an opaque reference, one safe action or wait reason, and
+minimum timing. Receipt or evidence URLs, merchant/location details, claimant-
+only facts, private notes, internal lifecycle reasons, reviewer internals, and
+provider/accounting detail are forbidden. Delivery, failure, link open, reply,
+silence, or timeout cannot supply claimant facts, select a decision, satisfy a
+downstream disposition, or complete a case.
+
+## Dated Phase 21 D26 records-export communication amendment (2026-08-02)
+
+Phase 21 may declare one exact package-ready, ready-with-issues, package-failed,
+offboarding-window, records-review, or certified destination-result occurrence
+eligible for notice. Phase 17 owns governed content and protected-action
+presentation; Phase 6 alone owns recipient intent, current consent/suppression,
+dispatch, delivery outcome, and communication history. D26 creates no blanket
+subscription and healthy policy/retention operation creates no routine message.
+
+Immediately before release, Phase 6/12 re-proves the exact recipient and
+actual-principal binding, Active Tenant Assignment, Tenant, Legal Entity,
+records purpose, package and manifest identity, safe state, restricted-person
+posture, current capability and authorization epoch, contact point, consent,
+and suppression. The message contains only an opaque reference, safe state,
+exact package-byte expiry or records-only-window deadline where applicable,
+and one authenticated next action. Delivery, open, reply, print, silence, or
+failure never proves download, external custody, verified transfer, retention,
+hold, disposal, completeness, or legal sufficiency.

@@ -2789,6 +2789,76 @@ This document is the Phase 16 product specification requested by Conrad. It auth
 
 All D1–D19 founder decisions are closed and incorporated. There are no open founder questions, unresolved product markers, or deferred permanent fixes in this PRD. Any later inability to satisfy a release gate is a visible blocked lane under Hard Stop Conditions, not permission to weaken the contract or add a workaround.
 
+## Dated Phase 21 D5 purpose and lifecycle succession amendment (2026-07-30)
+
+Each recurring contribution occurrence supplies Phase 13 with the exact
+accepted source-purpose authority lineage pinned by the accepted recurring
+term and source context. It does not re-resolve from a current Designation
+label, worker page, or current campaign copy. When governed content was
+presented or captured, the lineage includes its exact source-owned publication
+kind/reference/digest; otherwise it carries typed `not_applicable` or
+`not_captured` plus the exact source-purpose evidence reference/digest. Phase
+13 alone freezes the resulting Accepted Source Purpose Authority Snapshot.
+
+A Phase 21 Support Reallocation Case or Exit Disposition Manifest may require
+and coordinate recurring-term succession proof, but cannot pause, cancel,
+redirect, or choose a successor for a recurring commitment. Phase 16 remains
+the source authority: it accepts only exact donor or tenant authorization,
+appends the prospective stop/successor/provider-control evidence, and preserves
+prior occurrences. A Phase 21 draft or manifest changes no recurring work, and
+Phase 22 may retire presentation only after the Phase 16 source transition is
+proved.
+
+## Dated Phase 21 D8 commitment-feed amendment (2026-07-30)
+
+Phase 16 remains the sole authority for recurring and fixed commitment
+identity, terms, occurrences, fulfillment, attention, and the safe current
+support summaries defined by D13. Phase 21's Missionary Support Activity
+Projection already composes only those permitted summaries, so Phase 31
+consumes that Phase 21 projection exactly once and MUST NOT independently read
+commitment tables, payment/provider evidence, authorization records, recovery
+state, or internal health to create a second interpretation.
+
+External provider mappings preserve separate concurrent commitments, exact
+currencies, cadence, source version, current effective meaning, and
+correction/supersession relationships. A destination that supports only one
+pledge, one currency, a date window, or a weaker state vocabulary may receive
+only an exactly disclosed lossless subset; otherwise activation for that
+resource family is blocked. The feed never combines commitments, fabricates a
+monthly equivalent, treats an old effective date as synchronization order, or
+uses date-only polling to discover corrections.
+
+No commitment projection, feed row, cursor, hint, provider fetch,
+acknowledgment, or provider-local application proves payment authorization,
+provider control, received cash, Field Account availability, payroll
+readiness, payability, or payment. Source-owned append-only correction and
+current authorization continue to win regardless of downstream state.
+
+## Dated Phase 21 D9 support-planning amendment (2026-07-30)
+
+Phase 16 remains the sole authority for commitment identity, terms, occurrence
+health, cadence normalization, and any safe current recurring-support
+projection. Phase 21 D9 may either omit commitment presentation or include an
+authorized, source-versioned Commitment Forecast module through the current
+Support Workspace Publication Profile Version. Omission, lack of configuration,
+lack of authorization, staleness, and an authoritative zero are distinct states;
+none may be collapsed into a zero-valued card.
+
+Any **Monthly support goal coverage** comparison uses only the current compatible
+Phase 28 Support-Raising Goal Version as its denominator. When no such goal
+exists, the comparison is absent or `Not calculated`, never zero, infinity, or
+an inferred target. A Phase 21 Approved Support Plan Version is never a silent
+substitute for that goal. An authorized user may explicitly create a new Phase
+28 Goal Version from a Plan with exact provenance, after which both authorities
+remain independently versioned and do not live-synchronize.
+
+Commitments and cadence-normalized forecasts never increase a Phase 21
+Finance-confirmed Field Account Balance, Finance-confirmed Planning Coverage
+Base, Balance Coverage, Reserve Position, compensation capacity, reimbursement
+capacity, or any claim of availability, payroll readiness, payability, or
+payment. Phase 21 consumes only the bounded Phase 16 projection contract and
+cannot reinterpret commitment tables, provider attempts, or recovery state.
+
 ## Dated Phase 17 catalog, presentation, and sender amendment (2026-07-19)
 
 **Old statement.** Phase 16 owns recurring/fixed-pledge meaning, eligibility,
@@ -2818,3 +2888,18 @@ create a recipient, interpret a processor event, or make an optional reminder
 required. The Phase 6 delivery-profile snapshot is an exact on-demand
 composition; multiple Sender Profile/reply revisions may coexist, and no
 secret or mutable sender authority moves into Phase 16.
+
+## Dated Phase 21 D19 Support Assignment commitment-projection amendment (2026-08-01)
+
+Phase 16 remains authoritative for each commitment's Party, purpose, cadence,
+authorization, lifecycle, fulfillment, reminder, and correction truth. Phase 21
+may project only a privacy-safe, exact Support-Assignment-scoped commitment or
+forecast summary through the already ratified D8/D9 contracts and current Phase
+12 access decision.
+
+A Support Assignment Participant Membership, spouse/household/team/leader
+relationship, workspace grant, invitation, responsibility, or notification
+preference never creates, merges, ends, resumes, retargets, or transfers a
+commitment. One Party participating in several Support Assignments does not
+duplicate a commitment across them; exact Phase 16 purpose/source coverage and
+the consumer projection contract determine inclusion.

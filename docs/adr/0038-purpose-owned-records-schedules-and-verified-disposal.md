@@ -140,3 +140,21 @@ every Canadian nonparticipant.
   preserves issuer, history, holds, restrictions, and readability.
 - No generic eDiscovery suite, per-document timer, universal anonymizer,
   multi-cloud archive, blockchain proof, or duplicate file manager is created.
+
+## Phase 21 D26 precision amendment (2026-08-02)
+
+ADR-0038 remains the Phase 18 generated-document records decision and the
+architectural precedent for purpose-owned schedules, monotonic holds, and
+verified disposition. Phase 21 D26 applies that pattern through a separate,
+owner-qualified catalog for Phase 21 records; it does not broaden this ADR into
+a platform-wide semantic owner or allow either domain to classify, retain,
+hold, dispose, or certify the other's records.
+
+Phase 18 retains generated-document purpose, issuer, serial, logical-document,
+artifact identity and currentness, correction, Canadian readiness and closure,
+and schedule/disposition truth. A Phase 21 Records Export Package may contain
+only a currently authorized exact Phase 18 artifact copy or an explicit owner-
+domain reference under its Coverage Manifest. Missing, disposed, quarantined,
+or unauthorized Phase 18 bytes are never regenerated, reclassified, or called
+included by D26. Download, tenant external-copy assertion, verified custody
+transfer, retention, hold, and disposition remain independent in both domains.

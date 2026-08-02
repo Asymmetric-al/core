@@ -29,3 +29,12 @@ never creates a net gift, changes receipts, rewrites released accounting, or
 claims legal, GAAP, or CRA certification. Phase 20 does not itself debit a
 Phase 21 Field Account; any later Phase 21 effect must consume the same proved
 occurrence exactly once under Phase 21 authority.
+
+Phase 21 D21 asset-sale, brokerage, liquidation, valuation, disposition, and
+proceeds costs are outside this processor-cost family even when a provider calls
+one of them a processing fee. D21 alone may use exact source evidence for those
+costs when freezing a Realized Support Basis; neither Phase 20 D19 nor Phase 21
+D20 may relabel or apply them as processor or residual organization support
+costs.
+
+See [ADR-0082 — Source-mode-honest Noncash Support Realization](./0082-source-mode-honest-noncash-support-realization.md).

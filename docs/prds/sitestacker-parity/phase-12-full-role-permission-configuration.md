@@ -5,7 +5,7 @@
 
 **Hard dependencies (must land before build):** Phase 3 _Minimum Permission & Role-Scoped Projection Foundation_ (`field_policies`, the single `resolveProjection` PDP, `assertEditableForSurface`, `emitGovernedCsv`, `classifyChange`/maker-checker widening, fail-closed default, the **code-source-of-truth capability registry** shaped for 1:1 table seeding, the dormant additive `tenantOverrides` param) · Phase 9 _Full CRM Depth & Relationship Graph_ (Party spine, the **B6 party-scoped access-check helper**, the CI guardrail that _derived roles are display-only, never authorization_) · Phase 10 _Sensitive-Data Classification & Restricted-Ministry Safety_ (`security_level`, `security_clearance` capability, `identity_access_grants` with `subject_type`/`scope_ref` named for additive extension, `party_restricted`, the sole-entry `toPublicProjection` firewall, break-glass) · Phase 11 _Custom Fields & Custom Collections_ (`getFieldCatalog`, the field-policy cache, the immutable `field_key`/`value_key`/`option_id` contract, the "every egress reaches the resolver" meta-test, `classify:manage`).
 
-**Downstream consumers (this phase defines the contracts they build on):** Phase 13 contribution-ledger (money-plane consumes the resolver; SoD-conflict pairs) · Phase 30 imports-migration · Phase 31 platform-api (public REST/webhooks) · Phase 33 reporting-BI (report permissions as their own model; aggregate small-cell suppression) · Phase 34 workflow-engine · Phase 6 communication/merge · Phase 38 member-care case product & exposure report · Phase 40 AI (every AI egress routes through this resolver).
+**Downstream consumers (this phase defines the contracts they build on):** Phase 13 contribution-ledger (money-plane consumes the resolver; SoD-conflict pairs) · Phase 21 Field Accounts/Support Workspace · Phase 30 imports-migration · Phase 31 platform-api (public REST/webhooks) · Phase 33 reporting-BI (report permissions as their own model; aggregate small-cell suppression) · Phase 34 workflow-engine · Phase 6 communication/merge · Phase 38 member-care case product & exposure report · Phase 40 AI (every AI egress routes through this resolver).
 
 **Phase 16 downstream capability amendment (2026-07-13).** Phase 16 consumes
 this spine for separate capabilities covering recurring/fixed-pledge view,
@@ -174,7 +174,7 @@ Decisions are labeled `D#`/`R#` to trace to the grill decisions log. **Everythin
 
 ### B. Principals, the tenant axis, and revocation (D12/D14 + the ship-first amendments)
 
-- **Four principal classes, all through the same PDP:** (1) human staffer; (2) **external/anonymous** — default deny-all, only `toPublicProjection` output, never widenable by any internal grant (D14); (3) **service account / non-human identity (NHI)** — a required human owner, its own least-privilege set (never a human role), a hard ceiling computed as a **live read-time intersection with the owner's _current_ resolved capabilities** (never frozen at mint), single-tenant, force-disabled when the owner leaves; (4) **platform operator** — an orthogonal authority _plane_, reaching tenant data only through the resolver as an audited, purpose-bound, time-boxed grant that writes to an **append-only, tenant-independent** sink; never ambient god-mode.
+- **Four principal classes, all through the same PDP:** (1) **authenticated tenant human** — staff, donor, or missionary with one exact current Tenant membership; role names never authorize and the active membership plus grants/floor determine the projection; (2) **public/anonymous** — default deny-all, only `toPublicProjection` output, never widenable by an internal grant (D14); (3) **service account / non-human identity (NHI)** — a required human owner, its own least-privilege set (never a human role), a hard ceiling computed as a **live read-time intersection with the owner's _current_ resolved capabilities** (never frozen at mint), single-tenant, force-disabled when the owner leaves; (4) **platform operator** — an orthogonal authority _plane_, reaching tenant data only through the resolver as an audited, purpose-bound, time-boxed grant that writes to an **append-only, tenant-independent** sink; never ambient god-mode. An authenticated donor or missionary is not collapsed into the public/anonymous class and need not be made staff to receive a bounded tenant workspace grant.
 - **The tenant is branded into the token** (`EffectiveAccess<TenantId>` with a phantom tag stamped from `active_assignment.tenant_id`). Every egress door's target-fetch requires the token and a `RowIn<T>` that must _unify_; a cross-tenant serve is a compile error _and_ a runtime verification failure. (The tenant-axis twin of the floor branding.)
 - **Legal Entity is a checked inner scope, not another brand or tenant.** Entity-bearing rows persist immutable `legal_entity_id`; grants may allow one or several entities only within the active Tenant. The resolver canonicalizes that allowed set, signs `legal_entity_scope_hash` plus monotonic `legal_entity_scope_revision`, and the PEP selects by `(tenant_id, legal_entity_id, id)` before returning any data. No Site, designation, processor account, Accounting Destination, or mutable tenant default may infer entity authority. "All entities" is an explicit tenant-bounded grant resolved against the current entity registry, never an unbounded wildcard.
 - **One tenant source per request.** The resolver's chosen `active_assignment.tenant_id` is threaded end-to-end via a request GUC that the database's `current_tenant_id()` reads; a CI gate asserts the application and RLS tenant sources cannot diverge. Until unified, RLS may not be described as a tenant backstop.
@@ -328,9 +328,9 @@ The full enterprise IdP integration (SSO seam only) · the ML/behavioral-anomaly
 
 ## Further Notes
 
-- **Roadmap position:** Phase 12 of 41 (roadmap v2, adopted 2026-07-07). Hard-blocked on Phases 3, 9, 10, 11. Consumers: Phases 13/30/31/33/34/6/38/40.
+- **Roadmap position:** Phase 12 of 41 (roadmap v2, adopted 2026-07-07). Hard-blocked on Phases 3, 9, 10, 11. Consumers: Phases 13/21/30/31/33/34/6/38/40.
 - **ADR to write:** an ADR recording the capability-based spine + the tenant-axis-in-the-token decision + the in-house-resolver-over-policy-engine choice with its pre-committed re-evaluation trigger (hard-to-reverse, surprising-without-context, a real trade-off — all three ADR criteria met).
-- **Glossary (add to root `CONTEXT.md`):** _Capability_ (a specific enforced permission; the sole enforcement unit) · _Group_ vs _Role_ vs _Named grant_ (bundles that resolve into capabilities) · _The floor_ (the subtract-only safety layer that always wins) · _Active assignment_ (the one org-hat a person acts within per request) · _EffectiveAccess token_ (the runtime-verifiable output of the one resolver, including Legal Entity scope hash/revision) · _Legal Entity scope_ (a subtract-only set inside one Tenant) · _Purpose_ (the required "for what" input; the consent/legal-basis axis) · _Protected constituent_ (a whole-record restriction as a floor row) · _Existence oracle / uniformity_ (why blocked and missing must look identical).
+- **Glossary (add to root `CONTEXT.md`):** _Capability_ (a specific enforced permission; the sole enforcement unit) · _Group_ vs _Role_ vs _Named grant_ (bundles that resolve into capabilities) · _The floor_ (the subtract-only safety layer that always wins) · _Active Tenant Assignment_ (the one Tenant-membership/org-hat a person acts within per request; never Phase 21's Support Assignment) · _EffectiveAccess token_ (the runtime-verifiable output of the one resolver, including Legal Entity scope hash/revision) · _Legal Entity scope_ (a subtract-only set inside one Tenant) · _Purpose_ (the required "for what" input; the consent/legal-basis axis) · _Protected constituent_ (a whole-record restriction as a floor row) · _Existence oracle / uniformity_ (why blocked and missing must look identical).
 - **Verification provenance:** design ratified 2026-07-08 via `grill-with-docs` (26 decisions, 7 rulings) then five adversarial passes — a D1 spine research + adversarial hardening, two cross-domain completeness sweeps (sweep-1: 33 findings; sweep-2: AI/realtime/encryption/consent/financial/anomaly/residency + a 4-lens panel), a definitive 8-cluster best-practice + nonprofit-CRM benchmark validation, and a final ruthless 7-lens risk-category review that surfaced the tenant-axis substrate cluster. Benchmarked against Salesforce NPSP/Shield, CiviCRM, Blackbaud RE NXT, Bloomerang, Neon, Virtuous, DonorPerfect, MinistryPlatform, SiteStacker/WMTek, TntConnect, and Cedar/OpenFGA/Zanzibar/Cerbos/Entra-PIM/SailPoint. Two live code hazards found and owned (`packages/auth/e2e-auth.ts` unsigned bypass → D22; `use-supabase-realtime.ts` raw streaming → D23). **No "live/shipped" claims** — this is a design, groomed against not-yet-built Phase 3/9/10/11 contracts.
 
 ## Dated Phase 17 capability amendment (2026-07-19)
@@ -360,3 +360,753 @@ floor. No Phase 17 approval chain, role system, policy engine, or workflow
 engine is created. Every tenant-facing Phase 17 row carries `tenant_id NOT
 NULL`, same-tenant composite references, and the Phase 12 floor; delegated
 review exposes only the bounded synthetic review projection.
+
+## Dated Phase 21 D8 feed-authorization amendment (2026-07-30)
+
+Phase 31's Missionary Support Feed uses one non-human integration principal and
+one prospective Subscription Version for the exact Tenant, Legal Entity,
+destination organization/product/environment, Missionary Support Feed
+Recipient, Missionary Support Feed Subject, purpose, Designation or Field
+Account scope, resource and field families, bounded history, currencies,
+schema, adapter certification, and authorization epoch. The external
+destination principal and the Support Assignment whose projection is shared
+are distinct scope dimensions even when a provider models them as one profile.
+Neither a broad PAT, human role, provider credential, cursor, connection flag,
+nor possession of an opaque identifier is authorization.
+
+Every request and every queued egress resolves the current server-side
+Subscription Version through the Phase 12 evaluator and then the Phase 3/10
+floor. Scope expansion requires an explicit prospective grant. Scope
+contraction increments the authorization epoch, denies future positive
+disclosure immediately, invalidates old cursors, and cancels or rechecks queued
+work before transport. A still-valid provider token cannot bypass that local
+deny-first fence, and reconnect creates a newly reviewed grant rather than
+reviving an old authorization epoch.
+
+Phase 31 must mint only the smallest feed administration, activation,
+inspection, stop-sharing, and technical-evidence capability atoms needed by
+the eventual implementation. Those atoms do not confer source-domain read
+authority, raw-table access, arbitrary-field export, contact solicitation,
+accounting access, payroll authority, or provider-side deletion capability.
+Per-principal and per-tenant egress budgets, audit-before-sensitive-read, secret
+protection, revocation, and tenant-isolation tests remain mandatory.
+
+## Dated Phase 21 D10 expense and AI capability amendment (2026-07-30)
+
+The capability registry must keep these D10 powers independently grantable:
+
+- view AI feature posture and health;
+- create or manage AI Provider Connections;
+- replace or revoke write-only AI Provider Credential Revisions;
+- preview and activate prospective AI Capability Binding Versions;
+- view purpose-scoped usage and cost observations;
+- invoke receipt extraction or expense-match suggestion;
+- accept or reject a suggestion for an authorized Expense Claim;
+- submit, review, approve, return, reject, or override an exact claim/version;
+- read private Receipt Evidence for an exact permitted purpose; and
+- retrieve protected, PII-minimized AI/expense audit evidence.
+
+The implementation manifest may refine atom names, but it cannot collapse
+connection/credential administration, feature activation, invocation,
+suggestion acceptance, expense review, policy override, evidence access, and
+audit retrieval into one `admin` or `manage_ai` capability. A job title,
+provider account, API key, model Binding Version, report membership, or opaque
+identifier is not authorization.
+
+Every request and queued invocation re-resolves the current active assignment,
+Tenant, Legal Entity, claimant/worker scope, feature purpose, evidence purpose,
+and Phase 3/10 floor before enumeration or egress. Credential replacement or
+revocation requires fresh authority, previews every affected purpose, fences
+stale workers, and creates immutable evidence. An AI feature can never widen
+the human's authority or accept its own suggestion.
+
+## Dated Phase 21 D11 Field Account integrity capability amendment (2026-07-30)
+
+Phase 21 D11 powers are separately grantable:
+
+- view close readiness without protected audit detail;
+- view an authorized Support Cycle Integrity Manifest;
+- authorize a Support Cycle Close;
+- view a Field Account Integrity Case;
+- assign or follow up on a Field Account Integrity Case;
+- invoke each permitted repair through the capability of its owning domain;
+- configure prospective cadence, owner routing, reminders, advisory
+  acknowledgment, and optional proportional review; and
+- retrieve protected Field Account integrity audit evidence.
+
+One authorized person may hold every applicable power, and Asym imposes no
+second approver by default. A tenant may prospectively require a separate
+reviewer for its own material or high-risk thresholds without creating a
+generic approval workflow.
+
+No role or capability may waive balance, Tenant/Legal-Entity/purpose/account/
+currency isolation, unique source coverage, immutable history, captured-cursor
+completeness, atomic pair behavior, or mandatory adverse-correction
+continuity. `force_close`, `force_balance`, generic `mark_fixed`, variance
+acceptance, suspense/plug creation, and direct-entry or balance-edit
+capabilities do not exist.
+
+Every close, case, repair, configuration, and protected-evidence request
+reauthorizes the exact Tenant, Legal Entity, ISO currency, affected Field
+Accounts and purposes, evidence classification, expected source/policy/account
+versions, and current assignment before enumeration or mutation. Holding a
+Mission Control task, task-assignment permission, QBO/Xero access, or a
+provider credential grants no Field Account financial authority.
+
+## Dated Phase 21 D13 expense-governance capability amendment (2026-07-30)
+
+Phase 21 D13 refines the broad D10 expense-review powers into these separately
+grantable capability atoms:
+
+- view Expense Program posture, Expense Governance configuration, and
+  production-shaped simulations;
+- preview, activate, or prospectively turn off the Expense Program for one
+  exact Tenant and Legal Entity;
+- draft an Expense Governance Profile Version;
+- preview, schedule, activate, or cancel a prospective Expense Governance
+  Profile Version;
+- create or change a bounded prospective Expense Governance Assignment or
+  Expense Policy Cohort membership;
+- draft an Expense Approval Route Version;
+- preview, schedule, activate, or cancel a prospective Expense Approval Route
+  Version;
+- delegate, assign, or reassign review work without gaining authority to decide
+  it;
+- review and decide exact Expense Claim Version item or split coverage;
+- invoke **Approve clean claims** for the exact clean eligible set while
+  preserving one Expense Review Action per covered decision;
+- decide a typed Reviewer Exception independently from ordinary claim review;
+- read private Receipt Evidence for one exact permitted expense purpose; and
+- retrieve protected, PII-minimized expense-governance audit evidence.
+
+The implementation manifest may mint finer action names, but it cannot collapse
+program activation, policy drafting, profile/cohort assignment, route
+administration, delegation or work assignment, ordinary review, clean-claim
+bulk invocation, exception authority, private-evidence access, or audit
+retrieval into one expense-admin capability. Configuring a Profile or Route
+does not grant review power; assigning work does not grant decision power;
+ordinary approval does not grant Reviewer Exception authority; and holding AI,
+payroll, AP, Field Account, Phase 20, QBO, or Xero authority does not grant any
+of them.
+
+Every preview, activation, assignment, reassignment, review, bulk action,
+exception decision, private-evidence read, and protected-audit retrieval
+reauthorizes the exact Tenant, Legal Entity, claimant and relationship scope,
+Expense Claim Version item or split coverage, jurisdiction, incurred-date
+governance context, submission-time route, evidence purpose, current active
+assignment, and Phase 3/10 floor. A current capability authorizes an action; an
+Approval Assignment Snapshot records historical routing and never carries
+continuing authority. Self-review, interested review, AI approval, timeout
+approval, and automatic approval capabilities do not exist.
+
+## Dated Phase 21 D14 organization-card evidence capability amendment (2026-07-31)
+
+Phase 21 D14 powers are separately grantable:
+
+- view organization-card evidence posture and authorized source health;
+- create or retire one Organization Card Source for an exact Tenant and Legal
+  Entity;
+- draft, test, preview, activate, supersede, or retire an Organization Card
+  Import Profile Version;
+- upload and inspect one private Organization Card Activity File Asset;
+- review a classified import preview and accept the exact Organization Card
+  Activity Import Manifest;
+- create, preview, activate, supersede, or end one effective-dated Organization
+  Card Assignment Version;
+- view authorized Organization Card Transaction Evidence Versions;
+- confirm or reject one Possible overlap relationship without gaining expense
+  approval;
+- record typed Organization Card Source Adjustment Evidence;
+- respond **Not my charge** for the exact claimant-safe assigned occurrence;
+  and
+- retrieve protected, PII-minimized D14 audit evidence from which unmasked PAN
+  and sensitive authentication data were rejected at intake.
+
+The implementation manifest may mint finer action names, but it cannot collapse
+source administration, profile administration, private-file access, import
+acceptance, assignment, overlap decision, source correction, claimant response,
+expense review, private Receipt Evidence, or protected audit retrieval into one
+card or finance-admin capability. Import authority grants no Expense Policy
+Decision, Approved Expense Snapshot, Reimbursement Obligation, Field Account,
+personal-repayment, external-payment, Phase 20, QBO/Xero, issuer-settlement, or
+card-liability-payment authority.
+
+Every source, profile, file, preview, import, assignment, evidence read,
+overlap decision, correction, claimant response, task, queue, export, and audit
+request reauthorizes the exact Tenant, Legal Entity, Organization Card Source,
+billing currency, safe card identity, effective assignment, claimant,
+occurrence and claim coverage, evidence purpose, current active assignment, and
+Phase 3/10 floor before enumeration or mutation. Possessing a file digest,
+manifest ID, card mask, claimant task, accounting role, QBO/Xero connection, or
+future issuer credential never widens that decision. Personal-card batch
+browsing, full-PAN access, fuzzy auto-merge, destructive undo, automatic
+approval, automatic reimbursement, and direct accounting-delivery capabilities
+do not exist.
+
+## Dated Phase 21 D15 reimbursement-handoff capability amendment (2026-07-31)
+
+Phase 21 D15 powers are separately grantable:
+
+- view authorized reimbursement-route posture and safe capability health;
+- draft, preview, activate, supersede, or retire a prospective Reimbursement
+  Delivery Profile Version;
+- prepare and preview one immutable Reimbursement Handoff Package without
+  releasing it;
+- retrieve a protected reference or audit copy of one authorized package
+  without creating an Execution Claim or Handoff Attestation;
+- explicitly release exact obligation coverage through **Handle outside Asym**
+  and record one Handoff Attestation;
+- explicitly release exact obligation coverage through one currently certified
+  payroll or accounts-payable pre-execution draft/input operation;
+- inspect and resolve an `outcome_unknown` handoff operation without blind retry
+  or route substitution;
+- create an append-only residual successor only for exact coverage proved not
+  handed off or not executed;
+- record source-qualified External Payment Occurrence evidence and exact
+  Reimbursement Payment Coverage;
+- record a return, partial reversal, reversal, correction, or reissue through
+  its source-owned command; and
+- retrieve protected, PII-minimized reimbursement-handoff audit evidence.
+
+The implementation manifest may mint finer actions, but it cannot collapse
+profile administration, package preparation, protected artifact access,
+outside-Asym release, Handoff Attestation, connected provider release,
+ambiguous-outcome inspection, residual succession, payment-evidence recording,
+adverse-payment recording, or protected audit retrieval into one
+reimbursement, payroll, AP, finance-admin, or accounting capability. Download
+does not grant release; release does not grant payment attestation; payment
+evidence does not grant route administration; expense approval, Field Account,
+payroll/AP, Phase 20, QBO/Xero, task-assignment, or provider-credential
+authority grants none of these implicitly.
+
+Every profile, package, retrieval, release, attestation, provider operation,
+readback, ambiguity inspection, residual successor, payment-evidence action,
+adverse fact, queue, export, and audit request reauthorizes the exact Tenant,
+Legal Entity, source-owned claimant relationship and authoritative payee,
+reimbursement family, obligation and non-overlapping coverage, ISO currency,
+external execution owner, provider organization/product/country/environment,
+participant, cadence/cycle, certified operation, destination identity,
+evidence purpose and strength, and current Phase 3/10/12 floor before
+enumeration or mutation.
+
+No capability may move money, store beneficiary-bank credentials, calculate or
+approve payroll/AP, create a QBO/Xero Accounting object, assign the posting
+owner of a future payment, dual-deliver, blind-retry, fuzzy-match payment,
+silently upgrade evidence strength, mutate released history, or create
+claimant-repayment source truth outside the separately authorized D16 commands
+below.
+
+## Dated Phase 21 D16 advance and claimant-repayment capability amendment (2026-07-31)
+
+Phase 21 D16 powers are separately grantable:
+
+- view authorized advance/repayment posture and claimant-safe case status;
+- draft, preview, activate, supersede, or retire an Expense Advance Policy
+  Version or Claimant Repayment Policy Version for an exact Tenant and Legal
+  Entity;
+- create, amend prospectively, or end an Expense Advance Authorization Version;
+- authorize the exact `expense_advance` Field Account funding component only
+  when the actor also has current authority over that purpose-scoped capacity;
+- record source-qualified Expense Advance Issuance Occurrence evidence and its
+  exact evidence strength;
+- invoke the pinned source-contract resolver for Advance Application Readiness
+  or record source-qualified correction evidence, never a discretionary manual
+  readiness assertion;
+- decide one atomic Expense Settlement Determination over exact Approved
+  Expense Snapshot coverage;
+- make an immutable Repayment Subject Determination under source,
+  relationship/jurisdiction, and conflict-safe authority;
+- record one Claimant Repayment Decision, with **Request external return**
+  separately grantable from no-action, source-correction, or specialist referral;
+- view or follow up on the resulting operational Claimant Repayment Requirement
+  without gaining debt, collection, payroll-deduction, or money-movement power;
+- record source-labelled repayment evidence and an exact Claimant Repayment
+  Occurrence, coverage, residual, return, reversal, or cause-linked correction;
+- open or resolve a Repayment Restitution Review through its independently
+  authorized source and external restoration path; and
+- retrieve protected, PII-minimized D16 audit evidence.
+
+The implementation manifest may mint finer actions, but it cannot collapse
+policy administration, advance authorization, Field Account capacity authority,
+issuance evidence, readiness determination, expense settlement, repayment-
+subject determination, return decision, Requirement follow-up, occurrence/
+evidence recording, specialist referral, restitution review, private-evidence
+access, or protected audit retrieval into one expense, finance-admin, Field
+Account, payroll/AP, or accounting capability. Authorization does not grant
+issuance attestation; issuance does not grant readiness; expense approval does
+not grant advance application; card assignment or personal classification does
+not grant repayment-subject authority; and holding a task, provider credential,
+QBO/Xero connection, Accounting Release role, or bank-match role grants none of
+them.
+
+Every policy, authorization, funding component, issuance observation, readiness
+decision, settlement, subject determination, return decision, Requirement,
+occurrence, evidence read, correction, dispute, specialist referral,
+restitution review, task, notification, export, and audit request reauthorizes
+the exact Tenant, Legal Entity, authoritative claimant and relationship version,
+responsible Party, jurisdiction and conflict route, purpose/source family,
+Approved Expense Snapshot or repayment coverage, ISO application currency,
+external execution owner, evidence purpose and strength, source version with
+compare-and-swap, and current Phase 3/10/12 floor before enumeration or
+mutation. A cross-currency application additionally requires current authority
+over the exact externally owned source/settlement amounts, conversion authority,
+rate, rounding, and residual; no capability may invent or edit an FX result.
+
+No D16 capability may collect or move money, hold personal bank/card
+credentials, adjudicate debt, calculate or initiate payroll deduction or setoff,
+infer return from a task or acknowledgment, silently strengthen evidence,
+fulfill Field Account Funding Coverage without a separately qualified Field
+Account Effect, create a receivable without a separate accountant-certified
+contract, or send policies, observations, tasks, Requirements, disputes,
+reservations, or restitution workflow into Phase 20 accounting truth.
+
+## Dated Phase 21 D17 opening-position capability amendment (2026-07-31)
+
+Phase 21 D17 powers are separately grantable:
+
+- view the authorized **Start Field Accounts** setup, safe preparation status,
+  cohort totals, and non-sensitive exception summaries;
+- create an import session and submit private source artifacts through the Phase
+  29 byte lifecycle and Phase 30 transport surface;
+- define or supersede a draft Opening Source Package precedence and exact
+  per-predecessor-source boundary;
+- map source identities and review Phase 21 mapping-admissibility failures;
+- prepare, resume, or discard one non-authoritative staging generation;
+- reconcile per-account and cohort positions, classify exact/reference history,
+  and propose source-fact dispositions without activating them;
+- resolve an exact mapping, source, coverage, negative-position, in-flight, or
+  independently live coverage exception through its owner-domain command;
+- review one immutable candidate Opening Coverage Manifest and activation
+  consequence preview;
+- perform the final finance-authorized, reauthorized and CAS-guarded Field
+  Account Operational Cutover for the complete cohort;
+- retrieve protected Opening Source Package and manifest evidence for an exact
+  authorized purpose without changing activation or access/publication truth;
+  and
+- record or approve one cause-linked Opening Position Correction and manifest
+  successor after independent source proof.
+
+The implementation manifest may mint finer action names, but it cannot collapse
+private artifact submission, source precedence, mapping, staging, exception
+resolution, reconciliation, final review, activation, protected evidence
+retrieval, or correction into one import, migration, finance-admin, Field
+Account, accounting, or generic staff capability. The default may grant one
+finance actor the ordinary preparation and activation flow for small tenants;
+larger tenants may separate preparer and activator without changing the domain
+contract. Import access grants no activation. Activation grants no Phase 20
+posting, D9 publication, Phase 31 subscription, payroll/AP, reimbursement,
+communication, document, or source-administration authority.
+
+Every source, artifact, package, cohort, mapping, staging generation, exception,
+manifest, preview, activation, evidence retrieval, correction, queue, export,
+and audit request reauthorizes the exact Tenant, Legal Entity, ISO currency,
+complete cohort, Field Account and purpose, predecessor source family and
+environment, source boundary/cursor, source generation, mapping/adapter/parser
+version, evidence purpose and classification, activation generation, and
+current Phase 3/10/12 floor before enumeration or mutation. The final cutover
+also re-proves current permission, source, cohort, mapping, control totals,
+in-flight classifications, independently live coverage, first-close cursor,
+and manifest generation; a stale or changed input returns to review.
+
+No D17 capability may fuzzy-map financial identity, activate an arbitrary row
+subset, silently exclude a fact, admit an unresolved or inadmissibly negative
+cohort, create a mutable balance scalar, claim an external source was locked,
+dual-write, destructively roll back, replay historical/downstream effects,
+publish private evidence, bypass D9 workspace publication, assign Phase 20
+posting ownership, or make QBO/Xero authoritative for a Field Account. Protected
+evidence access remains classification- and purpose-scoped, short-lived, and
+audited; possessing an artifact digest, operation ID, manifest ID, Field Account
+role, QBO/Xero connection, or Phase 30 import role never widens it.
+
+## Dated Phase 21 D18 travel-allowance capability amendment (2026-08-01)
+
+Phase 21 D18 powers are separately grantable:
+
+- view certified Travel Allowance Source Package posture and safe source
+  metadata;
+- draft, preview, supersede, or retire one bounded tenant-owned schedule version
+  for an exact Tenant, Legal Entity, jurisdiction, method, unit, and policy
+  period;
+- record tenant- or qualified-adviser applicability confirmation independently
+  from platform source certification;
+- preview and prospectively activate one travel-allowance calculation module
+  inside the single winning D13 Expense Governance Profile;
+- review a source revision and the exact future, submitted, approved, or released
+  work it affects;
+- read purpose-authorized route, destination, companion, or optional location
+  evidence independently from ordinary claim review where its classification
+  requires narrower access;
+- decide one D13-bounded travel exception or accept one exact external
+  calculation without gaining schedule certification, schedule administration,
+  expense approval, payment, tax, payroll, or accounting authority; and
+- retrieve protected, PII-minimized calculation, coverage, and cumulative-
+  capacity audit evidence.
+
+The implementation manifest may mint finer action names, but it cannot collapse
+platform source certification, tenant schedule administration, applicability
+confirmation, D13 Profile activation, ordinary expense review, sensitive route
+or location evidence access, exception resolution, external-calculation
+acceptance, or protected audit retrieval into one travel, expense-admin, or
+finance capability. Claim approval grants no schedule-administration power;
+tenant configuration grants no platform-certification power; and holding a map,
+model, payroll, AP, Phase 20, QBO, or Xero credential grants none of them.
+
+Every source, schedule, applicability confirmation, Profile activation,
+calculation, cumulative-capacity allocation, duplicate-coverage decision,
+revision review, exception, external result, evidence read, correction, export,
+and audit request reauthorizes the exact Tenant, Legal Entity, claimant Party,
+source-owned relationship or engagement version, source and policy versions,
+jurisdiction, expense date, method, unit, vehicle or other required capacity
+dimension, purpose, claim item or split coverage, ISO currency, evidence
+classification, applicable Profile assignment version, and Phase 3/10/12 floor
+before enumeration or mutation.
+
+No D18 capability may publish legal or tax advice, infer applicability from a
+tenant address, silently stack calculations, edit an approved occurrence,
+reserve capacity from a preview, reuse capacity across scopes, create an expense
+claim, approve a claim, create a Reimbursement Obligation, mark payment, compile
+an Accounting Release, or expose raw route/location evidence through ordinary
+audit, support, or export access.
+
+## Dated Phase 21 D28 cumulative-admission capability amendment (2026-08-02)
+
+D28 preparation and activation powers are separately grantable from ordinary
+claim entry, D13 profile administration, expense approval, protected evidence
+access, payment, payroll, and accounting:
+
+- view safe source-specific cumulative-admission posture and the exact current
+  pool or indivisible-group census without receiving private evidence access;
+- prepare or import a draft Opening Cumulative State for an exact pool through
+  a source-authorized evidence method;
+- view the separately classified evidence supporting that state or prospective
+  source-completeness assertion;
+- review the complete content-addressed Cumulative Admission Manifest and its
+  exact calculation consequences;
+- admit one complete pool or indivisible group to native D18 calculation at an
+  exact prospective boundary;
+- append a correction or approve an affected-suffix disposition without gaining
+  expense-approval, obligation, payment, payroll/tax, or accounting authority;
+  and
+- retrieve the protected admission, first-use, correction, and containment
+  audit for an exact authorized scope.
+
+No broad travel-admin, finance, import, service, or Field Account capability may
+collapse these powers. The server derives the Tenant, Legal Entity, claimant,
+relationship, source, period, unit, pool/group, evidence, manifest, and
+authorization epoch; reauthorization occurs before enumeration and again in the
+first-use CAS. Possessing a Phase 30 import role, evidence digest, source-package
+ID, D27 readiness record, Field Account role, or service credential never grants
+admission or evidence access.
+
+Where a service or `BYPASSRLS` path is unavoidable, the same Phase 12 policy
+decision, mandatory scope predicates, composite constraints, commit-time epoch
+and revocation reproof, and explicit bypass-path tenant-substitution tests remain
+required. D28 cannot rely on RLS to constrain a role that bypasses it.
+
+## Dated Phase 21 D19 Support Assignment participation and workspace-authorization amendment (2026-08-01)
+
+Phase 21 D19 consumes this spine without creating a second authorization
+product. Phase 21 owns the organization-controlled **Support Assignment** and
+its prospective, effective-dated **Support Assignment Participant Membership**.
+It registers exact resources, projections, purposes, and capability atoms with
+Phase 12. Phase 12 remains the sole owner of principals, Active Tenant
+Assignments, grants, groups, floors, Legal Entity scope, policy decisions,
+authorization epochs, deny-first revocation, `EffectiveAccess`, explanation,
+and authorization audit.
+
+Terminology is binding. Phase 12's former shorthand **Active assignment** means
+**Active Tenant Assignment**: the principal's exact current Tenant membership/
+security context. It is not a Phase 21 Support Assignment. Public/API/schema
+identifiers must distinguish `support_assignment_id` from the active Tenant
+membership/assignment identifier and must never expose one ambiguous bare
+`assignment_id`. The existing `public.support_assignments` table remains
+Support Hub conversation routing and cannot be reused as the Phase 21 subject.
+
+Authenticated tenant humans include staff, donors, and missionaries with exact
+current memberships. They use the same PDP and floor; a missionary is neither
+public/anonymous nor automatically staff. Party participation, spouse/
+household/team relationships, leadership labels, public-page identity, and
+Support Assignment membership never authorize by themselves.
+
+The implementation capability manifest must keep at least these powers
+independently grantable:
+
+- view one authorization-filtered, Support-Assignment-scoped Support Workspace
+  projection;
+- view a bounded coach-progress projection;
+- view a bounded project/team summary projection;
+- view a participant roster subject to Phase 3/10/12 identity and field floors;
+- add a Support Assignment Participant Membership;
+- prospectively end or append a correction to a Support Assignment Participant
+  Membership;
+- inspect safe invitation and access state without revealing protected identity;
+- grant or widen Support Workspace access;
+- revoke or narrow Support Workspace access independently from widening;
+- manage prospective tenant collaboration defaults and their exact compiled
+  grants/preferences; and
+- retrieve protected D19 authorization/evidence under a governed audit purpose.
+
+Self-service notification preference is separate from tenant-default
+administration. D10/D13 claimant submission, evidence, review, exception, and
+approval capabilities remain owned by those decisions. Payee, compensation,
+finance, task, Phase 6 dispatch, Phase 20 accounting, Phase 31 feed, and D5
+reallocation/succession authority cannot be inferred from a D19 grant.
+
+The implementation may mint finer capability names, but it cannot collapse
+participant administration, access widening, access revocation, projection
+reads, notification defaults, operational responsibility, or protected audit
+retrieval into one `manage field accounts`, `share account`, missionary, spouse,
+leader, or finance-admin capability. A tenant preset is only an administrative
+compiler into explicit resource-scoped named grants and prospective preference
+versions; its label and the `People & access` UI are never enforcement.
+
+One guided `People & access` action may orchestrate participant, invitation,
+grant, responsibility, and notification commands only when authority for every
+selected command is independently re-proved and its local records retain
+separate identities and evidence. External invitation or notification delivery
+is an outbox effect, not part of the local transaction. Pending, failed,
+expired, mismatched, or revoked invitations grant nothing.
+
+Every read, mutation, invite acceptance/reissue/revocation, queued job,
+Realtime-triggered refetch, notification eligibility check, export, repair, and
+audit request re-resolves the exact principal, Active Tenant Assignment,
+Tenant, Legal Entity, Support Assignment, target/version, purpose, projection,
+capability, floor, and governance epoch before enumeration or change.
+Participant membership is required only where the source command explicitly
+requires it; a coach or authorized staff viewer may have bounded access without
+participation, while a participant may have no login or workspace access.
+
+Invitations and grant mutations use semantic idempotency and CAS/version
+guards. Global Tenant-membership deactivation fences every D19 access path
+immediately. Support-Assignment revocation invalidates current access, cache,
+and queued notification eligibility before disclosure. Reactivation never
+resurrects an expired or revoked grant, invitation, or notification preference.
+Phase 21 tables use forced coarse Tenant RLS only; fine-grained authorization
+remains server-side through this PDP, including every service/secret-key or
+`BYPASSRLS` path. Client JWT grant arrays, client-trusted scope, assignment-aware
+RLS, and raw financial/membership `postgres_changes` are forbidden.
+
+## Dated Phase 21 D22 prospective-expense-authorization capability amendment (2026-08-01)
+
+Phase 21 D22 reuses the sole Phase 12 resolver and D13 finite approval-route
+kernel. It does not create a generic workflow ACL, and neither D13 activation
+nor D19 Support Assignment participation grants any D22 power. The
+implementation capability manifest must keep at least these operations
+independently grantable:
+
+- view safe prospective-authorization posture and coverage for an authorized
+  scope;
+- draft a request for oneself as the exact claimant;
+- prepare, submit, or withdraw a request on behalf of an exact claimant;
+- view one's own request, exact terms, safe status, and authorized history;
+- view private plan evidence under its classification and purpose;
+- perform one ordinary, final, specialist, or exception review action over
+  exact assigned coverage;
+- approve only as requested, approve with a permitted narrowing, decline, or
+  request information;
+- recuse, reassign, or create a date-bounded non-transitive delegation under
+  independently authorized scope;
+- configure, preview, activate, supersede, or deactivate one prospective
+  posture/governance assignment;
+- create, fulfill, reclassify, or release an exact compatible D1 capacity
+  reservation; and
+- retrieve privacy-filtered authorization, assignment, coverage, and recovery
+  evidence under a governed audit purpose.
+
+The implementation may mint finer atoms but cannot collapse posture
+configuration, requester action, on-behalf preparation, evidence access,
+ordinary review, final decision, exception authority, delegation,
+reassignment, capacity reservation, release, and protected audit retrieval into
+one expense-admin, finance-admin, approver, missionary, or participant
+capability. Reservation power is separately required even when the reviewer may
+approve; a final decision and its full reservation still commit atomically or
+not at all.
+
+Every enumerate, read, draft, submission, review, decision, assignment,
+delegation, withdrawal, successor, claim-coverage, reservation, release,
+notification, export, correction, and audit operation reauthorizes the exact
+principal, Active Tenant Assignment, Tenant, Legal Entity, claimant Party,
+submitter/preparer, purpose, expense family, ISO currency, source-owned
+relationship context, request/decision/source/policy versions, half-open
+incurrence window, exact operation and coverage, governance epoch,
+classification, capability, and Phase 3/10/12 floor before disclosure or
+change. A frozen Assignment Snapshot preserves routing evidence but never
+preserves reviewer authority.
+
+Claimants, preparers, and submitters cannot satisfy an independent review step.
+Reviewers cannot widen an amount, time window, claimant, Legal Entity, purpose,
+currency, or expense family; widening requires a requester-authored successor
+and fresh resolution. No broad administrator, AI binding, elapsed timer, email
+link, amount threshold, batch action, relationship, participant membership,
+Support Assignment role, QBO/Xero connection, or service credential may create
+approval. Delegation is exact-scope, date-bounded, non-transitive, and current-
+authority-rechecked; small tenants use a named independent oversight route,
+never self-approval.
+
+The off posture exposes no D22 resource enumeration, count, navigation,
+notification, queue, report, setup prompt, or API projection. Private evidence
+and sensitive itinerary, location, health, security, or specialist context may
+be read only under their narrower purpose and classification. Phase 20,
+payment, payroll, procurement, card, vendor, travel-booking, and accounting
+credentials grant no D22 authority.
+
+## Dated Phase 21 D23 expense-effect-recognition capability amendment (2026-08-01)
+
+Phase 21 D23 reuses the sole Phase 12 resolver, D10/D13 approved-expense truth,
+and D1/D11 close contract. The capability manifest keeps at least these
+operations independently grantable:
+
+- view safe support-balance timing and the active profile for an authorized
+  scope;
+- preview prospective profile activation against production-shaped source
+  coverage;
+- activate, end, or supersede a profile prospectively;
+- inspect a PII-minimized effect, coverage, funding disposition, and correction
+  lineage;
+- retrieve the protected Effect Basis and source evidence for an exact governed
+  purpose;
+- view cause-owned qualification or correction exceptions;
+- perform the applicable source-owner correction; and
+- retrieve governed D23 audit evidence.
+
+There is deliberately no manual `include`, `post`, `mark paid`, qualification-
+date/rate override, per-claim mode override, or blind-retry capability. D19
+participation, D10/D13 claim review, D15 handoff/payment work, Phase 20
+accountant access, a broad administrator role, a service credential, AI output,
+or Mission Control task closure grants none of these powers. Profile activation,
+protected evidence retrieval, source correction, and recovery each reauthorize
+the exact principal, Active Tenant Assignment, Tenant, Legal Entity, purpose,
+Support Assignment, Field Account, ISO currency, source family, operation,
+profile/source/coverage version, classification, capability, and governance
+epoch immediately before action. All service or `BYPASSRLS` paths call the
+same PDP and retain forced coarse Tenant RLS as defense in depth.
+
+## Dated Phase 21 D24 expense-collaboration capability amendment (2026-08-02)
+
+Phase 21 D24 reuses this sole PDP and D10/D13 claim and review truth. The
+Expense Collaboration Assignment Version records the code-owned `prepare_only`
+or `prepare_and_submit_confirmed` collaboration-mode ceiling and provenance,
+not a grant or tenant-authored operation list. Its authority-free invitation, acceptance,
+relationship context, helper identity, notification, prior action, AI/OCR
+result, or service credential cannot substitute for a current Phase 12
+decision.
+
+The capability manifest keeps at least these operations independently
+grantable:
+
+- inspect safe collaboration posture and invitation/assignment state;
+- create, accept where applicable, prospectively end, or supersede an exact
+  Assignment under the tenant's enabled management posture;
+- view one exact authorized claim/draft projection;
+- contribute or finalize evidence under an exact Evidence Access Projection;
+- prepare claim items or report structure without asserting claimant truth;
+- mark an unchanged draft ready for claimant confirmation;
+- confirm one's own exact Claim Version and canonical material-assertion digest;
+- optionally submit only that unchanged, independently eligible and confirmed
+  Claim Version where the tenant enabled the operation; and
+- retrieve privacy-filtered Assignment, action, conflict, and recovery evidence
+  under a governed audit purpose.
+
+The implementation may mint finer atoms but cannot collapse assignment
+management, invitation handling, evidence access, preparation, claimant
+confirmation, submission, review, approval, payment, or protected audit
+retrieval into one helper, spouse, assistant, missionary, finance-admin, or
+expense-admin capability. A helper cannot create claimant consent, select or
+satisfy an independent D13 review, approve their work, choose a payment route,
+or gain Field Account, payroll, AP, Phase 20, or QBO/Xero authority.
+
+Every enumeration, read, upload finalization, mutation, confirmation,
+submission, export, notification, job, support action, and audit retrieval
+reauthorizes the exact principal, Active Tenant Assignment, Tenant, Legal
+Entity, claimant Party, helper Party, Expense Program, purpose/claim family,
+operation, Claim and Assignment Versions, evidence projection and
+classification, capability, floor, and governance epoch. Revocation and
+principal disablement fence new authorization and queued work before visible
+success. JWT grant arrays, client-trusted actor or scope, relationship-aware
+RLS, and service-role-as-authority are forbidden; forced coarse Tenant RLS
+remains defense in depth for every service or `BYPASSRLS` path.
+
+Confirmed helper submission is one atomic, version-pinned command. It locks and
+re-proves the current Assignment, Claim Version, canonical material-assertion
+digest, claimant confirmation or admitted attestation, evidence projection,
+D13 policy/route state, capability, and governance epoch; then appends exactly
+one submission, immutable actor evidence, audit record, and outbox work under
+one semantic idempotency identity. Edit/confirm/submit, revoke/submit,
+quarantine/submit, policy-succession/submit, and duplicate-submit conflicts
+return a clean conflict or the original result, never last-write-wins or partial
+truth. Claimant, economic payer, evidence contributor, preparer, submitter,
+confirmer or attestor, reviewer, approver, beneficiary/payee, and actual actor principal remain
+separate immutable facts.
+
+## Dated Phase 21 D25 expense-resolution capability amendment (2026-08-02)
+
+D25 reuses the sole Phase 12 PDP and a code-owned cause/action catalog. The
+following operations remain independently grantable and exact-scope bounded:
+
+- view one minimum authorized Resolution Case summary and next action;
+- provide one's own requested information or evidence-unavailable statement;
+- request another review or eligible exact withdrawal;
+- record organization-authored evidence under the actual staff identity;
+- perform current D13 review or Reviewer Exception only through D13 authority;
+- route coordination work without deciding it;
+- invoke one exact independently authorized source-owner correction command;
+  and
+- inspect a protected Downstream Impact Manifest or audit projection.
+
+There is no generic `resolve_case`, `close_case`, `reopen`, `unapprove`,
+`override`, edit-as-claimant, mark-paid, bulk financial action, or cross-domain
+rollback capability. Broad administrator, service-role, table owner, or
+`BYPASSRLS` access is never product authority.
+
+Every enumeration and command proves exact Tenant, Legal Entity, claimant,
+stable claim and triggering version, item/split/purpose/ISO currency, cause
+contract, root source, evidence classification, actor, conflict, current
+Downstream Impact Manifest, capability, and governance versions. Every
+consequential commit reauthorizes and CAS-reproves them before appending one
+atomic action/audit/projection/outbox result. The same catalog drives server
+authorization, visible actions, audit meaning, and parity tests.
+
+## Dated Phase 21 D26 records-policy and custody-export capability amendment (2026-08-02)
+
+D26 reuses the sole Phase 12 policy decision point and keeps at least these
+operations independently grantable:
+
+- view the safe current Records policy and source-linked guidance;
+- inspect protected contract, binding, resolution, trigger, hold, and successor-
+  impact evidence for an exact authorized scope;
+- preview and prospectively activate or supersede one supported tenant Binding
+  Version;
+- place a hold and release a hold as separate privileged operations under the
+  applicable hold authority;
+- request and inspect a current-view export or one exact readable record copy;
+- request, inspect, download, or print one manifest-complete Phase 21 records
+  archive for an exact Legal Entity and scope;
+- request and retrieve a separately authorized restricted-subject package;
+- prepare and retrieve a final offboarding snapshot or delta under the current
+  contract window;
+- record one Tenant External Copy Assertion without granting transfer or
+  disposal authority;
+- execute or inspect one separately certified Phase 31 Verified Destination
+  Custody Transfer; and
+- inspect protected package, download, transfer, hold, and copy-disposition
+  evidence under a governed audit purpose.
+
+The implementation may mint finer atoms but cannot collapse policy management,
+hold placement/release, package request, protected source inspection, ordinary
+download, restricted-person export, external-copy assertion, verified transfer,
+offboarding, or Phase 29 disposition into one administrator, finance, records,
+support, service-role, table-owner, or `BYPASSRLS` capability. Download, print,
+assertion, transfer, termination, and package expiry grant no source-record or
+copy-disposition authority.
+
+Every preview, count, request, preparation step, seal, part listing, original
+inclusion, download, print, assertion, transfer, regeneration, residual, hold,
+disposition request, support action, and audit retrieval proves exact principal
+and actual principal, Active Tenant Assignment, Tenant, Legal Entity, purpose,
+record family, subject/account and restricted-person scope, source/version
+watermark, contract/binding/resolution versions, classification, package and
+part identity, operation, capability, and authorization/governance epochs.
+Consequential commits and every byte retrieval reauthorize and CAS-reprove the
+current facts; a stale or narrower decision fails without revealing hidden
+coverage. Forced coarse Tenant RLS remains defense in depth, never product
+authority.
