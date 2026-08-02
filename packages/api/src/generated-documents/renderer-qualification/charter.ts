@@ -134,6 +134,52 @@ const REMEDIATION_POLICY_FIELDS = [
   "max_hours_per_cycle",
   "permitted_changes",
 ] as const;
+const OPERATIONAL_SUITES_FIELDS = [
+  "repeatability",
+  "mixed_batch",
+  "fairness",
+  "concurrency_staircase",
+  "failure_matrix",
+  "outage_recovery",
+] as const;
+const REPEATABILITY_SUITE_FIELDS = [
+  "case_ids",
+  "cold_runs_per_case",
+  "warm_runs_per_case",
+] as const;
+const MIXED_BATCH_SUITE_FIELDS = [
+  "total_items",
+  "tenants",
+  "short_items",
+  "medium_items",
+  "long_items",
+  "poison_items",
+  "successful_item_policy",
+  "ambiguous_item_policy",
+  "retry_eligibility",
+  "retry_pin_policy",
+] as const;
+const FAIRNESS_SUITE_FIELDS = [
+  "heavy_tenant_items",
+  "heavy_item_shape",
+  "light_tenants",
+  "light_items_each",
+  "light_item_shape",
+  "claim_bound_multiplier",
+  "permitted_safety_throttle",
+] as const;
+const CONCURRENCY_STAIRCASE_SUITE_FIELDS = [
+  "steps",
+  "safety_ceiling_concurrent_attempts",
+] as const;
+const FAILURE_MATRIX_SUITE_FIELDS = [
+  "injections",
+  "durable_boundaries",
+] as const;
+const OUTAGE_RECOVERY_SUITE_FIELDS = [
+  "outage_window_minutes",
+  "proof",
+] as const;
 
 const isSha256Hex = (value: string | undefined): boolean =>
   SHA256_HEX.test(value ?? "");
@@ -892,8 +938,20 @@ function validateSuites(
   issues: CharterValidationIssue[],
 ): void {
   const suites = input.operational_suites;
+  if (!suites || typeof suites !== "object" || Array.isArray(suites)) {
+    issues.push(
+      issue(
+        "operational_suites",
+        "suite_invalid",
+        "The complete frozen operational-suite contract is required.",
+      ),
+    );
+    return;
+  }
 
   if (
+    !hasExactOwnFields(suites, OPERATIONAL_SUITES_FIELDS) ||
+    !hasExactOwnFields(suites.repeatability, REPEATABILITY_SUITE_FIELDS) ||
     !sameStringSequence(
       suites.repeatability.case_ids,
       PHASE_18_OPERATIONAL_SUITES.repeatability.case_ids,
@@ -914,6 +972,7 @@ function validateSuites(
 
   const batch = suites.mixed_batch;
   if (
+    !hasExactOwnFields(batch, MIXED_BATCH_SUITE_FIELDS) ||
     batch.total_items !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.total_items ||
     batch.tenants !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.tenants ||
     batch.short_items !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.short_items ||
@@ -922,6 +981,14 @@ function validateSuites(
     batch.long_items !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.long_items ||
     batch.poison_items !==
       PHASE_18_OPERATIONAL_SUITES.mixed_batch.poison_items ||
+    batch.successful_item_policy !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.successful_item_policy ||
+    batch.ambiguous_item_policy !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.ambiguous_item_policy ||
+    batch.retry_eligibility !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.retry_eligibility ||
+    batch.retry_pin_policy !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.retry_pin_policy ||
     batch.short_items +
       batch.medium_items +
       batch.long_items +
@@ -932,19 +999,24 @@ function validateSuites(
       issue(
         "operational_suites.mixed_batch",
         "suite_invalid",
-        "The mixed batch is 1,000 items across 20 tenants: 700 short, 200 medium, 80 long, 20 poison.",
+        "The mixed batch is 1,000 items across 20 tenants: 700 short, 200 medium, 80 long, and 20 poison; successful and ambiguous items do not rerun, and only eligible failures retry with exact pins.",
       ),
     );
   }
 
   const fairness = suites.fairness;
   if (
+    !hasExactOwnFields(fairness, FAIRNESS_SUITE_FIELDS) ||
     fairness.heavy_tenant_items !==
       PHASE_18_OPERATIONAL_SUITES.fairness.heavy_tenant_items ||
+    fairness.heavy_item_shape !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.heavy_item_shape ||
     fairness.light_tenants !==
       PHASE_18_OPERATIONAL_SUITES.fairness.light_tenants ||
     fairness.light_items_each !==
       PHASE_18_OPERATIONAL_SUITES.fairness.light_items_each ||
+    fairness.light_item_shape !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.light_item_shape ||
     fairness.claim_bound_multiplier !==
       PHASE_18_OPERATIONAL_SUITES.fairness.claim_bound_multiplier ||
     fairness.permitted_safety_throttle !==
@@ -954,12 +1026,16 @@ function validateSuites(
       issue(
         "operational_suites.fairness",
         "suite_invalid",
-        "Fairness is one 500-item tenant against 19 ten-item tenants with the 2× claim bound.",
+        "Fairness is one 500-item long-document tenant against 19 ten-item short-document tenants with the 2× claim bound.",
       ),
     );
   }
 
   if (
+    !hasExactOwnFields(
+      suites.concurrency_staircase,
+      CONCURRENCY_STAIRCASE_SUITE_FIELDS,
+    ) ||
     JSON.stringify(suites.concurrency_staircase.steps) !==
       JSON.stringify(PHASE_18_OPERATIONAL_SUITES.concurrency_staircase.steps) ||
     suites.concurrency_staircase.safety_ceiling_concurrent_attempts !==
@@ -976,6 +1052,7 @@ function validateSuites(
   }
 
   if (
+    !hasExactOwnFields(suites.failure_matrix, FAILURE_MATRIX_SUITE_FIELDS) ||
     !sameStringSequence(
       suites.failure_matrix.injections,
       PHASE_18_OPERATIONAL_SUITES.failure_matrix.injections,
@@ -995,6 +1072,7 @@ function validateSuites(
   }
 
   if (
+    !hasExactOwnFields(suites.outage_recovery, OUTAGE_RECOVERY_SUITE_FIELDS) ||
     suites.outage_recovery.outage_window_minutes !==
       PHASE_18_OPERATIONAL_SUITES.outage_recovery.outage_window_minutes ||
     suites.outage_recovery.proof !==

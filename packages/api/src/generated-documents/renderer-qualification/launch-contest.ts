@@ -500,11 +500,17 @@ export const PHASE_18_OPERATIONAL_SUITES: OperationalSuites = {
     medium_items: 200,
     long_items: 80,
     poison_items: 20,
+    successful_item_policy: "remain_successful",
+    ambiguous_item_policy: "do_not_rerun",
+    retry_eligibility: "eligible_failures_only",
+    retry_pin_policy: "reuse_exact_pins",
   },
   fairness: {
     heavy_tenant_items: 500,
+    heavy_item_shape: "long_100_plus_pages",
     light_tenants: 19,
     light_items_each: 10,
+    light_item_shape: "short_one_page",
     claim_bound_multiplier: 2,
     permitted_safety_throttle:
       "explicitly recorded provider/queue safety throttle; any claim-bound miss must cite it",

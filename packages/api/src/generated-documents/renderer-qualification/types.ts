@@ -267,11 +267,17 @@ export interface OperationalSuites {
     medium_items: number;
     long_items: number;
     poison_items: number;
+    successful_item_policy: "remain_successful";
+    ambiguous_item_policy: "do_not_rerun";
+    retry_eligibility: "eligible_failures_only";
+    retry_pin_policy: "reuse_exact_pins";
   };
   fairness: {
     heavy_tenant_items: number;
+    heavy_item_shape: "long_100_plus_pages";
     light_tenants: number;
     light_items_each: number;
+    light_item_shape: "short_one_page";
     claim_bound_multiplier: number;
     /**
      * Protocol: the claim bound holds "subject only to an explicitly recorded
