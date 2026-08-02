@@ -40,6 +40,31 @@ function issueCodes(input: RendererQualificationCharterInput): string[] {
   );
 }
 
+type CandidateLock = RendererQualificationCharterInput["candidates"][number];
+
+function patchCandidate(
+  input: RendererQualificationCharterInput,
+  candidateId: CandidateLock["candidate_id"],
+  patch: Record<string, unknown>,
+): void {
+  input.candidates = input.candidates.map((candidate) =>
+    candidate.candidate_id === candidateId
+      ? ({ ...candidate, ...patch } as CandidateLock)
+      : candidate,
+  );
+}
+
+function candidateIssueCodes(
+  candidateId: CandidateLock["candidate_id"],
+  patch: Record<string, unknown>,
+): string[] {
+  return issueCodes(
+    mutated((input) => {
+      patchCandidate(input, candidateId, patch);
+    }),
+  );
+}
+
 describe("canonicalizeQualificationValue", () => {
   it("orders keys by code unit so digests do not depend on the runtime locale", () => {
     // "a".localeCompare("B") is negative under locale collation but "a" sorts
@@ -107,7 +132,12 @@ describe("freezeRendererQualificationCharter", () => {
     const base = freezeRendererQualificationCharter(buildFixtureContestInput());
 
     const shuffled = structuredClone(buildFixtureContestInput());
-    shuffled.candidates = [...shuffled.candidates].reverse();
+    shuffled.candidates = [...shuffled.candidates]
+      .reverse()
+      .map((candidate) => ({
+        ...candidate,
+        fonts_assets_packages: [...candidate.fonts_assets_packages].reverse(),
+      }));
     shuffled.open_corpus = [...shuffled.open_corpus].reverse();
     shuffled.held_back_corpus = [...shuffled.held_back_corpus].reverse();
     shuffled.gates = [...shuffled.gates].reverse();
@@ -212,6 +242,117 @@ describe("freezeRendererQualificationCharter", () => {
     ).not.toContain("candidate_lock_invalid");
   });
 
+  it("requires exact source-compiler and adapter-commit provenance for every candidate", () => {
+    for (const candidateId of ["P18-R-P", "P18-R-T", "P18-R-C"] as const) {
+      expect(
+        candidateIssueCodes(candidateId, { source_compiler: undefined }),
+        `${candidateId} source compiler`,
+      ).toContain("provenance_missing");
+      expect(
+        candidateIssueCodes(candidateId, {
+          source_compiler: {
+            name: "document-source-compiler",
+            version: "1.0.0",
+            digest: "not-a-digest",
+          },
+        }),
+        `${candidateId} source compiler digest`,
+      ).toContain("provenance_missing");
+      expect(
+        candidateIssueCodes(candidateId, { adapter_commit: "main" }),
+        `${candidateId} adapter commit`,
+      ).toContain("provenance_missing");
+      expect(
+        candidateIssueCodes(candidateId, {
+          adapter_commit: "a".repeat(64),
+        }),
+        `${candidateId} SHA-256-format Git object id`,
+      ).not.toContain("provenance_missing");
+    }
+  });
+
+  it("pins the Chromium control's browser, Playwright, and runtime independently", () => {
+    for (const patch of [
+      { playwright_version: " " },
+      { playwright_version: "latest" },
+      { browser_revision: " " },
+      { browser_revision: "current" },
+      { container_runtime: " " },
+      { container_runtime: "latest" },
+      { container_runtime: "containerd@^2.0.0" },
+      { container_runtime: "containerd@2.x" },
+      { container_runtime_digest: "not-a-digest" },
+      { container_image_digest: "not-a-digest" },
+      { engine_binary_digest: "not-a-digest" },
+    ]) {
+      expect(
+        candidateIssueCodes("P18-R-C", patch),
+        JSON.stringify(patch),
+      ).toContain("candidate_lock_invalid");
+    }
+    expect(
+      candidateIssueCodes("P18-R-C", {
+        container_runtime: "containerd@2.0.0-beta.1",
+      }),
+    ).not.toContain("candidate_lock_invalid");
+  });
+
+  it("pins Typst distribution, container, and structural sandbox guarantees", () => {
+    for (const patch of [
+      { distribution_provenance_digest: "not-a-digest" },
+      { container_image_digest: "not-a-digest" },
+      { container_runtime: "sandbox-latest" },
+      { container_runtime: "containerd@^2.0.0" },
+      { container_runtime: "containerd@2.x" },
+      { container_runtime_digest: "not-a-digest" },
+      { os_libc: "whatever" },
+      { os_libc: "glibc>=2.36" },
+      {
+        sandbox_policy: {
+          killable: false,
+          network_access: "denied",
+          ambient_host_filesystem_access: "denied",
+          inputs_pre_vendored: true,
+        },
+      },
+      {
+        sandbox_policy: {
+          killable: true,
+          network_access: "allowed",
+          ambient_host_filesystem_access: "denied",
+          inputs_pre_vendored: true,
+        },
+      },
+      {
+        sandbox_policy: {
+          killable: true,
+          network_access: "denied",
+          ambient_host_filesystem_access: "allowed",
+          inputs_pre_vendored: true,
+        },
+      },
+      {
+        sandbox_policy: {
+          killable: true,
+          network_access: "denied",
+          ambient_host_filesystem_access: "denied",
+          inputs_pre_vendored: false,
+        },
+      },
+      { network_filesystem_policy: "network and host filesystem allowed" },
+    ]) {
+      expect(
+        candidateIssueCodes("P18-R-T", patch),
+        JSON.stringify(patch),
+      ).toContain("candidate_lock_invalid");
+    }
+    expect(
+      candidateIssueCodes("P18-R-T", {
+        container_runtime: "containerd@2.0.0-beta.1",
+      }),
+    ).not.toContain("candidate_lock_invalid");
+  });
+
   it("rejects a candidate operator recorded in the held-back access log", () => {
     // Protocol role table: candidate implementers must not "See held-back
     // expected results before candidate outputs are sealed". An operator in
@@ -296,6 +437,79 @@ describe("freezeRendererQualificationCharter", () => {
         }),
       ),
     ).toContain("approval_missing");
+  });
+
+  it("uses a unique canonical identity for every pinned font, asset, and package", () => {
+    expect(
+      candidateIssueCodes("P18-R-P", {
+        fonts_assets_packages: [
+          {
+            artifact_id: " ",
+            name: "noto-sans",
+            version: "2.013",
+            license: "OFL-1.1",
+            digest: syntheticDigest("noto-sans-regular"),
+          },
+        ],
+      }),
+    ).toContain("provenance_missing");
+
+    expect(
+      candidateIssueCodes("P18-R-P", {
+        fonts_assets_packages: [
+          {
+            artifact_id: " font/noto-sans/regular ",
+            name: "noto-sans",
+            version: "2.013",
+            license: "OFL-1.1",
+            digest: syntheticDigest("noto-sans-regular"),
+          },
+        ],
+      }),
+    ).toContain("provenance_missing");
+
+    expect(
+      candidateIssueCodes("P18-R-P", {
+        fonts_assets_packages: [
+          {
+            artifact_id: "shared-artifact",
+            name: "noto-sans",
+            version: "2.013",
+            license: "OFL-1.1",
+            digest: syntheticDigest("noto-sans-regular"),
+          },
+          {
+            artifact_id: "shared-artifact",
+            name: "noto-sans",
+            version: "2.013",
+            license: "OFL-1.1",
+            digest: syntheticDigest("noto-sans-bold"),
+          },
+        ],
+      }),
+    ).toContain("inventory_identity_conflict");
+
+    const variants = mutated((input) => {
+      patchCandidate(input, "P18-R-P", {
+        fonts_assets_packages: [
+          {
+            artifact_id: "font/noto-sans/regular",
+            name: "noto-sans",
+            version: "2.013",
+            license: "OFL-1.1",
+            digest: syntheticDigest("noto-sans-regular"),
+          },
+          {
+            artifact_id: "font/noto-sans/bold",
+            name: "noto-sans",
+            version: "2.013",
+            license: "OFL-1.1",
+            digest: syntheticDigest("noto-sans-bold"),
+          },
+        ],
+      });
+    });
+    expect(() => freezeRendererQualificationCharter(variants)).not.toThrow();
   });
 
   it("requires an orderable charter version and a duplicate-free trigger set", () => {
@@ -441,6 +655,145 @@ describe("freezeRendererQualificationCharter", () => {
         }),
       ),
     ).toContain("charter_incomplete");
+  });
+
+  it("allows a fully reset, fully pinned self-hosted Prince candidate before results exist", () => {
+    const managed = freezeRendererQualificationCharter(
+      buildFixtureContestInput(),
+    );
+    const selfHosted = mutated((input) => {
+      input.charter_id = "p18-renderer-contest-self-hosted-prince";
+      input.charter_version = "1.0.0";
+      input.frozen_at = "2026-07-23T12:00:00.000Z";
+      input.held_back_corpus = input.held_back_corpus.map((item) => ({
+        ...item,
+        sealed_expectation_digest: syntheticDigest(
+          `self-hosted-prince-${item.case_id}`,
+        ),
+      }));
+      input.held_back_seal = {
+        ...input.held_back_seal,
+        sealed_at: "2026-07-23T11:00:00.000Z",
+        sealed_expectations_digest: syntheticDigest(
+          "self-hosted-prince-held-back-reset",
+        ),
+        access_log: [
+          {
+            actor: input.roles.corpus_custodian,
+            at: "2026-07-23T11:00:00.000Z",
+            reason: "resealed for the fresh self-hosted Prince charter",
+          },
+        ],
+      };
+      patchCandidate(input, "P18-R-P", {
+        display_name: "Self-hosted Prince 15.1",
+        deployment_mode: "self_hosted",
+        pipeline: "prince-server@15.1",
+        provider_settings: undefined,
+        network_filesystem_policy: undefined,
+        container_runtime: "containerd@2.0.0",
+        container_runtime_digest: syntheticDigest("containerd-prince-runtime"),
+        container_image_digest: syntheticDigest("prince-container"),
+        os_libc: "debian12-glibc2.36",
+        engine_binary_digest: syntheticDigest("prince-binary"),
+        sandbox_policy: {
+          killable: true,
+          network_access: "denied",
+          ambient_host_filesystem_access: "denied",
+          inputs_pre_vendored: true,
+        },
+        substitution_reset: {
+          superseded_charter_id: managed.charter_id,
+          superseded_charter_version: managed.charter_version,
+          superseded_manifest_digest: managed.manifest_digest,
+          superseded_frozen_at: managed.frozen_at,
+          superseded_held_back_seal_digest:
+            managed.held_back_seal.sealed_expectations_digest,
+          reason:
+            "managed deployment failed the pre-run operating-evidence gate",
+        },
+      });
+    });
+
+    const reset = freezeRendererQualificationCharter(selfHosted);
+    expect(reset.manifest_digest).not.toBe(managed.manifest_digest);
+    expect(
+      reset.candidates.find((item) => item.candidate_id === "P18-R-P"),
+    ).toMatchObject({
+      deployment_mode: "self_hosted",
+      pipeline: "prince-server@15.1",
+    });
+
+    const withoutReset = structuredClone(selfHosted);
+    patchCandidate(withoutReset, "P18-R-P", { substitution_reset: undefined });
+    expect(issueCodes(withoutReset)).toContain("candidate_lock_invalid");
+
+    const malformedReset = structuredClone(selfHosted);
+    patchCandidate(malformedReset, "P18-R-P", { substitution_reset: {} });
+    expect(() => issueCodes(malformedReset)).not.toThrow();
+    expect(issueCodes(malformedReset)).toContain("candidate_lock_invalid");
+
+    const reusedIdentity = structuredClone(selfHosted);
+    const reusedPrince = reusedIdentity.candidates.find(
+      (candidate) => candidate.candidate_id === "P18-R-P",
+    ) as CandidateLock & {
+      substitution_reset: { superseded_charter_id: string };
+    };
+    reusedPrince.substitution_reset.superseded_charter_id =
+      reusedIdentity.charter_id;
+    expect(issueCodes(reusedIdentity)).toContain("candidate_lock_invalid");
+
+    const paddedReusedIdentity = structuredClone(selfHosted);
+    const paddedReusedPrince = paddedReusedIdentity.candidates.find(
+      (candidate) => candidate.candidate_id === "P18-R-P",
+    ) as CandidateLock & {
+      substitution_reset: { superseded_charter_id: string };
+    };
+    paddedReusedPrince.substitution_reset.superseded_charter_id = `${paddedReusedIdentity.charter_id} `;
+    expect(issueCodes(paddedReusedIdentity)).toContain(
+      "candidate_lock_invalid",
+    );
+
+    const paddedCurrentIdentity = structuredClone(selfHosted);
+    paddedCurrentIdentity.charter_id = `${managed.charter_id} `;
+    expect(issueCodes(paddedCurrentIdentity)).toContain(
+      "candidate_lock_invalid",
+    );
+
+    for (const patch of [
+      { engine_version: "latest" },
+      { engine_version: "15.x" },
+      { pipeline: "prince-latest" },
+      { container_runtime: " " },
+      { container_runtime: "latest" },
+      { container_runtime: "containerd@^2.0.0" },
+      { container_runtime: "containerd@2.x" },
+      { container_runtime_digest: "not-a-digest" },
+      { os_libc: " " },
+      { os_libc: "whatever" },
+      { os_libc: "glibc>=2.36" },
+      { engine_binary_digest: "not-a-digest" },
+      { container_image_digest: "not-a-digest" },
+      {
+        provider_settings: fixtureCandidates().find(
+          (candidate) => candidate.candidate_id === "P18-R-P",
+        )?.provider_settings,
+      },
+    ]) {
+      const invalid = structuredClone(selfHosted);
+      patchCandidate(invalid, "P18-R-P", patch);
+      expect(issueCodes(invalid), JSON.stringify(patch)).toContain(
+        "candidate_lock_invalid",
+      );
+    }
+
+    const prereleaseRuntime = structuredClone(selfHosted);
+    patchCandidate(prereleaseRuntime, "P18-R-P", {
+      container_runtime: "containerd@2.0.0-beta.1",
+    });
+    expect(issueCodes(prereleaseRuntime)).not.toContain(
+      "candidate_lock_invalid",
+    );
   });
 
   it("freezes the durable boundaries each failure must be injected after", () => {

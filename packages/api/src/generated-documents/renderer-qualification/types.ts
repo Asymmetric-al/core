@@ -21,25 +21,65 @@ export type RendererCandidateId = (typeof RENDERER_CANDIDATE_IDS)[number];
 
 export type RendererCandidateEligibility = "comparison_control" | "finalist";
 
+export type RendererCandidateDeploymentMode = "managed" | "self_hosted";
+
+export interface RendererSourceCompilerLock {
+  name: string;
+  version: string;
+  digest: string;
+}
+
+export interface RendererSandboxPolicy {
+  killable: boolean;
+  network_access: "allowed" | "denied";
+  ambient_host_filesystem_access: "allowed" | "denied";
+  inputs_pre_vendored: boolean;
+}
+
+export interface RendererCandidateSubstitutionReset {
+  superseded_charter_id: string;
+  superseded_charter_version: string;
+  superseded_manifest_digest: string;
+  superseded_frozen_at: string;
+  superseded_held_back_seal_digest: string;
+  reason: string;
+}
+
 export interface RendererCandidateLock {
   candidate_id: RendererCandidateId;
   display_name: string;
   eligibility: RendererCandidateEligibility;
+  deployment_mode: RendererCandidateDeploymentMode;
   engine: string;
   engine_version: string;
   pipeline: string;
   adapter_commit: string;
   adapter_digest: string;
   dependency_lock_digest: string;
+  source_compiler: RendererSourceCompilerLock;
   container_runtime?: string;
+  container_runtime_digest?: string;
+  container_image_digest?: string;
   os_libc?: string;
   /**
    * SHA-256 of the exact engine binary. The protocol requires it for the
-   * self-hosted Typst candidate ("Only the exact frozen binary and sandbox
-   * qualify"); the managed pipeline pins its engine through the provider.
+   * self-hosted candidates ("Only the exact frozen binary and sandbox
+   * qualify"); the managed Prince pipeline pins its engine through the
+   * provider.
    */
   engine_binary_digest?: string;
+  /** SHA-256 of retained evidence tying an engine binary to its distributor. */
+  distribution_provenance_digest?: string;
+  /** Explicit browser/toolchain pins for the Chromium comparison control. */
+  playwright_version?: string;
+  browser_revision?: string;
+  /** Machine-checkable isolation guarantees for self-hosted finalist runtimes. */
+  sandbox_policy?: RendererSandboxPolicy;
+  /** Required predecessor/reset evidence for a self-hosted Prince substitution. */
+  substitution_reset?: RendererCandidateSubstitutionReset;
   fonts_assets_packages: readonly {
+    /** Stable deployment role/path that uniquely binds this artifact's bytes. */
+    artifact_id: string;
     name: string;
     version: string;
     license: string;
@@ -55,7 +95,8 @@ export interface RendererCandidateLock {
   locale_data_digest: string;
   finalizer: { name: string; version: string; digest: string };
   configuration_digest: string;
-  network_filesystem_policy: string;
+  /** Human-readable provider policy; self-hosted locks use sandbox_policy only. */
+  network_filesystem_policy?: string;
   provider_settings?: Readonly<Record<string, string>>;
 }
 

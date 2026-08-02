@@ -31,6 +31,7 @@ import type {
   CharterValidationIssue,
   FrozenRendererQualificationCharter,
   QualificationCaseManifest,
+  RendererCandidateLock,
   RendererQualificationCharterInput,
   RendererQualificationManifest,
 } from "./types";
@@ -64,9 +65,78 @@ function sameStringSequence(
  * `"not-a-digest"` is worse than a missing one: it reads as pinned.
  */
 const SHA256_HEX = /^[0-9a-f]{64}$/;
+const GIT_OBJECT_ID_HEX = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
+const ARTIFACT_ID = /^[a-z0-9][a-z0-9._/-]*$/;
+const EXACT_SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+const EXACT_CHROMIUM_REVISION = /^(?:chromium-)?\d+(?:\.\d+){0,3}(?:-r\d+)?$/;
+const FLOATING_PIN_SEGMENT =
+  /(?:^|[-_.@/])(latest|current|stable|next|x)(?:$|[-_.@/])/i;
+const EXACT_VERSIONED_COMPONENT = /^[A-Za-z0-9][A-Za-z0-9._@/-]*$/;
+const EXACT_COMPONENT_NAME = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/;
 
 const isSha256Hex = (value: string | undefined): boolean =>
   SHA256_HEX.test(value ?? "");
+
+function hasRequiredSelfHostedSandbox(
+  candidate: RendererCandidateLock | undefined,
+): boolean {
+  const policy = candidate?.sandbox_policy;
+  return (
+    policy?.killable === true &&
+    policy.network_access === "denied" &&
+    policy.ambient_host_filesystem_access === "denied" &&
+    policy.inputs_pre_vendored === true
+  );
+}
+
+function isExactVersionedComponent(value: string | undefined): boolean {
+  const trimmed = value?.trim();
+  return Boolean(
+    trimmed &&
+    trimmed === value &&
+    /\d/.test(trimmed) &&
+    EXACT_VERSIONED_COMPONENT.test(trimmed) &&
+    !FLOATING_PIN_SEGMENT.test(trimmed),
+  );
+}
+
+function isExactNamedRuntime(value: string | undefined): boolean {
+  if (!value || value !== value.trim()) return false;
+  const separator = value.lastIndexOf("@");
+  if (separator <= 0) return false;
+
+  const name = value.slice(0, separator);
+  const version = value.slice(separator + 1);
+  return EXACT_COMPONENT_NAME.test(name) && EXACT_SEMVER.test(version);
+}
+
+function hasValidPrinceSubstitutionReset(
+  input: RendererQualificationCharterInput,
+  candidate: RendererCandidateLock | undefined,
+): boolean {
+  const reset = candidate?.substitution_reset;
+  if (!reset) return false;
+
+  const supersededCharterId = reset.superseded_charter_id;
+  const currentCharterId = input.charter_id;
+  const supersededFrozenAt = Date.parse(reset.superseded_frozen_at ?? "");
+  const currentFrozenAt = Date.parse(input.frozen_at);
+  return (
+    Boolean(supersededCharterId?.trim()) &&
+    supersededCharterId === supersededCharterId.trim() &&
+    currentCharterId === currentCharterId.trim() &&
+    supersededCharterId !== currentCharterId &&
+    EXACT_SEMVER.test(reset.superseded_charter_version ?? "") &&
+    isSha256Hex(reset.superseded_manifest_digest) &&
+    !Number.isNaN(supersededFrozenAt) &&
+    !Number.isNaN(currentFrozenAt) &&
+    supersededFrozenAt < currentFrozenAt &&
+    isSha256Hex(reset.superseded_held_back_seal_digest) &&
+    reset.superseded_held_back_seal_digest !==
+      input.held_back_seal.sealed_expectations_digest &&
+    Boolean(reset.reason?.trim())
+  );
+}
 
 /** Protocol P18-R-P row: what identifies the exact frozen managed deployment. */
 const MANAGED_PROVIDER_SETTING_KEYS = [
@@ -164,17 +234,35 @@ function validateCandidates(
   }
 
   const prince = byId.get("P18-R-P");
-  if (
-    prince?.eligibility !== "finalist" ||
-    prince.engine !== "prince" ||
-    prince.engine_version !== "15.1" ||
-    prince.pipeline !== "docraptor-managed@10.1"
-  ) {
+  const princeBaseIsValid =
+    prince?.eligibility === "finalist" && prince.engine === "prince";
+  const managedPrinceIsValid =
+    princeBaseIsValid &&
+    prince.deployment_mode === "managed" &&
+    prince.engine_version === "15.1" &&
+    prince.pipeline === "docraptor-managed@10.1" &&
+    Boolean(prince.network_filesystem_policy?.trim()) &&
+    prince.substitution_reset === undefined;
+  const selfHostedPrinceIsValid =
+    princeBaseIsValid &&
+    prince.deployment_mode === "self_hosted" &&
+    isExactVersionedComponent(prince.engine_version) &&
+    isExactVersionedComponent(prince.pipeline) &&
+    isExactNamedRuntime(prince.container_runtime) &&
+    isSha256Hex(prince.container_runtime_digest) &&
+    isExactVersionedComponent(prince.os_libc) &&
+    isSha256Hex(prince.engine_binary_digest) &&
+    isSha256Hex(prince.container_image_digest) &&
+    hasRequiredSelfHostedSandbox(prince) &&
+    hasValidPrinceSubstitutionReset(input, prince) &&
+    prince.network_filesystem_policy === undefined &&
+    prince.provider_settings === undefined;
+  if (!managedPrinceIsValid && !selfHostedPrinceIsValid) {
     issues.push(
       issue(
         "candidates.P18-R-P",
         "candidate_lock_invalid",
-        "P18-R-P must be the finalist managed DocRaptor pipeline 10.1 using Prince 15.1.",
+        "P18-R-P must be either the exact managed DocRaptor 10.1 / Prince 15.1 deployment or one completely pinned self-hosted Prince deployment under a fresh charter.",
       ),
     );
   }
@@ -183,7 +271,7 @@ function validateCandidates(
   // version, endpoint/region, engine/pipeline, options, provider account mode,
   // retention/support-access settings, DPA/subprocessor evidence" - and "only
   // the exact frozen managed deployment qualifies".
-  if (prince) {
+  if (prince?.deployment_mode === "managed") {
     for (const key of MANAGED_PROVIDER_SETTING_KEYS) {
       if (!prince.provider_settings?.[key]?.trim()) {
         issues.push(
@@ -204,12 +292,18 @@ function validateCandidates(
   // Engine/version/pipeline strings alone would let it freeze unpinned.
   if (
     typst?.eligibility !== "finalist" ||
+    typst.deployment_mode !== "self_hosted" ||
     typst.engine !== "typst" ||
     typst.engine_version !== "0.15.1" ||
     typst.pipeline !== "typst-cli@0.15.1" ||
-    !typst.container_runtime?.trim() ||
-    !typst.os_libc?.trim() ||
-    !isSha256Hex(typst.engine_binary_digest)
+    !isExactNamedRuntime(typst.container_runtime) ||
+    !isSha256Hex(typst.container_runtime_digest) ||
+    !isExactVersionedComponent(typst.os_libc) ||
+    !isSha256Hex(typst.engine_binary_digest) ||
+    !isSha256Hex(typst.container_image_digest) ||
+    !isSha256Hex(typst.distribution_provenance_digest) ||
+    !hasRequiredSelfHostedSandbox(typst) ||
+    typst.network_filesystem_policy !== undefined
   ) {
     issues.push(
       issue(
@@ -223,9 +317,17 @@ function validateCandidates(
   const control = byId.get("P18-R-C");
   if (
     control?.eligibility !== "comparison_control" ||
+    control.deployment_mode !== "self_hosted" ||
     control.engine !== "chromium" ||
     control.pipeline !== "playwright-print-to-pdf" ||
-    !control.engine_version.trim()
+    !control.engine_version.trim() ||
+    !EXACT_SEMVER.test(control.playwright_version ?? "") ||
+    !EXACT_CHROMIUM_REVISION.test(control.browser_revision ?? "") ||
+    !isExactNamedRuntime(control.container_runtime) ||
+    !isSha256Hex(control.container_runtime_digest) ||
+    !isSha256Hex(control.container_image_digest) ||
+    !isSha256Hex(control.engine_binary_digest) ||
+    control.network_filesystem_policy !== undefined
   ) {
     issues.push(
       issue(
@@ -244,12 +346,13 @@ function validateCandidates(
       ["dependency_lock_digest", candidate.dependency_lock_digest],
       ["configuration_digest", candidate.configuration_digest],
       ["locale_data_version", candidate.locale_data_version],
-      ["network_filesystem_policy", candidate.network_filesystem_policy],
+      ["source_compiler.name", candidate.source_compiler?.name],
+      ["source_compiler.version", candidate.source_compiler?.version],
       ["finalizer.name", candidate.finalizer.name],
       ["finalizer.version", candidate.finalizer.version],
     ];
     for (const [field, value] of requiredStrings) {
-      if (!value.trim()) {
+      if (!value?.trim()) {
         issues.push(
           issue(
             `${path}.${field}`,
@@ -260,13 +363,23 @@ function validateCandidates(
       }
     }
 
+    if (!GIT_OBJECT_ID_HEX.test(candidate.adapter_commit)) {
+      issues.push(
+        issue(
+          `${path}.adapter_commit`,
+          "provenance_missing",
+          "Candidate adapter_commit must be an exact lowercase 40- or 64-character Git object id.",
+        ),
+      );
+    }
+
     // Content addresses, unlike the labels above, must actually be digests.
-    // `adapter_commit` stays on the trim check: it is a commit id, not a hash.
     const requiredDigests: Array<[string, string]> = [
       ["adapter_digest", candidate.adapter_digest],
       ["dependency_lock_digest", candidate.dependency_lock_digest],
       ["configuration_digest", candidate.configuration_digest],
       ["locale_data_digest", candidate.locale_data_digest],
+      ["source_compiler.digest", candidate.source_compiler?.digest],
       ["finalizer.digest", candidate.finalizer.digest],
     ];
     for (const [field, value] of requiredDigests) {
@@ -289,10 +402,12 @@ function validateCandidates(
         ),
       );
     }
+    const artifactIds = new Set<string>();
     for (const item of candidate.fonts_assets_packages) {
       // Without a name and version the digest cannot be tied back to anything
       // in the inventory, and the issue path below degrades to a bare prefix.
       if (
+        !ARTIFACT_ID.test(item.artifact_id ?? "") ||
         !item.name.trim() ||
         !item.version.trim() ||
         !item.license.trim() ||
@@ -300,11 +415,23 @@ function validateCandidates(
       ) {
         issues.push(
           issue(
-            `${path}.fonts_assets_packages.${item.name || "<unnamed>"}`,
+            `${path}.fonts_assets_packages.${item.artifact_id || "<unidentified>"}`,
             "provenance_missing",
-            "Every pinned font/asset/package needs a name, version, license, and SHA-256 digest.",
+            "Every pinned font/asset/package needs a canonical artifact id, name, version, license, and SHA-256 digest.",
           ),
         );
+      }
+      if (item.artifact_id?.trim()) {
+        if (artifactIds.has(item.artifact_id)) {
+          issues.push(
+            issue(
+              `${path}.fonts_assets_packages.${item.artifact_id}`,
+              "inventory_identity_conflict",
+              "A canonical artifact id may identify only one pinned inventory entry.",
+            ),
+          );
+        }
+        artifactIds.add(item.artifact_id);
       }
     }
   }
@@ -1250,9 +1377,16 @@ export function normalizeRendererQualificationCharterInput(
   input: RendererQualificationCharterInput,
 ): RendererQualificationCharterInput {
   const clone = structuredClone(input);
+  const candidates = clone.candidates.map((candidate) => ({
+    ...candidate,
+    fonts_assets_packages: sortById(
+      candidate.fonts_assets_packages,
+      (item) => item.artifact_id,
+    ),
+  }));
   return {
     ...clone,
-    candidates: sortById(clone.candidates, (item) => item.candidate_id),
+    candidates: sortById(candidates, (item) => item.candidate_id),
     open_corpus: sortById(clone.open_corpus, (item) => item.case_id),
     held_back_corpus: sortById(clone.held_back_corpus, (item) => item.case_id),
     gates: sortById(clone.gates, (item) => item.gate_id),
