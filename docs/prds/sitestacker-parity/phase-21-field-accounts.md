@@ -361,12 +361,23 @@ traceability contract.
   component-correct reversals. Exactly one Support Cycle Close owns each
   Assessment Period Determination: the first successfully committed close in
   strict contiguous close order whose through boundary reaches or passes the
-  period end. Each close CASes the immediately preceding committed boundary, so
-  a later close cannot skip an open predecessor. A delayed or consolidated
-  close qualifies only as the next completely covered contiguous boundary. The
-  same-scope period key excludes Profile Version; the Determination records the
-  one resolved version. That key and CAS make every retry an exact replay and
-  prevent another close from creating a second period adjustment.
+  period end. That close totals only source-linked percentage effects whose
+  underlying Gross Support Allocations are D2-admitted through unique Support
+  Cycle Admission Coverage and whose source-effective instant falls within the
+  exact half-open `[period_start, period_end)` interval. Its captured ingestion
+  boundary proves which facts were available; the Determination excludes every
+  provisional or unqualified fact and never widens the Assessment Period,
+  including when a delayed or consolidated close has already captured
+  next-period facts. Each close performs a compare-and-swap against the
+  immediately preceding committed boundary, so a later close cannot skip an
+  open predecessor. A delayed or
+  consolidated close qualifies only as the next completely covered contiguous
+  boundary. The same-scope period key excludes Profile Version; the
+  Determination records the one resolved version. That key and
+  compare-and-swap make every retry an exact replay and prevent another close
+  from creating a second period adjustment. Late-qualified in-period facts use
+  append-only successor effects; they never rewrite or widen the original
+  Determination.
 
 ### D4–D7 compensation, reallocation, and currencies
 
@@ -469,8 +480,10 @@ traceability contract.
   repayment decision, requirement, occurrence, evidence, and coverage remain
   separate. Every source-qualified Claimant Repayment Occurrence carries exactly
   one immutable source-owned `return_family`: `cash_claimant_return` or
-  `expense_advance_return`. The family is never inferred; an expense advance
-  return also pins the exact issuance root and unused-advance coverage, and a
+  `expense_advance_return`. The family is never inferred. Both families preserve
+  the exact Claimant Repayment Occurrence root, complete Claimant Repayment
+  Coverage, and typed residual; `expense_advance_return` additionally pins the
+  exact Expense Advance Issuance Occurrence root and unused-advance coverage. A
   genuine reclassification is append-only. Asym does not collect money,
   initiate payroll deduction, adjudicate debt, add interest, or operate
   collections.

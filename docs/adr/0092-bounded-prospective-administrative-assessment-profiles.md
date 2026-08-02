@@ -54,23 +54,26 @@ a complete future period boundary after a side-effect-free preview.
 Exactly one Support Cycle Close owns the initial Assessment Period
 Determination: the first successfully committed close in strict contiguous
 close order whose exact through boundary reaches or passes the Assessment
-Period end. That close freezes the covered percentage total from only Gross
-Support Allocations whose source-effective instant falls within the exact
-half-open interval `[period_start, period_end)`. Its captured ingestion boundary
-proves which facts were available to the close; it never widens the Assessment
-Period, even when a delayed or consolidated close captures facts source-effective
-after `period_end`. The close CASes the immediately preceding committed boundary;
-a later-boundary candidate cannot commit while an earlier boundary remains open.
+Period end. That close freezes the covered percentage total from only
+source-linked percentage effects whose underlying Gross Support Allocations are
+D2-admitted through unique Support Cycle Admission Coverage and whose
+source-effective instant falls within the exact half-open interval
+`[period_start, period_end)`. Its captured ingestion boundary proves which facts
+were available to the close; the Determination excludes every provisional or
+unqualified fact and never widens the Assessment Period, even when a delayed or
+consolidated close captures facts source-effective after `period_end`. The close performs a
+compare-and-swap against the immediately preceding committed boundary; a
+later-boundary candidate cannot commit while an earlier boundary remains open.
 The complete Tenant, Legal Entity, Field Account/assignment scope, currency,
 and Assessment Period form the semantic idempotency and uniqueness key. The
 Determination records the one resolved Profile Version, but that version does
 not partition uniqueness. A delayed or consolidated close qualifies only when
 its manifest proves it is the next contiguous boundary and completely covers
 the intervening interval. Retry is exact replay; a concurrent or later close
-cannot create another initial determination. Late-qualified source facts use
-append-only successor effects without moving ownership or rewriting the
-original. Exact-boundary, delayed-close, and frozen partial-period cases use the
-same rule. Production proof must exercise an allocation exactly at
+cannot create another initial determination. Late-qualified in-period source
+facts use append-only successor effects without moving ownership or rewriting
+the original. Exact-boundary, delayed-close, and frozen partial-period cases use
+the same rule. Production proof must exercise an allocation exactly at
 `period_start`, one exactly at `period_end`, and a delayed close whose captured
 ingestion boundary includes next-period allocations; it must prove start-
 inclusive/end-exclusive totals, next-period exclusion, exact retry replay, and

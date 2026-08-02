@@ -686,6 +686,23 @@ entries during the month, but exactly one later close owns the immutable
 minimum, cap, fixed, or combined-service period adjustment. No FX conversion
 or cross-currency residual is permitted.
 
+The owning close totals only source-linked percentage effects whose underlying
+Gross Support Allocations are D2-admitted through unique Support Cycle Admission
+Coverage and whose source-effective instant falls within the exact half-open
+`[period_start, period_end)` interval. Its captured ingestion boundary proves
+which source facts were available for that determination; the Determination
+excludes every provisional or unqualified fact. The captured boundary is not a
+second business-period boundary and cannot widen the Assessment Period. This
+distinction is essential for delayed or consolidated closes whose captured
+cursor may already include next-period allocations. The owner is the first
+successfully committed close in strict contiguous order whose through boundary
+reaches or passes period end. It performs a compare-and-swap against the
+immediately preceding committed boundary; an open predecessor or coverage gap
+blocks a later candidate. An allocation exactly at `period_start` is included,
+one exactly at `period_end` is excluded, retries replay the same determination,
+and a late-qualified in-period allocation produces an append-only successor
+remeasurement rather than rewriting the original.
+
 Percentage amounts are rounded once per covered source occurrence in integer
 minor units under the frozen profile. The monthly target is then
 `min(max(sum(source percentages), minimum), cap)`, omitting an unconfigured
@@ -5028,13 +5045,15 @@ Claimant Repayment Occurrence
   + typed unapplied residual
 ```
 
-Every source-qualified occurrence carries exactly one immutable source-owned
-`return_family`: `cash_claimant_return` or `expense_advance_return`. The family
-is never inferred from sign, predecessor, Requirement, memo, account, or
-downstream posting recipe. An expense advance return pins the exact Expense
-Advance Issuance Occurrence root and unused-advance coverage. A genuine family
-reclassification appends a correction of the original plus a new non-overlapping
-occurrence rather than retagging history.
+Every source-qualified Claimant Repayment Occurrence carries exactly one
+immutable source-owned `return_family`: `cash_claimant_return` or
+`expense_advance_return`. The family is never inferred from sign, predecessor,
+Requirement, memo, account, or downstream posting recipe. Both families preserve
+the exact Claimant Repayment Occurrence root, complete Claimant Repayment
+Coverage, and typed residual; `expense_advance_return` additionally pins the
+exact Expense Advance Issuance Occurrence root and unused-advance coverage. A
+genuine family reclassification appends a correction of the original plus a new
+non-overlapping occurrence rather than retagging history.
 
 Each application and return uses one exact ISO settlement currency and checked
 integer minor units. Coverage is immutable and non-overlapping; corrections

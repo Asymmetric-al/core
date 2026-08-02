@@ -653,15 +653,22 @@ Exactly one initial Assessment Period Determination may exist for the complete
 `Tenant × Legal Entity × Field Account/assignment scope × currency × Assessment
 Period` key. The Determination records the one resolved Profile Version, but
 that version does not partition uniqueness. The owning close freezes the exact
-covered percentage total known through its captured ingestion boundary. It
-CASes the immediately preceding committed Support Cycle boundary; a
-later-boundary candidate cannot commit while an earlier boundary remains open.
-A delayed or consolidated close may own only when its manifest proves it is the
-next contiguous boundary and completely covers the intervening interval. A
-semantic idempotency key plus same-scope unique constraint and CAS makes an
-owner-close retry an exact replay and prevents any concurrent or later close
-from creating a second initial determination. Later-qualified source facts
-remeasure through append-only successor effects; they do not move ownership or
+covered percentage total from only source-linked percentage effects whose
+underlying Gross Support Allocations are D2-admitted through unique Support
+Cycle Admission Coverage and whose source-effective instant falls within the
+exact half-open `[period_start, period_end)` interval. Its captured ingestion
+boundary proves which facts were available to the close; the Determination
+excludes every provisional or unqualified fact and never widens the Assessment
+Period, even when a delayed or consolidated close has captured next-period
+facts. The owning close performs a compare-and-swap against the immediately
+preceding committed Support Cycle boundary; a later-boundary candidate cannot
+commit while an earlier boundary remains open. A delayed or consolidated close
+may own only when its manifest proves it is the next contiguous boundary and
+completely covers the intervening interval. A semantic idempotency key plus
+same-scope unique constraint and compare-and-swap makes an owner-close retry an
+exact replay and prevents any concurrent or later close from creating a second
+initial determination. Later-qualified in-period source facts remeasure through
+append-only successor effects; they do not move ownership, widen the period, or
 rewrite the original determination. The same rule applies at an exact
 period-end boundary, after a delayed close, and for a frozen partial first or
 final period.
@@ -6036,14 +6043,17 @@ Claimant Repayment Occurrence
   + typed unapplied residual
 ```
 
-Every source-qualified occurrence carries exactly one immutable source-owned
-`return_family`: `cash_claimant_return` or `expense_advance_return`. The family
-cannot be inferred from amount sign, predecessor type, Requirement, memo,
-account, or downstream posting recipe. An expense advance return also pins the
-exact Expense Advance Issuance Occurrence root and unused-advance coverage being
-returned. A correction names the predecessor family, source identity/version,
-and corrected coverage; a genuine family reclassification appends correction of
-the original plus a new non-overlapping occurrence instead of retagging it.
+Every source-qualified Claimant Repayment Occurrence carries exactly one
+immutable source-owned `return_family`: `cash_claimant_return` or
+`expense_advance_return`. The family cannot be inferred from amount sign,
+predecessor type, Requirement, memo, account, or downstream posting recipe. Both
+families preserve the exact Claimant Repayment Occurrence root, complete Claimant
+Repayment Coverage, and typed residual; `expense_advance_return` additionally
+pins the exact Expense Advance Issuance Occurrence root and unused-advance
+coverage being returned. A correction names the predecessor family, source
+identity/version, and corrected coverage; a genuine family reclassification
+appends correction of the original plus a new non-overlapping occurrence instead
+of retagging it.
 
 Every atomic occurrence is homogeneous by Tenant, Legal Entity, authoritative
 claimant, ISO currency, external execution owner, and evidence class.

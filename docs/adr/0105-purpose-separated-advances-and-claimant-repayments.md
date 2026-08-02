@@ -97,12 +97,14 @@ mint a duplicate or silently upgrade evidence strength. Exact many-to-many
 currency across requirements plus a typed unapplied residual. A different
 source currency requires exact externally owned source and settlement amounts,
 conversion authority/rate, rounding, and residual; Asym never supplies FX.
-Each source-qualified occurrence has exactly one immutable source-owned return
-family: `cash_claimant_return` or `expense_advance_return`. That family is never
-inferred from sign or lineage. An expense advance return also pins the exact
-returned Expense Advance Issuance Occurrence root and exact unused-advance
-coverage being returned. Failure, return, correction, dispute, and reissue
-append facts rather than editing history.
+Each source-qualified Claimant Repayment Occurrence has exactly one immutable
+source-owned `return_family`: `cash_claimant_return` or
+`expense_advance_return`. That family is never inferred from sign or lineage.
+Both families preserve the exact Claimant Repayment Occurrence root, complete
+Claimant Repayment Coverage, and typed residual; `expense_advance_return`
+additionally pins the exact returned Expense Advance Issuance Occurrence root
+and exact unused-advance coverage being returned. Failure, return, correction,
+dispute, and reissue append facts rather than editing history.
 
 If source truth changes after money was returned, Phase 21 preserves the
 original decision and occurrence and opens a **Repayment Restitution Review**.

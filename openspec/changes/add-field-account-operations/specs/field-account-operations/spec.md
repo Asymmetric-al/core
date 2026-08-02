@@ -177,18 +177,27 @@ MUST use original source/period coverage and append rather than mutate.
 
 The first successfully committed Support Cycle Close in strict contiguous close
 order whose exact through boundary reaches or passes an Assessment Period end
-MUST own that period's initial Determination. A close MUST CAS the immediately
-preceding committed boundary; no later-boundary candidate may commit while an
-earlier boundary is open. Exactly one initial Determination MAY exist for the
-complete Tenant, Legal Entity, Field Account/assignment scope, currency, and
-Assessment Period key. The Determination MUST record the one resolved Profile
-Version, but Profile Version MUST NOT partition uniqueness. Semantic
-idempotency, the same-scope unique constraint, and CAS MUST make owner-close
-retry an exact replay and MUST prevent any concurrent or later close from
-creating a second determination. A delayed or consolidated close qualifies
-only when its manifest proves it is the next contiguous boundary and completely
-covers the intervening interval. Later-qualified source facts MUST remeasure
-through append-only successors.
+MUST own that period's initial Determination. The Determination MUST total only
+source-linked percentage effects whose underlying Gross Support Allocations are
+D2-admitted through unique Support Cycle Admission Coverage and whose
+source-effective instant falls within the exact half-open
+`[period_start, period_end)` interval. Its captured ingestion boundary MUST
+prove which facts were available. The Determination MUST exclude every
+provisional or unqualified fact and MUST NOT widen the Assessment Period,
+including when a delayed or consolidated close has captured next-period facts.
+A close MUST use compare-and-swap against the immediately preceding committed
+boundary; no later-boundary candidate may commit while an earlier boundary is
+open. Exactly one initial Determination MAY exist for the complete Tenant,
+Legal Entity, Field Account/assignment scope, currency, and Assessment Period
+key. The Determination MUST record the one resolved Profile Version, but Profile
+Version MUST NOT partition uniqueness. Semantic idempotency, the same-scope
+unique constraint, and compare-and-swap MUST make owner-close retry an exact
+replay and MUST prevent any concurrent or later close from creating a second
+determination. A delayed or consolidated close qualifies only when its manifest
+proves it is the next contiguous boundary and completely covers the intervening
+interval. Later-qualified in-period source facts MUST remeasure through
+append-only successors without widening or rewriting the original
+Determination.
 
 #### Scenario: A tenant uses no assessments
 
@@ -222,6 +231,39 @@ through append-only successors.
 - **AND** publishes at most one minimum top-up or cap credit plus any separately
   configured fixed/service component.
 
+#### Scenario: A delayed close cannot absorb next-period allocations
+
+- **GIVEN** one Gross Support Allocation is source-effective exactly at
+  `period_start`, another exactly at `period_end`, and another after
+  `period_end`
+- **AND** all three have been D2-admitted through unique Support Cycle Admission
+  Coverage
+- **AND** a delayed owner close's captured ingestion boundary includes all
+  three allocations
+- **WHEN** that close creates the Assessment Period Determination
+- **THEN** the allocation at `period_start` is included
+- **AND** the allocations at and after `period_end` are excluded even though
+  the close captured them
+- **AND** retrying the owner close returns the exact same Determination.
+
+#### Scenario: A captured but unqualified in-period allocation is excluded
+
+- **GIVEN** an allocation source-effective inside `[period_start, period_end)`
+  is captured but remains provisional or unqualified and lacks unique Support
+  Cycle Admission Coverage
+- **WHEN** the initial Assessment Period Determination commits
+- **THEN** it excludes that allocation and creates no assessment effect for it.
+
+#### Scenario: An excluded in-period allocation later qualifies
+
+- **GIVEN** the initial Determination excluded a captured in-period allocation
+  because it lacked unique Support Cycle Admission Coverage
+- **WHEN** a later valid close admits the source fact through unique Support
+  Cycle Admission Coverage
+- **THEN** the system appends a source-covered successor remeasurement
+- **AND** it does not rewrite the original Determination, move period ownership,
+  or include any next-period allocation.
+
 #### Scenario: Two candidate closes race or the owner close retries
 
 - **GIVEN** two close preparations can observe the same completed Assessment
@@ -229,8 +271,21 @@ through append-only successors.
 - **WHEN** both attempt the same initial period determination
 - **THEN** predecessor-boundary and same-scope period CAS commit exactly one
   determination in contiguous close order
-- **AND** every retry returns exact replay while a later close can only append a
-  source-covered successor remeasurement.
+- **AND** an identical owner-close retry returns exact replay
+- **AND** any losing concurrent or later-boundary attempt returns exact replay
+  or a typed stale/conflict result with zero new Determination, adjustment, or
+  successor effect.
+
+#### Scenario: An open predecessor or coverage gap blocks a later owner
+
+- **GIVEN** a close candidate's through boundary reaches or passes the
+  Assessment Period end
+- **AND** an earlier Support Cycle boundary remains open or the candidate's
+  intervening coverage manifest contains a gap
+- **WHEN** the later candidate attempts the initial Determination
+- **THEN** it returns a typed blocked or stale result with zero financial effect
+- **AND** no initial Determination, period adjustment, or successor effect is
+  created until strict contiguous coverage is proved.
 
 #### Scenario: Competing profile versions target one period
 
@@ -993,14 +1048,15 @@ Every source-qualified Claimant Repayment Occurrence MUST carry exactly one
 immutable source-owned `return_family`: `cash_claimant_return` or
 `expense_advance_return`. The family MUST NOT be inferred from amount sign,
 predecessor type, Repayment Requirement, memo, account, or a downstream posting
-recipe. A `cash_claimant_return` MUST preserve the exact occurrence root,
-complete Claimant Repayment Coverage, and typed residual. An
+recipe. Both return families MUST preserve the exact Claimant Repayment
+Occurrence root, complete Claimant Repayment Coverage, and typed residual. An
 `expense_advance_return` MUST additionally preserve the exact Expense Advance
-Issuance Occurrence root and exact unused-advance coverage being returned. A cause-linked correction of
-either return MUST name the predecessor return family, source identity/version,
-and exact corrected coverage and MUST NOT retag it in place. A genuine family
-reclassification requires an append-only correction of the original plus a new
-non-overlapping occurrence with the correct explicit family.
+Issuance Occurrence root and exact unused-advance coverage being returned. A
+cause-linked correction of either return MUST name the predecessor return
+family, source identity/version, and exact corrected coverage and MUST NOT retag
+it in place. A genuine family reclassification requires an append-only
+correction of the original plus a new non-overlapping occurrence with the
+correct explicit family.
 
 Independently of those optional policy families,
 `FieldAccountOperationsService` MUST support one core, Approved-Expense-
@@ -1082,13 +1138,26 @@ generic permission for ordinary activity to create a deficit.
 - AND it does not call the amount debt, paid, settled, reconciled, or deductible
   from payroll
 
-#### Scenario: A return is published with an exact source family
+#### Scenario: A cash claimant return preserves exact repayment lineage
 
 - GIVEN externally handled return evidence qualifies one Claimant Repayment
-  Occurrence
+  Occurrence as `cash_claimant_return`
 - WHEN Phase 21 publishes its typed D16 source fact
-- THEN the occurrence carries exactly one immutable `cash_claimant_return` or
-  `expense_advance_return` family and the required exact root and coverage
+- THEN the occurrence carries that one immutable source-owned family
+- AND preserves the exact Claimant Repayment Occurrence root, complete Claimant
+  Repayment Coverage, and typed residual
+- AND missing, conflicting, or inferred family evidence fails closed rather
+  than publishing a generic claimant-repayment source
+
+#### Scenario: An expense advance return preserves both lineages
+
+- GIVEN externally handled return evidence qualifies one Claimant Repayment
+  Occurrence as `expense_advance_return`
+- WHEN Phase 21 publishes its typed D16 source fact
+- THEN the occurrence preserves the exact Claimant Repayment Occurrence root,
+  complete Claimant Repayment Coverage, and typed residual
+- AND additionally preserves the exact Expense Advance Issuance Occurrence root
+  and exact unused-advance coverage being returned
 - AND missing, conflicting, or inferred family evidence fails closed rather
   than publishing a generic claimant-repayment source
 

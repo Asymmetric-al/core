@@ -230,14 +230,22 @@ effects when necessary.
 Exactly one Support Cycle Close owns each initial Assessment Period
 Determination: the first successfully committed close in strict contiguous
 close order whose exact through boundary reaches or passes the period end. The
-close CASes the immediately preceding committed boundary, so a later-boundary
-candidate cannot skip an open predecessor. The same-scope period uniqueness key
-excludes Profile Version; the Determination records the one resolved version.
-Semantic idempotency, uniqueness, and CAS make retry exact replay and prevent
-concurrent or later closes from creating another initial determination. A
-delayed or consolidated close qualifies only as the next completely covered
-contiguous boundary. Later-qualified sources remeasure through append-only
-successor effects.
+Determination totals only source-linked percentage effects whose underlying
+Gross Support Allocations are D2-admitted through unique Support Cycle Admission
+Coverage and whose source-effective instant falls within the exact half-open
+`[period_start, period_end)` interval. The captured ingestion boundary proves
+which facts were available; the Determination excludes every provisional or
+unqualified fact and does not widen the Assessment Period when a delayed or
+consolidated close has already captured next-period facts. The close performs a
+compare-and-swap against the immediately preceding committed boundary, so a
+later-boundary candidate cannot skip an open predecessor. The same-scope period
+uniqueness key excludes Profile Version; the Determination records the one
+resolved version. Semantic idempotency, uniqueness, and compare-and-swap make
+retry exact replay and prevent concurrent or later closes from creating another
+initial determination. A delayed or consolidated close qualifies only as the
+next completely covered contiguous boundary. Later-qualified in-period sources
+remeasure through append-only successor effects without widening or rewriting
+the original determination.
 
 Other prospective modules use the same bounded design principle: immutable
 profile versions, code-owned precedence, exact effective intervals,
@@ -291,6 +299,16 @@ The claimant-reimbursement Expense Settlement Determination is a core command.
 Optional Advance and Claimant Repayment policy activation may add only its own
 typed branches; disabling both never suppresses the ordinary obligation,
 residual, or separately tenant-authorized funding partition.
+
+Every source-qualified Claimant Repayment Occurrence carries exactly one
+source-owned `cash_claimant_return` or `expense_advance_return` family; the
+family is never inferred from sign, predecessor, memo, account, or downstream
+recipe. Both families preserve the exact Claimant Repayment Occurrence root,
+complete Claimant Repayment Coverage, and typed residual. An
+`expense_advance_return` additionally preserves its exact Expense Advance
+Issuance Occurrence root and exact unused-advance coverage. Corrections and
+genuine family reclassifications append linked non-overlapping facts rather
+than retagging history.
 
 D10/D13 own claim approval and the Approved Expense Snapshot. Core D16 owns the
 exact remaining Reimbursement Obligation record and its append-only qualified
