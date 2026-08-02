@@ -1,4 +1,5 @@
 import {
+  RENDERER_QUALIFICATION_SERIALIZER_VERSION,
   compareQualificationKeys,
   digestQualificationValue,
 } from "./canonical";
@@ -34,7 +35,6 @@ import type {
   QualificationCaseManifest,
   RendererCandidateLock,
   RendererQualificationCharterInput,
-  RendererQualificationManifest,
   ValidationTool,
 } from "./types";
 
@@ -1716,26 +1716,16 @@ export function freezeRendererQualificationCharter(
   const normalized = normalizeRendererQualificationCharterInput(input);
   const manifest_digest = digestQualificationValue({
     schema_version: RENDERER_QUALIFICATION_SCHEMA_VERSION,
+    serializer_version: RENDERER_QUALIFICATION_SERIALIZER_VERSION,
     charter: normalized,
   });
 
   return deepFreeze({
     ...normalized,
     schema_version: RENDERER_QUALIFICATION_SCHEMA_VERSION,
+    serializer_version: RENDERER_QUALIFICATION_SERIALIZER_VERSION,
     manifest_digest,
   });
-}
-
-export function buildRendererQualificationManifest(
-  charter: FrozenRendererQualificationCharter,
-): RendererQualificationManifest {
-  return {
-    schema_version: charter.schema_version,
-    charter_id: charter.charter_id,
-    charter_version: charter.charter_version,
-    digest_algorithm: "sha256",
-    manifest_digest: charter.manifest_digest,
-  };
 }
 
 export function digestCandidateLock(

@@ -1294,9 +1294,18 @@ describe("verifyRendererQualificationCharter", () => {
       freezeRendererQualificationCharter(buildFixtureContestInput()),
     );
     (charter as { gates: unknown }).gates = charter.gates.slice(0, 11);
-    const { schema_version, manifest_digest: _old, ...frozenFields } = charter;
+    const {
+      schema_version,
+      serializer_version,
+      manifest_digest: _old,
+      ...frozenFields
+    } = charter;
     (charter as { manifest_digest: string }).manifest_digest =
-      digestQualificationValue({ schema_version, charter: frozenFields });
+      digestQualificationValue({
+        schema_version,
+        serializer_version,
+        charter: frozenFields,
+      });
 
     const result = verifyRendererQualificationCharter(charter);
     expect(result.valid).toBe(false);
@@ -1312,9 +1321,18 @@ describe("verifyRendererQualificationCharter", () => {
     (charter as { budgets: typeof PHASE_18_ABSOLUTE_BUDGETS }).budgets = [
       ...charter.budgets,
     ].reverse();
-    const { schema_version, manifest_digest: _old, ...frozenFields } = charter;
+    const {
+      schema_version,
+      serializer_version,
+      manifest_digest: _old,
+      ...frozenFields
+    } = charter;
     (charter as { manifest_digest: string }).manifest_digest =
-      digestQualificationValue({ schema_version, charter: frozenFields });
+      digestQualificationValue({
+        schema_version,
+        serializer_version,
+        charter: frozenFields,
+      });
 
     const result = verifyRendererQualificationCharter(charter);
     expect(result.valid).toBe(false);

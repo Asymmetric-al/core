@@ -464,12 +464,15 @@ export interface RendererQualificationCharterInput {
 
 export interface FrozenRendererQualificationCharter extends RendererQualificationCharterInput {
   schema_version: string;
+  /** Canonicalization algorithm used to produce and verify the digest. */
+  serializer_version: string;
   /** SHA-256 over the canonical serialization of every frozen field. */
   manifest_digest: string;
 }
 
 export interface RendererQualificationManifest {
   schema_version: string;
+  serializer_version: string;
   charter_id: string;
   charter_version: string;
   digest_algorithm: "sha256";
@@ -477,7 +480,11 @@ export interface RendererQualificationManifest {
 }
 
 export interface CharterVerificationFailure {
-  code: "digest_mismatch" | "schema_version_unsupported" | "structure_invalid";
+  code:
+    | "digest_mismatch"
+    | "schema_version_unsupported"
+    | "serializer_version_unsupported"
+    | "structure_invalid";
   detail: string;
 }
 

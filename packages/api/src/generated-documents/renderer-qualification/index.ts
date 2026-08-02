@@ -5,12 +5,14 @@ export {
 } from "./canonical";
 export {
   RendererCharterValidationError,
-  buildRendererQualificationManifest,
   digestCandidateLock,
   freezeRendererQualificationCharter,
   validateRendererQualificationCharterInput,
 } from "./charter";
-export { verifyRendererQualificationCharter } from "./verify";
+export {
+  buildRendererQualificationManifest,
+  verifyRendererQualificationCharter,
+} from "./verify";
 export {
   InMemoryRendererQualificationStore,
   QualificationHarnessError,
