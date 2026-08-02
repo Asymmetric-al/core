@@ -22,9 +22,11 @@ export {
   InMemoryRendererQualificationStore,
   QualificationHarnessError,
   loadCandidateWorkPacket,
+  recordHeldBackEvaluationAccess,
   recordRemediationCycle,
   sealCandidateSubmission,
   type QualificationHarnessErrorCode,
+  type RecordHeldBackEvaluationAccessInput,
   type RecordRemediationCycleInput,
   type SealCandidateSubmissionInput,
 } from "./harness";

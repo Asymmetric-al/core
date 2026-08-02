@@ -567,6 +567,30 @@ export interface SealedCandidateSubmission {
   sealed_by: string;
 }
 
+/**
+ * Append-only proof that the custodian opened held-back expectations only for
+ * an exact sealed candidate submission. The frozen charter's access log stays
+ * unchanged; post-freeze disclosure is retained here instead.
+ */
+export interface HeldBackEvaluationAccessRecord {
+  access_id: string;
+  /** Caller-stable identity used to replay one logical access exactly once. */
+  operation_key: string;
+  charter_id: string;
+  manifest_digest: string;
+  sealed_expectations_digest: string;
+  candidate_id: RendererCandidateId;
+  submission_id: string;
+  candidate_lock_digest: string;
+  remediation_cycle_ordinal: 0 | 1 | 2;
+  /** Exact initial seals that made the shared held-back corpus safe to open. */
+  initial_submission_ids: Readonly<Record<RendererCandidateId, string>>;
+  reason: "evaluate_sealed_candidate_submission";
+  accessed_at: string;
+  accessed_by: string;
+  evidence_digest: string;
+}
+
 export interface RemediationCycleRecord {
   cycle_id: string;
   /** Caller-stable identity used to replay one logical cycle exactly once. */

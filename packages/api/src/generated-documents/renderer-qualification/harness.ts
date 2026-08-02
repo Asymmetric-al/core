@@ -1,11 +1,16 @@
 import { digestQualificationValue } from "./canonical";
 import { digestCandidateLock } from "./charter";
-import { HELD_BACK_CASE_IDS, OPEN_CASE_IDS } from "./types";
+import {
+  HELD_BACK_CASE_IDS,
+  OPEN_CASE_IDS,
+  RENDERER_CANDIDATE_IDS,
+} from "./types";
 import { verifyRendererQualificationCharter } from "./verify";
 
 import type {
   CandidateWorkPacket,
   FrozenRendererQualificationCharter,
+  HeldBackEvaluationAccessRecord,
   QualificationCaseId,
   RemediationCycleRecord,
   RendererCandidateId,
@@ -20,6 +25,8 @@ export type QualificationHarnessErrorCode =
   | "charter_identity_conflict"
   | "charter_invalid"
   | "evidence_append_conflict"
+  | "held_back_access_invalid"
+  | "held_back_access_not_ready"
   | "initial_submission_missing"
   | "remediation_budget_exceeded"
   | "remediation_cycle_limit"
@@ -45,6 +52,8 @@ interface RendererQualificationStoreState {
   readonly submissionMeterKeys: Map<string, string>;
   readonly cycles: Map<string, RemediationCycleRecord>;
   readonly cycleOperationKeys: Map<string, string>;
+  readonly heldBackAccesses: Map<string, HeldBackEvaluationAccessRecord>;
+  readonly heldBackAccessOperationKeys: Map<string, string>;
 }
 
 interface RemediationCycleRequest {
@@ -55,6 +64,21 @@ interface RemediationCycleRequest {
   readonly changes: readonly string[];
   readonly affected_case_ids: readonly QualificationCaseId[];
   readonly recorded_by: string;
+}
+
+interface HeldBackEvaluationAccessRequest {
+  readonly operation_key: string;
+  readonly charter_id: string;
+  readonly manifest_digest: string;
+  readonly sealed_expectations_digest: string;
+  readonly candidate_id: RendererCandidateId;
+  readonly submission_id: string;
+  readonly candidate_lock_digest: string;
+  readonly remediation_cycle_ordinal: 0 | 1 | 2;
+  readonly initial_submission_ids: Readonly<
+    Record<RendererCandidateId, string>
+  >;
+  readonly accessed_by: string;
 }
 
 const storeStates = new WeakMap<
@@ -88,6 +112,13 @@ function cycleOperationKey(record: {
   operation_key: string;
 }): string {
   return `${record.manifest_digest}:${record.candidate_id}:${record.operation_key}`;
+}
+
+function heldBackAccessOperationKey(record: {
+  manifest_digest: string;
+  operation_key: string;
+}): string {
+  return `${record.manifest_digest}:${record.operation_key}`;
 }
 
 function charterIdentityKey(
@@ -140,6 +171,57 @@ function matchesRemediationRequest(
     sameStringSequence(record.affected_case_ids, request.affected_case_ids) &&
     record.recorded_by === request.recorded_by
   );
+}
+
+function matchesHeldBackAccessRequest(
+  record: HeldBackEvaluationAccessRecord,
+  request: HeldBackEvaluationAccessRequest,
+): boolean {
+  return (
+    record.operation_key === request.operation_key &&
+    record.charter_id === request.charter_id &&
+    record.manifest_digest === request.manifest_digest &&
+    record.sealed_expectations_digest === request.sealed_expectations_digest &&
+    record.candidate_id === request.candidate_id &&
+    record.submission_id === request.submission_id &&
+    record.candidate_lock_digest === request.candidate_lock_digest &&
+    record.remediation_cycle_ordinal === request.remediation_cycle_ordinal &&
+    RENDERER_CANDIDATE_IDS.every(
+      (candidateId) =>
+        record.initial_submission_ids[candidateId] ===
+        request.initial_submission_ids[candidateId],
+    ) &&
+    record.accessed_by === request.accessed_by
+  );
+}
+
+function listStoredSubmissions(
+  store: InMemoryRendererQualificationStore,
+  manifestDigest?: string,
+): SealedCandidateSubmission[] {
+  const all = Array.from(storeState(store).submissions.values(), (item) =>
+    structuredClone(item),
+  );
+  return manifestDigest
+    ? all.filter((item) => item.manifest_digest === manifestDigest)
+    : all;
+}
+
+function listStoredRemediationCycles(
+  store: InMemoryRendererQualificationStore,
+  candidateId?: RendererCandidateId,
+  manifestDigest?: string,
+): RemediationCycleRecord[] {
+  return Array.from(storeState(store).cycles.values(), (item) =>
+    structuredClone(item),
+  )
+    .filter(
+      (item) => candidateId === undefined || item.candidate_id === candidateId,
+    )
+    .filter(
+      (item) =>
+        manifestDigest === undefined || item.manifest_digest === manifestDigest,
+    );
 }
 
 async function appendSubmission(
@@ -212,8 +294,40 @@ async function appendRemediationCycle(
   return structuredClone(record);
 }
 
+async function appendHeldBackEvaluationAccess(
+  store: InMemoryRendererQualificationStore,
+  record: HeldBackEvaluationAccessRecord,
+  request: HeldBackEvaluationAccessRequest,
+): Promise<HeldBackEvaluationAccessRecord> {
+  const state = storeState(store);
+  const operationScope = heldBackAccessOperationKey(record);
+  const existingAccessId =
+    state.heldBackAccessOperationKeys.get(operationScope);
+  if (existingAccessId) {
+    const existing = state.heldBackAccesses.get(existingAccessId);
+    if (existing && matchesHeldBackAccessRequest(existing, request)) {
+      return structuredClone(existing);
+    }
+    throw new QualificationHarnessError(
+      "evidence_append_conflict",
+      `Held-back access operation ${record.operation_key} was already used with different evidence under this charter.`,
+    );
+  }
+  if (state.heldBackAccesses.has(record.access_id)) {
+    throw new QualificationHarnessError(
+      "evidence_append_conflict",
+      `Held-back access ${record.access_id} already exists; evidence records are append-only.`,
+    );
+  }
+
+  state.heldBackAccessOperationKeys.set(operationScope, record.access_id);
+  state.heldBackAccesses.set(record.access_id, structuredClone(record));
+  return structuredClone(record);
+}
+
 /**
- * Read-only evidence store for sealed submissions and remediation cycles.
+ * Read-only evidence store for sealed submissions, held-back accesses, and
+ * remediation cycles.
  * The first successful initial seal also binds one charter ID/version to its
  * manifest digest for the lifetime of the store.
  * Validated harness operations append records through module-private helpers;
@@ -227,35 +341,39 @@ export class InMemoryRendererQualificationStore {
       submissionMeterKeys: new Map(),
       cycles: new Map(),
       cycleOperationKeys: new Map(),
+      heldBackAccesses: new Map(),
+      heldBackAccessOperationKeys: new Map(),
     });
   }
 
   async listSubmissions(
     manifestDigest?: string,
   ): Promise<SealedCandidateSubmission[]> {
-    const all = Array.from(storeState(this).submissions.values(), (item) =>
-      structuredClone(item),
-    );
-    return manifestDigest
-      ? all.filter((item) => item.manifest_digest === manifestDigest)
-      : all;
+    return listStoredSubmissions(this, manifestDigest);
   }
 
   async listRemediationCycles(
     candidateId?: RendererCandidateId,
     manifestDigest?: string,
   ): Promise<RemediationCycleRecord[]> {
-    return Array.from(storeState(this).cycles.values(), (item) =>
+    return listStoredRemediationCycles(this, candidateId, manifestDigest);
+  }
+
+  async listHeldBackEvaluationAccesses(
+    manifestDigest?: string,
+    candidateId?: RendererCandidateId,
+  ): Promise<HeldBackEvaluationAccessRecord[]> {
+    return Array.from(storeState(this).heldBackAccesses.values(), (item) =>
       structuredClone(item),
     )
       .filter(
         (item) =>
-          candidateId === undefined || item.candidate_id === candidateId,
+          manifestDigest === undefined ||
+          item.manifest_digest === manifestDigest,
       )
       .filter(
         (item) =>
-          manifestDigest === undefined ||
-          item.manifest_digest === manifestDigest,
+          candidateId === undefined || item.candidate_id === candidateId,
       );
   }
 }
@@ -296,7 +414,7 @@ async function requirePriorSubmissionSealed(
   candidateId: RendererCandidateId,
   ordinal: 1 | 2,
 ): Promise<SealedCandidateSubmission> {
-  const submissions = await store.listSubmissions(manifestDigest);
+  const submissions = listStoredSubmissions(store, manifestDigest);
   let immediatePrior: SealedCandidateSubmission | undefined;
   for (let priorOrdinal = 0; priorOrdinal < ordinal; priorOrdinal += 1) {
     const priorSubmission = submissions.find(
@@ -326,10 +444,14 @@ async function requirePriorSubmissionSealed(
  * append-only guarantee: the store rejects repeats, but the first blank id is
  * stored and returned as if it identified something.
  */
-function requireGeneratedId(id: string, kind: string): string {
+function requireGeneratedId(
+  id: string,
+  kind: string,
+  errorCode: QualificationHarnessErrorCode = "submission_invalid",
+): string {
   if (!id.trim()) {
     throw new QualificationHarnessError(
-      "submission_invalid",
+      errorCode,
       `The injected id generator returned a blank ${kind} id; evidence records must be identifiable.`,
     );
   }
@@ -346,6 +468,19 @@ function requireRemediationOperationKey(operationKey: unknown): string {
     throw new QualificationHarnessError(
       "remediation_incomplete",
       "A remediation cycle requires a caller-stable operation key using 1-128 letters, numbers, dots, underscores, colons, slashes, or hyphens.",
+    );
+  }
+  return operationKey;
+}
+
+function requireHeldBackAccessOperationKey(operationKey: unknown): string {
+  if (
+    typeof operationKey !== "string" ||
+    !REMEDIATION_OPERATION_KEY.test(operationKey)
+  ) {
+    throw new QualificationHarnessError(
+      "held_back_access_invalid",
+      "A held-back access requires a caller-stable operation key using 1-128 letters, numbers, dots, underscores, colons, slashes, or hyphens.",
     );
   }
   return operationKey;
@@ -490,7 +625,8 @@ export async function sealCandidateSubmission(
       candidateId,
       ordinal,
     );
-    const cycles = await input.store.listRemediationCycles(
+    const cycles = listStoredRemediationCycles(
+      input.store,
       candidateId,
       input.charter.manifest_digest,
     );
@@ -509,7 +645,8 @@ export async function sealCandidateSubmission(
     //
     // Deliberately NOT requiring output_digest to differ: an isolation or
     // sandbox fix can legitimately leave the rendered bytes identical.
-    const priorSubmissions = await input.store.listSubmissions(
+    const priorSubmissions = listStoredSubmissions(
+      input.store,
       input.charter.manifest_digest,
     );
     const prior = priorSubmissions.find(
@@ -563,6 +700,179 @@ export async function sealCandidateSubmission(
 
   await appendSubmission(input.store, input.charter, record);
   return record;
+}
+
+export interface RecordHeldBackEvaluationAccessInput {
+  charter: FrozenRendererQualificationCharter;
+  /** The digest the custodian believes governs this disclosure. */
+  expected_manifest_digest: string;
+  candidate_id: string;
+  submission_id: string;
+  actor: string;
+  operation_key: string;
+  store: InMemoryRendererQualificationStore;
+  now?: () => Date;
+  generateId?: () => string;
+}
+
+/**
+ * Gate and retain a custodian's post-seal access to the shared held-back
+ * expectations. This returns evidence only; it never returns hidden corpus
+ * data and never mutates the frozen charter.
+ */
+export async function recordHeldBackEvaluationAccess(
+  input: RecordHeldBackEvaluationAccessInput,
+): Promise<HeldBackEvaluationAccessRecord> {
+  requireVerifiedCharter(input.charter);
+  const candidate = requireKnownCandidate(input.charter, input.candidate_id);
+  const candidateId = candidate.candidate_id;
+
+  if (input.expected_manifest_digest !== input.charter.manifest_digest) {
+    throw new QualificationHarnessError(
+      "charter_digest_mismatch",
+      "Held-back access targets a different charter digest; disclosure is forbidden after any charter reset until the new candidates seal again.",
+    );
+  }
+  requireCompatibleCharterIdentity(storeState(input.store), input.charter);
+  if (input.charter.roles.corpus_custodian !== input.actor) {
+    throw new QualificationHarnessError(
+      "role_forbidden",
+      "Only the registered corpus custodian may open held-back expectations for evaluation.",
+    );
+  }
+
+  const operationKey = requireHeldBackAccessOperationKey(input.operation_key);
+  const submissions = listStoredSubmissions(
+    input.store,
+    input.charter.manifest_digest,
+  );
+  const initialSubmissions: SealedCandidateSubmission[] = [];
+  for (const registeredId of RENDERER_CANDIDATE_IDS) {
+    const submission = submissions.find(
+      (submission) =>
+        submission.candidate_id === registeredId &&
+        submission.remediation_cycle_ordinal === 0,
+    );
+    if (!submission) {
+      throw new QualificationHarnessError(
+        "held_back_access_not_ready",
+        "The shared held-back corpus remains closed until both finalists and the comparison control have sealed their initial source and output evidence.",
+      );
+    }
+    initialSubmissions.push(submission);
+  }
+
+  const targetSubmission = submissions.find(
+    (submission) => submission.submission_id === input.submission_id,
+  );
+  if (!targetSubmission) {
+    throw new QualificationHarnessError(
+      "held_back_access_not_ready",
+      `Submission ${input.submission_id} is not sealed under this charter; held-back evaluation cannot begin for it.`,
+    );
+  }
+  if (targetSubmission.candidate_id !== candidateId) {
+    throw new QualificationHarnessError(
+      "held_back_access_invalid",
+      `Submission ${input.submission_id} does not belong to candidate ${candidateId}.`,
+    );
+  }
+
+  const expectedCandidateLockDigest = digestCandidateLock(
+    input.charter,
+    candidateId,
+  );
+  if (targetSubmission.candidate_lock_digest !== expectedCandidateLockDigest) {
+    throw new QualificationHarnessError(
+      "held_back_access_invalid",
+      `Submission ${input.submission_id} is not bound to the current candidate lock for ${candidateId}.`,
+    );
+  }
+
+  const [princeInitial, typstInitial, controlInitial] = initialSubmissions;
+  if (!princeInitial || !typstInitial || !controlInitial) {
+    throw new QualificationHarnessError(
+      "held_back_access_not_ready",
+      "Every registered candidate must have one initial seal before held-back evaluation begins.",
+    );
+  }
+  const completeInitialSubmissions = [
+    princeInitial,
+    typstInitial,
+    controlInitial,
+  ] as const;
+  const initialSubmissionIds = Object.fromEntries(
+    completeInitialSubmissions.map((submission) => [
+      submission.candidate_id,
+      submission.submission_id,
+    ]),
+  ) as Record<RendererCandidateId, string>;
+  const request: HeldBackEvaluationAccessRequest = {
+    operation_key: operationKey,
+    charter_id: input.charter.charter_id,
+    manifest_digest: input.charter.manifest_digest,
+    sealed_expectations_digest:
+      input.charter.held_back_seal.sealed_expectations_digest,
+    candidate_id: candidateId,
+    submission_id: targetSubmission.submission_id,
+    candidate_lock_digest: targetSubmission.candidate_lock_digest,
+    remediation_cycle_ordinal: targetSubmission.remediation_cycle_ordinal,
+    initial_submission_ids: initialSubmissionIds,
+    accessed_by: input.actor,
+  };
+
+  const state = storeState(input.store);
+  const existingAccessId = state.heldBackAccessOperationKeys.get(
+    heldBackAccessOperationKey(request),
+  );
+  if (existingAccessId) {
+    const existing = state.heldBackAccesses.get(existingAccessId);
+    if (existing && matchesHeldBackAccessRequest(existing, request)) {
+      return structuredClone(existing);
+    }
+    throw new QualificationHarnessError(
+      "evidence_append_conflict",
+      `Held-back access operation ${operationKey} was already used with different evidence under this charter.`,
+    );
+  }
+
+  const accessedAt = (input.now ?? (() => new Date()))();
+  const accessedAtMs = accessedAt.getTime();
+  if (!Number.isFinite(accessedAtMs)) {
+    throw new QualificationHarnessError(
+      "held_back_access_invalid",
+      "Held-back access requires a valid disclosure timestamp.",
+    );
+  }
+  const prerequisiteSealTime = Math.max(
+    targetSubmission.sealed_at ? Date.parse(targetSubmission.sealed_at) : 0,
+    ...completeInitialSubmissions.map((submission) =>
+      Date.parse(submission.sealed_at),
+    ),
+  );
+  if (accessedAtMs < prerequisiteSealTime) {
+    throw new QualificationHarnessError(
+      "held_back_access_invalid",
+      "Held-back access cannot predate the target submission or any required initial candidate seal.",
+    );
+  }
+
+  const payload = {
+    access_id: requireGeneratedId(
+      (input.generateId ?? (() => crypto.randomUUID()))(),
+      "held-back access",
+      "held_back_access_invalid",
+    ),
+    ...request,
+    reason: "evaluate_sealed_candidate_submission" as const,
+    accessed_at: accessedAt.toISOString(),
+  };
+  const record: HeldBackEvaluationAccessRecord = {
+    ...payload,
+    evidence_digest: digestQualificationValue(payload),
+  };
+
+  return appendHeldBackEvaluationAccess(input.store, record, request);
 }
 
 export interface RecordRemediationCycleInput {
@@ -656,7 +966,8 @@ export async function recordRemediationCycle(
 
   // Allowances are scoped to the exact charter digest: a reset contest starts
   // a fresh equal budget and prior-charter cycles never consume it.
-  const prior = await input.store.listRemediationCycles(
+  const prior = listStoredRemediationCycles(
+    input.store,
     candidateId,
     input.charter.manifest_digest,
   );
