@@ -86,6 +86,7 @@ export function verifyRendererQualificationCharter(
     "roles",
     "synthetic_corpus_proof",
     "held_back_seal",
+    "adapter_contract",
     "operational_suites",
     "scoring_rules",
     "remediation_policy",

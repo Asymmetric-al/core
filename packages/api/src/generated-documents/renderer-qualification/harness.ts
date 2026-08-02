@@ -551,6 +551,8 @@ export function loadCandidateWorkPacket(
     manifest_digest: charter.manifest_digest,
     candidate_id: knownId,
     candidate_lock: candidate,
+    adapter_contract: charter.adapter_contract,
+    adapter_contract_digest: charter.adapter_contract_digest,
     open_cases: charter.open_corpus,
     held_back_case_schemas: charter.held_back_corpus.map((item) => ({
       case_id: item.case_id,

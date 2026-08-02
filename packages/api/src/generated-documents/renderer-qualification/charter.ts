@@ -1,4 +1,9 @@
 import {
+  PHASE_18_RENDERER_ADAPTER_CONTRACT_DIGEST,
+  digestRendererAdapterContract,
+  isPhase18RendererAdapterContract,
+} from "./adapter-contract";
+import {
   RENDERER_QUALIFICATION_SERIALIZER_VERSION,
   compareQualificationKeys,
   digestQualificationValue,
@@ -398,6 +403,8 @@ const CHARTER_INPUT_FIELDS = new Set([
   "held_back_corpus",
   "synthetic_corpus_proof",
   "held_back_seal",
+  "adapter_contract",
+  "adapter_contract_digest",
   "operational_suites",
   "gates",
   "score_dimensions",
@@ -425,6 +432,33 @@ function issue(
   message: string,
 ): CharterValidationIssue {
   return { path, code, message };
+}
+
+function validateAdapterContract(
+  input: RendererQualificationCharterInput,
+  issues: CharterValidationIssue[],
+): void {
+  let actualDigest = "";
+  try {
+    actualDigest = digestRendererAdapterContract(input.adapter_contract);
+  } catch {
+    // The exact-value check below reports malformed or cyclic input as one
+    // typed charter issue instead of leaking a serializer exception.
+  }
+
+  if (
+    !isPhase18RendererAdapterContract(input.adapter_contract) ||
+    input.adapter_contract_digest !== actualDigest ||
+    input.adapter_contract_digest !== PHASE_18_RENDERER_ADAPTER_CONTRACT_DIGEST
+  ) {
+    issues.push(
+      issue(
+        "adapter_contract",
+        "protocol_fixed_field_changed",
+        "The candidate-neutral adapter request/result contract, closed failure catalog, authority boundary, and domain-separated digest must exactly match the pre-registered Phase 18 protocol.",
+      ),
+    );
+  }
 }
 
 function scanForRealData(
@@ -1755,6 +1789,7 @@ export function validateRendererQualificationCharterInput(
     );
   }
 
+  validateAdapterContract(input, issues);
   validateCandidates(input, issues);
   validateCorpus(input, issues);
   validateSuites(input, issues);

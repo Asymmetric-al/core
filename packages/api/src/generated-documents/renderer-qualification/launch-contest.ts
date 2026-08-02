@@ -1,3 +1,8 @@
+import {
+  PHASE_18_RENDERER_ADAPTER_CONTRACT,
+  PHASE_18_RENDERER_ADAPTER_CONTRACT_DIGEST,
+} from "./adapter-contract";
+
 import type {
   AbsoluteBudget,
   AssistiveTechnologyStackLock,
@@ -16,8 +21,9 @@ import type {
 
 /**
  * The exact Phase 18 contest content from the approved renderer qualification
- * protocol. Everything the protocol freezes as data lives here; only the
- * environment-specific provenance (adapter commits/digests, containers,
+ * protocol. Launch tables live here; the focused adapter-contract module owns
+ * the candidate-neutral request/result seam and its domain-separated digest.
+ * Only environment-specific provenance (adapter commits/digests, containers,
  * fonts, validator bytes/configuration, assistive-technology stacks) and the
  * custodian's held-back seals arrive as freeze-time input, because they
  * describe real artifacts the harness cannot invent.
@@ -883,6 +889,8 @@ export function buildPhase18RendererContestInput(
     held_back_corpus,
     synthetic_corpus_proof: input.synthetic_corpus_proof,
     held_back_seal: input.held_back_seal,
+    adapter_contract: PHASE_18_RENDERER_ADAPTER_CONTRACT,
+    adapter_contract_digest: PHASE_18_RENDERER_ADAPTER_CONTRACT_DIGEST,
     operational_suites: PHASE_18_OPERATIONAL_SUITES,
     gates: PHASE_18_QUALIFICATION_GATES,
     score_dimensions: PHASE_18_SCORE_DIMENSIONS,

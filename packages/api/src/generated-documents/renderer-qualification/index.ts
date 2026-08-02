@@ -4,6 +4,12 @@ export {
   digestQualificationValue,
 } from "./canonical";
 export {
+  PHASE_18_RENDERER_ADAPTER_CONTRACT,
+  PHASE_18_RENDERER_ADAPTER_CONTRACT_DIGEST,
+  digestRendererAdapterContract,
+  isPhase18RendererAdapterContract,
+} from "./adapter-contract";
+export {
   RendererCharterValidationError,
   digestCandidateLock,
   freezeRendererQualificationCharter,
