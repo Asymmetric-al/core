@@ -13,17 +13,20 @@ import {
   resolveEveSpecialistIdentity,
 } from "./identity";
 
+import type { EveRuntimeActivationPlan } from "../governance-boundary";
+import type { EveModelUsageSnapshot } from "@asym/api/eve/model-policy/types";
 import type { EveSessionAuthSnapshot } from "@asym/api/eve/session-ownership";
 import type { EveSpecialistId } from "@asym/api/eve/subagent-catalog";
 
-export async function resolveEveSpecialistModel(input: {
+export async function resolveEveSpecialistActivation(input: {
   actionId?:
     | "engineering.dynamic_workflow.execute"
     | "engineering.subagent.delegate";
   auth: EveSessionAuthSnapshot | null;
   sessionId: string;
   specialistId: EveSpecialistId;
-}): Promise<string | null> {
+  usage: EveModelUsageSnapshot;
+}): Promise<Extract<EveRuntimeActivationPlan, { enabled: true }> | null> {
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||
     !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
@@ -66,12 +69,7 @@ export async function resolveEveSpecialistModel(input: {
     policy: activePolicy,
     requestedRole: specialist.modelRole,
     subagentName: specialist.id,
-    usage: {
-      inputTokens: 0,
-      outputTokens: 0,
-      requestsInCurrentMinute: 0,
-      usdMicros: 0,
-    },
+    usage: input.usage,
   });
   if (
     !modelResolution.allowed ||
@@ -93,5 +91,5 @@ export async function resolveEveSpecialistModel(input: {
     governance,
     modelResolution,
   });
-  return activation.enabled ? activation.model : null;
+  return activation.enabled ? activation : null;
 }

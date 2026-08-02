@@ -3,12 +3,19 @@ import { describe, expect, it, vi } from "vitest";
 import type { EveSandboxNetworkDecision } from "@asym/api/eve/sandbox";
 
 const mocks = vi.hoisted(() => ({
+  bashExecute: vi.fn(async () => ({
+    exitCode: 0,
+    stderr: "",
+    stdout: "",
+    truncated: false,
+  })),
   decision: {
     allowed: true,
     governanceStateVersion: 1,
     networkPolicy: "allow-all",
     reason: "governance_allowed",
   } as EveSandboxNetworkDecision,
+  writeFileExecute: vi.fn(async () => ({ ok: true })),
 }));
 
 // Only the governance lookup is replaced; the real guardrail scanners stay in
@@ -17,11 +24,20 @@ vi.mock("@asym/api/eve/sandbox", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@asym/api/eve/sandbox")>()),
   recordEveSandboxAction: async () => true,
   resolveEveSandboxNetworkDecision: async () => mocks.decision,
+  resolveEveSandboxWriteDecision: async () => ({
+    allowed: true,
+    governanceStateVersion: 1,
+    reason: "governance_allowed",
+  }),
 }));
 
 import sandboxDefinition from "../../packages/eve-runtime/agent/sandbox";
-import bashTool from "../../packages/eve-runtime/agent/tools/bash";
-import writeFileTool from "../../packages/eve-runtime/agent/tools/write_file";
+import bashTool, {
+  createEveBashTool,
+} from "../../packages/eve-runtime/agent/tools/bash";
+import writeFileTool, {
+  createEveWriteFileTool,
+} from "../../packages/eve-runtime/agent/tools/write_file";
 
 async function approvalFor(
   tool: typeof bashTool | typeof writeFileTool,
@@ -113,6 +129,18 @@ describe("Eve sandbox authored controls", () => {
     ).resolves.toBe("user-approval");
   });
 
+  it.each([
+    'cd /workspace/repo; p=packages/eve-runtime; echo x > "$p/agent/agent.ts"',
+    "cd /workspace/repo/packages/eve-runtime && echo x > agent/agent.ts",
+  ])(
+    "durably pauses shell effects whose target is obscured: %s",
+    async (command) => {
+      await expect(approvalFor(bashTool, { command })).resolves.toBe(
+        "user-approval",
+      );
+    },
+  );
+
   it("denies commands that reference environment files", async () => {
     await expect(
       approvalFor(bashTool, { command: "cat .env.local" }),
@@ -135,5 +163,55 @@ describe("Eve sandbox authored controls", () => {
         filePath: "notes.txt",
       }),
     ).resolves.toMatchObject({ type: "denied" });
+  });
+
+  it("executes the same canonical Bash input that passed validation", async () => {
+    mocks.bashExecute.mockClear();
+    const testTool = createEveBashTool(mocks.bashExecute as never);
+    const rawInput = {
+      command: "git status --short",
+      unvalidated: "must not reach the delegated executor",
+    };
+    const sandbox = {
+      setNetworkPolicy: vi.fn(async () => undefined),
+    };
+
+    await testTool.execute?.(
+      rawInput as never,
+      {
+        getSandbox: async () => sandbox,
+        session: { id: "session-one" },
+      } as never,
+    );
+
+    expect(mocks.bashExecute).toHaveBeenCalledWith(
+      { command: "git status --short" },
+      expect.anything(),
+    );
+  });
+
+  it("executes the same canonical file input that passed validation", async () => {
+    mocks.writeFileExecute.mockClear();
+    const testTool = createEveWriteFileTool(mocks.writeFileExecute as never);
+    const rawInput = {
+      content: "export const guarded = true;",
+      filePath: "packages/lib/src/guarded.ts",
+      unvalidated: "must not reach the delegated executor",
+    };
+
+    await testTool.execute?.(
+      rawInput as never,
+      {
+        session: { id: "session-one" },
+      } as never,
+    );
+
+    expect(mocks.writeFileExecute).toHaveBeenCalledWith(
+      {
+        content: "export const guarded = true;",
+        filePath: "packages/lib/src/guarded.ts",
+      },
+      expect.anything(),
+    );
   });
 });

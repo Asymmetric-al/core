@@ -34,6 +34,10 @@ describe("Eve declared specialist runtime", () => {
         path.join(specialistRoot, "tools/shared_context.ts"),
         "utf8",
       );
+      const budgetHook = await readFile(
+        path.join(specialistRoot, "hooks/budget.ts"),
+        "utf8",
+      );
 
       expect(agent).toContain(`createEveSpecialistAgent("${specialistId}")`);
       expect(instructions).toContain(`Eve's ${specialistId} specialist`);
@@ -41,6 +45,7 @@ describe("Eve declared specialist runtime", () => {
       expect(sharedContext).toContain(
         `createEveSharedContextTool("${specialistId}")`,
       );
+      expect(budgetHook).toContain("specialist-budget-hook");
       for (const disabledTool of [
         "bash",
         "write_file",
@@ -83,6 +88,8 @@ describe("Eve declared specialist runtime", () => {
     expect(brief).toContain("Confirmation");
     expect(factory).toContain("defineDynamic");
     expect(factory).toContain("mockModel");
+    expect(factory).not.toContain('"session.started"');
+    expect(factory).toContain('"step.started"');
     expect(resolver).toContain("resolveEveModelRole");
     expect(resolver).toContain("engineering.subagent.delegate");
     expect(resolver).toContain("prepareEveRuntimeActivation");

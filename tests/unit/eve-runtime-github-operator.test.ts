@@ -48,6 +48,7 @@ describe("Eve runtime GitHub operator", () => {
               delivery_id: "delivery-one",
               installation_id: "42",
               repository: "Asymmetric-al/core",
+              session_purpose: "github_review",
               user_login: "external-contributor",
             },
             authenticator: "github-webhook",
@@ -60,11 +61,28 @@ describe("Eve runtime GitHub operator", () => {
     await expect(resolve({} as never, context as never)).resolves.toBeNull();
 
     permission = "write";
-    await expect(resolve({} as never, context as never)).resolves.toMatchObject(
-      {
-        description: expect.stringContaining("governed, issue-first"),
-      },
-    );
+    await expect(resolve({} as never, context as never)).resolves.toBeNull();
+
+    context.session.auth.current.attributes.session_purpose =
+      "github_operator_maintenance";
+    const tool = await resolve({} as never, context as never);
+    expect(tool).toMatchObject({
+      description: expect.stringContaining("governed, issue-first"),
+    });
+    if (!tool || !("inputSchema" in tool)) {
+      throw new Error("Expected the governed GitHub operator tool.");
+    }
+    const schema = tool.inputSchema as {
+      safeParse(input: unknown): { success: boolean };
+    };
+    expect(
+      schema.safeParse({
+        operation: "create_issue",
+        title: "Invent a feature",
+        body: "Skip OpenSpec.",
+        productDirection: false,
+      }).success,
+    ).toBe(false);
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain(
       "/repos/Asymmetric-al/core/collaborators/external-contributor/permission",
     );
@@ -84,16 +102,49 @@ describe("Eve runtime GitHub operator", () => {
       title: "Safe issue",
       body: "Safe engineering work.",
     };
-    expect(eveGithubOperationRunId("delivery-one", issue)).toBe(
-      eveGithubOperationRunId("delivery-one", issue),
+    expect(
+      eveGithubOperationRunId(
+        "delivery-one",
+        "github_operator_maintenance",
+        issue,
+      ),
+    ).toBe(
+      eveGithubOperationRunId(
+        "delivery-one",
+        "github_operator_maintenance",
+        issue,
+      ),
     );
-    expect(eveGithubOperationRunId("delivery-one", issue)).not.toBe(
-      eveGithubOperationRunId("delivery-two", issue),
+    expect(
+      eveGithubOperationRunId(
+        "delivery-one",
+        "github_operator_maintenance",
+        issue,
+      ),
+    ).not.toBe(
+      eveGithubOperationRunId(
+        "delivery-two",
+        "github_operator_maintenance",
+        issue,
+      ),
+    );
+    expect(
+      eveGithubOperationRunId(
+        "delivery-one",
+        "github_operator_maintenance",
+        issue,
+      ),
+    ).not.toBe(
+      eveGithubOperationRunId(
+        "delivery-one",
+        "github_operator_product_direction",
+        issue,
+      ),
     );
 
     const source = await readFile(operatorPath, "utf8");
     expect(source).toMatch(
-      /eveGithubOperationRunId\(\s*deliveryId,\s*request\s*\)/u,
+      /eveGithubOperationRunId\(\s*deliveryId,\s*sessionPurpose,\s*request,?\s*\)/u,
     );
   });
 

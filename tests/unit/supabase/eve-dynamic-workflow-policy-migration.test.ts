@@ -7,6 +7,10 @@ const migrationPath = path.resolve(
   import.meta.dirname,
   "../../../supabase/migrations/20260718074651_eve_dynamic_workflow_policy.sql",
 );
+const activeRunsGuardPath = path.resolve(
+  import.meta.dirname,
+  "../../../supabase/migrations/20260802064726_eve_runtime_active_runs_guard.sql",
+);
 
 describe("Eve dynamic workflow policy migration", () => {
   it("registers dynamic workflow actions and a separate bounded budget", async () => {
@@ -41,6 +45,21 @@ describe("Eve dynamic workflow policy migration", () => {
     expect(sql).toContain("FOR UPDATE");
     expect(sql).toContain(
       "ON CONFLICT (budget_id, window_started_at) DO NOTHING",
+    );
+    expect(sql).toContain(
+      "used_requests = used_requests + action_row.request_cost",
+    );
+  });
+
+  it("checks active_runs independently before runtime budget consumption", async () => {
+    const sql = await readFile(activeRunsGuardPath, "utf8");
+
+    expect(sql).toContain(
+      "CREATE OR REPLACE FUNCTION public.consult_eve_runtime_budget_policy",
+    );
+    expect(sql).toContain("governance.kill_switch_state ->> 'active_runs'");
+    expect(sql).toContain(
+      "governance.kill_switch_state ->> action_row.governance_domain",
     );
     expect(sql).toContain(
       "used_requests = used_requests + action_row.request_cost",
