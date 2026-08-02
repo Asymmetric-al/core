@@ -1,6 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { EveSandboxNetworkDecision } from "@asym/api/eve/sandbox";
+import type {
+  EveSandboxNetworkDecision,
+  EveSandboxWriteDecision,
+} from "@asym/api/eve/sandbox";
 
 const mocks = vi.hoisted(() => ({
   bashExecute: vi.fn(async () => ({
@@ -15,6 +18,11 @@ const mocks = vi.hoisted(() => ({
     networkPolicy: "allow-all",
     reason: "governance_allowed",
   } as EveSandboxNetworkDecision,
+  writeDecision: {
+    allowed: true,
+    governanceStateVersion: 1,
+    reason: "governance_allowed",
+  } as EveSandboxWriteDecision,
   writeFileExecute: vi.fn(async () => ({ ok: true })),
 }));
 
@@ -24,11 +32,7 @@ vi.mock("@asym/api/eve/sandbox", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@asym/api/eve/sandbox")>()),
   recordEveSandboxAction: async () => true,
   resolveEveSandboxNetworkDecision: async () => mocks.decision,
-  resolveEveSandboxWriteDecision: async () => ({
-    allowed: true,
-    governanceStateVersion: 1,
-    reason: "governance_allowed",
-  }),
+  resolveEveSandboxWriteDecision: async () => mocks.writeDecision,
 }));
 
 import sandboxDefinition from "../../packages/eve-runtime/agent/sandbox";
@@ -38,6 +42,14 @@ import bashTool, {
 import writeFileTool, {
   createEveWriteFileTool,
 } from "../../packages/eve-runtime/agent/tools/write_file";
+
+afterEach(() => {
+  mocks.writeDecision = {
+    allowed: true,
+    governanceStateVersion: 1,
+    reason: "governance_allowed",
+  };
+});
 
 async function approvalFor(
   tool: typeof bashTool | typeof writeFileTool,
@@ -213,5 +225,26 @@ describe("Eve sandbox authored controls", () => {
       },
       expect.anything(),
     );
+  });
+
+  it("fails closed before delegating a file write when governance denies it", async () => {
+    mocks.writeDecision = {
+      allowed: false,
+      governanceStateVersion: 2,
+      reason: "kill_switch_active",
+    };
+    mocks.writeFileExecute.mockClear();
+    const testTool = createEveWriteFileTool(mocks.writeFileExecute as never);
+
+    await expect(
+      testTool.execute?.(
+        {
+          content: "export const guarded = true;",
+          filePath: "packages/lib/src/guarded.ts",
+        },
+        { session: { id: "session-one" } } as never,
+      ),
+    ).rejects.toThrow("Sandbox paused: kill_switch_active.");
+    expect(mocks.writeFileExecute).not.toHaveBeenCalled();
   });
 });

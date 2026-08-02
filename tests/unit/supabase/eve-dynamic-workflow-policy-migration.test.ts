@@ -84,6 +84,24 @@ describe("Eve dynamic workflow policy migration", () => {
     );
   });
 
+  it("records unclassified actions and missing budgets truthfully", async () => {
+    const sql = await readFile(activeRunsGuardPath, "utf8");
+
+    expect(sql).toContain("reason := 'unknown_action'");
+    expect(sql).toContain("reason := 'budget_not_configured'");
+    expect(sql.match(/reason := 'budget_exhausted'/gu)).toHaveLength(1);
+    expect(sql).toContain("COALESCE(resolved_trust_zone, 'unclassified')");
+    expect(sql).toContain("COALESCE(resolved_write_class, 'unclassified')");
+    expect(sql).toMatch(
+      /trust_zone IN \(\s*'engineering', 'product_admin', 'memory', 'unclassified'\s*\)/u,
+    );
+    expect(sql).toContain(
+      "write_class IN ('operational', 'business_data', 'unclassified')",
+    );
+    expect(sql).not.toContain("resolved_trust_zone TEXT := 'product_admin'");
+    expect(sql).not.toContain("resolved_write_class TEXT := 'business_data'");
+  });
+
   it("persists a service-safe decision and redacted audit in one function", async () => {
     const sql = await readFile(migrationPath, "utf8");
 

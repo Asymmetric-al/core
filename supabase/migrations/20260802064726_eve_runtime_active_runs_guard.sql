@@ -1,6 +1,21 @@
 -- Recheck the global active-runs pause at the same atomic policy boundary as
 -- every dynamic-workflow action. The action catalog still owns the narrower
 -- domain check; active_runs independently stops all already-started work.
+ALTER TABLE public.eve_policy_decisions
+    DROP CONSTRAINT IF EXISTS eve_policy_decisions_trust_zone_check;
+ALTER TABLE public.eve_policy_decisions
+    ADD CONSTRAINT eve_policy_decisions_trust_zone_check
+    CHECK (
+        trust_zone IN (
+            'engineering', 'product_admin', 'memory', 'unclassified'
+        )
+    );
+ALTER TABLE public.eve_policy_decisions
+    DROP CONSTRAINT IF EXISTS eve_policy_decisions_write_class_check;
+ALTER TABLE public.eve_policy_decisions
+    ADD CONSTRAINT eve_policy_decisions_write_class_check
+    CHECK (write_class IN ('operational', 'business_data', 'unclassified'));
+
 CREATE OR REPLACE FUNCTION public.consult_eve_runtime_budget_policy(
     p_action_id TEXT,
     p_target_key TEXT,
@@ -29,8 +44,8 @@ DECLARE
     window_start TIMESTAMPTZ;
     decision TEXT;
     reason TEXT;
-    resolved_trust_zone TEXT := 'product_admin';
-    resolved_write_class TEXT := 'business_data';
+    resolved_trust_zone TEXT;
+    resolved_write_class TEXT;
 BEGIN
     IF p_action_id !~ '^[a-zA-Z0-9._-]{1,120}$' THEN
         RAISE EXCEPTION 'invalid_eve_policy_action_id';
@@ -121,7 +136,7 @@ BEGIN
         FOR SHARE;
         IF NOT FOUND THEN
             decision := 'pause';
-            reason := 'budget_exhausted';
+            reason := 'budget_not_configured';
         END IF;
     END IF;
 
@@ -198,8 +213,8 @@ BEGIN
         ownership.session_id,
         p_action_id,
         p_target_key,
-        resolved_trust_zone,
-        resolved_write_class,
+        COALESCE(resolved_trust_zone, 'unclassified'),
+        COALESCE(resolved_write_class, 'unclassified'),
         decision,
         reason,
         budget_row.id
@@ -228,8 +243,8 @@ BEGIN
         CASE WHEN decision = 'allow' THEN 'succeeded' ELSE 'blocked' END,
         'not_used',
         jsonb_build_object(
-            'trustZone', resolved_trust_zone,
-            'writeClass', resolved_write_class,
+            'trustZone', COALESCE(resolved_trust_zone, 'unclassified'),
+            'writeClass', COALESCE(resolved_write_class, 'unclassified'),
             'reason', reason
         )::TEXT,
         jsonb_build_object('decision', decision)::TEXT,
@@ -248,8 +263,8 @@ BEGIN
 
     RETURN jsonb_build_object(
         'actionId', p_action_id,
-        'trustZone', resolved_trust_zone,
-        'writeClass', resolved_write_class,
+        'trustZone', COALESCE(resolved_trust_zone, 'unclassified'),
+        'writeClass', COALESCE(resolved_write_class, 'unclassified'),
         'decision', decision,
         'reason', reason
     );
