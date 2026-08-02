@@ -11,7 +11,6 @@ import {
   OPEN_CASE_IDS,
   PHASE_18_EVIDENCE_RULES,
   PHASE_18_OPERATIONAL_SUITES,
-  type PHASE_18_ABSOLUTE_BUDGETS,
   PHASE_18_QUALIFICATION_GATES,
   RendererCharterValidationError,
   buildPhase18RendererContestInput,
@@ -1172,7 +1171,7 @@ describe("freezeRendererQualificationCharter", () => {
           );
         }),
       ),
-    ).toContain("protocol_fixed_field_changed");
+    ).not.toContain("protocol_fixed_field_changed");
 
     expect(
       issueCodes(
@@ -1376,9 +1375,9 @@ describe("verifyRendererQualificationCharter", () => {
     const charter = structuredClone(
       freezeRendererQualificationCharter(buildFixtureContestInput()),
     );
-    (charter as { budgets: typeof PHASE_18_ABSOLUTE_BUDGETS }).budgets = [
-      ...charter.budgets,
-    ].reverse();
+    (
+      charter as { budgets: RendererQualificationCharterInput["budgets"] }
+    ).budgets = [...charter.budgets].reverse();
     const {
       schema_version,
       serializer_version,

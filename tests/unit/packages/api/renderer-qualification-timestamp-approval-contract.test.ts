@@ -35,6 +35,15 @@ function approval(
   };
 }
 
+function approvalByRole(
+  input: RendererQualificationCharterInput,
+  role: string,
+): CharterApproval {
+  const match = input.approvals.find((entry) => entry.role === role);
+  if (!match) throw new Error(`Missing fixture approval for ${role}`);
+  return match;
+}
+
 describe("renderer qualification timestamp and approval contract", () => {
   it.each([
     "2026-07-22T12:00:00",
@@ -67,20 +76,22 @@ describe("renderer qualification timestamp and approval contract", () => {
   it("accepts explicit offsets, preserves them, and permits exact freeze equality", () => {
     const input = buildFixtureContestInput();
     input.frozen_at = "2026-07-22T19:00:00.000+07:00";
-    input.approvals[0]!.approved_at = "2026-07-22T14:00:00.000+02:00";
+    approvalByRole(input, "final_approver").approved_at =
+      "2026-07-22T14:00:00.000+02:00";
     input.held_back_seal.access_log[0]!.at = "2026-07-22T14:00:00.000+02:00";
 
     const charter = freezeRendererQualificationCharter(input);
 
     expect(charter.frozen_at).toBe("2026-07-22T19:00:00.000+07:00");
-    expect(charter.approvals[0]!.approved_at).toBe(
+    expect(approvalByRole(charter, "final_approver").approved_at).toBe(
       "2026-07-22T14:00:00.000+02:00",
     );
   });
 
   it("rejects an approval after freeze even when a different offset hides it", () => {
     const input = buildFixtureContestInput();
-    input.approvals[0]!.approved_at = "2026-07-22T14:00:01.000+02:00";
+    approvalByRole(input, "final_approver").approved_at =
+      "2026-07-22T14:00:01.000+02:00";
 
     expect(issues(input).map((entry) => entry.code)).toContain(
       "approval_invalid",
@@ -90,7 +101,8 @@ describe("renderer qualification timestamp and approval contract", () => {
   it("compares the complete fractional second without millisecond truncation", () => {
     const input = buildFixtureContestInput();
     input.frozen_at = "2026-07-22T12:00:00.0000Z";
-    input.approvals[0]!.approved_at = "2026-07-22T12:00:00.0001Z";
+    approvalByRole(input, "final_approver").approved_at =
+      "2026-07-22T12:00:00.0001Z";
 
     expect(issues(input).map((entry) => entry.code)).toContain(
       "approval_invalid",

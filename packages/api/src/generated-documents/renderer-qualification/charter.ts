@@ -11,7 +11,7 @@ import {
 import {
   HELD_BACK_CASE_DEFINITIONS,
   OPEN_CASE_DEFINITIONS,
-  PHASE_18_ABSOLUTE_BUDGETS,
+  PHASE_18_BUDGET_DEFINITIONS,
   PHASE_18_EVIDENCE_RULES,
   PHASE_18_OPERATIONAL_SUITES,
   PHASE_18_QUALIFICATION_GATES,
@@ -32,7 +32,6 @@ import {
   QUALIFICATION_GATE_IDS,
   RENDERER_CANDIDATE_IDS,
   RENDERER_QUALIFICATION_SCHEMA_VERSION,
-  REQUIRED_BUDGET_METRICS,
   SCORE_DIMENSION_IDS,
   SCORE_DIMENSION_WEIGHTS,
   SYNTHETIC_CORPUS_PROOF_SCHEMA_VERSION,
@@ -40,12 +39,14 @@ import {
 } from "./types";
 
 import type {
+  AbsoluteBudget,
   CharterApproval,
   CharterValidationIssue,
   FrozenRendererQualificationCharter,
   QualificationCaseManifest,
   RendererCandidateLock,
   RendererQualificationCharterInput,
+  RequiredBudgetMetric,
   SyntheticCorpusProof,
   ValidationTool,
 } from "./types";
@@ -212,6 +213,7 @@ const CHARTER_APPROVAL_FIELDS = [
   "approved_at",
   "statement",
 ] as const;
+const ABSOLUTE_BUDGET_FIELDS = ["metric", "limit", "unit", "basis"] as const;
 
 const isSha256Hex = (value: string | undefined): boolean =>
   SHA256_HEX.test(value ?? "");
@@ -1588,15 +1590,35 @@ function isCanonicalVisibleIdentity(value: unknown): value is string {
   );
 }
 
+interface ValidatedCharterApproval {
+  approval: CharterApproval;
+  approvedAt: ParsedExplicitOffsetTimestamp;
+  index: number;
+}
+
 function validateApprovals(
   input: RendererQualificationCharterInput,
   issues: CharterValidationIssue[],
 ): void {
   const frozenAt = parseExplicitOffsetTimestamp(input.frozen_at);
   const actorsByRole = new Map<string, Set<string>>();
-  let hasValidFinalApproval = false;
+  const approvalCountByRole = new Map<string, number>();
+  const validatedApprovals: ValidatedCharterApproval[] = [];
+  const rawApprovals: readonly unknown[] = Array.isArray(input.approvals)
+    ? input.approvals
+    : [];
 
-  for (const [index, rawApproval] of input.approvals.entries()) {
+  if (!Array.isArray(input.approvals)) {
+    issues.push(
+      issue(
+        "approvals",
+        "approval_invalid",
+        "The frozen approval register must be an array.",
+      ),
+    );
+  }
+
+  for (const [index, rawApproval] of rawApprovals.entries()) {
     const path = `approvals.${index}`;
     if (
       !rawApproval ||
@@ -1637,6 +1659,13 @@ function validateApprovals(
         ),
       );
       approvalIsValid = false;
+    }
+
+    if (roleIsCanonical && typeof approval.role === "string") {
+      approvalCountByRole.set(
+        approval.role,
+        (approvalCountByRole.get(approval.role) ?? 0) + 1,
+      );
     }
 
     if (typeof approval.statement !== "string" || !approval.statement.trim()) {
@@ -1692,14 +1721,25 @@ function validateApprovals(
 
     if (
       approvalIsValid &&
-      approval.actor === input.roles.final_approver &&
-      approval.role === "final_approver"
+      approvedAt !== undefined &&
+      actorIsCanonical &&
+      roleIsCanonical &&
+      typeof approval.statement === "string"
     ) {
-      hasValidFinalApproval = true;
+      validatedApprovals.push({
+        approval: approval as CharterApproval,
+        approvedAt,
+        index,
+      });
     }
   }
 
-  if (!hasValidFinalApproval) {
+  const finalApproval = validatedApprovals.find(
+    ({ approval }) =>
+      approval.actor === input.roles.final_approver &&
+      approval.role === "final_approver",
+  );
+  if (!finalApproval) {
     issues.push(
       issue(
         "approvals",
@@ -1708,38 +1748,168 @@ function validateApprovals(
       ),
     );
   }
+
+  const requireBudgetApproval = (
+    role: "operations_budget_owner" | "product_budget_owner",
+    expectedActor: string,
+    label: string,
+  ): ValidatedCharterApproval | undefined => {
+    const approvals = validatedApprovals.filter(
+      ({ approval }) =>
+        approval.role === role && approval.actor === expectedActor,
+    );
+    if ((approvalCountByRole.get(role) ?? 0) !== 1 || approvals.length !== 1) {
+      issues.push(
+        issue(
+          "approvals",
+          "approval_missing",
+          `The charter freezes only with exactly one valid ${label} approval from the assigned actor.`,
+        ),
+      );
+      return undefined;
+    }
+    return approvals[0];
+  };
+
+  const productBudgetApproval = requireBudgetApproval(
+    "product_budget_owner",
+    input.roles.accountable_owner,
+    "product budget owner",
+  );
+  const operationsBudgetApproval = requireBudgetApproval(
+    "operations_budget_owner",
+    input.roles.operations_reviewer,
+    "operations budget owner",
+  );
+
+  if (finalApproval) {
+    for (const budgetApproval of [
+      productBudgetApproval,
+      operationsBudgetApproval,
+    ]) {
+      if (
+        budgetApproval &&
+        compareParsedTimestamps(
+          budgetApproval.approvedAt,
+          finalApproval.approvedAt,
+        ) > 0
+      ) {
+        issues.push(
+          issue(
+            `approvals.${budgetApproval.index}`,
+            "approval_invalid",
+            "Product and operations budget approvals must be recorded no later than the final charter approval.",
+          ),
+        );
+      }
+    }
+  }
 }
 
 function validateBudgetsValidatorsRoles(
   input: RendererQualificationCharterInput,
   issues: CharterValidationIssue[],
 ): void {
-  const budgetMetrics = new Map(
-    input.budgets.map((budget) => [budget.metric, budget]),
-  );
-  const fixedBudgets = new Map(
-    PHASE_18_ABSOLUTE_BUDGETS.map((budget) => [budget.metric, budget]),
-  );
-  const declaredBudgetMetrics = input.budgets.map((budget) => budget.metric);
-  const declaredBudgetMetricSet = new Set(declaredBudgetMetrics);
-  const budgetsMatch =
-    declaredBudgetMetrics.length === fixedBudgets.size &&
-    declaredBudgetMetricSet.size === fixedBudgets.size &&
-    [...fixedBudgets.keys()].every((metric) =>
-      declaredBudgetMetricSet.has(metric),
-    );
-  if (!budgetsMatch) {
+  const rawBudgets: readonly unknown[] = Array.isArray(input.budgets)
+    ? input.budgets
+    : [];
+  if (!Array.isArray(input.budgets)) {
     issues.push(
       issue(
         "budgets",
-        "protocol_fixed_field_changed",
-        "The frozen absolute budget set is exactly the pre-registered protocol metrics with no duplicates or additions.",
+        "budget_unbounded",
+        "The frozen budget register must be an array.",
       ),
     );
   }
-  for (const metric of REQUIRED_BUDGET_METRICS) {
-    const budget = budgetMetrics.get(metric);
-    if (!budget) {
+
+  const fixedBudgetDefinitions = new Map(
+    PHASE_18_BUDGET_DEFINITIONS.map((definition) => [
+      definition.metric,
+      definition,
+    ]),
+  );
+  const budgetMetrics = new Map<RequiredBudgetMetric, AbsoluteBudget>();
+
+  for (const [index, rawBudget] of rawBudgets.entries()) {
+    const path = `budgets.${index}`;
+    if (
+      !rawBudget ||
+      typeof rawBudget !== "object" ||
+      Array.isArray(rawBudget)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "budget_unbounded",
+          "Every budget must be an object with the exact frozen budget fields.",
+        ),
+      );
+      continue;
+    }
+
+    const budget = rawBudget as Partial<AbsoluteBudget>;
+    if (!hasExactOwnFields(budget, ABSOLUTE_BUDGET_FIELDS)) {
+      issues.push(
+        issue(
+          path,
+          "protocol_fixed_field_changed",
+          "Every budget freezes exactly metric, limit, unit, and basis.",
+        ),
+      );
+    }
+
+    if (
+      typeof budget.metric !== "string" ||
+      !fixedBudgetDefinitions.has(budget.metric as RequiredBudgetMetric)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "protocol_fixed_field_changed",
+          "The frozen budget register accepts only protocol-defined metrics.",
+        ),
+      );
+      continue;
+    }
+
+    const metric = budget.metric as RequiredBudgetMetric;
+    if (budgetMetrics.has(metric)) {
+      issues.push(
+        issue(path, "budget_unbounded", "Budget metrics must be unique."),
+      );
+      continue;
+    }
+    budgetMetrics.set(metric, budget as AbsoluteBudget);
+
+    if (
+      typeof budget.limit !== "number" ||
+      !Number.isFinite(budget.limit) ||
+      budget.limit <= 0
+    ) {
+      issues.push(
+        issue(
+          `budgets.${metric}`,
+          "budget_unbounded",
+          "Every budget is a finite positive absolute threshold; relative evidence cannot substitute.",
+        ),
+      );
+    }
+
+    const fixed = fixedBudgetDefinitions.get(metric);
+    if (fixed && (budget.unit !== fixed.unit || budget.basis !== fixed.basis)) {
+      issues.push(
+        issue(
+          `budgets.${metric}`,
+          "protocol_fixed_field_changed",
+          "Budget units and measurement bases are protocol-defined; product and operations owners supply only the numeric limits.",
+        ),
+      );
+    }
+  }
+
+  for (const { metric } of PHASE_18_BUDGET_DEFINITIONS) {
+    if (!budgetMetrics.has(metric)) {
       issues.push(
         issue(
           `budgets.${metric}`,
@@ -1747,37 +1917,51 @@ function validateBudgetsValidatorsRoles(
           "No absolute workload budget may remain blank when the charter freezes.",
         ),
       );
-      continue;
-    }
-    if (!Number.isFinite(budget.limit) || budget.limit <= 0) {
-      issues.push(
-        issue(
-          `budgets.${metric}`,
-          "budget_unbounded",
-          "Every budget is a finite absolute threshold; relative evidence cannot substitute.",
-        ),
-      );
-    }
-    const fixed = fixedBudgets.get(metric);
-    if (
-      fixed &&
-      (budget.limit !== fixed.limit ||
-        budget.unit !== fixed.unit ||
-        budget.basis !== fixed.basis)
-    ) {
-      issues.push(
-        issue(
-          `budgets.${metric}`,
-          "protocol_fixed_field_changed",
-          "Budget limits, units, and bases are pre-registered by the protocol.",
-        ),
-      );
     }
   }
-  if (budgetMetrics.size !== input.budgets.length) {
-    issues.push(
-      issue("budgets", "budget_unbounded", "Budget metrics must be unique."),
-    );
+
+  const validLimit = (metric: RequiredBudgetMetric): number | undefined => {
+    const limit = budgetMetrics.get(metric)?.limit;
+    return typeof limit === "number" && Number.isFinite(limit) && limit > 0
+      ? limit
+      : undefined;
+  };
+  const deadline = validLimit("max_attempt_deadline_ms");
+  for (const shape of ["short", "medium", "long"] as const) {
+    const p50Metric = `${shape}_item_latency_p50_ms` as RequiredBudgetMetric;
+    const p95Metric = `${shape}_item_latency_p95_ms` as RequiredBudgetMetric;
+    const p99Metric = `${shape}_item_latency_p99_ms` as RequiredBudgetMetric;
+    const p50 = validLimit(p50Metric);
+    const p95 = validLimit(p95Metric);
+    const p99 = validLimit(p99Metric);
+
+    if (p50 !== undefined && p95 !== undefined && p50 > p95) {
+      issues.push(
+        issue(
+          `budgets.${p50Metric}`,
+          "budget_incoherent",
+          `${shape} p50 latency must not exceed its p95 latency budget.`,
+        ),
+      );
+    }
+    if (p95 !== undefined && p99 !== undefined && p95 > p99) {
+      issues.push(
+        issue(
+          `budgets.${p95Metric}`,
+          "budget_incoherent",
+          `${shape} p95 latency must not exceed its p99 latency budget.`,
+        ),
+      );
+    }
+    if (p99 !== undefined && deadline !== undefined && p99 > deadline) {
+      issues.push(
+        issue(
+          `budgets.${p99Metric}`,
+          "budget_incoherent",
+          `${shape} p99 latency must not exceed the absolute attempt deadline.`,
+        ),
+      );
+    }
   }
 
   const fixedValidators = new Map(

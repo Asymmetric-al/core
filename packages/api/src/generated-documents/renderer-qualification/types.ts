@@ -334,25 +334,33 @@ export interface OperationalSuites {
   };
 }
 
-export const REQUIRED_BUDGET_METRICS = [
+export const REQUIRED_BUDGET_METRICS = Object.freeze([
   "short_item_latency_p50_ms",
   "short_item_latency_p95_ms",
   "short_item_latency_p99_ms",
+  "medium_item_latency_p50_ms",
   "medium_item_latency_p95_ms",
+  "medium_item_latency_p99_ms",
+  "long_item_latency_p50_ms",
   "long_item_latency_p95_ms",
+  "long_item_latency_p99_ms",
   "batch_completion_minutes",
   "throughput_items_per_minute",
   "max_attempt_deadline_ms",
   "max_queue_age_seconds",
   "max_resident_memory_mb",
+  "max_hostile_input_cpu_time_ms",
   "max_artifact_bytes",
   "min_capacity_headroom_percent",
   "max_error_rate_percent",
   "max_retry_rate_percent",
   "max_provider_requests_per_hour",
+  "short_item_cost_usd_per_thousand_documents",
+  "medium_item_cost_usd_per_thousand_documents",
+  "long_item_cost_usd_per_thousand_documents",
   "max_cost_usd_per_thousand_documents",
   "recovery_time_objective_minutes",
-] as const;
+] as const);
 export type RequiredBudgetMetric = (typeof REQUIRED_BUDGET_METRICS)[number];
 
 export interface AbsoluteBudget {
@@ -361,6 +369,9 @@ export interface AbsoluteBudget {
   unit: string;
   basis: string;
 }
+
+/** Protocol-owned budget shape; product and operations owners supply the limit. */
+export type BudgetMetricDefinition = Omit<AbsoluteBudget, "limit">;
 
 export const VALIDATOR_CATEGORIES = [
   "pdf_a_machine",

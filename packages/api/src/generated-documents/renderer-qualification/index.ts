@@ -37,7 +37,7 @@ export {
   type SealCandidateSubmissionInput,
 } from "./harness";
 export {
-  PHASE_18_ABSOLUTE_BUDGETS,
+  PHASE_18_BUDGET_DEFINITIONS,
   PHASE_18_EVIDENCE_RULES,
   PHASE_18_OPERATIONAL_SUITES,
   PHASE_18_QUALIFICATION_GATES,

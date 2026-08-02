@@ -4,8 +4,8 @@ import {
 } from "./adapter-contract";
 
 import type {
-  AbsoluteBudget,
   AssistiveTechnologyStackLock,
+  BudgetMetricDefinition,
   EvidenceRules,
   HeldBackCaseId,
   OpenCaseId,
@@ -570,114 +570,144 @@ export const PHASE_18_EVIDENCE_RULES: EvidenceRules = {
   },
 };
 
-export const PHASE_18_ABSOLUTE_BUDGETS: readonly AbsoluteBudget[] = [
+/**
+ * The protocol owns the metric, unit, and measurement basis. Numeric limits
+ * are freeze-time evidence supplied and approved by product and operations.
+ */
+export const PHASE_18_BUDGET_DEFINITIONS: readonly BudgetMetricDefinition[] = [
   {
     metric: "short_item_latency_p50_ms",
-    limit: 3_000,
     unit: "ms",
-    basis: "one-page official document, warm pipeline",
+    basis:
+      "short workload shape across the frozen qualification population, including cold starts",
   },
   {
     metric: "short_item_latency_p95_ms",
-    limit: 10_000,
     unit: "ms",
-    basis: "one-page official document, warm pipeline",
+    basis:
+      "short workload shape across the frozen qualification population, including cold starts",
   },
   {
     metric: "short_item_latency_p99_ms",
-    limit: 30_000,
     unit: "ms",
-    basis: "one-page official document incl. cold starts",
+    basis:
+      "short workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "medium_item_latency_p50_ms",
+    unit: "ms",
+    basis:
+      "medium 20-page workload shape across the frozen qualification population, including cold starts",
   },
   {
     metric: "medium_item_latency_p95_ms",
-    limit: 60_000,
     unit: "ms",
-    basis: "20-page statement",
+    basis:
+      "medium 20-page workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "medium_item_latency_p99_ms",
+    unit: "ms",
+    basis:
+      "medium 20-page workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "long_item_latency_p50_ms",
+    unit: "ms",
+    basis:
+      "long 100-plus-page workload shape across the frozen qualification population, including cold starts",
   },
   {
     metric: "long_item_latency_p95_ms",
-    limit: 300_000,
     unit: "ms",
-    basis: "100-plus-page summary",
+    basis:
+      "long 100-plus-page workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "long_item_latency_p99_ms",
+    unit: "ms",
+    basis:
+      "long 100-plus-page workload shape across the frozen qualification population, including cold starts",
   },
   {
     metric: "batch_completion_minutes",
-    limit: 90,
     unit: "minutes",
     basis: "1,000-item mixed batch across 20 tenants",
   },
   {
     metric: "throughput_items_per_minute",
-    limit: 20,
     unit: "items/minute sustained minimum",
     basis: "mixed batch steady state",
   },
   {
     metric: "max_attempt_deadline_ms",
-    limit: 600_000,
     unit: "ms",
     basis:
-      // Protocol: the frozen budgets cover "latency, throughput, memory,
-      // deadline, queue age, provider quota and cost", and every attempt
-      // declares an "explicit deadline". Percentile targets alone let a
-      // workload where under 1% of attempts hang pass every declared budget,
-      // because a hung attempt is never a slow success - it is a typed timeout.
-      // Set at twice the 100-plus-page p95 (long_item_latency_p95_ms), the
-      // largest admitted case.
       "absolute per-attempt execution deadline; an attempt exceeding it is a typed timeout, not a slow success",
   },
   {
     metric: "max_queue_age_seconds",
-    limit: 600,
     unit: "seconds",
     basis: "interactive item under mixed load",
   },
   {
     metric: "max_resident_memory_mb",
-    limit: 2_048,
     unit: "MB",
     basis: "single worker at the largest admitted case",
   },
   {
+    metric: "max_hostile_input_cpu_time_ms",
+    unit: "CPU ms",
+    basis:
+      "CPU time summed across all cores for one hostile or malformed attempt at maximum admitted bounds",
+  },
+  {
     metric: "max_artifact_bytes",
-    limit: 52_428_800,
     unit: "bytes",
     basis: "largest admitted document",
   },
   {
     metric: "min_capacity_headroom_percent",
-    limit: 30,
     unit: "percent",
     basis: "launch workload versus measured ceiling",
   },
   {
     metric: "max_error_rate_percent",
-    limit: 1,
     unit: "percent",
     basis: "non-poison items in operational suites",
   },
   {
     metric: "max_retry_rate_percent",
-    limit: 5,
     unit: "percent",
     basis: "operational suites",
   },
   {
     metric: "max_provider_requests_per_hour",
-    limit: 3_000,
     unit: "requests/hour",
     basis: "managed-provider quota ceiling",
   },
   {
+    metric: "short_item_cost_usd_per_thousand_documents",
+    unit: "USD per 1,000 documents",
+    basis: "short workload shape, all-in provider and runtime cost",
+  },
+  {
+    metric: "medium_item_cost_usd_per_thousand_documents",
+    unit: "USD per 1,000 documents",
+    basis: "medium workload shape, all-in provider and runtime cost",
+  },
+  {
+    metric: "long_item_cost_usd_per_thousand_documents",
+    unit: "USD per 1,000 documents",
+    basis: "long workload shape, all-in provider and runtime cost",
+  },
+  {
     metric: "max_cost_usd_per_thousand_documents",
-    limit: 20,
-    unit: "USD",
-    basis: "mixed launch shape, all-in provider cost",
+    unit: "USD per 1,000 documents",
+    basis: "mixed launch shape, all-in provider and runtime cost",
   },
   {
     metric: "recovery_time_objective_minutes",
-    limit: 15,
     unit: "minutes",
     basis: "provider/runtime outage recovery",
   },
@@ -764,6 +794,8 @@ export interface Phase18ContestFreezeInput {
   frozen_at: string;
   roles: RendererQualificationCharterInput["roles"];
   approvals: RendererQualificationCharterInput["approvals"];
+  /** Owner-supplied numeric thresholds for every protocol-defined metric. */
+  budgets: RendererQualificationCharterInput["budgets"];
   candidates: RendererQualificationCharterInput["candidates"];
   /** Content-addressed fixture digests for every corpus case. */
   fixtures: Readonly<
@@ -804,7 +836,7 @@ deepFreezeProtocol(PHASE_18_SCORE_DIMENSIONS);
 deepFreezeProtocol(PHASE_18_SCORING_RULES);
 deepFreezeProtocol(PHASE_18_OPERATIONAL_SUITES);
 deepFreezeProtocol(PHASE_18_EVIDENCE_RULES);
-deepFreezeProtocol(PHASE_18_ABSOLUTE_BUDGETS);
+deepFreezeProtocol(PHASE_18_BUDGET_DEFINITIONS);
 deepFreezeProtocol(PHASE_18_VALIDATION_TOOLS);
 deepFreezeProtocol(PHASE_18_REQUALIFICATION_TRIGGERS);
 deepFreezeProtocol(PHASE_18_STOP_CONDITIONS);
@@ -895,7 +927,7 @@ export function buildPhase18RendererContestInput(
     gates: PHASE_18_QUALIFICATION_GATES,
     score_dimensions: PHASE_18_SCORE_DIMENSIONS,
     scoring_rules: PHASE_18_SCORING_RULES,
-    budgets: PHASE_18_ABSOLUTE_BUDGETS,
+    budgets: input.budgets ?? [],
     validators,
     remediation_policy: {
       initial_attempts: 1,

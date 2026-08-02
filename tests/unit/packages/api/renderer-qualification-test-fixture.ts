@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import {
   HELD_BACK_CASE_IDS,
   OPEN_CASE_IDS,
+  PHASE_18_BUDGET_DEFINITIONS,
   PHASE_18_VALIDATION_TOOLS,
   buildPhase18RendererContestInput,
   digestSyntheticCorpusFixtureManifest,
@@ -10,11 +11,13 @@ import {
 } from "../../../../packages/api/src/generated-documents/renderer-qualification";
 
 import type {
+  AbsoluteBudget,
   HeldBackCaseId,
   OpenCaseId,
   Phase18ContestFreezeInput,
   QualificationCaseId,
   QualificationRoles,
+  RequiredBudgetMetric,
   RendererCandidateLock,
   RendererQualificationCharterInput,
   SyntheticCorpusProof,
@@ -38,6 +41,42 @@ export const FIXTURE_ROLES: QualificationRoles = {
   records_legal_evidence_owner: "records-sloan",
   final_approver: "approver-emerson",
 };
+
+/** Synthetic test-only limits. These are fixtures, never launch defaults. */
+const SYNTHETIC_TEST_ONLY_BUDGET_LIMITS: Record<RequiredBudgetMetric, number> =
+  {
+    short_item_latency_p50_ms: 101,
+    short_item_latency_p95_ms: 202,
+    short_item_latency_p99_ms: 303,
+    medium_item_latency_p50_ms: 404,
+    medium_item_latency_p95_ms: 505,
+    medium_item_latency_p99_ms: 606,
+    long_item_latency_p50_ms: 707,
+    long_item_latency_p95_ms: 808,
+    long_item_latency_p99_ms: 909,
+    batch_completion_minutes: 90,
+    throughput_items_per_minute: 20,
+    max_attempt_deadline_ms: 1_010,
+    max_queue_age_seconds: 600,
+    max_resident_memory_mb: 2_048,
+    max_hostile_input_cpu_time_ms: 1_111,
+    max_artifact_bytes: 52_428_800,
+    min_capacity_headroom_percent: 30,
+    max_error_rate_percent: 1,
+    max_retry_rate_percent: 5,
+    max_provider_requests_per_hour: 3_000,
+    short_item_cost_usd_per_thousand_documents: 1,
+    medium_item_cost_usd_per_thousand_documents: 2,
+    long_item_cost_usd_per_thousand_documents: 3,
+    max_cost_usd_per_thousand_documents: 2,
+    recovery_time_objective_minutes: 15,
+  };
+
+export const FIXTURE_BUDGETS: readonly AbsoluteBudget[] =
+  PHASE_18_BUDGET_DEFINITIONS.map((definition) => ({
+    ...definition,
+    limit: SYNTHETIC_TEST_ONLY_BUDGET_LIMITS[definition.metric],
+  }));
 
 export function fixtureCandidates(): RendererCandidateLock[] {
   const shared = {
@@ -223,6 +262,18 @@ export function buildFixtureContestInput(
     roles: FIXTURE_ROLES,
     approvals: [
       {
+        actor: FIXTURE_ROLES.accountable_owner,
+        role: "product_budget_owner",
+        approved_at: "2026-07-22T11:57:00.000Z",
+        statement: "Synthetic test-only product budget limits approved.",
+      },
+      {
+        actor: FIXTURE_ROLES.operations_reviewer,
+        role: "operations_budget_owner",
+        approved_at: "2026-07-22T11:58:00.000Z",
+        statement: "Synthetic test-only operations budget limits approved.",
+      },
+      {
         actor: "approver-emerson",
         role: "final_approver",
         approved_at: "2026-07-22T11:59:00.000Z",
@@ -230,6 +281,7 @@ export function buildFixtureContestInput(
           "Charter approved for freeze before any candidate result exists.",
       },
     ],
+    budgets: FIXTURE_BUDGETS,
     candidates: fixtureCandidates(),
     fixtures,
     synthetic_corpus_proof: buildFixtureSyntheticCorpusProof(fixtures),
