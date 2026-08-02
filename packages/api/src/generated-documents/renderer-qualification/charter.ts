@@ -34,6 +34,7 @@ import type {
   RendererCandidateLock,
   RendererQualificationCharterInput,
   RendererQualificationManifest,
+  ValidationTool,
 } from "./types";
 
 export class RendererCharterValidationError extends Error {
@@ -73,9 +74,53 @@ const FLOATING_PIN_SEGMENT =
   /(?:^|[-_.@/])(latest|current|stable|next|x)(?:$|[-_.@/])/i;
 const EXACT_VERSIONED_COMPONENT = /^[A-Za-z0-9][A-Za-z0-9._@/-]*$/;
 const EXACT_COMPONENT_NAME = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/;
+const DEFERRED_VALIDATION_PIN =
+  /(?:\b(?:current|latest|stable|next|tbd|unknown|placeholder)\b|to[-_ ]be[-_ ]chosen|independently[-_ ]chosen)/i;
+const VALIDATION_COMPONENT_FIELDS = ["name", "version", "digest"] as const;
+const ASSISTIVE_TECHNOLOGY_STACK_FIELDS = [
+  "stack_id",
+  "viewer",
+  "assistive_technology",
+  "task_protocol",
+] as const;
+const VALIDATION_TOOL_FIELDS = [
+  "name",
+  "version",
+  "category",
+  "ruleset",
+  "executable_digest",
+  "configuration_digest",
+] as const;
+const EVIDENCE_RULE_FIELDS = [
+  "package_schema_version",
+  "redaction_policy",
+  "retention_owner",
+  "retention_days",
+  "validator_warning_policy",
+] as const;
+const VALIDATOR_WARNING_POLICY_FIELDS = [
+  "retain_all_warnings",
+  "adjudicate_warnings_individually",
+  "rule_override_requires_charter_reset_and_rerun",
+  "profile_declaration_is_not_a_pass",
+] as const;
 
 const isSha256Hex = (value: string | undefined): boolean =>
   SHA256_HEX.test(value ?? "");
+
+function hasExactOwnFields(
+  value: object | undefined,
+  expectedFields: readonly string[],
+): boolean {
+  if (!value || Array.isArray(value)) return false;
+  const fields = Object.keys(value);
+  return (
+    fields.length === expectedFields.length &&
+    expectedFields.every((field) =>
+      Object.prototype.hasOwnProperty.call(value, field),
+    )
+  );
+}
 
 function hasRequiredSelfHostedSandbox(
   candidate: RendererCandidateLock | undefined,
@@ -108,6 +153,99 @@ function isExactNamedRuntime(value: string | undefined): boolean {
   const name = value.slice(0, separator);
   const version = value.slice(separator + 1);
   return EXACT_COMPONENT_NAME.test(name) && EXACT_SEMVER.test(version);
+}
+
+function isExactValidationComponentName(value: string | undefined): boolean {
+  const trimmed = value?.trim();
+  return Boolean(
+    trimmed && trimmed === value && !DEFERRED_VALIDATION_PIN.test(trimmed),
+  );
+}
+
+function isExactValidationComponentVersion(value: string | undefined): boolean {
+  return (
+    isExactVersionedComponent(value) &&
+    !DEFERRED_VALIDATION_PIN.test(value ?? "")
+  );
+}
+
+function isContentAddressedValidationComponent(
+  component:
+    | {
+        name?: string;
+        version?: string;
+        digest?: string;
+      }
+    | undefined,
+): boolean {
+  return (
+    hasExactOwnFields(component, VALIDATION_COMPONENT_FIELDS) &&
+    isExactValidationComponentName(component?.name) &&
+    isExactValidationComponentVersion(component?.version) &&
+    isSha256Hex(component?.digest)
+  );
+}
+
+function sameValidationComponent(
+  left: { name: string; version: string; digest: string },
+  right: { name: string; version: string; digest: string },
+): boolean {
+  return (
+    left.name.toLowerCase() === right.name.toLowerCase() &&
+    left.version === right.version &&
+    left.digest === right.digest
+  );
+}
+
+function sameValidationComponentIdentity(
+  left: { name: string; version: string },
+  right: { name: string; version: string },
+): boolean {
+  return (
+    left.name.toLowerCase() === right.name.toLowerCase() &&
+    left.version === right.version
+  );
+}
+
+function hasValidAssistiveTechnologyStacks(tool: ValidationTool): boolean {
+  const stacks = tool.assistive_technology_stacks;
+  if (!stacks || stacks.length !== 2) return false;
+
+  const [primary, secondary] = stacks;
+  if (!primary || !secondary) return false;
+  if (
+    !hasExactOwnFields(primary, ASSISTIVE_TECHNOLOGY_STACK_FIELDS) ||
+    !hasExactOwnFields(secondary, ASSISTIVE_TECHNOLOGY_STACK_FIELDS)
+  ) {
+    return false;
+  }
+  if (primary.stack_id !== "primary" || secondary.stack_id !== "secondary") {
+    return false;
+  }
+
+  const everyComponentIsPinned = stacks.every((stack) =>
+    [stack.viewer, stack.assistive_technology, stack.task_protocol].every(
+      isContentAddressedValidationComponent,
+    ),
+  );
+  if (!everyComponentIsPinned) return false;
+
+  const primaryIsProtocolRequiredStack =
+    ["Adobe Acrobat", "Adobe Acrobat Reader"].includes(primary.viewer.name) &&
+    primary.assistive_technology.name === "NVDA";
+  if (!primaryIsProtocolRequiredStack) return false;
+
+  const sameStackIdentity =
+    sameValidationComponentIdentity(primary.viewer, secondary.viewer) &&
+    sameValidationComponentIdentity(
+      primary.assistive_technology,
+      secondary.assistive_technology,
+    );
+  const taskProtocolMatches = sameValidationComponent(
+    primary.task_protocol,
+    secondary.task_protocol,
+  );
+  return !sameStackIdentity && taskProtocolMatches;
 }
 
 function hasValidPrinceSubstitutionReset(
@@ -1087,12 +1225,61 @@ function validateBudgetsValidatorsRoles(
     }
   }
   for (const tool of input.validators) {
+    const expectedToolFields =
+      tool.category === "assistive_technology"
+        ? [...VALIDATION_TOOL_FIELDS, "assistive_technology_stacks"]
+        : VALIDATION_TOOL_FIELDS;
+    if (!hasExactOwnFields(tool, expectedToolFields)) {
+      issues.push(
+        issue(
+          `validators.${tool.name}`,
+          "validator_provenance_invalid",
+          "Every validator freezes exactly its protocol fields, executable/configuration digests, and, for the manual validator only, assistive-technology stacks.",
+        ),
+      );
+    }
     if (!tool.version.trim() || !tool.ruleset.trim()) {
       issues.push(
         issue(
           `validators.${tool.name}`,
           "validator_missing",
           "Every validator pins its exact version and ruleset.",
+        ),
+      );
+    }
+    if (
+      !isSha256Hex(tool.executable_digest) ||
+      !isSha256Hex(tool.configuration_digest)
+    ) {
+      issues.push(
+        issue(
+          `validators.${tool.name}`,
+          "validator_provenance_invalid",
+          "Every validator pins lowercase SHA-256 digests for its executable/toolchain and exact configuration.",
+        ),
+      );
+    }
+    if (
+      tool.category === "assistive_technology" &&
+      !hasValidAssistiveTechnologyStacks(tool)
+    ) {
+      issues.push(
+        issue(
+          `validators.${tool.name}.assistive_technology_stacks`,
+          "assistive_technology_stack_invalid",
+          "The primary Adobe Acrobat Reader/NVDA stack and one independently selected secondary viewer/assistive-technology stack must both be exactly named, versioned, and content-addressed before freeze.",
+        ),
+      );
+    }
+    if (
+      tool.category !== "assistive_technology" &&
+      tool.assistive_technology_stacks !== undefined
+    ) {
+      issues.push(
+        issue(
+          `validators.${tool.name}.assistive_technology_stacks`,
+          "assistive_technology_stack_invalid",
+          "Assistive-technology stack locks belong only to the manual assistive-technology validator.",
         ),
       );
     }
@@ -1275,22 +1462,52 @@ export function validateRendererQualificationCharterInput(
       ),
     );
   }
+  const evidenceRules = input.evidence_rules;
+  const evidenceRuleFieldsMatch = hasExactOwnFields(
+    evidenceRules,
+    EVIDENCE_RULE_FIELDS,
+  );
   if (
-    input.evidence_rules.package_schema_version !==
+    evidenceRules.package_schema_version !==
       PHASE_18_EVIDENCE_RULES.package_schema_version ||
-    input.evidence_rules.redaction_policy !==
+    evidenceRules.redaction_policy !==
       PHASE_18_EVIDENCE_RULES.redaction_policy ||
-    input.evidence_rules.retention_owner !==
-      PHASE_18_EVIDENCE_RULES.retention_owner ||
-    input.evidence_rules.retention_days !==
-      PHASE_18_EVIDENCE_RULES.retention_days ||
-    !Number.isFinite(input.evidence_rules.retention_days)
+    evidenceRules.retention_owner !== PHASE_18_EVIDENCE_RULES.retention_owner ||
+    evidenceRules.retention_days !== PHASE_18_EVIDENCE_RULES.retention_days ||
+    !Number.isFinite(evidenceRules.retention_days) ||
+    !evidenceRules.validator_warning_policy
   ) {
     issues.push(
       issue(
         "evidence_rules",
         "charter_incomplete",
-        "Evidence schema, redaction, and retention rules must be frozen.",
+        "Evidence schema, redaction, retention, and validator-warning rules must be frozen.",
+      ),
+    );
+  }
+  const warningPolicy = evidenceRules.validator_warning_policy;
+  if (warningPolicy && !evidenceRuleFieldsMatch) {
+    issues.push(
+      issue(
+        "evidence_rules",
+        "protocol_fixed_field_changed",
+        "The evidence rules freeze an exact field set; undeclared exception or suppression fields are forbidden.",
+      ),
+    );
+  }
+  if (
+    warningPolicy &&
+    (!hasExactOwnFields(warningPolicy, VALIDATOR_WARNING_POLICY_FIELDS) ||
+      warningPolicy.retain_all_warnings !== true ||
+      warningPolicy.adjudicate_warnings_individually !== true ||
+      warningPolicy.rule_override_requires_charter_reset_and_rerun !== true ||
+      warningPolicy.profile_declaration_is_not_a_pass !== true)
+  ) {
+    issues.push(
+      issue(
+        "evidence_rules.validator_warning_policy",
+        "protocol_fixed_field_changed",
+        "Every warning is retained and adjudicated individually; suppressing, rewriting, or ignoring a validator rule requires a charter reset and rerun, and a profile declaration alone is never a pass.",
       ),
     );
   }

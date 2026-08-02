@@ -333,12 +333,44 @@ export const VALIDATOR_CATEGORIES = [
 ] as const;
 export type ValidatorCategory = (typeof VALIDATOR_CATEGORIES)[number];
 
+export interface ValidationToolArtifactPins {
+  /** SHA-256 of the executable, toolchain bundle, or composite manual runner. */
+  executable_digest: string;
+  /** SHA-256 of the exact rules, configuration, tolerances, or checklist. */
+  configuration_digest: string;
+}
+
+export interface ContentAddressedValidationComponent {
+  name: string;
+  version: string;
+  digest: string;
+}
+
+export interface AssistiveTechnologyStackLock {
+  stack_id: "primary" | "secondary";
+  viewer: ContentAddressedValidationComponent;
+  assistive_technology: ContentAddressedValidationComponent;
+  task_protocol: ContentAddressedValidationComponent;
+}
+
 export interface ValidationTool {
   name: string;
   version: string;
   category: ValidatorCategory;
   ruleset: string;
+  executable_digest: string;
+  configuration_digest: string;
+  /** Required only by the manual assistive-technology validator. */
+  assistive_technology_stacks?: readonly [
+    AssistiveTechnologyStackLock,
+    AssistiveTechnologyStackLock,
+  ];
 }
+
+export type ValidationToolProtocolDefinition = Omit<
+  ValidationTool,
+  "assistive_technology_stacks" | "configuration_digest" | "executable_digest"
+>;
 
 export interface QualificationRoles {
   accountable_owner: string;
@@ -380,6 +412,12 @@ export interface EvidenceRules {
   redaction_policy: string;
   retention_owner: string;
   retention_days: number;
+  validator_warning_policy: {
+    retain_all_warnings: true;
+    adjudicate_warnings_individually: true;
+    rule_override_requires_charter_reset_and_rerun: true;
+    profile_declaration_is_not_a_pass: true;
+  };
 }
 
 export interface RendererQualificationCharterInput {

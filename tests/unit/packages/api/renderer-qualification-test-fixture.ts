@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import {
   HELD_BACK_CASE_IDS,
   OPEN_CASE_IDS,
+  PHASE_18_VALIDATION_TOOLS,
   buildPhase18RendererContestInput,
 } from "../../../../packages/api/src/generated-documents/renderer-qualification";
 
@@ -207,6 +208,57 @@ export function buildFixtureContestInput(
         },
       ],
     },
+    validator_artifact_pins: Object.fromEntries(
+      PHASE_18_VALIDATION_TOOLS.map((tool) => [
+        tool.name,
+        {
+          executable_digest: syntheticDigest(
+            `validator-executable-${tool.name}`,
+          ),
+          configuration_digest: syntheticDigest(
+            `validator-configuration-${tool.name}`,
+          ),
+        },
+      ]),
+    ),
+    assistive_technology_stacks: [
+      {
+        stack_id: "primary",
+        viewer: {
+          name: "Adobe Acrobat Reader",
+          version: "2026.1.0",
+          digest: syntheticDigest("at-primary-acrobat-reader"),
+        },
+        assistive_technology: {
+          name: "NVDA",
+          version: "2026.1.0",
+          digest: syntheticDigest("at-primary-nvda"),
+        },
+        task_protocol: {
+          name: "phase-18-assistive-technology-task-set",
+          version: "1.0.0",
+          digest: syntheticDigest("at-task-protocol"),
+        },
+      },
+      {
+        stack_id: "secondary",
+        viewer: {
+          name: "Microsoft Edge",
+          version: "140.0.0",
+          digest: syntheticDigest("at-secondary-edge"),
+        },
+        assistive_technology: {
+          name: "Narrator",
+          version: "11.0.0",
+          digest: syntheticDigest("at-secondary-narrator"),
+        },
+        task_protocol: {
+          name: "phase-18-assistive-technology-task-set",
+          version: "1.0.0",
+          digest: syntheticDigest("at-task-protocol"),
+        },
+      },
+    ],
     ...overrides,
   });
 }

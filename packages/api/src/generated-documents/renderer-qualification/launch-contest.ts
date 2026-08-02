@@ -1,5 +1,6 @@
 import type {
   AbsoluteBudget,
+  AssistiveTechnologyStackLock,
   EvidenceRules,
   HeldBackCaseId,
   OpenCaseId,
@@ -9,15 +10,17 @@ import type {
   RendererQualificationCharterInput,
   ScoreDimension,
   ScoringRules,
-  ValidationTool,
+  ValidationToolArtifactPins,
+  ValidationToolProtocolDefinition,
 } from "./types";
 
 /**
  * The exact Phase 18 contest content from the approved renderer qualification
  * protocol. Everything the protocol freezes as data lives here; only the
  * environment-specific provenance (adapter commits/digests, containers,
- * fonts) and the custodian's held-back seals arrive as freeze-time input,
- * because they describe real artifacts the harness cannot invent.
+ * fonts, validator bytes/configuration, assistive-technology stacks) and the
+ * custodian's held-back seals arrive as freeze-time input, because they
+ * describe real artifacts the harness cannot invent.
  */
 
 export const OPEN_CASE_DEFINITIONS: Record<
@@ -525,6 +528,12 @@ export const PHASE_18_EVIDENCE_RULES: EvidenceRules = {
     "synthetic data and PII-safe diagnostics only; neutral candidate IDs during visual and accessibility review",
   retention_owner: "phase-18-evidence-owner",
   retention_days: 2_555,
+  validator_warning_policy: {
+    retain_all_warnings: true,
+    adjudicate_warnings_individually: true,
+    rule_override_requires_charter_reset_and_rerun: true,
+    profile_declaration_is_not_a_pass: true,
+  },
 };
 
 export const PHASE_18_ABSOLUTE_BUDGETS: readonly AbsoluteBudget[] = [
@@ -640,47 +649,48 @@ export const PHASE_18_ABSOLUTE_BUDGETS: readonly AbsoluteBudget[] = [
   },
 ];
 
-export const PHASE_18_VALIDATION_TOOLS: readonly ValidationTool[] = [
-  {
-    name: "veraPDF",
-    version: "1.26.5",
-    category: "pdf_a_machine",
-    ruleset: "PDF/A-2a",
-  },
-  {
-    name: "PAC",
-    version: "2024.1",
-    category: "pdf_ua_machine",
-    ruleset: "PDF/UA-1 Matterhorn",
-  },
-  {
-    name: "asym-product-validator",
-    version: "1",
-    category: "product_validator",
-    ruleset:
-      "PDF syntax, required metadata, prohibited JavaScript/actions/attachments, embedded font inventory, Unicode mappings, tagged-structure expectations, allowed links, page/size limits, restricted-identity leakage",
-  },
-  {
-    name: "pdftotext-structure-extraction",
-    version: "24.02",
-    category: "text_structure_extraction",
-    ruleset: "protected values, row counts, totals, logical order comparison",
-  },
-  {
-    name: "visual-raster-diff",
-    version: "1",
-    category: "visual_diff",
-    ruleset:
-      "documented tolerances; repeatability only, never a substitute for semantic review",
-  },
-  {
-    name: "acrobat-nvda-manual-protocol",
-    version: "2026-07",
-    category: "assistive_technology",
-    ruleset:
-      "current Adobe Acrobat/Reader with NVDA task set plus one independently chosen viewer/assistive-technology stack named before the run",
-  },
-];
+export const PHASE_18_VALIDATION_TOOLS: readonly ValidationToolProtocolDefinition[] =
+  [
+    {
+      name: "veraPDF",
+      version: "1.26.5",
+      category: "pdf_a_machine",
+      ruleset: "PDF/A-2a",
+    },
+    {
+      name: "PAC",
+      version: "2024.1",
+      category: "pdf_ua_machine",
+      ruleset: "PDF/UA-1 Matterhorn",
+    },
+    {
+      name: "asym-product-validator",
+      version: "1",
+      category: "product_validator",
+      ruleset:
+        "PDF syntax, required metadata, prohibited JavaScript/actions/attachments, embedded font inventory, Unicode mappings, tagged-structure expectations, allowed links, page/size limits, restricted-identity leakage",
+    },
+    {
+      name: "pdftotext-structure-extraction",
+      version: "24.02",
+      category: "text_structure_extraction",
+      ruleset: "protected values, row counts, totals, logical order comparison",
+    },
+    {
+      name: "visual-raster-diff",
+      version: "1",
+      category: "visual_diff",
+      ruleset:
+        "documented tolerances; repeatability only, never a substitute for semantic review",
+    },
+    {
+      name: "phase-18-assistive-technology-manual-protocol",
+      version: "1.0.0",
+      category: "assistive_technology",
+      ruleset:
+        "the primary Adobe Acrobat/Reader with NVDA stack and one independent secondary viewer/assistive-technology stack are both content-addressed in assistive_technology_stacks; both execute the pinned manual task protocol",
+    },
+  ];
 
 /**
  * Protocol "Stop conditions": stop the contest or keep production dark when any
@@ -731,6 +741,13 @@ export interface Phase18ContestFreezeInput {
   /** Custodian-sealed expected-result digests for every held-back case. */
   sealed_expectations: Readonly<Record<HeldBackCaseId, string>>;
   held_back_seal: RendererQualificationCharterInput["held_back_seal"];
+  /** Real validator artifacts are freeze-time evidence; the harness cannot invent them. */
+  validator_artifact_pins: Readonly<Record<string, ValidationToolArtifactPins>>;
+  /** Exact primary and independently selected secondary manual review stacks. */
+  assistive_technology_stacks: readonly [
+    AssistiveTechnologyStackLock,
+    AssistiveTechnologyStackLock,
+  ];
   max_remediation_hours_per_cycle?: number;
 }
 
@@ -808,6 +825,21 @@ export function buildPhase18RendererContestInput(
     sealed_expectation_digest: input.sealed_expectations[case_id] ?? "",
   }));
 
+  const validators = PHASE_18_VALIDATION_TOOLS.map((tool) => {
+    const artifactPins = input.validator_artifact_pins?.[tool.name];
+    return {
+      ...tool,
+      executable_digest: artifactPins?.executable_digest ?? "",
+      configuration_digest: artifactPins?.configuration_digest ?? "",
+      ...(tool.category === "assistive_technology" &&
+      input.assistive_technology_stacks
+        ? {
+            assistive_technology_stacks: input.assistive_technology_stacks,
+          }
+        : {}),
+    };
+  });
+
   // Clone so callers cannot mutate shared protocol objects that validation
   // also uses as its fixed baseline.
   return structuredClone({
@@ -825,7 +857,7 @@ export function buildPhase18RendererContestInput(
     score_dimensions: PHASE_18_SCORE_DIMENSIONS,
     scoring_rules: PHASE_18_SCORING_RULES,
     budgets: PHASE_18_ABSOLUTE_BUDGETS,
-    validators: PHASE_18_VALIDATION_TOOLS,
+    validators,
     remediation_policy: {
       initial_attempts: 1,
       max_cycles: 2,
