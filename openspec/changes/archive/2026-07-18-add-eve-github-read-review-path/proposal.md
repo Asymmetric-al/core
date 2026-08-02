@@ -24,7 +24,7 @@ policy-gated, redacted, audited, and disabled by default.
   protected-area rules, and fingerprints in #419's shape.
 - Disable Eve's default reaction and fallback comments because they would be
   external writes outside Core policy.
-- Record ADR-0031, an operator runbook, configuration, and focused tests.
+- Record ADR-0063, an operator runbook, configuration, and focused tests.
 
 ## Authority and release posture
 

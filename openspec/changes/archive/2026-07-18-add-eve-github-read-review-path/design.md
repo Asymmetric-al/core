@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted for implementation by issue #430. Canonical decision: ADR-0031.
+Accepted for implementation by issue #430. Canonical decision: ADR-0063.
 
 ## Native channel boundary
 

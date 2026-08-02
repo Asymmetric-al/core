@@ -1,4 +1,4 @@
-# ADR-0031: Use Eve's native GitHub channel for governed PR reviews
+# ADR-0063: Use Eve's native GitHub channel for governed PR reviews
 
 **Status:** Accepted
 
