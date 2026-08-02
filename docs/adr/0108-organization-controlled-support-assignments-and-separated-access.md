@@ -1,4 +1,4 @@
-# Organization-controlled Support Assignments with separated access
+# ADR-0108: Organization-controlled Support Assignments with separated access
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D19)
 
@@ -236,11 +236,11 @@ reviewer, payee, payment, or accounting authority.
 
 ## Related decisions
 
-- [ADR-0062 — Finance-closed Field Account cycles](./0062-finance-closed-field-account-cycles.md)
-- [ADR-0066 — Organization-authorized support reallocation and exit disposition](./0066-organization-authorized-support-reallocation-and-exit-disposition.md)
-- [ADR-0067 — Proof-gated parallel currency Field Accounts](./0067-proof-gated-parallel-currency-field-accounts.md)
-- [ADR-0071 — Claim-level expense truth and purpose-routed tenant AI](./0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
-- [ADR-0074 — Bounded prospective Expense Governance Profiles](./0074-bounded-prospective-expense-governance-profiles.md)
-- [ADR-0078 — Reconciled Field Account opening position and operational cutover](./0078-reconciled-field-account-opening-position-and-operational-cutover.md)
+- [ADR-0090 — Finance-closed Field Account cycles](./0090-finance-closed-field-account-cycles.md)
+- [ADR-0094 — Organization-authorized support reallocation and exit disposition](./0094-organization-authorized-support-reallocation-and-exit-disposition.md)
+- [ADR-0095 — Proof-gated parallel currency Field Accounts](./0095-proof-gated-parallel-currency-field-accounts.md)
+- [ADR-0099 — Claim-level expense truth and purpose-routed tenant AI](./0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0102 — Bounded prospective Expense Governance Profiles](./0102-bounded-prospective-expense-governance-profiles.md)
+- [ADR-0106 — Reconciled Field Account opening position and operational cutover](./0106-reconciled-field-account-opening-position-and-operational-cutover.md)
 - [Phase 12 role and permission configuration](../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md)

@@ -5851,9 +5851,15 @@ blob:
 - Evidence-qualified Reimbursement Payment carries one payment-source ID,
   version, and digest plus the complete covered-obligation and originating-
   snapshot reference set.
-- D16 advance-issuance, advance-application-effect, claimant-repayment, and
-  correction sources carry the exact source root and predecessor coverage
-  required by their independently certified source-family contract.
+- Phase 21 D16 sources carry exactly one versioned discriminator:
+  `phase21_d16.expense_advance_issuance@1`,
+  `phase21_d16.expense_advance_application_effect@1`,
+  `phase21_d16.claimant_repayment@1`, or
+  `phase21_d16.cause_linked_correction@1`. Each carries the exact source root
+  and predecessor coverage required by its independently certified source-
+  family contract. The correction discriminator additionally names one
+  admitted Phase 21 D16 predecessor. These values are unrelated to Phase 20
+  D16 Accounting Delivery Packages.
 
 A grouped payment never requires or invents an arbitrary primary snapshot.
 
@@ -7316,9 +7322,9 @@ Those objects prove only package, access, execution-ownership, handoff, or
 provider-operation facts. They cannot create an External Payment Occurrence,
 Reimbursement Payment Coverage, Accounting Posting Intent, Accounting Release,
 QBO/Xero Accounting object, or stronger payment evidence than their source
-actually supplies. Only an independently eligible Approved Reimbursement
-Obligation or separately source-qualified External Payment Occurrence may enter
-D18 through the Accounting-Ready Expense Handoff.
+actually supplies. For the Phase 21 D15 reimbursement-handoff path, only an
+independently eligible Approved Reimbursement Obligation or separately source-
+qualified External Payment Occurrence may enter D18 through that path.
 
 Artifact creation/download is non-executing; Handoff Attestation is not payment;
 provider draft readback proves only handoff-operation outcome. Phase 20 D17

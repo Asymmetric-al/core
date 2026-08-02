@@ -267,11 +267,14 @@ Donor disclosure for the optional mode should be short and prospective:
 > gift offsets them first. Actual costs may differ from the estimate.
 
 Staff finance views may show **Gross designated support**, **Processing-cost
-attribution**, and **Net attributable after processing costs**. Phase 21 may
-then show **Support credited** only after it consumes the exact immutable
-Processor Cost Attribution Manifest under its independently authoritative
-policy. Neither view describes worker availability. Donor gift history and
-receipts continue to show the full contribution truth.
+attribution**, and **Net attributable after processing costs**. In organization-
+borne mode, Phase 21 derives **Support credited** from the gross designated
+support allocation; a D19 manifest neither gates nor debits that Field Account
+credit. In designation-borne mode, Phase 21 derives **Support credited** only
+after it consumes the exact immutable Processor Cost Attribution Manifest once
+under its independently authoritative policy. Neither view describes worker
+availability. Donor gift history and receipts continue to show the full
+contribution truth.
 
 ## Required correctness and observability checks
 
@@ -293,6 +296,11 @@ receipts continue to show the full contribution truth.
 - Phase 20 attribution does not itself debit a Phase 21 missionary Field
   Account. Any operational balance effect must consume the same proved
   occurrence once under Phase 21 ownership.
+- Organization-borne fixtures prove gross designated support credits Phase 21
+  without a D19-manifest gate or processor-cost Field Account debit.
+- Designation-borne fixtures prove Phase 21 consumes one exact D19 manifest and
+  presents gross support, processor cost, and resulting support credit as
+  separate facts without double application.
 
 ## Test evidence required before shipping
 

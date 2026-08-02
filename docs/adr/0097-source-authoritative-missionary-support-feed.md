@@ -1,4 +1,4 @@
-# Source-authoritative missionary support feed
+# ADR-0097: Source-authoritative missionary support feed
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D8)
 
@@ -64,13 +64,15 @@ or scope-obsolete cursors return `410 Gone` with an RFC 9457
 `cursor_reset_required` problem and start a newly cut bounded snapshot; no
 consumer may guess a date.
 
-Delivery is at-least-once. Every change has an immutable event identity, a
-destination-recipient-scoped entity reference, a monotonic per-entity version,
-a typed projection operation, the full current authorized representation,
-source authority/version, and exact ISO currency plus integer minor-unit money
-where relevant. A source financial correction or reversal emits a new
-immutable projected occurrence linked to the original; a projection operation
-never rewrites source financial history. A related change group includes its
+Delivery is at-least-once. Every change has an immutable subscription-scoped
+delivery event ID, a destination-recipient-scoped entity reference, a monotonic
+per-entity version, a typed projection operation, the full current authorized
+representation, source authority/version, and exact ISO currency plus integer
+minor-unit money where relevant. Any source occurrence identifier stays
+internal or is replaced with a recipient-scoped pseudonym; no source-global
+correlation key leaves Asym. A source financial correction or reversal emits a
+new immutable projected occurrence linked to the original; a projection
+operation never rewrites source financial history. A related change group includes its
 complete membership count and digest, is delivered wholly in one page, and is
 applied atomically. A group that cannot be delivered completely blocks
 checkpoint advancement instead of leaking a partial D5 pair or balanced

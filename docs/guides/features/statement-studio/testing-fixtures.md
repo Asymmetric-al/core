@@ -27,7 +27,12 @@ High-risk documents need stronger coverage:
 
 - Donor receipts.
 - Annual giving statements.
-- Missionary support-cycle statements (monthly by guided default).
+- Missionary support-cycle statements for the monthly guided default and a
+  tenant-selected biweekly cadence, with `Collecting`, `Finance review`,
+  `Closed`, and append-only late-correction fixtures. Authorization checks cover
+  exact Tenant, Legal Entity, Support Assignment, ISO currency, and Support
+  Cycle scope before any statement existence, count, row, or artifact is
+  exposed.
 - Finance/bookkeeping reports.
 - Event badges and rosters.
 - Legal/audit documents.

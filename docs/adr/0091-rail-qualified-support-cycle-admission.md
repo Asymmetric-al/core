@@ -1,4 +1,4 @@
-# Rail-qualified support-cycle admission without worker-availability claims
+# ADR-0091: Rail-qualified support-cycle admission without worker-availability claims
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D2)
 
@@ -61,4 +61,4 @@ missionary-facing claim that provider settlement makes funds available to the
 worker. It also rejects valuation-as-support and any attempt to admit a noncash
 source without the exact D21 realization manifest.
 
-See [ADR-0082 — Source-mode-honest Noncash Support Realization](./0082-source-mode-honest-noncash-support-realization.md).
+See [ADR-0110 — Source-mode-honest Noncash Support Realization](./0110-source-mode-honest-noncash-support-realization.md).

@@ -4316,7 +4316,7 @@ The repository audit established:
 1. D1 already sets one authorized reviewer as the ordinary posture and requires
    separate review for self-interest, policy exceptions, and configured
    material or high-risk thresholds. D13 preserves that contract.
-2. D10 and ADR-0071 make the exact Claim Version item or split the policy unit;
+2. D10 and ADR-0099 make the exact Claim Version item or split the policy unit;
    a report is only an envelope. D13 therefore has no report-level approval.
 3. Claim, Approved Expense Snapshot, Reimbursement Obligation, Field Account
    Funding Coverage, external payment, and Phase 20 accounting remain
@@ -4650,9 +4650,12 @@ reconciled claims.**
 
 ### Decision seam and current evidence
 
-D1, D10, and D13 already establish an exact Reimbursement Obligation from an
-eligible Approved Expense Snapshot. The tenant's payroll, accounts-payable,
-check, or governed manual process executes payment. Phase 20 D18 separately
+D10 and D13 establish the claim, policy decision, eligible Approved Expense
+Snapshot, and exact approved coverage. The core D16 Expense Settlement
+Determination establishes the exact remaining Reimbursement Obligation record;
+D15 consumes it for handoff and independently evidenced external payment. The
+tenant's payroll, accounts-payable, check, or governed manual process executes
+payment. Phase 20 D18 separately
 admits an approved unpaid obligation and later evidence-qualified
 Reimbursement Payment into accounting.
 
@@ -4861,10 +4864,12 @@ QBO/Xero readback, or bank reconciliation proves claimant payment.**
 
 ### Decision seam
 
-D10/D13 own claim-level expense truth and the Approved Expense Snapshot. D14
-owns exact organization-card source evidence, including personal/nonbusiness
-coverage. D15 owns Reimbursement Obligations, external handoff, and
-independently evidenced payment. None owns these reverse-flow questions:
+D10/D13 own claim-level expense truth, the Approved Expense Snapshot, and exact
+approved coverage. Core D16 settlement owns establishment and append-only
+succession of the exact remaining Reimbursement Obligation. D14 owns exact
+organization-card source evidence, including personal/nonbusiness coverage.
+D15 consumes the obligation and owns external handoff and independently
+evidenced payment. None owns these reverse-flow questions:
 
 1. Did the organization merely authorize an advance, or did an external
    process actually issue it?
@@ -4925,7 +4930,10 @@ capacity, payment, accounting, and reconciliation.
 
 1. **One quiet surface, two independent policies.** Expense Advance and
    Claimant Repayment activation may differ. Both are off by default per Tenant
-   and Legal Entity; an off tenant receives zero UI or operational noise.
+   and Legal Entity; an off tenant receives zero optional-policy UI or
+   operational noise. Neither optional policy gates the core claimant-
+   reimbursement Settlement Determination, Reimbursement Obligation, typed
+   residual, or separately tenant-authorized Funding Coverage partition.
 2. **Authorization is not issuance.** An Expense Advance Authorization Version
    records only organization authority. A source-qualified Expense Advance
    Issuance Occurrence owns the actual external economic fact.
@@ -4934,17 +4942,23 @@ capacity, payment, accounting, and reconciliation.
    acceptance, check creation, or accounting is insufficient unless the pinned
    source contract proves that exact issuance may satisfy the approved expense.
    It does not claim general cash availability or withdrawability.
-4. **Settlement is atomic.** One Approved-Expense-Snapshot-rooted serializable
-   Expense Settlement Determination creates exact Advance Applications and only
-   the remaining Reimbursement Obligation. Creating gross liability and
-   reducing it later risks double reimbursement.
-5. **Field Account capacity is reserved explicitly.** The exact approved
-   funding component of the Expense Advance Authorization Version creates
-   purpose-typed non-reusable Field Account Funding Coverage before the capacity
-   can be promised elsewhere. The later settlement does not create it, and an
-   application cannot fulfill it. Only a qualified Field Account Effect under
-   the policy-pinned recognition contract can fulfill or adversely correct the
-   coverage.
+4. **Settlement is atomic and core.** One Approved-Expense-Snapshot-rooted
+   serializable Expense Settlement Determination creates any exact, optional-
+   policy-qualified Advance Applications and only the remaining Reimbursement
+   Obligation, typed residuals, and separately tenant-authorized ordinary
+   reimbursement Funding Coverage. With Advance policy off, the application
+   partition is zero. Creating gross liability and reducing it later risks
+   double reimbursement.
+5. **Field Account capacity is reserved explicitly under its own authority.**
+   For optional advance-funded capacity, the exact approved funding component of
+   the Expense Advance Authorization Version creates purpose-typed non-reusable
+   Funding Coverage before reuse; later settlement references it and never
+   duplicates it. For ordinary claimant reimbursement, a separate tenant
+   funding policy supplies authority and the core settlement may materialize the
+   exact compatible Funding Coverage even while both optional policies are off.
+   Neither source grants itself authority, and an Advance Application cannot
+   fulfill coverage. Only a qualified Field Account Effect under the policy-
+   pinned recognition contract can fulfill or adversely correct it.
 6. **Source residual is not debt.** Unused advance, personal card coverage, and
    reimbursement overage enter an authorized Claimant Repayment Decision. Only
    `request_external_return` creates an operational Requirement.
@@ -5104,6 +5118,18 @@ penalties, tax or worker-classification adjudication, a generic `Mark paid` or
 request, acknowledgment, notification, staff task, artifact, provider draft,
 payroll record, QBO/Xero entry, Accounting Release, or bank reconciliation
 proves money returned.**
+
+**Binding D16/D23 precision.** The contract's optional qualifier applies only
+to Advance- and Claimant-Repayment-specific policy, facts, commands, and UI.
+The Approved-Expense-Snapshot-rooted settlement, remaining Reimbursement
+Obligation, typed residuals, and separately tenant-authorized ordinary
+reimbursement Funding Coverage are core even when both optional policies are
+off. Advance-funded coverage is authorized and created from the exact approved
+component of an Expense Advance Authorization Version before reuse; the later
+settlement references but never duplicates it. Ordinary claimant-reimbursement
+coverage instead receives authority from its separate tenant funding policy and
+may be materialized by the core settlement. Neither record supplies its own
+authority, and neither optional family may gate the core partition.
 
 ## D17 ratified direction: reconciled Field Account opening positions and operational cutover
 
@@ -5424,10 +5450,12 @@ containment, and post-activation overlap/gap monitoring; with Phase 30 owning
 transport and Phase 20 alone owning proved accounting-gap delivery; exposed
 through one quiet accessible exception-first `Start Field Accounts` setup and
 calm through-dated missionary truth — without mutable balance scalars,
-negative Field Accounts, fuzzy identity, silent exclusions, fabricated
+negative Opening Positions or capacity-created or discretionary deficits,
+fuzzy identity, silent exclusions, fabricated
 history, giant transactions, universal external-lock claims, dual write,
 destructive rollback, whole-history replay, downstream side-effect replay,
-public evidence storage, or QBO/Xero balance authority.**
+public evidence storage, or QBO/Xero balance authority; mandatory source-owned
+adverse corrections still append fully and may expose a visible D11 deficit.**
 
 ### Post-ratification congruency rider
 
@@ -5472,7 +5500,7 @@ constraints:
 
 The founder ratified this contract as Phase 21 D17 on 2026-07-31. It is
 propagated through the Phase 21 decision log, shared terminology, roadmap,
-ownership and permission boundaries, and ADR-0078. Mileage/per-diem calculation
+ownership and permission boundaries, and ADR-0106. Mileage/per-diem calculation
 remains the next separate seam and is not bundled into Phase 21 D17.
 
 ## D18 grooming evidence: mileage and per-diem calculation
@@ -6665,7 +6693,7 @@ Assignment × ISO currency`; worker/payee scope applies only to person-
 ### Preservation proof
 
 - Decision-log enumeration remains exactly D1 through D19, once each; accepted
-  ADR mapping remains ADR-0062 through ADR-0080 in the same order.
+  ADR mapping remains ADR-0090 through ADR-0108 in the same order.
 - A before/after key comparison retained all 38 previously established Phase
   17 executable-message keys and all 40 Phase 18 document-purpose keys.
 - A before/after roadmap comparison retained every numbered phase row.
@@ -7297,7 +7325,9 @@ controls below.
 > currency conserving manifest with no unresolved target admitted to close,
 > purpose-typed non-reusable Field Account Funding Coverage, and D1-only
 > recognition as a D11-balanced same-currency Field Account Occurrence;
-> nonnegative Field Accounts; optional advanced bounded carryforward through
+> nonnegative ordinary capacity, while mandatory source-owned adverse
+> corrections may expose a visible D11 deficit; optional advanced bounded
+> carryforward through
 > non-overlapping minor-unit tranches and explicit append-only successor
 > disposition rather than worker debt, AP, availability, or silent expiry;
 > source-version-pinned deterministic append-only corrections; exact externally
@@ -7321,7 +7351,7 @@ reclassifying any D3 assessment, D4 compensation cost, D10/D13 expense, Phase
 
 **Audit status:** complete for the D20 ratification; no earlier Phase 21 ruling
 was reopened. The canonical Phase 21 authority chain is now D1-D20 with
-ADRs 0062-0081. Existing Phase 17 message keys and Phase 18 document-purpose
+ADRs 0090-0109. Existing Phase 17 message keys and Phase 18 document-purpose
 keys remain unchanged because D20 creates neither a new communication family
 nor a standalone generated document.
 
@@ -7901,7 +7931,7 @@ Support Realization Manifest may become a D2 Support Allocation Candidate.
 The congruency pass therefore propagates D21 through the root glossary, Phase 1
 ownership matrix, Phase 13 original-Contribution boundary, Phase 15 canonical
 asset/disposition projection, Phase 20 accounting-dark boundary, Phase 21
-roadmap/index surfaces, and ADR-0082. These amendments preserve D1-D20 and add
+roadmap/index surfaces, and ADR-0110. These amendments preserve D1-D20 and add
 no runtime implementation authority. Phase 20 does not gain an accounting lane:
 future delivery requires a separate Phase 20 certification proving that one
 canonical economic source is posted exactly once rather than posting both the
@@ -8561,7 +8591,7 @@ are now binding Phase 21 authority. In particular:
   uncertain capacity. Exact later-claim application, proved-unused release, and
   unresolved/in-flight residual coverage must conserve the approved ceiling.
 
-The congruency pass records these terms in the root glossary, ADR-0083, the
+The congruency pass records these terms in the root glossary, ADR-0111, the
 Phase 1 ownership matrix, Phase 3 projection census, Phase 6 and Phase 17
 notification boundaries, Phase 10 safety floor, Phase 12 capability boundary,
 Phase 29 private-byte and Phase 39 offline limits in the roadmap, Phase 20
@@ -9102,16 +9132,19 @@ bank, tax, and private-comment detail requires separate D10/D19/D15 authority.
 > currency and through-dated missionary activity, zero clean-path staff actions,
 > and one root-cause-deduplicated exception-first finance surface—without per-
 > claim timing or FX overrides, generic `paid`/`posted` authority, implicit
-> partial funding, negative Field Accounts, double subtraction, card-statement
+> partial funding, capacity-created or discretionary deficits, double
+> subtraction, card-statement
 > or claimant-repayment inference, live provider/FX dependency, historical
 > recomputation, QBO/Xero authority over Field Account truth, linear completion
 > steppers, or any claim that inclusion proves availability, reimbursement,
-> payment, accounting posting, or reconciliation.**
+> payment, accounting posting, or reconciliation; mandatory source-owned
+> adverse corrections still append fully and may expose a visible D11
+> deficit.**
 
 ### Ratification
 
 The founder ratified the hardened C-prime-R above as **Phase 21 D23** on
-2026-08-01. The decision log, glossary, ADR-0084, roadmap, and affected
+2026-08-01. The decision log, glossary, ADR-0112, roadmap, and affected
 cross-phase authority and rejection contracts preserve this ruling. The next
 founder decision continues separately and does not reopen D1-D23.
 
@@ -9142,7 +9175,7 @@ implementation consequences explicit without reopening the founder choice:
 These controls prevent synthetic D16 records, temporarily freed committed
 capacity, duplicate roots, adoption gaps/overlap, D4/D23 double ownership,
 evidence leakage, and QBO/Xero back-propagation. They are binding precision
-riders in the D23 decision log and ADR-0084.
+riders in the D23 decision log and ADR-0112.
 
 ## D24 decision research — Own-identity expense collaboration
 
@@ -9471,7 +9504,7 @@ not safe enough without the riders below.
     task; no spouse, teammate, helper, or support participant automatically
     succeeds to claimant authority.
 14. D24 never creates or changes D13 approval, an Approved Expense Snapshot,
-    Reimbursement Obligation, D23 Field Account effect, D15 compensation or
+    Reimbursement Obligation, D23 Field Account effect, D15 reimbursement or
     payment handoff, external payment, Phase 20 Accounting Release/Bank Match,
     QBO/Xero truth, a missionary statement, supporter feed, or public giving
     truth. Downstream owners may retain minimum non-authoritative actor
@@ -9617,7 +9650,7 @@ Snapshot, Reimbursement Obligation, Field Account effect, compensation or
 payment handoff, external payment, accounting release, bank match, QBO/Xero
 fact, statement, supporter feed, or public-giving truth.
 
-This ratification is recorded in the Phase 21 decision log, ADR-0085, the
+This ratification is recorded in the Phase 21 decision log, ADR-0113, the
 ubiquitous-language glossary, and narrow D10/D13/D19/D22/D23 precision riders.
 It does not authorize runtime implementation, create a Phase 21 OpenSpec change
 or ticket set, or reopen the deferred shared Phase 1/3/4/6/9/10/12/17/20 and
@@ -9800,7 +9833,7 @@ required correction remains unknown.
 | Submitted or pending review        | Linked successor, fresh claimant confirmation/submission where required, and current D13 route/decision                                                    |
 | Rejected or excluded               | New facts use a successor; same-fact review request gets a new exact D13 review/decision while the old decision remains                                    |
 | Approved Expense Snapshot          | D10/D13-owned supplement, successor, reversal, or correction; never `Unapprove`                                                                            |
-| Reimbursement Obligation           | D15-owned exact cancellation, reduction, or supplement when qualified                                                                                      |
+| Reimbursement Obligation           | D16-owned append-only cancellation, reduction, or supplement when qualified                                                                                |
 | D23 effect or closed Support Cycle | D23 appends a correction in the next tenant-permitted cycle; the old close never reopens                                                                   |
 | Handoff or provider operation      | Inspect first; create only a proved residual successor; ambiguous outcome remains quarantined                                                              |
 | External payment                   | Preserve payment truth; D16 determines any return/restitution path; never negative reimbursement, debt inference, payroll deduction, or unrelated netting  |
@@ -9931,8 +9964,8 @@ implementation; the prevention column is binding for C-prime-R.
    only outbox in one transaction. Same key/same digest replays the original;
    changed data conflicts safely.
 5. **Connect source owners in authority order.** Ship D10/D13 information-
-   required recovery first, then snapshot/obligation, D23 effect, D15/D16
-   handoff/payment, D12 statement, and Phase 20 correction adapters. Every
+   required recovery first, then D10/D13 snapshot, D16 obligation, D23 effect,
+   D15 handoff/payment, D12 statement, and Phase 20 correction adapters. Every
    adapter requests an owner's typed command and observes its outcome; D25
    never edits the target.
 6. **Ship the quiet end-to-end experience.** One claimant card, exact helper
@@ -10042,7 +10075,7 @@ Phase 12 remains the sole current authorization owner; Mission Control may
 mirror follow-up only; and Phase 20 plus QBO/Xero remain accounting delivery,
 posting, and final-reconciliation authorities.
 
-This ratification is recorded in the Phase 21 decision log, ADR-0086, the
+This ratification is recorded in the Phase 21 decision log, ADR-0114, the
 ubiquitous-language glossary, roadmap and phase map, source-of-truth ownership
 matrix, and narrow permissions, communication, Mission Control, expense,
 statement, reimbursement, Field Account, and Phase 20 precision riders. It
@@ -11340,7 +11373,7 @@ accounting, feed, records, or access authority and contains only the affected
 future positive/discretionary behavior. Immutable history, current authorized
 reads, D26 custody export, established obligations, mandatory adverse
 corrections, artifact/manual continuity, and append-only repair remain
-available. Ratification creates [ADR-0088](../../adr/0088-evidence-gated-core-field-accounts-production-activation.md)
+available. Ratification creates [ADR-0116](../../adr/0116-evidence-gated-core-field-accounts-production-activation.md)
 and updates the Phase 21 decision log and glossary; it does not claim that the
 required Phase 12, 20, 29, 30, provider, or runtime seams already exist.
 
@@ -11390,7 +11423,7 @@ claim approval, reimbursement handoff, Field Account, or Phase 20 boundaries.
 
 #### Repository evidence
 
-1. `docs/adr/0079-certified-policy-pinned-travel-allowance-calculations.md`
+1. `docs/adr/0107-certified-policy-pinned-travel-allowance-calculations.md`
    defines a cumulative key, deterministic ordering, serialized or CAS-guarded
    allocation, threshold splitting, and append-only late-earlier recovery. It
    starts from an already valid before-capacity but never defines how the first
@@ -11925,14 +11958,16 @@ Every exact key or indivisible group receives one immutable **Travel Allowance
 Cumulative Admission** for its named authority interval. Admission contains two
 independent dispositions.
 
-**Opening disposition**
+**Native opening proof or external boundary disposition**
 
 1. `clean_boundary_zero` - the exact source-defined reset boundary proves an
    affirmative new-period zero;
 2. `opening_cumulative_state` - a complete Opening Cumulative State proves the
-   source-required before-value; or
+   source-required before-value. Either of these can serve as native opening
+   proof; or
 3. `external_at_boundary` - Asym does not own native cumulative calculation at
-   the boundary.
+   the boundary. This is a complete manifest disposition, not native opening
+   proof, and it creates no native Admission.
 
 **Continuity disposition**
 
@@ -11941,15 +11976,19 @@ independent dispositions.
 2. `authoritative_feed_complete` - a separately owned, capability-certified
    source supplies every required increment with exact coverage and cursor
    evidence; or
-3. `external_calculation` - D18 preserves an exact external calculation and
+3. `external_calculation_lane` - D18 preserves an exact external calculation and
    Asym does not allocate cumulative bands for the named interval.
 
-Only a valid opening disposition plus proved prospective completeness permits
-native allocation. `clean_boundary_zero + external_calculation` remains
-external. A clean reset never waives a continuing private-distance,
+Only `clean_boundary_zero` or `opening_cumulative_state` plus proved prospective
+completeness permits native allocation. `external_at_boundary` necessarily
+selects `external_calculation_lane`, and `clean_boundary_zero +
+external_calculation_lane` remains external. A clean reset never waives a continuing private-distance,
 associated-employment, other-organization, or other source-required input.
 `authoritative_feed_complete` is a supported capability shape, not a D28 promise
 to build a connector; without a certified feed, the key stays external.
+A later native transition must prove a new clean-zero or exact opening-state
+boundary plus continuing-source completeness; an earlier external disposition
+cannot be reused as Admission proof.
 
 The D18 Source Package capability envelope must declare the exact accumulator
 semantics, ordering instant, period/reset rule, key/group scope, band-versus-cap

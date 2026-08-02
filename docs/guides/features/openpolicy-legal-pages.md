@@ -159,6 +159,13 @@ As of March 31, 2026, the published `@openpolicy/cli@0.0.17` tarball is incomple
 
 ## Phase 21 D26 records-policy production gate (2026-08-02)
 
+### Trigger
+
+Run this gate before activating or materially changing any Phase 21 D26 tenant
+schedule choice, records-policy representation, offboarding/export promise,
+custody-transfer path, hold/disposition behavior, provider-copy handling, or
+backup/restore claim in production.
+
 D26 ratification does not change public legal text or prove that lifecycle
 controls exist. Before any Phase 21 Records policy, tenant schedule choice,
 offboarding promise, export/custody claim, hold, return, deletion, provider-copy,
@@ -175,3 +182,39 @@ linked; an acknowledgement or disclaimer cannot substitute for legal review or
 erase Asym's duties for copies in its custody. Changes to public terms require
 their own reviewed publication and runtime evidence, not a D26 documentation
 ratification edit.
+
+### Workflow
+
+1. Product and operations inventory the exact record families, jurisdictions,
+   tenant choices, storage/provider copies, lifecycle jobs, and public or
+   contractual claims in the proposed activation cohort.
+2. Legal and privacy reconcile that inventory against the applicable
+   jurisdiction pack, MSA/DPA, public OpenPolicy text, and subprocessor/storage
+   terms. An unresolved conflict blocks activation.
+3. Security and operations prove purpose-scoped access, copy inventory, holds,
+   lifecycle execution, backup and representative restore behavior, provider-
+   copy handling, offboarding/export behavior, and truthful failure recovery for
+   the exact cohort.
+4. Product binds only the tenant options supported by that reconciled evidence;
+   unsupported periods, promises, or destinations remain structurally absent.
+5. The named owners record one source-linked approval package. Any later
+   material policy, provider, retention, backup, restore, or lifecycle change
+   reruns the affected gate before prospective activation.
+
+### Pass/fail checklist
+
+- [ ] Legal, privacy, security, product, and operations owners have approved the
+      same exact cohort and evidence generation.
+- [ ] Tenant choices match actual lifecycle jobs and do not contradict public
+      terms, the MSA/DPA, provider terms, backup/restore behavior, or copies in
+      Asym custody.
+- [ ] Holds, access, export, custody, retention, disposition, failure, and
+      representative restore behavior have production-shaped evidence.
+- [ ] Publication evidence identifies the exact reviewed public-policy version;
+      documentation ratification alone is not treated as publication.
+- [ ] `bunx @fission-ai/openspec@latest validate add-field-account-operations --strict`
+      and `bun run format:check` pass for the governing documentation change;
+      the release manifest also names and passes the exact runtime tests for
+      every activated lifecycle path.
+- [ ] Any missing, stale, conflicting, or unproved item leaves only the affected
+      capability blocked; no acknowledgement or staff override bypasses it.

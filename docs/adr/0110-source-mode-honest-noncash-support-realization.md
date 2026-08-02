@@ -1,4 +1,4 @@
-# Source-mode-honest Noncash Support Realization
+# ADR-0110: Source-mode-honest Noncash Support Realization
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D21)
 
@@ -164,14 +164,14 @@ and its receipt truth. No surface calls an appraisal or proceeds `available`,
 ## Related decisions
 
 - [ADR-0060 — Processor-cost attribution policy](./0060-processor-cost-attribution-policy.md)
-- [ADR-0063 — Rail-qualified Support Cycle admission](./0063-rail-qualified-support-cycle-admission.md)
-- [ADR-0064 — Bounded prospective Administrative Assessment Profiles](./0064-bounded-prospective-administrative-assessment-profiles.md)
-- [ADR-0066 — Organization-authorized support reallocation and exit disposition](./0066-organization-authorized-support-reallocation-and-exit-disposition.md)
-- [ADR-0067 — Proof-gated parallel-currency Field Accounts](./0067-proof-gated-parallel-currency-field-accounts.md)
-- [ADR-0072 — Layered Field Account integrity and cause-owned repair](./0072-layered-field-account-integrity-and-cause-owned-repair.md)
-- [ADR-0078 — Reconciled Field Account opening position and operational cutover](./0078-reconciled-field-account-opening-position-and-operational-cutover.md)
-- [ADR-0080 — Organization-controlled Support Assignments with separated access](./0080-organization-controlled-support-assignments-and-separated-access.md)
-- [ADR-0081 — Source-authoritative Organization Support Cost Applications](./0081-source-authoritative-organization-support-cost-applications.md)
+- [ADR-0091 — Rail-qualified Support Cycle admission](./0091-rail-qualified-support-cycle-admission.md)
+- [ADR-0092 — Bounded prospective Administrative Assessment Profiles](./0092-bounded-prospective-administrative-assessment-profiles.md)
+- [ADR-0094 — Organization-authorized support reallocation and exit disposition](./0094-organization-authorized-support-reallocation-and-exit-disposition.md)
+- [ADR-0095 — Proof-gated parallel-currency Field Accounts](./0095-proof-gated-parallel-currency-field-accounts.md)
+- [ADR-0100 — Layered Field Account integrity and cause-owned repair](./0100-layered-field-account-integrity-and-cause-owned-repair.md)
+- [ADR-0106 — Reconciled Field Account opening position and operational cutover](./0106-reconciled-field-account-opening-position-and-operational-cutover.md)
+- [ADR-0108 — Organization-controlled Support Assignments with separated access](./0108-organization-controlled-support-assignments-and-separated-access.md)
+- [ADR-0109 — Source-authoritative Organization Support Cost Applications](./0109-source-authoritative-organization-support-cost-applications.md)
 - [Phase 13 Contribution and noncash-gift authority](../prds/sitestacker-parity/phase-13-campaign-designation-contribution-ledger-giving-cart.md)
 - [Phase 15 noncash intake and disposition authority](../prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md)
 - [Phase 20 immutable Accounting Release and posting-ownership authority](../prds/sitestacker-parity/phase-20-accounting-exports-reconciliation.md)

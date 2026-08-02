@@ -1,4 +1,4 @@
-# Immutable Support Cycle statements with automatic tenant publication
+# ADR-0101: Immutable Support Cycle statements with automatic tenant publication
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D12)
 
@@ -130,9 +130,9 @@ cannot complete a D25 case until its manifested source disposition is proved.
 
 ## Related decisions
 
-- [ADR-0062 — Finance-closed Field Account cycles](./0062-finance-closed-field-account-cycles.md)
-- [ADR-0067 — Proof-gated parallel currency Field Accounts](./0067-proof-gated-parallel-currency-field-accounts.md)
-- [ADR-0070 — Optional Approved Support Plans and bounded workspace publication](./0070-optional-approved-support-plans-and-bounded-workspace-publication.md)
-- [ADR-0072 — Layered Field Account integrity and cause-owned repair](./0072-layered-field-account-integrity-and-cause-owned-repair.md)
+- [ADR-0090 — Finance-closed Field Account cycles](./0090-finance-closed-field-account-cycles.md)
+- [ADR-0095 — Proof-gated parallel currency Field Accounts](./0095-proof-gated-parallel-currency-field-accounts.md)
+- [ADR-0098 — Optional Approved Support Plans and bounded workspace publication](./0098-optional-approved-support-plans-and-bounded-workspace-publication.md)
+- [ADR-0100 — Layered Field Account integrity and cause-owned repair](./0100-layered-field-account-integrity-and-cause-owned-repair.md)
 - [Phase 18 executable document-purpose and authority manifest](../prds/sitestacker-parity/phase-18-document-purpose-authority-manifest.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md)

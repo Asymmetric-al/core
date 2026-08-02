@@ -76,9 +76,9 @@ but the following facts stay separate:
    inferred from `missionary`, Field Account type, or a public worker page.
 2. **Expense Claim** — what the claimant submitted, including evidence and
    business purpose.
-3. **Expense Policy Decision** — the approved, rejected, returned, or excluded
-   line dispositions under the applicable tenant policy and worker
-   relationship.
+3. **Expense Policy Decision** — the `approved`, `needs_information`,
+   `rejected`, or `excluded` line dispositions under the applicable tenant
+   policy and worker relationship.
 4. **Approved Expense Snapshot** — the immutable approved version and exact
    line coverage.
 5. **Reimbursement Obligation** — the exact amount the organization owes when
@@ -210,7 +210,7 @@ they are not authorization to implement runtime behavior during this grill:
 - [Phase 21 mission-dashboard and support-cycle research](./phase-21-mission-dashboard-product-research-evidence.md)
 - [Phase 20 accounting-ready expense handoff research](./phase-20-accounting-ready-expense-handoff-research-evidence.md)
 - [ADR-0059 — Accounting-ready expense handoff](../../adr/0059-accounting-ready-expense-handoff.md)
-- [ADR-0062 — Finance-closed Field Account cycles and independent payment truth](../../adr/0062-finance-closed-field-account-cycles.md)
+- [ADR-0090 — Finance-closed Field Account cycles and independent payment truth](../../adr/0090-finance-closed-field-account-cycles.md)
 
 ## D2 — Rail-qualified support-cycle admission and quiet missionary gift status
 
@@ -523,7 +523,7 @@ new contract replaces these dormant semantics cleanly.
 - [W3C cognitive guidance for important information](https://www.w3.org/WAI/WCAG2/supplemental/patterns/o2p04-page-important/)
 - [Phase 14 supporter-roster projection contract](./phase-14-donor-credit-operations.md#getSupporterRoster--the-full-specification-d5)
 - [Phase 16 recurring-support missionary projection](./phase-16-pledges-recurring-commitments.md#missionary-dashboard)
-- [ADR-0063 — Rail-qualified support-cycle admission without worker-availability claims](../../adr/0063-rail-qualified-support-cycle-admission.md)
+- [ADR-0091 — Rail-qualified support-cycle admission without worker-availability claims](../../adr/0091-rail-qualified-support-cycle-admission.md)
 
 ## D3 — Bounded prospective Administrative Assessment Profiles
 
@@ -588,8 +588,10 @@ Worker classification and lifecycle stage share one specificity rank because
 Asym cannot honestly assume that one dimension always outranks the other. If
 both single-axis assignments resolve to the same profile, that profile wins.
 If they resolve to different profiles, the account is
-`blocked_by_integrity` until the tenant defines an explicit combination. The
-product never silently stacks or chooses between them.
+an `assessment_profile_resolution_conflict` until the tenant defines an
+explicit combination. D2's Support Close Readiness Projection alone maps that
+typed cause to `blocked_by_integrity`, and D11 alone owns the durable exception
+case. The product never silently stacks or chooses between them.
 
 A worker-classification or lifecycle-stage axis resolves only from an explicit
 prospective, source-labelled Support-Assignment assessment-applicability
@@ -642,8 +644,27 @@ Cycle cadence:
 - intervals are exact and half-open;
 - a monthly Support Cycle ordinarily finalizes one Assessment Period;
 - a biweekly tenant may close source-linked percentage entries during the
-  month, but exactly one later close owns the monthly period adjustment; and
+  month, but the first successfully committed Support Cycle Close in strict
+  contiguous close order whose exact through boundary reaches or passes the
+  Assessment Period end owns the monthly period adjustment; and
 - assessment never crosses currencies or creates an FX residual.
+
+Exactly one initial Assessment Period Determination may exist for the complete
+`Tenant × Legal Entity × Field Account/assignment scope × currency × Assessment
+Period` key. The Determination records the one resolved Profile Version, but
+that version does not partition uniqueness. The owning close freezes the exact
+covered percentage total known through its captured ingestion boundary. It
+CASes the immediately preceding committed Support Cycle boundary; a
+later-boundary candidate cannot commit while an earlier boundary remains open.
+A delayed or consolidated close may own only when its manifest proves it is the
+next contiguous boundary and completely covers the intervening interval. A
+semantic idempotency key plus same-scope unique constraint and CAS makes an
+owner-close retry an exact replay and prevents any concurrent or later close
+from creating a second initial determination. Later-qualified source facts
+remeasure through append-only successor effects; they do not move ownership or
+rewrite the original determination. The same rule applies at an exact
+period-end boundary, after a delayed close, and for a frozen partial first or
+final period.
 
 Each source-linked percentage is rounded once in currency minor units under
 the canonical frozen money rule. For a profile with a minimum or cap:
@@ -868,7 +889,7 @@ Implementation cannot ship until tests prove:
 - [Ramp expense-policy setup](https://support.ramp.com/getting-started-with-ramps-expense-policy-setup/)
 - [HubSpot workflow testing](https://knowledge.hubspot.com/workflows/test-your-workflow)
 - [WCAG 2.2 error prevention](https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data)
-- [ADR-0064 — Bounded prospective Administrative Assessment Profiles](../../adr/0064-bounded-prospective-administrative-assessment-profiles.md)
+- [ADR-0092 — Bounded prospective Administrative Assessment Profiles](../../adr/0092-bounded-prospective-administrative-assessment-profiles.md)
 
 ## D4 — Contract-referenced compensation funding with external payroll authority
 
@@ -1335,7 +1356,7 @@ information, or raw paystubs. The product does not say `Available pay`,
 - [QuickBooks Workforce FAQ](https://developer.intuit.com/app/developer/payroll-time/docs/faq)
 - [Xero Payroll OAuth scopes](https://developer.xero.com/documentation/guides/oauth2/scopes/)
 - [Gusto payroll statuses](https://docs.gusto.com/embedded-payroll/docs/payroll-statuses)
-- [ADR-0065 — Contract-referenced compensation funding with external payroll authority](../../adr/0065-contract-referenced-compensation-funding.md)
+- [ADR-0093 — Contract-referenced compensation funding with external payroll authority](../../adr/0093-contract-referenced-compensation-funding.md)
 
 ## D5 — Organization-authorized support reallocation and exit disposition
 
@@ -1762,7 +1783,7 @@ prevention strategy:
 - [CRA CG-032](https://www.canada.ca/en/revenue-agency/services/charities-giving/charities/policies-guidance/charities-making-grants-non-qualified-donees.html)
 - [Modern Treasury ledger locking](https://docs.moderntreasury.com/ledgers/docs/lock-on-account-balance-or-version)
 - [WCAG 2.2 error prevention](https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data)
-- [ADR-0066 — Organization-authorized support reallocation and exit disposition](../../adr/0066-organization-authorized-support-reallocation-and-exit-disposition.md)
+- [ADR-0094 — Organization-authorized support reallocation and exit disposition](../../adr/0094-organization-authorized-support-reallocation-and-exit-disposition.md)
 
 ## D6 — Quiet default and proof-gated parallel currency-scoped Field Accounts
 
@@ -2061,7 +2082,7 @@ the permanent prevention strategy:
 - [TntConnect multiple-currency behavior](https://www.tntware.com/tntconnect/help/en/pages/gifts_multicurrency.aspx)
 - [Virtuous Project Statements](https://support.virtuous.org/hc/en-us/articles/6466181015949-What-is-the-Project-Statements-Tab)
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
-- [ADR-0067 — Proof-gated parallel currency-scoped Field Accounts](../../adr/0067-proof-gated-parallel-currency-field-accounts.md)
+- [ADR-0095 — Proof-gated parallel currency-scoped Field Accounts](../../adr/0095-proof-gated-parallel-currency-field-accounts.md)
 
 ## D7 — Capability-honest multi-provider compensation handoffs
 
@@ -2408,7 +2429,7 @@ Every requested category has a concern:
 - [Xero Payroll AU overview](https://developer.xero.com/documentation/api/payrollau/overview)
 - [Xero Payroll NZ overview](https://developer.xero.com/documentation/api/payrollnz/overview)
 - [Xero Payroll UK overview](https://developer.xero.com/documentation/api/payrolluk/overview)
-- [ADR-0068 — Capability-honest multi-provider compensation handoffs](../../adr/0068-capability-honest-multi-provider-compensation-handoffs.md)
+- [ADR-0096 — Capability-honest multi-provider compensation handoffs](../../adr/0096-capability-honest-multi-provider-compensation-handoffs.md)
 
 ## D8 — Source-authoritative Missionary Support Feed Projection
 
@@ -2551,19 +2572,21 @@ Expired, incompatible, or scope-obsolete cursors return `410 Gone` with an RFC
 9457 `cursor_reset_required` problem and build a newly cut bounded snapshot;
 they never silently resume from a guessed date.
 
-Delivery is at-least-once. Every change carries an immutable event identity,
-recipient/installation-scoped entity reference, per-entity version, typed
-operation, full current authorized representation, exact ISO currency and
-minor-unit money where relevant, safe source authority/version, and an atomic
-change-group identity, member count, and membership digest where related
-entries must be observed together. Full representation describes the current
-projection entity; it never mutates source financial history. A financial
-correction or reversal is a new immutable projected occurrence linked to the
-original. A complete change group is delivered wholly in one page and applied
-atomically; a group that cannot be delivered completely blocks checkpoint
-advancement rather than exposing half a D5 pair or balanced effect. Consumers
-deduplicate by event identity and compare entity versions rather than
-timestamps, page order, or notification order.
+Delivery is at-least-once. Every change carries an immutable subscription-
+scoped delivery event ID, recipient/installation-scoped entity reference,
+per-entity version, typed operation, full current authorized representation,
+exact ISO currency and minor-unit money where relevant, safe source authority/
+version, and an atomic change-group identity, member count, and membership
+digest where related entries must be observed together. Any source occurrence
+identifier remains internal or is replaced with a recipient-scoped pseudonym;
+no source-global correlation key leaves Asym. Full representation describes the
+current projection entity; it never mutates source financial history. A
+financial correction or reversal is a new immutable projected occurrence
+linked to the original. A complete change group is delivered wholly in one page
+and applied atomically; a group that cannot be delivered completely blocks
+checkpoint advancement rather than exposing half a D5 pair or balanced effect.
+Consumers deduplicate by subscription-scoped delivery event ID and compare
+entity versions rather than timestamps, page order, or notification order.
 
 Signed provider notifications, when supported, carry no supporter PII or
 amounts. They are replay-bounded wake-up hints only. Cursor pull and scheduled
@@ -2785,7 +2808,7 @@ Every requested category has a concern:
 - [OAuth token revocation — RFC 7009](https://www.rfc-editor.org/rfc/rfc7009.html)
 - [Problem Details for HTTP APIs — RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html)
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
-- [ADR-0069 — Source-authoritative missionary support feed](../../adr/0069-source-authoritative-missionary-support-feed.md)
+- [ADR-0097 — Source-authoritative missionary support feed](../../adr/0097-source-authoritative-missionary-support-feed.md)
 
 ## D9 — Optional Approved Support Plans and bounded workspace publication
 
@@ -3168,8 +3191,8 @@ Every requested category has a concern:
 - [HubSpot record customization](https://knowledge.hubspot.com/object-settings/customize-records)
 - [Virtuous project-statement source prerequisite behavior](https://support.virtuous.org/hc/en-us/articles/6466181015949-What-is-the-Project-Statements-Tab)
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
-- [ADR-0070 — Optional approved Support Plans and bounded workspace
-  publication](../../adr/0070-optional-approved-support-plans-and-bounded-workspace-publication.md)
+- [ADR-0098 — Optional approved Support Plans and bounded workspace
+  publication](../../adr/0098-optional-approved-support-plans-and-bounded-workspace-publication.md)
 
 ### Superseded remaining-decision note
 
@@ -3601,10 +3624,10 @@ Every requested category has a concern:
 - [Ramp reimbursement submission](https://support.ramp.com/submitting-reimbursements/)
 - [IRS Publication 463](https://www.irs.gov/publications/p463)
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
-- [ADR-0071 — Claim-level expense truth and purpose-routed tenant
-  AI](../../adr/0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0099 — Claim-level expense truth and purpose-routed tenant
+  AI](../../adr/0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
 
-### D19 transition to D20
+### D10 transition to D11
 
 D10 settles expense capture, report orchestration, evidence, claim-level
 approval and recovery, and the minimum shared tenant-owned AI capability
@@ -4169,8 +4192,8 @@ delayed` and recovers separately.
   Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html)
 - [WCAG 2.2 error prevention for financial
   actions](https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data.html)
-- [ADR-0072 — Layered, scope-bounded Field Account integrity and
-  cause-owned repair](../../adr/0072-layered-field-account-integrity-and-cause-owned-repair.md)
+- [ADR-0100 — Layered, scope-bounded Field Account integrity and
+  cause-owned repair](../../adr/0100-layered-field-account-integrity-and-cause-owned-repair.md)
 
 ### Remaining founder decisions
 
@@ -4540,7 +4563,7 @@ currency failure cannot block an unrelated scope.
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
 - [OWASP Authorization Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html)
 - [OWASP Multi-Tenant Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html)
-- [ADR-0073 — Immutable Support Cycle statements with automatic tenant publication](../../adr/0073-immutable-support-cycle-statements-with-automatic-tenant-publication.md)
+- [ADR-0101 — Immutable Support Cycle statements with automatic tenant publication](../../adr/0101-immutable-support-cycle-statements-with-automatic-tenant-publication.md)
 
 ### Remaining founder decisions
 
@@ -4859,8 +4882,9 @@ be a prerequisite for resolution or human review.
 - A policy defect is repaired prospectively. Affected historical decisions are
   identified and escalated; they are not bulk-rewritten under the new policy.
 
-Approval may establish a Reimbursement Obligation only when the separately
-applicable tenant policy or law says it does. Approval never proves Field
+Approval may establish reimbursement-eligible coverage only when the separately
+applicable tenant policy or law supports it. The core D16 settlement, not D13,
+establishes the exact remaining Reimbursement Obligation record. Approval never proves Field
 Account capacity, external scheduling, payment, accounting delivery, or final
 books. Phase 20 receives only the PII-minimized Approved Expense Snapshot and
 the exact governance/decision/exception lineage required by its existing
@@ -5098,8 +5122,8 @@ Every requested category has a concern:
   controls](https://www.gov.uk/government/publications/internal-financial-controls-for-charities-cc8/internal-financial-controls-for-charities)
 - [WCAG 2.2 error prevention for legal, financial, and data
   actions](https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data.html)
-- [ADR-0074 — Bounded prospective Expense Governance
-  Profiles](../../adr/0074-bounded-prospective-expense-governance-profiles.md)
+- [ADR-0102 — Bounded prospective Expense Governance
+  Profiles](../../adr/0102-bounded-prospective-expense-governance-profiles.md)
 
 ### Remaining founder decisions
 
@@ -5482,7 +5506,7 @@ Every requested category has a concern:
 - [PCI SSC FAQ 1280 — sensitive authentication data](https://www.pcisecuritystandards.org/faq/articles/Frequently_Asked_Question/Can-card-verification-codes-values-be-stored-for-card-on-file-or-recurring-transactions/)
 - [WCAG 2.2 Error Identification](https://www.w3.org/WAI/WCAG22/Understanding/error-identification)
 - [WCAG 2.2 Error Prevention](https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data.html)
-- [ADR-0075 — File-first organization-card transaction evidence](../../adr/0075-file-first-organization-card-transaction-evidence.md)
+- [ADR-0103 — File-first organization-card transaction evidence](../../adr/0103-file-first-organization-card-transaction-evidence.md)
 
 ### Remaining founder decisions
 
@@ -5807,7 +5831,7 @@ Every requested category has a concern and a binding permanent control:
 - [Gusto payroll events](https://docs.gusto.com/embedded-payroll/docs/payroll-events)
 - [Intuit bill payment](https://developer.intuit.com/app/developer/qbo/docs/learn/learn-basic-bookkeeping/pay-bills)
 - [Xero Payments API](https://developer.xero.com/documentation/api/accounting/payments)
-- [ADR-0076 — Artifact-always reimbursement handoff with qualified execution](../../adr/0076-artifact-always-reimbursement-handoff.md)
+- [ADR-0104 — Artifact-always reimbursement handoff with qualified execution](../../adr/0104-artifact-always-reimbursement-handoff.md)
 
 ### Remaining founder decisions
 
@@ -5873,13 +5897,24 @@ Asym` lane, evidence-strength-aware status, conflict-safe
 
 ### Independent authority and activation
 
-The feature is off by default for every Tenant × Legal Entity. Off means no
+The optional Advance and Claimant Repayment policy families are off by default
+for every Tenant × Legal Entity. Off means no advance- or repayment-specific
 navigation, empty queue, setup warning, dashboard tile, claimant task, or
-notification. One quiet setup experience may compile into two independently
+notification. It does not disable the core Approved-Expense-Snapshot-rooted
+Expense Settlement Determination, remaining Reimbursement Obligation, typed
+residuals, or separately tenant-authorized Field Account Funding Coverage used
+by ordinary claimant reimbursement. One quiet setup experience may compile into two independently
 activatable immutable prospective records:
 
 - **Expense Advance Policy Version**; and
 - **Claimant Repayment Policy Version**.
+
+D10/D13 own the claim, policy decision, Approved Expense Snapshot, and approved
+coverage. The core D16 settlement owns the exact remaining Reimbursement
+Obligation record and its append-only qualified succession or correction. D15
+consumes that immutable obligation and owns only the reimbursement package,
+handoff, external-payment evidence, and resulting residual recovery. Recording
+an operational obligation does not create or adjudicate legal liability.
 
 Each version pins Tenant, Legal Entity, authoritative claimant-relationship
 version, applicable-jurisdiction determination, purpose and source family, ISO
@@ -5911,7 +5946,7 @@ approved expense coverage only after the pinned evidence contract establishes
 by the ratified phrase `claimant-use readiness`; it proves only application
 eligibility, not general availability or withdrawability.
 
-One Approved-Expense-Snapshot-rooted, serializable **Expense Settlement
+The core Approved-Expense-Snapshot-rooted, serializable **Expense Settlement
 Determination** atomically creates the exact application and only the remaining
 Reimbursement Obligation:
 
@@ -5928,6 +5963,12 @@ non-overlapping, and is limited by both the readiness-qualified issuance
 remainder and eligible approved expense coverage. It cannot cover rejected,
 personal, unresolved, company-paid,
 already-covered, or stale coverage.
+
+When the optional Advance policy is off or no readiness-qualified issuance
+applies, the application term is exactly zero and the same core determination
+creates only the remaining obligation, typed residuals, and any separately
+authorized reimbursement Funding Coverage. Optional Repayment policy state has
+no authority to gate that core command.
 
 For each issuance:
 
@@ -6169,7 +6210,7 @@ Every requested category has a concern and a binding permanent control:
 - [Brex employee repayments](https://www.brex.com/support/employee-repayments)
 - [Expensify payment methods](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Pay-Expenses)
 - [WCAG 2.2 Quick Reference](https://www.w3.org/WAI/WCAG22/quickref/)
-- [ADR-0077 — Purpose-separated advances and claimant repayments](../../adr/0077-purpose-separated-advances-and-claimant-repayments.md)
+- [ADR-0105 — Purpose-separated advances and claimant repayments](../../adr/0105-purpose-separated-advances-and-claimant-repayments.md)
 
 ## D17 — Reconciled Field Account Opening Position and operational cutover
 
@@ -6193,10 +6234,13 @@ Every requested category has a concern and a binding permanent control:
 > monitoring; with Phase 30 owning transport and Phase 20 alone owning proved
 > accounting-gap delivery; exposed through one quiet accessible exception-first
 > Start Field Accounts setup and calm through-dated missionary truth—without
-> mutable balance scalars, negative Field Accounts, fuzzy identity, silent
+> mutable balance scalars, negative Opening Positions or capacity-created or
+> discretionary deficits, fuzzy identity, silent
 > exclusions, fabricated history, giant transactions, universal external-lock
 > claims, dual write, destructive rollback, whole-history replay, downstream
-> side-effect replay, public evidence storage, or QBO/Xero balance authority.**
+> side-effect replay, public evidence storage, or QBO/Xero balance authority;
+> mandatory source-owned adverse corrections still append fully and may expose
+> a visible D11 deficit.**
 
 ### One opening authority, not a second recurring close path
 
@@ -6458,7 +6502,7 @@ admission or the D8 support feed.
 ### Evidence
 
 - [D17 opening-position and cutover research](./phase-21-mission-dashboard-product-research-evidence.md#d17-ratified-direction-reconciled-field-account-opening-positions-and-operational-cutover)
-- [ADR-0078 — Reconciled Field Account Opening Position and operational cutover](../../adr/0078-reconciled-field-account-opening-position-and-operational-cutover.md)
+- [ADR-0106 — Reconciled Field Account Opening Position and operational cutover](../../adr/0106-reconciled-field-account-opening-position-and-operational-cutover.md)
 - [Fragment migration lifecycle](https://fragment.dev/docs/ledger/migrations)
 - [Modern Treasury ledger transactions and immutable balancing](https://www.moderntreasury.com/journal/how-to-scale-a-ledger-part-v)
 - [OWASP File Upload Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html)
@@ -6758,9 +6802,9 @@ is never the default approved evidence.
 ### Evidence
 
 - [D18 travel-allowance research and adversarial review](./phase-21-mission-dashboard-product-research-evidence.md#d18-grooming-evidence-mileage-and-per-diem-calculation)
-- [ADR-0079 — Certified, policy-pinned Travel Allowance Calculations](../../adr/0079-certified-policy-pinned-travel-allowance-calculations.md)
-- [ADR-0074 — Bounded prospective Expense Governance Profiles](../../adr/0074-bounded-prospective-expense-governance-profiles.md)
-- [ADR-0076 — Artifact-always reimbursement handoff](../../adr/0076-artifact-always-reimbursement-handoff.md)
+- [ADR-0107 — Certified, policy-pinned Travel Allowance Calculations](../../adr/0107-certified-policy-pinned-travel-allowance-calculations.md)
+- [ADR-0102 — Bounded prospective Expense Governance Profiles](../../adr/0102-bounded-prospective-expense-governance-profiles.md)
+- [ADR-0104 — Artifact-always reimbursement handoff](../../adr/0104-artifact-always-reimbursement-handoff.md)
 - [IRS standard mileage rates](https://www.irs.gov/tax-professionals/standard-mileage-rates)
 - [GSA Per Diem API](https://open.gsa.gov/api/perdiem/)
 - [CRA automobile allowance guidance](https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/payroll/benefits-allowances/automobile/automobile-motor-vehicle-allowances.html)
@@ -7054,7 +7098,7 @@ or create a second membership system to compensate.
 ### Evidence
 
 - [D19 canonical-subject, Supabase/PostgreSQL, RLS, and UX research](./phase-21-mission-dashboard-product-research-evidence.md#d19-ratified-direction--canonical-field-account-subject-and-participant-membership)
-- [ADR-0080 — Organization-controlled Support Assignments with separated access](../../adr/0080-organization-controlled-support-assignments-and-separated-access.md)
+- [ADR-0108 — Organization-controlled Support Assignments with separated access](../../adr/0108-organization-controlled-support-assignments-and-separated-access.md)
 - [Phase 12 full role and permission configuration](./phase-12-full-role-permission-configuration.md)
 - [Phase 1 source-of-truth ownership matrix](./phase-01-source-of-truth-ownership-matrix.md)
 - [Supabase Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
@@ -7379,7 +7423,7 @@ wide compatibility shim.
 ### Evidence
 
 - [D20 organization-support-cost research and ruthless review](./phase-21-mission-dashboard-product-research-evidence.md#d20-decision-research--organization-incurred-support-costs)
-- [ADR-0081 — Source-authoritative Organization Support Cost Applications](../../adr/0081-source-authoritative-organization-support-cost-applications.md)
+- [ADR-0109 — Source-authoritative Organization Support Cost Applications](../../adr/0109-source-authoritative-organization-support-cost-applications.md)
 - [Phase 1 source-of-truth ownership matrix](./phase-01-source-of-truth-ownership-matrix.md)
 - [Phase 20 accounting boundary](./phase-20-accounting-exports-reconciliation.md)
 - [Reliant Order of Pay](https://solomon.reliant.org/display/public/fieldbenefits/Order%2Bof%2BPay)
@@ -7569,7 +7613,7 @@ accessibility, usability, migration, and load proof.
 ### Evidence
 
 - [D21 research, source-mode analysis, ruthless review, and proof gates](./phase-21-mission-dashboard-product-research-evidence.md#d21-decision-research---noncash-support-realization)
-- [ADR-0082 — Source-mode-honest Noncash Support Realization](../../adr/0082-source-mode-honest-noncash-support-realization.md)
+- [ADR-0110 — Source-mode-honest Noncash Support Realization](../../adr/0110-source-mode-honest-noncash-support-realization.md)
 - [Phase 1 source-of-truth ownership matrix](./phase-01-source-of-truth-ownership-matrix.md)
 - [Phase 13 contribution authority](./phase-13-campaign-designation-contribution-ledger-giving-cart.md)
 - [Phase 15 noncash intake and disposition authority](./phase-15-offline-gift-batch-entry.md)
@@ -7833,7 +7877,7 @@ usability, migration, and load proof.
 ### Evidence
 
 - [D22 research, founder selection, ruthless review, and ratification](./phase-21-mission-dashboard-product-research-evidence.md#d22-founder-selection-and-adversarial-hardening)
-- [ADR-0083 — Optional exact Prospective Expense Authorization](../../adr/0083-optional-exact-prospective-expense-authorization.md)
+- [ADR-0111 — Optional exact Prospective Expense Authorization](../../adr/0111-optional-exact-prospective-expense-authorization.md)
 - [Phase 1 source-of-truth ownership matrix](./phase-01-source-of-truth-ownership-matrix.md)
 - [Phase 12 permission configuration](./phase-12-full-role-permission-configuration.md)
 - [Phase 20 accounting boundary](./phase-20-accounting-exports-reconciliation.md)
@@ -7986,9 +8030,14 @@ These cross-phase consequences are also binding:
   D10/D13-approved coverage and a present-obligation occurrence. QBO/Xero/AP
   record existence, import success, or readback never qualifies it.
 - **D22-to-actual transition.** D22 first reclassifies exact prospective
-  coverage into actual D10/D16 Field Account Funding Coverage through its own
-  atomic lineage. D23 can fulfill only that actual coverage; prospective
-  authorization, approval, or reservation never qualifies an effect.
+  coverage into the applicable source-family-specific actual coverage through
+  its own atomic lineage. Claimant-reimbursable families use D10/D16 Field
+  Account Funding Coverage. Organization-card, organization cash/debit/direct-
+  payment, and certified-payable families use D10/D13 approved coverage plus
+  their independently certified source-owned coverage and never require D16
+  settlement or reimbursement coverage. D23 can fulfill only that applicable
+  actual coverage; prospective authorization, approval, or reservation never
+  qualifies an effect.
 - **Separate coverage namespaces.** D23 Effect Coverage and Phase 20 accounting
   source coverage may independently cover the same economic source for their
   different purposes. Neither fulfills, releases, dates, gates, or mutates the
@@ -8026,9 +8075,9 @@ It never reroutes existing coverage or recalculates closed history.
 
 The immutable **Expense Field Account Effect Basis** pins the winning profile,
 source family, stable economic occurrence, immutable observation/evidence
-versions, exact approved and funding
-coverage, Field Account amount/currency authority, close lineage, and
-correction cause. The stable semantic effect identity is separately rooted in
+versions, exact approved and source-family-specific actual coverage, Field
+Account amount/currency authority, close lineage, and correction cause. The
+stable semantic effect identity is separately rooted in
 Tenant, Legal Entity, purpose, Field Account, ISO currency, stable economic
 occurrence, approved coverage slice, and effect family. It excludes observation
 revision, adapter/import version, retry/job identity, mutable status, profile
@@ -8067,12 +8116,16 @@ waits. A mandatory source-owned adverse correction still appends in full and
 may expose a visible D11 deficit; D23 cannot clip, defer, relabel, or convert it
 into a capacity-created partial.
 
-One immutable disposition makes the exact overlapping Field Account Funding
-Coverage derive `fulfilled` in the same transaction that commits the balanced
+One immutable disposition makes the exact applicable source-family actual
+coverage derive `fulfilled` in the same transaction that commits the balanced
 effect, exact Effect Coverage, per-account CAS/version advance, ingestion
 sequence, and identifier-only outbox request. The original coverage remains
-immutable. D22 prospective reservation, D10/D16 actual funding coverage, and
-D23 effect form one append-only lineage with at most one capacity-bearing state.
+immutable. D22 prospective reservation, source-family-specific actual coverage,
+and D23 effect form one append-only lineage with at most one capacity-bearing
+state. Claimant-reimbursable actual coverage is D10/D16 Field Account Funding
+Coverage; organization-paid actual coverage is D10/D13 approved coverage plus
+the certified source-owned organization-card, direct-payment, or payable
+coverage.
 
 ### Independent dates and source-specific correction
 
@@ -8222,7 +8275,7 @@ correction, accessibility, usability, migration, load, and recovery proof.
 ### Evidence
 
 - [D23 research, founder selection, ruthless review, and ratification](./phase-21-mission-dashboard-product-research-evidence.md#d23-decision-research--exact-expense-field-account-effect-recognition)
-- [ADR-0084 — Source-family Expense Field Account Effect Recognition](../../adr/0084-source-family-expense-field-account-effect-recognition.md)
+- [ADR-0112 — Source-family Expense Field Account Effect Recognition](../../adr/0112-source-family-expense-field-account-effect-recognition.md)
 - [Phase 1 source-of-truth ownership matrix](./phase-01-source-of-truth-ownership-matrix.md)
 - [Phase 12 permission configuration](./phase-12-full-role-permission-configuration.md)
 - [Phase 20 accounting boundary](./phase-20-accounting-exports-reconciliation.md)
@@ -8346,7 +8399,8 @@ change, and tenant deactivation deny new work first and preserve immutable
 provenance. Drafts become an explicitly owned reassignment or disposition task.
 No spouse, household member, teammate, helper, participant, manager, or prior
 confirmer automatically succeeds to claimant authority. Party identity change
-or relink quarantines rather than silently retargets an active assignment.
+or relink quarantines rather than silently retargets an active Expense
+Collaboration Assignment Version.
 
 Revocation is deny-first and non-transitive. It appends a successor, advances
 the authorization/governance epoch, fences new reads and writes, invalidates
@@ -8545,12 +8599,12 @@ future contracts, not acceptable D24 foundations.
 ### Evidence
 
 - [D24 research, founder selection, ruthless review, and ratification](./phase-21-mission-dashboard-product-research-evidence.md#d24-decision-research--own-identity-expense-collaboration)
-- [ADR-0085 — Own-identity, claim-bounded expense collaboration](../../adr/0085-own-identity-claim-bounded-expense-collaboration.md)
-- [ADR-0071 — Claim-level expense truth](../../adr/0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
-- [ADR-0074 — Expense Governance Profiles](../../adr/0074-bounded-prospective-expense-governance-profiles.md)
-- [ADR-0080 — Support Assignments and separated access](../../adr/0080-organization-controlled-support-assignments-and-separated-access.md)
-- [ADR-0083 — Optional exact Prospective Expense Authorization](../../adr/0083-optional-exact-prospective-expense-authorization.md)
-- [ADR-0084 — Expense Field Account Effect Recognition](../../adr/0084-source-family-expense-field-account-effect-recognition.md)
+- [ADR-0113 — Own-identity, claim-bounded expense collaboration](../../adr/0113-own-identity-claim-bounded-expense-collaboration.md)
+- [ADR-0099 — Claim-level expense truth](../../adr/0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0102 — Expense Governance Profiles](../../adr/0102-bounded-prospective-expense-governance-profiles.md)
+- [ADR-0108 — Support Assignments and separated access](../../adr/0108-organization-controlled-support-assignments-and-separated-access.md)
+- [ADR-0111 — Optional exact Prospective Expense Authorization](../../adr/0111-optional-exact-prospective-expense-authorization.md)
+- [ADR-0112 — Expense Field Account Effect Recognition](../../adr/0112-source-family-expense-field-account-effect-recognition.md)
 - [Phase 12 permission configuration](./phase-12-full-role-permission-configuration.md)
 - [OWASP Authorization Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html)
 - [Supabase Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
@@ -8693,7 +8747,7 @@ cause predicate and every affected family records `corrected`, `unaffected`,
 | Submitted or pending review          | Linked D10 successor, fresh claimant confirmation/submission where required, and current D13 route/decision                                                           |
 | Rejected or excluded                 | New facts use a successor; a same-fact review request gets new exact D13 review evidence and decision while the old decision remains                                  |
 | Approved Expense Snapshot            | D10/D13-owned supplement, successor, reversal, or correction; never `Unapprove`                                                                                       |
-| Reimbursement Obligation             | D15-owned exact cancellation, reduction, or supplement only when independently qualified                                                                              |
+| Reimbursement Obligation             | D16-owned append-only cancellation, reduction, or supplement only when independently qualified                                                                        |
 | D23 effect or closed Support Cycle   | D23 appends a source- and cause-linked correction in a later permitted cycle; the old close never reopens                                                             |
 | Handoff or provider operation        | The owning lane inspects first and creates only proved residual succession; ambiguity remains quarantined                                                             |
 | External payment                     | Preserve payment truth; D16 alone determines any qualified return path, never negative reimbursement, debt inference, payroll deduction, or unrelated netting         |
@@ -8808,12 +8862,12 @@ negative financial-authority proof.
 ### Evidence
 
 - [D25 research, founder selection, ruthless review, and ratification](./phase-21-mission-dashboard-product-research-evidence.md#d25-decision-research--exact-expense-claim-resolution-without-destructive-reopening)
-- [ADR-0086 — Exact, cause-owned Expense Claim resolution](../../adr/0086-cause-owned-expense-claim-resolution.md)
-- [ADR-0071 — Claim-level expense truth](../../adr/0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
-- [ADR-0074 — Expense Governance Profiles](../../adr/0074-bounded-prospective-expense-governance-profiles.md)
-- [ADR-0076 — Artifact-always reimbursement handoff](../../adr/0076-artifact-always-reimbursement-handoff.md)
-- [ADR-0084 — Expense Field Account Effect Recognition](../../adr/0084-source-family-expense-field-account-effect-recognition.md)
-- [ADR-0085 — Own-identity expense collaboration](../../adr/0085-own-identity-claim-bounded-expense-collaboration.md)
+- [ADR-0114 — Exact, cause-owned Expense Claim resolution](../../adr/0114-cause-owned-expense-claim-resolution.md)
+- [ADR-0099 — Claim-level expense truth](../../adr/0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0102 — Expense Governance Profiles](../../adr/0102-bounded-prospective-expense-governance-profiles.md)
+- [ADR-0104 — Artifact-always reimbursement handoff](../../adr/0104-artifact-always-reimbursement-handoff.md)
+- [ADR-0112 — Expense Field Account Effect Recognition](../../adr/0112-source-family-expense-field-account-effect-recognition.md)
+- [ADR-0113 — Own-identity expense collaboration](../../adr/0113-own-identity-claim-bounded-expense-collaboration.md)
 - [Phase 12 permission configuration](./phase-12-full-role-permission-configuration.md)
 - [Phase 20 accounting boundary](./phase-20-accounting-exports-reconciliation.md)
 - [SAP Concur selected expense return](https://help.sap.com/docs/CONCUR_EXPENSE/1f13d54352684d6dba6e65c8c5d75ead/c459abae51c3101593a1902615753967.html)
@@ -9071,7 +9125,7 @@ runtime congruency gate before activation.
 ### Evidence
 
 - [D26 research, ruthless review, and ratification](./phase-21-mission-dashboard-product-research-evidence.md#d26-decision-research---purpose-owned-phase-21-records-schedules)
-- [ADR-0087 — Purpose-owned Phase 21 records schedules and exact tenant custody exports](../../adr/0087-purpose-owned-phase21-records-schedules-and-exact-custody-exports.md)
+- [ADR-0115 — Purpose-owned Phase 21 records schedules and exact tenant custody exports](../../adr/0115-purpose-owned-phase21-records-schedules-and-exact-custody-exports.md)
 - [ADR-0038 — Purpose-owned records schedules and verified disposal](../../adr/0038-purpose-owned-records-schedules-and-verified-disposal.md)
 - [Phase 1 source-of-truth ownership matrix](./phase-01-source-of-truth-ownership-matrix.md)
 - [Phase 3 governed projection and export foundation](./phase-03-minimum-permission-role-scoped-projection-foundation.md)
@@ -9379,9 +9433,9 @@ smallest-scope prospective containment with mandatory adverse continuity.
 ### Evidence
 
 - [D27 research, selected-option review, and ratification](./phase-21-mission-dashboard-product-research-evidence.md#d27-selected-option-adversarial-review---evidence-gated-core-field-accounts-activation)
-- [ADR-0088 — Evidence-gated Core Field Accounts production activation](../../adr/0088-evidence-gated-core-field-accounts-production-activation.md)
-- [ADR-0078 — Reconciled Field Account opening position and operational cutover](../../adr/0078-reconciled-field-account-opening-position-and-operational-cutover.md)
-- [ADR-0072 — Layered Field Account integrity and cause-owned repair](../../adr/0072-layered-field-account-integrity-and-cause-owned-repair.md)
+- [ADR-0116 — Evidence-gated Core Field Accounts production activation](../../adr/0116-evidence-gated-core-field-accounts-production-activation.md)
+- [ADR-0106 — Reconciled Field Account opening position and operational cutover](../../adr/0106-reconciled-field-account-opening-position-and-operational-cutover.md)
+- [ADR-0100 — Layered Field Account integrity and cause-owned repair](../../adr/0100-layered-field-account-integrity-and-cause-owned-repair.md)
 - [Phase 12 permission configuration](./phase-12-full-role-permission-configuration.md)
 - [Phase 20 accounting boundary](./phase-20-accounting-exports-reconciliation.md)
 - [Supabase production checklist](https://supabase.com/docs/guides/deployment/going-into-prod)
@@ -9451,17 +9505,28 @@ D28 extends D18 rather than creating a second travel, migration, policy, or
 financial subsystem. Native cumulative calculation requires two independently
 proved axes for one source-defined authority interval:
 
-1. an opening disposition of `clean_boundary_zero`,
-   `opening_cumulative_state`, or `external_at_boundary`; and
-2. a continuity disposition of `asym_source_complete`,
-   `authoritative_feed_complete`, or `external_calculation`.
+1. a native opening proof of `clean_boundary_zero` or
+   `opening_cumulative_state`; and
+2. a continuing-source proof of `asym_source_complete` or
+   `authoritative_feed_complete`.
+
+The separately explicit operating lane is `native_calculation` or
+`external_calculation_lane`. Only complete opening evidence plus one of the two
+continuing-source proofs admits `native_calculation`.
+
+`external_at_boundary` is a complete Admission Manifest disposition that
+necessarily selects `external_calculation_lane`; it creates no Travel Allowance
+Cumulative Admission and cannot be combined with a continuing-source proof to
+authorize native first use. A later transition to native calculation must
+prove a new clean zero or exact opening state plus prospective completeness at
+the new half-open boundary.
 
 A clean boundary proves only the opening zero. It never proves that facts which
 can continue outside Asym — including source-required private travel, other
 vehicles, associated employments, or another indivisible group member — will be
-complete prospectively. A pool enters native calculation only when both axes
-are proved. External calculation is a complete ordinary D10/D18 path, not an
-error, setup failure, or degraded claim.
+complete prospectively. A pool enters `native_calculation` only when both axes
+are proved. `external_calculation_lane` is a complete ordinary D10/D18 path, not
+an admission proof, error, setup failure, or degraded claim.
 
 The source package defines the accumulated qualifying state, ordering fact,
 period and reset, exact unit, aggregation scope, band-versus-cap meaning,
@@ -9478,12 +9543,15 @@ provenance and cannot silently reset consumption. A successor explicitly says
 `continue_existing_pool` or `new_pool`.
 
 One content-addressed **Travel Allowance Cumulative Admission Manifest** gives
-every current eligible pool or indivisible group exactly one opening and one
-continuity disposition. Later-arriving claimants, vehicles, relationships,
-entities, source revisions, or groups receive the same proof before their first
-native use. Missing is never zero, a source-valid quantity above a rate
-threshold is not rejected as though the threshold were a cap, and conflicting
-evidence is never averaged, maximized, or silently combined.
+every current eligible pool or indivisible group exactly one operating lane and
+records the opening disposition and continuing-source proof when native use is
+admitted. Later-arriving claimants, vehicles, relationships, entities, source
+revisions, or groups receive the same proof before their first native use.
+Missing is never zero, a source-valid quantity above a rate threshold is not
+rejected as though the threshold were a cap, and conflicting evidence is never
+averaged, maximized, or silently combined. An unproved or externally changing
+group remains `external_calculation_lane` and has no native Admission; that
+truthful disposition cannot be mistaken for completeness proof.
 
 The admission and first D18 cumulative allocation share one group-level head
 CAS with semantic idempotency, final authorization and revocation reproof, and
@@ -9530,8 +9598,8 @@ bypass-path tenant-isolation tests.
 ### Evidence and remaining founder decisions
 
 - [D28 official research, full adversarial review, and ratification](./phase-21-mission-dashboard-product-research-evidence.md#d28-selected-option-adversarial-review-opening-cumulative-travel-allowance-state-and-continuity)
-- [ADR-0079 — Certified policy-pinned Travel Allowance calculations](../../adr/0079-certified-policy-pinned-travel-allowance-calculations.md)
-- [ADR-0089 — Proof-gated opening cumulative Travel Allowance admission](../../adr/0089-proof-gated-opening-cumulative-travel-allowance-admission.md)
+- [ADR-0107 — Certified policy-pinned Travel Allowance calculations](../../adr/0107-certified-policy-pinned-travel-allowance-calculations.md)
+- [ADR-0117 — Proof-gated opening cumulative Travel Allowance admission](../../adr/0117-proof-gated-opening-cumulative-travel-allowance-admission.md)
 - [Phase 12 permission configuration](./phase-12-full-role-permission-configuration.md)
 - [Phase 20 accounting-ready expense boundary](./phase-20-accounting-ready-expense-handoff-research-evidence.md)
 

@@ -152,9 +152,11 @@ hold, dispose, or certify the other's records.
 
 Phase 18 retains generated-document purpose, issuer, serial, logical-document,
 artifact identity and currentness, correction, Canadian readiness and closure,
-and schedule/disposition truth. A Phase 21 Records Export Package may contain
-only a currently authorized exact Phase 18 artifact copy or an explicit owner-
-domain reference under its Coverage Manifest. Missing, disposed, quarantined,
-or unauthorized Phase 18 bytes are never regenerated, reclassified, or called
-included by D26. Download, tenant external-copy assertion, verified custody
-transfer, retention, hold, and disposition remain independent in both domains.
+and schedule/disposition truth. For Phase 18 content, a Phase 21 Records Export
+Package may contain only a currently authorized exact artifact copy or an
+explicit owner-domain reference under its Coverage Manifest. Phase 21-owned
+records remain governed by D26's Coverage Manifest. Missing, disposed,
+quarantined, or unauthorized Phase 18 bytes are never regenerated,
+reclassified, or called included by D26. Download, tenant external-copy
+assertion, verified custody transfer, retention, hold, and disposition remain
+independent in both domains.

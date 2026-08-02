@@ -1,11 +1,12 @@
-# Artifact-always reimbursement handoff with qualified execution
+# ADR-0104: Artifact-always reimbursement handoff with qualified execution
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D15)
 
 ## Context
 
-Phase 21 D10 and D13 establish source-owned Approved Expense Snapshots and
-exact Reimbursement Obligations. D1 keeps Field Account Funding Coverage
+Phase 21 D10 and D13 establish source-owned Approved Expense Snapshots and exact
+approved coverage. Core D16 settlement owns the resulting exact remaining
+Reimbursement Obligation lineage. D1 keeps Field Account Funding Coverage
 independent from organizational liability and payment. D7 establishes a
 capability-honest provider-operation kernel for compensation drafts, while
 Phase 20 D18 accepts only a PII-minimized Accounting-Ready Expense Handoff and
@@ -76,7 +77,7 @@ edited after release.
 Repayment-related evidence may remain linked to a D15 exception, correction,
 return, or recovery record, but D15 does not certify claimant repayment as a
 source occurrence, negative reimbursement payment, Field Account effect, or
-Phase 20 accounting family. Phase 21 D16 and ADR-0077 now own that separate
+Phase 20 accounting family. Phase 21 D16 and ADR-0105 now own that separate
 reverse-flow contract without changing D15 handoff or payment truth.
 
 Phase 20 remains the only QBO/Xero Accounting doorway. A Reimbursement Handoff
@@ -98,11 +99,13 @@ money**, blind **Retry payment**, report-level **Mark paid**, generic **Sync**,
 **Settled**, or **Reconciled** actions.
 
 **Phase 21 D25 precision amendment (2026-08-02).** D25 may request and observe
-one exact D15-owned obligation, handoff, provider-inspection, payment, return,
-or residual recovery command. A Resolution Case, projection, impact
+one exact D16-owned obligation succession or correction command and, separately,
+one D15-owned handoff, provider-inspection, payment, return, or residual recovery
+command. A Resolution Case, projection, impact
 disposition, or **Complete** label cannot cancel or reduce an obligation,
 select or switch an execution lane, retry an ambiguous provider outcome, mark
-payment, or infer claimant repayment. The D15 source and external execution
+payment, or infer claimant repayment. The D16 obligation owner and D15 handoff/
+external-execution
 owners retain their immutable results and ambiguity-safe recovery.
 
 ## Consequences
@@ -136,7 +139,7 @@ owners retain their immutable results and ambiguity-safe recovery.
 ## Related decisions
 
 - [ADR-0059 — Accounting-ready expense handoff](./0059-accounting-ready-expense-handoff.md)
-- [ADR-0068 — Capability-honest multi-provider compensation handoffs](./0068-capability-honest-multi-provider-compensation-handoffs.md)
-- [ADR-0071 — Claim-level expense truth and purpose-routed tenant AI](./0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
-- [ADR-0074 — Bounded prospective Expense Governance Profiles](./0074-bounded-prospective-expense-governance-profiles.md)
+- [ADR-0096 — Capability-honest multi-provider compensation handoffs](./0096-capability-honest-multi-provider-compensation-handoffs.md)
+- [ADR-0099 — Claim-level expense truth and purpose-routed tenant AI](./0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0102 — Bounded prospective Expense Governance Profiles](./0102-bounded-prospective-expense-governance-profiles.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md)

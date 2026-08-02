@@ -285,11 +285,12 @@ traceability contract.
   processors, importers, close and repair workers, projections, and provider
   adapters delegate to typed commands and permission-safe queries on this
   service.
-- The service is constructed with trusted server-resolved principal, Tenant,
-  environment, active Phase 12 access decision and governance epoch, Legal
-  Entity, purpose, Support Assignment, Field Account, ISO currency, and trace
-  context. Command payloads cannot assert authoritative tenant, actor, role,
-  capability, membership, Legal Entity, or assurance.
+- The service is constructed with the trusted server-resolved validated
+  principal and actual actor, Tenant, environment, active Phase 12 access
+  decision and governance epoch, Legal Entity, purpose, Support Assignment,
+  Field Account, ISO currency, and trace context. Command payloads cannot
+  assert authoritative tenant, actor, role, capability, membership, Legal
+  Entity, or assurance.
 - Commands expose expected versions, semantic identities, and exact source
   references. They return discriminated outcomes such as applied, exact replay,
   stale, semantic conflict, blocked, invalid, not permitted or not found, and
@@ -353,7 +354,15 @@ traceability contract.
   Profiles are finite, prospective, non-stacking replacements with exactly one
   winner. Percentage, period minimum/cap, fixed monthly, combined service,
   negotiated flat, and exemption components preserve separate entries and
-  component-correct reversals.
+  component-correct reversals. Exactly one Support Cycle Close owns each
+  Assessment Period Determination: the first successfully committed close in
+  strict contiguous close order whose through boundary reaches or passes the
+  period end. Each close CASes the immediately preceding committed boundary, so
+  a later close cannot skip an open predecessor. A delayed or consolidated
+  close qualifies only as the next completely covered contiguous boundary. The
+  same-scope period key excludes Profile Version; the Determination records the
+  one resolved version. That key and CAS make every retry an exact replay and
+  prevent another close from creating a second period adjustment.
 
 ### D4–D7 compensation, reallocation, and currencies
 
@@ -440,13 +449,19 @@ traceability contract.
   row outcomes, assignments, coverage, and append-only adjustments. PDFs, OCR,
   spreadsheets other than certified CSV, pending transactions, personal-card
   browsing, and heuristic deduplication cannot create card truth.
+- D10/D13 own claim, policy-decision, Approved Expense Snapshot, and approved-
+  coverage truth. The core D16 settlement owns the exact remaining
+  Reimbursement Obligation record and append-only qualified succession or
+  correction. D15 consumes that record and owns only package, handoff,
+  external-payment evidence, and their residual recovery.
 - Reimbursement Handoff Packages are content-addressed, immutable,
   schema-versioned, PII-minimized, and artifact-always. Creation or download is
   not release. One Execution Claim assigns each exact obligation-coverage unit
   to one qualified lane. Evidence strength and payment coverage remain exact
   across partial, grouped, returned, reversed, corrected, and reissued results.
-- Advances and claimant repayments are independently off by default. Advance
-  authorization, issuance, readiness, settlement application, residual,
+- Advance and claimant-repayment policy branches are independently off by
+  default. Advance authorization, issuance, readiness, optional advance
+  application, residual,
   repayment decision, requirement, occurrence, evidence, and coverage remain
   separate. Asym does not collect money, initiate payroll deduction, adjudicate
   debt, add interest, or operate collections.
@@ -503,12 +518,16 @@ traceability contract.
   and in-flight residual handling are append-only and concurrency-safe. Planned
   or approved never means incurred, reimbursable, funded, payable, or paid.
 - Expense Field Account Effect Recognition Profiles are prospective and
-  source-family-specific. One Approved-Expense-Snapshot-rooted settlement
-  determination freezes the profile, exact effect basis, and non-reusable
-  coverage. Claimant-paid reimbursement, organization card, executed direct
-  payment, and certified organization-payable sources require their own exact
-  evidence; advances, support costs, noncash, and compensation retain exclusive
-  owners.
+  source-family-specific. Claimant-reimbursable work roots in the core D10/D16
+  settlement and Field Account Funding Coverage, independently of optional
+  Advance or Claimant Repayment policy activation. Organization-card, organization cash/
+  debit/direct-payment, and certified-payable work instead roots directly in
+  D10/D13 approved item/split coverage plus its certified source-owned actual
+  coverage; it never requires or fabricates D16 settlement or reimbursement
+  coverage. Both root shapes compile into one immutable D23 Effect Basis that
+  freezes the winning profile, economic source, exact approved and actual
+  coverage, amount/currency authority, and non-reusable effect coverage.
+  Advances, support costs, noncash, and compensation retain exclusive owners.
 - Expense Collaboration is optional, own-identity, and exact-claim-bounded. A
   responsibility assignment and one-time invitation do not replace Phase 12
   authorization. Prepare-only is default; submission requires immutable
@@ -550,15 +569,21 @@ traceability contract.
   adverse corrections, and manual/artifact continuity.
 - Cumulative Travel Allowance native admission defaults to a source-defined
   clean boundary. One immutable Travel Allowance Cumulative Admission records
-  exactly one `clean_boundary_zero`,
-  `opening_cumulative_state`, or `external_at_boundary` disposition and one
-  `asym_source_complete`, `authoritative_feed_complete`, or
-  `external_calculation` disposition for the complete indivisible source group.
-  Missing never means zero. First allocation and admission are atomic; late
-  facts cause append-only correction and affected-suffix review. D27 may only
-  reference this optional proof; it cannot create, waive, repair, gate Core
-  Field Accounts, or reopen D17. Phase 30 may transport private preparation but
-  cannot define or activate it. Unproved groups remain externally calculated.
+  exactly one native opening proof of `clean_boundary_zero` or
+  `opening_cumulative_state` for the complete indivisible source group. Native
+  admission additionally requires a continuing-source proof of
+  `asym_source_complete` or `authoritative_feed_complete`; the independently
+  selected operating lane is `native_calculation` or
+  `external_calculation_lane`. `external_at_boundary` is a complete manifest
+  disposition that selects the external lane and creates no native Admission.
+  Missing never means zero, and the external lane is not native-admission proof.
+  A later native transition requires a new exact opening proof and continuing-
+  source proof at its new boundary. First
+  allocation and admission are atomic; late facts cause append-only correction
+  and affected-suffix review. D27 may only reference this optional proof; it
+  cannot create, waive, repair, gate Core Field Accounts, or reopen D17. Phase
+  30 may transport private preparation but cannot define or activate it.
+  Unproved groups remain in `external_calculation_lane`.
 
 ### Product surfaces and interaction contract
 
@@ -588,11 +613,12 @@ traceability contract.
 
 ### Security, privacy, durability, and operations
 
-- All actions reauthorize current actor, membership, capability, assurance,
+- All mutations reauthorize current actor, membership, capability, assurance,
   governance epoch, Tenant, Legal Entity, purpose, Support Assignment, Field
-  Account, currency, and evidence access at commit. Lists and aggregates filter
-  before enumeration. Unauthorized and not-found responses do not become an
-  existence oracle.
+  Account, currency, and evidence access at commit. Queries apply authorization
+  before enumeration, arithmetic, counts, pagination, cache construction, and
+  diagnostics. Unauthorized and not-found responses do not become an existence
+  oracle.
 - Provider credentials and tenant AI keys are envelope-encrypted and
   key-versioned, never browser-readable, and absent from job payloads, logs,
   metrics, comments, artifacts, exports, and support tooling. Rotation,
@@ -749,10 +775,12 @@ around this seam rather than alternate business APIs.
   revaluation, or final reconciliation; those remain Phase 20/provider truth.
 - Phase 29 private-byte storage implementation, Phase 30 generic migration
   transport, Phase 31 feed transport, or Phase 34 general workflow ownership.
-- Mandatory AI, GPS, bank feeds, payroll providers, external support feeds,
+- Making AI, GPS, bank feeds, payroll providers, external support feeds,
   support plans, commitments, balance publication, assessments, expense
   governance, preauthorization, card import, advances, retained currencies,
-  support-cost applications, or native cumulative travel calculation.
+  support-cost applications, or native cumulative travel calculation mandatory
+  or default-on for Core. These remain the explicitly optional modules defined
+  above.
 - Personal-card batch browsing, PDF/OCR/XLSX-derived card truth, asset custody
   or trading, gain/loss accounting, general benefits administration, or broad
   donor/contact CRM exposure in the missionary workspace.
@@ -770,7 +798,7 @@ around this seam rather than alternate business APIs.
 - Decisions: `docs/prds/sitestacker-parity/phase-21-field-accounts-decision-log.md`
 - Research: `docs/prds/sitestacker-parity/phase-21-mission-dashboard-product-research-evidence.md`
 - OpenSpec: `openspec/changes/add-field-account-operations/`
-- ADRs: `docs/adr/0062-*` through `docs/adr/0089-*`
+- ADRs: `docs/adr/0090-*` through `docs/adr/0117-*`
 - Shared vocabulary and ownership: `CONTEXT.md`, the Phase 1 ownership matrix,
   roadmap, phase map, platform intent specs, and applicable Phase 3/10/12/13/
   15/17/18/20 contracts.
@@ -790,7 +818,7 @@ evidence, not runtime authority.
   P21-01 through P21-101.
 - Every implementation ticket is discoverable with `ready-for-agent`, but its
   native GitHub blocked-by relationships remain authoritative. The label never
-  permits an agent to bypass an unresolved prerequisite.
+  authorizes dispatch or permits an agent to bypass an unresolved prerequisite.
 - Ticket bodies are bounded execution slices. When a summary is shorter than
   this repository contract, this OpenSpec change, the accepted ADRs, and this
   PRD control in the repository source-of-truth order.
@@ -809,5 +837,6 @@ exist. A missing optional provider or future phase never authorizes a shim,
 inferred truth, weakened invariant, or false launch claim.
 
 The approved implementation graph above is published, but no Phase 21 runtime
-is thereby implemented or production-authorized. Agents may begin only slices
-whose live blockers are satisfied and must preserve every governing contract.
+is thereby implemented, dispatched, or production-authorized. After explicit
+founder dispatch, agents may begin only slices whose live blockers are satisfied
+and must preserve every governing contract.

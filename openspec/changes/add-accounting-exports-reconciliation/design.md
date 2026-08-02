@@ -265,13 +265,18 @@ Execution Envelope proof. QBO `JournalEntry` and Xero `ManualJournal` belong
 only to the explicit exceptional accountant-adjustment family and never rescue
 an unsupported or failed ordinary recipe.
 
-Expense admission is discriminated by closed source family. Snapshot-rooted
+Expense admission is discriminated by closed source-family. Snapshot-rooted
 handoffs carry one Approved Expense Snapshot, while payment-rooted handoffs
 carry one immutable payment source plus complete obligation and originating-
-snapshot coverage without an invented primary snapshot. D16 advance-issuance,
-advance-application-effect, claimant-repayment, and correction sources carry
-the exact source root and predecessor coverage required by their independently
-certified contract. Outbound reimbursement does not enter Bank Match.
+snapshot coverage without an invented primary snapshot. Phase 21 D16 sources
+carry exactly one of `phase21_d16.expense_advance_issuance@1`,
+`phase21_d16.expense_advance_application_effect@1`,
+`phase21_d16.claimant_repayment@1`, or
+`phase21_d16.cause_linked_correction@1`; each carries the exact source root and
+predecessor coverage required by its independently certified contract. The
+correction discriminator additionally names one admitted predecessor. These
+identifiers are unrelated to Phase 20 D16 Accounting Delivery Packages.
+Outbound reimbursement does not enter Bank Match.
 A reimbursement-only payment conserves exact Reimbursement Payment Coverage
 plus signed residual dispositions. A mixed compensation/reimbursement payment
 uses the External Payment Occurrence's one payment currency and carries one

@@ -1,4 +1,4 @@
-# Purpose-owned Phase 21 records schedules and exact tenant custody exports
+# ADR-0115: Purpose-owned Phase 21 records schedules and exact tenant custody exports
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D26)
 
@@ -208,13 +208,13 @@ or security restriction forbids that access.
 ## Related decisions and evidence
 
 - [ADR-0038 — Purpose-owned records schedules and verified disposal](./0038-purpose-owned-records-schedules-and-verified-disposal.md)
-- [ADR-0071 — Claim-level expense truth and purpose-routed tenant AI](./0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
-- [ADR-0073 — Immutable Support Cycle statements](./0073-immutable-support-cycle-statements-with-automatic-tenant-publication.md)
-- [ADR-0075 — File-first organization-card evidence](./0075-file-first-organization-card-transaction-evidence.md)
-- [ADR-0078 — Reconciled Field Account opening position](./0078-reconciled-field-account-opening-position-and-operational-cutover.md)
-- [ADR-0086 — Exact, cause-owned Expense Claim resolution](./0086-cause-owned-expense-claim-resolution.md)
-- [ADR-0088 — Evidence-gated Core Field Accounts production
-  activation](./0088-evidence-gated-core-field-accounts-production-activation.md)
+- [ADR-0099 — Claim-level expense truth and purpose-routed tenant AI](./0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0101 — Immutable Support Cycle statements](./0101-immutable-support-cycle-statements-with-automatic-tenant-publication.md)
+- [ADR-0103 — File-first organization-card evidence](./0103-file-first-organization-card-transaction-evidence.md)
+- [ADR-0106 — Reconciled Field Account opening position](./0106-reconciled-field-account-opening-position-and-operational-cutover.md)
+- [ADR-0114 — Exact, cause-owned Expense Claim resolution](./0114-cause-owned-expense-claim-resolution.md)
+- [ADR-0116 — Evidence-gated Core Field Accounts production
+  activation](./0116-evidence-gated-core-field-accounts-production-activation.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md#d26--purpose-owned-phase-21-records-schedules-and-exact-tenant-custody-exports)
 - [D26 research evidence](../prds/sitestacker-parity/phase-21-mission-dashboard-product-research-evidence.md#d26-decision-research---purpose-owned-phase-21-records-schedules)
 - [Phase 1 source-of-truth ownership matrix](../prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md)

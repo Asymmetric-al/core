@@ -241,45 +241,45 @@
 > grants neither travel-calculation nor accounting authority.
 > See
 > [`phase-21-field-accounts-decision-log.md`](./phase-21-field-accounts-decision-log.md),
-> [ADR-0062](../../adr/0062-finance-closed-field-account-cycles.md), and
-> [ADR-0063](../../adr/0063-rail-qualified-support-cycle-admission.md),
-> [ADR-0064](../../adr/0064-bounded-prospective-administrative-assessment-profiles.md),
+> [ADR-0090](../../adr/0090-finance-closed-field-account-cycles.md), and
+> [ADR-0091](../../adr/0091-rail-qualified-support-cycle-admission.md),
+> [ADR-0092](../../adr/0092-bounded-prospective-administrative-assessment-profiles.md),
 > and
-> [ADR-0065](../../adr/0065-contract-referenced-compensation-funding.md), and
-> [ADR-0066](../../adr/0066-organization-authorized-support-reallocation-and-exit-disposition.md),
+> [ADR-0093](../../adr/0093-contract-referenced-compensation-funding.md), and
+> [ADR-0094](../../adr/0094-organization-authorized-support-reallocation-and-exit-disposition.md),
 > and
-> [ADR-0067](../../adr/0067-proof-gated-parallel-currency-field-accounts.md),
+> [ADR-0095](../../adr/0095-proof-gated-parallel-currency-field-accounts.md),
 > and
-> [ADR-0068](../../adr/0068-capability-honest-multi-provider-compensation-handoffs.md),
-> [ADR-0069](../../adr/0069-source-authoritative-missionary-support-feed.md),
+> [ADR-0096](../../adr/0096-capability-honest-multi-provider-compensation-handoffs.md),
+> [ADR-0097](../../adr/0097-source-authoritative-missionary-support-feed.md),
 > and
-> [ADR-0070](../../adr/0070-optional-approved-support-plans-and-bounded-workspace-publication.md),
+> [ADR-0098](../../adr/0098-optional-approved-support-plans-and-bounded-workspace-publication.md),
 > and
-> [ADR-0071](../../adr/0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md),
+> [ADR-0099](../../adr/0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md),
 > and
-> [ADR-0072](../../adr/0072-layered-field-account-integrity-and-cause-owned-repair.md),
+> [ADR-0100](../../adr/0100-layered-field-account-integrity-and-cause-owned-repair.md),
 > and
-> [ADR-0073](../../adr/0073-immutable-support-cycle-statements-with-automatic-tenant-publication.md),
-> [ADR-0074](../../adr/0074-bounded-prospective-expense-governance-profiles.md),
+> [ADR-0101](../../adr/0101-immutable-support-cycle-statements-with-automatic-tenant-publication.md),
+> [ADR-0102](../../adr/0102-bounded-prospective-expense-governance-profiles.md),
 > and
-> [ADR-0075](../../adr/0075-file-first-organization-card-transaction-evidence.md),
+> [ADR-0103](../../adr/0103-file-first-organization-card-transaction-evidence.md),
 > and
-> [ADR-0076](../../adr/0076-artifact-always-reimbursement-handoff.md), and
-> [ADR-0077](../../adr/0077-purpose-separated-advances-and-claimant-repayments.md),
+> [ADR-0104](../../adr/0104-artifact-always-reimbursement-handoff.md), and
+> [ADR-0105](../../adr/0105-purpose-separated-advances-and-claimant-repayments.md),
 > and
-> [ADR-0078](../../adr/0078-reconciled-field-account-opening-position-and-operational-cutover.md),
+> [ADR-0106](../../adr/0106-reconciled-field-account-opening-position-and-operational-cutover.md),
 > and
-> [ADR-0079](../../adr/0079-certified-policy-pinned-travel-allowance-calculations.md),
+> [ADR-0107](../../adr/0107-certified-policy-pinned-travel-allowance-calculations.md),
 > and
-> [ADR-0080](../../adr/0080-organization-controlled-support-assignments-and-separated-access.md),
+> [ADR-0108](../../adr/0108-organization-controlled-support-assignments-and-separated-access.md),
 > and
-> [ADR-0081](../../adr/0081-source-authoritative-organization-support-cost-applications.md),
+> [ADR-0109](../../adr/0109-source-authoritative-organization-support-cost-applications.md),
 > and
-> [ADR-0082](../../adr/0082-source-mode-honest-noncash-support-realization.md).
+> [ADR-0110](../../adr/0110-source-mode-honest-noncash-support-realization.md).
 > See also
-> [ADR-0088](../../adr/0088-evidence-gated-core-field-accounts-production-activation.md)
+> [ADR-0116](../../adr/0116-evidence-gated-core-field-accounts-production-activation.md)
 > and
-> [ADR-0089](../../adr/0089-proof-gated-opening-cumulative-travel-allowance-admission.md).
+> [ADR-0117](../../adr/0117-proof-gated-opening-cumulative-travel-allowance-admission.md).
 
 ## Executive verdict
 
@@ -1094,9 +1094,11 @@ Replace the allocation, expense, currency, and open-question language with:
 > corrections preserve exact original lineage.
 >
 > **Processor costs.** Phase 20 D19 never silently changes a field-account
-> balance. If a tenant prospectively enables designation-borne uncovered
-> processor costs for field accounts, Phase 21 consumes the exact D19
-> occurrence once and posts a separate, clearly labelled Phase 21 debit.
+> balance. In organization-borne mode, Phase 21 credits gross designated
+> support without a D19-manifest gate or processor-cost Field Account debit. If
+> a tenant prospectively enables designation-borne uncovered processor costs
+> for field accounts, Phase 21 consumes the exact D19 occurrence once and posts
+> a separate, clearly labelled Phase 21 debit.
 > Gross support, admin assessment, processor cost, reimbursement, and the
 > Finance-confirmed Field Account Balance remain independently inspectable.
 >

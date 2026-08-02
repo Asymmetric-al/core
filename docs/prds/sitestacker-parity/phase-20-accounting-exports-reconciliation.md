@@ -1111,10 +1111,12 @@ Handoff Attestations, Reimbursement Handoff Operations, provider draft/input
 acceptance and readback, and operation ambiguity remain Phase 21-only. They
 prove only their exact artifact, release ownership, handoff, or provider
 operation and cannot create an External Payment Occurrence, Posting Intent, or
-Accounting Release. Only an independently eligible Approved Reimbursement
-Obligation or separately source-qualified External Payment Occurrence may enter
-through this Accounting-Ready Expense Handoff. A staff Handoff Attestation is
-not staff payment evidence.
+Accounting Release. Within the D15 reimbursement-handoff path, only an
+independently eligible Approved Reimbursement Obligation or separately source-
+qualified External Payment Occurrence may enter through this Accounting-Ready
+Expense Handoff. Other members of the closed launch occurrence catalog below
+enter only through their separately certified source-family paths. A staff
+Handoff Attestation is not staff payment evidence.
 
 The launch occurrence catalog is closed:
 
@@ -1127,8 +1129,18 @@ The launch occurrence catalog is closed:
 - Claimant Repayment Occurrence; and
 - cause-linked corrections for admitted source families.
 
-The D16 source discriminator preserves cash claimant return and advance return
-as distinct typed occurrences. Expense Advance and Claimant Repayment Policy
+The versioned Phase 21 D16 source-discriminator catalog is closed:
+
+| Discriminator                                      | Exact admitted source                                                                                   |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `phase21_d16.expense_advance_issuance@1`           | Evidence-qualified Expense Advance Issuance Occurrence                                                  |
+| `phase21_d16.expense_advance_application_effect@1` | Separately certified Expense Advance Application typed accounting effect                                |
+| `phase21_d16.claimant_repayment@1`                 | Claimant Repayment Occurrence                                                                           |
+| `phase21_d16.cause_linked_correction@1`            | Cause-linked correction naming one admitted Phase 21 D16 predecessor and its exact predecessor coverage |
+
+The catalog preserves cash claimant return and advance return as distinct typed
+occurrences and is unrelated to Phase 20 D16 Accounting Delivery Packages.
+Expense Advance and Claimant Repayment Policy
 Versions, Expense Advance Authorization Versions, Expense Settlement
 Determinations, Repayment Subject Determinations, Claimant Repayment Decisions,
 uncertified Claimant Repayment Requirements, Advance Residual Positions, tasks,
@@ -1171,10 +1183,10 @@ readback.
 A snapshot-rooted expense or obligation handoff references exactly one
 Approved Expense Snapshot. A payment-rooted handoff instead references one
 immutable payment-source identity plus the complete covered-obligation and
-originating-snapshot reference set; it never invents a primary snapshot.
-D16 advance-issuance, advance-application-effect, claimant-repayment, and
-correction handoffs instead preserve the exact source root and predecessor
-coverage required by their independently certified source-family contract.
+originating-snapshot reference set; it never invents a primary snapshot. Phase
+21 D16 handoffs instead carry exactly one discriminator from the closed `@1`
+catalog above and preserve the exact source root and predecessor coverage
+required by that independently certified source-family contract.
 Failed, returned, reversed, or corrected payments append evidence and new
 effects. Staff-attested external payment remains explicitly labelled
 **Payment recorded by finance** and is never silently upgraded.
@@ -1924,13 +1936,14 @@ rollback/kill switches.
   Handoff Coverage, Handoff Attestation, Handoff Operation, provider
   draft/input acceptance, or readback is rejected as payment and accounting
   authority and creates no Posting Intent.
-- Only the independently eligible Approved Reimbursement Obligation or
-  separately source-qualified External Payment Occurrence may qualify through
-  the Accounting-Ready Expense Handoff.
+- For the Phase 21 D15 reimbursement-handoff path, only the independently
+  eligible Approved Reimbursement Obligation or separately source-qualified
+  External Payment Occurrence may qualify through that path.
 - Only evidence-qualified Expense Advance Issuance Occurrence, separately
   certified Expense Advance Application typed accounting effect where
   applicable, Claimant Repayment Occurrence, and cause-linked corrections may
-  enter from the D16 family. Policies, authorization, operational settlement,
+  enter from the Phase 21 D16 family under the closed `@1` discriminator
+  catalog. Policies, authorization, operational settlement,
   subject or repayment decisions, uncertified Requirements, residuals, tasks,
   raw observations, disputes, restitution review, and Field Account coverage
   remain rejected.
@@ -1947,7 +1960,8 @@ rollback/kill switches.
   the other.
 - A Claimant Repayment Requirement stays accounting-dark unless a separately
   accountant-certified source contract recognizes the exact receivable, and
-  every admitted D16 occurrence resolves its D17 posting owner independently.
+  every admitted Phase 21 D16 occurrence resolves its Phase 20 D17 posting owner
+  independently.
 - Payment coverage supports partial, one-to-many, many-to-one, batched, short,
   failed, returned, and staff-attested cases without overcoverage.
 - A reimbursement-only payment conserves exact Reimbursement Payment Coverage
@@ -2554,10 +2568,10 @@ provider pre-execution draft/input evidence, ambiguity quarantine, and exact
 residual-only succession. Package access is non-executing. Handoff does not
 prove payment. Provider draft readback proves only the handoff operation.
 
-Phase 20 accepts none of those objects as a source occurrence. Only an
-independently eligible Approved Reimbursement Obligation or separately
-source-qualified External Payment Occurrence may enter the closed D18 catalog
-through the Accounting-Ready Expense Handoff. Phase 20 D17 assigns one posting
+Phase 20 accepts none of those objects as a source occurrence. For the Phase 21
+D15 reimbursement-handoff path, only an independently eligible Approved
+Reimbursement Obligation or separately source-qualified External Payment
+Occurrence may enter the closed D18 catalog through that path. Phase 20 D17 assigns one posting
 owner when the actual source or atomic payment occurrence exists; a prior D15
 release cannot assign or infer it.
 

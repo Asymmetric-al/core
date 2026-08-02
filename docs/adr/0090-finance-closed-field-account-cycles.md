@@ -1,4 +1,4 @@
-# Finance-closed Field Account cycles and independent payment truth
+# ADR-0090: Finance-closed Field Account cycles and independent payment truth
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D1)
 

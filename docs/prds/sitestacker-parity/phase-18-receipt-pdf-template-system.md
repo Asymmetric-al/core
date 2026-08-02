@@ -685,7 +685,13 @@ authorized exact artifact or one explicit owner-domain reference.
 
 D26 is not document publication, donor delivery, a Phase 19 Audit/print
 fulfillment package, Canadian-issuer activation or closure proof, or an artifact
-hold/disposition command. Missing, disposed, quarantined, or unauthorized Phase
-18 bytes are never silently regenerated or labelled included, and a D26
-download, external-copy assertion, or verified destination transfer does not
-change Phase 18 retention, access, currentness, or custody obligations.
+hold/disposition command. D26 may manage its semantic package and Coverage
+Manifest, records-schedule binding/resolution, retention meaning, external-copy
+and destination-custody assertions, and requested hold/disposition truth. Phase
+29 alone executes physical package-byte staging, storage, delivery, hold, and
+disposal and returns exact execution evidence. None of those operations changes
+Phase 18 artifact authority or lifecycle state.
+Missing, disposed, quarantined, or unauthorized Phase 18 bytes are never
+silently regenerated or labelled included, and a D26 download, external-copy
+assertion, or verified destination transfer does not change Phase 18 retention,
+access, currentness, or custody obligations.

@@ -1398,8 +1398,10 @@ the implementation-ready Phase 20 specification.
 ### Phase 21 — Missionary Field Accounts & Support Balances (`field-accounts`)
 
 **What this phase is (plain language).** The financial heart of the
-**deputized-fundraising model**: every gift legally belongs to the org and is
-only _preferenced_ toward an approved ministry purpose. When a tenant activates
+**deputized-fundraising model**: every gift legally belongs to the organization;
+its approved purpose may be a donor preference or a legally enforceable
+restriction, and Phase 21 admits only the immutable Phase 13 source-purpose
+authority. When a tenant activates
 one organization-controlled Support Assignment and its currency-scoped Field
 Accounts for that purpose, the organization-owned
 balance is derived from explicit operational entries: gross support
@@ -2387,7 +2389,8 @@ international rules remain tenant/adviser-owned; Phase 21 cannot universalize
 one agency's short-check, deficit, or hold-until-funded practice.
 
 **Grooming status.** D1-D28 are ratified and scope-frozen as the complete
-founder product authority; `/to-spec` is in progress and creates no D29. D8
+founder product authority. The implementation-ready PRD and OpenSpec contract
+are published; any later mechanical refinement creates no D29. D8
 resolves the exact Phase 21-to-31
 read-projection contract and leaves provider activation subject to exact vendor
 authorization and production certification. D9 resolves optional
@@ -2540,7 +2543,7 @@ delivery and reconciliation cannot qualify or rewrite D23. The clean path is
 automatic and the experience separates approval, support-balance inclusion,
 reimbursement/payment, and accounting without claiming availability, payment,
 or GAAP recognition. See
-[ADR-0084](../../adr/0084-source-family-expense-field-account-effect-recognition.md).
+[ADR-0112](../../adr/0112-source-family-expense-field-account-effect-recognition.md).
 Phase 21 D24 resolves optional own-identity expense help through one exact-
 claim-bounded Assignment Version, authority-free invitation and verified
 acceptance, a prepare-only default, and one separately enabled claimant-
@@ -2555,7 +2558,7 @@ submitter, confirmer, reviewer, approver, payee, and principal provenance is
 immutable. D24 creates no approval, obligation, payment, Field Account effect,
 payroll, Phase 20 accounting, notification, relationship, or successor
 authority. See
-[ADR-0085](../../adr/0085-own-identity-claim-bounded-expense-collaboration.md).
+[ADR-0113](../../adr/0113-own-identity-claim-bounded-expense-collaboration.md).
 Phase 21 D25 resolves exceptional actual-expense recovery through one immutable
 exact-scope Expense Claim Resolution Case, seven code-owned causes, separately
 attributed actors, one literal next safe action, and one proportional complete
@@ -2571,7 +2574,7 @@ finance reuses **Expenses → Needs attention**, and Mission Control/Phase 34 ma
 mirror follow-up only. **Complete** never means approved, reimbursable, owed,
 funded, available, payable, paid, Field Account-included, statement-corrected,
 accounting-delivered, provider-accepted, posted, synced, or reconciled. See
-[ADR-0086](../../adr/0086-cause-owned-expense-claim-resolution.md).
+[ADR-0114](../../adr/0114-cause-owned-expense-claim-resolution.md).
 Phase 21 D26 resolves Phase 21 records policy and exact tenant custody exports
 through six closed source-purpose record families, immutable schedule contract
 and prospective binding versions, per-record retention resolutions, complete
@@ -2589,7 +2592,7 @@ requests. No export changes source
 retention, releases a hold, proves legal sufficiency, posts accounting, or
 erases either the tenant's external-copy responsibility or Asym's own custody
 duties. See
-[ADR-0087](../../adr/0087-purpose-owned-phase21-records-schedules-and-exact-custody-exports.md).
+[ADR-0115](../../adr/0115-purpose-owned-phase21-records-schedules-and-exact-custody-exports.md).
 Phase 21 D27 resolves one evidence-gated Core Field Accounts Production
 Activation Contract composed through D17's sole Operational Cutover. One
 immutable Release Generation, one prospective Adoption Plan Version, and one
@@ -2605,7 +2608,7 @@ through-dated readiness projection opens only cause-owned exceptions. Live
 drift receives smallest-scope prospective containment and append-only recovery,
 not a global disable, second activation state, force-close, or destructive
 rollback. See
-[ADR-0088](../../adr/0088-evidence-gated-core-field-accounts-production-activation.md).
+[ADR-0116](../../adr/0116-evidence-gated-core-field-accounts-production-activation.md).
 Phase 21 D28 resolves native cumulative Travel Allowance adoption through one
 source-defined clean-period default, immutable Opening Cumulative State, stable
 Capacity Key Contract, and complete opening-plus-continuity Admission Manifest
@@ -2617,7 +2620,7 @@ group-atomic and CAS-guarded, late predecessor facts append through affected-
 suffix correction, D27 may reference but never own the proof, and no D28 fact
 creates a claim, approval, Field Account, obligation, payment, payroll/tax,
 statement, accounting, posting, or reconciliation truth. See
-[ADR-0089](../../adr/0089-proof-gated-opening-cumulative-travel-allowance-admission.md).
+[ADR-0117](../../adr/0117-proof-gated-opening-cumulative-travel-allowance-admission.md).
 The post-D28 completeness audit found no remaining Phase 21-owned founder seam.
 Implementation prerequisites, provider/source certification, and verification
 matrices now belong to the implementation-ready specification rather than a

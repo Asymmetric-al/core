@@ -1,4 +1,4 @@
-# Claim-level expense truth and purpose-routed tenant AI
+# ADR-0099: Claim-level expense truth and purpose-routed tenant AI
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D10)
 

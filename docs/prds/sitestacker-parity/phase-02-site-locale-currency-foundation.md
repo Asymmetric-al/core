@@ -237,10 +237,13 @@ rather than a cautious, reversible, production-safe migration.
   widen this transaction allowlist. Phase 24 alone may later activate
   additional donor presentment currencies.)_
   _(Clarified 2026-07-30 by Phase 21 D6: Site currency, donor presentment,
-  and Phase 20 settlement evidence neither create nor select a Field Account
-  or its default. Phase 21 alone owns the explicit Legal-Entity Default Field
-  Account Currency Version and each prospective, source-family-specific Field
-  Account Currency Activation Version.)_
+  and Phase 20 settlement evidence neither create, select, nor define a Field
+  Account or its default. Phase 21 alone owns the explicit Legal-Entity Default
+  Field Account Currency Version and each prospective, source-family-specific
+  Field Account Currency Activation Version. Once that authority exists, D6 may
+  consume separately qualified Phase 20, provider, or bank evidence as the exact
+  target-currency admission basis; consuming evidence never transfers account-
+  identity or default authority to Phase 2 or the evidence source.)_
 - **A3. Dual representation in one database.** Payload and Supabase share a **single Postgres**
   (Payload in schema `cms`, app data in `public`; the Payload DB URL falls back to the Supabase DB
   URL). So a site is represented by `public.sites` (operational source of truth: identity, tenant

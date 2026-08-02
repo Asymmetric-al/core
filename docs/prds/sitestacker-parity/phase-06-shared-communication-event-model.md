@@ -658,8 +658,9 @@ and sender preparation where a message is required.
 A preference grants no workspace or source-data access. Immediately before
 intent release, Phase 6 re-proves the exact recipient principal/Party binding,
 Active Tenant Assignment, Tenant, Legal Entity, Support Assignment, purpose,
-Phase 12 projection authorization and floor, current preference version,
-source fence, contact point, consent, and suppression. Revoked access,
+the sole Phase 12 projection decision with its internal Phase 3/10 strictest-
+wins classification and alias floor, current preference version, source fence,
+contact point, consent, and suppression. Revoked access,
 superseded preference, ended eligibility, stale queued work, or a restricted
 recipient is suppressed before disclosure and recorded through the existing
 safe outcome/recovery contract. Participation, relationship labels, prior
@@ -675,13 +676,15 @@ unauthorized scopes create no notification signal.
 
 Immediately before release, Phase 6 re-proves the exact recipient binding,
 Active Tenant Assignment, Tenant, Legal Entity, request and claimant scope,
-purpose, source fence, current Phase 12 capability and floor, contact point,
-consent, and suppression. Revoked authority, stale assignment, superseded
-request, ended posture, or resolved work suppresses queued content. Messages
-contain only an opaque reference, safe stage/action, and minimal due/target
-context; they never include private evidence, itinerary/location, health or
-security context, private notes, unnecessary amount, reviewer internals, or a
-financial promise.
+purpose, source fence, the sole Phase 12 decision with its internal Phase 3/10
+strictest-wins classification and alias floor, contact point, consent, and
+suppression. Revoked authority, stale assignment, superseded request, ended
+posture, or resolved work suppresses queued content. Messages contain only an
+opaque reference, a bounded safe stage or action, and, when needed, a due date.
+The timing/context allow-list contains no other values. Private evidence,
+itinerary, location, destination, vendor, attendee, companion, health, security,
+relationship, private-note, unnecessary-amount, reviewer-internal, or financial-
+promise detail is forbidden.
 
 ## Dated Phase 21 D24 expense-collaboration communication amendment (2026-08-02)
 
@@ -696,7 +699,8 @@ delivery result never subscribes or authorizes a recipient.
 Immediately before release, Phase 6 re-proves the exact recipient
 principal/Party binding, Active Tenant Assignment, Tenant, Legal Entity,
 claimant and helper scope, Expense Program, purpose/claim family, current Claim
-and Assignment Versions, evidence-safe projection, Phase 12 capability and
+and Assignment Versions, evidence-safe projection, the sole Phase 12 decision
+with its internal Phase 3/10 strictest-wins classification and alias floor,
 governance epoch, contact point, consent, and suppression. Revocation,
 principal disablement, stale confirmation, superseded claim or assignment,
 ended scope, or resolved conflict suppresses queued work before disclosure.
@@ -720,6 +724,16 @@ history. Send and protected-link open both reauthorize current Tenant, Legal
 Entity, recipient, claimant/claim scope, purpose, case/cause/version,
 classification, capability, and governance epoch.
 
+Protected-link open enters one authenticated Phase 6 protected-action boundary,
+which delegates the sole authorization decision to the Phase 12 PDP using the
+current D25 cause-owner case/cause/version facts as inputs. D25 supplies source
+facts and never co-authorizes. The boundary fails closed unless the current
+principal, Active Tenant Assignment, Tenant, Legal Entity, recipient,
+claimant/claim scope, purpose, case/cause/version, classification, capability,
+and governance epoch all match. No case body, evidence metadata, byte reference,
+or permitted disposition is returned before the sole PDP decision and source-
+owner fact checks pass.
+
 Messages contain only an opaque reference, one safe action or wait reason, and
 minimum timing. Receipt or evidence URLs, merchant/location details, claimant-
 only facts, private notes, internal lifecycle reasons, reviewer internals, and
@@ -740,8 +754,12 @@ Immediately before release, Phase 6/12 re-proves the exact recipient and
 actual-principal binding, Active Tenant Assignment, Tenant, Legal Entity,
 records purpose, package and manifest identity, safe state, restricted-person
 posture, current capability and authorization epoch, contact point, consent,
-and suppression. The message contains only an opaque reference, safe state,
-exact package-byte expiry or records-only-window deadline where applicable,
-and one authenticated next action. Delivery, open, reply, print, silence, or
-failure never proves download, external custody, verified transfer, retention,
-hold, disposal, completeness, or legal sufficiency.
+and suppression. Before the authenticated action returns package or manifest
+data or permits retrieval/transfer, it rechecks the exact package and manifest
+classification plus the separate Phase 10 clearance, purpose, step-up, rate,
+and audit gates. Generic package access or a prior message authorization cannot
+substitute. The message contains only an opaque reference, safe state, exact
+package-byte expiry or records-only-window deadline where applicable, and one
+authenticated next action. Delivery, open, reply, print, silence, or failure
+never proves download, external custody, verified transfer, retention, hold,
+disposal, completeness, or legal sufficiency.

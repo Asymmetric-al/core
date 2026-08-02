@@ -164,8 +164,9 @@ Each Field Account has immutable ISO currency and version. One occurrence
 contains one semantic operation and writes a balanced group of signed
 integer-minor-unit entries within one Tenant, Legal Entity, purpose, Support
 Assignment, Field Account, and currency partition. A bounded control-side entry
-is persisted independently so the sum can be proved without an inferred
-counterparty.
+is stored as a separate row but commits atomically with the occurrence and all
+Field Account entries, so the sum can be proved without an inferred
+counterparty and no partial balanced effect can persist.
 
 The database enforces:
 
@@ -193,9 +194,11 @@ readiness is separately derived.
 
 Source evaluation creates disposable Support Allocation Candidates and a
 Support Close Readiness Projection. The prospective Support Allocation
-Readiness Policy returns ready for close, waiting for evidence, needs finance
-review, or ineligible for this close. The exact provider/source evidence remains
-labelled; it does not become support availability.
+Readiness Policy defines the source-labelled evidence required for admission;
+the projection alone owns the four disposable outcomes `ready_for_close`,
+`waiting_for_evidence`, `needs_finance_review`, and `blocked_by_integrity`. The
+exact provider/source evidence remains labelled; it does not become support
+availability.
 
 The close command prepares outside the transaction, then inside one short
 transaction revalidates actor and policy epoch, boundary, source versions,
@@ -223,6 +226,18 @@ have separate coverage and entries. Determination freezes source, assignment,
 profile, method, period, components, rounding, and result. Corrections reverse
 the exact affected components proportionally and append period-level successor
 effects when necessary.
+
+Exactly one Support Cycle Close owns each initial Assessment Period
+Determination: the first successfully committed close in strict contiguous
+close order whose exact through boundary reaches or passes the period end. The
+close CASes the immediately preceding committed boundary, so a later-boundary
+candidate cannot skip an open predecessor. The same-scope period uniqueness key
+excludes Profile Version; the Determination records the one resolved version.
+Semantic idempotency, uniqueness, and CAS make retry exact replay and prevent
+concurrent or later closes from creating another initial determination. A
+delayed or consolidated close qualifies only as the next completely covered
+contiguous boundary. Later-qualified sources remeasure through append-only
+successor effects.
 
 Other prospective modules use the same bounded design principle: immutable
 profile versions, code-owned precedence, exact effective intervals,
@@ -257,9 +272,12 @@ project/finance/specialist routes, bounded delegation/reassignment, and named
 small-tenant oversight are explicit. No self, AI, timeout, or automatic
 approval exists.
 
-Line results are approved, declined, needs information, or policy exception.
-Only clean compatible coverage can bulk approve. Material change previews show
-before/after, affected evidence/purpose/currency, and downstream consequences.
+Line results are exactly `approved`, `needs_information`, `rejected`, or
+`excluded`. Policy findings and Reviewer Exceptions are immutable governance
+metadata attached to one of those four outcomes, never additional
+dispositions. Only clean compatible coverage can bulk approve. Material change
+previews show before/after, affected evidence/purpose/currency, and downstream
+consequences.
 
 ### Approved snapshots, obligation, effects, and payment evidence
 
@@ -268,6 +286,16 @@ Reimbursement Obligation, Field Account Funding Coverage, Expense Settlement
 Determination, Expense Field Account Effect Basis/Coverage/Effect,
 Reimbursement Handoff, External Payment Occurrence, Phase 20 source handoff,
 and QBO/Xero result are independent successor authorities.
+
+The claimant-reimbursement Expense Settlement Determination is a core command.
+Optional Advance and Claimant Repayment policy activation may add only its own
+typed branches; disabling both never suppresses the ordinary obligation,
+residual, or separately tenant-authorized funding partition.
+
+D10/D13 own claim approval and the Approved Expense Snapshot. Core D16 owns the
+exact remaining Reimbursement Obligation record and its append-only qualified
+succession or correction; D15 consumes that record and owns only reimbursement
+handoff, external-payment evidence, and their residual recovery.
 
 Effect recognition is prospective and source-family-specific. The exact
 qualification evidence differs for claimant-paid reimbursement, organization
@@ -356,14 +384,19 @@ source versions. Preview does not consume capacity.
 
 Cumulative capacity uses stable source-defined Capacity Key Contracts and
 serialized allocations. One immutable Travel Allowance Cumulative Admission
-precedes first native use. Native activation requires both one opening disposition
-(`clean_boundary_zero`, `opening_cumulative_state`, or `external_at_boundary`)
-and one continuing-source disposition (`asym_source_complete`,
-`authoritative_feed_complete`, or `external_calculation`) for a complete
-indivisible group. Clean-boundary zero is affirmative proof; missing is unknown.
-Admission and first allocation commit atomically. Uncertain groups stay on exact
-external calculation. D27 may reference but never create, waive, reinterpret,
-repair, or make Core activation depend upon this optional D28 proof.
+precedes first native use. Native activation requires both one opening proof
+(`clean_boundary_zero` or `opening_cumulative_state`) and one continuing-source proof
+(`asym_source_complete` or `authoritative_feed_complete`) for a complete
+indivisible group. The independent operating lane is `native_calculation` or
+`external_calculation_lane`. `external_at_boundary` is a complete manifest
+disposition that selects the external lane, is not admission proof, and creates
+no native Admission. A later native transition must prove a new exact opening
+and continuing-source boundary.
+Clean-boundary zero is affirmative proof; missing is unknown. Admission and
+first allocation commit atomically. Uncertain groups stay in exact
+`external_calculation_lane`. D27 may reference but never create, waive,
+reinterpret, repair, or make Core activation depend upon this optional D28
+proof.
 Phase 30 may transport private preparation but cannot define source meaning or
 activate native calculation.
 

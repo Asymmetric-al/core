@@ -1,4 +1,4 @@
-# Layered Field Account integrity and cause-owned repair
+# ADR-0100: Layered Field Account integrity and cause-owned repair
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D11)
 
@@ -108,11 +108,11 @@ correction or append-only repair.
 
 ## Related decisions
 
-- [ADR-0062 — Finance-closed Field Account
-  cycles](./0062-finance-closed-field-account-cycles.md)
-- [ADR-0063 — Rail-qualified support-cycle
-  admission](./0063-rail-qualified-support-cycle-admission.md)
+- [ADR-0090 — Finance-closed Field Account
+  cycles](./0090-finance-closed-field-account-cycles.md)
+- [ADR-0091 — Rail-qualified support-cycle
+  admission](./0091-rail-qualified-support-cycle-admission.md)
 - [ADR-0054 — Cause-owned accounting exceptions with shared
   follow-up](./0054-cause-owned-accounting-exceptions-with-shared-follow-up.md)
-- [ADR-0088 — Evidence-gated Core Field Accounts production
-  activation](./0088-evidence-gated-core-field-accounts-production-activation.md)
+- [ADR-0116 — Evidence-gated Core Field Accounts production
+  activation](./0116-evidence-gated-core-field-accounts-production-activation.md)

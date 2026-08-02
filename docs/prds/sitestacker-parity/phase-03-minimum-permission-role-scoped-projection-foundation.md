@@ -497,9 +497,11 @@ diagnostic enumeration. An import manifest, profile, assignment, similarity
 suggestion, claim relationship, or opaque identifier never widens another
 record type.
 
-The missionary projection may expose only an assigned purchase reported as
-posted under the pinned import-profile finality contract and the claimant-safe
-facts required for D10/D13 completion. It excludes other cards and
+The missionary projection may expose only an assigned **source-final imported
+purchase** under the pinned import-profile finality contract and the claimant-
+safe facts required for D10/D13 completion. Imported evidence is not a claim,
+Field Account effect, payment, Accounting Release, or reconciliation. The
+projection excludes other cards and
 participants, raw files, import profiles, control totals, unresolved overlap
 candidates, issuer/account identifiers beyond the approved safe label, full
 PAN, internal assignment history, personal-card data, and finance-only

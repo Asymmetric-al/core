@@ -51,7 +51,7 @@ authoritative. The system MUST NOT collapse them into one mutable `available`,
 #### Scenario: An approved reimbursement lacks payment evidence
 
 - **GIVEN** an Expense Policy Decision created an Approved Expense Snapshot and
-  Reimbursement Obligation
+  the core D16 settlement created the exact remaining Reimbursement Obligation
 - **AND** Field Account Funding Coverage or a handoff exists without an exact
   External Payment Occurrence
 - **WHEN** a claimant or staff member views its progress
@@ -161,9 +161,11 @@ resolve exactly one winning Administrative Assessment Profile for an exact
 Field Account and source occurrence. Specificity MUST be: exact Field Account;
 explicit worker-classification plus lifecycle-stage combination; one
 nonconflicting single axis; then Legal Entity/currency default. Equal-rank
-single-axis assignments selecting different profiles MUST resolve to
-`blocked_by_integrity`. Profiles and source-family treatments MUST replace,
-not stack with, one another.
+single-axis assignments selecting different profiles MUST emit the typed cause
+`assessment_profile_resolution_conflict`. D2's Support Close Readiness
+Projection alone MUST map that cause to `blocked_by_integrity`; D11 alone MUST
+own any durable exception case. Profiles and source-family treatments MUST
+replace, not stack with, one another.
 
 Assessment Periods MUST be monthly and per currency independently of Support
 Cycle cadence. Percentage components MUST be rounded once in currency minor
@@ -172,6 +174,21 @@ units. A minimum/cap profile MUST calculate
 and publish the difference as one period adjustment. Fixed, service, minimum,
 cap, and source-linked components MUST remain separately typed. Corrections
 MUST use original source/period coverage and append rather than mutate.
+
+The first successfully committed Support Cycle Close in strict contiguous close
+order whose exact through boundary reaches or passes an Assessment Period end
+MUST own that period's initial Determination. A close MUST CAS the immediately
+preceding committed boundary; no later-boundary candidate may commit while an
+earlier boundary is open. Exactly one initial Determination MAY exist for the
+complete Tenant, Legal Entity, Field Account/assignment scope, currency, and
+Assessment Period key. The Determination MUST record the one resolved Profile
+Version, but Profile Version MUST NOT partition uniqueness. Semantic
+idempotency, the same-scope unique constraint, and CAS MUST make owner-close
+retry an exact replay and MUST prevent any concurrent or later close from
+creating a second determination. A delayed or consolidated close qualifies
+only when its manifest proves it is the next contiguous boundary and completely
+covers the intervening interval. Later-qualified source facts MUST remeasure
+through append-only successors.
 
 #### Scenario: A tenant uses no assessments
 
@@ -188,7 +205,8 @@ MUST use original source/period coverage and append rather than mutate.
   assignment apply at the same specificity rank
 - **AND** they select different profile versions
 - **WHEN** the service resolves the assessment for an exact source occurrence
-- **THEN** it returns `blocked_by_integrity`
+- **THEN** D3 returns `assessment_profile_resolution_conflict` and D2 maps that
+  cause to `blocked_by_integrity` in the Support Close Readiness Projection
 - **AND** no profile is guessed, stacked, or applied until an explicit
   combination resolves the conflict.
 
@@ -196,11 +214,33 @@ MUST use original source/period coverage and append rather than mutate.
 
 - **GIVEN** source-linked percentage entries were admitted across two biweekly
   closes in one Assessment Period
-- **WHEN** the period-owning close calculates the monthly minimum or cap
+- **WHEN** the first successfully committed close in contiguous close order
+  whose through boundary reaches or passes the period end calculates the
+  monthly minimum or cap
 - **THEN** one immutable Assessment Period Determination reuses the exact
   covered percentage total
 - **AND** publishes at most one minimum top-up or cap credit plus any separately
   configured fixed/service component.
+
+#### Scenario: Two candidate closes race or the owner close retries
+
+- **GIVEN** two close preparations can observe the same completed Assessment
+  Period or the owning close response is lost
+- **WHEN** both attempt the same initial period determination
+- **THEN** predecessor-boundary and same-scope period CAS commit exactly one
+  determination in contiguous close order
+- **AND** every retry returns exact replay while a later close can only append a
+  source-covered successor remeasurement.
+
+#### Scenario: Competing profile versions target one period
+
+- **GIVEN** stale or concurrent preparation resolves two different Profile
+  Versions for the same Tenant, Legal Entity, Field Account/assignment scope,
+  currency, and Assessment Period
+- **WHEN** either candidate attempts the initial Determination
+- **THEN** the period business key permits at most one initial Determination
+- **AND** the conflicting candidate fails closed rather than using Profile
+  Version to create a second initial Determination.
 
 #### Scenario: A gift is partially refunded after close
 
@@ -466,7 +506,12 @@ independent destination-scoped pseudonym, subscription, cursor, and identifier
 namespace. Snapshot creation MUST bind one immutable Coverage Manifest and an
 atomic `snapshot_through` cut. Snapshot page cursors MUST remain distinct from
 the terminal monotonic change cursor. Change delivery MUST be at-least-once,
-idempotent by stable event/entity version, and preserve complete atomic groups.
+idempotent by a subscription-scoped delivery event ID, and preserve complete
+atomic groups. Any source occurrence identifier MUST remain internal or be
+replaced with a recipient-scoped pseudonym; no source-global correlation key
+may leave Asym. Consumers MUST deduplicate by delivery event ID and advance by
+the recipient/installation-scoped entity reference plus monotonic entity
+version, never by timestamp.
 
 Current authorization and privacy filtering MUST occur before enumeration,
 counts, arithmetic, pagination, caching, hints, or diagnostics. The feed MUST
@@ -890,6 +935,11 @@ one immutable **Reimbursement Execution Claim** and non-overlapping
 **Reimbursement Handoff Coverage** assigning every released unit to exactly one
 qualified `Handle outside Asym`, payroll-draft, or AP-draft lane.
 
+D15 MUST consume only a current immutable D16 Reimbursement Obligation. Package,
+handoff, provider, or payment commands MUST NOT establish, cancel, reduce,
+supplement, or correct that obligation; those changes require the core D16
+settlement owner's append-only command.
+
 Handoff Coverage, Field Account Funding Coverage, and Reimbursement Payment
 Coverage MUST remain independent. Provider-draft acceptance, a handoff
 attestation, a payslip, payroll completion, an Accounting Release, QBO/Xero
@@ -939,6 +989,35 @@ navigation, forms, counts, API fields, DOM nodes, notifications, search results,
 reports, and empty states MUST be absent rather than displayed as zero or
 disabled workflow.
 
+Independently of those optional policy families,
+`FieldAccountOperationsService` MUST support one core, Approved-Expense-
+Snapshot-rooted **Expense Settlement Determination** for claimant-reimbursable
+coverage. That command MAY create the remaining Reimbursement Obligation, typed
+residuals, and separately tenant-authorized Field Account Funding Coverage. If
+the advance policy is off or no readiness-qualified issuance applies, its
+Advance Application partition MUST be zero and no advance-specific fact may be
+created. If the repayment policy is off, no repayment-specific fact may be
+created.
+
+D10/D13 MUST own the claim, policy decision, Approved Expense Snapshot, and
+approved coverage. The core D16 settlement MUST own establishment and
+append-only qualified succession or correction of the exact remaining
+Reimbursement Obligation record when independently applicable policy or law
+supports an amount owed; it MUST NOT claim to create or adjudicate legal
+liability. D15 MUST consume that record without changing it.
+
+Phase 21 MUST expose the exact typed, versioned D16 source fact and predecessor
+coverage without choosing an accounting lane. The Phase 20 boundary alone MAY
+derive its closed admission discriminator mapping: Expense Advance Issuance
+Occurrence to `phase21_d16.expense_advance_issuance@1`; a separately certified
+Expense Advance Application accounting effect to
+`phase21_d16.expense_advance_application_effect@1`; Claimant Repayment
+Occurrence to `phase21_d16.claimant_repayment@1`; and a cause-linked correction
+to `phase21_d16.cause_linked_correction@1`. Unknown, unversioned, incomplete, or
+multiply mapped sources MUST fail closed. The mapping MUST NOT make Phase 21 an
+accounting owner or imply posting, reconciliation, payment, or Field Account
+effect.
+
 One serializable **Expense Settlement Determination** MUST conserve exact
 same-currency Approved Expense Snapshot coverage among non-overlapping Advance
 Applications, Reimbursement Obligation, typed residuals, and separately
@@ -963,14 +1042,18 @@ generic permission for ordinary activity to create a deficit.
   obligation or residual
 - AND no unit is reused by reimbursement or Field Account funding
 
-#### Scenario: Advance and repayment policies are off
+#### Scenario: Optional advance and repayment policies are off
 
 - GIVEN neither optional policy family has an active prospective version
 - WHEN a claimant or staff principal loads expense, review, search, report, or
-  API surfaces or attempts a direct command
+  API surfaces or attempts an advance- or repayment-specific command
 - THEN no advance or repayment feature signal is enumerated
-- AND the direct command is rejected without creating a requirement,
-  reservation, settlement determination, or audit claim that the feature ran
+- AND that optional command is rejected without creating an Advance Application,
+  Repayment Subject Determination, Repayment Decision, Requirement, Repayment
+  Occurrence, or audit claim that the optional feature ran
+- BUT the core settlement command may still create the exact remaining
+  Reimbursement Obligation, typed residuals, and separately authorized Field
+  Account Funding Coverage without creating any optional-family fact.
 
 #### Scenario: Finance requests an external return
 
@@ -1319,6 +1402,12 @@ contracts. Approval alone, a card statement payment, claimant repayment,
 generic `paid`/`posted`, or QBO/Xero state MUST NOT qualify an effect. D1/D11
 close remains the only balance authority.
 
+Claimant-reimbursable families MUST use D10/D16 Field Account Funding Coverage.
+Organization-card, organization cash/debit/direct-payment, and certified-
+payable families MUST instead use D10/D13 approved coverage plus their certified
+source-owned actual coverage and MUST NOT require D16 settlement or
+reimbursement coverage.
+
 Ordinary positive or discretionary recognition MUST respect proved capacity.
 Refunds, returns, reclassifications, failures, and mandatory adverse corrections
 MUST use source- and cause-linked append-only deltas; the full correction MAY
@@ -1386,7 +1475,8 @@ server-mediated, non-cacheable, and non-reusable.
 
 #### Scenario: Collaboration access is revoked
 
-- GIVEN a helper has an active assignment and staged work
+- GIVEN a helper has an active Expense Collaboration Assignment Version and
+  staged work
 - WHEN current access, principal binding, or evidence permission is revoked
 - THEN future reads, writes, finalization, and submission fail closed
 - AND immutable prior actor provenance remains while undelivered private work is
@@ -1411,6 +1501,12 @@ complete only after root-owner proof and an explicit disposition for every
 affected downstream family. Completion MUST NOT imply approval, obligation,
 funding, payment, Field Account inclusion, statement correction, accounting,
 provider acceptance, posting, or reconciliation.
+
+D25 MUST route any qualified Reimbursement Obligation cancellation, reduction,
+supplement, or correction request to the core D16 settlement owner. It MUST
+route resulting handoff, provider-inspection, payment, return, or residual
+recovery work separately to D15 and MUST NOT let either result substitute for
+the other.
 
 #### Scenario: Finance asks for exact missing information
 
@@ -1590,12 +1686,16 @@ Before first native use of an exact D18 cumulative pool or indivisible
 source-defined group, `FieldAccountOperationsService` MUST admit one stable
 **Travel Allowance Capacity Key Contract**, one immutable **Travel Allowance
 Cumulative Admission**, and one content-addressed **Travel Allowance Cumulative
-Admission Manifest**. The Admission and manifest MUST prove both an
-opening disposition from exactly `clean_boundary_zero`,
-`opening_cumulative_state`, or `external_at_boundary`, and a continuing-source
-disposition from exactly `asym_source_complete`,
-`authoritative_feed_complete`, or `external_calculation`, over one exact
-half-open D13/D18 authority boundary.
+Admission Manifest**. The Admission and manifest MUST prove both a native
+opening state from exactly `clean_boundary_zero` or
+`opening_cumulative_state`, and a continuing-source
+proof from exactly `asym_source_complete` or `authoritative_feed_complete`, over
+one exact half-open D13/D18 authority boundary. The operating lane MUST be
+separately explicit as `native_calculation` or `external_calculation_lane`;
+`external_at_boundary` MUST select `external_calculation_lane`, MUST NOT qualify
+as native-admission proof, and MUST create no Travel Allowance Cumulative
+Admission. A later native transition MUST prove a new clean-zero or exact
+opening-state boundary plus continuing-source completeness.
 
 The default MUST start at the next complete source-defined policy period.
 Proved zero MUST be affirmative evidence; missing MUST never become zero. Pool
@@ -1650,10 +1750,22 @@ create the Admission, or activate native calculation.
 #### Scenario: D27 evaluates an optional cumulative capability
 
 - GIVEN Core Field Accounts satisfy D17 and one selected D18 cumulative pool
-  lacks either an exact D28 opening disposition or continuing-source
+  lacks either an exact D28 native opening proof or continuing-source
   disposition
 - WHEN D27 prepares or refreshes the Go-Live Readiness Manifest
 - THEN it references that optional pool as not ready for native calculation
 - AND Core activation remains governed only by D17 while the pool remains
-  `external_calculation`; D27 creates, waives, repairs, and reinterprets no D28
-  fact.
+  in `external_calculation_lane`; D27 creates, waives, repairs, and reinterprets
+  no D28 fact.
+
+#### Scenario: External-at-boundary evidence cannot authorize native first use
+
+- GIVEN a pool or indivisible source group whose complete manifest disposition
+  is `external_at_boundary`
+- WHEN a caller presents `asym_source_complete` or
+  `authoritative_feed_complete` for that same boundary
+- THEN `FieldAccountOperationsService` MUST NOT create a Travel Allowance
+  Cumulative Admission or allocate native cumulative capacity
+- AND the group remains in `external_calculation_lane` until a later boundary
+  proves `clean_boundary_zero` or `opening_cumulative_state` together with a
+  continuing-source proof.

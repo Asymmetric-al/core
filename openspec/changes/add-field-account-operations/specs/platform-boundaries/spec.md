@@ -76,9 +76,10 @@ household, teammate, leader, project, contact, or participant relationships MUST
 NOT imply one another or grant transitive access.
 
 All Phase 21 commands and projections MUST enter through the trusted
-`FieldAccountOperationsService` boundary with a server-resolved principal,
-Active Tenant Assignment, exact Tenant and Legal Entity, environment,
-authorization epoch, assurance level, capabilities, and resource scope.
+`FieldAccountOperationsService` boundary with a server-resolved principal and
+actual actor, exact Tenant Authorization Context, exact Tenant and Legal Entity,
+environment, authorization epoch, assurance level, capabilities, and resource
+scope.
 Application authorization MUST use the Phase 12 server policy decision point;
 forced row-level security and same-scope database constraints MUST provide
 defense in depth. Financial grants MUST NOT be stored in client state or JWT

@@ -1,4 +1,4 @@
-# Optional approved Support Plans and bounded workspace publication
+# ADR-0098: Optional approved Support Plans and bounded workspace publication
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D9)
 

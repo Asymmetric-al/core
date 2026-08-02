@@ -1578,9 +1578,9 @@ provider draft/input acceptance and readback, operation ambiguity, and
 residual-only handoff succession. Those objects MUST prove only their exact
 artifact, release ownership, handoff, or provider-operation facts and MUST NOT
 create an External Payment Occurrence, Accounting Posting Intent, or Accounting
-Release. Only an independently eligible Approved Reimbursement Obligation or
-separately source-qualified External Payment Occurrence MAY enter through the
-Accounting-Ready Expense Handoff.
+Release. For the Phase 21 D15 reimbursement-handoff path, only an independently
+eligible Approved Reimbursement Obligation or separately source-qualified
+External Payment Occurrence MAY enter through that path.
 
 Phase 21 D16 MUST retain Expense Advance Policy Versions, Claimant Repayment
 Policy Versions, Expense Advance Authorization Versions, operational Expense
@@ -1594,6 +1594,16 @@ source contract recognizes the exact receivable, and such recognition MUST NOT
 prove returned money. A cash claimant return and an advance return MUST remain
 distinct typed occurrences. Every admitted D16 occurrence MUST independently
 resolve its D17 posting owner.
+
+The Phase 21 D16 admission discriminator MUST be exactly one of
+`phase21_d16.expense_advance_issuance@1`,
+`phase21_d16.expense_advance_application_effect@1`,
+`phase21_d16.claimant_repayment@1`, or
+`phase21_d16.cause_linked_correction@1`. Each value MUST preserve its exact
+source root and predecessor coverage. The correction value MUST name one
+admitted Phase 21 D16 predecessor. Unknown or unversioned values MUST fail
+closed, and these values MUST NOT be interpreted as Phase 20 D16 Accounting
+Delivery Packages.
 
 Phase 21 D22 MUST retain every prospective-authorization posture, request,
 private evidence reference, Governance Resolution, operation-scoped Approval

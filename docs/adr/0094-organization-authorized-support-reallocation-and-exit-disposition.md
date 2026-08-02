@@ -1,4 +1,4 @@
-# Organization-authorized support reallocation and exit disposition
+# ADR-0094: Organization-authorized support reallocation and exit disposition
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D5)
 

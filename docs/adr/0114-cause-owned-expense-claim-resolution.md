@@ -1,4 +1,4 @@
-# Exact, cause-owned Expense Claim resolution cases
+# ADR-0114: Exact, cause-owned Expense Claim resolution cases
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D25)
 
@@ -244,12 +244,12 @@ comprehension proof.
 ## Related decisions and evidence
 
 - [ADR-0059 — Accounting-ready expense handoff](./0059-accounting-ready-expense-handoff.md)
-- [ADR-0071 — Claim-level expense truth and purpose-routed tenant AI](./0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
-- [ADR-0073 — Immutable Support Cycle statements](./0073-immutable-support-cycle-statements-with-automatic-tenant-publication.md)
-- [ADR-0074 — Bounded prospective Expense Governance Profiles](./0074-bounded-prospective-expense-governance-profiles.md)
-- [ADR-0076 — Artifact-always reimbursement handoff](./0076-artifact-always-reimbursement-handoff.md)
-- [ADR-0084 — Source-family Expense Field Account Effect Recognition](./0084-source-family-expense-field-account-effect-recognition.md)
-- [ADR-0085 — Own-identity expense collaboration](./0085-own-identity-claim-bounded-expense-collaboration.md)
+- [ADR-0099 — Claim-level expense truth and purpose-routed tenant AI](./0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0101 — Immutable Support Cycle statements](./0101-immutable-support-cycle-statements-with-automatic-tenant-publication.md)
+- [ADR-0102 — Bounded prospective Expense Governance Profiles](./0102-bounded-prospective-expense-governance-profiles.md)
+- [ADR-0104 — Artifact-always reimbursement handoff](./0104-artifact-always-reimbursement-handoff.md)
+- [ADR-0112 — Source-family Expense Field Account Effect Recognition](./0112-source-family-expense-field-account-effect-recognition.md)
+- [ADR-0113 — Own-identity expense collaboration](./0113-own-identity-claim-bounded-expense-collaboration.md)
 - [Phase 12 permission configuration](../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md#d25--exact-cause-owned-expense-claim-resolution)
 - [D25 research evidence](../prds/sitestacker-parity/phase-21-mission-dashboard-product-research-evidence.md#d25-decision-research--exact-expense-claim-resolution-without-destructive-reopening)

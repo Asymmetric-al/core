@@ -64,8 +64,8 @@ model before any dashboard or integration is trustworthy.
   support realization without overlapping assessments, compensation, expenses,
   processor costs, or accounting ownership.
 - Add source-covered per-currency Opening Positions, one operational cutover,
-  production activation proof, opening cumulative travel-capacity admission,
-  purpose-owned records schedules, and exact tenant custody exports.
+  production activation proof, optional D28 opening cumulative travel-capacity
+  admission, purpose-owned records schedules, and exact tenant custody exports.
 - Replace missionary-facing compatibility with a focused, permission-safe
   mini-CRM projection. Donation activity remains activity; only a qualified
   Support Cycle close advances a Finance-confirmed Field Account Balance.
@@ -96,6 +96,9 @@ separate.
 ### Required platform contracts
 
 - Phase 1 source-of-truth ownership and complete Tenant/Legal-Entity scoping.
+- Phase 2 tenant/site currency metadata and locale facets. Phase 2 provides
+  descriptive configuration and evidence only; D6 retains immutable Field
+  Account currency identity and qualified admission authority.
 - Phase 3/10 sensitive-data classification, privacy, evidence egress, and
   least-privilege access contracts.
 - Phase 4 own-identity principals, invitations, Party lifecycle, and merge

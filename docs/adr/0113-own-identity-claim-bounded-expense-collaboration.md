@@ -1,4 +1,4 @@
-# Own-identity, claim-bounded expense collaboration
+# ADR-0113: Own-identity, claim-bounded expense collaboration
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D24)
 
@@ -277,12 +277,12 @@ accounting authority. Every D24 negative boundary remains binding.
 ## Related decisions
 
 - [ADR-0059 — Accounting-ready expense handoff](./0059-accounting-ready-expense-handoff.md)
-- [ADR-0071 — Claim-level expense truth and purpose-routed tenant AI](./0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
-- [ADR-0074 — Bounded prospective Expense Governance Profiles](./0074-bounded-prospective-expense-governance-profiles.md)
-- [ADR-0076 — Artifact-always reimbursement handoff](./0076-artifact-always-reimbursement-handoff.md)
-- [ADR-0080 — Organization-controlled Support Assignments and separated access](./0080-organization-controlled-support-assignments-and-separated-access.md)
-- [ADR-0083 — Optional exact Prospective Expense Authorization](./0083-optional-exact-prospective-expense-authorization.md)
-- [ADR-0084 — Source-family Expense Field Account Effect Recognition](./0084-source-family-expense-field-account-effect-recognition.md)
+- [ADR-0099 — Claim-level expense truth and purpose-routed tenant AI](./0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0102 — Bounded prospective Expense Governance Profiles](./0102-bounded-prospective-expense-governance-profiles.md)
+- [ADR-0104 — Artifact-always reimbursement handoff](./0104-artifact-always-reimbursement-handoff.md)
+- [ADR-0108 — Organization-controlled Support Assignments and separated access](./0108-organization-controlled-support-assignments-and-separated-access.md)
+- [ADR-0111 — Optional exact Prospective Expense Authorization](./0111-optional-exact-prospective-expense-authorization.md)
+- [ADR-0112 — Source-family Expense Field Account Effect Recognition](./0112-source-family-expense-field-account-effect-recognition.md)
 - [Phase 12 permission configuration](../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md#d24--own-identity-claim-bounded-expense-collaboration)
 - [D24 research evidence](../prds/sitestacker-parity/phase-21-mission-dashboard-product-research-evidence.md#d24-decision-research--own-identity-expense-collaboration)

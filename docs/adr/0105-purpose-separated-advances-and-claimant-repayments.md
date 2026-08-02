@@ -1,4 +1,4 @@
-# Purpose-separated advances and claimant repayments
+# ADR-0105: Purpose-separated advances and claimant repayments
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D16)
 
@@ -32,6 +32,22 @@ rules. Policy cannot determine worker classification, tax treatment, legal
 enforceability, payroll-deduction authority, payment, accounting, or final
 reconciliation.
 
+The optional qualifier governs only advance- and repayment-specific policy,
+facts, commands, and UI. The Approved-Expense-Snapshot-rooted **Expense
+Settlement Determination**, remaining Reimbursement Obligation, typed residuals,
+and separately tenant-authorized Field Account Funding Coverage are the core
+claimant-reimbursement partition used by D10, D15, and D23. They remain
+available when both optional policy families are off; that state produces no
+Expense Advance Application, Repayment Subject Determination, Claimant
+Repayment Decision, Requirement, or Occurrence.
+
+D10/D13 own claim, policy-decision, approved-snapshot, and approved-coverage
+truth. The core D16 settlement owns establishment and append-only succession or
+correction of the exact remaining Reimbursement Obligation record when the
+independently applicable policy or law requires one. It does not create legal
+liability. D15 consumes that immutable obligation and owns only reimbursement
+package, handoff, external-payment evidence, and their residual recovery.
+
 An immutable **Expense Advance Authorization Version** proves only the
 organization's prospective authority. A distinct source-qualified **Expense
 Advance Issuance Occurrence** and its evidence observations establish what the
@@ -42,14 +58,16 @@ approved expense coverage only after the pinned source contract proves
 by D16's phrase `claimant-use readiness`; it proves application eligibility,
 not general availability or withdrawability.
 
-One Approved-Expense-Snapshot-rooted, serializable **Expense Settlement
+The core Approved-Expense-Snapshot-rooted, serializable **Expense Settlement
 Determination** atomically conserves exact approved coverage in one application
 currency into non-overlapping **Expense Advance Applications**, the remaining
 Reimbursement Obligation, typed residuals, and separately authorized
 tenant-enabled non-reusable Field Account Funding Coverage. It never creates a
-gross reimbursement and reduces it later. When funding is enabled, the exact
-approved funding component of the Expense Advance Authorization Version creates
-the purpose-typed coverage before capacity can be reused. Only a separately
+gross reimbursement and reduces it later. Advance Applications are structurally
+absent unless the optional advance policy and readiness proof qualify them. When
+ordinary reimbursement funding is enabled, the exact approved funding component
+frozen under the settlement's current tenant policy authority creates the
+purpose-typed coverage before capacity can be reused. Only a separately
 qualified Field Account Effect may fulfill it; application alone cannot. Field
 Account coverage is an organization-controlled reservation, not a debit,
 payment, claimant-owned balance, or permission to net a future return.
@@ -88,6 +106,17 @@ Any organization-to-claimant restoration requires its own authorized source
 and qualified payment evidence. It is never silently netted against future
 reimbursement, compensation, another repayment requirement, or Field Account
 capacity.
+
+Phase 21 exposes only the exact typed, versioned D16 source fact and predecessor
+coverage; it does not choose an accounting lane or discriminator. Phase 20
+alone may derive its closed admission mapping: Expense Advance Issuance
+Occurrence to `phase21_d16.expense_advance_issuance@1`; a separately certified
+Expense Advance Application accounting effect to
+`phase21_d16.expense_advance_application_effect@1`; Claimant Repayment
+Occurrence to `phase21_d16.claimant_repayment@1`; and a cause-linked correction
+to `phase21_d16.cause_linked_correction@1`. Unknown, unversioned, incomplete, or
+multiply mapped sources fail closed. No mapping proves posting, reconciliation,
+payment, or a Field Account effect.
 
 The complete launch execution lane is **Handle outside Asym**. Asym does not
 connect claimant bank accounts, collect money, initiate payroll deductions,
@@ -169,8 +198,8 @@ without deciding or executing it.
 ## Related decisions
 
 - [ADR-0059 — Accounting-ready expense handoff](./0059-accounting-ready-expense-handoff.md)
-- [ADR-0071 — Claim-level expense truth and purpose-routed tenant AI](./0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
-- [ADR-0074 — Bounded prospective Expense Governance Profiles](./0074-bounded-prospective-expense-governance-profiles.md)
-- [ADR-0075 — File-first organization-card transaction evidence](./0075-file-first-organization-card-transaction-evidence.md)
-- [ADR-0076 — Artifact-always reimbursement handoff](./0076-artifact-always-reimbursement-handoff.md)
+- [ADR-0099 — Claim-level expense truth and purpose-routed tenant AI](./0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0102 — Bounded prospective Expense Governance Profiles](./0102-bounded-prospective-expense-governance-profiles.md)
+- [ADR-0103 — File-first organization-card transaction evidence](./0103-file-first-organization-card-transaction-evidence.md)
+- [ADR-0104 — Artifact-always reimbursement handoff](./0104-artifact-always-reimbursement-handoff.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md)

@@ -1,4 +1,4 @@
-# Capability-honest multi-provider compensation handoffs
+# ADR-0096: Capability-honest multi-provider compensation handoffs
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D7)
 

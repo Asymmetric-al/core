@@ -1,4 +1,4 @@
-# Proof-gated opening cumulative Travel Allowance admission
+# ADR-0117: Proof-gated opening cumulative Travel Allowance admission
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D28)
 
@@ -24,15 +24,22 @@ receive one immutable **Travel Allowance Cumulative Admission** before its first
 native D18 allocation. Admission proves two independent axes for one named
 authority interval:
 
-1. opening state through `clean_boundary_zero`,
-   `opening_cumulative_state`, or `external_at_boundary`; and
+1. native opening state through `clean_boundary_zero` or
+   `opening_cumulative_state`; and
 2. prospective completeness through `asym_source_complete`,
-   `authoritative_feed_complete`, or `external_calculation`.
+   or `authoritative_feed_complete`.
+
+The operating lane is separately explicit as `native_calculation` or
+`external_calculation_lane`. `external_at_boundary` is a manifest disposition
+that necessarily selects the external lane; it is neither native opening proof
+nor prospective-completeness proof and never creates a native Admission. A
+later transition to native calculation must establish a new clean-zero or exact
+opening-state proof plus continuing-source completeness for its new boundary.
 
 The guided default is the next source-defined clean period, but a reset proves
 only the opening zero. Native calculation starts only when prospective source
 completeness is also proved. Otherwise that pool remains fully usable through
-D18's external-calculation lane, including after later resets when external
+D18's `external_calculation_lane`, including after later resets when external
 facts still prevent completeness.
 
 One versioned **Travel Allowance Capacity Key Contract** preserves the exact
@@ -41,8 +48,10 @@ aggregation scope, relationship dimensions, band-versus-cap meaning,
 restoration behavior, and pool succession. Routine configuration or code
 version changes cannot reset usage. One content-addressed **Travel Allowance
 Cumulative Admission Manifest** gives every current eligible pool or atomic
-group exactly one opening and one continuity disposition. Later-arriving pools
-receive the same proof before native first use.
+group exactly one operating lane and records the opening disposition and
+prospective-completeness proof for each admitted native pool. Later-arriving
+pools receive the same proof before native first use. An unproved pool remains
+explicitly in `external_calculation_lane` with no native Admission.
 
 Admission and first native allocation share one group-level compare-and-swap,
 semantic idempotency identity, and final authorization reproof. In-flight and
@@ -70,7 +79,7 @@ cannot define the source meaning or activate native calculation.
 
 ## Related decisions
 
-- [ADR-0074 — Bounded prospective Expense Governance Profiles](./0074-bounded-prospective-expense-governance-profiles.md)
-- [ADR-0079 — Certified policy-pinned Travel Allowance calculations](./0079-certified-policy-pinned-travel-allowance-calculations.md)
-- [ADR-0088 — Evidence-gated Core Field Accounts production activation](./0088-evidence-gated-core-field-accounts-production-activation.md)
+- [ADR-0102 — Bounded prospective Expense Governance Profiles](./0102-bounded-prospective-expense-governance-profiles.md)
+- [ADR-0107 — Certified policy-pinned Travel Allowance calculations](./0107-certified-policy-pinned-travel-allowance-calculations.md)
+- [ADR-0116 — Evidence-gated Core Field Accounts production activation](./0116-evidence-gated-core-field-accounts-production-activation.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md)

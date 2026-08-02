@@ -1,4 +1,4 @@
-# Source-family-specific Expense Field Account Effect Recognition
+# ADR-0112: Source-family-specific Expense Field Account Effect Recognition
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D23)
 
@@ -40,7 +40,7 @@ product.
 > effects qualified only by a separately source-owned present obligation—while
 > D16 advances, D20 Organization Support Costs, D21 noncash realization, and D4
 > taxable-compensation succession remain exclusive owners; resolving and
-> freezing exactly one profile on D16's existing Approved-Expense-Snapshot-
+> freezing exactly one profile on D16's core Approved-Expense-Snapshot-
 > rooted Expense Settlement Determination; creating one PII-minimized immutable
 > Expense Field Account Effect Basis and non-reusable exact Effect Coverage that
 > conserves approved integer minor-unit coverage without capacity-created
@@ -105,13 +105,18 @@ certified-payable family remains structurally absent until a separately
 certified non-accounting source contract supplies both the approved coverage
 and present-obligation occurrence; QBO/Xero/AP records never qualify it.
 
+For claimant-reimbursable coverage, the core D16 settlement command is available
+without activating either optional Advance or Claimant Repayment policy family.
+Those activations govern only their purpose-specific branches; they cannot gate
+ordinary Reimbursement Obligation or Field Account Funding Coverage creation.
+
 ### Exact coverage and currency
 
 Exactly one winning profile is frozen on each approved item/split under its
 claimant-paid or organization-paid source-root contract. Its immutable Expense Field Account
-Effect Basis pins the source family/occurrence, profile, approved and funding
-coverage, Field Account amount/currency authority, close lineage, and
-correction cause. The stable semantic effect identity is instead rooted in the
+Effect Basis pins the source family/occurrence, profile, approved and source-
+family-specific actual coverage, Field Account amount/currency authority,
+close lineage, and correction cause. The stable semantic effect identity is instead rooted in the
 stable economic occurrence and approved coverage slice; immutable evidence and
 observation revisions remain in the Basis. Identity excludes observation,
 adapter/import, retry/job, profile, selected Support Cycle, and mutable status so successor
@@ -143,12 +148,17 @@ correction still appends in full and may expose a visible D11 deficit; D23 must
 not clip, defer, relabel, or convert that correction into a capacity-created
 partial.
 
-One immutable disposition atomically makes exact Funding Coverage derive
-fulfilled while creating the balanced effect, per-account version/CAS advance,
-monotonic ingestion position, and identifier-only outbox request. The original
-coverage stays immutable. D22 prospective reservation, D10/D16 actual coverage,
-and D23 effect form one append-only lineage with at most one capacity-bearing
-state.
+One immutable disposition atomically makes the applicable source-family actual
+coverage derive fulfilled while creating the balanced effect, per-account
+version/CAS advance, monotonic ingestion position, and identifier-only outbox
+request. The original coverage stays immutable. D22 prospective reservation,
+where applicable, is reclassified into source-family-specific actual coverage.
+Claimant-reimbursable families use D10/D16 Field Account Funding Coverage;
+organization-card, organization cash/debit/direct-payment, and certified-
+payable families use D10/D13 approved coverage plus their independently
+certified source-owned coverage without requiring D16 settlement or
+reimbursement coverage. D23 then forms one append-only lineage with at most one
+capacity-bearing state.
 
 D23 Effect Coverage and Phase 20 accounting-source coverage are separate,
 purpose-specific namespaces. Either may independently cover the same economic
@@ -188,8 +198,9 @@ exact source-family half-open operational boundary. Later profile replacement
 uses a D11-manifested complete Support Cycle boundary, captured ingestion
 cursor, and exhaustive in-flight disposition manifest. Date-only activation,
 history replay, overlap, and gaps are forbidden. D22 prospective coverage must
-first be atomically reclassified into actual D10/D16 Funding Coverage; D23
-never qualifies directly from a prospective request, approval, or reservation.
+first be atomically reclassified into the applicable source-family actual
+coverage described above; D23 never qualifies directly from a prospective
+request, approval, or reservation.
 
 ### Isolation, close, and experience
 
@@ -281,19 +292,19 @@ source proof.
 
 ## Related decisions
 
-- [ADR-0062 — Finance-closed Field Account cycles](./0062-finance-closed-field-account-cycles.md)
-- [ADR-0066 — Organization-authorized support reallocation and exit disposition](./0066-organization-authorized-support-reallocation-and-exit-disposition.md)
-- [ADR-0067 — Proof-gated parallel-currency Field Accounts](./0067-proof-gated-parallel-currency-field-accounts.md)
-- [ADR-0070 — Optional approved Support Plans and bounded workspace publication](./0070-optional-approved-support-plans-and-bounded-workspace-publication.md)
-- [ADR-0071 — Claim-level expense truth and purpose-routed tenant AI](./0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
-- [ADR-0072 — Layered Field Account integrity and cause-owned repair](./0072-layered-field-account-integrity-and-cause-owned-repair.md)
-- [ADR-0073 — Immutable Support Cycle statements with automatic tenant publication](./0073-immutable-support-cycle-statements-with-automatic-tenant-publication.md)
-- [ADR-0074 — Bounded prospective Expense Governance Profiles](./0074-bounded-prospective-expense-governance-profiles.md)
-- [ADR-0076 — Artifact-always reimbursement handoff](./0076-artifact-always-reimbursement-handoff.md)
-- [ADR-0077 — Purpose-separated advances and claimant repayments](./0077-purpose-separated-advances-and-claimant-repayments.md)
-- [ADR-0078 — Reconciled Field Account Opening Position and operational cutover](./0078-reconciled-field-account-opening-position-and-operational-cutover.md)
-- [ADR-0080 — Organization-controlled Support Assignments](./0080-organization-controlled-support-assignments-and-separated-access.md)
-- [ADR-0083 — Optional exact Prospective Expense Authorization](./0083-optional-exact-prospective-expense-authorization.md)
+- [ADR-0090 — Finance-closed Field Account cycles](./0090-finance-closed-field-account-cycles.md)
+- [ADR-0094 — Organization-authorized support reallocation and exit disposition](./0094-organization-authorized-support-reallocation-and-exit-disposition.md)
+- [ADR-0095 — Proof-gated parallel-currency Field Accounts](./0095-proof-gated-parallel-currency-field-accounts.md)
+- [ADR-0098 — Optional approved Support Plans and bounded workspace publication](./0098-optional-approved-support-plans-and-bounded-workspace-publication.md)
+- [ADR-0099 — Claim-level expense truth and purpose-routed tenant AI](./0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0100 — Layered Field Account integrity and cause-owned repair](./0100-layered-field-account-integrity-and-cause-owned-repair.md)
+- [ADR-0101 — Immutable Support Cycle statements with automatic tenant publication](./0101-immutable-support-cycle-statements-with-automatic-tenant-publication.md)
+- [ADR-0102 — Bounded prospective Expense Governance Profiles](./0102-bounded-prospective-expense-governance-profiles.md)
+- [ADR-0104 — Artifact-always reimbursement handoff](./0104-artifact-always-reimbursement-handoff.md)
+- [ADR-0105 — Purpose-separated advances and claimant repayments](./0105-purpose-separated-advances-and-claimant-repayments.md)
+- [ADR-0106 — Reconciled Field Account Opening Position and operational cutover](./0106-reconciled-field-account-opening-position-and-operational-cutover.md)
+- [ADR-0108 — Organization-controlled Support Assignments](./0108-organization-controlled-support-assignments-and-separated-access.md)
+- [ADR-0111 — Optional exact Prospective Expense Authorization](./0111-optional-exact-prospective-expense-authorization.md)
 - [Phase 20 accounting boundary](../prds/sitestacker-parity/phase-20-accounting-exports-reconciliation.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md#d23--source-family-specific-expense-field-account-effect-recognition)
 - [D23 research evidence](../prds/sitestacker-parity/phase-21-mission-dashboard-product-research-evidence.md#d23-decision-research--exact-expense-field-account-effect-recognition)

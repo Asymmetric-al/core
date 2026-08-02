@@ -37,4 +37,4 @@ costs when freezing a Realized Support Basis; neither Phase 20 D19 nor Phase 21
 D20 may relabel or apply them as processor or residual organization support
 costs.
 
-See [ADR-0082 — Source-mode-honest Noncash Support Realization](./0082-source-mode-honest-noncash-support-realization.md).
+See [ADR-0110 — Source-mode-honest Noncash Support Realization](./0110-source-mode-honest-noncash-support-realization.md).

@@ -837,6 +837,21 @@ platform operator. A Party, email, relationship label, browser role, service
 key, or provider identity is not a principal authorization by itself.
 _Avoid_: missionary means anonymous, Party equals login, role name authorizes
 
+**Tenant Authorization Context** (Phase 12):
+The server-derived, discriminated tenant input to the sole `resolveProjection`
+Policy Decision Point. A membership-backed request uses one validated Active
+Tenant Assignment. A public/anonymous request uses one validated Public
+Projection Context pinned from the requested host, Site, and public resource to
+exactly one Tenant and the named public projection; it carries no membership,
+internal grant, or private capability. A non-human identity uses one validated
+Service Tenant Context pinned to its single-Tenant identity, current human-owner
+ceiling, and credential epoch. A platform operator uses one audited,
+purpose-bound, time-boxed Operator Tenant Grant Context. Missing, ambiguous,
+stale, or client-asserted context fails closed. Every variant uses the same PDP
+and floor.
+_Avoid_: public request requires fake membership, client-selected tenant,
+hostname alone grants access, second public authorization path
+
 **Capability** (Phase 12):
 A single, enforced permission — a verb on a resource (e.g. "view a gift record",
 "run refunds", "manage permissions"). Capabilities are the _only_ thing the system
@@ -858,20 +873,21 @@ strictest-wins and applied last. No grant of any kind can add back what the floo
 _Avoid_: a configuration path that grants around the floor; a second decision point
 
 **Active Tenant Assignment** (Phase 12; previously “Active assignment”):
-The exact active tenant-membership/organization-hat a principal acts within for
-one request. A person serving several organizations may have several Tenant
-assignments but acts within exactly one at a time; the resolver refuses to run
-without one. It is not Phase 21's Support Assignment, and identifiers must make
-that distinction explicit.
+The exact active tenant-membership/organization-hat a membership-backed
+principal acts within for one request. A person serving several organizations
+may have several Tenant assignments but acts within exactly one at a time; the
+resolver refuses a membership-backed request without one. A public/anonymous
+principal instead uses a Public Projection Context. It is not Phase 21's
+Support Assignment, and identifiers must make that distinction explicit.
 _Avoid_: active assignment without domain qualifier, client-chosen tenant,
 Support Assignment as login context, person-global permission resolution
 
 **EffectiveAccess** (Phase 12):
 The runtime-verifiable, short-lived output of the sole `resolveProjection`
 Policy Decision Point after the additive capability inputs and subtract-only
-floor are applied for one Principal, Active Tenant Assignment, purpose, target,
-and governance epoch. A stored grant or visible control is only an input; it is
-not the current decision.
+floor are applied for one Principal, Tenant Authorization Context, purpose,
+target, and governance epoch. A stored grant or visible control is only an
+input; it is not the current decision.
 _Avoid_: persisted can-access Boolean, role token, trusting a deserialized or
 stale decision without required verification
 
@@ -3356,16 +3372,22 @@ source, relationship, vehicle-record, or code version changes do not reset it.
 _Avoid_: employee-year key, profile-version counter, vehicle-row balance
 
 **Travel Allowance Cumulative Admission** (Phase 21 D28):
-The independently proved opening and prospective-completeness dispositions that
-permit one exact cumulative pool or indivisible group to use D18 native
-calculation for a named authority interval. External calculation is a valid
-admission disposition, not a failed or incomplete claim.
+The independently proved native opening state (`clean_boundary_zero` or
+`opening_cumulative_state`) plus continuing-source proof
+(`asym_source_complete` or `authoritative_feed_complete`) that permit one exact
+cumulative pool or indivisible group to use D18 native calculation for a named
+authority interval. `external_at_boundary` is a complete manifest disposition
+that selects `external_calculation_lane`; neither the disposition nor lane is
+native-admission proof or evidence of completeness, and neither creates an
+Admission.
 _Avoid_: travel feature enabled, clean period means complete, migration passed
 
 **Travel Allowance Cumulative Admission Manifest** (Phase 21 D28):
-One immutable content-addressed proof that every pool or indivisible group in an
-exact eligible census has one non-overlapping opening disposition and one
-continuity disposition before native first use.
+One immutable content-addressed proof that every pool or indivisible group
+admitted to native calculation in an exact census has one non-overlapping
+opening disposition and one continuing-source proof before native first use.
+Groups kept in `external_calculation_lane` have no native Admission and remain
+explicitly outside that admitted cohort.
 _Avoid_: setup checklist, mutable readiness percentage, baseline spreadsheet
 
 **Expense Approval Route Version** (Phase 21):
@@ -3516,10 +3538,13 @@ suggestion into its source truth.
 _Avoid_: AI decision, automatic fact, cross-domain write authority
 
 **Reimbursement Obligation** (Phase 21):
-The exact amount the organization owes a claimant when an Expense Policy
-Decision and the applicable policy or law establish liability. It remains
-distinct from Field Account capacity, payment scheduling, payment evidence, and
-accounting representation.
+The exact remaining operational amount established and append-only succeeded or
+corrected by the core D16 Expense Settlement Determination when D10/D13 approved
+coverage and the independently applicable policy or law support an amount owed
+to the claimant. D10/D13 own approval facts; D16 owns this record without
+creating or adjudicating legal liability; D15 only consumes it for handoff and
+external-payment evidence. It remains distinct from Field Account capacity,
+payment scheduling, payment evidence, and accounting representation.
 _Avoid_: approved claim, funded expense, scheduled payment, paid reimbursement
 
 **Reimbursement Handoff Package** (Phase 21):
@@ -3641,8 +3666,12 @@ accounting means received
 The immutable Approved-Expense-Snapshot-rooted result for claimant-
 reimbursable coverage that atomically conserves approved coverage across
 advance applications, the remaining Reimbursement Obligation, typed residuals,
-and separately authorized Field Account Funding Coverage. It does not create
-the funding reservation. A claimant-paid D23 Effect Basis may reference this
+and separately tenant-authorized Field Account Funding Coverage. It is a core
+claimant-reimbursement command; optional Advance and Claimant Repayment policy
+activation controls only those branches and never gates the ordinary obligation
+or funding partition. The same command may materialize Funding Coverage only
+from already-authorized tenant policy; the determination itself supplies no
+funding authority. A claimant-paid D23 Effect Basis may reference this
 determination; organization-card, organization cash/debit/direct-payment, and
 certified-payable sources instead bind their exact D10/D13 approved economic-
 payer slice and source occurrence directly and never fabricate this record.

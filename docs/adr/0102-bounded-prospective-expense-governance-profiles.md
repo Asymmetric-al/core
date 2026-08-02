@@ -1,4 +1,4 @@
-# Bounded prospective Expense Governance Profiles
+# ADR-0102: Bounded prospective Expense Governance Profiles
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D13)
 
@@ -159,6 +159,6 @@ administrator access cannot choose a reviewer, waive policy, or approve.
 ## Related decisions
 
 - [ADR-0059 — Accounting-ready expense handoff](./0059-accounting-ready-expense-handoff.md)
-- [ADR-0062 — Finance-closed Field Account cycles](./0062-finance-closed-field-account-cycles.md)
-- [ADR-0071 — Claim-level expense truth and purpose-routed tenant AI](./0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0090 — Finance-closed Field Account cycles](./0090-finance-closed-field-account-cycles.md)
+- [ADR-0099 — Claim-level expense truth and purpose-routed tenant AI](./0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md)

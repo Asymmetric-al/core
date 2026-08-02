@@ -1,4 +1,4 @@
-# Contract-referenced compensation funding with external payroll authority
+# ADR-0093: Contract-referenced compensation funding with external payroll authority
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D4)
 
@@ -103,7 +103,7 @@ export, posted pay run, or payslip `Paid`.
 Phase 21 D7 subsequently fixes the launch adapter portfolio, production
 authorization gate, prospective provider-draft delivery profile, immutable
 provider-operation evidence, and ambiguity-safe residual recovery in
-[ADR-0068](./0068-capability-honest-multi-provider-compensation-handoffs.md).
+[ADR-0096](./0096-capability-honest-multi-provider-compensation-handoffs.md).
 That decision narrows D4's generic provider-draft route without changing D4's
 artifact-always package, one-executable-lane rule, external payroll/AP
 authority, or Phase 20 accounting boundary.

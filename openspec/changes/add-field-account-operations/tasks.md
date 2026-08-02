@@ -211,8 +211,9 @@ unchanged and outside the implementation hierarchy.
       Profiles and source qualification for reimbursement, card, direct
       organization payment, and certified organization-payable facts.
 - [ ] 7.5 Add Approved-Snapshot-rooted serializable Settlement Determination,
-      immutable Effect Basis, non-reusable Effect Coverage, exact dispositions,
-      effects, dates, and append-only corrections.
+      D16-owned exact remaining Reimbursement Obligation lineage consumed but
+      never changed by D15, immutable Effect Basis, non-reusable Effect Coverage,
+      exact dispositions, effects, dates, and append-only corrections.
 - [ ] 7.6 Add independently optional Advance and Claimant Repayment policy,
       authorization, issuance, readiness, application, residual, repayment
       decision/requirement/occurrence/evidence/coverage, and restitution review.
@@ -274,12 +275,16 @@ intentional_exclusion | unresolved` disposition catalog, atomic-group and
 - [ ] 9.6 Add production-authorized complete-cohort activation review, literal
       start action, pilot publication scoping, post-cutover close proof, and no
       second activation state.
-- [ ] 9.7 Add Travel Allowance Capacity Key Contracts, immutable Travel Allowance
-      Cumulative Admissions, Opening Cumulative State,
-      exact `clean_boundary_zero | opening_cumulative_state |
-external_at_boundary` and `asym_source_complete |
-authoritative_feed_complete | external_calculation` dispositions,
+- [ ] 9.7 Add optional Travel Allowance Capacity Key Contracts, immutable Travel
+      Allowance Cumulative Admissions, Opening Cumulative State, exact native
+      opening proofs (`clean_boundary_zero` or `opening_cumulative_state`), the
+      non-admitting `external_at_boundary` manifest disposition, exact
+      continuing-source proofs
+      (`asym_source_complete` or `authoritative_feed_complete`), an explicit
+      operating lane (`native_calculation` or `external_calculation_lane`),
       complete group census, Admission Manifests, and atomic first allocation.
+      The external disposition and lane never create native-admission proof;
+      later native transition requires a new exact opening boundary.
 - [ ] 9.8 Add late/predecessor fact correction, affected-suffix review,
       continuing-source monitoring, source-group containment, and external
       calculation continuity.

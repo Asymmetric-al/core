@@ -1,4 +1,4 @@
-# Evidence-gated Core Field Accounts production activation
+# ADR-0116: Evidence-gated Core Field Accounts production activation
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D27)
 
@@ -196,7 +196,7 @@ an optional capability. That reference cannot create, waive, repair, or
 reinterpret D28 opening or prospective-completeness proof, cannot make an
 incomplete travel pool block already-safe Core Field Accounts, and cannot
 reopen D17's sole monetary cutover. See
-[ADR-0089](./0089-proof-gated-opening-cumulative-travel-allowance-admission.md).
+[ADR-0117](./0117-proof-gated-opening-cumulative-travel-allowance-admission.md).
 
 ## Alternatives rejected
 
@@ -220,13 +220,13 @@ reopen D17's sole monetary cutover. See
 
 ## Related decisions and evidence
 
-- [ADR-0070 — Optional approved Support Plans and bounded workspace publication](./0070-optional-approved-support-plans-and-bounded-workspace-publication.md)
-- [ADR-0072 — Layered Field Account integrity and cause-owned repair](./0072-layered-field-account-integrity-and-cause-owned-repair.md)
-- [ADR-0073 — Immutable Support Cycle statements with automatic tenant publication](./0073-immutable-support-cycle-statements-with-automatic-tenant-publication.md)
-- [ADR-0078 — Reconciled Field Account opening position and operational cutover](./0078-reconciled-field-account-opening-position-and-operational-cutover.md)
-- [ADR-0080 — Organization-controlled Support Assignments and separated access](./0080-organization-controlled-support-assignments-and-separated-access.md)
-- [ADR-0087 — Purpose-owned Phase 21 records schedules and exact custody exports](./0087-purpose-owned-phase21-records-schedules-and-exact-custody-exports.md)
-- [ADR-0089 — Proof-gated opening cumulative Travel Allowance admission](./0089-proof-gated-opening-cumulative-travel-allowance-admission.md)
+- [ADR-0098 — Optional approved Support Plans and bounded workspace publication](./0098-optional-approved-support-plans-and-bounded-workspace-publication.md)
+- [ADR-0100 — Layered Field Account integrity and cause-owned repair](./0100-layered-field-account-integrity-and-cause-owned-repair.md)
+- [ADR-0101 — Immutable Support Cycle statements with automatic tenant publication](./0101-immutable-support-cycle-statements-with-automatic-tenant-publication.md)
+- [ADR-0106 — Reconciled Field Account opening position and operational cutover](./0106-reconciled-field-account-opening-position-and-operational-cutover.md)
+- [ADR-0108 — Organization-controlled Support Assignments and separated access](./0108-organization-controlled-support-assignments-and-separated-access.md)
+- [ADR-0115 — Purpose-owned Phase 21 records schedules and exact custody exports](./0115-purpose-owned-phase21-records-schedules-and-exact-custody-exports.md)
+- [ADR-0117 — Proof-gated opening cumulative Travel Allowance admission](./0117-proof-gated-opening-cumulative-travel-allowance-admission.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md#d27--evidence-gated-core-field-accounts-production-activation)
 - [D27 research and adversarial review](../prds/sitestacker-parity/phase-21-mission-dashboard-product-research-evidence.md#d27-selected-option-adversarial-review---evidence-gated-core-field-accounts-activation)
 - [Phase 12 permission configuration](../prds/sitestacker-parity/phase-12-full-role-permission-configuration.md)

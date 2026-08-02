@@ -1,4 +1,4 @@
-# Proof-gated parallel currency-scoped Field Accounts
+# ADR-0095: Proof-gated parallel currency-scoped Field Accounts
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D6)
 

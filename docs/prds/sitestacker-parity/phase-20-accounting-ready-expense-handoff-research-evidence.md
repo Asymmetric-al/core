@@ -815,10 +815,10 @@ succession are operational handoff evidence—not payment or accounting-ready
 occurrences.
 
 Package access is non-executing. Handoff Attestation proves only the recorded
-external handoff. Provider draft readback proves only that operation. Only an
-independently eligible Approved Reimbursement Obligation or separately
-source-qualified External Payment Occurrence may enter the closed D18 catalog
-through the Accounting-Ready Expense Handoff. D17 assigns the posting owner
+external handoff. Provider draft readback proves only that operation. For the
+Phase 21 D15 reimbursement-handoff path, only an independently eligible
+Approved Reimbursement Obligation or separately source-qualified External
+Payment Occurrence may enter the closed D18 catalog through that path. D17 assigns the posting owner
 when the actual source or payment occurrence exists. QBO/Xero Accounting
 remains Phase 20-only, staff payment evidence retains its explicit strength,
 and claimant repayment remained unsupported at D15 until the separately

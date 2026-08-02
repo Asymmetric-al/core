@@ -1,4 +1,4 @@
-# Source-authoritative Organization Support Cost Applications
+# ADR-0109: Source-authoritative Organization Support Cost Applications
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D20)
 
@@ -151,12 +151,12 @@ or a claim that support is available or withdrawable.
 
 ## Related decisions
 
-- [ADR-0062 — Finance-closed Field Account cycles](./0062-finance-closed-field-account-cycles.md)
-- [ADR-0064 — Bounded prospective Administrative Assessment Profiles](./0064-bounded-prospective-administrative-assessment-profiles.md)
-- [ADR-0065 — Contract-referenced compensation funding](./0065-contract-referenced-compensation-funding.md)
-- [ADR-0071 — Claim-level expense truth and purpose-routed tenant AI](./0071-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
-- [ADR-0072 — Layered Field Account integrity and cause-owned repair](./0072-layered-field-account-integrity-and-cause-owned-repair.md)
-- [ADR-0080 — Organization-controlled Support Assignments with separated access](./0080-organization-controlled-support-assignments-and-separated-access.md)
-- [ADR-0082 — Source-mode-honest Noncash Support Realization](./0082-source-mode-honest-noncash-support-realization.md)
+- [ADR-0090 — Finance-closed Field Account cycles](./0090-finance-closed-field-account-cycles.md)
+- [ADR-0092 — Bounded prospective Administrative Assessment Profiles](./0092-bounded-prospective-administrative-assessment-profiles.md)
+- [ADR-0093 — Contract-referenced compensation funding](./0093-contract-referenced-compensation-funding.md)
+- [ADR-0099 — Claim-level expense truth and purpose-routed tenant AI](./0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md)
+- [ADR-0100 — Layered Field Account integrity and cause-owned repair](./0100-layered-field-account-integrity-and-cause-owned-repair.md)
+- [ADR-0108 — Organization-controlled Support Assignments with separated access](./0108-organization-controlled-support-assignments-and-separated-access.md)
+- [ADR-0110 — Source-mode-honest Noncash Support Realization](./0110-source-mode-honest-noncash-support-realization.md)
 - [Phase 20 accounting boundary](../prds/sitestacker-parity/phase-20-accounting-exports-reconciliation.md)
 - [Phase 21 decision log](../prds/sitestacker-parity/phase-21-field-accounts-decision-log.md)

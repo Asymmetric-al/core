@@ -126,7 +126,10 @@ later deliberate request after terminal resolution is permitted.
 A D26 staff-facing PDF/HTML/print representation is not a Phase 19 Audit
 Package, donor statement copy request, Statement Run, print-production package,
 postal handoff, return, or fulfillment outcome. Phase 19 retains statement
-delivery and physical-fulfillment authority. D26 may export only a currently
-authorized exact Phase 19 owner copy or reference and creates no recipient
-delivery evidence; download or print does not prove production, handoff,
-delivery, receipt, or statement-currentness.
+delivery and physical-fulfillment authority. For Phase 19 fulfillment content,
+D26 may export only a currently authorized exact Phase 19 owner copy or
+reference. D26 may separately include an authorized owner-domain reference or
+exact copy for an independently owned artifact, including a Phase 18 generated
+document, under that owner's current authority and D26's Coverage Manifest.
+Neither path creates recipient delivery evidence; download or print does not
+prove production, handoff, delivery, receipt, or statement-currentness.

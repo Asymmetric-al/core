@@ -1,4 +1,4 @@
-# Bounded prospective Administrative Assessment Profiles
+# ADR-0092: Bounded prospective Administrative Assessment Profiles
 
 **Status:** Accepted (founder ruling, Phase 21 grill session — D3)
 
@@ -51,6 +51,23 @@ tenant explicitly enables it, partial first or final periods default to
 proration with bounded full or waived choices, and successors activate only at
 a complete future period boundary after a side-effect-free preview.
 
+Exactly one Support Cycle Close owns the initial Assessment Period
+Determination: the first successfully committed close in strict contiguous
+close order whose exact through boundary reaches or passes the Assessment
+Period end. That close freezes the covered percentage total at its captured
+ingestion boundary and CASes the immediately preceding committed boundary; a
+later-boundary candidate cannot commit while an earlier boundary remains open.
+The complete Tenant, Legal Entity, Field Account/assignment scope, currency,
+and Assessment Period form the semantic idempotency and uniqueness key. The
+Determination records the one resolved Profile Version, but that version does
+not partition uniqueness. A delayed or consolidated close qualifies only when
+its manifest proves it is the next contiguous boundary and completely covers
+the intervening interval. Retry is exact replay; a concurrent or later close
+cannot create another initial determination. Late-qualified source facts use
+append-only successor effects without moving ownership or rewriting the
+original. Exact-boundary, delayed-close, and frozen partial-period cases use the
+same rule.
+
 When Phase 21 D17 admits certified assessment history, it must cover one
 complete, non-overlapping Assessment Period Determination, including the exact
 partial-period policy selected above and every minimum, cap, fixed, service,
@@ -67,4 +84,4 @@ arbitrary rules DSL, numeric priority editor, retroactive re-rating, stackable
 fees, hidden netting, misleading availability language, and per-clean-entry
 approval.
 
-See [ADR-0082 — Source-mode-honest Noncash Support Realization](./0082-source-mode-honest-noncash-support-realization.md).
+See [ADR-0110 — Source-mode-honest Noncash Support Realization](./0110-source-mode-honest-noncash-support-realization.md).
