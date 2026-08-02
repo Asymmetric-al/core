@@ -219,6 +219,22 @@ Use this section as the local authority for the relevant v7 direction. External 
 
 Each nonprofit tenant is the legal sender and account holder. The tenant brings its own Wise, Airwallex, Currencycloud, Corpay, or Stripe Global Payouts / Treasury account. Asymmetrical is the workflow and recordkeeping layer and must never hold, commingle, originate, or move funds from an Asymmetrical-owned provider account.
 
+**Phase 21 boundary.** Mission Control Payouts is not the Phase 21 payroll,
+reimbursement, or Field Account execution path. It MUST NOT accept a Field
+Account balance, open-cycle support, Expense Policy Decision, Reimbursement
+Obligation, or Field Account Funding Coverage as payment authorization, and it
+MUST NOT expose a Phase 21 cash-out action. A Compensation Funding Plan
+Version, disposable Compensation Funding Proposal, Compensation Funding
+Decision, coverage reservation, Compensation Handoff Package, External
+Compensation Result, Compensation Draft Delivery Profile Version, Provider
+Draft Operation, or Compensation Field Account Effect is likewise not an
+executable payout instruction. Any future worker-payment use requires a
+separately approved external-payment instruction and beneficiary contract,
+tenant-owned provider execution, immutable External Payment Occurrence evidence
+returned to Phase 21, and no mutation of Field Account, payroll, or accounting
+truth. `packages/config/payouts.ts` and this Mission Control boundary cannot
+become a D4/D7 Compensation Handoff Adapter.
+
 Implementation consequence for later phases:
 
 - A provider must not appear as executable unless the authenticated tenant owns and has connected that provider account.
@@ -289,6 +305,23 @@ The current repo rules shape future implementation:
 - Shared UI must come from `@asym/ui`; do not create app-local shadcn primitives.
 - Use TanStack Query for server state, TanStack Table for payout lists, and Zod for mutation inputs.
 - Use Bun and existing Turbo scripts for validation.
+
+## Phase 21 D25 Expense-resolution Follow-up Boundary
+
+Mission Control may mirror one D25 assignee, target, reminder, comment thread,
+and follow-up state for an exact Expense Claim Resolution Case. It owns only
+that human coordination. It cannot add a cause or action, author claimant
+facts, select or satisfy a reviewer, invoke an ungranted financial command,
+resolve the case, satisfy a Downstream Impact Manifest, or mutate D10/D13,
+D15/D16, D23/D1/D11, D12, Phase 20, payroll/AP, provider, or QBO/Xero truth.
+
+The link is Tenant-, Legal-Entity-, case-, and task-scoped, idempotent, and
+outbox-reconcilable. Current Phase 12 authorization is re-proved before both
+task disclosure and any protected D25 action. Task completion, dismissal,
+comment, due date, reminder, notification delivery, silence, or timeout never
+becomes claimant response, source proof, downstream disposition, financial
+correction, or D25 completion. D25 remains complete without Phase 34 and does
+not create a second task, SLA, comment, or workflow product.
 
 ## Provider Documentation Verification
 

@@ -63,9 +63,157 @@ rewriting another authority.
 
 Source-family admission is independent and predecessor-gated: Phase 13 owns
 posted contribution/ledger occurrences, Phase 14 admitted credit adjustments,
-Phase 15 frozen Deposit Groups, and Phase 21 approved expense/payment
-handoffs. A missing contract keeps only its dependent family dark; no direct
-table coupling or compatibility shim substitutes for source authority.
+Phase 15 frozen Deposit Groups plus canonical noncash asset-lot/disposition
+source facts, and Phase 21 approved expense/obligation and externally executed
+payment-evidence handoffs. Phase 13, not Phase 14, owns the original noncash
+Contribution and donor-facing truth; Phase 14 may own separate recognition
+credit but never disposition or proceeds truth. A missing contract keeps only
+its dependent family dark; no direct table coupling or compatibility shim
+substitutes for source authority.
+
+Phase 21 D5 support-reallocation work is a negative forward seam in this
+generation, not a launch source family. Requests, policies, coverage,
+Decisions, open-cycle pairs, exit manifests, charitable Handoffs/Results,
+payment evidence, and close-covered occurrences all remain unsupported and
+structurally dark until a later separately approved Phase 20 change certifies
+the exact source schema, accountant-confirmed semantics, Posting Profile
+recipe, and D17 owner. Exceptional JournalEntry, ManualJournal, or artifact
+delivery cannot bypass that gate.
+
+Phase 21 D7 compensation draft/input delivery is another negative accounting
+boundary, not a Phase 20 provider operation. Compensation Handoff Packages,
+Compensation Draft Delivery Profile Versions, Provider Draft Operations,
+provider acceptance/readback or permitted staff confirmation, and their
+delivery coverage remain Phase 21 evidence. None is an accounting-ready source
+by itself. A payroll/AP grant is not an Accounting Destination Connection;
+regional Xero Payroll capability does not authorize Xero Accounting, and
+neither Xero `DRAFT ACCPAY` nor a QBO Bill may be created through the Phase 21
+adapter. Only a separately certified evidence-qualified compensation
+occurrence with accountant-confirmed semantics and exact D17 ownership may
+enter the Phase 20 compiler.
+
+Phase 21 D15 reimbursement handoff is also a negative accounting boundary.
+Reimbursement Handoff Packages, Delivery Profile Versions, Execution Claims,
+Handoff Coverage, Handoff Attestations, Handoff Operations, provider
+draft/input acceptance and readback, ambiguity, and residual-only succession
+remain Phase 21 evidence. Artifact access is non-executing; handoff is not
+payment; draft readback proves only the handoff operation. Only an
+independently eligible Approved Reimbursement Obligation or separately
+source-qualified External Payment Occurrence may enter D18. A D15 release
+cannot assign the D17 posting owner of a future atomic payment. QBO/Xero
+Accounting objects remain reachable only through Phase 20.
+
+Phase 21 D16 precision-amends the D18 source catalog without reopening Phase 20
+D1-D20. Only an evidence-qualified Expense Advance Issuance Occurrence, a
+separately certified Expense Advance Application typed accounting effect where
+applicable, a source-qualified Claimant Repayment Occurrence explicitly typed as
+a cash claimant return, a source-qualified Claimant Repayment Occurrence
+explicitly typed as an expense advance return, and cause-linked corrections may
+enter the compiler. The explicit Phase 21 return-family fact—not sign,
+predecessor, Requirement, memo, account, or posting recipe—keeps those returns
+distinct. Policy versions, authorization, operational settlement,
+Repayment Subject Determination, Claimant Repayment Decision, uncertified
+Claimant Repayment Requirement, residual position, tasks, raw evidence
+observations, disputes, Repayment Restitution Review, and Field Account Funding
+Coverage stay accounting-dark. A Requirement may support receivable
+recognition only under a separate accountant-certified policy and source
+contract, which still does not prove returned money. Each admitted occurrence
+independently resolves its D17 posting owner.
+
+Phase 21 D19 supplies source-lineage precision, not another accounting source
+or authorization input. An admitted Field Account occurrence preserves its
+exact Tenant, Legal Entity, Support Assignment, Field Account, ISO currency,
+and source coverage. Support Assignment Participant Membership, Phase 12
+workspace access, relationships, invitations, operational responsibility,
+notification preference, communication outcome, and `People & access`
+orchestration remain accounting-dark. They cannot create, suppress, reroute,
+merge, split, or correct a Posting Intent or Accounting Release, and a
+participant-free Support Assignment remains eligible whenever its independent
+economic source contract is eligible.
+
+Phase 21 D20 supplies operational organization-support-cost truth, not a
+certified accounting source or posting recipe. Its source observations,
+economic roots, bearing policies, applications, determinations, coverage
+manifests, carryforwards, Field Account Funding Coverage, closed effects, and
+**Support Cost Accounting Candidate Handoff** remain unsupported and
+accounting-dark in this generation. They create no D18 discriminator, Posting
+Intent, Accounting Release, artifact delivery, or provider operation. Phase 20
+D19 remains the exclusive processor-cost attribution and treatment lane, so a
+D20 cost cannot re-admit or duplicate exact provider cost or the Processor Cost
+Attribution Manifest. Later admission requires a separately approved exact
+source schema, accountant-confirmed semantics, close-covered occurrence,
+compatible Posting Profile recipe, positive unposted or differential proof,
+and D17 posting owner. No JournalEntry, ManualJournal, expense-lane, or artifact
+fallback may bypass that gate.
+
+Phase 21 D21 supplies an immutable derivative noncash-to-support bridge, not a
+certified accounting source. Phase 13 owns the original noncash Contribution,
+legal donor, accepted purpose, gift date, valuation, receipt, supporter, and
+fundraising truth. Phase 15 owns canonical append-only asset-lot, disposition,
+proceeds, finality, evidence, and correction facts. The Phase 15 disposition
+projection and every D21 Noncash Support Realization Manifest, Realized Support
+Basis, cost-treatment selection, D2/D11 close-covered Field Account effect,
+and correction remain unsupported and accounting-dark in this generation.
+They create no D18 discriminator, Posting Intent, Accounting Release, artifact,
+provider operation, Expected Bank Arrival, or Bank Match.
+
+A later Phase 20 change may admit noncash-disposition accounting only after it
+certifies exactly one canonical economic source, exact schema,
+accountant-confirmed semantics, non-overlapping coverage, a compatible Posting
+Profile recipe, positive unposted or differential proof, and the exact D17
+posting owner. It must prove that the Phase 15 disposition and derivative D21
+Field Account effect cannot both post for the same economic coverage.
+Brokerage, liquidation, appraisal, valuation, custody, transfer, sale, and
+other noncash-disposition costs cannot enter the D19 processor-cost manifest or
+the Phase 21 D20 cost lane. QBO/Xero and the tenant's accountant own asset
+derecognition, gain/loss, cash, fees, periods, books, and final reconciliation.
+There is no current posting, artifact, or adapter fallback for this family.
+
+Phase 21 D22 is another negative accounting boundary. Prospective-authorization
+postures, requests, private evidence references, governance and assignment
+snapshots, human review, decisions, compatible capacity reservations, later-
+claim Authorization Coverage, unused-scope declarations, residuals,
+successors, and corrections remain unsupported and accounting-dark. They
+create no D18 source, Posting Intent, Accounting Release, artifact, provider
+operation, Expected Bank Arrival, or Bank Match. Only a separately qualified
+later D10/D13 approved expense, obligation, source-qualified payment
+occurrence, or other already certified economic source may enter Phase 20.
+Accounting delivery and QBO/Xero readback cannot mutate or release D22 truth.
+
+Phase 21 D23 is also a negative accounting boundary. Its Expense Field Account
+Effect Recognition Profile, Effect Basis, Field Account Funding Coverage and
+Disposition, Effect Coverage, operational Expense Field Account Effect,
+Support Cycle inclusion/through date, exception, and correction express only
+support-balance timing. They cannot enter the D18 discriminator catalog or
+create, date, select, modify, release, deliver, or reconcile accounting work.
+Only a separately certified approved expense, obligation, source-final
+organization-paid occurrence, payment occurrence, or correction may enter its
+own closed source lane with an exact D17 owner, without inheriting D23 mode,
+effect identity, close, or date. QBO/Xero delivery, bill/payment readback,
+home amount, drift, and Bank Match cannot back-propagate into D23 truth.
+
+Phase 21 D24 is likewise a negative accounting boundary. Expense Collaboration
+Assignment Versions, authority-free invitations and acceptance, Evidence
+Access Projection Versions, Claimant Confirmations or admitted external
+attestations, helper actions, and actor provenance describe bounded work on an
+exact claim. They do not replace Phase 12 authorization and cannot prove
+incurrence, substantiation, approval, obligation, payment, Field Account
+effect, posting, or reconciliation. Only an independently qualified expense
+source may enter its already certified Phase 20 lane. Minimum necessary D24
+actor provenance may remain non-authoritative lineage, but Phase 20 and its
+QBO/Xero adapters cannot grant, revoke, expand, satisfy, or rewrite D24
+assignment, consent, evidence-access, or helper authority.
+
+Phase 21 D25 is also a negative accounting boundary. Expense Claim Resolution
+Cause Contract Versions, Cases, Occurrences, Projections, Downstream Impact
+Manifests and dispositions, coordination tasks/messages/responses, source-owner
+requests, and case-completion proofs remain Phase 21 coordination truth. They
+cannot enter the D18 discriminator catalog or create, date, select, modify,
+release, deliver, or reconcile accounting work. An independently authoritative
+source correction may enter only its already certified Phase 20 lane. Phase 20
+alone owns any Compensating Accounting Release, accountant-permitted period
+and treatment, provider delivery/readback/drift, and Accounting Exception Case;
+D25 may retain only opaque correlation and observe that result.
 
 Production Accounting Destinations are globally unique by provider,
 environment, and stable provider organization identity. Direct delivery never
@@ -120,10 +268,48 @@ Execution Envelope proof. QBO `JournalEntry` and Xero `ManualJournal` belong
 only to the explicit exceptional accountant-adjustment family and never rescue
 an unsupported or failed ordinary recipe.
 
-Expense admission is discriminated: snapshot-rooted handoffs carry one Approved
-Expense Snapshot, while payment-rooted handoffs carry one immutable payment
-source plus complete obligation and originating-snapshot coverage without an
-invented primary snapshot. Outbound reimbursement does not enter Bank Match.
+Expense admission is discriminated by closed source-family. Snapshot-rooted
+handoffs carry one Approved Expense Snapshot, while payment-rooted handoffs
+carry one immutable payment source plus complete obligation and originating-
+snapshot coverage without an invented primary snapshot. Phase 21 D16 sources
+carry exactly one of `phase21_d16.expense_advance_issuance@1`,
+`phase21_d16.expense_advance_application_effect@1`,
+`phase21_d16.cash_claimant_return@1`,
+`phase21_d16.expense_advance_return@1`, or
+`phase21_d16.cause_linked_correction@1`; each carries the exact source root and
+predecessor coverage required by its independently certified contract. Cash
+claimant return preserves the exact Claimant Repayment Occurrence, complete
+Claimant Repayment Coverage, and typed residual. Expense advance return also
+preserves the exact Expense Advance Issuance Occurrence root and exact unused-
+advance coverage being returned. The correction discriminator names the admitted predecessor's exact
+discriminator, source identity/version, and corrected coverage and cannot retag
+one return family as the other. These identifiers are unrelated to Phase 20 D16
+Accounting Delivery Packages.
+Outbound reimbursement does not enter Bank Match.
+A reimbursement-only payment conserves exact Reimbursement Payment Coverage
+plus signed residual dispositions. A mixed compensation/reimbursement payment
+uses the External Payment Occurrence's one payment currency and carries one
+complete typed manifest across exact Compensation Payment Coverage,
+Reimbursement Payment Coverage, and one signed, typed, explicitly resolved
+residual disposition, including zero. Different-currency source components
+preserve immutable source/payment amounts and exact conversion evidence;
+unresolved residual or FX ambiguity fails closed. D17 assigns one posting
+owner to the whole payment. When payroll/AP owns that posting, D18 may consume
+the reimbursement slice as evidence but cannot create a standalone release. An
+Asym-owned mixed payment stays dark until its complete compensation source
+contract, accountant-confirmed posting semantics, and exact D17 owner are
+separately certified. Compensation Handoff Packages, Compensation Draft
+Delivery Profile Versions, Provider Draft Operations, provider
+acceptance/readback or permitted staff confirmation, Funding Decisions, and
+reservations fail closed on the expense lane.
+Reimbursement Handoff Packages, Reimbursement Delivery Profile Versions,
+Reimbursement Execution Claims, Reimbursement Handoff Coverage, Handoff
+Attestations, Reimbursement Handoff Operations, provider draft/input acceptance
+and readback, and handoff ambiguity likewise fail closed as payment and
+accounting authority. Staff Handoff Attestation cannot create an External
+Payment Occurrence. The underlying approved obligation or separately
+source-qualified payment occurrence may qualify independently through its own
+D18 discriminator.
 
 Processor-cost allocation requires the exact cost and frozen Designation lines
 to share one proved currency basis. Currency-incompatible and ineligible costs
@@ -348,8 +534,23 @@ not certify a live integration.
 
 Compiler tests prove every QBO/Xero plan is balanced and effect-equivalent.
 Table-driven invariant tests cover integer-minor-unit conservation, mapping
-coverage, partial Bank Match allocation, payment coverage, largest-remainder
-processor-cost allocation, and currencies.
+coverage, partial Bank Match allocation, reimbursement-only and complete typed
+mixed-payment coverage, one payment currency, signed typed residual
+dispositions including zero, exact cross-currency source/payment evidence,
+D17 whole-payment ownership, expense-lane rejection of compensation and
+reimbursement handoff objects, Handoff-Attestation-as-nonpayment proof,
+largest-remainder processor-cost allocation, and currencies.
+
+Negative-boundary tests prove that Phase 15 noncash dispositions and Phase 21
+D21 realizations remain accounting-dark; that neither creates an artifact or
+provider operation; that D19/D20 reject noncash-disposition costs; and that a
+future source contract cannot cover the same economic event from both the
+disposition and derivative Field Account effect.
+They also prove that every D23 operational profile, basis, funding disposition,
+effect coverage, effect, close inclusion, and correction creates zero accounting
+work; that an independently eligible source can still enter D18 without
+inheriting D23 timing; and that QBO/Xero or Bank Match evidence cannot qualify
+or rewrite D23.
 
 Playwright and accessibility suites supplement the service seam for critical
 setup, review, release, exception, package, reconnect, and responsive
@@ -373,7 +574,8 @@ Phase 20 remains dark for a destination or lane until all applicable gates pass:
 6. Security, secret custody, reconnect, replacement, disconnect, privacy, and
    tenant-isolation tests pass.
 7. Settlement, Bank Match, correction, cadence, exception, package, cutover,
-   expense, processor-cost, and currency edge cases pass at the public seam.
+   expense, processor-cost, noncash-realization boundary, and currency edge
+   cases pass at the public seam.
 8. Accessibility, responsive behavior, telemetry, alerts, recovery scans, and
    operator runbooks are production-ready.
 9. Legacy or alternate accounting writers for an adopted source interval are
@@ -388,8 +590,30 @@ Phase 20 remains dark for a destination or lane until all applicable gates pass:
 - Provider-neutral behavior that hides real QBO/Xero differences.
 - Automatic chart-of-accounts redesign, silent provider-object creation,
   retroactive remapping, fuzzy bank matching, or historical whole-book import.
-- Phase 21 expense workflow, AP, payroll, receipt archive, reimbursement
-  payment execution, or Field Account computation.
+- Phase 21 expense workflow, receipt archive, Field Account computation, or
+  support-reallocation workflow; or any payroll, accounts-payable,
+  reimbursement, or charitable-succession payment execution.
+- Noncash asset custody, valuation, appraisal, liquidation, trading, disposition
+  accounting, gain/loss calculation, or a current Phase 15/D21 accounting
+  source, artifact, or provider adapter.
 - Hardcoded provider limits, universal multicurrency claims, tenant-configured
   rate limits, or tenant priority controls.
 - Legal, GAAP, tax, audit, bank, QBO, or Xero certification claims.
+
+## Phase 21 D26 records-export negative boundary
+
+Phase 21 D26 Records Schedule Contracts and Bindings, Record Retention
+Resolutions, successor-impact evidence, Records Export Packages, Coverage
+Manifests, package parts, downloads/prints, Tenant External Copy Assertions,
+Verified Destination Custody Transfers, holds, offboarding windows, and copy-
+disposition evidence are not accounting sources or delivery operations. They
+are rejected before D18 accounting admission.
+
+A D26 package may contain only a currently authorized Phase 20 owner reference
+or exact evidence copy. That representation never becomes an Accounting
+Delivery Package, QBO/Xero company backup, Posting Intent, Accounting Effect,
+Accounting Release, provider operation, readback, drift result, Bank Match, or
+reconciliation outcome. Export, download, transfer, expiry, hold, or disposal
+changes no Phase 20 ownership, retention, posting, delivery, or exception
+truth. This boundary creates no new source discriminator, recipe, adapter,
+lane, provider operation, or Phase 20 runtime feature.

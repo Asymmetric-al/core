@@ -343,3 +343,68 @@ credential/action URL. Tenant identity/system email uses that tenant's D10
 Ready Resend connection. Initial Asym customer-account bootstrap is a distinct
 platform sender, purpose, audience, and contract—not a fallback for tenant
 mail. Historical invitation evidence remains truthful and is not rewritten.
+
+## Dated Phase 21 D19 principal and Support Workspace invitation amendment (2026-08-01)
+
+Phase 4 remains authoritative for proving possession and binding one login
+principal to the intended same-Tenant Party. Phase 21 Support Assignment
+Participant Membership remains a separate Party relationship, and Phase 12
+remains authoritative for request-time Support Workspace access. A person may
+participate without a login; a verified principal may receive bounded access
+without participation where the organization explicitly authorizes it.
+
+A D19 Support Workspace invitation binds the exact Tenant, intended Party and
+recipient proof, Support Assignment, reviewed Phase 12 grant intent, purpose,
+expiry, version, and idempotency identity. Acceptance may establish only that
+explicitly reviewed access after current identity and authorization reproof. A
+pending, failed, expired, mismatched, revoked, or indeterminate invitation
+grants nothing and creates no participation, claimant/reviewer/payee authority,
+notification preference, or financial effect.
+
+Every spouse or teammate retains a distinct Party and principal. Party merge
+never treats a relationship or shared email as proof of one login, unions
+Support Workspace grants, silently retargets participant history, or rewrites
+Field Account evidence. Identity repair and access reconciliation are explicit,
+append-only-audited owner-domain actions.
+
+## Dated Phase 21 D24 helper-identity and invitation amendment (2026-08-02)
+
+Phase 4 owns identity proof and the separate D24 invitation lifecycle; Phase
+21 owns the prospective Expense Collaboration Assignment Version; and Phase 12
+alone decides current access. A D24 invitation binds one exact Tenant, Legal
+Entity, intended helper Party and recipient proof, claimant Party, Expense
+Program, one stable Expense Claim, bounded item/split/purpose/evidence scope,
+proposed Assignment Version,
+expiry, revision, and idempotency identity. It is authority-free: issuing,
+delivering, opening, or accepting it cannot create Tenant membership, a Phase
+12 grant, claimant consent, evidence access, submission power, or any financial
+authority.
+
+Redemption uses the existing scanner-safe, deliberate POST and CAS pattern.
+The server re-proves current invitation state, intended identity, principal
+binding, organization policy, and Assignment eligibility before recording an
+acceptance. New and existing accounts converge on the same proof; account
+creation, email possession, mutable user metadata, redirect parameters, a
+relationship, or an old session never authorizes D24. Pending, expired,
+revoked, forwarded, mismatched, replayed, and indeterminate invitations grant
+nothing and reveal no account or claim existence.
+
+Helpers always act as their own principals; D24 provides no impersonation,
+account switching, or shared credential. Claimant, helper, preparer, submitter,
+confirmer or attestor, reviewer, approver, beneficiary/payee, and actual actor principal remain
+separately attributed. Party merge, principal replacement, claimant or helper
+departure, and email change preserve immutable history and require explicit
+deny-first access reconciliation; they never transfer or resurrect an
+Assignment automatically.
+
+## Dated Phase 21 D25 expense-resolution identity amendment (2026-08-02)
+
+D25 preserves the D24 own-principal and deny-first identity rules. Account
+deletion, stale or revoked credentials, failed message delivery, silence,
+manager assertion, spouse/team/helper relationship, Party merge, principal
+relink, or lifecycle change never proves claimant unavailability, authors a
+claimant response, or grants successor authority. A Resolution Occurrence
+records the actual actor and source proof; identity ambiguity quarantines only
+the affected positive action until Phase 4 and the owning lifecycle source
+establish current identity. Historical actor and claimant provenance never
+retargets or collapses.

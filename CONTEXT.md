@@ -41,7 +41,10 @@ routing, preparing work). An assistant acts within the authority of the human
 it serves — never a separate permission tier, never a way to widen role or
 tenant scope — and follows current AI-agent best practice: least privilege,
 human approval gates for donor-facing sends, money, operational-truth changes,
-and publication, plus full attribution and audit. It is not a human staff role.
+and publication, plus full attribution and audit. Model output remains a
+suggestion until the owning domain's authorized command accepts it; possession
+of a model credential never widens human or data authority. It is not a human
+staff role.
 _Avoid_: assistant as a permission tier, autonomous money/donor/publish agent,
 human assistant job title
 
@@ -826,6 +829,29 @@ typed access (an index) under a governed budget. Promotion is additive and
 reversible; most fields are never promoted.
 _Avoid_: indexing every field, unbounded promoted-index growth
 
+**Principal** (Phase 12):
+The exact actor presented to the one Policy Decision Point: an authenticated
+tenant human with a current membership (staff, donor, or missionary), a public/
+anonymous actor limited to the public projection, a non-human identity, or a
+platform operator. A Party, email, relationship label, browser role, service
+key, or provider identity is not a principal authorization by itself.
+_Avoid_: missionary means anonymous, Party equals login, role name authorizes
+
+**Tenant Authorization Context** (Phase 12):
+The server-derived, discriminated tenant input to the sole `resolveProjection`
+Policy Decision Point. A membership-backed request uses one validated Active
+Tenant Assignment. A public/anonymous request uses one validated Public
+Projection Context pinned from the requested host, Site, and public resource to
+exactly one Tenant and the named public projection; it carries no membership,
+internal grant, or private capability. A non-human identity uses one validated
+Service Tenant Context pinned to its single-Tenant identity, current human-owner
+ceiling, and credential epoch. A platform operator uses one audited,
+purpose-bound, time-boxed Operator Tenant Grant Context. Missing, ambiguous,
+stale, or client-asserted context fails closed. Every variant uses the same PDP
+and floor.
+_Avoid_: public request requires fake membership, client-selected tenant,
+hostname alone grants access, second public authorization path
+
 **Capability** (Phase 12):
 A single, enforced permission — a verb on a resource (e.g. "view a gift record",
 "run refunds", "manage permissions"). Capabilities are the _only_ thing the system
@@ -846,11 +872,31 @@ clearance (Phase 10), field gates (Phase 11), purpose/consent, and residency —
 strictest-wins and applied last. No grant of any kind can add back what the floor removes.
 _Avoid_: a configuration path that grants around the floor; a second decision point
 
-**Active assignment** (Phase 12):
-The single organization-hat a person acts within for one request. A staffer who serves
-several orgs holds several assignments but acts within exactly one at a time; the resolver
-refuses to run without one, so data never bleeds across orgs.
-_Avoid_: a client-chosen tenant; a person-global (org-blind) permission resolution
+**Active Tenant Assignment** (Phase 12; previously “Active assignment”):
+The exact active tenant-membership/organization-hat a membership-backed
+principal acts within for one request. A person serving several organizations
+may have several Tenant assignments but acts within exactly one at a time; the
+resolver refuses a membership-backed request without one. A public/anonymous
+principal instead uses a Public Projection Context. It is not Phase 21's
+Support Assignment, and identifiers must make that distinction explicit.
+_Avoid_: active assignment without domain qualifier, client-chosen tenant,
+Support Assignment as login context, person-global permission resolution
+
+**EffectiveAccess** (Phase 12):
+The runtime-verifiable, short-lived output of the sole `resolveProjection`
+Policy Decision Point after the additive capability inputs and subtract-only
+floor are applied for one Principal, Tenant Authorization Context, purpose,
+target, and governance epoch. A stored grant or visible control is only an
+input; it is not the current decision.
+_Avoid_: persisted can-access Boolean, role token, trusting a deserialized or
+stale decision without required verification
+
+**Legal Entity scope** (Phase 12):
+The current subtract-only set of Legal Entities inside one active Tenant that an
+EffectiveAccess decision may reach, represented by a canonical set hash and
+monotonic revision and rechecked against each entity-bearing target.
+_Avoid_: Legal Entity as another Tenant, mutable default as authority, all
+entities as an unbounded wildcard
 
 **Purpose** (Phase 12):
 The required "for what" input to every access decision — the consent / legal-basis axis.
@@ -1701,8 +1747,10 @@ partitioned by actual outcome. Retries and recovery update an occurrence but nev
 _Avoid_: future-only schedule mislabeled as the full month; retry as another expected gift; guarantee of cash
 
 **Monthly support goal coverage** (Phase 16):
-A planning comparison between an approved monthly support goal and cadence-normalized recurring
-support, with health and collection composition visible. It is neither received cash nor a dated forecast.
+A planning comparison between the current authorized Phase 28 Support-Raising Goal Version and
+cadence-normalized recurring support, with health and collection composition visible. When no compatible
+Phase 28 goal exists, the comparison is absent rather than zero. A Phase 21 Approved Support Plan Version
+is never a silent denominator. It is neither received cash, a Field Account balance, nor a dated forecast.
 _Avoid_: percent raised; monthly equivalent as actual cadence; fixed-total pledge divided into monthly support
 
 **Support projection snapshot** (Phase 16):
@@ -2307,8 +2355,8 @@ The sole boundary through which source-owned settlement, deposit, and approved
 expense facts become accounting projections and provider delivery work. Phase
 20 owns the accounting handoff and evidence; the source phase retains its
 original facts and lifecycle.
-_Avoid_: a second QBO/Xero integration in the expense product, accounting sync
-as gift or expense truth, a shared mutable status
+_Avoid_: a second QBO/Xero Accounting integration in the expense product,
+accounting sync as gift or expense truth, a shared mutable status
 
 **Finance authority boundary** (Phase 20):
 Stripe is authoritative only for its processor account, balance movements,
@@ -2325,50 +2373,1689 @@ into one mutable `reconciled` or `synced` flag.
 _Avoid_: Stripe payout status as bank proof, bank import as gift truth, provider
 acceptance as reconciled books, QBO/Xero edits rewriting an Accounting Release
 
+**Support Assignment** (Phase 21):
+The immutable organization-controlled subject for one approved field purpose.
+It belongs to one Tenant and Legal Entity and may have zero, one, or many Party
+participants; one Party may participate in several Support Assignments. It is
+not a person-, household-, login-, donor-, or provider-owned fund and is not
+Phase 12's Active Tenant Assignment.
+_Avoid_: worker owns fund, household account, polymorphic owner, bare assignment
+
+**Support Assignment Participant Membership** (Phase 21):
+The prospective, effective-dated, append-only-corrected fact that one Party is
+associated with one Support Assignment during one exact half-open interval. It
+grants no workspace access, claimant/reviewer/payee authority, notification,
+donor-purpose authority, financial ownership, or money movement.
+_Avoid_: spouse implies access, participant owns account, membership as role or
+balance allocation
+
 **Field Account** (Phase 21):
 The organization-owned, append-only operational allocation subledger for one
-missionary, worker, project, or other approved field purpose, partitioned by
-Tenant, Legal Entity, and currency. Its balance is derived from covered support
-allocations, assessments, approved draws, transfers, expense effects, and
-corrections. It is not a donor asset, bank account, general ledger, payroll
-ledger, accounts-payable ledger, or mirror of QBO/Xero.
+exact Support Assignment, partitioned by Tenant, Legal Entity, and one immutable
+currency; sibling currencies are
+separate Field Accounts and never one aggregate balance. Open-cycle entries
+remain activity; its Finance-confirmed Field Account Balance is established
+once by a Phase 21 D17 Field Account Operational Cutover and thereafter derived
+through immutable Support Cycle closes and append-only corrections, and is not
+a donor asset, bank account, general ledger, payroll ledger, accounts-payable
+ledger, payment authority, or mirror of QBO/Xero.
 _Avoid_: one mutable support-balance column, summing gifts at read time,
-cross-currency balance, treating an external accounting balance as source truth
+cross-currency balance, newly recorded gift as immediately available, treating
+an external accounting balance as source truth
+
+**Opening Source Package** (Phase 21):
+The immutable, precedence-explicit finance-authorized source set used to
+establish one reconciled prior Field Account position for a complete activation
+cohort. It pins one half-open boundary per predecessor source family and one
+common operational through boundary that every source cursor or snapshot proves
+complete. The package is content-addressed and
+Tenant-, Legal-Entity-, and ISO-currency-scoped. It distinguishes the source of
+position from bounded supporting artifacts and does not make every artifact
+provider-authenticated, canonical history, Field Account truth, or accounting
+truth by itself.
+_Avoid_: whichever file was uploaded last, averaged source total, accounting
+system as Field Account authority, migration folder
+
+**Opening Position Activation Cohort** (Phase 21):
+The complete census of Field Accounts for one exact Tenant, Legal Entity, and
+ISO currency that must be reconciled and activated together. It cannot be
+reduced to an arbitrary row subset merely because some accounts are easier to
+map or have zero positions. If one D6 source-conserving atomic group spans
+currency cohorts, every affected cohort activates behind one linked barrier or
+the detail remains reference-only with separate residual positions.
+_Avoid_: selected-worker migration, successful rows only, partial currency
+activation, account-by-account authority
+
+**Opening Coverage Disposition** (Phase 21):
+The exactly-one classification assigned to every pre-cutover source fact in an
+Opening Position Activation Cohort: `exact_history`, `opening_residual`,
+`reference_only`, `intentional_exclusion`, or `unresolved`. An intentional
+exclusion must be proved non-balance-bearing; any unresolved fact prevents
+activation. One atomic pair or source-conserving group receives one complete
+disposition, never a partial one.
+_Avoid_: ignored row, duplicate exact and residual coverage, silent exclusion,
+best-effort classification
+
+**Opening Coverage Manifest** (Phase 21):
+The immutable complete account-and-source disposition proving, independently
+per Field Account and ISO currency and again at cohort control totals, that
+balance-bearing certified exact history plus the residual Field Account
+Opening Position equals the reconciled boundary position. Every pre-cutover
+fact is covered exactly once as exact history, opening residual,
+reference-only, intentional non-balance-bearing exclusion, or unresolved;
+unresolved coverage prevents activation. It also pins the first-close ingestion
+cursor and carries forward exact independently live reservations, obligations,
+funding/reallocation coverage, unresolved payments, and other capacity effects
+without replay.
+_Avoid_: import summary, sampled reconciliation, aggregate tie hiding an
+account mismatch, evidence-only history as balance truth
+
+**Field Account Opening Position** (Phase 21):
+The immutable balanced residual Field Account occurrence establishing an
+organization-controlled starting position at the reconciled operational
+boundary, with its typed organization-control counter-entry. It is neither a
+mutable balance scalar nor reconstructed gift, assessment, expense,
+compensation, payment, payroll, or general-ledger history.
+_Avoid_: opening balance column, plug, negative Field Account, imported gift,
+QBO/Xero beginning balance as live authority
+
+**Field Account Operational Cutover** (Phase 21):
+The immutable activation generation containing one exact half-open authority
+boundary per predecessor source family plus the common operational through
+boundary and first-close cursor, after which Asym owns new in-scope Field
+Account activity for one complete Tenant, Legal Entity, and ISO-currency
+cohort. It proves the bounded source scope inspected at activation and never
+claims that Asym locked an external writer it cannot control.
+_Avoid_: date-only go-live, dual write, universal external freeze, mutable
+cutoff, account-by-account partial authority
+
+**Core Field Accounts Production Activation Contract** (Phase 21 D27):
+The evidence-gated composition that permits one complete Field Account cohort
+to invoke D17's sole Operational Cutover and permits selected optional
+capabilities to activate only through their own prospective authority. It is
+neither a second activation state nor a feature-flag graph.
+_Avoid_: Phase 21 enable switch, launch checklist as authority, all-features
+go-live, independent flags everywhere
+
+**Phase 21 Release Generation** (Phase 21 D27):
+The immutable identity of one deployed Phase 21 behavior generation and its
+current production-qualification evidence. It establishes no tenant
+suitability, financial authority, permission, provider outcome, or compliance
+claim by itself.
+_Avoid_: deploy equals live, environment flag as tenant authority, certified
+compliant release
+
+**Field Accounts Adoption Plan Version** (Phase 21 D27):
+The immutable prospective tenant selection of a Legal Entity, currency, bounded
+source scope, and only the optional capabilities the tenant uses. The complete
+D17 cohort is server-derived rather than tenant row-selected. It cannot waive
+owner-domain proof or define an arbitrary dependency graph.
+_Avoid_: mutable tenant toggle set, custom launch workflow, partial-worker
+financial pilot
+
+**Field Accounts Go-Live Readiness Manifest** (Phase 21 D27):
+The content-addressed machine-prepared composition of current owner evidence
+for one exact Field Accounts Adoption Plan, release generation, complete
+cohort, and D17 half-open boundary. It grants no authority and is consumed only
+after current permission and every bound input are re-proved by D17.
+_Avoid_: mutable ready Boolean, manual launch checklist, second cutover proof,
+sandbox success as production proof
+
+**Field Accounts Operational Readiness Projection** (Phase 21 D27):
+The disposable, through-dated staff view that composes independently
+authoritative activation, close, access, publication, provider, and containment
+evidence into the affected owner and next safe action. It is not durable truth,
+permission, financial proof, or command input.
+_Avoid_: one healthy badge, readiness as authority, Mission Control task as
+proof, active means paid
+
+**Opening Position Correction** (Phase 21):
+The cause-linked append-only Field Account occurrence and manifest succession
+created when a late pre-cutover fact changes a reconciled opening position. It
+preserves the original opening, activation manifest, closed cycles, and prior
+statements; records source-effective, discovery, and current record times; and
+enters economically through the normal correction/next-close path rather than
+editing history or replaying the source fact twice.
+_Avoid_: edit opening balance, reopen legacy source, silent backdate,
+destructive migration rollback
+
+**Default Field Account Currency Version** (Phase 21):
+The immutable prospective Legal-Entity choice that supplies the quiet currency
+suggestion and display order for newly created Field Accounts. It creates no
+source-admission, settlement, accounting, conversion, or payment authority and
+never changes an existing Field Account.
+_Avoid_: implicit USD, browser or Site currency, donor presentment or reporting
+currency as authority, mutable account currency
+
+**Field Account Currency Activation Version** (Phase 21):
+The immutable prospective tenant authorization for one exact Tenant, Legal
+Entity, Support Assignment, approved purpose, destination Field Account
+identity or atomic creation intent, Field Account currency, bounded source
+family, source binding, environment, and half-open interval after an
+organization-controlled same-currency admission path is proved. It permits
+future positive candidates for that scope but does not admit an occurrence,
+certify accounting delivery, make money available, or weaken mandatory adverse
+corrections.
+_Avoid_: global multicurrency flag, donor presentment as activation, current
+provider capability as durable balance authority, retroactive activation
+
+**Support Balances Projection** (Phase 21):
+The source-owned, missionary-safe grouping of separately authoritative
+currency-scoped Field Accounts for one exact Support Assignment. Every balance
+remains exact, ISO-labelled, and independently dated;
+native publication is controlled by a Support Workspace Publication Profile
+Version, external feed authorization remains separate, and the grouping has no
+writable or authoritative converted total.
+_Avoid_: mandatory balance card, multicurrency account, wallet, aggregate
+balance, available funds, converted balance
+
+**Support Planning Posture Version** (Phase 21):
+The immutable prospective tenant choice of whether Asym manages an Approved
+Support Plan for one exact Tenant, Legal Entity, Support Assignment, purpose,
+and currency scope. `Not managed in Asym` is a valid quiet posture, not a zero
+plan, missing-data error, or suspension of Field Account finance truth.
+_Avoid_: mandatory plan, zero plan, missing configuration as an exception
+
+**Approved Support Plan Version** (Phase 21):
+The one winning immutable organization-approved planning authority for bounded
+recurring and dated support needs plus one optional same-currency diagnostic
+reserve target in an exact scope and effective interval. It is not a
+Support-Raising Goal, commitment, Field Account balance, compensation
+entitlement, accounting budget, restriction, or payment authority.
+_Avoid_: worker-authored budget as organization truth, live goal sync,
+available-funds plan, general-ledger budget
+
+**Support Workspace Publication Profile Version** (Phase 21):
+The immutable prospective tenant policy selecting which independently
+authorized source-backed support modules one audience may see, including D12
+Support-statement access only when its compatible balance publication is
+authorized. It controls presentation and whether the statement-ready event
+family is offered with a tenant-safe default of Off. Each recipient's channel
+choice lives only in a Support Workspace Notification Preference Version. The
+Profile cannot widen authorization, create or alter financial or document
+truth, change formulas, authorize notification delivery, or authorize an
+external feed.
+_Avoid_: arbitrary dashboard builder, UI hiding as security, formula language,
+profile as source truth
+
+**Support Workspace authorization** (Phase 12/21):
+The current request-time `resolveProjection` decision for one Principal, Active
+Tenant Assignment, Tenant, Legal Entity, Support Assignment, purpose,
+projection, capability set, floor, resource version, and governance epoch. A
+participant membership, invitation, named grant, preset, role, or visible
+workspace control is not the decision by itself.
+_Avoid_: workspace-access Boolean, participant means viewer, client-selected
+Support Assignment, grant row as current access
+
+**Support Workspace invitation** (Phase 12/21):
+The expiring, single-use, exact-recipient, revocable proposal to bind a verified
+login principal to explicitly reviewed Support Workspace access. Pending,
+failed, expired, mismatched, or revoked invitations grant nothing, and reissue
+does not resurrect an old grant.
+_Avoid_: invitation sent equals access, email address as principal, reusable
+invite link, account-wide sharing
+
+**Support Workspace Notification Preference Version** (Phase 21; Phase 6
+delivery):
+The immutable prospective recipient-, Support-Assignment-, event-family-,
+channel-, purpose-, and interval-scoped choice about support updates. It grants
+no access; current authorization, preference, suppression, contact-point, and
+source eligibility are re-proved before Phase 6 releases a recipient-specific
+communication intent.
+_Avoid_: subscription implies access, queued means eligible, preference as
+delivery history, notification setting as financial truth
+
+**Finance-confirmed Planning Coverage Base** (Phase 21):
+The exact same-currency planning numerator derived conservatively from the
+Finance-confirmed Field Account Balance after qualified negative open-cycle
+effects and still-active non-reusable funding or reallocation coverage are
+subtracted once. Provisional positive support never increases it.
+_Avoid_: available balance, spendable cash, commitment-adjusted balance,
+double-subtracted reservation
+
+**Balance Coverage Projection** (Phase 21):
+The disposable same-currency comparison of a compatible Finance-confirmed
+Planning Coverage Base with the positive recurring need in an effective
+Approved Support Plan Version. It is absent or `Not calculated` when a required
+input is missing and never proves availability, compensation, payroll, or
+payment.
+_Avoid_: cash runway as a promise, infinity for zero need, cross-currency
+coverage, missing input as zero
+
+**Reserve Position Projection** (Phase 21):
+The disposable signed same-currency result of Finance-confirmed Planning
+Coverage Base minus the optional diagnostic reserve target in the effective
+Approved Support Plan Version. A positive result is above target; a negative
+result is a shortfall. It is not a donor restriction, accounting reserve,
+spending authorization, or retained-balance floor.
+_Avoid_: reserved cash, legal restriction, cross-currency reserve, automatic
+reallocation trigger
+
+**Commitment Forecast Projection** (Phase 21 consuming Phase 16):
+The optional purpose-scoped planning view of independently authoritative Phase
+16 commitment facts. It may appear alongside an Approved Support Plan or Phase
+28 goal only as a separately source-versioned comparison; neither is a
+prerequisite. It never becomes received support, Finance-confirmed balance, or
+an input to Balance Coverage.
+_Avoid_: commitment as cash, inferred commitment zero, blended funded percent
+
+**Support Cycle** (Phase 21):
+A tenant-scheduled operational period whose finance close freezes the exact
+Field Account coverage and evidence used for a dated balance. It is not a
+payroll run, accounting period close, bank reconciliation, or promise to pay.
+_Avoid_: payout cycle, live balance window, QBO close, payroll period
+
+**Support Cycle Close** (Phase 21):
+The immutable finance decision published only with a fresh Support Cycle
+Integrity Manifest proving the exact business boundary, captured ingestion
+boundary, continuity, independent control-side balance, unique source coverage,
+and complete required groups. It advances the dated Finance-confirmed Field
+Account Balance but does not close the books, run payroll, or prove payment.
+_Avoid_: editable close, timestamp-only close, capped scan as proof, close
+equals paid, QBO period close, balance refresh
+
+**Field Account Occurrence** (Phase 21):
+The immutable source-addressed semantic unit whose exact same-currency
+Field-Account-side and independently persisted organization-control entries form one
+atomic balanced Field Account effect.
+_Avoid_: mutable journal row, unbalanced activity, cross-currency entry set,
+provider payload as Field Account truth
+
+**Field Account Control Position** (Phase 21):
+The non-writable per-Tenant, Legal-Entity, and ISO-currency position derived
+from independently persisted organization-control-side Field Account entries
+and compared with Support-Assignment/Field-Account-side effects.
+_Avoid_: Field Account total negated at read time, QBO/Xero account, tenant
+chart-of-accounts row, plug or generic suspense balance
+
+**Support Cycle Integrity Manifest** (Phase 21):
+The machine-produced immutable close evidence for one exact business-date
+interval and captured monotonic Phase 21 ingestion interval, including opening,
+activity, closing, independent control, source-coverage, group-completeness,
+scope, currency, and version proof. It also pins every in-scope
+version-addressed Reimbursement Obligation, Field Account Funding Coverage
+reservation, compensation-funding reservation, and approved non-balance
+position at that fence, plus an immutable typed relationship stating whether
+each position is included in closing balance, reserved against it, or disclosed
+only. Downstream views consume that relationship and never live-query or
+double-subtract an open position.
+_Avoid_: manual attestation, mutable close checklist, timestamp-only
+completeness, scheduled sweep or sample as close authority, live open-item
+lookup after close
+
+**Field Account Support Statement Approved Data View** (Phase 21):
+The immutable typed projection contract that deterministically selects only
+purpose-approved, recipient-safe statement facts from one exact Support Cycle
+Integrity Manifest and its covered occurrences for Phase 18. It creates no
+second balance or statement-facts authority and cannot live-recompute, merge
+currencies, widen recipient access, or repair financial meaning.
+_Avoid_: statement ledger, live date-range query, donor export, mutable report
+snapshot, template-owned calculation
+
+**Field Account Support Statement** (Phase 18 artifact over Phase 21 facts):
+The one logical currently authorized support-cycle document for an exact Field
+Account, Support Cycle, and ISO currency, rendered from the source-owned Field
+Account Support Statement Approved Data View and immutable Facts Package. It
+explains finance-closed organization-controlled support activity and is not a
+tax receipt, bank statement, payslip, proof of payment, or statement of
+available or withdrawable funds.
+_Avoid_: year-end donor statement, available-funds report, payroll statement,
+live mutable history, converted multicurrency total, duplicate accessible copy
+
+**Field Account Integrity Verification Run** (Phase 21):
+The bounded resumable examination of exact Field Account scopes and immutable
+history whose execution state is distinct from its financial verdict; it may
+prepare or re-verify evidence but never substitutes for a close manifest.
+_Avoid_: one green Boolean, partial or capped scan as complete, live-provider
+reconciliation, verification job equals close
+
+**Field Account Integrity Case** (Phase 21):
+The deduplicated cause-owned financial exception for one exact proved Field
+Account defect and containment scope, cleared only when the owning repair is
+followed by fresh complete proof.
+_Avoid_: generic balance problem, Mission Control task as financial truth,
+task complete equals cleared, force balance, generic mark fixed
+
+**Finance-confirmed Field Account Balance** (Phase 21):
+The derived per-currency Field Account balance initially established through a
+reconciled Field Account Operational Cutover and thereafter advanced through
+closed Support Cycles and append-only corrections, presented with its exact
+through/as-of date. Sibling currency balances remain independent and are never
+added or converted into this authority. Newer provisional activity remains
+separate until admitted by a later close or correction.
+_Avoid_: available funds, current cash, withdrawable balance, donation total
 
 **Gross Support Allocation** (Phase 21):
-An immutable Field Account credit derived from exact eligible Phase 13 posted
-designation-line coverage at the gross support amount. Fee-cover, processor
-cost, assessments, refunds, and other effects remain separate typed occurrences
-and never rewrite this allocation or the underlying gift.
+An immutable Field Account credit derived either from exact eligible Phase 13
+posted money-designation coverage or from one exact D21 Realized Support Basis;
+an original noncash recognized value, FMV, appraisal, or estimate can never
+create it. Its amount equals the eligible source amount when currencies match,
+or the exact target portion fixed by the applicable D6 evidence when they
+differ, and is “gross” only relative to separate Phase 21 assessment and cost
+effects—not a claim that every source rail exposed processor gross. Fee-cover,
+processor cost, assessments, refunds, and other Field Account effects remain
+separate typed occurrences and never rewrite this allocation or the underlying
+gift. D21 sale, brokerage, liquidation, and valuation costs are not D20 or
+Phase 20 D19 occurrences; they affect a Realized Support Basis only through
+D21's pinned treatment and exact source evidence.
 _Avoid_: netting processor cost into the gift, recomputing current designation
-weights, allocating an unposted or uncovered contribution
+weights, allocating an unposted or uncovered contribution, valuation as support
+
+**Support Currency Allocation Manifest** (Phase 21):
+The immutable admission-contract evidence that conserves the complete effective
+Phase 13 hard-tender header line set, including fee-cover or other non-support
+lines, into one exact typed organization-controlled target-currency allocation
+basis when the currencies differ. It fixes every target line under one
+deterministic minor-unit allocation; each later cross-currency adverse
+occurrence uses its own successor manifest bounded by remaining original
+coverage, and only eligible non-fee-cover designation portions may create
+Gross Support Allocations.
+_Avoid_: inferred exchange rate, mutable conversion, cross-currency balance,
+accounting translation, donor-amount rewrite
+
+**Support Allocation Candidate** (Phase 21):
+The provisional current-cycle activity derived from one exact eligible Phase 13
+posted money-designation occurrence or one exact source-final D21 Noncash
+Support Realization before a Support Cycle close covers it. The original
+noncash posting and its valuation are structurally ineligible. A candidate may
+be evaluated for a future close but has no confirmed-balance, compensation,
+reimbursement, ownership, or availability authority.
+_Avoid_: pending balance, available support, mutable candidate amount,
+candidate equals confirmed Field Account credit, noncash FMV as cash
+
+**Noncash Support Realization** (Phase 21):
+The immutable source-mode-honest derivative that connects exact Phase 15
+source-final proceeds for one original Phase 13 noncash Contribution, asset lot,
+accepted purpose, and currency to one possible Field Account support effect. It
+is neither a second gift nor custody, liquidation, valuation, receipt,
+accounting, payroll, payment, or availability truth.
+_Avoid_: converted gift, cash replacement gift, appraisal credit, editable sale
+
+**Realized Support Basis** (Phase 21):
+The exact monetary basis selected under one frozen D21 source contract and cost
+treatment before D3 assessment: exact net proceeds by default, or exact gross
+proceeds only when separately proved eligible costs are prospectively and
+validly organization-absorbed. It never derives from FMV, appraisal, estimate,
+or an implied exchange rate.
+_Avoid_: sale estimate, assessable appraisal, guessed fees, mutable net amount
+
+**Noncash Support Realization Manifest** (Phase 21):
+The immutable per-lot, per-purpose, per-currency evidence that freezes the
+source role and legal recipient; original Contribution, asset, accepted purpose,
+disposition, and evidence identities; exact quantity and source-final proceeds;
+relevant dates; gross/cost/net or exact-net-only shape; pinned cost treatment and
+Realized Support Basis; deterministic allocation and residuals; D6 conversion
+evidence; source/policy versions; non-overlapping coverage; idempotency; and
+append-only correction lineage before D2 admission.
+_Avoid_: mutable proceeds record, date-only sale marker, fuzzy lot allocation,
+duplicate opening or accounting coverage
+
+**Support Allocation Readiness Policy** (Phase 21):
+The prospective tenant policy that defines which source-labelled evidence a
+positive Gross Support Allocation needs before a Support Cycle close may admit
+it. Readiness is not worker availability, spendability, compensation, payment,
+ownership, or withdrawal authority.
+_Avoid_: universal settlement rule, mutable readiness flag, available funds,
+QBO/Xero as a universal prerequisite
+
+**Source Readiness Evidence** (Phase 21):
+The source-labelled observation used to evaluate Support Cycle admission, such
+as an exact provider settlement state, offline deposit outcome, direct-credit
+observation, governed staff confirmation, or an exact source-final D21 Noncash
+Support Realization Manifest under its capability-certified source contract. An
+original noncash posting, valuation, appraisal, estimate, or disposition without
+the required manifest is activity only and never readiness evidence for a
+monetary Support Allocation Candidate. Native source vocabulary does not become
+a Field Account or missionary-facing status.
+_Avoid_: generic cleared flag, copied provider truth, evidence equals balance,
+Stripe `available` equals worker availability, noncash FMV as settlement proof
+
+**Support Close Readiness Projection** (Phase 21):
+The disposable current evaluation of a Support Allocation Candidate against
+the pinned readiness policy and current source evidence. Its outcomes are
+`ready_for_close`, `waiting_for_evidence`, `needs_finance_review`, or
+`blocked_by_integrity`; none is durable balance authority.
+_Avoid_: available, settled, cleared, paid, reconciled, synced, immutable
+evaluation history, projection as close coverage
+
+**Support Cycle Admission Coverage** (Phase 21):
+The immutable coverage of exact Field Account entries, policy versions, source
+evidence, and any required Support Currency Allocation Manifest or D21 Noncash
+Support Realization Manifest accepted by one Support Cycle Close. A D21 positive
+entry is coverable only from the manifest's exact Realized Support Basis; the
+original noncash Contribution or valuation can never share or substitute for
+that coverage. After the one-time Field Account Operational Cutover has
+established the opening authority, this coverage alone advances ordinary
+positive activity into the Finance-confirmed Field Account Balance; mandatory
+append-only adverse corrections remain continuous.
+_Avoid_: mutable included flag, preview as close authority, partial pair
+admission, recalculating a prior close
+
+**Missionary Support Activity Projection** (Phase 21):
+The exact Tenant-, Legal-Entity-, Support-Assignment-, and purpose-scoped,
+privacy-safe composition of Phase 13 effective contribution activity, Phase 14
+supporter-roster identity/recognition, Phase 16 safe recurring-support
+statements, and Phase 3/10/12 authorization controls for the current Principal
+and Active Tenant Assignment. It gives a missionary ordinary CRM context
+without creating donor/contact authority, combining a Party's Support
+Assignments, or exposing finance-only readiness, provider, deposit, payout,
+bank, or accounting state. Routine status detail is quiet by default; material
+adverse changes remain visible. When D21 applies, it may add one tenant-
+authorized grouped lifecycle relating the original noncash gift to later
+finance-closed realized support, but it never displays two gifts or presents an
+appraisal, estimated value, disposition cost, or proceeds as available, payable,
+payroll-ready, paid, or posted to accounting.
+_Avoid_: second donor or payment CRM, contact/notes/tasks ownership, raw decline
+reason, duplicate gift from asset sale, availability claim, stable anonymous
+identifier, pre-filter counts
+
+**Missionary Support Feed Projection** (Phase 31; sourced by Phase 21 and later
+authorized Phase 28 families):
+The disposable, rebuildable external-continuity view composed exactly once from
+Phase 21's Missionary Support Activity Projection and separately through-dated,
+per-currency Support Balances Projection for one authorized recipient,
+Missionary Support Feed Subject, and purpose. It is not a supporter, gift,
+commitment, Field Account, accounting, or migration authority; later Phase 28
+relationship/contactability families enter only through their own separately
+ratified projection.
+_Avoid_: duplicate CRM or ledger, raw-table export, mutable integration copy,
+Phase 28 as supporter or commitment authority, converted balance total
+
+**Missionary Support Feed Subject** (Phase 21/31):
+The exact Support Assignment whose authorized support projection may be
+included in one feed subscription. It is not a Party participant or the
+external principal receiving the feed.
+_Avoid_: participant, recipient, provider profile, worker-global feed, all
+missionaries, tenant-wide feed
+
+**Missionary Support Feed Recipient** (Phase 31):
+The exact external principal or profile authorized to receive one **Missionary
+Support Feed Subject** projection through one destination subscription. Bulk
+setup creates separate recipient/subject subscription namespaces rather than a
+shared cursor or identifier space.
+_Avoid_: Missionary Support Feed Subject, Party participant, provider
+organization alone, shared team token, multi-recipient cursor
+
+**Missionary Support Feed Subscription Version** (Phase 31):
+The immutable prospective authorization binding one Tenant, Legal Entity,
+destination organization/product/environment, recipient, Missionary Support
+Feed Subject, purpose,
+designation or Field Account scope, resource and field families, bounded
+history, currencies, schema, certified adapter, and authorization epoch.
+Possessing a cursor or prior grant never substitutes for its current authority.
+_Avoid_: global integration toggle, cursor as credential, mutable scope, broad
+tenant export, reconnect reviving an old grant
+
+**Missionary Support Feed Coverage Manifest** (Phase 21/31 contract):
+The immutable declaration of the exact authorized snapshot generation,
+snapshot-through cut, source-family coverage, included and excluded resource
+families, field set, history horizon, currencies, and adapter/schema versions.
+It proves bounded completeness, never all-history or downstream application.
+_Avoid_: generated-at means complete, live paginated snapshot, last-sync flag,
+date-only recovery
+
+**Missionary Support Feed Revocation** (Phase 31):
+The recipient-only removal instruction for an opaque projection object that
+the same recipient previously received. It proves only the recorded future
+subscription access or provider-removal outcome; it means the recipient may no
+longer receive or access the object through that subscription and never claims
+that local, exported, or backed-up copies were erased without exact provider
+evidence.
+_Avoid_: disconnect equals deletion, generic tombstone, restricted-person
+existence signal, silent reconnect
+
+**Administrative Assessment Profile** (Phase 21):
+An immutable prospective tenant policy version defining one bounded
+administrative-assessment calculation and its honest staff and missionary
+presentation. Every Tenant and Legal Entity starts with an explicit
+`No administrative assessment` profile.
+_Avoid_: missing configuration means zero, stackable fee rules, mutable active
+rate, arbitrary formula
+
+**Assessment Profile Assignment** (Phase 21):
+The prospective binding of one Administrative Assessment Profile to the
+Legal-Entity default; an explicit, prospective, source-labelled Support
+Assignment assessment-applicability context containing a worker classification,
+lifecycle stage, or exact classification-stage combination; or an exact Field
+Account. Classification and lifecycle inputs are never inferred from current
+Support Assignment Participant Memberships, participant count, access, or
+relationship labels. An absent axis does not match; the fixed specificity model
+continues to the next explicit assignment and resolves exactly one profile
+before its source-family treatment is selected.
+_Avoid_: numeric priority, rule-order dragging, additive profile inheritance,
+silent ambiguous winner
+
+**Assessment Period** (Phase 21):
+The exact monthly, per-currency interval that owns minimum, cap, fixed, and
+service-component assessment effects independently of Support Cycle cadence.
+_Avoid_: support cycle equals assessment month, per-gift minimum, cross-currency
+period
+
+**Assessment Period Determination** (Phase 21):
+The immutable result that freezes one Assessment Period's winning profile,
+source and period coverage, calculation, rounding, and component results. It is
+the authority for period-level assessment effects and later append-only
+remeasurement.
+_Avoid_: mutable monthly total, current-profile recomputation, gift as fixed-fee
+source
 
 **Assessment Entry** (Phase 21):
-A separate, typed Field Account debit created from a prospective tenant policy
-version and exact covered source occurrence. It records the organization's
-administrative or ministry assessment without changing contribution,
-designation, receipt, processor-cost, or Accounting Release truth.
+A separate, typed Field Account occurrence created from a prospective profile
+version and either exact Gross Support Allocation coverage or one Assessment
+Period Determination. It records the organization's administrative assessment,
+cap credit, or correction without changing contribution, Designation, receipt,
+processor-cost, or Accounting Release truth.
 _Avoid_: hidden net-support math, mutable assessment percentage, retroactive
 policy application, assessment as a processor fee
 
+**Assessment Correction** (Phase 21):
+An append-only inverse or replacement effect linked to the original
+source-linked or period-level assessment coverage. It never edits a closed
+Support Cycle, original determination, gift, or receipt.
+_Avoid_: reopening an assessment month, reversing a whole fixed charge for one
+gift, applying today's profile to history
+
+**Expense Relationship Context** (Phase 21):
+The source-owned worker classification and applicable jurisdiction effective at
+an expense date, used to select the permitted policy and downstream treatment.
+It distinguishes employee, independent contractor, volunteer, and
+unresolved/other without inferring classification from `missionary` or a Field
+Account.
+_Avoid_: role inference, one missionary tax class, tenant-selected legal result
+
+**Expense Claim** (Phase 21):
+One logical claimant request for the organization to recognize or reimburse one
+business-spending occurrence. Its immutable versions preserve the claimant's
+asserted facts, exact items/splits, currencies, evidence links, relationship
+context, and lineage. It is neither a report, approval, obligation, Field
+Account funding, payment, nor accounting truth.
+_Avoid_: expense report, expense payment, approved expense, reimbursement
+
+**Expense Collaboration Assignment Version** (Phase 21):
+The immutable, exact-claim-bounded record that one helper Party and accepted
+authenticated principal may be responsible for a code-owned collaboration mode
+for one claimant Party, Tenant, Legal Entity, Expense Program, stable Expense
+Claim, item/split/purpose/evidence scope, Evidence Access Projection Version,
+and half-open interval. It records scope, responsibility, and provenance but
+grants nothing by itself; Phase 12 remains the sole current authorization
+owner. Each accepted or batch-created assignment is independently revocable.
+_Avoid_: delegate role, account proxy, helper ACL, spouse access, support
+participant permission, transitive delegation
+
+**Expense Collaboration Invitation Version** (Phase 21):
+The opaque, one-time, expiring, authority-free invitation for an intended
+helper principal to accept one exact proposed Expense Collaboration Assignment.
+Acceptance still requires verified identity, current authorization, and exact
+Party/principal binding; an auth invitation or account creation alone creates
+no Tenant membership, Party association, or collaboration authority.
+_Avoid_: invitation grants access, email token as claimant identity, pending
+helper permission
+
+**Evidence Access Projection Version** (Phase 21 D24 meaning):
+The code-owned, versioned upper bound on the minimum expense-evidence fields and
+classifications one exact Expense Collaboration Assignment may expose. The
+current Phase 3/10 purpose and classification floor may only subtract from it;
+the projection never grants access or admits a reusable evidence URL.
+_Avoid_: full receipt access, configurable field ACL, projection as grant,
+signed URL as permission
+
+**Claimant Confirmation Version** (Phase 21):
+The immutable claimant-authored affirmation of one exact Expense Claim Version
+digest, complete material facts, exact item/split amounts and ISO currencies,
+evidence-link set, applicable declarations, and versioned attestation language,
+method, source, time, and actor. A material successor makes the confirmation
+stale. An authenticated claimant or a tenant-admitted claimant-authored
+external attestation meeting the Asym proof floor may create the assertion;
+the helper, silence, notification, email possession, relationship, or model
+inference cannot.
+_Avoid_: delegate consent, report checkbox, approval means confirmation,
+forwarded email signature, reusable attestation
+
+**Expense Collaboration Action** (Phase 21):
+The immutable provenance of an authorized helper preparation, evidence,
+ready-for-review, or exact claimant-confirmed submission operation, preserving
+the claimant, helper, actual principal, assignment, claim/version, scope,
+authorization context, and result. It is neither claimant confirmation, D13
+review, approval, obligation, Field Account effect, payment, payroll, nor
+accounting truth.
+_Avoid_: acting as claimant, helper authorship rewrite, collaboration status as
+financial outcome
+
+**Expense Claim Resolution Cause Contract Version** (Phase 21):
+The code-owned prospective definition of one supported exceptional cause,
+including its detecting and root authority, exact admissible scope,
+inseparable-coverage rule, permitted actor actions, source-owned completion
+predicate, downstream-disposition requirements, and migration treatment. It is
+not tenant-authored workflow or financial policy.
+_Avoid_: `other` cause, custom status, rule script, timer decision, workflow
+graph
+
+**Expense Claim Resolution Case** (Phase 21):
+One exceptional-only immutable coordination basis over an exact Tenant, Legal
+Entity, Expense Program, claimant Party, stable Expense Claim and triggering
+Claim Version, item/split/purpose/ISO-currency coverage, Cause Contract Version,
+root source identity, and coverage digest. It coordinates source-owned recovery
+without becoming claim, decision, obligation, Field Account, payment,
+accounting, or task truth.
+_Avoid_: reopened report, mutable case status, approval case, payment case,
+Accounting Exception Case, generic task
+
+**Expense Claim Resolution Occurrence** (Phase 21):
+One immutable, actual-actor-attributed request, response, organization evidence
+contribution, review request, source-owner command or result observation,
+conflict, or completion-proof occurrence inside one exact Resolution Case. It
+never edits claimant-authored facts or another owner's domain result.
+_Avoid_: comments as evidence, acting as claimant, cross-domain rollback,
+mutable resolution history
+
+**Downstream Impact Manifest** (Phase 21 D25 meaning):
+The proportional complete exact list of possibly affected snapshot,
+obligation, handoff/payment, D23 effect, statement, Phase 20 release/provider,
+and other declared owner families, with pinned source versions and an explicit
+disposition for each. It is empty when no downstream authority exists and is
+never a financial source or rollback command.
+_Avoid_: hidden downstream impact, best-effort list, reverse-everything command,
+accounting manifest
+
+**Expense Claim Resolution Projection** (Phase 21):
+The disposable rebuildable current next-action and wait-reason presentation
+derived from immutable Resolution Case truth. Labels such as **Needs your
+update**, **With finance**, **Waiting on source**, **Correction in progress**,
+and **Complete** are coordination copy, never mutable authority or an input to
+a financial consumer.
+_Avoid_: resolved scalar, status-owned completion, Complete means approved or
+paid, workflow state machine
+
+**Phase 21 Records Schedule Contract Version** (Phase 21 D26):
+One immutable, code-owned, source-cited schedule for one closed Phase 21 record
+family and purpose, including its trigger, preservation floor, privacy ceiling,
+access/use limits, copy classes, holds, recovery, export, and verified-
+disposition semantics. It is a domain policy version, not a tenant-authored
+legal contract or storage timer.
+_Avoid_: retention setting, legal advice, custom rules engine, mutable policy
+
+**Phase 21 Records Schedule Binding Version** (Phase 21 D26):
+One immutable prospective tenant selection of a supported schedule variant for
+an exact Tenant, Legal Entity, jurisdiction, record family, and only the source
+or relationship dimensions that materially change the rule. Exactly one
+deterministic non-stacking binding may win for a record.
+_Avoid_: per-record picker, overlapping rules, latest row wins, free-form timer
+
+**Phase 21 Record Retention Resolution** (Phase 21 D26):
+The immutable result that pins one Phase 21 record to its exact winning
+contract and binding versions, authoritative trigger facts and dates,
+access/use restrictions, copy classes, hold state, and projected disposition.
+It records a decision basis; Phase 29 alone executes byte retention or
+disposition.
+_Avoid_: mutable expiry date, deletion job, current policy lookup, storage row
+
+**Phase 21 Records Schedule Successor Impact Manifest** (Phase 21 D26):
+The complete immutable disposition of every existing record cohort affected by
+a reviewed law, policy, provider, product, or schedule successor. It proves
+which records preserve their prior resolution, receive an authorized
+prospective transition, require review, or remain held without silently
+rewriting history.
+_Avoid_: bulk policy update, retroactive latest rule, best-effort migration
+
+**Phase 21 Records Export Package** (Phase 21 D26):
+One immutable, source-watermarked, manifest-complete, open-format custody export
+for exactly one Tenant and Legal Entity, with canonical JSONL, bounded safe CSV,
+accessible human views, authorized originals, relationships, versions, ordered
+parts, and integrity digests. It is neither a generic database dump nor proof
+that every tenant or provider record exists inside Phase 21.
+_Avoid_: Phase 19 Audit Package, Phase 20 Accounting Delivery Package, Phase 33
+report export, QBO/Xero backup, generic database dump, universal history
+
+**Records Export Coverage Manifest** (Phase 21 D26):
+The closed immutable accounting of every record/version selected for a Phase 21
+Records Export Package, assigning exactly one inclusion, owner-reference,
+authority exclusion, restricted-lane, lawful-disposal, quarantine/unavailable,
+or not-applicable disposition. **Ready with issues** is explicit partial output
+and never masquerades as a complete archive.
+_Avoid_: silent omission, row count only, complete flag without conservation
+
+**Tenant External Copy Assertion** (Phase 21 D26):
+An attributable tenant statement that an exact package or record copy was
+placed in a described tenant-controlled destination class. It is useful custody
+evidence but does not prove security, recoverability, legal sufficiency,
+verified transfer, or permission to dispose of an Asym-held copy.
+_Avoid_: backup verified, requirements met, transfer complete, delete source
+
+**Verified Destination Custody Transfer** (Phase 21 D26):
+A separately authorized and certified destination-specific outcome proving
+exact destination identity, package-manifest acceptance or readback, integrity,
+preserved restrictions and holds, and the applicable governing contract. A
+browser download, print action, or Tenant External Copy Assertion is not this
+transfer.
+_Avoid_: downloaded means transferred, emailed archive, unchecked cloud copy
+
+**Records-only Retrieval Window** (Phase 21 D26):
+The contract- and jurisdiction-controlled interval after ordinary product
+access ends during which an authorized tenant successor may retrieve required
+records packages. It is neither ordinary application access nor a universal or
+indefinite period; the applicable reviewed contract owns any minimum.
+_Avoid_: permanent portal, fixed global grace period, ordinary subscription
+access, universal 30-day rule
+
+**Expense Claim Version** (Phase 21):
+One immutable material version of an Expense Claim, including exact signed
+items/splits that conserve the claim amount in its ISO currency and the
+separately preserved claimant, economic payer, evidence contributor, preparer,
+and actual-principal facts. Submission, confirmation, review, and approval pin
+this version; later material claimant or authorized draft change creates a
+linked successor, stales prior confirmation for submission, and never rewrites
+the original actor.
+_Avoid_: editable submitted claim, current report row, OCR result as claim
+truth, preparer implies claimant
+
+**Expense Report Submission** (Phase 21):
+The immutable review envelope that pins exact Expense Claim Versions plus the
+actual submitter, claimant confirmation where another actor submits, grouping
+purpose, context, and submission time. It may represent one quiet expense or an
+explicit trip, project, or period group, but every included claim/item must be
+fully qualified and it never crosses claimant Parties or Legal Entities.
+Uncovered work is blocked or deliberately submitted separately, never silently
+omitted. Its status is a derived completion summary, not approval, obligation,
+funding, payment, or accounting authority.
+_Avoid_: report as transaction, report-level approved, report-level paid,
+hidden partial submission
+
+**Receipt Evidence Asset** (Phase 21 meaning; Phase 29 byte lifecycle):
+The immutable private evidence identity for an original receipt,
+substantiation document, or governed missing-receipt declaration, including
+its exact contributor/source provenance. Phase 21 owns its expense meaning; the
+private byte/access lifecycle owns staged upload, storage, renditions, malware
+hygiene, current-authorized non-cacheable retrieval, retention, and hold
+behavior. Contribution, sender identity, OCR, or similarity never selects a
+claimant or grants collaboration authority.
+_Avoid_: public upload URL, reusable evidence bearer URL, mutable receipt image,
+OCR text as original evidence, uploader implies claimant
+
+**Expense Evidence Link Version** (Phase 21):
+The immutable purpose and coverage relationship between one Receipt Evidence
+Asset and exact Expense Claim Versions or items, preserving the authorized
+linking actor and source. It supports many-to-many evidence only through
+explicit, non-overlapping economic coverage or a recorded explanation. Helper
+linking never establishes claimant confirmation, sufficiency, policy approval,
+or payment.
+_Avoid_: copied receipt per claim, attachment implies sufficiency, fuzzy match,
+helper link as consent
+
+**Receipt Extraction Suggestion Version** (Phase 21):
+A non-authoritative, source- and invocation-provenanced proposal for receipt
+fields. Material facts become Expense Claim truth only after explicit
+authorized confirmation and deterministic validation.
+_Avoid_: OCR result, extracted receipt fact, auto-approved claim
+
+**Expense Match Suggestion Version** (Phase 21):
+A non-authoritative proposal linking evidence, a claim, or a separately
+certified source transaction. Accepting it creates an ordinary versioned link;
+it does not prove a duplicate, payment, economic payer, funding source, or
+accounting occurrence.
+_Avoid_: automatic receipt match, duplicate deletion, inferred payment
+
+**Organization Card Source** (Phase 21):
+The tenant-authorized, Legal-Entity-scoped organization card program and safe
+card-identity namespace from which Card Transaction Evidence may be admitted.
+_Avoid_: personal card feed, bank account, issuer balance, card subledger
+
+**Organization Card Import Profile Version** (Phase 21):
+One immutable prospective interpretation contract for a recognizable
+machine-readable Organization Card Source layout and its identity, finality,
+date, sign, billing-currency, and safe-card fields.
+_Avoid_: Source Profile, mutable column mapping, generic import template, PDF or
+OCR truth
+
+**Organization Card Activity File Asset** (Phase 21 meaning; Phase 29 byte
+lifecycle):
+The private source-file identity whose purpose, manifest relationship, and
+financial-evidence meaning belong to Phase 21 while the private byte/access
+lifecycle owns storage, malware hygiene, authorized retrieval, holds, and
+disposition.
+_Avoid_: Receipt Evidence Asset, public statement, OCR data source, reusable
+spreadsheet
+
+**Organization Card Activity Import Manifest** (Phase 21):
+The immutable evidence of one staged source-file acceptance, including exact
+source/profile scope, file and row provenance, control totals, admitted
+coverage, classified remainder, and outcome.
+_Avoid_: mutable import batch, statement reconciliation, replace-all upload
+
+**Organization Card Transaction Evidence Version** (Phase 21):
+The source-attributed append-only evidence that one organization-card purchase
+or typed Organization Card Source Adjustment Evidence was reported as posted
+under its pinned import-profile finality contract. It is neither an Expense
+Claim nor approval, payment, accounting, issuer-settlement, or reconciliation
+truth.
+_Avoid_: card expense, pending charge as final, reimbursed transaction, synced
+card row
+
+**Organization Card Source Adjustment Evidence** (Phase 21):
+The typed append-only source evidence for a refund, reversal, dispute, fee,
+source correction, or certified source removal affecting Organization Card
+Transaction Evidence. It remains source evidence until exact downstream
+coverage authorizes the owning domain's correction.
+_Avoid_: generic adverse correction, destructive edit, automatic repayment,
+Field Account correction by implication
+
+**Organization Card Assignment Version** (Phase 21):
+The explicit effective-dated routing relationship between one safe
+organization-card identity and one exact authorized claimant Party under its
+source-owned relationship context, or a finance queue,
+inside the same Tenant and Legal Entity.
+_Avoid_: mutable current cardholder, historical retargeting, card ownership,
+worker classification
+
+**Organization Card Evidence Coverage** (Phase 21):
+The immutable same-billing-currency conservation linking exact Organization
+Card Transaction Evidence to business Expense Claim Version item-or-split
+coverage, a nonbusiness/personal portion, and an unresolved remainder.
+_Avoid_: fuzzy auto-merge, source row equals claim, link implies approval,
+personal portion proves repayment
+
+**Expense Policy Cohort** (Phase 21):
+A stable tenant-owned grouping used only to select prospective expense
+governance for claimants whose approved treatment is intentionally shared.
+_Avoid_: inferred worker classification, security role, ad hoc reviewer list
+
+**Expense Policy Cohort Membership Version** (Phase 21):
+One immutable prospective placement of an exact claimant into an Expense Policy
+Cohort, preserving its effective interval and succession.
+_Avoid_: mutable cohort tag, saved-filter membership, retroactive regrouping
+
+**Expense Program Activation Version** (Phase 21):
+The immutable prospective Tenant and Legal Entity decision that enables the
+expense program and its governed claim-and-review experience.
+_Avoid_: expense module by default, setup nag, connection implies activation
+
+**Expense Governance Profile Version** (Phase 21):
+One immutable prospective set of expense requirements, evidence rules, limits,
+timing, and exception treatment for a bounded expense context. It does not own
+reviewer identity, funding, payment, or accounting treatment.
+_Avoid_: mutable expense policy, arbitrary rule script, approval workflow
+
+**Expense Governance Assignment** (Phase 21):
+The prospective bounded relationship between one source-backed expense context
+and one Expense Governance Profile Version.
+_Avoid_: rule order, numeric priority, stacked policy, label-only match
+
+**Expense Governance Resolution** (Phase 21):
+The immutable incurred-date proof of exactly one winning Expense Governance
+Profile Version for one exact Expense Claim Version item or split.
+_Avoid_: current-policy lookup, report-wide policy, ambiguous fallback
+
+**Prospective Expense Authorization Posture Version** (Phase 21):
+The immutable prospective Tenant- and Legal-Entity decision that keeps before-
+spend authorization absent, makes it available when helpful, or requires it for
+exact scopes resolved through D13. D13 activation never enables it implicitly.
+_Avoid_: expense program means preapproval, hidden-but-live feature, one global toggle
+
+**Prospective Expense Request Version** (Phase 21):
+One immutable requester-authored version of a planned expense, pinning the
+claimant, purpose, expense family, ceiling, ISO currency, incurrence window,
+conditions, and source context. It is neither an incurred Expense Claim nor
+organization approval.
+_Avoid_: mutable request, purchase order, approved expense, commitment to pay
+
+**Prospective Expense Evidence Asset** (Phase 21/29):
+Private plan evidence linked to exact Prospective Expense Request Version
+coverage; Phase 21 owns its meaning and Phase 29 owns byte storage, access,
+retention, hold, quarantine, and disposition mechanics.
+_Avoid_: public quote, receipt evidence, evidence proves approval, email attachment authority
+
+**Prospective Expense Governance Resolution** (Phase 21):
+The immutable submission-time proof of the one winning D13 governance scope,
+route, consequence, and source/policy versions for an exact Prospective Expense
+Request Version.
+_Avoid_: current-policy lookup, stacked workflow, assignment means approval
+
+**Prospective Expense Authorization Decision** (Phase 21):
+One immutable organization decision over an exact Request Version, recording
+approved, declined, or needs-information treatment and any narrowed ceiling,
+window, or permitted condition after current-authority and conflict checks.
+It does not prove incurrence, eligibility, reimbursement, payment, or accounting.
+_Avoid_: mutable approval, self-approval, automatic approval, approval means payable
+
+**Prospective Expense Authorization Coverage** (Phase 21):
+The immutable exact, non-overlapping link from one authorization ceiling to
+later D10 Expense Claim Version item or purpose-split coverage in the same
+purpose and ISO currency. It preserves partial and multi-claim use without
+making the later claim approved.
+_Avoid_: fuzzy plan match, report-wide coverage, duplicate authorization consumption
+
+**Prospective Expense Unused Scope Declaration** (Phase 21):
+The immutable authorized assertion that an exact residual authorization slice
+will not be used, recorded only after proof that it is not linked or in flight.
+Expiry alone is never such proof.
+_Avoid_: timer release, mutable remaining amount, cancellation deletes history
+
+**Prospective Expense Capacity Reservation** (Phase 21):
+The optional Field Account Funding Coverage subtype that reserves exact same-
+purpose, same-currency D1 planning capacity atomically with a final prospective
+authorization decision. It is not a debit, Reimbursement Obligation, payment,
+or promise that funds are available.
+_Avoid_: approved means reserved, spend limit, wallet hold, reservation means payable
+
+**Travel Allowance Source Package** (Phase 21):
+One immutable, named and capability-bounded mileage or per-diem source revision
+whose provenance, population, effective interval, exact rates/components,
+currency, and certification evidence are preserved together. Certification
+proves faithful source execution, not tenant applicability or legal compliance.
+_Avoid_: live government rate, globally compliant schedule, mutable rate table
+
+**Travel Allowance Calculation Occurrence** (Phase 21):
+The immutable calculation evidence for one exact Expense Claim Version item or
+split under its winning Expense Governance Resolution and pinned Travel
+Allowance Source Package or external calculation. It is neither approval,
+Reimbursement Obligation, Field Account capacity, payment, payroll/tax, nor
+accounting truth.
+_Avoid_: travel approval, payable allowance, current rate result, paid mileage
+
+**Travel Allowance Cumulative Capacity Allocation** (Phase 21):
+The immutable consumption of one exact claimant Party-, relationship-, and
+policy-period-scoped mileage or allowance band by an exact Travel Allowance
+Calculation Occurrence.
+_Avoid_: mutable miles-to-date counter, claim-local band, preview reservation
+
+**Travel Allowance Opening Cumulative State** (Phase 21 D28):
+One immutable, evidence-labelled source-defined qualifying quantity immediately
+before an exact D13/D18 cumulative authority boundary. It is neither historical
+claim reconstruction nor money, approval, obligation, payment, tax, payroll,
+Field Account, or accounting truth.
+_Avoid_: initial miles, current odometer, opening balance, amount already paid
+
+**Travel Allowance Capacity Key Contract** (Phase 21 D28):
+The immutable source-defined identity and succession rule for one cumulative
+capacity pool or indivisible aggregation group. A successor explicitly
+continues the existing pool or begins a genuinely new pool; routine profile,
+source, relationship, vehicle-record, or code version changes do not reset it.
+_Avoid_: employee-year key, profile-version counter, vehicle-row balance
+
+**Travel Allowance Cumulative Admission** (Phase 21 D28):
+The independently proved native opening state (`clean_boundary_zero` or
+`opening_cumulative_state`) plus continuing-source proof
+(`asym_source_complete` or `authoritative_feed_complete`) that permit one exact
+cumulative pool or indivisible group to use D18 native calculation for a named
+authority interval. `external_at_boundary` is a complete manifest disposition
+that selects `external_calculation_lane`; neither the disposition nor lane is
+native-admission proof or evidence of completeness, and neither creates an
+Admission.
+_Avoid_: travel feature enabled, clean period means complete, migration passed
+
+**Travel Allowance Cumulative Admission Manifest** (Phase 21 D28):
+One immutable content-addressed proof that every pool or indivisible group
+admitted to native calculation in an exact census has one non-overlapping
+opening disposition and one continuing-source proof before native first use.
+Groups kept in `external_calculation_lane` have no native Admission and remain
+explicitly outside that admitted cohort.
+_Avoid_: setup checklist, mutable readiness percentage, baseline spreadsheet
+
+**Expense Approval Route Version** (Phase 21):
+One immutable prospective finite sequence of independent review requirements
+and capability roles for bounded expense coverage.
+_Avoid_: arbitrary workflow graph, named approver as permanent authority,
+timeout approval
+
+**Approval Assignment Snapshot** (Phase 21):
+The immutable submission-time resolution of one Expense Approval Route Version
+to exact governed expense-operation coverage and initially eligible reviewers
+or queues. Coverage may be an incurred claim item/split or one prospective
+request, but never both; the snapshot is assignment evidence, not continuing
+authorization or approval.
+_Avoid_: mutable approver list, report approval, assignment implies authority
+
+**Expense Review Action** (Phase 21):
+One immutable human reviewer action over exact authorized governed expense-
+operation coverage, recorded after current authority and conflict checks. The
+operation explicitly distinguishes an incurred claim decision from prospective
+authorization.
+_Avoid_: AI approval, self-approval, timeout approval, bulk action as one fact
+
+**Reviewer Exception** (Phase 21):
+A typed, reasoned, independently authorized exception recorded inside an
+Expense Policy Decision without changing the governing Profile Version.
+_Avoid_: generic override, missing evidence silently waived, policy mutation
+
+**Expense Policy Decision** (Phase 21):
+The source-owned disposition of each Expense Claim line under the applicable
+Expense Governance Resolution and worker relationship, including approved,
+rejected, needs-information, or excluded treatment. It pins the Approval
+Assignment Snapshot, exact human review evidence, and any authorized Reviewer
+Exception; it does not prove funding or payment.
+_Avoid_: report paid status, accounting approval, automatic eligibility,
+assignment implies approval
+
 **Accounting-ready expense handoff** (Phase 20/21):
 The immutable, PII-minimized projection through which exact approved expense,
-reimbursement-obligation, payment, or correction facts may enter Phase 20,
-linked through exact approved expense line-disposition coverage to their
-source-owned Approved Expense Snapshot. It is not the report, receipt, approval
-workflow, reimbursement balance, payment executor, field-account entry, or
-external general-ledger record.
+Reimbursement Obligation, External Payment Occurrence evidence, separately
+certified Expense Advance Issuance, Expense Advance Application, Claimant
+Repayment Occurrence, or cause-linked correction facts may enter Phase 20,
+linked through exact source and coverage lineage. It is not the report,
+receipt, approval workflow, Field Account Funding Coverage, payment executor,
+field-account entry, or external general-ledger record. A
+Compensation Handoff Package, Compensation Funding Decision, Compensation
+Draft Delivery Profile Version, Provider Draft Operation, provider
+acceptance/readback, or reservation cannot enter through this expense lane.
+Neither can a Reimbursement Handoff Package, Reimbursement Delivery Profile
+Version, Reimbursement Execution Claim, Reimbursement Handoff Coverage,
+Handoff Attestation, Reimbursement Handoff Operation, or provider draft/input
+acceptance/readback. Only the independently eligible obligation or separately
+certified source economic occurrence may qualify through its own discriminator.
+An Expense Advance or Claimant Repayment Policy, Authorization, residual
+projection, Repayment Decision or Requirement, task, evidence observation,
+dispute, Restitution Review, or Field Account reservation is likewise rejected;
+only a separately certified D16 economic occurrence and exact coverage may
+qualify under accountant-confirmed policy and an independently assigned Phase
+20 D17 posting owner. Every D22 prospective posture, request, evidence
+reference, governance or assignment snapshot, review action, authorization
+decision, compatible capacity reservation, later-claim authorization coverage,
+unused-scope declaration, residual, successor, and correction is likewise
+rejected. Only a later independently qualified D10/D13 actual expense,
+obligation, payment occurrence, or other certified economic source may enter.
+Every D23 Expense Field Account Effect Recognition Profile, Effect Basis,
+Field Account Funding Coverage or Disposition, Effect Coverage, Expense Field
+Account Effect, Support Cycle inclusion, exception, and correction is likewise
+operational support-balance truth and is rejected as accounting authority. An
+independently certified D18 source may preserve minimum necessary D23 lineage,
+but it never inherits D23 qualification, mode, close, or date. Every D24
+Expense Collaboration Assignment or Invitation Version, Evidence Access
+Projection Version, Claimant Confirmation Version, Expense Collaboration
+Action, helper/preparer/submitter fact, notification, reassignment, revocation,
+or lifecycle record is likewise collaboration/assertion provenance and is
+rejected as accounting authority. An independently qualified Approved Expense
+Snapshot or later certified source may retain only its minimum non-
+authoritative D24 actor lineage. Every D25 Expense Claim Resolution Cause
+Contract Version, Case, Occurrence, Projection, Downstream Impact Manifest or
+disposition, task, message, response, source-owner request, and case-completion
+proof is likewise coordination truth and is rejected as accounting authority.
+Only an independently qualified source correction may enter its existing Phase
+20 lane, retaining at most an opaque non-authoritative D25 correlation. Every
+D26 Phase 21 Records Schedule Contract or Binding Version, Record Retention
+Resolution, successor-impact manifest, Records Export Package, Records Export
+Coverage Manifest, tenant external-copy assertion, verified destination custody
+transfer, retrieval-window fact, notification, or export receipt is likewise
+records-governance or custody evidence and is rejected as accounting authority.
+Including a Phase 20 artifact in a D26 custody export neither creates nor
+changes an Accounting Release, delivery, provider-posting, readback, drift, or
+reconciliation fact.
 _Avoid_: exporting an unapproved expense, copying the expense product into
 Phase 20, a generic expense blob, provider identifiers as source truth
 
 **Approved Expense Snapshot** (Phase 21):
-The immutable source-owned version of one approved expense report, preserving
-exact line dispositions, funding truth, allocations, approval evidence, and
-succession lineage. Later approvals or corrections create successors rather
-than changing coverage already handed to accounting; a later payment links to
-the exact covered obligations and snapshot versions without mutating them.
-_Avoid_: a mutable approved report, report-level paid authority, Phase 20
-ownership of receipts or approval
+The immutable source-owned version of exact approved Expense Claim Version
+coverage, preserving every item/split disposition, economic-payer and
+funding-source classification, allocations, policy decision, approval evidence,
+succession lineage, and only the minimum non-authoritative collaboration actor
+provenance needed for audit. One Expense Report Submission may yield zero, one,
+or many snapshots. Later approved coverage creates a non-overlapping supplement
+or successor and never changes coverage already handed to accounting. A D24
+assignment, confirmation, helper action, or submission does not create or
+approve the snapshot, and the snapshot does not prove Field Account Funding
+Coverage or external payment. A D25 Case, Occurrence, Projection, impact
+disposition, or **Complete** label cannot create, revoke, reopen, or supersede
+the snapshot; only D10/D13-owned exact append-only truth can.
+_Avoid_: one snapshot per report, mutable approval, report-level paid authority,
+Phase 20 ownership of receipts or approval, collaboration or resolution as
+approval
+
+**AI Provider Connection** (shared AI foundation):
+The stable Tenant-owned relationship to one exact AI provider account or
+organization, environment, and compatible region. It is not a credential and
+does not authorize a feature or data egress by itself.
+_Avoid_: global AI key, provider name as connection identity, connection implies use
+
+**AI Provider Credential Revision** (shared AI foundation):
+One write-only encrypted, replaceable, and revocable provider authority for an
+AI Provider Connection. Reads expose only safe identity/lifecycle evidence and
+a masked hint; historical work retains the non-secret revision reference.
+_Avoid_: secret readback, mutable key column, credential in logs or job payloads
+
+**AI Capability Binding Version** (shared AI foundation):
+One immutable prospective Tenant- and purpose-scoped selection of an exact AI
+Provider Connection, Credential Revision, capability-certified provider/model
+and region, input/output contract, data-use posture, schema/prompt family, and
+budget/rate envelope. Different purposes may select different bindings.
+_Avoid_: arbitrary endpoint, free-form model, one key enables all AI, silent fallback
+
+**AI Egress Manifest** (shared AI foundation):
+The immutable authorization and minimum-data record for one AI egress,
+including exact source versions/digests, classifications, purpose, Binding
+Version, fields or bytes released, and any redaction or denial result.
+_Avoid_: broad record copy, credential, post-hoc egress justification
+
+**AI Invocation Evidence** (shared AI foundation):
+The immutable idempotent provenance for one model attempt: safe provider/model
+and binding identifiers, input/output digests, schema version, timing, outcome,
+error class, and authorized usage/cost observations. It contains no credential,
+raw model reasoning, or unrestricted prompt/output log.
+_Avoid_: model output as audit truth, secret-bearing trace, retry without identity
+
+**AI Suggestion Version** (shared contract; accepted by the owning domain):
+A typed non-authoritative model result with source and invocation provenance,
+quality warnings, and an explicit accepted, rejected, or superseded outcome.
+Only the owning domain's authorized command may translate a confirmed
+suggestion into its source truth.
+_Avoid_: AI decision, automatic fact, cross-domain write authority
+
+**Reimbursement Obligation** (Phase 21):
+The exact remaining operational amount established and append-only succeeded or
+corrected by the core D16 Expense Settlement Determination when D10/D13 approved
+coverage and the independently applicable policy or law support an amount owed
+to the claimant. D10/D13 own approval facts; D16 owns this record without
+creating or adjudicating legal liability; D15 only consumes it for handoff and
+external-payment evidence. It remains distinct from Field Account capacity,
+payment scheduling, payment evidence, and accounting representation.
+_Avoid_: approved claim, funded expense, scheduled payment, paid reimbursement
+
+**Reimbursement Handoff Package** (Phase 21):
+The immutable, content-addressed, schema-versioned, PII-minimized artifact that
+projects exact non-overlapping Reimbursement Obligation coverage to one
+authorized external reimbursement process. Creation, preview, protected audit
+retrieval, reference download, and redownload are non-executing access. Only a
+separate Reimbursement Execution Claim plus explicit release may hand covered
+work to an executable lane. The package never contains beneficiary-bank
+credentials and does not prove handoff, provider acceptance, scheduling,
+payment, accounting, or reconciliation.
+_Avoid_: generic payout file, download means sent, package means paid, receipt
+bundle, mutable reimbursement batch
+
+**Reimbursement Delivery Profile Version** (Phase 21):
+The immutable prospective binding for one reimbursement lane, scoped to the
+exact Tenant, Legal Entity, claimant-relationship authority, reimbursement
+family, external execution owner, and—when connected—provider organization,
+product, country, environment, external provider participant/payee reference,
+ISO currency, cadence or cycle, and certified operation. The provider reference
+is not a Support Assignment Participant Membership and is never inferred from
+one. It may pin an already-applicable Phase 20 D17
+source-family posting-ownership contract, but it never assigns or infers the
+posting owner of a future payment occurrence. A successor affects future
+unclaimed coverage only and never retargets an existing package, execution
+claim, handoff operation, or payment.
+_Avoid_: mutable route, one profile across entities or countries, payroll
+connection implies accounting connection, route change after unknown outcome
+
+**Reimbursement Execution Claim** (Phase 21):
+The immutable exclusivity record assigning each exact, non-overlapping
+Reimbursement Obligation coverage unit to exactly one executable lane. It is
+created only at explicit release and is distinct from package creation or
+access. A successor may claim only an exact residual proved not released or
+not executed; `outcome_unknown` coverage remains quarantined and cannot fall
+back, expire, or be assigned to a second lane.
+_Avoid_: whole-report route, dual delivery, timer fallback, retry means new
+owner, download as execution claim
+
+**Reimbursement Handoff Coverage** (Phase 21):
+The immutable conservation link from one Reimbursement Execution Claim and
+Handoff Operation to exact non-overlapping Reimbursement Obligation amount
+coverage. It is distinct from Field Account Funding Coverage and
+Reimbursement Payment Coverage. Every released unit resolves once as
+`confirmed_handed_off`, `proven_not_handed_off`, or `outcome_unknown`; it does
+not claim the external process executed or paid that amount.
+_Avoid_: funding reservation, payment application, whole-report coverage,
+overlapping executable owners, handoff coverage means paid
+
+**Handoff Attestation** (Phase 21):
+The immutable staff-authored evidence that one exact Reimbursement Handoff
+Package and Execution Claim were delivered to the named governed external
+process by an explicit method and reference. It proves only the recorded
+handoff. It does not prove provider acceptance, calculation, scheduling,
+funding, payment, claimant receipt, accounting, or reconciliation.
+_Avoid_: download log as handoff, handoff means paid, mutable checklist,
+report-level external processing flag
+
+**Reimbursement Handoff Operation** (Phase 21):
+The immutable source-labelled evidence for one released handoff attempt under
+an exact Reimbursement Execution Claim. A manual operation culminates in a
+Handoff Attestation. A connected payroll or accounts-payable operation may
+reuse D7's concurrency, idempotency, readback, drift, and ambiguity-safe
+operation kernel only for a capability-certified pre-execution draft or input
+that the tenant's effective provider automation cannot approve, calculate,
+submit, schedule, fund, or send. QBO and Xero Accounting bills, payments,
+journals, and other accounting objects remain Phase 20-only and are not D15 AP
+drafts. Each covered unit resolves only as
+`confirmed_handed_off`, `proven_not_handed_off`, or `outcome_unknown`; only a
+proved non-handoff residual may enter a successor.
+_Avoid_: generic payout operation, provider draft means paid, blind retry,
+automatic route switch, compensation/reimbursement truth conflation
+
+**Expense Advance Policy Version** (Phase 21):
+The immutable prospective Tenant- and Legal-Entity-owned rules under which an
+organization may authorize, issue, establish claimant-use readiness,
+substantiate, apply, or carry an expense advance for one bounded claimant
+context. External return authority belongs to the Claimant Repayment Policy.
+_Avoid_: global advance setting, mutable deadline, policy proves payment,
+accountable-plan law engine
+
+**Claimant Repayment Policy Version** (Phase 21):
+The immutable prospective Tenant- and Legal-Entity-owned rules for deciding and
+externally resolving exact claimant-return candidates from certified source
+families. It does not establish legal debt, payroll authority, payment, or
+accounting truth.
+_Avoid_: collections policy, automatic personal-spend debt, mutable repayment
+rules, one policy for every jurisdiction
+
+**Expense Advance Authorization Version** (Phase 21):
+The immutable organization authority to issue up to an exact amount and ISO
+currency for one claimant, purpose, policy version, and expected expense
+interval. It does not prove issuance, claimant use, expense, or accounting.
+_Avoid_: advance payment, available cash, authorization means issued
+
+**Expense Advance Issuance Occurrence** (Phase 21):
+The immutable source-qualified economic fact that an external organization
+process issued an exact advance to the authoritative claimant. Evidence
+strength remains explicit and does not prove approved expense or accounting.
+_Avoid_: authorization as issuance, provider draft as issuance, accounting
+entry as claimant receipt
+
+**Advance Evidence Observation** (Phase 21):
+One immutable source-labelled observation about an Expense Advance Issuance
+Occurrence. A stronger observation corroborates or conflicts with the same
+economic identity rather than creating another issuance.
+_Avoid_: uploaded file as a second advance, silent proof upgrade, mutable
+evidence status
+
+**Advance Application Readiness** (Phase 21):
+The source-contract determination called claimant-use readiness in D16: an
+issued advance is eligible to satisfy exact approved expense coverage. It does
+not claim general cash availability, withdrawability, authorization, provider
+acceptance, check creation, or accounting.
+_Avoid_: available funds, issued means applicable, scheduled means usable,
+accounting means received
+
+**Expense Settlement Determination** (Phase 21):
+The immutable Approved-Expense-Snapshot-rooted result for claimant-
+reimbursable coverage that atomically conserves approved coverage across
+advance applications, the remaining Reimbursement Obligation, typed residuals,
+and separately tenant-authorized Field Account Funding Coverage. It is a core
+claimant-reimbursement command; optional Advance and Claimant Repayment policy
+activation controls only those branches and never gates the ordinary obligation
+or funding partition. The same command may materialize Funding Coverage only
+from already-authorized tenant policy; the determination itself supplies no
+funding authority. A claimant-paid D23 Effect Basis may reference this
+determination; organization-card, organization cash/debit/direct-payment, and
+certified-payable sources instead bind their exact D10/D13 approved economic-
+payer slice and source occurrence directly and never fabricate this record.
+_Avoid_: reduce reimbursement later, mutable settlement, report paid status
+
+**Expense Field Account Effect Recognition Profile** (Phase 21):
+The immutable prospective D23 policy version that selects one certified
+source-family-specific occurrence for support-balance inclusion timing over an
+exact Tenant, Legal Entity, purpose, Field Account, and ISO-currency scope. It
+is not GAAP, tax, accounts-payable, payment, or QBO/Xero policy.
+_Avoid_: cash-basis accounting setting, recognize expense, per-claim timing
+
+**Expense Field Account Effect Basis** (Phase 21):
+The immutable Approved-Expense-Snapshot-rooted record pinning the one winning
+D23 profile, certified source family and stable economic occurrence, immutable
+observation/evidence versions, exact approved and funding coverage, Field
+Account amount/currency authority, cutover/close lineage, and correction
+lineage for one expense-effect slice. Claimant-paid slices may bind an Expense
+Settlement Determination; organization-paid slices bind approved economic-
+payer coverage directly.
+_Avoid_: second Expense Settlement Determination, mutable posting basis,
+provider status as authority, observation revision as a new economic root
+
+**Expense Field Account Effect Coverage** (Phase 21):
+The exact non-reusable, same-currency coverage connecting one approved economic
+slice to at most one Expense Field Account Effect while explicitly preserving
+organization-funded and unresolved residual dispositions.
+Its uniqueness is specific to the D23 operational namespace; independent Phase
+20 accounting-source coverage neither consumes nor satisfies it.
+_Avoid_: available-balance partial, cross-currency sum, reusable expense amount
+
+**Expense Field Account Effect** (Phase 21):
+The signed D23 operational occurrence that changes a Field Account through a
+later D1 Support Cycle close after its exact source-family prerequisites and
+coverage qualify. A root expense effect ordinarily reduces the Field Account;
+a linked correction may increase or decrease it without rewriting history. It
+is not expense approval, reimbursement, payment, accounting posting, bank
+reconciliation, or evidence of available worker funds.
+_Avoid_: recognized expense, paid expense, QBO/Xero expense, worker withdrawal
+
+**Expense Advance Application** (Phase 21):
+The immutable same-currency, non-overlapping coverage that applies a
+readiness-qualified Expense Advance Issuance Occurrence to exact eligible
+Approved Expense Snapshot coverage.
+_Avoid_: reimbursement payment, advance balance edit, report-level offset
+
+**Advance Residual Position** (Phase 21):
+The through-dated derived portion of one issued advance not yet applied,
+externally returned, or otherwise resolved by a certified occurrence. It is not
+a wallet balance, debt, or claimant-owned money.
+_Avoid_: amount available, amount owed, mutable advance balance
+
+**Claimant Repayment Decision** (Phase 21):
+The immutable authorized organization disposition of exact source-final and
+responsibility-proved coverage as corrected, no return requested, external
+return requested, or referred to a specialist.
+_Avoid_: personal classification means debt, cardholder means responsible,
+automatic repayment request
+
+**Repayment Subject Determination** (Phase 21):
+The immutable source-backed determination of the exact Party whose relationship,
+jurisdiction, responsibility evidence, and conflict/dispute route make them an
+eligible subject of a Claimant Repayment Decision. It is not debt or a return
+request.
+_Avoid_: cardholder is liable, assignee is debtor, portal role as responsibility
+
+**Claimant Repayment Requirement** (Phase 21):
+The exact operational amount and ISO currency that finance has authorized
+requesting back from an authoritative claimant under a Claimant Repayment
+Decision. It is not adjudicated debt, collection authority, payment, payroll,
+or accounting truth.
+_Avoid_: receivable by default, debt balance, payroll deduction authorization
+
+**Claimant Repayment Occurrence** (Phase 21):
+The immutable source-qualified economic fact that a claimant returned an exact
+amount through an externally owned process. It remains distinct from the
+request, evidence strength, accounting entry, and final bank reconciliation.
+_Avoid_: acknowledgment as return, staff task complete means repaid, accounting
+entry as money returned
+
+**Repayment Evidence Observation** (Phase 21):
+One immutable source-labelled observation about a Claimant Repayment
+Occurrence. Stronger evidence corroborates or conflicts with the same economic
+identity and never silently mints a second return.
+_Avoid_: mark repaid, silent confirmation upgrade, fuzzy payment match
+
+**Claimant Repayment Coverage** (Phase 21):
+The immutable, exact, non-overlapping application of one Claimant Repayment
+Occurrence to one or more Claimant Repayment Requirements in the same ISO
+currency, with every unapplied residual typed explicitly.
+_Avoid_: negative reimbursement, Field Account netting, one mutable claimant
+balance
+
+**Repayment Restitution Review** (Phase 21):
+The cause-linked review opened when source truth changes after a claimant has
+returned money. It preserves prior occurrences and cannot itself authorize or
+prove an organization-to-claimant restoration payment.
+_Avoid_: destructive undo, silent future offset, repayment reversal means paid
+
+**Field Account Funding Coverage** (Phase 21):
+The immutable allocation of exact organization-controlled Field Account
+capacity to one typed approved purpose under a tenant policy. Compensation
+coverage reserves capacity for one exact Compensation Funding Decision;
+reimbursement coverage reserves capacity for one exact approved expense
+purpose; expense-advance coverage reserves capacity for the exact approved
+funding component of one Expense Advance Authorization Version; and an
+explicitly certified prospective-expense reservation may reserve same-purpose,
+same-currency planning capacity for one exact Prospective Expense Authorization
+Decision. Coverage prevents reuse but is neither a Field Account debit, a
+Reimbursement Obligation, a payroll or payment authorization, nor evidence that
+cash moved. When a qualified effect posts, one immutable disposition makes the
+exact overlapping active coverage amount derive `fulfilled`; the original
+coverage is not rewritten and effect-backed coverage never derives `released`.
+Capacity subtracts the reservation before recognition and the debit afterward,
+never both. A D22 prospective reservation, D10/D16 actual funding coverage, and
+D23 effect are one exact append-only disposition lineage with at most one
+capacity-bearing state. Only a non-overlapping remainder may derive `released`,
+and only with proof that the exact work was never handed off/submitted or exact
+downstream cancellation/reversal proof. Unknown work stays reserved in an
+exception and coverage never expires by timer.
+_Avoid_: worker-owned money, reimbursement balance, payment authorization,
+available cash, advance application means fulfilled, compensation coverage
+equals compensation expense
+
+**Field Account Funding Coverage Disposition** (Phase 21):
+The immutable append-only fact that derives one exact Funding Coverage slice as
+fulfilled by a qualified effect, reclassified into an exact successor coverage
+family, released with required non-use/cancellation proof, or unresolved and
+quarantined. It never mutates the original coverage. Fulfillment and the
+balanced effect commit atomically so one slice cannot consume capacity as both
+reservation and debit. In exact-payment-qualified reimbursement, a payment
+return atomically reverses the effect and creates successor reserved coverage
+when the Reimbursement Obligation remains live.
+_Avoid_: mutable coverage status, timer release, reservation plus debit,
+returned payment frees a live obligation
+
+**Support Cost Source Admission Contract** (Phase 21):
+The immutable prospective contract that identifies one exact source family and
+the source-specific evidence, finality, correction, completeness, currency, and
+capability conditions under which its residual organization costs may be
+considered by Phase 21 D20. It cannot admit a D21 asset valuation, appraisal,
+sale, brokerage, liquidation, disposition, or proceeds cost, even when a source
+labels that charge a fee; those facts remain exclusively inside D21's source-
+mode-honest realization contract and cost treatment.
+_Avoid_: provider record exists means eligible, whole-ledger connector, generic
+posted status, noncash-disposition cost as residual support cost
+
+**Support Cost Economic Occurrence Root** (Phase 21):
+The canonical identity that joins every proved source alias for one real-world
+organization cost and permits at most one semantic Field Account application
+owner. It cannot be rooted in a D21 asset lot, disposition, realization,
+valuation, brokerage, liquidation, or proceeds-cost fact.
+_Avoid_: provider ID as economic uniqueness, duplicate cost per source, fallback
+owner
+
+**Support Cost Source Observation** (Phase 21):
+A private source-labelled observation about a potential organization support
+cost before certified source finality. It has no Field Account effect.
+_Avoid_: imported cost, pending debit, observed means applied
+
+**Organization Support Cost Occurrence** (Phase 21):
+One immutable source-final, purpose-compatible residual organization service or
+direct-cost fact whose semantic family is exclusively owned by Phase 21 D20.
+D21 sale, brokerage, liquidation, valuation, and disposition costs and Phase 20
+D19 processor costs are categorically excluded rather than treated as residual
+families or fallback D20 occurrences.
+_Avoid_: assessment, compensation cost, expense claim, processor cost, bill as
+balance effect, noncash realization cost
+
+**Support Cost Bearing Policy Version** (Phase 21):
+The immutable prospective tenant choice for whether one certified support-cost
+family is organization-absorbed, Field-Account-borne, exactly split, or sent to
+review.
+_Avoid_: arbitrary debit rule, executable formula, retroactive cost policy
+
+**Support Cost Application Determination** (Phase 21):
+The immutable proposal that applies one winning bearing policy to one qualified
+Organization Support Cost Occurrence and identifies exact target, absorbed,
+carryforward, and unresolved dispositions.
+_Avoid_: applied cost, close result, staff journal
+
+**Support Cost Application Manifest** (Phase 21):
+The immutable per-currency conserving publication of one qualified support
+cost's exact terminal dispositions and target coverage; unresolved target work
+is not admitted as close-complete.
+_Avoid_: mutable allocation sheet, cross-currency total, unresolved means done
+
+**Support Cost Carryforward** (Phase 21):
+A bounded non-overlapping tranche of a qualified support cost awaiting a later
+permitted disposition without a current Field Account effect. It is neither
+worker debt nor AP, availability, payment, or a silently expiring adjustment.
+_Avoid_: amount owed by missionary, pending debit, automatic future charge
+
+**Support Cost Accounting Candidate Handoff** (Phase 21):
+A PII-minimized projection of a closed Organization Support Cost Occurrence for
+possible future Phase 20 qualification. It is accounting-dark until a separate
+Phase 20 source contract proves semantics, nonduplicate posting ownership, and
+admission.
+_Avoid_: accounting-ready label before Phase 20 qualification, journal
+request, ready to post
+
+**Engagement Authority Reference** (Phase 21):
+The exact externally owned worker/payee arrangement identity and version that
+a Compensation Funding Plan and Decision reference. The tenant's HR, legal,
+payroll, or accounts-payable authority—not Asym—owns classification,
+compensation entitlement, tax treatment, and changes to that arrangement. The
+reference may pin an exact provider identity/version or a governed
+tenant-issued record with issuer/actor, effective interval, classification
+asserted by that external authority, source/evidence reference, and immutable
+version.
+_Avoid_: inferring employee or contractor status from the `missionary` role,
+Field Account type, fundraising goal, or compensation plan
+
+**Compensation Funding Period** (Phase 21):
+The exact half-open interval for one compensation-funding proposal and
+decision. It is independently identified even when it happens to align with a
+Support Cycle or an external payroll/accounts-payable period.
+_Avoid_: support cycle equals payroll period, month-only identity, mutable
+period boundary
+
+**Compensation Funding Plan Version** (Phase 21):
+The immutable prospective tenant configuration that references an Engagement
+Authority Reference, scope, destination, Field Account funding currency,
+external compensation/payment currency, visibility, cadence, half-open
+configuration-effective interval, and exactly one bounded funding method:
+Finance enters each cycle, Fixed approved target, or Up to an approved maximum.
+It does not own a cycle's Compensation Funding Period. The currencies are equal
+by default; a different pair requires exact external conversion authority,
+amounts, rounding, residual, and provenance. The default is `Not managed in
+Asym`.
+_Avoid_: payroll policy, wage formula, percentage of balance, automatic short
+check, mutable standing amount, overlapping Plan Version intervals, plan
+effective interval equals Compensation Funding Period, one ambiguous currency
+for cross-currency funding
+
+**Compensation Funding Proposal** (Phase 21):
+The disposable, cycle-specific preview calculated from one active plan,
+Finance-confirmed Field Account capacity, non-reusable prior coverage, and any
+configured support-balance floor. It has no financial, payroll, payment, or
+Field Account authority.
+_Avoid_: proposed equals approved, proposal creates coverage, proposal as
+balance entry
+
+**Compensation Funding Decision** (Phase 21):
+The immutable finance authorization for one worker/payee and Compensation
+Funding Period that pins its exact Engagement Authority Reference and plan versions,
+Field Account-covered amount, separately organization-covered amount,
+unresolved amount, both money currencies and conversion evidence when
+different, destination, actor, time, and evidence. Its purpose-typed coverage
+reserves capacity but does not debit the Field Account, establish wages,
+submit payroll, move money, or prove payment.
+Compare-and-swap plus same-scope/period uniqueness permits one current,
+non-superseded decision lineage; changes append successors and off-cycle work
+uses a distinct exact period.
+_Avoid_: payroll approval, wage decision, payment order, mutable cycle amount,
+duplicate current decision, funding decision equals Field Account effect
+
+**Compensation Effect Recognition Policy** (Phase 21):
+The prospective Legal-Entity policy that permits a Compensation Field Account
+Effect from exactly one evidence authority: the guided finalized External
+Compensation Result or the bounded exact External Payment Occurrence
+alternative. It cannot qualify a plan, proposal, funding decision, coverage,
+export, provider draft, accounting entry, pay-run schedule, or payslip.
+Payment-based recognition additionally requires an exact source-qualified
+organization-cost basis or a link to a finalized result that supplies it; net
+cash alone is insufficient.
+_Avoid_: debit on approval, export means expense, posted payroll means paid,
+switching evidence per occurrence, inferring gross cost from net payment
+
+**Compensation Handoff Package** (Phase 21):
+The immutable, content-addressed, schema-versioned, PII-minimized artifact that
+projects one authorized Compensation Funding Decision to the tenant's external
+payroll, contractor-AP, or accounting process. It always exists as
+human-usable evidence, while one immutable route selects exactly one executable
+outbound lane: artifact fulfillment, one exact capability-certified provider
+draft input, or one separately certified Phase 20 source handoff. Artifact
+existence is not a second execution, and an accounting projection remains only
+a source handoff; the decision/reservation alone creates no payable, expense,
+Posting Intent, or Accounting Release.
+_Avoid_: universal payroll payload, dual delivery, provider payload as source
+truth, package download means submitted, accounting connection implies payroll
+access, reservation as compensation expense or payable
+
+**Compensation Handoff Adapter** (Phase 21):
+The provider-, product-, country-, environment-, and operation-pinned boundary
+that compiles one Compensation Handoff Package only into a currently certified
+provider capability, or supplies exact provider readback plus artifact
+fulfillment when no equivalent safe write exists. A fully built adapter means
+the supported lifecycle is complete; it never implies provider parity,
+payroll calculation, execution, payment, or accounting authority.
+_Avoid_: logo-level connector, adjacent-object substitution, regional product
+collapse, provider acceptance equals payroll completion
+
+**Compensation Handoff Adapter Portfolio** (Phase 21):
+The D7 launch set is provider- and region-pinned Gusto Employee Payroll Draft,
+ADP Workforce Now Pay Data Input, separate Xero Payroll AU/NZ draft-input
+adapters, and complete QuickBooks Workforce/Xero Payroll UK
+readback-and-artifact adapters where no equivalent safe per-run write is
+proved. The Phase 21 multi-provider launch is incomplete until at least two
+direct-write adapters hold current production authorization and certification;
+QBO/Xero Accounting remain Phase 20-only.
+_Avoid_: sandbox means launched, provider review pending means available,
+Xero Payroll implies Xero Accounting, readback-only advertised as direct write
+
+**Compensation Draft Delivery Profile Version** (Phase 21):
+The immutable prospective binding of one Tenant, Legal Entity, provider
+organization, provider product, country, environment, external provider
+participant/payee reference, currency, pay cycle, component-role mapping, and
+certified operation for one provider draft lane. The provider reference is not
+a Support Assignment Participant Membership and is never inferred from one. A
+replacement version affects future packages only and never retargets an
+existing package or Provider Draft Operation.
+_Avoid_: mutable destination, name-only external provider participant/payee
+match, inferred provider organization, one profile across countries or products
+
+**Provider Draft Operation** (Phase 21):
+The immutable, source-labelled evidence of one explicit attempt to apply a
+Compensation Handoff Package to one exact provider draft/input target,
+including concurrency proof, request/response identity, exact readback where
+exposed or exact permitted provider/staff confirmation otherwise, drift, and
+per-unit coverage disposition. Covered units resolve only as
+`confirmed_updated`, `proven_not_updated`, or `outcome_unknown`; only proved
+non-updates may enter a residual successor, while unknown work stays
+quarantined.
+_Avoid_: blind retry, destructive overwrite, mutable attempt, timeout means
+failed, accepted means completed or paid
+
+**External Compensation Result** (Phase 21):
+The immutable source-labelled evidence of the finalized result owned by the
+tenant's external payroll or accounts-payable authority, including exact
+organization-cost roles and any failure, cancellation, partial reversal, or
+reversal. A processed result or payslip does not by itself prove payment.
+_Avoid_: Asym-calculated payroll, provider draft as final result, net pay plus
+withholdings double-counted as organization cost, payslip equals paid
+
+**Compensation Field Account Effect** (Phase 21):
+The append-only debit or correction created only from evidence qualified by the
+pinned Compensation Effect Recognition Policy and limited by the exact
+Compensation Funding Decision and coverage. It carries a component-level
+result/payment-to-decision application manifest that conserves the qualified
+organization-cost basis exactly into Field Account-applied, separately
+organization-funded, and unresolved variance. Field Account application cannot
+exceed unused active compensation coverage, organization funding cannot exceed
+the Decision authorization, and mismatches never silently clamp, prorate, or
+change funding-source priority. It preserves the original decision, result,
+payment, and closed-balance history. Only a change or reversal in the
+policy-selected authority may append signed component deltas; disagreement on
+the other track remains evidence or an exception, not an automatic reversal.
+_Avoid_: debit from a plan or reservation, mutable draw, automatic backpay,
+result overapplication, silent funding reprioritization, editing a prior close
+
+**Compensation Payment Coverage** (Phase 21):
+The immutable proof of the exact compensation-result amount covered by one
+External Payment Occurrence. A mixed compensation/reimbursement payment uses
+the occurrence's one payment currency, exact typed Compensation Payment
+Coverage, Reimbursement Payment Coverage, and one signed, typed, explicitly
+resolved residual disposition, including zero, that together conserve the
+complete payment. A covered source component in another currency preserves
+both source/payment amounts and exact conversion evidence.
+_Avoid_: duplicate payment occurrences for one transfer, report-level paid,
+unallocated or untyped residual, implicit FX, coverage beyond the payment
+
+**Compensation Exception Case** (Phase 21):
+The cause-owned finance exception for an unresolved funding shortfall,
+authority mismatch, capability failure, ambiguous provider outcome, drift,
+payment issue, or reversal. Resolution appends exact evidence or a successor
+decision; it never silently reduces wages, creates debt or backpay, rewrites
+the plan, or clears because a generic task was closed.
+_Avoid_: one catch-all error flag, automatic short check, destructive retry,
+task completion equals financial resolution
+
+**External Payment Occurrence** (Phase 21):
+The immutable source fact and evidence that the tenant's payroll,
+accounts-payable, or governed manual process executed a compensation or
+reimbursement payment with exact covered amounts. It preserves the exact
+source label and evidence strength—such as staff-attested, payroll/AP-provider
+observed, payment-provider observed, bank observed, or another separately
+certified authority—plus authoritative payee, amount, ISO currency, source,
+provider, observed, and recorded times. Staff evidence remains visibly
+**Payment recorded by finance** and is never silently upgraded to stronger
+confirmation. A request, approval, schedule, provider submission, payslip,
+accounting record, or Field Account debit is not this occurrence.
+_Avoid_: Asym payout, inferred payment, approval implies paid, report-level
+paid, provider draft acceptance as payment, QBO/Xero entry as payment proof
 
 **Accounting-ready expense occurrence** (Phase 20/21):
 A typed, source-owned Cleared Organization-Paid Expense, Approved Reimbursement
@@ -2380,15 +4067,141 @@ authorization as cleared spending, editable debit and credit input
 
 **Reimbursement Payment Coverage** (Phase 20/21):
 The immutable proof of the exact approved reimbursement obligations and
-amounts covered by one source-owned payment, including partial, grouped,
-one-to-many, and many-to-one settlement. It is homogeneous for one Tenant,
-Legal Entity, payee, disbursement currency, and posting owner; a cross-payee
-batch only groups separate atomic payments. Original applications never
-overapply or mutate; later returns, disputes, and corrections append new
-occurrences. It is evidence, not an AP ledger or mutable outstanding-balance
-system.
+amounts covered by one External Payment Occurrence represented by
+source-owned evidence, including partial, grouped, one-to-many, and many-to-one
+settlement. It is homogeneous for one Tenant, Legal Entity, payee,
+disbursement currency, external execution owner, and posting owner; a
+cross-payee batch only groups separate atomic payments. Original applications
+never overapply or mutate;
+later returns, disputes, and corrections append new occurrences. A
+reimbursement-only payment is conserved by this coverage plus one signed,
+typed, resolved payment-side residual disposition, including zero. A mixed
+compensation/reimbursement payment uses the occurrence's one payment currency
+and is conserved by one complete typed manifest across exact Compensation
+Payment Coverage, Reimbursement Payment Coverage, and one signed, typed,
+resolved residual disposition, including zero. A source component in another
+currency preserves immutable source/payment amounts and exact conversion
+evidence; unresolved residual or FX ambiguity fails closed. Phase 20 D17 assigns one
+posting owner to the whole payment; if payroll/AP owns it, the reimbursement
+slice cannot create a standalone Accounting Release. It is evidence, not Asym
+payment execution, an AP ledger, or a mutable outstanding-balance system.
 _Avoid_: whole-report `paid`, some-or-all payment confirmation, inferred
-coverage, Phase 20 reimbursement aging
+coverage, Phase 20 reimbursement aging, split posting ownership for one
+payment, untyped residual or implicit FX, reimbursement-only release for an
+externally posted mixed payment
+
+**Accepted Source Purpose Authority Snapshot** (Phase 13; consumed by Phase 21):
+The immutable accepted posted-line projection that freezes exact Designation,
+restriction-or-preference classification, purpose and excess-use policy
+version, source-posting coverage, and one closed provenance variant. When the
+accepted source presented or captured governed content, that variant freezes
+the exact source-owned publication kind, reference, and digest. Otherwise it
+records typed `not_applicable` or `not_captured` together with the exact
+source-purpose evidence reference and digest, such as a Designation,
+remittance, memo, or acceptance-authority record. Phase 22 owns a public
+giving-page publication only when that page was the accepted source, over
+Phase 23's CMS substrate; Phase 17 owns a message publication only when a
+governed communication was the accepted source. Phase 21 consumes the snapshot
+to prove purpose compatibility but cannot edit or infer it from current
+labels, pages, organization discretion, or a fabricated publication.
+_Avoid_: current Designation equals historical purpose, mutable restriction
+flag, worker page as authority, invented publication, reallocation policy
+overriding accepted terms
+
+**Support Reallocation Case** (Phase 21):
+The bounded coordination and review record for an active Field Account
+reallocation or exit disposition. It relates a request, policy, coverage,
+organization Decision, and independent outcomes without becoming balance,
+payment, accounting, or lifecycle truth.
+_Avoid_: transfer record, mutable financial status, worker withdrawal
+
+**Support Reallocation Policy Version** (Phase 21):
+The immutable prospective tenant policy governing request mode, eligible typed
+Phase 21 destinations, bounded limits, approval roles, visibility, and exit
+suggestions. It cannot grant worker execution authority or override accepted
+source-purpose authority.
+_Avoid_: workflow builder, mutable transfer rules, arbitrary destination policy
+
+**Support Reallocation Coverage Manifest** (Phase 21):
+The immutable mapping of each proposed disposition line to exact accepted
+source-purpose authority and unreserved Field Account capacity. It is neither
+an aggregate balance nor evidence that an internal or external outcome
+occurred.
+_Avoid_: available balance, fungible support pool, completed transfer
+
+**Support Reallocation Coverage** (Phase 21):
+The non-reusable exact source-purpose and amount coverage activated by an
+organization Decision. An internal pair fulfills it atomically; an external
+line remains covered through partial or unknown outcomes until an exact
+qualified disposition effect fulfills it or authoritative non-execution proof
+releases the remainder.
+_Avoid_: worker-owned reserve, timer-expiring hold, approval equals debit,
+ambiguous failure releases capacity
+
+**Reallocation Eligibility Projection** (Phase 21):
+The disposable staff calculation of Finance-confirmed balance after every
+qualified negative open-cycle effect not yet in the close, active non-reusable
+coverage, and the policy floor. It is not cash, worker availability, authority,
+or a durable financial fact, and provisional positive support never increases
+it.
+_Avoid_: transferable balance, spendable funds, approved amount
+
+**Support Reallocation Decision** (Phase 21):
+The immutable organization authorization for exact reviewed disposition lines
+under pinned source-purpose, policy, lifecycle, destination, close, and capacity
+authority. It is distinct from a worker request, Field Account occurrence,
+external payment, and Accounting Release.
+_Avoid_: worker choice, approval means paid, mutable transfer approval
+
+**Worker Lifecycle Authority Reference** (Phase 21):
+The exact externally owned worker-lifecycle identity, version, status, and
+effective boundary that authorizes exit handling. It is distinct from D4's
+compensation-specific Engagement Authority Reference and is never inferred from
+dashboard access, fundraising activity, `missionaries.is_active`, or a finance
+note.
+_Avoid_: finance-selected exit date, support-account status, manual departure
+flag
+
+**Exit Disposition Manifest** (Phase 21):
+The immutable conserving plan for every purpose-and-currency amount associated
+with an exiting Field Account, including internal destinations, covered
+charitable succession, continuing authorities, and explicit
+organization-retained successors. It is not one atomic outcome and cannot
+cancel independently live compensation, reimbursement, legal, payment, or
+communication work.
+_Avoid_: sweep balance, close-and-zero, worker-owned exit payout
+
+**Charitable Succession Handoff** (Phase 21):
+The evidence-gated projection of an organization-authorized external
+charitable disposition to an exactly identified recipient under applicable
+jurisdiction and purpose authority. It preserves exact coverage but does not
+move money or prove payment.
+_Avoid_: external transfer, paid grant, worker-selected charity payout
+
+**Charitable Succession Result** (Phase 21):
+The immutable external outcome that matches the organization Decision,
+still-valid required authority, Charitable Succession Handoff, and
+authoritative payment occurrence. Payment evidence alone, an unknown provider
+result, or a Handoff is not this Result. Its qualified Field Account effect is
+one atomic balanced occurrence: the source debit and an exact typed
+organization-control/disposition counter-entry enter the same governed close.
+The counter-entry is neither a recipient Field Account nor general-ledger
+truth.
+_Avoid_: handoff complete, payment lookup equals approval, inferred external
+success, one-sided external debit
+
+**Support Reallocation Accounting Occurrence** (Phase 21; consumed by Phase 20):
+The typed, close-covered qualified internal or charitable-succession occurrence
+that is the sole eligible future source root for Phase 20
+accountant-confirmed interpretation and posting ownership. The current Phase 20
+generation deliberately keeps this source family unsupported and
+accounting-dark until a separately approved Phase 20 change certifies its
+source schema, accountant semantics, Posting Profile recipe, and Posting
+Ownership Cutover behavior. A request, policy, coverage, Decision, Handoff,
+open-cycle pair, unknown external result, or uncertified close-covered
+occurrence remains accounting-dark.
+_Avoid_: transfer approval as journal authority, direct QBO/Xero write,
+reservation as accounting effect, generic journal fallback
 
 **Legal Entity** (Phase 7 canonical; consumed by source phases and Phase 20):
 The enduring legal and financial organization beneath a Tenant that receives

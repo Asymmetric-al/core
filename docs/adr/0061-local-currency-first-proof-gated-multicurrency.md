@@ -109,6 +109,14 @@ offered at checkout. D20 only consumes authoritative currency and settlement
 facts that an upstream source is already permitted to create; it does not
 activate foreign-currency giving.
 
+Phase 21 D6 does not turn D20 certification into a universal Field Account
+gate. A retained Stripe source may reference only the exact D20 settlement,
+payout-destination, and accounting evidence its Phase 21 activation path
+needs; offline-deposit and direct-credit paths qualify under their separate
+Phase 21 D2 evidence contracts. Phase 21 owns Field Account activation,
+admission, close, and balance truth, and QBO/Xero connectivity never becomes a
+universal prerequisite for those authorities.
+
 ## Staff experience
 
 Tenants on the ordinary path see one calm explanation, for example:

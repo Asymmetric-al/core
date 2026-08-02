@@ -709,28 +709,28 @@ preview, readiness control, intent route, provider route, or inherited Target
 Live default. In particular, a Reserved key does not inherit a shared profile
 merely because a future Live key may use one.
 
-| Stable key                              | `source_owner` | `blocker_codes`                                                                              |
-| --------------------------------------- | -------------- | -------------------------------------------------------------------------------------------- |
-| `statement_current_updated_v1`          | `phase_19`     | `source_and_exposure_proof`, `exact_current_artifact`, `recipient_and_safety_contract`       |
-| `recurring_recovery_started_v1`         | `phase_16`     | `source_fact_contract`, `recipient_contract`, `consent_contract`, `occurrence_contract`      |
-| `recurring_action_required_v1`          | `phase_16`     | `producer_owned_action`, `safe_failure_reason`, `recovery_state_contract`                    |
-| `recurring_occurrence_missed_v1`        | `phase_16`     | `role_safe_delivery_plan`, `no_debt_or_backcharge_claim`, `meaningful_state_change_contract` |
-| `recurring_payment_truth_corrected_v1`  | `phase_16_7`   | `provider_confirmed_correction`, `artifact_consequence_contract`                             |
-| `recurring_ach_initiated_v1`            | `phase_16`     | `processing_truth_contract`, `receipt_finality_contract`                                     |
-| `recurring_upcoming_charge_v1`          | `phase_16`     | `notice_obligation_contract`, `amount_date_action_facts`                                     |
-| `recurring_schedule_changed_v1`         | `phase_16`     | `effective_date_contract`, `in_flight_behavior`, `provider_sync_truth`                       |
-| `fixed_pledge_upcoming_v1`              | `phase_16`     | `enrollment_contract`, `no_debt_or_cash_claim`                                               |
-| `fixed_pledge_source_aware_followup_v1` | `phase_16`     | `matching_uncertainty_contract`, `stop_purpose_action`                                       |
-| `identity_account_claim_invitation_v1`  | `phase_4`      | `fresh_invitation_authority`, `protected_handoff`, `expiry_and_revocation`                   |
-| `identity_magic_link_v1`                | `identity`     | `signed_send_hook`, `tenant_recipient_action_mapping`, `hook_deadline_proof`                 |
-| `identity_email_otp_v1`                 | `identity`     | `adopted_auth_flow`, `secret_exclusion`, `producer_rate_and_expiry`                          |
-| `identity_password_recovery_v1`         | `identity`     | `scanner_safe_landing`, `fresh_proof`, `terminal_state_contract`                             |
-| `identity_email_change_v1`              | `identity`     | `recipient_cardinality`, `token_hash_mapping`                                                |
-| `document_artifact_ready_v1`            | `phase_18`     | `artifact_recipient_authority`, `protected_download_action`                                  |
-| `statement_current_available_v1`        | `phase_19`     | `frozen_delivery_occurrence`, `exact_current_artifact`, `recipient_and_delivery_contract`    |
-| `statement_current_withdrawn_v1`        | `phase_19`     | `source_owned_withdrawal`, `purpose_and_jurisdiction_admission`, `safe_help_contract`        |
-| `statement_additional_copy_ready_v1`    | `phase_19`     | `fresh_copy_occurrence`, `exact_current_authority`, `no_lifecycle_replay`                    |
-| `statement_delivery_attention_v1`       | `phase_19`     | `grouped_actionable_cause`, `staff_owner_contract`, `no_donor_failure_notice`                |
+| Stable key                              | `source_owner` | `blocker_codes`                                                                                                          |
+| --------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `statement_current_updated_v1`          | `phase_19`     | `source_and_exposure_proof`, `exact_current_artifact`, `recipient_and_safety_contract`                                   |
+| `recurring_recovery_started_v1`         | `phase_16`     | `source_fact_contract`, `recipient_contract`, `consent_contract`, `occurrence_contract`                                  |
+| `recurring_action_required_v1`          | `phase_16`     | `producer_owned_action`, `safe_failure_reason`, `recovery_state_contract`                                                |
+| `recurring_occurrence_missed_v1`        | `phase_16`     | `role_safe_delivery_plan`, `no_debt_or_backcharge_claim`, `meaningful_state_change_contract`                             |
+| `recurring_payment_truth_corrected_v1`  | `phase_16_7`   | `provider_confirmed_correction`, `artifact_consequence_contract`                                                         |
+| `recurring_ach_initiated_v1`            | `phase_16`     | `processing_truth_contract`, `receipt_finality_contract`                                                                 |
+| `recurring_upcoming_charge_v1`          | `phase_16`     | `notice_obligation_contract`, `amount_date_action_facts`                                                                 |
+| `recurring_schedule_changed_v1`         | `phase_16`     | `effective_date_contract`, `in_flight_behavior`, `provider_sync_truth`                                                   |
+| `fixed_pledge_upcoming_v1`              | `phase_16`     | `enrollment_contract`, `no_debt_or_cash_claim`                                                                           |
+| `fixed_pledge_source_aware_followup_v1` | `phase_16`     | `matching_uncertainty_contract`, `stop_purpose_action`                                                                   |
+| `identity_account_claim_invitation_v1`  | `phase_4`      | `fresh_invitation_authority`, `protected_handoff`, `expiry_and_revocation`                                               |
+| `identity_magic_link_v1`                | `identity`     | `signed_send_hook`, `tenant_recipient_action_mapping`, `hook_deadline_proof`                                             |
+| `identity_email_otp_v1`                 | `identity`     | `adopted_auth_flow`, `secret_exclusion`, `producer_rate_and_expiry`                                                      |
+| `identity_password_recovery_v1`         | `identity`     | `scanner_safe_landing`, `fresh_proof`, `terminal_state_contract`                                                         |
+| `identity_email_change_v1`              | `identity`     | `recipient_cardinality`, `token_hash_mapping`                                                                            |
+| `document_artifact_ready_v1`            | `phase_18`     | `artifact_recipient_authority`, `current_source_notice_authority`, `protected_download_action`, `no_attachment_contract` |
+| `statement_current_available_v1`        | `phase_19`     | `frozen_delivery_occurrence`, `exact_current_artifact`, `recipient_and_delivery_contract`                                |
+| `statement_current_withdrawn_v1`        | `phase_19`     | `source_owned_withdrawal`, `purpose_and_jurisdiction_admission`, `safe_help_contract`                                    |
+| `statement_additional_copy_ready_v1`    | `phase_19`     | `fresh_copy_occurrence`, `exact_current_authority`, `no_lifecycle_replay`                                                |
+| `statement_delivery_attention_v1`       | `phase_19`     | `grouped_actionable_cause`, `staff_owner_contract`, `no_donor_failure_notice`                                            |
 
 Reserved→Live is a manifest-generation change, not an in-place switch. The new
 generation MUST replace the stub with one fully expanded contract, exact
@@ -1097,3 +1097,58 @@ publication namespace, and one traceability/census gate. It does not add a
 rules engine, tenant trigger builder, second queue, generic workflow, provider
 catalog, runtime profile inheritance, speculative key, or per-field permission
 system.
+
+### Dated Phase 21 D24 expense-collaboration manifest amendment (2026-08-02)
+
+D24 ratification does not create an executable or Reserved Phase 17 key. Any
+later D24 message must enter this manifest through an explicit dated catalog
+amendment with one exact source occurrence/version, recipient resolver, purpose,
+fact allow-list, protected action, step/channel, and proof pack. A generic
+`expense updated`, collaborator role, Assignment, invitation, relationship, or
+prior delivery cannot become a trigger.
+
+Any admitted key carries only an opaque claim or invitation reference, a safe
+plain-language stage or action, and minimum timing context. Its forbidden facts
+include receipt/evidence content or URLs, private notes, claimant-only
+assertions, sensitive merchant/location detail, unnecessary amounts, reviewer
+internals, and broad financial context. The release proof must show current
+Phase 12 recipient authorization and Phase 6 suppression immediately before
+dispatch, including revocation and stale Claim/Assignment-Version races.
+Prepared content and delivery evidence never become invitation acceptance,
+claimant confirmation, submission, review, approval, payment, or actor truth.
+
+### Dated Phase 21 D25 expense-resolution manifest amendment (2026-08-02)
+
+D25 ratification creates no executable or Reserved Phase 17 key. A later Phase
+21 specification must admit each exact trigger, source occurrence/version,
+fact allow-list, recipient resolver, purpose, protected action, step/channel,
+and proof pack. Generic `expense updated`, `case assigned`, timer elapsed,
+message delivered, or reply received cannot become a trigger.
+
+Any admitted key carries only an opaque reference, safe plain-language action
+or wait reason, and minimum timing. It excludes receipt content or URL,
+merchant/location detail, claimant-only facts, private notes, lifecycle reason,
+reviewer internals, provider/accounting detail, and financial-completion
+language. Current Phase 12 authority and Phase 6 suppression are proved at
+release. Preparation, delivery, open, reply, failure, silence, or timeout never
+creates a claimant response, decision, correction, downstream disposition, or
+case completion.
+
+### Dated Phase 21 D26 records-export manifest amendment (2026-08-02)
+
+D26 ratification creates no executable or Reserved Phase 17 key. A later Phase
+21 specification may admit only an exact package-ready, ready-with-issues,
+failed, records-review, offboarding-window, or certified destination-result
+source occurrence with a recipient resolver, purpose, minimum fact allow-list,
+protected action, expiry behavior, and proof pack. A generic `export finished`,
+package row, worker completion, cron, download event, or staging expiry is not
+a trigger.
+
+Any admitted key carries only an opaque reference, safe state, minimum deadline
+and next-action context, and authenticated deep link. Package attachments,
+public/reusable URLs, revealing counts/filenames, source content, and backup,
+compliance, custody, hold-release, disposal, or universal-deletion claims are
+forbidden. Current Phase 12 authorization and Phase 6 suppression are proved at
+release; preparation, delivery, open, reply, failure, silence, and timeout
+create none of D26's package, manifest, custody, retention, transfer, or
+disposition facts.

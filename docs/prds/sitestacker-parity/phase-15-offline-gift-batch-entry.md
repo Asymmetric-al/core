@@ -75,7 +75,7 @@ The result is a workbench where a finance operator enters a stack of offline gif
 
 **D3 — Three-layer keyboard-native workbench.** The workbench is three layers: an always-visible **reconciliation rail** (expected vs entered count and amount, issues, save state), an **editable grid** holding only common-path fields (donor, amount, designation, gift date, check/reference), and a **non-modal row inspector** for exceptions (DAF, tribute, matching, remittance sub-grid, splits, new donor) that keeps the row visible and returns focus to the originating cell. The grid is a purpose-built accessible editable grid implementing the ARIA APG grid keyboard contract (single tab stop / roving tabindex, arrow navigation, Enter/F2 edit, Escape cancel, focus stable under autosave and virtualization), seeded from the dormant `data-grid` component — not the read-only `DataTableResponsive`. It is desktop- and tablet-landscape-first; phones are scoped to batch list/status/review/approve, deliberately not the entry grid. The Enter-advance semantics and keystroke/latency budgets are **spike-validated-before-freeze** hypotheses with a defined amendment path; the two gating spikes (keyboard contract, donor typeahead) become the **first build tickets** of the phase.
 
-**D4 — Every tender first-class.** `gift_method` is a single vocabulary sourced from Phase 13 — `check, cash, ach, wire, securities, in_kind, church_remittance` first-class, with `crypto`, `vehicle`, and `real_estate` reserved. Non-cash gifts share **one** `noncash_gift_details` extension (not five lanes); **describe-never-value** is a schema invariant across all channels (the org never attests value — Form 8283 is the donor's duty; the 8282 disposition clock ships with proceeds). Securities are one gift with a liquidation/proceeds lifecycle whose proceeds are non-contribution facts Phase 20 reads; in-kind is $0 recognized with walled valuation. The **phone lane** is a native embedded Stripe Payment Element keyed by staff (SAQ-A) with a server-confirm MOTO flag (support-gated per connected account; gate+detect+degrade), plus an ACH lane in both variants (mid-call Financial Connections as primary, a bounded secondary staff-keyed TEL lane behind its own capability and consent guardrails). Phone gifts are **online** gifts written by the Stripe webhook, dispatched and tracked from the workbench, never offline money rows. A distinct `take_phone_payment` capability gates the lane. This targets the **Phase 13 Stripe Connect connected-account substrate from day one** (Connect is already ratified in Phase 13); the phone lane never stores, logs, or processes raw card or bank details.
+**D4 — Every tender first-class.** Phase 13 remains the single persisted tender vocabulary — `check, cash, ach, wire, securities, in_kind, church_remittance` first-class. Phase 15 may present `crypto`, `vehicle`, and `real_estate` as reserved **intake workflow labels**, but commit maps each to the actual arrival rail plus Phase 13's canonical noncash line subtype/asset identity; those labels never become a competing tender truth. Non-cash gifts share **one** `noncash_gift_details` extension (not five lanes); **describe-never-value** is a schema invariant across all channels (the org never attests value — Form 8283 is the donor's duty; the 8282 disposition clock ships with proceeds). Securities remain one gift with an append-only liquidation/proceeds lifecycle. Phase 15 is the sole canonical asset-lot/disposition/proceeds/finality source projection; each raw fact stays `non_contribution` and cannot directly create a Contribution, Field Account occurrence, or Accounting Release. Phase 21 D21 alone may derive an exact source-final Realized Support Basis, while Phase 20 remains separately capability-certified for any nonduplicate accounting delivery. In-kind is $0 recognized with walled valuation. The **phone lane** is a native embedded Stripe Payment Element keyed by staff (SAQ-A) with a server-confirm MOTO flag (support-gated per connected account; gate+detect+degrade), plus an ACH lane in both variants (mid-call Financial Connections as primary, a bounded secondary staff-keyed TEL lane behind its own capability and consent guardrails). Phone gifts are **online** gifts written by the Stripe webhook, dispatched and tracked from the workbench, never offline money rows. A distinct `take_phone_payment` capability gates the lane. This targets the **Phase 13 Stripe Connect connected-account substrate from day one** (Connect is already ratified in Phase 13); the phone lane never stores, logs, or processes raw card or bank details. _(Amended 2026-08-01 by Phase 21 D21 without reopening D4's one-gift, one-generic-extension, or describe-never-value rulings.)_
 
 **D5 — Commit contract + auto-post default.** Commit is atomic all-or-nothing by default, with an explicit, capability-gated, audited **escape valve** — commit the clean rows and carry unresolved rows into a linked follow-on draft batch, each commit atomic and idempotent over its subset, with a SQL-enforced conservation invariant (committed + pending-async + carried = frozen original expected). **Validate = post** by default (the approve node collapses into validate but is never deleted from the model; a second approver or quorum is opt-in per tenant). The **P7 tax receipt only** is admitted immediately for a settled-on-entry tender (check/cash/settled card) when Phase 7's closed reason-aware exact-issuer resolver admits an individual receipt; ACH waits for `succeeded`. A repairably paused Canadian epoch retains its frozen plan but holds generation/issuance; a legally locked or ended epoch creates no new issuable plan and cannot fall through to ordinary policy. An `annual_cumulative_cash` occurrence emits no per-gift receipt authorization, generated-document request, or delivery occurrence and remains available only to Phase 7's year-end coverage authority. Phase 14 acknowledgment streams stay batch-origin-gated (see NF3). A posted single gift is amended by **compensating correction** via the AL-261 spine, never raw edit; a draft row edits freely. Under the verified U.S. contract, postmark remains optional and the pure dating resolver may use a distinct staff-attested mailing date or the stamped received-date fallback; another jurisdiction owns its required evidence and may block. Safety is delivered by a **high-risk auto-route** (large-$/new-donor/cash/backdated), an **auto-graduating new-operator soft-guard**, a **short donor-invisible receipt catch-window**, and **one per-batch commit confirm** — replacing the removed default second approver. Phase 15's **first build ticket lands the minimal Phase 13 posting substrate** (headers/designation_lines/postings + `effective_seq` + immutability trigger + `credit_recheck` outbox), because MOD3's post-commit correction rides that append-only ledger; flat-`donations` in-place edit is forbidden.
 
@@ -121,7 +121,9 @@ Phase 15 is a **downstream integrator** — it builds almost entirely against co
 
 - **Phase 16 (Pledges & Recurring Commitments)** — FORWARD; **reserve, don't build.** Phase 15 reserves the inspector seam for a match-at-entry affordance but defers building it until an open-commitment model exists to read.
 
-- **Phase 20 (Accounting Exports & Reconciliation)** — FORWARD; **out of scope for Phase 15.** Owns immutable downstream Accounting Releases, Expected Bank Arrivals, and bounded source-labelled Bank Match. Phase 15 owns the deposit group/membership, slip, and operational deposit-state. QBO/Xero owns native GL accounts, books, and final bank reconciliation; no Phase 15 or Phase 20 status column may pretend otherwise.
+- **Phase 20 (Accounting Exports & Reconciliation)** — FORWARD; **out of scope for Phase 15.** Owns immutable downstream Accounting Releases, Expected Bank Arrivals, and bounded source-labelled Bank Match. A noncash disposition or D21 realization remains accounting-dark until Phase 20 separately certifies one non-overlapping canonical economic source; Phase 15 cannot emit accounting work merely because proceeds are source-final. Phase 15 owns the deposit group/membership, slip, and operational deposit-state. QBO/Xero owns native GL accounts, books, and final bank reconciliation; no Phase 15 or Phase 20 status column may pretend otherwise.
+
+- **Phase 21 D21 (Noncash Support Realization)** — FORWARD and downstream. It consumes only the exact source-final, non-overlapping canonical projection Phase 15 owns, derives at most one Realized Support Basis under its pinned cost treatment, and hands that basis to D2/D11. It never changes the original Contribution or turns a raw Phase 15 row into a Field Account occurrence. Missing source lineage, finality, quantity coverage, or proceeds evidence remains a Phase 15 source-owned exception.
 
 - **Phase 29 (Files & Storage)** — FORWARD; **reserved seam, not built v1.** The scanned-check / RDC path and general document attachment defer to this seam (row-grain reference only); the same-day scanner workflow is manual in v1.
 
@@ -273,11 +275,18 @@ Each story is tagged with the ratified decision(s) it descends from (`[D1]`–`[
 
 ### Securities, in-kind, and other noncash
 
-60. As a **batch-entry operator** recording a securities (stock) gift, I want it modeled as **one gift with a lifecycle** — the gift itself plus liquidation/proceeds captured as non-contribution facts that Phase 20 reads — so that donated stock and the cash it later becomes are one honest record, not two counted gifts. `[AG, D4]`
+60. As a **batch-entry operator** recording a securities (stock) gift, I want it modeled as **one gift with a lifecycle** — the original gift plus source-mode-labelled, append-only liquidation/proceeds facts — so that donated stock and the cash it later becomes remain one honest record, not two counted gifts. A raw disposition row creates no Contribution, Field Account occurrence, or accounting posting; Phase 21 D21 and Phase 20 consume only their separately certified projections. `[AG, D4, P21 D21]`
 61. As a **finance lead**, I want **describe-never-value** enforced as a schema invariant across every noncash channel — the org records what was given, never attests a dollar valuation — so that we never take on the donor's Form 8283 valuation duty. `[AH, D4]`
 62. As a **batch-entry operator** recording an in-kind gift, I want a $0 recognized amount plus a walled place to note description and any appraisal/evidence the donor supplied, so that the gift is honored and documented without the org putting a price on it. `[AH, D4]`
 63. As a **finance lead**, I want an **8282 disposition clock** to ship alongside proceeds tracking, so that if we later sell a donated noncash asset within the reporting window the disposition duty is surfaced. `[AG, D4]`
-64. As a **batch-entry operator** recording a vehicle, real-estate, or crypto gift, I want **one generic noncash shape** with a reserved gift_method and duty flags (no bespoke per-asset engine in v1), so that unusual noncash gifts can be recorded correctly without over-building five specialized lanes. `[AI, D4]`
+64. As a **batch-entry operator** recording a vehicle, real-estate, or crypto gift, I want **one generic noncash shape** with a reserved draft intake label and duty flags that commit to the actual Phase 13 tender plus line subtype (no bespoke per-asset engine in v1), so that unusual noncash gifts can be recorded correctly without over-building five specialized lanes or creating a second tender vocabulary. `[AI, D4, P21 D21]`
+
+64a. As a **finance lead** tracking a partial sale, pooled lot, installment,
+provider liquidation, or terminal nonmonetary outcome, I want one exact
+Tenant-, Legal-Entity-, source-role-, asset-lot-, purpose-, and currency-scoped
+source projection with understandable status and one source-owned repair task,
+so that Phase 21 can use proved proceeds without staff estimates, duplicate
+gifts, or hidden quantity gaps. `[P21 D21]`
 
 ### Phone gifts — the native embedded Stripe lane
 
@@ -834,9 +843,9 @@ The v1 tender roster and its rail:
 | `in_kind`                            | noncash           | n/a                            | non-money tally            | `recognized_value = 0`; value walled from receipt                   |
 | `card` (phone)                       | online            | stripe-rail                    | **never** in offline total | Stripe-webhook-written; `moto` is a channel attribute, not a method |
 | `ach` (phone)                        | online            | stripe-rail                    | **never** in offline total | Financial Connections WEB mandate; async settlement                 |
-| `crypto` / `vehicle` / `real_estate` | noncash-reserved  | n/a                            | non-money tally            | generic noncash shape + duty flag; no engine v1                     |
+| `crypto` / `vehicle` / `real_estate` | noncash-reserved  | n/a                            | non-money tally            | intake labels map to P13 line subtype + actual rail; no engine v1   |
 
-**`moto` is not a `gift_method`.** A phone card gift is `card`; MOTO is a _capture-channel attribute_ expressed as a server-confirm flag (5.8.3), never an enum value.
+**`moto` is not a `gift_method`.** A phone card gift is `card`; MOTO is a _capture-channel attribute_ expressed as a server-confirm flag (5.8.3), never an enum value. Likewise, the reserved `crypto` / `vehicle` / `real_estate` draft labels select the noncash intake experience; commit records the actual Phase 13 tender/arrival rail and canonical line subtype rather than persisting a second tender vocabulary.
 
 Tenders are modeled as a **discriminated union** over this closed set plus a **declarative per-tender conformance descriptor** — a static struct, not a runtime plugin/registry — that states, for each tender: its required source-evidence fields, its date-resolver binding, its money-column mapping, its `settlement_rail`, and its follow-up-worklist owner. The descriptor contains no receipt policy; Phase 7 owns method-policy evaluation. The D3 row editor and the D2/D5 validator both **read** the descriptor; no dynamic form-schema engine, no tender plugin abstraction (cut list).
 
@@ -858,7 +867,27 @@ The rail is captured at entry from the tender descriptor and is **frozen with th
 
 All noncash tenders share **ONE** generic extension — `noncash_gift_details` — not five lanes, not seven tables. It carries: asset type, description, units/quantity, transfer/received date, `recognized_value` with provenance `{value_source, entered_by, as_of_date}` and a `value_basis` label, the internal management valuation, a nullable `document_ref` (P29 resolves the bytes; P15 stores no files), and per-asset compliance/duty flags. Securities, in-kind, crypto, vehicle, and real estate are **instances of this one shape distinguished by tender type + flags.**
 
-Liquidation/disposition outcomes live in an **append-only `gift_disposition_facts`** table (mirrors P13 posting immutability / ADR-CD-004): each row is typed `non_contribution` and is **CI-gated out of every money aggregate**, exactly as Phase 14 (Donor Credit Operations) gates soft credits — a test asserts no disposition row can ever emit a posting. P20 reads these facts; P15 migrates nothing.
+The workbench's `gift_method` field remains the D4 draft discriminator, not a
+second Phase 13 tender/domain authority. For ordinary money it maps directly to
+the Phase 13 tender. For reserved noncash labels, commit preserves the actual
+arrival rail separately and maps the property to Phase 13's canonical noncash
+line subtype/asset identity. A later disposition never changes that original
+rail or reclassifies the gift as cash. The mapping is one closed, versioned
+server descriptor shared by validation and commit; no UI or import caller may
+choose a different mapping.
+
+Liquidation/disposition outcomes live in append-only
+`gift_disposition_facts` plus exact lot/purpose coverage facts (mirrors P13
+posting immutability / ADR-CD-004). Phase 15 composes those rows into the **one
+canonical source projection** for asset identity, source role, disposition,
+proceeds, source-specific finality, evidence, and corrections. Every raw row is
+typed `non_contribution` and **CI-gated out of every contribution money
+aggregate**, exactly as Phase 14 (Donor Credit Operations) gates soft credits —
+a test asserts no raw row can itself emit a Contribution, Field Account
+occurrence, or accounting posting. Phase 21 D21 may consume only exact
+source-final, non-overlapping projection coverage to derive a separate Noncash
+Support Realization; Phase 20 may consume it only after a separately certified
+nonduplicate accounting-source decision. P15 migrates nothing.
 
 Every new P15 table is **tenant-scoped with deny-by-default RLS from migration one** — an acceptance test fails on any table lacking `tenant_id` or a policy. Composite `(tenant_id, …)` FKs throughout.
 
@@ -874,16 +903,80 @@ A securities gift is **one contribution with a lifecycle**, never two gifts:
 
 - **Contribution / recognized value = FMV at the gift (transfer/received) date**, provenance-stamped from the broker statement into a single `recognized_value` field plus a `value_basis` label. **No per-method valuation calculator** (no high/low-mean, NAV, or bid-ask engine — cut list); the operator enters the broker-stated FMV.
 - **`gift_date` and `sale_date` are structurally distinct columns.** The gift is dated by transfer/receipt; liquidation happens later.
-- **Liquidation proceeds** (`sale_date`, gross, fees, net) are append-only `gift_disposition_facts` rows, `non_contribution`, CI-gated out of every money aggregate. The "record liquidation" surface is reachable **only from an existing securities gift**, never from "new gift"; the workbench soft-blocks a cash row that duplicates an open securities gift's expected proceeds.
-- P15 does **no** gain/loss math, deposit matching, or GL posting — P20 reads the facts.
+- **Liquidation proceeds** (`sale_date`, gross, exact costs, net, or an exact
+  net-only provider shape) are append-only source and lot/purpose coverage facts,
+  `non_contribution`, CI-gated out of every contribution money aggregate. The
+  "record liquidation" surface is reachable **only from an existing noncash
+  gift**, never from "new gift"; the workbench soft-blocks an ordinary cash row
+  that duplicates an open tenant-held/tenant-agent asset's expected proceeds.
+  An intermediary or DAF sponsor that was the legal donee and later sends the
+  tenant cash follows the ordinary cash/grant source lane instead of this bridge.
+- P15 does **no** gain/loss math, deposit matching, Field Account posting, or GL
+  posting. Phase 21 D21 may derive only an exact source-final Realized Support
+  Basis; Phase 20 remains separately gated.
 
-A securities contribution posts when its Phase 15 source and Phase 13 ledger requirements pass, independently of Phase 7 receipt facts. Liquidation, transfer confirmation, proceeds, valuation true-up, and evidence are append-only post-posting facts worked in **one detached follow-up worklist that reuses the Mission Control follow-up-task infra** (D1.a-permitted). That follow-up never delays posting, reopens the posted batch, or creates a second contribution. If the UI exposes `liquidation_status ∈ {not_applicable, pending, partial, settled}` plus an aging view (`open → resolved / abandoned / written_off`), both are derived projections over those append-only facts; each open item has an explicit finance owner-role + SLA.
+A securities contribution posts when its Phase 15 source and Phase 13 ledger requirements pass, independently of Phase 7 receipt facts. Liquidation, transfer confirmation, proceeds, valuation true-up, and evidence are append-only post-posting facts worked in **one detached follow-up worklist that reuses the Mission Control follow-up-task infra** (D1.a-permitted). That follow-up never delays posting, reopens the posted batch, or creates a second contribution. If the UI exposes `liquidation_status ∈ {not_applicable, pending, partial, settled}` plus an aging view (`open → resolved / abandoned / written_off`), both are derived projections over those append-only facts; each open item has an explicit finance owner-role + SLA. `settled` is a plain-language staff projection meaning the recorded disposition appears complete for its current source version; it is **not** the D21 admission predicate. The canonical projection emits `source_final=true` only when the versioned source-family rule proves the exact disposition/tranche, amounts or terminal outcome, evidence, and completeness watermark. A staff status choice cannot set it.
+
+#### 5.5.1 Phase 21 D21 canonical disposition projection amendment
+
+Phase 15 is authoritative for the sole asset-lot/disposition/proceeds/finality
+source projection that D21 consumes. It preserves complete Tenant and Legal
+Entity scope; exact original Contribution and accepted-purpose line; immutable
+Phase 13 asset identity plus normalized source lot, quantity, scale, tranche,
+and non-overlapping covered quantity; source family, provider organization,
+environment, account, legal-recipient/source role, and immutable source
+object/event/version; canonical economic root; disposition kind; source-
+effective, sale/trade, source-final, discovery, and recorded timestamps; ISO
+currency; exact gross, actual cost, and net components or an explicitly
+certified exact-net-only shape; per-lot/per-purpose allocated proceeds and
+rounding residual; source-specific finality rule/version, finality state,
+completeness watermark, and private evidence reference/digest; terminal
+nonmonetary outcome where applicable; semantic idempotency; and append-only
+correction/supersession lineage.
+
+`source_mode` is closed and evidence-derived:
+
+- `tenant_held_asset` — the tenant/Legal Entity was the legal recipient and held
+  the property; exact final proceeds may be D21-eligible;
+- `tenant_agent_liquidation` — a proved provider acted as that tenant/Legal
+  Entity's agent and retained exact asset-to-proceeds lineage; exact final
+  proceeds may be D21-eligible;
+- `intermediary_cash_grant` or `daf_cash_grant` — another legal donee liquidated
+  its own asset and sent cash; this is an ordinary cash/grant source and is
+  never a D21 asset realization for the tenant; and
+- `terminal_nonmonetary` — retained, used, donated onward, abandoned, or
+  worthless property; it closes the source obligation but creates no monetary
+  support.
+
+This is one versioned read projection over Phase 15 source facts, not a second
+gift, mutable sale row, generic money aggregate, Field Account entry, bank
+deposit, or Accounting Release. Partial sales, pooled lots, installments,
+corporate actions, canceled trades, retained/used/donated-onward/abandoned/
+worthless property, delayed costs, and adverse corrections remain append-only,
+tranche-explicit, and quantity/proceeds-covered. `source_final` is derived by
+the pinned source-family rule; the UI term `settled`, a provider's generic
+`complete`, or a staff attestation is never a universal substitute. If exact
+lineage, scope, coverage, component truth, evidence, or finality is missing or
+ambiguous, the source worklist owns one cause-labelled exception; D21 cannot
+fill it with staff-estimated proceeds, inferred zero fees, an appraisal, or a
+convenient valuation.
+
+The original noncash `recognized_value`, internal valuation, FMV, appraisal,
+and provider estimate are structurally excluded from Phase 21 D2 candidate
+generation. Only an exact source-final D21 Realized Support Basis may later be
+admitted through D2/D11. The Phase 15 contribution lifecycle remains one gift,
+and its donor, receipt, campaign, supporter, and fundraising facts do not run a
+second time.
 
 **Form 8282 disposition-duty clock [A10] ships WITH proceeds, as one unit.** From `received_date` + `sale/disposition_date`, derive an append-only "disposed within 3 years" flag for >$5k non-publicly-traded property (in-kind, crypto, vehicle, RE) and raise an MC follow-up task ("may require Form 8282 within 125 days; notify donor"); publicly-traded securities are excluded by rule. v1 **flags** the duty (does not generate the form). Proceeds-tracking without its disposition clock is a blocker, not a follow-up.
 
 ### 5.6 Long-tail noncash: crypto, vehicle, real estate — one shape, reserved types, duty flags, no engines [A9]
 
-Crypto, vehicles, and real estate are enterable in v1 **through the single `noncash_gift_details` shape**, recorded under their own reserved `gift_method` (never silently `in_kind`), each carrying a per-asset duty flag that raises a signal:
+Crypto, vehicles, and real estate are enterable in v1 **through the single
+`noncash_gift_details` shape**. Each has a reserved draft intake discriminator
+(never silently flattened to `in_kind`) that commit maps to the actual Phase 13
+arrival rail plus canonical noncash line subtype, and each carries a per-asset
+duty flag that raises a signal:
 
 - **vehicle** → Form 1098-C duty (>$500);
 - **crypto** → property (not publicly-traded, not 8282-exempt), qualified-appraisal >$5k, **never reclassified as cash** even if a processor auto-liquidated;
@@ -1907,7 +2000,11 @@ offline_tender_details
 
 ### `noncash_gift_details` — ONE generic noncash extension [D4 A2/A9]
 
-One shape serves securities, in-kind, crypto, vehicle, real-estate (instances distinguished by `gift_method` + duty flags) — **not five lanes, not seven tables**. Financial facts are append-only; Phase 20 reads, never migrates.
+One shape serves securities, in-kind, crypto, vehicle, and real estate (the
+reserved draft labels map to Phase 13 line subtypes plus the actual arrival
+rail) — **not five intake lanes**. Source facts are append-only. Phase 21 D21
+and Phase 20 consume only separately certified projections; neither migrates or
+re-owns these facts.
 
 ```
 noncash_gift_details
@@ -1928,23 +2025,77 @@ noncash_gift_details
   per-asset duty flag raising a Phase 8 signal (vehicle→1098-C; crypto/RE→appraisal >$5k) — [D4]
 - liquidation_status — derived read projection over append-only
   `gift_disposition_facts`, with values ∈ {not_applicable, pending, partial,
-  settled}; it is not mutable batch state and never gates or reopens posting — [D4]
+  settled}; it is not mutable batch state, never gates or reopens posting, and
+  is not the D21 `source_final` predicate — [D4, P21 D21]
 ```
 
 ### `gift_disposition_facts` — proceeds, non-contribution [D4 A4]
 
-Append-only liquidation facts for securities/noncash. **CI-gated out of every money aggregate** exactly as Phase 14 gates credits — a disposition row can never emit a posting.
+Append-only liquidation facts for securities/noncash. **CI-gated out of every
+contribution money aggregate** exactly as Phase 14 gates credits — a disposition
+row can never itself emit a Contribution, Field Account, or accounting posting.
+The source projection described in 5.5.1 may enrich these facts for exact D21
+consumption without changing their `non_contribution` meaning.
 
 ```
-gift_disposition_facts
-- id / tenant_id — uuid — house; FORCE RLS
-- header_id — uuid NOT NULL — composite FK → the committed P13 header (reachable only FROM an existing
-  securities/noncash gift, never from "new gift") — [D4]
+gift_disposition_facts (FORWARD, append-only event/version root)
+- id / tenant_id / legal_entity_id — uuid — explicit same-scope identity; FORCE RLS
+- header_id / designation_line_id — uuid NOT NULL — composite same-Tenant/same-Entity FK to the
+  committed Phase 13 noncash Contribution and accepted-purpose line; reachable only from that
+  existing gift, never from "new gift" — [D4, P21 D21]
 - fact_kind — text NOT NULL — CHECK = 'non_contribution' — the CI tripwire; a schema lint asserts it — [D4]
-- sale_date — date NULL — structurally distinct from gift_date — [D4]
-- gross_proceeds_minor / fees_minor / net_proceeds_minor — bigint — append-only; Phase 20 reads — [D4]
+- source_family / source_mode — text NOT NULL — closed source adapter and CHECK ∈
+  {tenant_held_asset, tenant_agent_liquidation, intermediary_cash_grant, daf_cash_grant,
+  terminal_nonmonetary}; source mode derives from legal-recipient evidence, never staff convenience
+- provider_organization_id / provider_environment / provider_account_ref — text NULL — exact
+  provider scope where applicable; not tenant-selecting authority
+- legal_recipient_party_id / source_role — uuid / text — exact legal recipient and role evidence;
+  tenant-held/agent eligibility fails closed unless it resolves to this Legal Entity
+- source_object_id / source_event_id / source_version — text NOT NULL — immutable external or manual
+  evidence identity/version; UNIQUE with tenant, entity, source family, environment
+- canonical_economic_root_id / disposition_tranche_key — text NOT NULL — semantic idempotency and
+  partial/installment/corporate-action grouping
+- disposition_kind — text NOT NULL — sale, redemption, liquidation, retained, used,
+  donated_onward, abandoned, worthless, canceled, or source-specific mapped kind
+- source_effective_at / sale_or_trade_at / discovered_at / recorded_at — timestamptz — separate exact
+  clocks; gift date remains Phase 13 and is never overwritten
+- amount_shape — text NOT NULL — CHECK ∈ {gross_cost_net, exact_net_only, nonmonetary}
+- currency — text NULL — validated ISO-4217; required for monetary shapes, NULL for nonmonetary
+- gross_proceeds_minor / actual_cost_minor / net_proceeds_minor — bigint NULL — checked integer minor
+  units; gross − cost = net for `gross_cost_net`; gross/cost MUST be NULL for `exact_net_only`
+  (never infer a zero fee); all three MUST be NULL for `nonmonetary`
+- source_finality_state / source_finality_rule_version — text NOT NULL — adapter-native state plus the
+  exact versioned rule used to derive source_final; staff cannot set source_final
+- source_final_at / completeness_watermark — timestamptz / text NULL — required when source_final;
+  a generic UI `settled` label is insufficient
+- evidence_ref / evidence_digest — text NOT NULL — private retained source proof and integrity digest;
+  no public URL or binary in this table
+- corrects_fact_id / supersedes_fact_id — uuid NULL — composite same-scope self-FKs; corrections append
 - created_by / created_at — uuid / timestamptz — append-only; no UPDATE/DELETE path — [D4]
+
+gift_disposition_coverage_facts (FORWARD, append-only exact coverage)
+- id / tenant_id / legal_entity_id / disposition_fact_id — uuid — composite same-scope FK; FORCE RLS
+- asset_lot_id / phase13_asset_identity_ref / designation_line_id — text / text / uuid NOT NULL — exact
+  original asset and accepted-purpose lineage; no fuzzy donor/date/amount match
+- quantity_minor / quantity_scale — bigint / smallint NOT NULL — exact signed source quantity;
+  fractional units never use floating point
+- covered_proceeds_minor / allocation_residual_minor / currency — bigint / bigint / ISO-4217 NULL —
+  exact per-lot/per-purpose allocation and deterministic residual for monetary outcomes
+- coverage_seq / corrects_coverage_id — bigint / uuid NULL — monotonic, append-only correction lineage;
+  overlapping positive coverage for one source version/lot/tranche is DB-rejected
 ```
+
+`noncash_disposition_source_projection` is a tenant-filtered `SECURITY INVOKER`
+read projection over the two append-only tables plus Phase 13's immutable
+Contribution/accepted-purpose/asset references. It emits one exact row per
+source event × asset lot × purpose × tranche × currency with the fields in
+5.5.1, including derived `source_final`, total/covered/uncovered quantity and
+proceeds, and correction lineage. It has **no write path** and is the only D21
+source contract. Existing simple manual capture maps into it only when exact
+evidence, scope, component truth, finality, and coverage are sufficient;
+otherwise it remains a source-owned exception and creates no positive
+realization. A raw row, a UI `settled` label, or the original noncash valuation
+can never bypass this projection.
 
 ### `deposit_groups` + append-only `deposit_assignment_events` + `tenant_bank_accounts` [D6]
 
@@ -2119,6 +2270,20 @@ Batch-origin acknowledgments (DAF advisor thank-you, tribute notifications, soft
 23. **Deposit membership revisions + Phase 20 Source Coverage.** The live deposit group stays membership-editable after slip print or physical banking (`deposited` is derived/stamped, never a stored lock; the printed slip is a separate retained immutable snapshot). Phase 20 freezes only the exact consumed membership revision as immutable Source Coverage; later edits append a successor revision and any required cause-linked Compensating Accounting Release. There is no stored deposit `exported` regime. NSF retains membership (state→returned), never a silent delete. [D6 HD-8; amended 2026-07-27]
 24. **Escape-valve conservation.** SQL-enforced `committed_actual + Σ pending_async + carried_expected = frozen original_expected`, forever; the follow-on draft inherits only the frozen carried remainder, never re-derived from carried rows. [D5 Amd9]
 25. **Every offline money write is the commit path.** No API route other than the commit service writes offline money; the Track-B 501 bridge is deleted slice one and a guard test forbids its return. [D3 Amd16, D5 Amd13]
+26. **One source projection; no valuation shortcut.** Phase 15's
+    `noncash_disposition_source_projection` is the sole canonical
+    asset-lot/disposition/proceeds/finality contract. Its raw facts are always
+    `non_contribution`; only exact source-final, same-scope, non-overlapping
+    lot/purpose/tranche/currency coverage may be read by D21. Original recognized
+    value, FMV, appraisal, claimed value, provider estimate, UI `settled`, and
+    staff attestation can never create a D2 candidate. [P21 D21]
+27. **Exact component and quantity conservation.** Monetary source facts are
+    either proved `gross_cost_net` with `gross − actual_cost = net` or proved
+    `exact_net_only` with gross/cost absent—not zero; terminal nonmonetary facts
+    carry no amounts. Covered plus uncovered quantity equals the exact source
+    lot/tranche quantity at one scale, and per-purpose proceeds plus the explicit
+    deterministic residual equals the exact source proceeds. Replay or a
+    correction cannot overlap existing positive coverage. [P21 D21]
 
 ---
 
@@ -2130,32 +2295,43 @@ Batch-origin acknowledgments (DAF advisor thank-you, tribute notifications, soft
 
 **3. `sendBatchAcknowledgments` service (NF3).** `(tenantId, batchId, actorId, { excludedGiftIds?, streams? }) → { queued, held, wontSend }`. Flips READY `held` rows to `pending_send` and enqueues one outbox event per `(tenant, header/settlement, notify_party, stream)` with `eligible_at = now + recall_delay`; idempotent (already-`sent` never re-enqueued); restricted-party acks gated to a cleared actor (stay `held` for non-cleared); `recallBatchAcknowledgments` flips not-yet-drained events back to `held`. One trigger edge, never a second send path.
 
-**4. Resolver-backed donor search.** ONE shared endpoint the picker, CSV-paste matcher, and new-donor dedupe all call, routed through the Phase 3/10 subtract-only resolver (`resolveDonorMatch`): a minimal projection, restricted parties never appear and never change the response shape, tenant-scoped pg_trgm/FTS index, ≤300 ms e2e, read-your-writes for inline creates (a partial unique index `(tenant_id, normalized_email)` + insert-on-conflict-return-existing; email-less creates flagged dupe-suspect at validate, never auto-merged).
+**4. `projectNoncashDispositionSource` — the sole D21 source contract.** Given
+an exact `(tenantId, legalEntityId, sourceFamily, canonicalEconomicRootId)`, it
+reads the real append-only source and coverage rows through the same-scope
+`SECURITY INVOKER` projection and returns immutable source versions with exact
+lot/purpose/tranche/currency coverage, component shape, evidence digest,
+source-finality rule/version, completeness watermark, and correction lineage.
+It never accepts a caller-supplied `source_final`, never emits an original
+valuation as proceeds, and never writes a Contribution, Field Account
+occurrence, bank fact, or Accounting Release. Missing or ambiguous proof returns
+one cause-labelled Phase 15 repair requirement; it does not guess.
 
-**5. Receipt-authorization / acknowledgment intent contract.** Both use durable domain intents, never an inline render, email, or provider call. The commit transaction emits source receipt-authorization facts only for Phase 7 plan-admitted individual receipts; `annual_cumulative_cash` emits no per-gift authorization, generation request, or delivery occurrence. The receipt chain progresses asynchronously through Phase 7 source authorization → Phase 18 exact generated document → Phase 17/6 governed communication, with tenant-fair claims, semantic idempotency, retries, and owner-specific dead-letter/recovery. The source intent carries `eligible_at` (release time) + `gated_on` (`settlement | none`): "immediately" is the default value with a short tenant-tunable recall delay. A settlement-gated intent cannot exist before ACH `succeeded` creates the contribution, and no worker may claim it before that source state. Acknowledgment intents remain Phase 14 meaning handed to Phase 17/6; the three streams classify as **transactional-relational** and bypass marketing opt-out while always respecting `do_not_contact`, bounce/complaint, and tribute `never`.
+**5. Resolver-backed donor search.** ONE shared endpoint the picker, CSV-paste matcher, and new-donor dedupe all call, routed through the Phase 3/10 subtract-only resolver (`resolveDonorMatch`): a minimal projection, restricted parties never appear and never change the response shape, tenant-scoped pg_trgm/FTS index, ≤300 ms e2e, read-your-writes for inline creates (a partial unique index `(tenant_id, normalized_email)` + insert-on-conflict-return-existing; email-less creates flagged dupe-suspect at validate, never auto-merged).
+
+**6. Receipt-authorization / acknowledgment intent contract.** Both use durable domain intents, never an inline render, email, or provider call. The commit transaction emits source receipt-authorization facts only for Phase 7 plan-admitted individual receipts; `annual_cumulative_cash` emits no per-gift authorization, generation request, or delivery occurrence. The receipt chain progresses asynchronously through Phase 7 source authorization → Phase 18 exact generated document → Phase 17/6 governed communication, with tenant-fair claims, semantic idempotency, retries, and owner-specific dead-letter/recovery. The source intent carries `eligible_at` (release time) + `gated_on` (`settlement | none`): "immediately" is the default value with a short tenant-tunable recall delay. A settlement-gated intent cannot exist before ACH `succeeded` creates the contribution, and no worker may claim it before that source state. Acknowledgment intents remain Phase 14 meaning handed to Phase 17/6; the three streams classify as **transactional-relational** and bypass marketing opt-out while always respecting `do_not_contact`, bounce/complaint, and tribute `never`.
 
 ---
 
 ### Ownership-Matrix extension (per Phase 1 (Source-of-Truth Ownership Matrix))
 
-| Record type                                                                      | System of record                                                                         | Write path                                                               | Conflict winner                                                                                 | Repair path                                                                                                                     |
-| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `gift_entry_batches` / `_batch_rows` (draft)                                     | Phase 15 staging                                                                         | Idempotent autosave UPSERT (client_row_id) under the single-editor lease | Higher `row_seq` / lease holder; stale write rejected                                           | Draft revision restore; archive-to-audit (never silent delete)                                                                  |
-| Committed gift (P13 `contribution_headers` / `_designation_lines` / `_postings`) | Phase 13 ledger (FORWARD)                                                                | `commitGiftEntryBatch` ONLY (offline); Stripe webhook (online)           | Append-only postings; `effective_seq` monotonic                                                 | Compensating correction via AL-261 spine; batch-scoped reverse op                                                               |
-| `offline_tender_details` / `noncash_gift_details`                                | Phase 15                                                                                 | Row editor → commit-time freeze                                          | Immutable post-commit (facts append-only)                                                       | Amend = compensating correction; noncash enrichment via follow-up worklist                                                      |
-| `gift_disposition_facts` (proceeds)                                              | Phase 15 capture; Phase 20 reads                                                         | Append-only insert from an existing gift                                 | Append-only; never an aggregate                                                                 | New compensating fact row; never delete                                                                                         |
-| `deposit_groups` / `deposit_assignment_events` / header `deposit_group_id`       | Phase 15 source/operational truth; Phase 20 consumes an exact frozen membership revision | Deposit service; append-only event log                                   | Open revision remains editable; a Phase 20 coverage manifest freezes only the consumed revision | Reassign with audit while open; after coverage, append a successor revision and any required cause-linked accounting correction |
-| `settlement_rail` (tender)                                                       | Phase 13 vocab / Phase 15 stamp                                                          | Set at entry; drives deposit-eligibility                                 | Immutable per gift                                                                              | Correction re-stamp via the correction spine                                                                                    |
-| Phone gift (P13 header + `phone_gift_links`)                                     | Stripe webhook (money-final); Phase 15 dispatch/link                                     | Webhook writes money; workbench writes link/status                       | Webhook is sole money writer (no-double-count)                                                  | `pending_ach→completed→reversed`; return → Phase 7 correction + Phase 18 successor + Phase 17 notice + `credit_recheck`         |
-| `phone_payment_authorizations`                                                   | Phase 15 (Asym's own evidence)                                                           | Captured at authorization; append-only                                   | Immutable                                                                                       | New evidence row on re-auth (MIT re-consent)                                                                                    |
-| `batch_templates` + snapshot                                                     | Phase 15 config; batch snapshot is the point-in-time record                              | `finance:manage_batch_templates`, audited                                | Template `revision` (concurrency); snapshot frozen once per batch                               | Soft-archive + new template; re-apply latest defaults to STILL-DRAFT only                                                       |
-| Personal column prefs (`crm_table_preferences`, REAL)                            | Phase 15 overlay (reused table)                                                          | Per-user pref write                                                      | Presentation-only; last write per user                                                          | Reset-to-template-layout                                                                                                        |
-| `batch_validation_runs` / `_issues`                                              | Phase 15                                                                                 | Non-mutating validation pass                                             | Revision-bound; stale runs dropped                                                              | Re-validate at current revision                                                                                                 |
-| Acknowledgment state (P14 `acknowledgment_status`, reused)                       | Phase 14 (per-recipient); Phase 15 derives the batch rollup                              | `sendBatchAcknowledgments` gate → P14 pipeline                           | Idempotency key `(tenant, header/settlement, notify_party, stream)`                             | Recall window; per-recipient deliberate re-send; P8 anti-stranding view                                                         |
+| Record type                                                                                              | System of record                                                                                                                                                           | Write path                                                                                                                                                                                          | Conflict winner                                                                                                                                            | Repair path                                                                                                                                                                           |
+| -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gift_entry_batches` / `_batch_rows` (draft)                                                             | Phase 15 staging                                                                                                                                                           | Idempotent autosave UPSERT (client_row_id) under the single-editor lease                                                                                                                            | Higher `row_seq` / lease holder; stale write rejected                                                                                                      | Draft revision restore; archive-to-audit (never silent delete)                                                                                                                        |
+| Committed gift (P13 `contribution_headers` / `_designation_lines` / `_postings`)                         | Phase 13 ledger (FORWARD)                                                                                                                                                  | `commitGiftEntryBatch` ONLY (offline); Stripe webhook (online)                                                                                                                                      | Append-only postings; `effective_seq` monotonic                                                                                                            | Compensating correction via AL-261 spine; batch-scoped reverse op                                                                                                                     |
+| `offline_tender_details` / `noncash_gift_details`                                                        | Phase 15                                                                                                                                                                   | Row editor → commit-time freeze                                                                                                                                                                     | Immutable post-commit (facts append-only)                                                                                                                  | Amend = compensating correction; noncash enrichment via follow-up worklist                                                                                                            |
+| `gift_disposition_facts`, `gift_disposition_coverage_facts`, and `noncash_disposition_source_projection` | Phase 15 sole canonical asset/disposition/proceeds/finality source; Phase 21 D21 may consume exact source-final coverage; Phase 20 remains separately capability-certified | Append-only source event and exact lot/purpose/tranche coverage from an existing noncash gift; read-only projection composes exact scope, source role, amounts, finality, evidence, and corrections | Exact source version + semantic idempotency + append-only correction lineage; raw rows never win as Contribution, Field Account, bank, or accounting truth | Re-ingest or append the exact source correction and remaining coverage; never delete, estimate proceeds, infer fees/finality, create a second gift, or post downstream truth directly |
+| `deposit_groups` / `deposit_assignment_events` / header `deposit_group_id`                               | Phase 15 source/operational truth; Phase 20 consumes an exact frozen membership revision                                                                                   | Deposit service; append-only event log                                                                                                                                                              | Open revision remains editable; a Phase 20 coverage manifest freezes only the consumed revision                                                            | Reassign with audit while open; after coverage, append a successor revision and any required cause-linked accounting correction                                                       |
+| `settlement_rail` (tender)                                                                               | Phase 13 vocab / Phase 15 stamp                                                                                                                                            | Set at entry; drives deposit-eligibility                                                                                                                                                            | Immutable per gift                                                                                                                                         | Correction re-stamp via the correction spine                                                                                                                                          |
+| Phone gift (P13 header + `phone_gift_links`)                                                             | Stripe webhook (money-final); Phase 15 dispatch/link                                                                                                                       | Webhook writes money; workbench writes link/status                                                                                                                                                  | Webhook is sole money writer (no-double-count)                                                                                                             | `pending_ach→completed→reversed`; return → Phase 7 correction + Phase 18 successor + Phase 17 notice + `credit_recheck`                                                               |
+| `phone_payment_authorizations`                                                                           | Phase 15 (Asym's own evidence)                                                                                                                                             | Captured at authorization; append-only                                                                                                                                                              | Immutable                                                                                                                                                  | New evidence row on re-auth (MIT re-consent)                                                                                                                                          |
+| `batch_templates` + snapshot                                                                             | Phase 15 config; batch snapshot is the point-in-time record                                                                                                                | `finance:manage_batch_templates`, audited                                                                                                                                                           | Template `revision` (concurrency); snapshot frozen once per batch                                                                                          | Soft-archive + new template; re-apply latest defaults to STILL-DRAFT only                                                                                                             |
+| Personal column prefs (`crm_table_preferences`, REAL)                                                    | Phase 15 overlay (reused table)                                                                                                                                            | Per-user pref write                                                                                                                                                                                 | Presentation-only; last write per user                                                                                                                     | Reset-to-template-layout                                                                                                                                                              |
+| `batch_validation_runs` / `_issues`                                                                      | Phase 15                                                                                                                                                                   | Non-mutating validation pass                                                                                                                                                                        | Revision-bound; stale runs dropped                                                                                                                         | Re-validate at current revision                                                                                                                                                       |
+| Acknowledgment state (P14 `acknowledgment_status`, reused)                                               | Phase 14 (per-recipient); Phase 15 derives the batch rollup                                                                                                                | `sendBatchAcknowledgments` gate → P14 pipeline                                                                                                                                                      | Idempotency key `(tenant, header/settlement, notify_party, stream)`                                                                                        | Recall window; per-recipient deliberate re-send; P8 anti-stranding view                                                                                                               |
 
 ### Build-order note (where the substrate lands)
 
-The **first P15 build ticket lands the minimal Phase 13 posting substrate** (headers / designation_lines / postings + `effective_seq` + the BEFORE-UPDATE immutability trigger + the `credit_recheck` outbox) — it is FORWARD (Phase 13 epic #690, zero SQL today) and every money-final invariant above rides on it; draft-stage editing ships first (needs no ledger), and a flat-`donations` in-place-edit interim is FORBIDDEN. The D6 deposit layer and the D7 template layer are post-commit / config layers that land AFTER the substrate + the D5 commit service; the settlement_rail discriminator (CB-A) must be resolved before the HD-5 deposit-eligibility predicate is written. All P15 tables ship their tenant-FK + RLS + uniqueness constraints in the first migration (fresh-build, no users).
+The **first P15 build ticket lands the minimal Phase 13 posting substrate** (headers / designation_lines / postings + `effective_seq` + the BEFORE-UPDATE immutability trigger + the `credit_recheck` outbox) — it is FORWARD (Phase 13 epic #690, zero SQL today) and every money-final invariant above rides on it; draft-stage editing ships first (needs no ledger), and a flat-`donations` in-place-edit interim is FORBIDDEN. The D21 source-projection tables, same-scope constraints, amount-shape checks, non-overlap exclusion/locked insert path, and `SECURITY INVOKER` projection land with the noncash source lifecycle before any D21 consumer is enabled. The D6 deposit layer and the D7 template layer are post-commit / config layers that land AFTER the substrate + the D5 commit service; the settlement_rail discriminator (CB-A) must be resolved before the HD-5 deposit-eligibility predicate is written. All P15 tables ship their tenant-FK + RLS + uniqueness constraints in the first migration (fresh-build, no users).
 
 ## Testing Decisions
 
@@ -2170,12 +2346,19 @@ _This section binds the phase's test strategy, then the build order, then the ex
 
 ### The seams (where each behavior is proven)
 
-The phase has four distinct test surfaces; each behavior is proven at exactly one primary seam, not smeared across all four.
+The phase has five distinct test surfaces; each behavior is proven at exactly one primary seam, not smeared across all five.
 
 1. **Primary money seam — the batch commit/post service.** This is the one money chokepoint (D1 one front door; D5 validate=post). Unit + integration tests here are the compliance oracle for: the revision-bound validation gate (any material edit invalidates validation and approval; commit accepts only the approved revision — D2), the control-total balance predicate and its governed override (frozen original expected totals, distinct capability, required reason — D2), atomic all-or-nothing commit and the audited escape valve (D5 Path C), the high-risk auto-route and new-operator soft-guard routing predicates (D5), idempotent commit over a subset, and the conservation invariant of the carry-forward follow-on batch. These tests run the real service against a real Postgres so the posting `seq`, the advisory lock, and the immutability trigger are exercised, not simulated.
 2. **DB-invariants seam — pgTAP against real Postgres.** Structural money-integrity that must hold regardless of application code lives in database tests: the append-only postings immutability trigger (a posted row cannot be UPDATEd), the composite `(tenant_id, …)` FK + FORCE RLS cross-tenant impossibility, the `settlement_rail` deposit-eligibility CHECK (a Stripe-rail gift can never carry a manual deposit link — the double-count invariant, D6/CB-A), the frozen-conservation invariant on carried batches (committed_actual + Σ pending_async + carried_expected = frozen original_expected — D5), the describe-never-value non-cash invariant (D4), and the template config-frozen/safety-live boundary (a template row can never encode a value that subtracts a control — D7). pgTAP is the floor because these must fail even if the service layer has a bug.
 3. **UX seam — Playwright.** Keyboard, focus, and accessibility behavior cannot be proven in jsdom (it has no real focus model or layout), so the D3 workbench contract is a Playwright + axe suite driving a real browser. This is the compliance oracle for the ARIA APG grid keyboard contract.
 4. **Webhook / phone-lane seam — the `stripe_raw_events` ledger.** The native embedded phone-gift lane (D4) is an online gift written by the Stripe webhook, not an offline batch row. Its tests assert the durable-event lifecycle (`pending_ach → completed → reversed`, dispute + `charge.failed` events, 3-key idempotency, receipt gated on `succeeded`, Events-API sweep backstop — D4 A18) against the existing raw-events + saga/outbox pattern (REAL: `packages/api/src/donate/`), replaying events to prove exactly-once linking and no double-count against any batch money row.
+5. **Noncash source seam — the real append-only projector.** Contract and
+   Postgres integration tests append real source/coverage facts and read
+   `projectNoncashDispositionSource`; they never fabricate a D21 payload around
+   the projector. This is the oracle for source-mode/legal-recipient resolution,
+   source-family finality, exact component shapes, lot/purpose/tranche coverage,
+   idempotency/corrections, and the permanent absence of original valuation or
+   direct downstream writes.
 
 ### The test grids (the ratified acceptance oracles)
 
@@ -2185,6 +2368,22 @@ Each core decision carries a required combinatorial grid; these are PRD acceptan
 - **D5 commit grid — policy × tender × receipt-plan × receipt-timing × control-total × escape-valve.** The full cross-product: {self-approve / opt-in second approver / quorum} × {check, cash, securities, in_kind, church_remittance, phone-card, phone-ACH} × {ordinary/non-Canadian policy / `individual_cash` / `annual_cumulative_cash`} × {immediate settled-tender receipt / async ACH-gated-on-succeeded / opt-in hold-until-cleared / ready-for-year-end with no per-gift authorization} × {balanced / mismatch-blocked / governed-override} × {atomic-all / clean-subset-carry / async-stays-with-origin}. It includes the named invariant `{annual_cumulative_cash, settled check or cash, commit} → posted money + ready-for-year-end, zero per-gift receipt authorization, zero generated-document request, zero delivery occurrence`. Plus two **property tests**: the **conservation** property (no carry path ever creates or destroys expected total — the frozen invariant holds under any partition) and the **revision-race** property (a concurrent edit during validate/approve/commit can never let an unapproved revision post).
 - **D6 deposit grid — V1–V6 × tenders × timing × cardinality.** Every founder-named workflow variant (V1 same-day RDC, V2 deposit-before-entry, V3 entry-then-deposit-days-later, V4 N batches → 1 deposit, V5 1:1, V6 inconsistent week-to-week) × {check, cash, bank-direct ACH/wire, Stripe-rail (must reject the link), securities/in-kind (no-deposit state)} × {deposit-before-entry / after / simultaneous} × {1:1, N:1, 1:N}. Asserts the derived deposit-state axis, the append-only `deposit_assignment_events`, free-until-P20-export mutability, the printed-slip immutable snapshot, and NSF-retained membership.
 - **D7 template grid — the O4a–O4g invariant-cannot-be-overridden fuzz.** Property/fuzz tests prove a batch template can NEVER subtract a control: it cannot make an ineligible gift receiptable, cannot disable the control-total gate, cannot change a tender's `settlement_rail` or make a Stripe gift depositable, cannot bypass the auto-post/high-risk route, and a dead frozen designation ID is rejected at commit (money-integrity re-resolves live). O4b/O4d run **red-before-green** with the D5 commit chokepoint.
+- **D21 noncash-source grid — mode × finality × disposition × component shape ×
+  correction.** Cover `{tenant-held, proved tenant-agent, intermediary legal
+donee, DAF sponsor, terminal nonmonetary}` × `{pending, partial, UI-settled but
+unproved, exact source-final, ambiguous}` × `{single lot, partial lot, pooled
+lots, installment, corporate action, canceled trade, retained/used/donated
+onward/abandoned/worthless}` × `{gross-cost-net, exact-net-only,
+nonmonetary}` × `{first event, replay, late cost, adverse correction,
+out-of-order successor}`. Property tests prove exact quantity and minor-unit
+  conservation, deterministic residuals, no overlapping positive coverage, and
+  same Tenant/Legal Entity/purpose/currency isolation. Poison fixtures prove an
+  appraisal/FMV/recognized value, staff-selected `settled`, inferred zero fee,
+  fuzzy lot match, cross-scope row, raw disposition row, and duplicate economic
+  root all create **zero** D21 candidates, Contributions, Field Account
+  occurrences, bank facts, or Accounting Releases. Intermediary/DAF cash grants
+  route through the ordinary cash/grant source exactly once; terminal outcomes
+  produce no monetary support.
 - **NF3 acknowledgment-gate grid.** Asserts: **idempotent double-press** (pressing "Send acknowledgments" twice never double-thanks — the `(tenant, header/settlement, notify_party, stream)` idempotency key holds), the **recall window** (a batch-grain undo before the send actually leaves), **late-delta re-arm** (a Mod3 correction or a late-generated credit re-arms the panel with "Send 3 more," never re-blasting the already-sent set), **restricted-projection** (the manifest is projected per-viewer; restricted rows are ABSENT and the button count reflects only the visible set — never "47 with 3 hidden"; restricted acks stay `held` for a non-cleared actor), and the **three-document-wall** test (the acknowledgment send never creates Phase 7 receipt authorization or a Phase 18 official generated-document request; any plan-admitted individual tax receipt is a different document, while annual-cumulative mode creates no per-gift receipt).
 
 ### Prior-art test files (REAL — verified on disk, the patterns to mirror)
@@ -2215,6 +2414,18 @@ _Dependency-ordered slices. Nothing in a later slice ships until the earlier sli
 
 5. **Paste / PAN.** In-cell TSV clipboard paste + fill-down (the seed-grid capability; formal spreadsheet import is Phase 30 (Imports & Migration Tools), deferred — pin G); then the native embedded phone-gift lane — Stripe Payment Element keyed by staff (SAQ-A), server-confirm MOTO (gate+detect+degrade), the mid-call Financial-Connections ACH lane and the bounded secondary TEL lane, all as online gifts written by the webhook and auto-linked, never offline batch rows. _Kill/rollback:_ phone lane is capability-gated (`take_phone_payment`) and degrades to fallback; Asym never stores/logs/processes raw card or bank details.
 
+5a. **Noncash source lifecycle + the sole D21 projection.** Ship the one generic
+noncash intake mapping, exact asset-lot/disposition event and coverage facts,
+source-role/legal-recipient resolver, source-family finality adapters, amount-
+shape checks, exact quantity/minor-unit conservation, append-only corrections,
+one source-owned repair worklist, and
+`noncash_disposition_source_projection`. The UI keeps `pending / partial /
+settled` plain-language and secondary; the projector separately exposes proved
+`source_final`. No Phase 21 consumer is enabled until the complete D21 test grid
+passes in production-shaped fixtures. _Kill/rollback:_ disable D21 consumption;
+source capture/compliance history remains intact and no downstream money was
+written.
+
 6. **Deposits.** The undeposited-funds operational layer (D6): first-class `deposit_groups` + the nullable, changeable, gift-grain link + the derived deposit-state axis; the one-click "deposit this batch" 1:1 default; free add/remove/reassign until Phase 20 (Accounting Exports & Reconciliation) export; the deposit slip artifact as a retained immutable snapshot; NSF-retained membership; the `settlement_rail` eligibility rejection of Stripe-rail tenders. In both the workbench rail AND a first-class Deposits area over ONE service. _Kill/rollback:_ deposit grouping moves no money (no compensating posting); disabling it loses only the slip convenience.
 
 7. **Templates + acknowledgments.** The D7 tenant `batch_template` (column set/order within the D3 allowlist, defaults, required-field policy, which opt-in validation/approval policy applies), the per-batch frozen snapshot, the 3 seeded starters + one non-deletable System Default, personal per-user column prefs, "save this batch as a template" + thin list. Then the NF3 explicit per-batch **"Send acknowledgments"** gate: at commit, batch-origin acknowledgments land in P14 `held` (`batch_gate_pending`); the one human action flips READY held acks into P14's existing `pending_send → hold → consent-gate → sent/suppressed/failed` pipeline (one trigger edge, no second send path); the pre-send manifest, recall window, results view, and the quick-entry checked-by-default one-tap line. _Kill/rollback:_ acks default to `held` (nothing sends without the human edge); templates set defaults only (never subtract a control — enforced at the commit chokepoint).
@@ -2222,6 +2433,27 @@ _Dependency-ordered slices. Nothing in a later slice ships until the earlier sli
 8. **Perf harness + telemetry.** The keystroke/latency budget harness (the AV acceptance metrics), the P8 (CRM Operating Foundation) telemetry + the one owned aged post-hoc worklist (corrections / void-receipts / failed-receipts / open follow-ons / undeposited-cash-aging / acknowledgments-pending-past-N-days), and the deposit-aging signals (default-on, fully disable-able). _Kill/rollback:_ observability-only — removing it loses signal, not money.
 
 ---
+
+## Dated Phase 21 D5 source-purpose provenance amendment (2026-07-30)
+
+**New producer obligation.** Every Phase 15 offline batch or Quick entry row
+must capture owner-labelled source-purpose evidence sufficient for Phase 13's
+closed Accepted Source Purpose Authority Snapshot. Depending on the actual
+source, that evidence may be an exact Designation, remittance line, check or
+wire memo, correspondence or acceptance-authority record, or the exact
+governed publication kind/reference/digest when content was genuinely
+presented or captured. When no publication applied or the historical source did
+not capture one, Phase 15 sends typed `not_applicable` or `not_captured` plus
+the exact evidence reference/digest. It never invents a Phase 17 message or
+Phase 22 giving-page publication.
+
+`commitGiftEntryBatch` supplies this evidence to the single Phase 13
+accepted-purpose resolver. Phase 15 staff and templates cannot set the legal
+restriction/preference class, assert purpose compatibility, or bypass that
+resolver. Missing or ambiguous authority blocks the affected row with a clear
+repair action while unrelated clean rows retain the existing atomic or
+governed carry-forward behavior. A later purpose-authority successor remains a
+Phase 13 append-only, authority-gated action rather than an offline-row edit.
 
 ## Out of Scope
 

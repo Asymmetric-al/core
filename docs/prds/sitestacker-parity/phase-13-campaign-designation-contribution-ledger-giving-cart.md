@@ -185,6 +185,31 @@ Phase 13 sits at the top of the parity stack: it **consumes** hard constraints r
 
 - **Phase 2 (Site, Locale & Currency Foundation) — integer minor units and four orthogonal attribution axes.** Money is **integer minor units + validated ISO-4217 + per-currency exponent** (never a hardcoded ÷100); presentment currency **must equal** settlement currency in-phase (`assertTransactable`); reserved FX columns stay nullable. Phase 24 alone may later widen the source transaction allowlist; Phase 20 D20 only consumes exact downstream settlement and provider-conversion evidence and cannot make a foreign-currency checkout valid. Every ledger row carries the four orthogonal, indexed attribution axes — **`site_id` (NOT NULL), `entry_method` (enum), `source_code` (allowlisted, CSV-safe), `designation` (tenant-wide)** — and a recurring gift **copies attribution to each installment**.
 
+  _(Downstream clarification, 2026-07-30, Phase 21 D6: Phase 13 remains the
+  authority for the immutable contribution header/revision, source currency,
+  and complete effective hard-tender line set—including fee-cover and other
+  non-support lines. When a later Field Account admission uses a different
+  currency, Phase 21 may reference but never rewrite those facts through one
+  immutable Support Currency Allocation Manifest. That manifest allocates one
+  exact typed organization-controlled target allocation basis across the
+  complete frozen line set with the established deterministic
+  largest-remainder minor-unit seam; only eligible non-fee-cover Designation
+  target portions may create Gross Support Allocations. Each later
+  cross-currency adverse occurrence uses its own successor/correction manifest.
+  No manifest changes Phase 13 contribution, Designation, fee-cover, correction,
+  or Phase 7 receipt truth.)_
+
+  _(Downstream clarification, 2026-08-01, Phase 21 D21: Phase 13 remains
+  authoritative for the original noncash Contribution, legal donor, accepted
+  purpose, gift date, asset identity/description, valuation, receipt,
+  supporter, and fundraising truth. Its noncash posting amount, recognized
+  value, FMV, appraisal, and provider estimate are structurally ineligible for
+  a monetary Phase 21 Support Allocation Candidate. Phase 15 owns the canonical
+  append-only asset-lot/disposition/proceeds/finality/evidence/correction
+  projection. Only one exact source-final D21 Realized Support Basis derived
+  from that projection may later enter D2/D11 close; it never rewrites or
+  duplicates the original gift.)_
+
 - **Phase 3 (Minimum Permission & Role-Scoped Projection Foundation) — every sensitive read/write goes through the one projection chokepoint, fail-closed.** All sensitive ledger access flows through `resolveProjection`; **processor identifiers are hard-locked non-visible and non-exportable**; row scope is **subtract-only per viewer**; exports are **column-driven via `csvSafeCell`**; audit logs record **field keys, never dollar amounts**. Phase 13 adds no read or export path that bypasses this.
 
 - **Phase 4 (Identity & Account-Claiming Foundation) — four distinct identities, and a frozen legal donor.** **Auth user ≠ donor ≠ Stripe customer ≠ legal donor.** The legal/hard-credit donor on a contribution is frozen as exact source evidence at acceptance; only intentional `unknown_offline` may be null. A proved same-person merge may repair the mutable canonical Party reference, but it never rewrites the frozen identity evidence or any derived official-facts version. Corrections never silently change the legal donor.
@@ -348,7 +373,7 @@ Stories are grouped by actor and numbered continuously. Every story is grounded 
 98. As **finance staff**, I want to record a securities gift (publicly-traded stock, non-public stock, or crypto) with its identifier, share/coin quantity, delivery date/time, and FMV method appropriate to its asset class, so that each security is valued by the right rule. `[D8, D8.a]`
 99. As **finance staff** recording crypto, I want the system to treat it as property (appraisal required over $5k, exchange price insufficient, intraday delivery timestamp), so that we never mis-derive that no appraisal is needed. `[D8.a]`
 100.  As **finance staff**, I want a vehicle gift captured with VIN, year/make/model, odometer, and condition, auto-posting the gift while the disposition/proceeds are tracked separately, so that accepting a car is simple and the deduction facts follow. `[D8.a]`
-101.  As **finance staff**, I want to record a vehicle's disposition (sold arm's-length, significant use, material improvement, given to the needy below FMV, or retained) with date and gross proceeds, so that the donor's deductible value is grounded in what actually happened. `[D8.a]`
+101.  As **finance staff**, I want to record a vehicle's disposition (sold arm's-length, significant use, material improvement, given to the needy below FMV, or retained) with date and gross proceeds, so that the donor's deductible value is grounded in what actually happened. `[D8.a]` _(Amended 2026-08-01 by Phase 21 D21: the command appends Phase 15-owned source evidence and Phase 13 reads its contribution-linked compliance projection. A staff selection cannot establish source finality, create cash, or create a Field Account effect.)_
 102.  As **finance staff**, I want a real-estate gift captured as a guided, stepped intake that always routes to committee review and never auto-posts, so that title/environmental/lien risk is a human decision, never a silent placeholder on a receipt. `[D8.a]`
 103.  As **finance staff**, I want a general in-kind gift described (not valued) on the receipt, with an optional internal value that is clearly marked as never appearing on the receipt, so that we meet IRS rules and never mislead a donor about deductibility. `[D8.b, R-UX]`
 104.  As **finance staff**, I want a Donor-Advised Fund (DAF) grant to credit the sponsoring organization as the legal donor (advisor as soft credit only, no benefit/quid-pro-quo), so that we never tell a DAF advisor their grant is deductible to them. `[D8.a]`
@@ -762,7 +787,29 @@ The founder chose the model and then commissioned a brittleness/footgun/edge-cas
 3. **Corrections/reversals are new negating entries, never status flips.** `reversed` is a **derived read flag only**; a reversal carries `reverses_adjustment_id` + inverse deltas; the pair nets to zero and **both rows survive as provenance**.
 4. **Per-line-id deltas** (`{ target_line_id, amount_delta_minor, fund_id?, missionary_id? }`), **not** whole-array replacement; explicit `add_line` / `void_line`; a delta on a voided line is rejected; a re-designation is **one transaction of paired deltas summing to zero**.
 5. **The fold orders by a monotonic per-header `seq`, not `created_at`** (`NOW()` ties within one transaction are non-deterministic). The fold and the revision token share the `seq` key; per-header monotonicity is guaranteed by `SELECT … FOR UPDATE` on the header when allocating the next `seq`. Index `(tenant_id, donation_id, seq)`.
-6. **Designation identity is snapshotted onto the line at post** (`fund_code`, `fund_name`, `missionary_display_name`, `external_ref`) _and_ the live FK is retained: **receipts read the snapshot, ops rollups read the FK.** A fund merge sets `merged_into` and resolves **at intake only**, never repointing a historical FK.
+6. **Designation identity and accepted source-purpose authority are snapshotted
+   onto the line at post.** The identity snapshot contains `fund_code`,
+   `fund_name`, `missionary_display_name`, and `external_ref`, while the
+   accepted-purpose snapshot freezes exact Designation identity,
+   restriction-or-preference classification, purpose and excess-use policy
+   version, source-posting coverage, and one closed provenance variant. When
+   governed content was presented or captured, the variant freezes its exact
+   source-owned publication kind, reference, and digest. Otherwise it records
+   typed `not_applicable` or `not_captured` plus the exact source-purpose
+   evidence reference and digest, such as a Designation, remittance, memo, or
+   acceptance-authority record. Phase 22 owns a public giving-page publication
+   only when that page was the accepted source, over Phase 23's CMS substrate;
+   Phase 17 owns a message publication only when a governed communication was
+   the accepted source. Every money producer supplies owner-labelled evidence
+   for this closed union; the Phase 13 resolver, not a caller-selected legal
+   classification, freezes the result. Missing or ambiguous purpose authority
+   blocks the affected line rather than fabricating a publication or blocking
+   unrelated lines. The live FK is retained: receipts read immutable accepted
+   facts and ops rollups read the FK. A fund merge sets `merged_into` and
+   resolves **at intake only**, never repointing historical identity or purpose
+   authority. A later purpose-authority successor is append-only and requires
+   exact jurisdiction-permitted donor, legal, court, or regulator authority; it
+   is not an ordinary correction. _(Amended 2026-07-30 by Phase 21 D5.)_
 7. **Effective value is readable only through the derivation** (a `SECURITY INVOKER` projection that folds in SQL); base money columns are writer-role-only; a **CI grep gate** forbids direct base-money reads anywhere else.
 8. **The cached effective read model is keyed on a version cursor** (`effective_seq = max folded seq`) and **cursor-invalidated, not TTL'd**, so a stale read is structurally detectable. Fund progress derives from _this_ — **delete the writable `funds.current_amount` counter** — and a periodic re-derivation raises a drift alarm.
 9. **Integer minor units + explicit currency on every row; one currency per header** (line and adjustment currency = header currency, DB-enforced). Currency is **branded into the TS money type** (USD + JPY fails typecheck). Report totals `GROUP BY` currency — **never a cross-currency scalar.**
@@ -1059,7 +1106,12 @@ The ratified model is **guided override bounded by method** (preserving the foun
 All four rare high-consequence types collapse onto **one `non_cash_asset` substrate** — right-sized, not over-built (NPSP / Blackbaud / CiviCRM converge on subtype-under-non-cash). The discriminator is a **`subtype` on the LINE (never a tender)** — the tender is _how_ it arrived (a check, a transfer); the asset is _what_ was given. Shared fact sets are grouped **by concern** in **dedicated append-only tables** — **not** on the closed `effective_values` fold (a fold would silently lose later proceeds/appraisal appends):
 
 - `asset_valuation` — `{fmv_minor, fmv_method, fmv_datetime, appraisal_required (derived), appraisal_ref}`;
-- `asset_disposition` — `{status, date_of_sale, gross_proceeds}`;
+- `asset_disposition` — the contribution-linked, read-only compliance/clock
+  projection over Phase 15's canonical append-only asset-lot, disposition,
+  proceeds, finality, evidence, and correction facts. It may expose
+  `{status, date_of_sale, gross_proceeds}` only where the exact source proves
+  them, preserves the source mode and legal-recipient role, and has no
+  independent Phase 13 write path;
 - `asset_identity` (subtype-keyed) — `vin | cusip | parcel`, gated by a **per-subtype `CHECK` so illegal combinations (a vehicle with a CUSIP) are unrepresentable.**
 
 Derived flags (1098-C-required, appraisal-required, 8283-section) are computed **once in the DB from IRS-constant lookup data** (not hard-coded — a threshold change must not be a code change) and **re-derived on any append-only value correction** (unlike the frozen `gift_date`); the reconciliation sweep is the backstop. UX is **progressive disclosure** — a normal card gift sees none of it.
@@ -1067,7 +1119,11 @@ Derived flags (1098-C-required, appraisal-required, 8283-section) are computed *
 **VEHICLE** (car/boat/etc. — Form 1098-C rules).
 
 - A non-cash _subtype_, not a tender (the tender is the check/transfer; the car is _what_ was given).
-- Facts: `vin / year / make / model / odometer / condition` + append-only `asset_disposition` (`sold_arms_length | significant_use | material_improvement | needy_below_fmv | retained`; `date_of_sale`; `gross_proceeds`).
+- Facts: `vin / year / make / model / odometer / condition` plus the read-only
+  `asset_disposition` projection (`sold_arms_length | significant_use |
+material_improvement | needy_below_fmv | retained`; `date_of_sale`;
+  `gross_proceeds`). The staff workflow appends the underlying Phase 15 source
+  fact; Phase 13 never keeps a second mutable sale row.
 - Derived `form_1098c_required = claimed_value > $500`.
 - **Auto-posts the gift** (a car is accepted); only the disposition/proceeds + the deduction-relevant acknowledgment wait. UX: a guided disposition radio with inline consequence ("Sold → the donor's deduction = what we received"); a 1098-C badge + a 30-day countdown when > $500. **Do not over-gate vehicles to a committee.**
 
@@ -1091,6 +1147,33 @@ Derived flags (1098-C-required, appraisal-required, 8283-section) are computed *
 - `no_quid_pro_quo = true` → Phase 18 refuses any benefit/FMV (§4967 125% excise). Carry `daf_pledge_no_sponsor_reference` (IRS Notice 2017-73).
 - **Enumerate every Phase-14 hand-off fact in this PRD now** (capture-in-13, operate-in-14). An unmatched sponsor alias → **fail-closed to review.**
 
+#### E.4.1 — Downstream noncash-realization boundary (Phase 21 D21)
+
+The original noncash Contribution remains one gift. Phase 13 owns its immutable
+legal donor, Legal Entity, accepted-purpose line, gift date, asset identity and
+description, valuation and receipt facts, and supporter/fundraising meaning.
+Phase 15 alone owns the canonical append-only operational projection of exact
+source lots, disposition tranches, proceeds, source-specific finality, private
+evidence, and corrections. Phase 13 may read that projection for a compliance
+clock or acknowledgment, but may not write a competing disposition/proceeds
+record.
+
+The projection preserves whether the tenant was the legal recipient and held
+the asset, an exact provider acted as the tenant's agent, an intermediary or DAF
+sponsor was the legal donee and later sent an ordinary cash grant, or the asset
+was retained, used, donated onward, abandoned, or became worthless. Only the
+first two source modes can feed a Phase 21 D21 Noncash Support Realization, and
+only after the versioned source-specific finality rule proves exact proceeds.
+An intermediary/DAF cash grant follows its ordinary cash/grant source contract;
+a terminal nonmonetary outcome creates no monetary support.
+
+No original FMV, appraisal, claimed value, provider estimate, or Phase 13
+noncash posting amount is a Phase 21 D2 Support Allocation Candidate. D21 may
+derive one exact Realized Support Basis from non-overlapping Phase 15 source
+coverage; D2/D11 alone may later admit the resulting Field Account occurrence.
+That downstream occurrence never creates a second Contribution, receipt,
+campaign increment, donor/supporter credit, or fundraising event.
+
 #### E.5 — The internal-value-never-on-receipt structural wall (D8.b — BLOCKER-class)
 
 **Ruling (D8.b):** an optional **internal, receipt-invisible** value on non-cash gifts; the UX must make it _crystal-clear to staff that it will not show on the receipt._
@@ -1103,6 +1186,10 @@ The forward design makes the leak a **compile error**, not a review catch:
   `sum(lines) = header` holds and totals are real), stored in a separate
   `contribution_internal_valuation` table that the Phase 7 receipt-facts
   builder physically never joins.
+- That amount is Phase 13 contribution/recognition truth only. Phase 21 D21
+  makes it structurally unreachable from monetary Field Account candidate and
+  close paths; only exact source-final realized proceeds may later create a
+  Realized Support Basis.
 - The Phase 18 renderer consumes a **discriminated-union
   `ReceiptRenderInput`** whose non-cash arm has no `amount` field at the type
   level → putting a value on a non-cash receipt is a `tsc` error, backed by a
@@ -1339,7 +1426,34 @@ Every new table below carries: `tenant_id UUID NOT NULL` with **no default** (th
 ### New/changed tables — the ledger core (D2, D3)
 
 - **`contribution_headers`** — one contribution (one hard-tender payment). Purpose: the gift's canonical identity and declared total. Key columns: `id` (**reuses the `donations.id` UUID**), `tenant_id`, immutable `legal_issuer_id` (server-resolved from the verified legal-issuer authority, never caller input), immutable `gift_method`, `total_minor BIGINT`, currency (ISO-4217), the **frozen legal-donor snapshot** (`donor_id` frozen at gift time per Phase 4; explicit `is_anonymous`/NULL-donor flag; survives merge re-point), the five orthogonal **status axes**, `entry_method`, and Stripe link columns (`stripe_payment_intent_id`, `stripe_charge_id`, `stripe_account_id`). Invariants: `UNIQUE (tenant_id, id, legal_issuer_id)` supports exact-issuer dependent facts; header total = hard tender only; `total_minor = SUM(lines)` at COMMIT; issuer and tender are immutable once posted. The locked commit seam creates the required initial Phase 7 `contribution_dating_facts` revision in the same transaction; the header carries no competing dating values.
-- **`contribution_designation_lines`** — one designation target per line; N lines per header (split gifts). Purpose: the **money source-of-truth** (the header's declared total is validated against these). Key columns: `id`, `tenant_id`, composite FK `(tenant_id, header_id)`, `line_ordinal` (stable, unique per header), `amount_minor`, `currency` (= header currency, DB-enforced), **`fund_id` XOR `missionary_id`** (one target; a one-target CHECK is the backstop; unspecified → tenant General Fund resolved **at write**), `source_code_id` (nullable FK, D14) + the frozen attribution snapshot, `designation_id` (D9), a boolean `is_fee_cover` (D12), a boolean-free **snapshot of the designation identity at post** (`fund_code`, `fund_name`, `missionary_display_name`, `external_ref`) alongside the live FK. Invariants: exactly one designation target per line (CHECK); a delta against a voided line rejects; the P10 firewall resolves the label to an alias/fund-code (never a restricted worker's legal name) **before** it freezes into the snapshot.
+- **`contribution_designation_lines`** — one designation target per line; N
+  lines per header (split gifts). Purpose: the **money source-of-truth** (the
+  header's declared total is validated against these). Key columns: `id`,
+  `tenant_id`, composite FK `(tenant_id, header_id)`, `line_ordinal` (stable,
+  unique per header), `amount_minor`, `currency` (= header currency,
+  DB-enforced), **`fund_id` XOR `missionary_id`** (one target; a one-target
+  CHECK is the backstop; unspecified → tenant General Fund resolved **at
+  write**), `source_code_id` (nullable FK, D14) plus the frozen attribution
+  snapshot, `designation_id` (D9), a boolean `is_fee_cover` (D12), a
+  boolean-free snapshot of Designation identity (`fund_code`, `fund_name`,
+  `missionary_display_name`, `external_ref`) alongside the live FK, and one
+  immutable **Accepted Source Purpose Authority Snapshot** containing exact
+  Designation identity, restriction-or-preference class, purpose and excess-use
+  policy version, source-posting coverage, and one closed provenance variant:
+  either the exact source-owned publication kind/reference/digest when
+  presented or captured, or typed `not_applicable`/`not_captured` with the exact
+  source-purpose evidence reference/digest. Phase 22 owns a public giving-page
+  publication only when that page was the accepted source, over Phase 23's CMS
+  substrate; Phase 17 owns a message publication only when a governed
+  communication was the accepted source. Invariants: exactly one designation
+  target per line (CHECK); every producer supplies owner-labelled provenance to
+  the Phase 13 resolver; missing or ambiguous accepted-purpose authority blocks
+  the affected line, not unrelated work; no caller may select the legal
+  classification or fabricate a publication; any authorized purpose successor
+  preserves the original; a delta against a voided line rejects; and the P10
+  firewall resolves the label to an alias/fund-code (never a restricted
+  worker's legal name) **before** it freezes into the snapshot. _(Amended
+  2026-07-30 by Phase 21 D5.)_
 - **`contribution_postings`** — append-only entries that fold to the effective money value. Purpose: the money ledger's event stream (initial allocation + every correction/refund/reversal). Key columns: `id`, `tenant_id`, `header_id`, `target_line_id`, `seq` (monotonic per-header), `amount_delta_minor` (signed), `kind` (TEXT+CHECK: `initial`, `refund`, `void`, `write_off`, `ach_return`, `chargeback`, `source_code_correction`, …), `reverses_posting_id` (nullable), `is_initial` replay-guard, actor/reason/provider-outcome facts, plus the **immutable D14 attribution columns copied as plain columns** (never re-read from the live registry). Invariants: **no UPDATE/DELETE once written** (BEFORE UPDATE OR DELETE trigger that RAISEs — not RLS, not REVOKE, because `service_role` has BYPASSRLS and migrations run as owner); `seq` allocated under `SELECT … FOR UPDATE` on the header so ties are impossible; a reversal carries inverse deltas and both rows survive as provenance (never a status flip). Date corrections carry no money delta and therefore never enter this stream; they append through Phase 7's `contribution_dating_facts` authority.
 - **`contribution_adjustments` (generalized)** — the current JSONB adjustment overlay is **folded into `contribution_postings` in the same cutover** (per D2 completeness: leaving it as a parallel overlay delivers "one canonical truth" only half-way). Purpose after Phase 13: retired as a truth store; the append-only posting stream is the sole correction record. The shipped effective-fold discipline (ADR-CD-004) and `base_revision` optimistic-concurrency + partial-unique idempotency key are **kept and generalized** onto postings; the whole-array `effective_values.designationLines` replace is **replaced by per-line-id deltas** `{target_line_id, amount_delta_minor, fund_id?, missionary_id?}` with explicit `add_line` / `void_line`.
 
@@ -1368,11 +1482,15 @@ Composition is a one-directional precondition chain whose first step is tender-s
 - **Non-cash subtype substrate (one substrate, four rare types + DAF; append-only, NOT on the closed effective-values fold):**
   - **`non_cash_asset`** — the discriminator: a `subtype ∈ {vehicle, securities, real_estate}` on the **line** (not a tender — the tender is the check/transfer; the asset is _what_ was given). Per-subtype CHECK makes illegal combos (a vehicle with a CUSIP) **unrepresentable**.
   - **`asset_valuation`** — `{fmv_minor, fmv_method, fmv_datetime, appraisal_required (derived), appraisal_ref}`. `fmv_method` is **constrained by `asset_class`** so crypto cannot pick `mean_high_low` and wrongly derive `appraisal_required=false`.
-  - **`asset_disposition`** — `{status, date_of_sale, gross_proceeds}` (append-only; vehicle disposition + proceeds arrive after the gift is accepted).
+  - **`asset_disposition`** — a read-only projection and compliance-clock anchor over Phase 15's sole canonical append-only asset-lot/disposition/proceeds/finality source projection. It carries the exact source mode, legal-recipient role, source version and evidence reference behind any proved `{status, date_of_sale, gross_proceeds}`; Phase 13 has no second proceeds writer, and a raw disposition row is never a Contribution, Field Account occurrence, or accounting posting.
   - **`asset_identity`** — subtype-keyed `{vin | cusip/ticker/coin+on-chain-ref | parcel}` gated by per-subtype CHECK.
   - Subtype rules: **vehicle** auto-posts the gift (a car is accepted; only disposition/proceeds/ack wait), derived `form_1098c_required = claimed_value > $500`; **securities** carry `asset_class ∈ {publicly_traded, non_publicly_traded, crypto}` (`delivery_datetime` is a TIMESTAMP for intraday crypto), publicly-traded = mean high/low never appraisal, non-public > $10k appraisal, crypto = property, appraisal > $5k with no public-price exception (CCA 202302012), donee 8282 on disposition < 3yr; **real_estate** carries `requires_gift_acceptance_review = TRUE` **always** (ANDs into the auto-post predicate → D7 fail-closed review queue; **never auto-posts**; a `pending_valuation` line state holds in review — never a zero, never a placeholder on a receipt). IRS statutory constants ($500/$5k/$10k/3yr) live as **DB lookup data**, not hard-coded.
   - **DAF is a shape, not a subtype/tender:** `is_daf_grant = true` makes the **hard-credit donor = the sponsor party** (Fidelity/Schwab/NCF); the advisor attaches as **soft credit only** (`is_receiptable = FALSE`, reusing the Phase 7 A8 DB CHECK). Suppression **becomes** the hard-credit-donor identity — **not** a parallel `tax_receipt_suppressed` boolean that could disagree with the wall. `no_quid_pro_quo = true` refuses any benefit/FMV downstream (§4967). An unmatched sponsor alias **fails closed to review**.
 - **`contribution_internal_valuation`** (D8.b, BLOCKER-class structural wall) — the optional, **receipt-invisible** internal FMV of a non-cash line. Purpose: the internal FMV **IS the non-cash line's `amount_minor`** (so `sum(lines)=header` holds and totals are real), stored in a table the Phase 7 inclusion-snapshot builder **physically never joins**. The render type is a **discriminated-union `ReceiptRenderInput` whose non-cash arm has no `amount` field at the type level** → a value on a non-cash receipt is a **compile error, not a code-review catch** (plus a taint/negative test). Staff UX must make it crystal-clear this value will not appear on the receipt.
+  Phase 21 D21 extends the same structural wall to Field Accounts: this value,
+  any appraisal, and any estimated proceeds cannot create a D2 candidate or
+  monetary support. Only the exact source-final Realized Support Basis from a
+  non-overlapping D21 manifest may do so.
 
 ### New/changed tables — attribution + source codes (D14, D14b)
 
@@ -1591,6 +1709,14 @@ Good tests here assert **external, money- and tax-observable behavior** — "a h
     its own monotonic outcome independently. Replay and out-of-order fixtures
     prove that processing→success→late-return cannot duplicate or skip a source
     fold transition or downstream semantic occurrence.
+15. **Noncash value cannot become monetary support.** A structural contract test
+    proves that the original noncash line amount, recognized value, FMV,
+    appraisal, claimed value, and provider estimate are absent from the Phase 21
+    D2 candidate input type and query. A pending, partial, ambiguous, or merely
+    staff-marked Phase 15 disposition produces no candidate. Only one exact,
+    source-final, non-overlapping D21 Realized Support Basis can cross that seam;
+    replay cannot create a second Contribution, receipt, campaign increment,
+    supporter credit, Field Account occurrence, or accounting posting.
 
 **Additional required coverage (non-P0 but tested in-phase):** the cart outbox
 hands recurring intent to Phase 16 exactly once per stable opaque line; a
@@ -1631,7 +1757,7 @@ _What the PRD tells the agent to build, and in what order. Nothing in a later gr
 5. The **D3 ledger core**: header + designation lines + append-only postings; monotonic `seq` via `FOR UPDATE` on the header; the immutability trigger; the deferrable `sum(lines)=header` constraint; the derivation-only effective-value fold + CI grep gate on base-money reads; the version-cursored read model; **delete `funds.current_amount`** (derive + reconcile); the shared largest-remainder (Hamilton) proration function used by both the UI preview and the ledger.
 6. The **D7 separated lifecycle**: CHECK-TEXT columns for Phase 13-owned payment, posting, and review truth; the locked transition RPC + `BEFORE UPDATE` trigger (unknown pairs → escalation row, never silent-ignore); route existing webhooks through it; replace the free-text `donations.status`; and ship the fail-closed exception predicate set + queue. Receipt/document and accounting coverage remain constrained cross-domain projections with no Phase 13 stub columns.
 7. The **NEW `charge.dispute.*` + refund/return handlers** in the Inngest processor (idempotent; Nacha R05/R07/R10/R11 → return/correction effect; pin the Stripe API version + a CI allowlist-review-on-bump) and the Phase 13-local one-transaction reversal cascade (payment state → money inverse → derived progress → durable Phase 7 correction pointer under a per-contribution advisory lock). Phase 7/18/19/17 then advance independently. **HARD GATE — the ACH no-go:** _do not enable ACH until these dispute/return handlers + the fail-closed review + the local reversal/outbox cascade ship._ ACH is one Stripe dashboard toggle from live; enabling it earlier means money leaves and the gift stays "paid" forever (D7 blocker #1 / the one hard rule).
-8. **D8 tender + dating + non-cash subtypes**: the `gift_method` enum + per-tender metadata; the capture-not-recompute date-of-delivery resolver with `delivery_basis` **guided override bounded by method** + live tax-year preview + A15 staff attestation on issued-year crossing (tenant/jurisdiction strengthening optional); fail-closed tenant tax config; the `non_cash_asset` substrate (vehicle/securities incl. crypto/real-estate) with subtype-keyed CHECK constraints making illegal combos unrepresentable, dedicated append-only fact tables (not the closed fold), derived 1098-C/8283/appraisal flags from DB lookup constants; the structural internal-value wall; real-estate always `requires_gift_acceptance_review` (never auto-posts).
+8. **D8 tender + dating + non-cash subtypes**: the `gift_method` enum + per-tender metadata; the capture-not-recompute date-of-delivery resolver with `delivery_basis` **guided override bounded by method** + live tax-year preview + A15 staff attestation on issued-year crossing (tenant/jurisdiction strengthening optional); fail-closed tenant tax config; the `non_cash_asset` substrate (vehicle/securities incl. crypto/real-estate) with subtype-keyed CHECK constraints making illegal combos unrepresentable, dedicated append-only fact tables (not the closed fold), derived 1098-C/8283/appraisal flags from DB lookup constants; the structural internal-value wall; real-estate always `requires_gift_acceptance_review` (never auto-posts). Publish the immutable original asset/purpose references Phase 15's source projection must bind, expose disposition only through the read-only Phase 15 projection, and make every original valuation field structurally absent from the Phase 21 D2 monetary-candidate seam.
 9. **D14 source codes + attribution**: the `source_codes` registry (FORCE RLS, Data-API-revoke, composite uniqueness, `ON DELETE RESTRICT`, `campaign_id` nullable-reserved); the **seed/bulk-import path** (cannot trail — an empty registry routes the whole ledger to triage on day one); the shared `normalizeSourceCode`; UTM capture (discrete allowlisted columns + jsonb overflow); per-line write-once freeze; the immutable recurring attribution snapshot (label+channel+segment+id, **not** raw UTM); the **separate erasable raw-UTM capture-log** off the ledger (Article-9 religious-affiliation risk) + redaction path; store-both + per-tenant report-time toggle initialized to **last-touch**; the CSV-injection fix; **the tagged-link builder** (canonical `?sc=` link + short link + dynamic QR) and the `/s/[token]` data-driven redirect (the one friction-critical UI — match rate is a direct function of it).
 10. **D13 campaign model + bounded hierarchy**: `giving_campaigns` (currency required when a monetary goal exists) + child `campaign_goals` (zero-or-more typed) + adjacency-list tree with maintained `depth` (cap 5) + the one locked reparent function (cycle+depth guard) + composite tenant FKs; the single canonical set-union rollup view (`amount_own` / `amount_in_hierarchy`); consume D14's reserved `source_codes.campaign_id` FK (no ledger retrofit); the "expected designations" intent list + coverage panel + per-campaign source-code inventory; flip `extensible_targets.campaign` on (P11).
 11. **D15/D12 giving cart + fee-cover**: the cart model (ordered
@@ -1657,6 +1783,10 @@ _What the PRD tells the agent to build, and in what order. Nothing in a later gr
 consumer):** stable connected-account and provider-object links; raw signed
 event retention; the reusable event claim/complete/failure and workflow
 dispatch ledgers; source/designation snapshots copied onto later occurrences;
+the **Phase 15 → Phase 21 D21 noncash-realization seam** (exact original
+Contribution/accepted-purpose/asset references plus a read-only Phase 15 source
+projection; no Phase 13 proceeds writer and no original valuation in the D2
+candidate contract);
 the **Phase 20 accounting-eligibility and source-identity seam** (with
 downstream coverage read only from Phase 20 records); the **campaign public-page
 reference-by-id** seam (Phase 22); the **soft-credit table** keyed to the header
@@ -1808,3 +1938,41 @@ receipt, refund, campaign attribution, recurring schedule, recipient, or
 communication candidate. Tenant prose cannot relabel Processing as Received,
 promise settlement, change money, or invent an event. The Phase 16 recurring
 supersession remains binding; this note changes no Phase 13 ledger authority.
+
+## Dated Phase 21 D11 Field Account integrity clarification (2026-07-30)
+
+Phase 13 remains authoritative for immutable contribution occurrence
+identities and revisions, the complete effective header/line/posting set, exact
+source currency, Designation and legal-donor meaning, and append-only
+contribution correction lineage. Phase 21 consumes those facts only by exact
+source identity, version, and non-overlapping coverage.
+
+Phase 21's monotonic ingestion cursor proves only which committed Phase 21
+processing facts its Support Cycle Integrity Manifest examined. It neither
+certifies Phase 13 source completeness nor authorizes contribution repair. A
+missing, duplicate, contradictory, or otherwise incorrect contribution fact is
+corrected through the Phase 13 append-only command and evidence contract; Phase
+21 may then append or replay only the exact resulting source-linked Field
+Account Occurrence under its remaining-coverage and idempotency rules.
+
+Neither a Field Account Integrity Case nor a Field-Account-side/
+organization-control-side variance may edit, blindly replay, invent,
+force-offset, or move Phase 13
+contribution truth. Mission Control follow-up and QBO/Xero state confer no
+Phase 13 or Phase 21 correction authority.
+
+## Dated Phase 21 D19 Support Assignment purpose boundary (2026-08-01)
+
+Phase 13 remains authoritative for the Designation, accepted source purpose,
+contribution header/lines, legal donor, and append-only corrections. A Phase 21
+Support Assignment may receive Field Account effects only through an exact,
+versioned, same-scope mapping to the admitted Phase 13 purpose and the existing
+source-coverage contracts. The Support Assignment is not the Designation, donor,
+worker owner, or public giving-page subject by implication.
+
+Adding, ending, correcting, merging, or changing a Support Assignment
+Participant Membership or workspace grant never creates, retargets,
+redesignates, merges, reverses, or corrects a contribution. Party, spouse,
+household, teammate, leader, login, notification, or page state cannot select a
+financial target. Purpose succession remains Phase 13/D5 source-owned and
+append-only.
