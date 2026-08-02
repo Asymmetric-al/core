@@ -398,6 +398,7 @@ const PII_PATTERNS = [
   /\b\d{3}-\d{2}-\d{4}\b/,
   /\b(?:\d[ -]?){13,19}\b/,
 ];
+const INVISIBLE_ACTOR_CHARACTERS = /[\p{Cc}\p{Cf}]/u;
 
 function issue(
   path: string,
@@ -800,12 +801,12 @@ function validateCase(
         ),
       );
     }
-    if (!manifest.sealed_expectation_digest?.trim()) {
+    if (!isSha256Hex(manifest.sealed_expectation_digest)) {
       issues.push(
         issue(
           path,
           "held_back_not_sealed",
-          "Held-back cases require a custodian-sealed expectation digest before candidate work begins.",
+          "Held-back cases require a custodian-sealed lowercase SHA-256 expectation digest before candidate work begins.",
         ),
       );
     }
@@ -872,16 +873,32 @@ function validateCorpus(
   // "Tune a candidate against held-back fixture identities". An operator in
   // this log is that leak, recorded in the charter's own evidence.
   const operatorActors = new Set(
-    Object.values(input.roles.candidate_operators),
+    Object.values(input.roles.candidate_operators).map((actor) => actor.trim()),
   );
   for (const [index, entry] of input.held_back_seal.access_log.entries()) {
     const entryPath = `held_back_seal.access_log.${index}`;
-    if (operatorActors.has(entry.actor)) {
+    const actor = (entry as { actor?: unknown }).actor;
+    const normalizedActor = typeof actor === "string" ? actor.trim() : "";
+    const actorIsCanonical =
+      typeof actor === "string" &&
+      actor === normalizedActor &&
+      normalizedActor.length > 0 &&
+      !INVISIBLE_ACTOR_CHARACTERS.test(actor);
+    if (!actorIsCanonical) {
+      issues.push(
+        issue(
+          entryPath,
+          "held_back_not_sealed",
+          "Every held-back access must name a canonical visible actor without surrounding whitespace or control characters.",
+        ),
+      );
+    }
+    if (operatorActors.has(normalizedActor)) {
       issues.push(
         issue(
           entryPath,
           "held_back_expectation_leaked",
-          `Candidate operator ${entry.actor} accessed the held-back expectations before freeze.`,
+          `Candidate operator ${normalizedActor} accessed the held-back expectations before freeze.`,
         ),
       );
     }

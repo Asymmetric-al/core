@@ -340,6 +340,9 @@ function parseSubmissionOrdinal(ordinal: unknown): 0 | 1 | 2 {
   );
 }
 
+const HELD_BACK_CANDIDATE_SAFE_BOUNDS =
+  "Shared input schema and frozen charter-wide admission, page/content, and resource bounds; exact fixture identity and variation withheld until candidate outputs and sources are sealed.";
+
 /**
  * Build the packet a candidate implementer may see. Open cases arrive in
  * full; held-back cases arrive as schema/bounds only — the expected values
@@ -377,7 +380,7 @@ export function loadCandidateWorkPacket(
     held_back_case_schemas: charter.held_back_corpus.map((item) => ({
       case_id: item.case_id,
       output_profile: item.output_profile,
-      bounds: item.fixture.bounds,
+      bounds: HELD_BACK_CANDIDATE_SAFE_BOUNDS,
     })),
     operational_suites: charter.operational_suites,
     gates: charter.gates,
