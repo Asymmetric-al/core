@@ -1202,17 +1202,6 @@ describe("freezeRendererQualificationCharter", () => {
         mutated((input) => {
           input.roles = {
             ...input.roles,
-            accountable_owner: "operator-prince",
-          };
-        }),
-      ),
-    ).toContain("role_collision");
-
-    expect(
-      issueCodes(
-        mutated((input) => {
-          input.roles = {
-            ...input.roles,
             independent_reviewers: ["reviewer-avery", "reviewer-avery"],
           };
         }),

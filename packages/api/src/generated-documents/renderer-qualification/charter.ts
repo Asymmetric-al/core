@@ -1579,7 +1579,7 @@ function validateGatesAndScoring(
   }
 }
 
-function isCanonicalVisibleApprovalIdentity(value: unknown): value is string {
+function isCanonicalVisibleIdentity(value: unknown): value is string {
   if (typeof value !== "string") return false;
   return (
     value.length > 0 &&
@@ -1626,8 +1626,8 @@ function validateApprovals(
       approvalIsValid = false;
     }
 
-    const actorIsCanonical = isCanonicalVisibleApprovalIdentity(approval.actor);
-    const roleIsCanonical = isCanonicalVisibleApprovalIdentity(approval.role);
+    const actorIsCanonical = isCanonicalVisibleIdentity(approval.actor);
+    const roleIsCanonical = isCanonicalVisibleIdentity(approval.role);
     if (!actorIsCanonical || !roleIsCanonical) {
       issues.push(
         issue(
@@ -1894,38 +1894,69 @@ function validateBudgetsValidatorsRoles(
   }
 
   const roles = input.roles;
-  const operators = Object.values(roles.candidate_operators);
-  const nonOperatorRoles: Array<[string, string]> = [
+  const operators = RENDERER_CANDIDATE_IDS.map(
+    (candidateId) => roles.candidate_operators[candidateId],
+  );
+  const reviewerRoster: readonly unknown[] = Array.isArray(
+    roles.independent_reviewers,
+  )
+    ? roles.independent_reviewers
+    : [];
+  const reviewers = [reviewerRoster[0], reviewerRoster[1]];
+  if (!hasExactOwnFields(roles.candidate_operators, RENDERER_CANDIDATE_IDS)) {
+    issues.push(
+      issue(
+        "roles.candidate_operators",
+        "role_missing",
+        "The candidate-operator map must contain exactly the registered P18-R-P, P18-R-T, and P18-R-C identities.",
+      ),
+    );
+  }
+  if (
+    !Array.isArray(roles.independent_reviewers) ||
+    roles.independent_reviewers.length !== reviewers.length
+  ) {
+    issues.push(
+      issue(
+        "roles.independent_reviewers",
+        "role_collision",
+        "The contest must declare exactly two independent reviewers.",
+      ),
+    );
+  }
+  const namedRoles: Array<[string, unknown]> = [
     ["accountable_owner", roles.accountable_owner],
     ["corpus_custodian", roles.corpus_custodian],
-    ["independent_reviewers.0", roles.independent_reviewers[0]],
-    ["independent_reviewers.1", roles.independent_reviewers[1]],
+    ["independent_reviewers.0", reviewers[0]],
+    ["independent_reviewers.1", reviewers[1]],
     ["security_privacy_reviewer", roles.security_privacy_reviewer],
     ["operations_reviewer", roles.operations_reviewer],
     ["records_legal_evidence_owner", roles.records_legal_evidence_owner],
     ["final_approver", roles.final_approver],
   ];
-  for (const [rolePath, actor] of nonOperatorRoles) {
-    if (!actor.trim()) {
+  for (const [rolePath, actor] of namedRoles) {
+    if (!isCanonicalVisibleIdentity(actor)) {
       issues.push(
         issue(
           `roles.${rolePath}`,
           "role_missing",
-          "Every contest role must be named.",
-        ),
-      );
-    }
-    if (operators.includes(actor)) {
-      issues.push(
-        issue(
-          `roles.${rolePath}`,
-          "role_collision",
-          "A candidate operator cannot also hold owner, custodian, reviewer, or approval roles.",
+          "Every contest role must name one canonical visible identity.",
         ),
       );
     }
   }
-  if (roles.independent_reviewers[0] === roles.independent_reviewers[1]) {
+
+  if (operators.includes(roles.corpus_custodian)) {
+    issues.push(
+      issue(
+        "roles.corpus_custodian",
+        "role_collision",
+        "The held-back corpus custodian must remain separate from every candidate operator.",
+      ),
+    );
+  }
+
+  if (reviewers[0] === reviewers[1]) {
     issues.push(
       issue(
         "roles.independent_reviewers",
@@ -1934,13 +1965,43 @@ function validateBudgetsValidatorsRoles(
       ),
     );
   }
+
+  const finalistOperators = new Set([
+    roles.candidate_operators["P18-R-P"],
+    roles.candidate_operators["P18-R-T"],
+  ]);
+  const hasReviewerIndependentOfFinalists = reviewers.some(
+    (reviewer) =>
+      isCanonicalVisibleIdentity(reviewer) && !finalistOperators.has(reviewer),
+  );
+  if (!hasReviewerIndependentOfFinalists) {
+    issues.push(
+      issue(
+        "roles.independent_reviewers",
+        "role_collision",
+        "At least one reviewer must be independent of both finalist candidate operators.",
+      ),
+    );
+  }
+
+  const uniqueOperators = new Set(operators);
+  if (uniqueOperators.size === 1 && uniqueOperators.has(roles.final_approver)) {
+    issues.push(
+      issue(
+        "roles.final_approver",
+        "role_collision",
+        "The final decision recorder cannot also be the contest's sole candidate implementer.",
+      ),
+    );
+  }
+
   for (const candidateId of RENDERER_CANDIDATE_IDS) {
-    if (!roles.candidate_operators[candidateId]?.trim()) {
+    if (!isCanonicalVisibleIdentity(roles.candidate_operators[candidateId])) {
       issues.push(
         issue(
           `roles.candidate_operators.${candidateId}`,
           "role_missing",
-          "Every candidate has a named operator.",
+          "Every candidate must have one canonical visible operator identity.",
         ),
       );
     }
