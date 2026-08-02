@@ -17,6 +17,7 @@ export type QualificationHarnessErrorCode =
   | "candidate_unknown"
   | "case_unknown"
   | "charter_digest_mismatch"
+  | "charter_identity_conflict"
   | "charter_invalid"
   | "evidence_append_conflict"
   | "initial_submission_missing"
@@ -39,6 +40,7 @@ export class QualificationHarnessError extends Error {
 }
 
 interface RendererQualificationStoreState {
+  readonly charterManifestDigests: Map<string, string>;
   readonly submissions: Map<string, SealedCandidateSubmission>;
   readonly submissionMeterKeys: Map<string, string>;
   readonly cycles: Map<string, RemediationCycleRecord>;
@@ -88,6 +90,33 @@ function cycleOperationKey(record: {
   return `${record.manifest_digest}:${record.candidate_id}:${record.operation_key}`;
 }
 
+function charterIdentityKey(
+  charter: Pick<
+    FrozenRendererQualificationCharter,
+    "charter_id" | "charter_version"
+  >,
+): string {
+  return JSON.stringify([charter.charter_id, charter.charter_version]);
+}
+
+function requireCompatibleCharterIdentity(
+  state: RendererQualificationStoreState,
+  charter: FrozenRendererQualificationCharter,
+): string {
+  const identityKey = charterIdentityKey(charter);
+  const boundManifestDigest = state.charterManifestDigests.get(identityKey);
+  if (
+    boundManifestDigest !== undefined &&
+    boundManifestDigest !== charter.manifest_digest
+  ) {
+    throw new QualificationHarnessError(
+      "charter_identity_conflict",
+      `Charter ${charter.charter_id}@${charter.charter_version} is already bound to a different manifest digest; frozen-field changes require a new charter version.`,
+    );
+  }
+  return identityKey;
+}
+
 function sameStringSequence(
   left: readonly string[],
   right: readonly string[],
@@ -115,6 +144,7 @@ function matchesRemediationRequest(
 
 async function appendSubmission(
   store: InMemoryRendererQualificationStore,
+  charter: FrozenRendererQualificationCharter,
   record: SealedCandidateSubmission,
 ): Promise<void> {
   const state = storeState(store);
@@ -132,6 +162,13 @@ async function appendSubmission(
       "submission_already_sealed",
       `Candidate ${record.candidate_id} already sealed a submission for ordinal ${record.remediation_cycle_ordinal} under this charter.`,
     );
+  }
+
+  // Bind only after every append conflict check so a rejected request cannot
+  // reserve an identity. These writes stay in one synchronous critical section.
+  const identityKey = requireCompatibleCharterIdentity(state, charter);
+  if (!state.charterManifestDigests.has(identityKey)) {
+    state.charterManifestDigests.set(identityKey, charter.manifest_digest);
   }
   state.submissionMeterKeys.set(recordMeterKey, record.submission_id);
   state.submissions.set(record.submission_id, structuredClone(record));
@@ -177,12 +214,15 @@ async function appendRemediationCycle(
 
 /**
  * Read-only evidence store for sealed submissions and remediation cycles.
+ * The first successful initial seal also binds one charter ID/version to its
+ * manifest digest for the lifetime of the store.
  * Validated harness operations append records through module-private helpers;
  * consumers cannot write unchecked evidence directly.
  */
 export class InMemoryRendererQualificationStore {
   constructor() {
     storeStates.set(this, {
+      charterManifestDigests: new Map(),
       submissions: new Map(),
       submissionMeterKeys: new Map(),
       cycles: new Map(),
@@ -443,6 +483,7 @@ export async function sealCandidateSubmission(
   const ordinal = parseSubmissionOrdinal(input.remediation_cycle_ordinal);
   let requiredCycle: RemediationCycleRecord | undefined;
   if (ordinal !== 0) {
+    requireCompatibleCharterIdentity(storeState(input.store), input.charter);
     await requirePriorSubmissionSealed(
       input.store,
       input.charter.manifest_digest,
@@ -520,7 +561,7 @@ export async function sealCandidateSubmission(
     sealed_by: input.actor,
   };
 
-  await appendSubmission(input.store, record);
+  await appendSubmission(input.store, input.charter, record);
   return record;
 }
 
@@ -609,6 +650,7 @@ export async function recordRemediationCycle(
     affected_case_ids: affectedCaseIds,
     recorded_by: input.actor,
   };
+  requireCompatibleCharterIdentity(storeState(input.store), input.charter);
   const replay = replayedRemediationCycle(input.store, request);
   if (replay) return replay;
 
