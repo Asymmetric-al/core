@@ -200,6 +200,21 @@ change, and tenant deactivation preserve exact provenance and route unresolved
 drafts to an explicitly authorized disposition; they never infer claimant,
 reviewer, payee, payment, or accounting authority.
 
+**Phase 22 D19 precision amendment (2026-08-06).** A CRM-owned Ministry
+Assignment is the operational subject for one Missionary Ministry Page and is
+not this Phase 21 Support Assignment. One optional, prospective, immutable,
+same-Tenant and same-Legal-Entity Ministry Assignment Support Binding Version
+may reference the Support Assignment, but the bridge is neither ownership nor
+authorization. Ministry membership, public display, Page contribution,
+Designation, progress, notification preference, and the binding never grant
+Support Workspace access or expose supporter or balance data.
+
+Each spouse or teammate still needs a separate principal and the current Phase
+12 purpose-, projection-, target-, field-, and history-floor decision plus the
+applicable D9 publication posture. Binding succession never propagates
+participants, grants, balances, closed history, supporter identity,
+notifications, progress, or Giving destination and never moves money.
+
 ## Consequences
 
 - Singles, couples, teams, projects, scoped leaders, participant-free purposes,

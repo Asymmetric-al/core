@@ -20,7 +20,7 @@ The public tenant website is **already live** — visitors hit tenant-branded pu
 
 4. **Preview, publish, cache-invalidation, and domain-resolution rules are undocumented.** Draft preview renders in a separate admin template that can drift from the live page; there is no defined cache-tag scheme or publish-driven invalidation; domain resolution is tenant-level and admin-side only, and it trusts a client-supplied `?tenant=` override. Without a settled contract, the next public features (projects, events, campaigns) will each invent their own fetchers, preview paths, checkout handoffs, and cache rules — the exact duplication and drift this program exists to prevent.
 
-If we build deeper public pages before this contract is settled and hardened, every module invents its own public runtime, a forgotten filter leaks a draft or another tenant's page, and the money path trusts the client. The recon for this phase confirmed the delivery machinery largely already exists (a published-only tenant-scoped public API, a real public serializer, a safe authenticated preview); what is missing is the **contract that makes it safe by construction, one owner for the rules, and the forward seams** that let Phases 2/4 slot in without a rewrite.
+If we build deeper public pages before this contract is settled and hardened, every module invents its own public runtime, a forgotten filter leaks a draft or another tenant's page, and the money path trusts the client. The recon for this phase confirmed the delivery machinery largely already exists (a published-only tenant-scoped public API, a real public serializer, and an authenticated interim preview); what is missing is the **contract that makes it safe by construction, one owner for the rules, and the forward seams** that let Phases 2/4 slot in without a rewrite.
 
 ## Solution
 
@@ -38,7 +38,7 @@ A **shared, server-only public-content contract** — one choke-point that every
 
 6. **Function-level tagged caching with prompt, tenant-safe invalidation.** Published reads are cached with `use cache` + `cacheTag`, keyed by the **tenant passed as an argument** (isolation) and **tagged by tenant/document** (invalidation), never with route-segment config. Publishing emits a **secured admin→public-runtime signal** that revalidates the right tags globally, with a **bounded-staleness backstop** so a missed signal self-heals within minutes.
 
-7. **Faithful, safe preview via Next.js Draft Mode.** Staff preview renders the **real page** (not a separate template) through the same reader with drafts on, behind a signed-secret route that authenticates the user, checks the tenant, enables Draft Mode (which makes the request dynamic so drafts are never cached), and marks the response `noindex`. A shareable non-staff review link and real-time Live Preview are reserved.
+7. **Faithful, safe preview via Next.js Draft Mode.** Preview renders the **real page** (not a separate template) through the same reader with drafts on. For Phase 22 Public Ministry Pages, the signed route and Draft Mode cookie are rendering mechanics only: every HTML, RSC/data, media, and refresh request must authenticate a non-anonymous principal and reauthorize the exact page and revision or immutable candidate under the current Tenant, assignment/grant, authorization epoch, Phase 10 ceiling, D3 renderer generation, and D9 media coverage. Responses are private, `no-store`, non-indexable, and side-effect-dark. Bearer preview links are prohibited; real-time Live Preview remains reserved. _(Amended 2026-08-06 by Phase 22 D10.)_
 
 8. **Guest-first identity continuity.** Browsing and abandoned forms create no
    donor or commitment record. A one-time donor record is created only on a
@@ -87,9 +87,20 @@ Underneath, the contract is written **at the Asym boundary** (serialized output,
 
 ### Missionary
 
-17. As a **missionary**, I want my public page to show my real information and live support progress, so that supporters see accurate, current detail.
-18. As a **missionary**, I want to preview a draft of my page (via a shared link) before it goes live, so that I can review changes.
-19. As a **missionary**, I want to be unable to publish public pages directly, so that public content stays under the ministry's editorial control.
+17. As a **missionary**, I want my public page to show approved current
+    information and, only when the tenant enables it for that page, one exact
+    source-authoritative support-progress measure, so that supporters see clear
+    facts without mistaking commitments, received gifts, or internal balances.
+18. As a **missionary**, I want one Preview action in my authenticated Public
+    pages workspace to render the exact saved revision I selected, so that I
+    can verify the donor-facing result without a shareable link or live side
+    effect. _(Amended 2026-08-06 by Phase 22 D10.)_
+19. As a **missionary**, I want no personal direct-publication authority, so
+    every submitted revision follows the ministry's current Phase 22 Review &
+    Release Profile and mandatory release proof. A tenant may choose
+    `Publish after checks`; that is system execution of standing tenant
+    authority, not contributor authority or a mandatory staff-review claim.
+    _(Clarified 2026-08-03 by Phase 22 D4.)_
 20. As a **missionary who is also a donor**, I want my public page and my donor self-service to stay separate, so that neither leaks into the other.
 
 ### Content editor / staff (Web Studio)
@@ -98,7 +109,11 @@ Underneath, the contract is written **at the Asym boundary** (serialized output,
 22. As a **content editor**, I want a draft to never be reachable through a public URL, so that unfinished work never leaks.
 23. As a **content editor**, I want my published change to appear on the public site promptly, so that I'm not waiting on a cache timer.
 24. As a **content editor**, I want a change I publish to affect only the right ministry (and, later, the right site), so that I never accidentally alter another tenant's page.
-25. As a **content editor**, I want preview links I share to expire and never be indexed by search engines, so that drafts stay private.
+25. As a **content editor**, I want an exact submitted candidate to be privately
+    previewable only by its currently authorized contributor, reviewer, or an
+    explicitly named page-scoped `Preview only` recipient, so that a copied URL
+    grants nothing and drafts stay private. _(Amended 2026-08-06 by Phase 22
+    D10.)_
 
 ### Finance
 
@@ -137,13 +152,13 @@ Underneath, the contract is written **at the Asym boundary** (serialized output,
 - **A4 — Transport-agnostic reader; single Payload read co-located in admin; availability seam designed-not-built.** The package defines a `PublishedContentReader` interface returning serialized public types; exactly one concrete implementation touches Payload's Local API, co-located where Payload runs (admin). The transport between the public runtime and that reader (HTTP today) is a swappable implementation detail; consuming pages read only through the package client, never a hard-coded admin URL. The cache-tag scheme is built now so public reads are cacheable; an alternate transport that removes admin from the hot read path (CDN/replica) is a reserved capability with an explicit trigger (an `apps/web` extraction or an availability SLO).
 - **A5 — Defense-in-depth isolation, fail-closed by construction.** Public content is read **only** through the choke-point. The resolved tenant (and reserved site) is a **required typed argument** (isolation can't be forgotten); the choke-point always applies the tenant-and-published constraint; an unresolved tenant returns **empty, never unfiltered**; the read runs `overrideAccess: false` under an explicit **public-read access policy** ("anonymous ⇒ published + resolved tenant only") so Payload independently enforces isolation; the policy is **extensible** for future restricted-content predicates. A permanent **negative test** and a hard-blocking **sole-entry lint** (no raw Payload reads in public paths) back it. RLS is _not_ relied on for the CMS schema (the Payload role bypasses it — see A15). This retires the shipped `overrideAccess: true` + hand-written-`where` pattern that already leaked navigation.
 - **A6 — Host-based, server-controlled resolution; unified context; `?tenant=` dev-only.** A public request resolves tenant/site **only from the platform-trusted host** on production public routes; any client-supplied tenant assertion (`?tenant=`) is dev/preview-only and env-gated. Resolution returns a **unified public request context** — operational tenant id (for funds/missionaries/checkout) + CMS tenant id (for content) + reserved `siteId` — derived from a single mapping lookup, cached at the edge (Edge Config) for sub-10ms resolution. Unknown host or disabled tenant/site **fails closed** to a neutral "site not found." Today's mapping (host→tenant) is wrapped behind the resolver so Phase 2's `public.sites` host→site→tenant model re-points the source of truth without changing callers.
-- **A7 — Reference-not-copy CMS↔operational; operational-wins; presentation identity.** CMS stores stable operational references + presentation content, never money/identity truth. The runtime resolves and validates each reference at read time (exists, belongs to the resolved tenant, public-eligible); references are batched and cached; live operational data (e.g., support progress) is read, never copied into CMS. On drift, operational truth wins for identity/money/existence/permission and CMS wins for presentation; a dangling or cross-tenant reference **fails safe** (hide the CTA / 404), never a charge to a stale designation. **Public page identity is a presentation identity linked to the operational record** — enabling display names, family/team pages (one page → several records, with an explicit designation target), restricted-country suppression, slugs, and independent publish state. Graceful degradation distinguishes an _invalid reference_ (hide/refuse) from a _transient operational outage_ (retry/degrade the affected element, not the whole page).
-- **A8 — Server-validated, enumeration-safe checkout handoff; plain params; reserved fields.** The CTA hands off through the package's resolver, not hand-rolled URLs; the transport is **plain query parameters that checkout re-validates server-side** (a signed token is redundant once the server re-resolves). Checkout re-resolves and validates every operational reference against the resolved tenant and public-eligibility before rendering or charging; a preset amount is a re-validated suggestion, never a trusted charge value. The **giving form is enumeration-safe and constant-time**, never pre-filling a name or offering a saved card to an unauthenticated session (Phase 4's six safety rules, enforced at this surface; Phase 4 owns the identity/claim service behind it). The handoff carries **reserved fields plumbed now, populated later**: `site_id`, `source_code` (attaches at the CTA/link level; a page may have several CTAs with different codes), `currency`, `locale`, and `entry_method = 'public_checkout'` (Phase 2 vocabulary). Alongside those five, the handoff also reserves **opaque pass-through seams** for Phase 14 credit/tribute operations: a **tribute/honor-memorial annotation** (`tribute_type` + `honoree` + a notify-party reference) and a **giving-intent hint** (`daf_intent`, `matching`/`employer_intent`), plus a **`party_kind` hint** (default `person`; org routing carried by `org_type`). Phase 14 populates and governs those purpose facts after Phase 13 freezes the source contribution; Phase 5 builds no credit/tribute capture engine. Single designation now; a giving-cart multi-line seam is reserved, not built.
-- **A9 — Function-level tagged caching + secured publish-invalidation signal + bounded-staleness backstop; no route-segment config.** Published reads use `use cache` + `cacheTag`; **cache-key isolation comes from passing the tenant as an argument** (tags are for invalidation only — a tag alone does not separate cache entries), giving triple-layer tenant isolation (tenant argument + Vercel's host-in-cache-key + tenant-derived tags). Tags are tenant/document-derived, mandatory by construction, and respect platform limits (no commas, bounded length via stable ids not long slugs, consistent casing); `site`/`locale` tag dimensions are reserved. Publishing (and nav/redirect/media/CTA changes) emits a **secured admin→public-runtime invalidation signal** (HMAC-signed, constant-time verified) that calls `revalidateTag(..., "max")` in the public app's route handler, propagating globally in ~300ms; a **bounded `cacheLife` expire** (~1 hour, not "never") is the self-healing backstop. **No route-segment `revalidate`/`dynamic`/etc.** anywhere in the public app (build-breaking under Cache Components per `runtime-map.md`). Request-specific values (host/headers, draft state) are read _outside_ `use cache` and passed as arguments.
-- **A10 — Preview via Next.js Draft Mode in the public runtime; Live Preview deferred.** Staff preview renders the **real page** through the shared reader with drafts on, behind a signed-secret route that validates the secret, **authenticates the staff user, checks the tenant**, enables Draft Mode (the bypass cookie makes the request dynamic, so drafts are never cached or served from the published cache), redirects to a **validated internal path** (open-redirect guarded; the token is never left in the redirected URL), and marks the response **`noindex`**; it reads with `overrideAccess: false` (stricter than Payload's example, so a tenant-A staffer can't preview tenant-B drafts) and offers an exit-preview. The shipped admin-template preview remains an interim until the Draft-Mode public preview is proven. A **shareable non-staff review token** (short-lived, document-and-tenant-scoped, with a middleware timestamp check since the Draft Mode cookie has no auto-expiry) and **Payload Live Preview** (real-time iframe; needs `frame-ancestors` CSP; worth it at 5–10+ editors) are reserved.
+- **A7 — Reference-not-copy CMS↔operational; operational-wins; presentation identity.** CMS stores stable operational references + presentation content, never money/identity truth. The runtime resolves and validates each reference at read time (exists, belongs to the resolved tenant, public-eligible); references are batched and cached. When an exact Phase 22 D6 profile enables public support progress, the runtime consumes its source-owned disposable projection; neither the numeric result nor a writable counter is copied into CMS. On drift, operational truth wins for identity/money/existence/permission and CMS wins for presentation; a dangling or cross-tenant reference **fails safe** (hide the CTA / 404), never a charge to a stale designation. **Public page identity is a presentation identity linked to the operational record** — enabling display names, family/team pages (one page → several records, with an explicit designation target), restricted-country suppression, slugs, and independent publish state. Graceful degradation distinguishes an _invalid reference_ (hide/refuse) from a _transient operational outage_ (retry/degrade the affected element, not the whole page). Progress failure omits only that optional block and never invents zero or substitutes another metric.
+- **A8 — Server-validated, enumeration-safe checkout handoff; plain params; reserved fields.** The CTA hands off through the package's resolver, not hand-rolled URLs; the transport is **plain query parameters that checkout re-validates server-side** (a signed token is redundant once the server re-resolves). Checkout re-resolves and validates every operational reference against the resolved tenant and public-eligibility before rendering or charging; a preset amount is a re-validated suggestion, never a trusted charge value. The **giving form is enumeration-safe and constant-time**, never pre-filling a name or offering a saved card to an unauthenticated session (Phase 4's six safety rules, enforced at this surface; Phase 4 owns the identity/claim service behind it). The handoff carries **reserved fields plumbed now, populated later**: `site_id`, `source_code` (attaches at the CTA/link level; a page may have several CTAs with different codes), `currency`, `locale`, and `entry_method = 'public_checkout'` (Phase 2 vocabulary). Alongside those five, the handoff also reserves **opaque pass-through seams** for Phase 14 credit/tribute operations: a **tribute/honor-memorial annotation** (`tribute_type` + `honoree` + a notify-party reference) and a **giving-intent hint** (`daf_intent`, `matching`/`employer_intent`), plus a **`party_kind` hint** (default `person`; org routing carried by `org_type`). Phase 14 populates and governs those purpose facts after Phase 13 freezes the source contribution; Phase 5 builds no credit/tribute capture engine. Single designation now; a giving-cart multi-line seam is reserved, not built. Phase 22 D7 makes that singular seam exact for Public Ministry Pages: every released page pins one Page Giving Binding to one Phase 13 Designation, every CTA shares it, and the server re-proves the current release, Phase 10-safe label and eligibility, binding, Designation, Settlement Account Binding, issuer, currency, cadence, attribution, and internal return path at cart/checkout entry and again immediately before provider execution. A stale or ineligible binding degrades only Giving and never falls back to another purpose. _(Clarified 2026-08-04 by Phase 22 D7.)_
+- **A9 — Function-level tagged caching + secured publish-invalidation signal + bounded-staleness backstop; no route-segment config.** Published reads use `use cache` + `cacheTag`; **cache-key isolation comes from required exact-scope arguments** (tags are for invalidation only — a tag alone does not separate cache entries): Tenant, Site, page, locale, D2 release, applicable profile, managed-projection generation, and Phase 10/safety epoch. Vercel's host cache key is defense in depth, not a substitute. Tags are stable-ID-derived, mandatory by construction, and respect platform limits (no commas, bounded length, consistent casing). Ordinary positive content or projection refresh uses `revalidateTag(tag, "max")` stale-while-revalidate. Hiding, adverse financial correction, retirement, containment, or Phase 10 narrowing must expire the affected scope immediately: a secured Route Handler/outbox consumer uses `revalidateTag(tag, { expire: 0 })`; `updateTag` is used only for read-your-own-writes inside a Server Action, exactly as the installed Next.js 16.2 contract requires. Request-time D2/Phase 10 gates remain authoritative even if external cache cleanup is delayed. A bounded `cacheLife` expire remains the self-healing backstop. **No route-segment `revalidate`/`dynamic`/etc.** anywhere in the public app (build-breaking under Cache Components per `runtime-map.md`). Request-specific values (host/headers, draft state) are read _outside_ `use cache` and passed as arguments.
+- **A10 — Exact authorized preview through the public runtime; Live Preview deferred.** Phase 5 owns the production-equivalent reader/renderer, guarded internal entry route, Draft Mode plumbing, private response posture, and exit-preview. Phase 22 D10 owns Public Ministry Preview meaning and exact-version selection; D1 and Phase 12 own current contributor/reviewer/named-grant authority; Phase 10 owns the current safety ceiling; D3 and D9 own renderer and released-media compatibility. A contributor previews one deliberately selected coherently saved working revision. A reviewer, authorized staff editor, or named `Preview only` grantee previews one immutable submitted candidate. Every HTML, RSC/data, media, refresh, and session-continuation request reauthenticates the non-anonymous principal and reauthorizes the exact Tenant, Legal Entity, Site, Page Family, Page, locale, version/candidate, purpose, current assignment/capability/grant, grant status/expiry, authorization epoch, environment, Phase 10 ceiling, D3 renderer/profile generation, and D9 media coverage. Draft Mode and a signed internal route select the read perspective but grant no authority; a URL, opaque id, cookie, CMS secret, Payload user, role name, Supabase `authenticated` role, prior success, or service role is insufficient. The response is `private`, `no-store`, non-indexable, referrer-suppressed, and omitted from public discovery/analytics. Giving, forms, embeds, notifications, tracking, and other consequential controls render representatively but are inert and announced unavailable. The shipped mutable admin-template preview remains interim and is not D10-conforming. No bearer, guest, shared-password, or shareable non-staff preview token is reserved or permitted. Payload Live Preview remains a future rendering enhancement only and must satisfy the same authorization contract. _(Amended 2026-08-06 by Phase 22 D10.)_
 - **A11 — Guest-first identity continuity (Phase 4 seam).** Browsing creates no donor/CRM record—only minimal client-side, consented, expiring attribution/checkout-prep context (no server Party until an accepted gift requires one). The server resolves or creates the Party only on an **accepted contribution** through Phase 4's identity/claim boundary; an abandoned checkout creates nothing. The tenant-branded thank-you **invites, optionally and never pushily,** a magic-link claim. Continuity comes from exact-current Phase 7 facts and a Phase 18 canonical artifact when eligible/generated; any email is separately prepared by Phase 17 and dispatched by Phase 6 only when recipient/contact/consent/channel checks pass. The public surface does **not** resolve household/org identity. It carries only the reserved `party_kind` hint into the server-owned acceptance path. Phase 13 freezes exact legal-donor source evidence; Phase 7 derives the immutable Statement Subject and official facts. Phase 5 builds no identity, claim, Party-resolution, receipt-facts, artifact, reveal-gate, or invitation service.
-- **A12 — Public-web mechanics.** Reserve the future public route families now (`/give`, `/projects[/…]`, `/events[/…]`, `/campaigns[/…]`, `/updates/[slug]`, `/thank-you`, `/sitemap.xml`, `/robots.txt`, `/preview`) so later phases don't collide; keep checkout public at `/checkout` and the donor dashboard authenticated. CMS/Web Studio owns slugs, SEO metadata, and redirects (per-site/locale reserved); the public runtime enforces a canonical domain + canonical URL, generates per-tenant `sitemap.xml`/`robots.txt`, applies `noindex` to preview/draft, and 301s renamed slugs from a CMS-owned redirect map. Public media comes only through the allowlist serializer's public fields (the `media` collection is already tenant-scoped), served via `next/image`; private/CRM uploads are never public media; raw Payload media objects are never exposed. **Error behavior:** unknown host → neutral "site not found"; valid tenant + missing page → a **tenant-branded 404**; errors → a tenant-branded error boundary. The Missionary Workspace never calls Payload directly and never publishes; missionary-initiated changes become requests/role-scoped drafts through Web Studio's publish flow (a later workflow phase) — Phase 5 reserves this seam.
-- **A13 — Baseline public security posture.** The public runtime sets baseline security headers (a content-security policy, HSTS, `X-Content-Type-Options`, `Referrer-Policy`) appropriate to a public site; the `frame-ancestors` directive needed for Live Preview is reserved to that later work. Per-email/per-IP **rate limiting + CAPTCHA-on-abuse** on the giving form and preview-token endpoints is reserved as defense-in-depth, explicitly congruent with Phase 4's reserved enumeration hardening (constant-time attribution is necessary but not sufficient).
+- **A12 — Public-web mechanics.** Reserve the future public route families now (`/give`, `/projects[/…]`, `/events[/…]`, `/campaigns[/…]`, `/updates/[slug]`, `/thank-you`, `/sitemap.xml`, `/robots.txt`, `/preview`) so later phases don't collide; keep checkout public at `/checkout` and the donor dashboard authenticated. CMS/Web Studio owns ordinary CMS slugs, SEO metadata, and general Phase 23 redirects (per-site/locale reserved); the public runtime enforces a canonical domain + canonical URL, generates per-tenant `sitemap.xml`/`robots.txt`, and 301s ordinary renamed CMS slugs from a CMS-owned redirect map. D10 preview routes select one exact immutable version, use a validated same-origin login continuation, emit `private, no-store`, `noindex`, and referrer-suppression controls, and never enter sitemaps, canonical/social metadata, public analytics, or archival/discovery output. **Phase 22's two typed Public Ministry Page families are the specific exception:** D8 owns their immutable route claims and dispositions. The public runtime freshly guards the current route/safety head before selecting cached content, permits a `308` only for `GET`/`HEAD` requests when the same immutable Listed-public Page has an already released eligible new route, returns the same real tenant-branded `404` plus `noindex` for unknown and tombstoned routes, and returns neutral `503` + `Retry-After` + `no-store` when authoritative resolution is unavailable. A different successor page is a fresh explicit link, never a redirect; no static redirect map, Payload row, cache, or external crawler is semantic authority. **D9 is the specific public-media contract:** the serializer emits only an opaque, release-bound Public Media Delivery Reference plus approved placement text, never a raw Payload object, storage/CDN URL, source filename, or source-derived metadata. Phase 5 resolves that reference only after current D2/Phase 10/D9 proof and serves the certified derivative from private Phase 29-compatible custody; `next/image` is presentation, not authorization or sanitization. **Error behavior:** unknown host → neutral "site not found"; valid tenant + missing page → a **tenant-branded 404**; errors → a tenant-branded error boundary. The Missionary Workspace never calls Payload directly and never publishes; missionary-initiated changes become requests/role-scoped drafts through Web Studio's publish flow (a later workflow phase) — Phase 5 reserves this seam. _(Clarified 2026-08-06 by Phase 22 D10.)_
+- **A13 — Baseline public security posture.** The public runtime sets baseline security headers (a content-security policy, HSTS, `X-Content-Type-Options`, `Referrer-Policy`) appropriate to a public site; the `frame-ancestors` directive needed for Live Preview is reserved to that later work. Per-email/per-IP **rate limiting + CAPTCHA-on-abuse** on the giving form and bounded authenticated-preview rate/concurrency controls are reserved as defense-in-depth, explicitly congruent with Phase 4's reserved enumeration hardening (constant-time attribution is necessary but not sufficient). D10 preview authorization itself always fails closed and is never delegated to abuse controls.
 - **A14 — The proof slice is a generalizable template.** The missionary giving page (`/workers/[id]`, backed by the `missionary-giving-pages` collection) is refactored from mock data onto the full contract; it is the fullest single test (resolution, isolated published read, serializer, reference resolve/validate, enumeration-safe validated handoff, cache/invalidate, Draft Mode preview) and converts a mock page into a real one. It is built as **configuration over the shared primitives** — the collection, operational-reference type, renderer, and route family are parameters — so a project/event/campaign page later is a new config + renderer, not new plumbing. The slice proves the contract **up to a validated handoff into checkout**; the charge/attribution itself is Phase 4, and multi-site/currency/locale stay reserved (Phase 2). If a follow-up would have to touch the reader/serializer/resolver to add a second page type, that is the smell test the spec forbids.
 - **A15 — Two schemas, honored not changed (footgun avoidance).** The one-database / two-schema split (`public` operational + RLS; `cms` Payload-owned) is modern best practice and already the repo's state; Phase 5 must **not break it**. Cross-schema links stay **soft UUID references validated in the app layer** (never a hard `cms → public` foreign key); cross-schema references are resolved by the app-layer reader (A7); CMS tenant isolation is Payload access control, **not** RLS (the Payload role bypasses RLS — this is why A5's defense-in-depth is _necessary_, not optional); migration tools stay disjoint (Payload owns `cms`; Supabase CLI owns `public` + shared roles/extensions). A least-privilege Payload DB role scoped to `cms` is a reserved hardening (verify current privileges first; ticket only if over-privileged).
 - **A16 — Consume the reserved Phase-2/3/4 contracts explicitly (see C).** Phase 5's public surface wires the seams those phases already define — site branding, CMS site-scoping, `rendered_locale`, `entry_method`, anonymity masking, the consent gate — rather than reinventing them. These are integration points, not new systems.
@@ -152,12 +167,19 @@ Underneath, the contract is written **at the Asym boundary** (serialized output,
 
 Each is a deep module — a simple, testable interface hiding real complexity — with thin app routes and thin app pages calling in. The Payload-touching implementation of the reader is co-located in admin, behind the interface (A4).
 
-- **`published-content-reader`** — the sole entry for public content. `getPublishedPage({ tenant, site, key })`, `getNavigation({ tenant, site })`, `getUpdates({ tenant, site, limit })` → **serialized public types**. Tenant (and reserved site) are required arguments; applies tenant + published; runs `overrideAccess: false` under the public-read policy; returns empty on unresolved tenant; batches and caches reference resolution. Interface grows **additively** (listing/detail for events/campaigns later).
-- **`public-serializer`** — the allowlist. Emits only named public-safe fields and typed layout blocks (hero, CTA, rich-text, media-feature, FAQ, impact-stats, testimonial, …); new/unknown fields are excluded by default; media normalized to public URLs (never raw Payload objects).
+- **`published-content-reader`** — the sole entry for public content. `getPublishedPage({ tenant, site, key })`, `getNavigation({ tenant, site })`, `getUpdates({ tenant, site, limit })` → **serialized public types**. Tenant (and reserved site) are required arguments; applies tenant + published; runs `overrideAccess: false` under the public-read policy; returns empty on unresolved tenant; batches and caches reference resolution. For Phase 22 the server composes the exact D2 release with separately typed Phase 10/13/16/28 public-safe projections without making Payload or the reader their source of truth. Raw Supabase operational rows are never returned or browser-queryable. Interface grows **additively** (listing/detail for events/campaigns later).
+- **`public-ministry-route-resolver` (Phase 22 seam)** — accepts only the already trusted Site, canonical locale, canonical path key, and request method; returns the minimum typed `current-release | transition-release | same-page-move | not-found | unavailable` result after fresh D2/D8/Phase 10 proof. It performs one indexed server-side hop, never exposes operational rows, never follows redirect chains, and never maps unavailability to not found.
+- **`public-serializer`** — the allowlist. Emits only named public-safe fields and typed layout blocks (hero, CTA, rich-text, media-feature, FAQ, impact-stats, testimonial, …); new/unknown fields are excluded by default. Phase 22 media emits only an opaque release-bound delivery reference and approved placement text, never a raw Payload object, provider URL, original filename, or source-derived metadata.
+- **`public-media-resolver` (Phase 22 D9 seam)** — accepts the trusted request context plus one opaque released delivery reference; freshly re-proves current D2/Phase 10/D9 eligibility; selects only the exact certified immutable derivative from private Phase 29-compatible custody; and emits the correct image type with `nosniff` and no source-derived filename. It cannot read a raw intake, sanitize bytes, authorize a release, follow a caller-supplied provider URL, or turn a storage outage into eligibility.
 - **`public-request-context`** — host → unified context (operational tenant id + CMS tenant id + reserved `siteId`), fail-closed, dev-only override. Wraps today's host→tenant lookup; re-points to Phase 2's `public.sites` resolver without changing callers.
 - **`checkout-handoff-resolver`** — turns a CMS CTA (references + optional source code + preset amount/frequency) into a **server-validated handoff**; validates every reference against the resolved tenant + public-eligibility; carries the reserved `site_id`/`source_code`/`currency`/`locale`/`entry_method` fields plus the opaque pass-through seams (`tribute_type`/`honoree`/notify-party, `daf_intent`/`matching`/`employer_intent`, and a `party_kind` hint — default `person`, org routing carried by `org_type`; amended 2026-07-06, Phase 9 C2) plumbed for the Phase 7 credit model; fails safe on invalid/cross-tenant.
-- **`cache-tags`** — the tenant/document-derived tag scheme + `cacheLife` profile; the helper that binds the tenant argument to a cache key and the tags to a cached read; the mapping publish-events → tags to revalidate.
-- **`preview` (Draft Mode)** — the signed-secret enable route (validate secret + authenticate staff + check tenant → `draftMode().enable()` → validated redirect → `noindex`), and the reader's `draft` path. The shareable non-staff token and Live Preview are reserved seams on this module.
+- **`cache-tags`** — the exact tenant/site/page/locale/release/profile/projection/safety tag scheme + `cacheLife` profile; the helper that binds those required arguments to a cache key and tags to a cached read; and the mapping from ordinary versus adverse/safety events to stale-while-revalidate or immediate affected-scope expiry.
+- **`preview` (Draft Mode)** — the guarded internal entry route, exact-version
+  selector, production-equivalent reader path, private/no-store response
+  posture, inert-control mode, and exit-preview. Phase 22/12 authorization is
+  re-proved on every HTML, data, media, refresh, and continuation request;
+  Draft Mode never grants access. Live Preview is a reserved rendering seam;
+  bearer or shareable non-staff access is not.
 
 ### C. Phase-2/3/4 plug-ins (consume reserved contracts; no parallel systems)
 
@@ -196,13 +218,13 @@ The congruence audit confirmed **no contradictions or duplications** — these a
   handoff also reserves opaque tribute/DAF/matching/party-kind inputs for Phase
   14, which owns those operational facts after Phase 13 accepts the
   contribution.
-- **Consumed, not owned:** operational funds/missionaries (references validated at read); Phase 2 `public.sites` (resolution + branding + site scoping); Phase 3 `field_policies` + resolver (public projection, anonymity, consent, reveal gate); Phase 4 unclaimed-donor/claim services; Phase 13 frozen contribution legal-donor source evidence; and Phase 7 immutable Statement Subject/receipt facts.
+- **Consumed, not owned:** operational funds/missionaries (references validated server-side, never returned as raw browser-queryable rows); Phase 2 `public.sites` (resolution + branding + site scoping); Phase 3 `field_policies` + resolver (public projection, anonymity, consent, reveal gate); Phase 4 unclaimed-donor/claim services; Phase 13 frozen contribution legal-donor source evidence and D6-compatible received/count projections; Phase 16's separately certified public-safe commitment projection; Phase 28's exact Support-Raising Goal Version; and Phase 7 immutable Statement Subject/receipt facts.
 
 ### E. Contracts / wiring
 
-- **Next.js 16.2 (Cache Components):** `use cache` + `cacheTag` + `cacheLife` at the function level; `revalidateTag(tag, "max")` (stale-while-revalidate) in the public app's route handler; **no** route-segment config (build-breaking here); request-specific values read outside `use cache` and passed as arguments (tenant, `draftMode().isEnabled`); `draftMode()` for preview. Verified against the installed bundled docs.
+- **Next.js 16.2 (Cache Components):** `use cache` + `cacheTag` + `cacheLife` at the function level; `revalidateTag(tag, "max")` for ordinary stale-while-revalidate and `revalidateTag(tag, { expire: 0 })` from a secured Route Handler/outbox path when adverse or safety changes cannot serve stale data; `updateTag` only from Server Actions for read-your-own-writes; **no** route-segment config (build-breaking here); request-specific values read outside `use cache` and passed as arguments (tenant, `draftMode().isEnabled`); `draftMode()` for preview. Verified against the installed bundled docs.
 - **Vercel:** host is TLS-verified and part of the CDN cache key by default (platform-level per-tenant isolation); tenant resolution in edge middleware, cached in Edge Config; the admin→public invalidation is a secured route handler (HMAC signature, constant-time compare), purging globally in ~300ms; tag limits respected (256 bytes, no commas, ≤128/response). Custom-domain management (Vercel Domains API + wildcard auto-SSL) is a reserved Phase-2 mechanism.
-- **Payload CMS:** the single reader uses the Local API with `overrideAccess: false` under the public-read policy; drafts via `draft: true` behind Draft Mode; the `media` collection's public fields only. Payload runs in the `cms` schema in admin; the package never imports it (the reader implementation in admin does).
+- **Payload CMS:** the single reader uses the Local API with `overrideAccess: false` under the public-read policy; drafts via `draft: true` behind Draft Mode; the `media` collection's public fields only. For D10 preview, `overrideAccess: false`, Payload authentication, and `draft: true` are necessary infrastructure but insufficient authority: the Phase 12 decision point and exact revision/candidate selector run first, and D9's opaque resolver supplies eligible media. Payload runs in the `cms` schema in admin; the package never imports it (the reader implementation in admin does).
 - **Repo boundaries:** business logic in `packages/api` (the contract package); app routes and pages stay thin; the public runtime depends on the package's serialized output and types, never raw Payload documents or the `cms` schema. Honors `data-access-boundary.md`, `runtime-map.md`, and the platform-surfaces/boundaries specs; updates `web-studio-living-spec.md` (preview convergence) and the runtime map (the cache + reader contract).
 - **OpenSpec:** a change under `openspec/changes/sitestacker-parity/` reaffirming the public-tenant-website runtime contract; glossary (`CONTEXT.md`) additions (below); possible touch-ups to `platform-surfaces`/`platform-boundaries` to name the contract.
 - **UI:** all Phase-5 public UI uses the shadcn **`base-maia`** style + **zinc** tokens (from `packages/ui/styles/globals.css`, via `@asym/ui`), on Base UI, applying the resolved **site brand tokens** (C) rather than hard-coded colors; responsive and accessible per the frontend rulebook.
@@ -221,9 +243,9 @@ The congruence audit confirmed **no contradictions or duplications** — these a
 
 Good tests here assert **external behavior and safety invariants**, not implementation details — and, as in Phase 4, isolation failures are _silent_ (0 rows, no error), so isolation must be asserted with `is_empty()`-style checks, not error expectations.
 
-- **The negative-test tier (permanent CI gate) is the spine.** Cross-tenant isolation: a public read for tenant A never returns tenant B's content or any draft; a read with an unresolved/blank tenant returns **empty** (fail-closed). Draft safety: no draft is reachable through any public route (including a **navigation regression** test for the shipped leak). Enumeration safety: the giving form returns an **identical response and latency envelope** for a known-existing vs. absent email, and never pre-fills a name or exposes a saved card to an unauthenticated session (Phase 4's rule, at this surface). Cache isolation: a cached page for tenant A is never served for tenant B (the **tenant-as-argument** proof), and publishing invalidates exactly the right tags. Handoff integrity: checkout rejects an invalid or cross-tenant reference server-side and never charges a default/wrong designation. Serializer: private/unknown fields are stripped by default.
+- **The negative-test tier (permanent CI gate) is the spine.** Cross-tenant isolation: a public read for tenant A never returns tenant B's content or any draft; a read with an unresolved/blank tenant returns **empty** (fail-closed). Draft safety: no draft is reachable through any public route (including a **navigation regression** test for the shipped leak). D10 preview safety: unauthenticated, anonymous-Supabase, unrelated-authenticated, wrong-Tenant, wrong-Legal-Entity, wrong-Site, wrong-Page, wrong-locale, wrong-version, expired/revoked-grant, stale-epoch, and Phase-10/D9-ineligible requests all receive the same non-enumerating unavailable result; exact-version preview remains pinned after a newer save; every data/media/refresh request repeats authorization; consequential controls cannot mutate, navigate into Giving, emit analytics, or send notifications; dependency ambiguity never falls back to raw, live, or public content. Enumeration safety: the giving form returns an **identical response and latency envelope** for a known-existing vs. absent email, and never pre-fills a name or exposes a saved card to an unauthenticated session (Phase 4's rule, at this surface). Cache isolation: cached content and managed projections cannot cross Tenant, Site, page, locale, release, profile, projection, currency, or safety scope. Hidden D6 progress produces no evaluation, markup, metadata, client payload, anonymous API/Realtime result, or cache artifact; stale, suppressed, or non-computable never becomes zero; adverse correction and safety narrowing cannot serve the old result after the authoritative request-time gate. The complete Supabase migration chain proves that anonymous/browser roles cannot select or subscribe to raw worker, fund, contribution, commitment, goal, D6 profile/projection, media-intake/master/manifest, or release-head tables. Handoff integrity: checkout rejects an invalid or cross-tenant reference server-side and never charges a default/wrong designation. Serializer: private/unknown fields are stripped by default, and every public-media response, serializer, URL, header, metadata surface, log, and analytic is proved free of the source filename and source-derived metadata.
 - **Structural assertions (CI).** A hard-blocking **sole-entry lint** that no raw Payload read (`payload.find`/`findByID`) exists in public code paths outside the reader; an assertion that **no route-segment cache config** (`revalidate`/`dynamic`/etc.) exists in the public app; a check that the admin→public invalidation endpoint verifies its signature in constant time.
-- **Slice (the missionary giving page).** End-to-end: host resolves to tenant; the page fetches only published, tenant-isolated content through the choke-point; references resolve and validate; the CTA hands off a server-validated, enumeration-safe designation into checkout; Draft Mode preview renders the real page with draft data, uncached and `noindex`; publishing invalidates the page's tags; the page meets the repo's **accessibility** gate; a **parity test** asserts the choke-point's serialized output matches the current published output for a published document (a safe-migration guard).
+- **Slice (the missionary giving page).** End-to-end: host resolves to tenant; the page fetches only published, tenant-isolated content through the choke-point; references resolve and validate; the CTA hands off a server-validated, enumeration-safe designation into checkout; Draft Mode preview renders the real page with the exact authorized draft/candidate, private and uncached, with consequential controls inert; a copied URL, unrelated authenticated user, expired/revoked grant, stale authorization epoch, cross-scope media request, or changed Phase 10 ceiling cannot continue preview access; publishing invalidates the page's tags; the page meets the repo's **accessibility** gate; a **parity test** asserts the choke-point's serialized output matches the current published output for a published document (a safe-migration guard).
 - **Prior art.** Phase 4's cross-tenant negative-test tier and enumeration-latency test; Phase 3's resolver/projection golden-snapshot tests; the existing public API's published-only tests; `packages/api` service unit tests. The slice needs ≥1 seeded tenant with a published missionary giving page and a real fund/missionary (a test-setup/evidence item).
 
 ---
@@ -233,11 +255,18 @@ Good tests here assert **external behavior and safety invariants**, not implemen
 - **All Phase-2 primitives:** the `sites`/`domains` tables, custom-domain verification/management (Vercel Domains API), locale/currency **values**, the site-branding **resolver** and CMS site-scoping **retrofit**, the `source_code`/`entry_method`/`rendered_locale` **storage** and the attribution write. Phase 5 reserves the fields and wires the resolvers when they land; "channel" stays retired.
 - **All Phase-4 identity services:** guest-attribution (`attributeGuestGift`), the claim service and magic-link binding, legacy invitations, the reveal-gate, and merge. Phase 5 owns only the public surface that calls them.
 - **The giving cart / multi-designation checkout;** multi-currency giving launch; the localization/translation workflow.
-- **Real-time Live Preview** (iframe/visual editing) and the **shareable non-staff preview token**; a redirect-manager UI; an SEO studio; a visual page builder; approval/moderation workflows.
+- **Real-time Live Preview** (iframe/visual editing); a redirect-manager UI; an
+  SEO studio; a visual page builder; approval/moderation workflows. A
+  shareable/bearer non-staff preview token is rejected by Phase 22 D10 rather
+  than reserved; a named external recipient must use the existing identity and
+  tenant-membership onboarding plus one exact Phase 12 page-scoped `Preview
+only` grant.
 - **Events, opportunities, advocacy campaigns, and dynamic listing/search** public runtimes — reserved to build on this contract (the slice proves the template).
 - **The `apps/web` extraction** and the alternate cache/CDN transport that removes admin from the hot read path.
 - **A least-privilege Payload DB role scoped to `cms`** — reserved hardening (verify current privileges first).
-- **Rate-limiting/CAPTCHA on public form/preview endpoints** — reserved defense-in-depth (congruent with Phase 4).
+- **Rate-limiting/CAPTCHA on public forms and bounded rate/concurrency controls
+  on authenticated preview** — reserved defense-in-depth (congruent with Phase
+  4); never a substitute for D10 authorization.
 - **Any public/donor export** — the public runtime ships none; a future one wires Phase 3's export governance.
 
 ---
@@ -262,9 +291,12 @@ Good tests here assert **external behavior and safety invariants**, not implemen
 - [ ] A public request resolves its tenant only from the platform-trusted host (no production `?tenant=`), returns the unified context with a reserved `siteId`, and fails closed to "site not found" on an unknown/disabled host.
 - [ ] The public-content contract lives in one server-only package; consuming apps depend on its serialized types, never raw Payload documents or the `cms` schema; the reader is transport-agnostic with the single Payload read in admin.
 - [ ] CMS pages reference operational records; references are resolved and validated at read time against the resolved tenant and public-eligibility; a dangling/cross-tenant reference fails safe; public page identity is a presentation identity, not the operational record.
-- [ ] The giving CTA hands off through the resolver; checkout re-validates every reference server-side; the form is enumeration-safe and constant-time and never pre-fills/exposes saved data to an unauthenticated session; the handoff carries reserved `site_id`/`source_code`/`currency`/`locale`/`entry_method`.
+- [ ] The giving CTA hands off through the resolver; checkout re-validates every reference server-side; every released Phase 22 page has one exact Page Giving Binding and all its CTAs resolve the same Designation; cart/checkout entry and the final pre-provider boundary re-prove the current page, safety, binding, Designation, settlement, issuer, currency, cadence, attribution, and return path; no stale or invalid destination silently falls back; the form is enumeration-safe and constant-time and never pre-fills/exposes saved data to an unauthenticated session; the handoff carries reserved `site_id`/`source_code`/`currency`/`locale`/`entry_method`.
+- [ ] Phase 22 ministry routes are uniquely resolved by Site × locale × canonical path; every request freshly checks current route and safety heads before cached content; only a same-Page Listed-public canonical move may return one-hop `308` on `GET`/`HEAD`; tombstones and unknown routes share the real `404` + `noindex` envelope; resolver outage returns `503` + `Retry-After` + `no-store`; no successor page, query parameter, CMS redirect, or cache can select a route disposition or financial destination.
+- [ ] Phase 22 public media is emitted only as an opaque released delivery reference; the request-time resolver re-proves current D2/Phase 10/D9 eligibility and serves only the pinned certified immutable derivative from private custody. No original intake, raw provider URL, source filename, source-derived metadata, or mutable overwrite is publicly reachable, and withdrawal denies new authorized delivery before asynchronous cache/provider cleanup.
 - [ ] Published reads are cached with the tenant passed as an argument (cache-key isolation) + tenant/document tags; publishing fires a signed, constant-time-verified admin→public signal that invalidates the right tags; a bounded `cacheLife` backstop is in place; no route-segment config exists.
-- [ ] Preview renders the real page via Draft Mode behind a signed-secret, tenant-checked route; drafts are never cached, never public, and `noindex`; the shipped admin preview remains as interim.
+- [ ] Public Ministry Preview renders the exact selected saved revision or immutable submitted candidate through the production-equivalent page reader and renderer; every HTML/data/media/refresh/continuation request reauthenticates and reauthorizes the exact current scope; the response is private, `no-store`, non-indexable, referrer-suppressed, and side-effect-dark; copied URLs and Draft Mode grant nothing; revocation and Phase 10 narrowing win the next fetch; the shipped mutable admin preview remains non-conforming interim infrastructure.
+- [ ] A D11 public Ministry Update projection serializes, caches, hydrates, and streams no protected D12 response fact; authenticated response reads/writes enter one guarded server boundary and re-prove the exact Supporter Release Projection and Engagement Space; public cache keys/results cannot serve protected engagement; raw browser table reads and raw database Realtime are absent; and duplicate or uncertain commands resolve through exact idempotent operation inspection.
 - [ ] Guest-first continuity: no record on browse or abandonment; a one-time
       record only on a completed gift; for Phase 16 recurring giving, an
       accepted agreement plus durable initial-payment state persists exactly
@@ -291,9 +323,9 @@ Mirrors the Phase-2/3/4 structure. Foundation tickets first (`status:todo`); the
 - **T4** — Host→tenant/site resolver: unified public request context (reserved `siteId`), edge/Edge-Config resolution, fail-closed "site not found", `?tenant=` dev-only.
 - **T5** — Caching + invalidation: `use cache`/`cacheTag`/`cacheLife`, tenant-as-argument keys + tenant/document tags, and the secured (HMAC, constant-time) admin→public revalidation signal.
 - **T6** — Checkout handoff resolver: server-validated references, enumeration-safe/constant-time form rules, reserved `site_id`/`source_code`/`currency`/`locale`/`entry_method`, fail-safe on invalid.
-- **T7** — Draft Mode preview in the public runtime: signed-secret route, staff-auth + tenant check, `noindex`, exit-preview; interim admin preview retained.
-- **T8** — SEO/canonical/redirects/sitemap/robots + tenant-branded 404/error + baseline security headers.
-- **T9** — Public media: allowlist serializer public fields + `next/image` delivery.
+- **T7** — D10 Public Ministry Preview in the public runtime: exact saved-revision/candidate selection, per-request Phase 12/D1/Phase 10 authorization, production-equivalent rendering, private/no-store/noindex posture, inert consequential controls, accessible session continuation and unavailable states, and exit-preview; Draft Mode is mechanism only and the interim mutable admin preview is retained solely until replaced.
+- **T8** — SEO/canonical/redirects/sitemap/robots + Phase 22 D8 same-page `308`, uniform privacy-safe `404`, no-store `503`, repeated-move flattening, and route/safety cache-guard behavior + baseline security headers.
+- **T9** — Public media: D9 opaque release-bound delivery references, request-time safety resolution, exact certified derivative delivery, filename/metadata exclusion, and withdrawal behavior; `next/image` remains presentation only.
 - **T10** — The missionary-giving-page proof slice (mock → contract), built as a generalizable template + site-branding/anonymity/consent wiring.
 - **T11** — The cross-tenant negative-test tier + structural CI gates + the Phase 5 evidence file.
 
@@ -312,3 +344,235 @@ platform communication with its own sender, purpose, audience, and safety
 contract. It is never a shared credential/sender fallback for tenant mail.
 Phase 5 continues to own public runtime/site context and creates no template,
 message, transport, or communication-history authority.
+
+## Dated Phase 22 D9 public-media runtime amendment (2026-08-05)
+
+Phase 5 owns only the guarded HTTP delivery seam. Phase 22 D9 owns semantic
+media identity, placement, release eligibility, and withdrawal intent. Its
+Phase-29-compatible custody seam owns short-lived private Upload Intakes,
+immutable Sanitized Media Master Versions, certified derivative bytes and
+manifests, copy access, retention, and disposal. Phase 10 owns current safety
+and consent. Payload media state, a browser upload, `next/image`, or a provider
+URL cannot substitute for any of those facts.
+
+The runtime accepts only an opaque reference pinned by the current Page Release
+Manifest, re-proves D2/D9/Phase 10 at request time, and serves the exact
+certified derivative from a private origin. No public response, serializer,
+URL, query, header, HTML/SEO field, sitemap, log, analytic, or cache key may
+contain the source filename or source-derived metadata. Withdrawal immediately
+denies new authorized delivery at the affected scope; purge and provider/cache
+effects converge separately and do not prove that prior external copies were
+recalled.
+
+## Dated Phase 22 D11-D12 Ministry Update projection and response runtime amendment (2026-08-06)
+
+Phase 5 may publicly serialize and cache only the exact current D11 Public Page
+Release Projection. Anonymous HTML, RSC/data, metadata, hydration payloads,
+cache fragments and keys, analytics, cursors, streams, and Realtime output
+contain no protected Supporter projection or D12 response count, identity,
+acknowledgement, comment, reply, report, moderation state, or operation
+metadata. Public and protected response caches are structurally separate; a
+public cache result or key can never be reused as an Engagement Space result.
+
+An authenticated supporter experience enters through a guarded server boundary
+and reauthorizes the exact D11 Supporter Release Projection and D12 Engagement
+Space under current Phase 10/12 authority on every operation. A public sign-in
+continuation carries only a validated internal return target; authentication,
+the continuation, a copied URL, prior public access, or a public-page release
+grants no supporter membership or response authority. Denied and wrong-scope
+results remain non-enumerating and private.
+
+The browser never reads or writes raw response/profile tables and never
+subscribes to raw database Realtime. Phase 5 exposes only an allowlisted,
+audience-local projection and typed commands after server proof. Uncertain
+writes remain unposted until their exact idempotent operation is inspected;
+runtime or notification retries never replay the response command.
+
+## Dated Phase 22 D13 public-discovery runtime amendment (2026-08-06)
+
+Phase 22 D13 owns the Discovery Profile Version, complete immutable Public
+Ministry Directory Projection generation, bounded query/card meaning, current-
+head activation, and directory-specific containment. Phase 5 owns only the
+trusted request context, HTTP rendering, cache transport and invalidation, and
+D8-compatible canonical/sitemap delivery. The public runtime accepts the
+resolved Tenant, Legal Entity, environment, Site, and exact locale; pins the
+current profile, projection, D2 release, D8 route, and Phase 10 safety
+generations; applies any separate Page-Family constraint server-side; and then
+accepts only allowlisted bounded query, filter, limit, and generation-bound
+opaque keyset cursor input.
+
+Every query and cache identity includes all of those coordinates plus the sort
+contract and query/filter digest. A route segment, client filter, public ID,
+cursor, cache hit, mock, Payload document, Party row, `public.locations` row,
+raw browser Supabase query, Realtime event, or external search result never
+establishes scope, membership, or fallback authority. A D2 or Phase 10
+narrowing expires the affected positive cache before or atomically with a wider
+rebuild. Search-only failure may preserve a provably current browse result with
+an explicit degraded message; unprovable current authority returns a safe
+`no-store` unavailable result. Phase 5 never treats topology, searchability,
+Giving readiness, external indexing, local removal, and external de-indexing as
+one fact.
+
+The acceptance and negative-test tier must prove both topologies over the same
+eligible corpus; server-owned family constraints; exact-locale behavior;
+wrong-scope and stale-cursor refusal; complete cache coordinates; one-row/
+zero-row coverage; adverse removal and rebuild races; semantic GET search and
+accessible empty/degraded states; and absence of hidden source fields from
+HTML, RSC/JSON, metadata, sitemaps, caches, logs, metrics, and accessibility
+trees.
+
+## Dated Phase 22 D14 public search-and-sharing runtime amendment (2026-08-06)
+
+For typed Phase 22 Public Ministry Pages and D11 Public Page Ministry Update
+Releases, D14 supersedes A12's ordinary-CMS SEO wording and its coarse
+`per-tenant` sitemap shorthand. Phase 22 D14 owns one immutable, release-bound,
+locale-exact Public Search & Sharing Presentation Manifest, its distinct Search
+and Share results, stable opaque Ministry Update permalink presentation, and
+semantic compiler. Phase 5 owns exact verified-host, Site, and locale HTTP
+transport: complete initial HTML/head, consistent `GET`/`HEAD`, canonical and
+alternate-link delivery, deterministic host-scoped sitemap indexes and shards,
+`robots.txt`, card/media assets, cache behavior, and public error responses.
+Payload/Web Studio SEO fields remain ordinary-CMS authoring aids only and never
+become a second Phase 22 manifest, canonical, sitemap, route, permalink, reach,
+or publication head.
+
+The runtime serves a current Phase-10-safe `Listed publicly` release as locally
+search-index eligible and publicly shareable. It serves `Shared by link —
+public` as anonymously reachable and shareable with `noindex`, while omitting it
+from navigation, directories, sitemaps, public-feed discovery, and locale
+discovery. It is not path-disallowed in `robots.txt`, because a crawler must be
+able to fetch the response to observe `noindex`; robots is not privacy or access
+control. Stricter, preview, supporter-only, contained, withdrawn, retired, or
+tombstoned truth emits no content-specific anonymous metadata, card, or share
+projection. The reserved `/updates/...` family becomes a server-resolved stable
+D11/D14 canonical identity; the list-only `/api/cms/public/updates` transport,
+feed fragments, query strings, raw IDs, and copied page-owned posts do not.
+
+Every rendered body, head, canonical, crawler directive, reciprocal locale
+alternate, JSON-LD value, sitemap entry, social-card field, D9 media derivative,
+and share payload must resolve one exact manifest coverage digest and current
+safety ceiling. The runtime never falls back to global/root metadata, mutable
+CMS or CRM rows, raw Storage, unsafe locale/source content, a different Site,
+the original filename, or a stale manifest generation. Optional exact-host
+IndexNow and other provider effects run asynchronously and idempotently; their
+acceptance, crawl, index, rank, cache, refresh, share, removal, or failure never
+blocks or rewrites the public release.
+
+Acceptance proof must cover the full reach and Update-placement matrices,
+verified custom hosts, exact locales and reciprocal alternates, sitemap
+sharding, canonical/query normalization, redirects and tombstones, complete
+initial HTML with JavaScript disabled, `GET`/`HEAD` parity, crawler and bot-load
+fairness, structured-data serialization, D9 card privacy, deployment/cache
+skew, adverse-removal races, native Web Share and Copy-link fallbacks, and WCAG
+2.2 AA keyboard, focus, reflow, target-size, and status-message behavior.
+
+## Dated Phase 22 D15 first-party measurement transport amendment (2026-08-06)
+
+Phase 5 may provide only one same-origin, fixed-schema, payload- and rate-bounded
+`POST` seam for D15 after visible rendering or direct visitor action. Phase 22
+D15 owns metric meaning, exact current-release re-resolution, admission,
+idempotency, and aggregation. `GET`, `HEAD`, render, RSC, prefetch, preview,
+sitemap, crawler, social-card, scanner, monitor, and provider fetches create no
+Measurement Occurrence. The local Share or Give action runs first and is never
+awaiting measurement; intake or aggregation failure cannot change content,
+status, headers, cache, Share, Give, cart, or checkout behavior.
+
+## Dated Phase 22 D17 typed Page-subject runtime amendment (2026-08-06)
+
+Phase 5 public rendering consumes the exact D17 privacy-safe subject snapshot
+pinned into the current D2 release after current Phase 10 admission. It never
+uses Payload `fundId`, copied operational fields, a live anonymous join to raw
+Ministry Project/Campaign/Designation tables, or a source relationship as
+runtime permission. The source snapshot supplies approved presentation context
+only; D7 independently supplies the one exact Giving destination, D6 supplies
+optional progress, and every other owner retains its own freshness and failure
+semantics.
+
+An absent, stale, cross-scope, uncertified, or unsafe subject snapshot fails the
+affected public Page closed without falling back to CMS text, a General Fund,
+another source, or last-known raw data. A source lifecycle change enters D8's
+explicit Page disposition path; Phase 5 does not infer a redirect, successor,
+unpublish action, changed CTA, or financial outcome.
+
+## Dated Phase 22 D18 public-runtime composition amendment (2026-08-06)
+
+Phase 5 remains the sole owner of public HTTP, host resolution, reader choke
+points, function-level cache arguments and tags, invalidation transport, and
+provider adapters. D18 supplies only Public Ministry freshness semantics,
+component degradation, and applicable-surface coverage. Request-specific host,
+Site, locale, route, and authorization inputs stay outside reusable content. One
+small disposable **current-serving evaluation** resolves the exact current D2,
+Phase 10, and D8 outcome before any identity-bearing reusable positive payload
+is selected. Known absence uses the existing privacy-safe response; authority
+uncertainty returns the existing neutral `no-store` unavailable response and is
+never cached as absence or stale-positive content.
+
+Released editorial presentation and immutable certified fragments may use A9's
+exact-argument function cache. Page- or Update-specific complete HTML,
+RSC/prefetch, JSON, metadata, sitemap/robots, directory/search, media/image-
+optimizer, resolver, or CDN responses must not be shared-cached where a cache can
+answer before current admission. Complete shared-response caching is permitted
+only after the exact provider, product, environment, route, and variant proves
+in production that admission executes before every such cache; otherwise only
+identity-free shells or immutable fragments are shared and the composed response
+is dynamic and non-shared. Tags remain invalidation handles only.
+
+An owner-authorized ordinary positive generation may use bounded stale-while-
+revalidate only while the prior release remains independently current, safe,
+reachable, and valid. An owner-labelled adverse or unknown component fact first
+denies, omits, redirects, or disables the smallest affected positive behavior
+and forbids stale-while-revalidate and stale-if-error for that scope. One
+append-only **Public Ministry Surface Convergence Operation** then invokes A9
+transport plus the existing D8/D9/D13/D14 effect owners through exact monotonic
+coverage and residual-only recovery. Release activated, expiration requested,
+provider accepted, controlled response observed, not verifiable, and external
+observation remain separate facts; neither `cacheLife` nor provider acceptance
+is safety proof. D7/Phase 13 always re-proves executable Giving at its final
+boundary, and D15 creates no occurrence from fetch, render, cache, crawler,
+social, probe, or repair traffic.
+
+## Dated Phase 22 D21 sole-reader cutover amendment (2026-08-14)
+
+Phase 5 executes D21's one cohort-scoped reader-generation transition; D21 owns
+only the adoption coverage, selected immutable plan/manifest, and cutover
+receipt. Page preparation is private, additive, chunked, resumable, and side-
+effect-dark. It may create certified D2 candidates or a D20-compatible frozen
+legacy-presentation release, but it cannot make one Page publicly authoritative
+while another route on the same dependency-complete surface still uses a mock,
+static, raw Payload, or generic fallback reader.
+
+Before cutover, every remaining public route stays behind the current Phase
+2/5 host resolution plus D2/Phase 10/D8 adverse-admission boundary; "legacy"
+never permits unsafe content to remain available. The final local transaction
+performs no rendering, provider call, purge, crawl, or full source rescan. It
+compares the precomputed content-addressed census roots, immutable verified-host
+membership digest, current source/release/route/safety/authorization/code/schema
+heads and fencing tokens, records the receipt and D18 outbox cause, and advances
+one reader-generation head by idempotent CAS. Any drift aborts with no public
+effect and returns the exact candidate to private preparation.
+
+After CAS, the Phase 5/D18 gateway is the sole reader for that exact Tenant ×
+Legal Entity × environment × Site × verified-host-membership generation ×
+locale. Old deployments and cached entry points must consult the current head
+and cannot restore a mock/static route, raw Payload publication, old serializer,
+old cache namespace, or compatibility reader. Compatible legacy presentation
+is permitted only as one immutable, family-qualified, generation-pinned D2
+release rendered by this same gateway; it owns no managed fact and supplies no
+second editor or fallback. Distributed controlled surfaces converge afterward
+through D18, and later Page work uses ordinary D1-D20 release, containment, and
+succession commands rather than another adoption mode.
+
+## Dated Phase 22 D22 staff-operations boundary amendment (2026-08-14)
+
+The D22 Public Page Operations Projection is an authenticated staff-workspace
+adapter only. It and its causes, impacts, counts, search terms, actions,
+diagnostics, task links, and notification state must never enter anonymous
+HTML, RSC or prefetch payloads, public APIs, metadata, social cards, sitemaps,
+robots output, media URLs, client hydration, public caches, or analytics. An
+anonymous request cannot enumerate or infer D22 state.
+
+Any public consequence shown by Phase 5 remains the output of the applicable
+D2/D7/D8/D10/D18 owner contract, not of the operations projection. D22 may
+navigate an authorized staff member to an owner command, but it cannot publish,
+unpublish, redirect, invalidate, restore, or mark a public consequence resolved
+through a projection row or shared-task transition.

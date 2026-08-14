@@ -1603,8 +1603,11 @@ One immutable **Exit Disposition Manifest**:
    Profile assignments and determinations, D4 Compensation Funding Plans and
    work, Phase 13 Designations, and any Phase 16 recurring-term stop or
    successor;
-7. permits Phase 22 to retire or redirect presentation only after financial
-   destination authority changes—never to choose or redirect money; and
+7. supplies Phase 22 D8 with the exact source-owned lifecycle and purpose-
+   succession evidence it may reference, while Phase 22 independently chooses
+   public presentation, may publish a truthful transition notice before
+   financial work completes, and may permanently move only the same immutable
+   Page's canonical route—never to choose or redirect money; and
 8. closes the Field Account to ordinary activity only after no unexplained
    residual, discretionary future writer, or unowned next action remains.
 
@@ -3388,10 +3391,22 @@ limits, budget, and manual fallback.
 
 Phase 21 owns **Receipt Extraction Suggestion Versions** and **Expense Match
 Suggestion Versions** under the shared non-authoritative suggestion contract.
-Phase 22 may later own a public-profile draft suggestion through the same
-control plane. Neither Phase 21 nor the shared control plane owns biography
+Phase 22 D16 owns a Public Page writing suggestion through the same control
+plane. Neither Phase 21 nor the shared control plane owns biography
 truth, public publication, claim approval, accounting, or another domain's
 acceptance command.
+
+**Dated Phase 22 D16 consumption amendment (2026-08-06).** Phase 22 now owns
+one source-bounded Public Page Writing Suggestion and its current-authorized
+application under the existing `public-profile drafting` purpose. Its optional
+**Translate to English** action is a distinct pair-certified operation to one
+exact existing Phase 24 English BCP 47 locale and carries an adjacent check-work
+warning. D10 continues to own the Provider Connection, Credential Revision,
+Capability Binding, Egress Manifest, Invocation Evidence, adapter, budget,
+usage/cost, and revocation only. It does not own Page content, source selection,
+translation meaning or accuracy, application, bilingual review, locale status,
+submission, release, or publication, and no D16 result may weaken D10's
+minimum-data, no-tool, no-silent-fallback, and manual-continuity contract.
 
 ### AI egress, safety, and manual continuity
 
@@ -7137,6 +7152,29 @@ behavior, life-event succession, Supabase/PostgreSQL/RLS posture, and the calm
 staff and missionary experience. It does not reopen D1-D18, grant ownership to
 participants, create money movement, replace Phase 12, or implement runtime
 behavior.
+
+### Dated Phase 22 D19 Ministry Assignment bridge (2026-08-06)
+
+Phase 22's CRM-owned **Ministry Assignment** is distinct from this decision's
+Phase 21 **Support Assignment**. A Missionary Ministry Page may reference the
+former as its operational subject. Phase 21 owns the separately finance-
+authorized command for one optional, prospective, immutable, same-Tenant and
+same-Legal-Entity Ministry Assignment Support Binding Version to the latter;
+Phase 22 only consumes the result. That binding is a typed reference only: it
+does not copy Field Account truth, create a participant, select a currency,
+choose a Giving Designation, move a balance, or grant Support Workspace access.
+
+Ministry Assignment Participant Membership, D1 Display Participant and Public
+Page Contributor Assignment, Support Assignment Participant Membership, Phase
+12 access, responsibility, history floor, and notification preference remain
+independent. A Page continues to function without a Support Binding or Phase 21
+module. Rebinding never propagates people, grants, balances, closed history,
+supporter identity, notifications, public progress, or Giving destination; each
+owner receives an explicit retain, end, or re-authorize decision. Phase 12's
+current purpose-, projection-, target-, field-, and history-bounded grant and
+the applicable Phase 21 D9 publication posture remain mandatory before a
+separately authenticated spouse or teammate sees support activity or exact
+per-currency Finance-confirmed balances.
 
 The completed [post-D19 preservation and cross-phase congruency
 audit](./phase-21-mission-dashboard-product-research-evidence.md#post-d19-preservation-and-cross-phase-congruency-audit)

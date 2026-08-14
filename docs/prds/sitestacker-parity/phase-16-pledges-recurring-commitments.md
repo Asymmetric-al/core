@@ -2806,8 +2806,11 @@ redirect, or choose a successor for a recurring commitment. Phase 16 remains
 the source authority: it accepts only exact donor or tenant authorization,
 appends the prospective stop/successor/provider-control evidence, and preserves
 prior occurrences. A Phase 21 draft or manifest changes no recurring work, and
-Phase 22 may retire presentation only after the Phase 16 source transition is
-proved.
+Phase 22 may change or retire public presentation independently but may state or
+link a recurring-support outcome only after the exact Phase 16 source transition
+is proved. Until then, a Phase 22 transition notice says only that existing
+recurring gifts are managed separately and points to donor self-service solely
+when Phase 16 authorizes that action.
 
 ## Dated Phase 21 D8 commitment-feed amendment (2026-07-30)
 
@@ -2903,3 +2906,38 @@ preference never creates, merges, ends, resumes, retargets, or transfers a
 commitment. One Party participating in several Support Assignments does not
 duplicate a commitment across them; exact Phase 16 purpose/source coverage and
 the consumer projection contract determine inclusion.
+
+## Dated Phase 22 D6 public-progress commitment amendment (2026-08-03)
+
+Phase 16 remains the sole authority for commitment identity, active lifecycle,
+cadence normalization, corrections, and any anonymous-public-safe commitment
+aggregate it explicitly certifies. Phase 22 D6 may bind one exact compatible
+projection to one page and compare it only with the exact current-compatible
+Phase 28 Support-Raising Goal Version pinned by that page release. Phase 22
+cannot read commitment rows anonymously, infer a goal, combine commitments with
+received gifts, or treat an authorization, schedule, attempt, or forecast as
+cash.
+
+Omitted, not configured, stale, suppressed, source unavailable, and
+authoritative zero stay distinct. A commitment-source failure omits only the
+optional page widget and creates one cause-owned staff exception; it never falls
+back to Phase 13 received money, a last-known value, or zero. A source correction
+may advance the compatible disposable projection without changing the pinned
+metric meaning, disclosure scope, or page-release authority.
+
+## Dated Phase 22 D8 public-route and recurring-transition amendment (2026-08-04)
+
+Phase 16 remains the sole authority for recurring authorization, current terms,
+continuation, stop, destination change, successor transition, provider action,
+and donor self-service capability. A Phase 22 route move, transition notice,
+tombstone, Page Giving Binding, Designation succession proof, worker departure,
+or page retirement mutates none of those facts and never pauses, cancels,
+retargets, or recreates recurring support.
+
+A D8 Transition Notice Release may replace stale public story copy while Phase
+16 transition work is still open, but its wording is coverage-aware and through-
+dated. It may state only the current proved Phase 16 outcome; otherwise it says
+existing recurring gifts are managed separately. A different-page successor is
+an explicit fresh navigation and carries no recurring action. Completion of a
+route disposition never proves recurring transition complete, and completion of
+a recurring transition never selects a public route disposition.

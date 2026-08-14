@@ -120,49 +120,49 @@ or feeds this phase but does not gate its start; "enhanced by" links point
 forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 `grilling in progress` / `future (needs PRD)`.
 
-| #      | Slug                         | Phase                                                                                                                             | Hard deps                                             | Soft / consumes / enhanced by                         | Owner surface / system                                          | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **0**  | `baseline`                   | [Baseline, Governance & Evidence](./phase-00-baseline.md)                                                                         | —                                                     | —                                                     | Docs, OpenSpec, parity matrix, evidence                         | `PRD exists`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| **1**  | `ownership-matrix`           | [Source-of-Truth Ownership Matrix](./phase-01-source-of-truth-ownership-matrix.md)                                                | 0                                                     | —                                                     | OpenSpec, architecture docs, `packages/api`                     | `PRD exists` (ruled 2026-07-06)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **2**  | `site-locale-currency`       | [Site, Locale & Currency Foundation](./phase-02-site-locale-currency-foundation.md)                                               | 1                                                     | —                                                     | Tenant/site settings, public context, giving primitives         | `PRD exists` (epic #477)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **3**  | `permission-floor`           | [Minimum Permission & Role-Scoped Projection Foundation](./phase-03-minimum-permission-role-scoped-projection-foundation.md)      | 1, 2                                                  | —                                                     | `packages/api` authz/projections, Mission Control               | `PRD exists` (epic #489)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **4**  | `identity-claiming`          | [Identity & Account-Claiming Foundation](./phase-04-identity-account-claiming-foundation.md)                                      | 2, 3                                                  | —                                                     | Identity services, account claiming, tenant membership          | `PRD exists` (epic #503)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **5**  | `public-runtime`             | [Public Website Runtime Contract](./phase-05-public-website-runtime-contract.md)                                                  | 2, 3, 4                                               | —                                                     | Public Website, Web Studio, Payload, donor public routes        | `PRD exists` (epic #520)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **6**  | `comms-event-model`          | [Shared Communication Event Model](./phase-06-shared-communication-event-model.md)                                                | 2, 3, 4, 5                                            | —                                                     | Communication services, CRM timeline, provider adapters         | `PRD exists` (epic #550)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **7**  | `receipt-rules-credit`       | [Receipt & Statement Compliance Rules + Donor Identity/Credit Model](./phase-07-receipt-statement-compliance-and-donor-credit.md) | **4, 6, 3** (PRD C1–C3)                               | 2, 5                                                  | Receipt/statement services, finance rules, party/credit model   | `PRD exists` (epic #566)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_        | none (build-now core)                                 | 6 (emailed path), 9 (reserved sockets)                | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| **9**  | `crm-depth-graph`            | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md)                                            | **4, 7, 3**                                           | 8 (operations visibility only)                        | Mission Control CRM (Asym Postgres)                             | `PRD exists` (epic #604 + #605–#627)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **10** | `sensitive-safety`           | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md)                      | **3, 9**                                              | 4, 5, 6                                               | Mission Control, security projections, Member Care seams        | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **11** | `custom-fields`              | Custom Fields & Custom Collections                                                                                                | 9, 10, 3                                              | —                                                     | Mission Control CRM configuration                               | `PRD exists` (epic #645 + #646–#664)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11                                             | —                                                     | Mission Control Admin, `packages/api` authz                     | `PRD exists` (epic #665 + #666–#687)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7                                      | —                                                     | Contributions/giving, public checkout, MC finance               | `PRD exists` (epic #690 + #691–#713)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **14** | `donor-credit-ops`           | [Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts](./phase-14-donor-credit-operations.md)                   | 13, 7, 9                                              | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `PRD exists` (epic #719 + #720–#741)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7                                         | 9; enhanced by 16 (fulfillment matching)              | Mission Control Contributions                                   | `PRD exists (epic #758 + #759–#786)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**           | enhanced by 17 (message rendering/delivery)           | Contributions and CRM                                           | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| **17** | `system-messages`            | [System Messages & Template Management](./phase-17-system-messages-template-management.md)                                        | 6, 2, 3, 7                                            | —                                                     | Email Studio / System Messages                                  | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| **18** | `document-templates`         | [Receipt & PDF Template System](./phase-18-receipt-pdf-template-system.md)                                                        | 7, **13**, 17                                         | 6                                                     | Document Studio / Generated Documents                           | `PRD exists` (epic #907 + #908–#961; #908–#910 ready frontier)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **19** | `statement-operations`       | [Year-End Statement Operations](./phase-19-year-end-statement-operations.md)                                                      | 6, 7, 12, **13**, 14, 15, 17, 18                      | 9, 4                                                  | Mission Control Contributions/Finance                           | `PRD exists` (epic #977 + #978–#1031; blocked/not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| **20** | `accounting-exports`         | [Accounting Exports & Reconciliation](./phase-20-accounting-exports-reconciliation.md)                                            | **2, 3, 4, 7, 12, 13, 14, 15**                        | 16                                                    | Mission Control Accounting                                      | `PRD exists` (implementation-ready 2026-07-27; not implemented)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **21** | `field-accounts`             | [Missionary Field Accounts & Support Balances](./phase-21-field-accounts.md)                                                      | **1**, 3, 4, 6, **9, 10, 12**, 13, **15**, 17, 18, 20 | 16                                                    | Mission Control Finance/Admin, Missionary Workspace projection  | `PRD exists` (implementation-ready 2026-08-02; spec #1108; epic #1109 + lane epics #1110–#1120 + P21-01–P21-101 published and dependency-governed; not implemented; D1-D28 scope-frozen; D17/D27 activation requires certified Phase 29 opening-source private-byte custody and Phase 30 import-session staging; selected private-byte-bearing D10/D14/D18/D22/D24/D25/D28 and D26 package/lifecycle slices require their exact owner seams, while metadata/manual/feed paths remain separate; D28 requires Phase 29/30 only for its selected private-byte/bulk lane and otherwise weakens no owning-phase prerequisite) |
-| **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3                                       | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **23** | `web-studio-cms`             | CMS / Site Planner Dynamic Content Parity                                                                                         | 5, 3, 2                                               | 22                                                    | Web Studio, Payload, Public Website                             | `future (needs PRD)` — deps allow an early start after Phase 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **24** | `multi-site-management`      | Full Multi-Site, Language & Currency Management                                                                                   | 2, 5, 13, 20, 23                                      | 17                                                    | Tenant settings, Web Studio, Contributions settings             | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **25** | `donor-portal-depth`         | Donor Dashboard Depth                                                                                                             | 4, 3, 13, 7, 6                                        | 17, 19                                                | Donor Portal                                                    | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17                                        | —                                                     | Support Hub, communication services, `packages/api`             | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **27** | `donor-development`          | Donor Development & Portfolio Management _(beyond-parity differentiator)_                                                         | **9**, 3, 6, 13                                       | consumes 14, 16; 26; enhanced by 33, 34               | Mission Control CRM (Development)                               | `future (needs PRD)` (was v1 Phase 33)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **28** | `missionary-workspace-depth` | Missionary Workspace Depth & Support-Raising CRM                                                                                  | 9, 13, 16, 6, 3, 27                                   | 26                                                    | Missionary Workspace                                            | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **29** | `files-documents`            | File Manager & Document Management                                                                                                | 3, 9                                                  | 18, 26, the shipped workflow-orchestration runtime    | Documents/File Manager, CRM, Workflows, Web Studio              | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **30** | `imports-migration`          | Imports & Migration Tools                                                                                                         | 9, 13, 11, 29, 4, 3                                   | 14                                                    | Mission Control Data Tools                                      | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **31** | `platform-api`               | Platform API, Webhooks & Connector Framework                                                                                      | 1, 3, 4, 6                                            | 9, 13                                                 | Platform API, Integrations, Admin                               | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **32** | `newsletter-sync`            | Mailchimp / Newsletter Sync with Suppression Handling                                                                             | 6, 3, 28, 4, 31                                       | —                                                     | Missionary Workspace settings, MC integrations                  | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **33** | `reporting-bi`               | Reporting & BI / Report Studio                                                                                                    | 9, 13, 7, 6, 3                                        | 11, 15, 16, 30                                        | Report Studio                                                   | `future (needs PRD)` — deps allow an early start (see lanes)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| **34** | `workflow-engine`            | Configurable Automation & Workflow Engine                                                                                         | 9, 11, 12, 29, 17, 6                                  | 13 (registration fees), 33                            | Automations/Workflows in Mission Control                        | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **35** | `contribution-triggers`      | Spark-Style Contribution Triggers                                                                                                 | **34**, 13, 6, 3                                      | 33                                                    | Automations, Contributions                                      | `future (needs PRD)` (confirmed separate from 34)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| **36** | `p2p-campaigns`              | Peer-to-Peer & Advocacy Campaigns                                                                                                 | 5, 13, 25, 3, 22                                      | —                                                     | Public Website, Donor Portal, Contributions                     | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **37** | `events-groups`              | Event / Opportunity Workflows & Group Management                                                                                  | 5, 9, 13, 6, 29, 34, 36                               | 10                                                    | Event Hub, Public Website, CRM, Workflows                       | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **38** | `member-care-ops`            | Member Care, Crisis & Restricted-Ministry Operations                                                                              | 10, 3, 4, 9, 29                                       | 6, 12, 26, 34                                         | Member Care, Mission Control, security-sensitive projections    | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **39** | `field-first-ux`             | Mobile, Low-Bandwidth & Conflict-Safe Field Experience                                                                            | 3, 4, 9, 28                                           | 31                                                    | Cross-surface UX, `packages/api` concurrency contracts          | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **40** | `data-stewardship-ai`        | Data Stewardship, Global Search & AI Operator Workbench                                                                           | 3, 4, 8, 9, 13, 30, 33                                | 6, 11, 34                                             | Mission Control, Data Tools, Search, AI Assist                  | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| #      | Slug                         | Phase                                                                                                                             | Hard deps                                             | Soft / consumes / enhanced by                                  | Owner surface / system                                          | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **0**  | `baseline`                   | [Baseline, Governance & Evidence](./phase-00-baseline.md)                                                                         | —                                                     | —                                                              | Docs, OpenSpec, parity matrix, evidence                         | `PRD exists`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **1**  | `ownership-matrix`           | [Source-of-Truth Ownership Matrix](./phase-01-source-of-truth-ownership-matrix.md)                                                | 0                                                     | —                                                              | OpenSpec, architecture docs, `packages/api`                     | `PRD exists` (ruled 2026-07-06)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **2**  | `site-locale-currency`       | [Site, Locale & Currency Foundation](./phase-02-site-locale-currency-foundation.md)                                               | 1                                                     | —                                                              | Tenant/site settings, public context, giving primitives         | `PRD exists` (epic #477)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **3**  | `permission-floor`           | [Minimum Permission & Role-Scoped Projection Foundation](./phase-03-minimum-permission-role-scoped-projection-foundation.md)      | 1, 2                                                  | —                                                              | `packages/api` authz/projections, Mission Control               | `PRD exists` (epic #489)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **4**  | `identity-claiming`          | [Identity & Account-Claiming Foundation](./phase-04-identity-account-claiming-foundation.md)                                      | 2, 3                                                  | —                                                              | Identity services, account claiming, tenant membership          | `PRD exists` (epic #503)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **5**  | `public-runtime`             | [Public Website Runtime Contract](./phase-05-public-website-runtime-contract.md)                                                  | 2, 3, 4                                               | —                                                              | Public Website, Web Studio, Payload, donor public routes        | `PRD exists` (epic #520)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **6**  | `comms-event-model`          | [Shared Communication Event Model](./phase-06-shared-communication-event-model.md)                                                | 2, 3, 4, 5                                            | —                                                              | Communication services, CRM timeline, provider adapters         | `PRD exists` (epic #550)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **7**  | `receipt-rules-credit`       | [Receipt & Statement Compliance Rules + Donor Identity/Credit Model](./phase-07-receipt-statement-compliance-and-donor-credit.md) | **4, 6, 3** (PRD C1–C3)                               | 2, 5                                                           | Receipt/statement services, finance rules, party/credit model   | `PRD exists` (epic #566)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_        | none (build-now core)                                 | 6 (emailed path), 9 (reserved sockets)                         | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| **9**  | `crm-depth-graph`            | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md)                                            | **4, 7, 3**                                           | 8 (operations visibility only)                                 | Mission Control CRM (Asym Postgres)                             | `PRD exists` (epic #604 + #605–#627)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **10** | `sensitive-safety`           | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md)                      | **3, 9**                                              | 4, 5, 6                                                        | Mission Control, security projections, Member Care seams        | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **11** | `custom-fields`              | Custom Fields & Custom Collections                                                                                                | 9, 10, 3                                              | —                                                              | Mission Control CRM configuration                               | `PRD exists` (epic #645 + #646–#664)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11                                             | —                                                              | Mission Control Admin, `packages/api` authz                     | `PRD exists` (epic #665 + #666–#687)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7                                      | —                                                              | Contributions/giving, public checkout, MC finance               | `PRD exists` (epic #690 + #691–#713)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **14** | `donor-credit-ops`           | [Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts](./phase-14-donor-credit-operations.md)                   | 13, 7, 9                                              | enhanced by 17 (tribute letters)                               | Contributions, CRM views, reports                               | `PRD exists` (epic #719 + #720–#741)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7                                         | 9; enhanced by 16 (fulfillment matching)                       | Mission Control Contributions                                   | `PRD exists (epic #758 + #759–#786)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**           | enhanced by 17 (message rendering/delivery)                    | Contributions and CRM                                           | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **17** | `system-messages`            | [System Messages & Template Management](./phase-17-system-messages-template-management.md)                                        | 6, 2, 3, 7                                            | —                                                              | Email Studio / System Messages                                  | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **18** | `document-templates`         | [Receipt & PDF Template System](./phase-18-receipt-pdf-template-system.md)                                                        | 7, **13**, 17                                         | 6                                                              | Document Studio / Generated Documents                           | `PRD exists` (epic #907 + #908–#961; #908–#910 ready frontier)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **19** | `statement-operations`       | [Year-End Statement Operations](./phase-19-year-end-statement-operations.md)                                                      | 6, 7, 12, **13**, 14, 15, 17, 18                      | 9, 4                                                           | Mission Control Contributions/Finance                           | `PRD exists` (epic #977 + #978–#1031; blocked/not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **20** | `accounting-exports`         | [Accounting Exports & Reconciliation](./phase-20-accounting-exports-reconciliation.md)                                            | **2, 3, 4, 7, 12, 13, 14, 15**                        | 16                                                             | Mission Control Accounting                                      | `PRD exists` (implementation-ready 2026-07-27; not implemented)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **21** | `field-accounts`             | [Missionary Field Accounts & Support Balances](./phase-21-field-accounts.md)                                                      | **1**, 3, 4, 6, **9, 10, 12**, 13, **15**, 17, 18, 20 | 16                                                             | Mission Control Finance/Admin, Missionary Workspace projection  | `PRD exists` (implementation-ready 2026-08-02; spec #1108; epic #1109 + lane epics #1110–#1120 + P21-01–P21-101 published and dependency-governed; not implemented; D1-D28 scope-frozen; D17/D27 activation requires certified Phase 29 opening-source private-byte custody and Phase 30 import-session staging; selected private-byte-bearing D10/D14/D18/D22/D24/D25/D28 and D26 package/lifecycle slices require their exact owner seams, while metadata/manual/feed paths remain separate; D28 requires Phase 29/30 only for its selected private-byte/bulk lane and otherwise weakens no owning-phase prerequisite) |
+| **22** | `public-ministry-pages`      | [Public Missionary & Project Page Workflow](./phase-22-public-ministry-pages.md)                                                  | 5, 9, 10, 13, 3                                       | 15, 16, 21, 28 (optional source-owned progress/support inputs) | Web Studio, Public Website, Missionary Workspace, Contributions | `PRD exists` (implementation-ready 2026-08-14; spec [#1281](https://github.com/Asymmetric-al/core/issues/1281); P22-01–P22-41 / #1282–#1322 published with native blockers; #1282 ready frontier; [OpenSpec](../../../openspec/changes/add-public-ministry-pages/proposal.md); D1–D27 scope-frozen; not implemented)                                                                                                                                                                                                                                                                                                     |
+| **23** | `web-studio-cms`             | CMS / Site Planner Dynamic Content Parity                                                                                         | 5, 3, 2                                               | 22                                                             | Web Studio, Payload, Public Website                             | `future (needs PRD)` — deps allow an early start after Phase 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **24** | `multi-site-management`      | Full Multi-Site, Language & Currency Management                                                                                   | 2, 5, 13, 20, 23                                      | 17                                                             | Tenant settings, Web Studio, Contributions settings             | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **25** | `donor-portal-depth`         | Donor Dashboard Depth                                                                                                             | 4, 3, 13, 7, 6                                        | 17, 19                                                         | Donor Portal                                                    | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17                                        | —                                                              | Support Hub, communication services, `packages/api`             | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **27** | `donor-development`          | Donor Development & Portfolio Management _(beyond-parity differentiator)_                                                         | **9**, 3, 6, 13                                       | consumes 14, 16; 26; enhanced by 33, 34                        | Mission Control CRM (Development)                               | `future (needs PRD)` (was v1 Phase 33)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **28** | `missionary-workspace-depth` | Missionary Workspace Depth & Support-Raising CRM                                                                                  | 9, 13, 16, 6, 3, 27                                   | 26                                                             | Missionary Workspace                                            | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **29** | `files-documents`            | File Manager & Document Management                                                                                                | 3, 9                                                  | 18, 26, the shipped workflow-orchestration runtime             | Documents/File Manager, CRM, Workflows, Web Studio              | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **30** | `imports-migration`          | Imports & Migration Tools                                                                                                         | 9, 13, 11, 29, 4, 3                                   | 14                                                             | Mission Control Data Tools                                      | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **31** | `platform-api`               | Platform API, Webhooks & Connector Framework                                                                                      | 1, 3, 4, 6                                            | 9, 13                                                          | Platform API, Integrations, Admin                               | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **32** | `newsletter-sync`            | Mailchimp / Newsletter Sync with Suppression Handling                                                                             | 6, 3, 28, 4, 31                                       | —                                                              | Missionary Workspace settings, MC integrations                  | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **33** | `reporting-bi`               | Reporting & BI / Report Studio                                                                                                    | 9, 13, 7, 6, 3                                        | 11, 15, 16, 30                                                 | Report Studio                                                   | `future (needs PRD)` — deps allow an early start (see lanes)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **34** | `workflow-engine`            | Configurable Automation & Workflow Engine                                                                                         | 9, 11, 12, 29, 17, 6                                  | 13 (registration fees), 33                                     | Automations/Workflows in Mission Control                        | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **35** | `contribution-triggers`      | Spark-Style Contribution Triggers                                                                                                 | **34**, 13, 6, 3                                      | 33                                                             | Automations, Contributions                                      | `future (needs PRD)` (confirmed separate from 34)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| **36** | `p2p-campaigns`              | Peer-to-Peer & Advocacy Campaigns                                                                                                 | 5, 13, 25, 3, 22                                      | —                                                              | Public Website, Donor Portal, Contributions                     | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **37** | `events-groups`              | Event / Opportunity Workflows & Group Management                                                                                  | 5, 9, 13, 6, 29, 34, 36                               | 10                                                             | Event Hub, Public Website, CRM, Workflows                       | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **38** | `member-care-ops`            | Member Care, Crisis & Restricted-Ministry Operations                                                                              | 10, 3, 4, 9, 29                                       | 6, 12, 26, 34                                                  | Member Care, Mission Control, security-sensitive projections    | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **39** | `field-first-ux`             | Mobile, Low-Bandwidth & Conflict-Safe Field Experience                                                                            | 3, 4, 9, 28                                           | 31                                                             | Cross-surface UX, `packages/api` concurrency contracts          | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **40** | `data-stewardship-ai`        | Data Stewardship, Global Search & AI Operator Workbench                                                                           | 3, 4, 8, 9, 13, 30, 33                                | 6, 11, 34                                                      | Mission Control, Data Tools, Search, AI Assist                  | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 **Out of scope (deliberate):** **child sponsorship** (tracked as an
 out-of-scope row in [`parity-matrix.md`](./parity-matrix.md)).
@@ -554,7 +554,11 @@ with no firewall.
 - **Consent & publishing preferences** per person (explicit consent records
   for publishing name/photo/story; hard do-not-publish flags), wired into the
   existing outbound-email consent gate — honoring the Art. 9(2)(d) invariant
-  (no disclosure outside the body without consent).
+  (no disclosure outside the body without consent). Phase 22 D26 narrowly uses
+  one whole-candidate Public Content Sharing Attestation as its ordinary Page
+  and Update input, so absent granular affirmative rows alone create no second
+  editorial workflow; any known objection, hard flag, restriction, or stricter
+  current safety result still wins, and other Phase 10 purposes are unchanged.
 - **Security-aware content seams** for later phases: the review-before-publish
   **verdict contract** (`allowed | needs_review | blocked`) that Phase 22 (public
   pages) and Phase 32 (newsletters) consume. _(Trigger-word content detection
@@ -2232,8 +2236,10 @@ immutable coverage. Final accounting delivery and reconciliation stay in Phase
   become a compensation adapter.
   Donation-only views remain clearly labelled activity until a source-owned
   Phase 21 projection exists.
-  Public support progress consumes an approved public-goal projection and
-  never exposes an internal Field Account balance or ministry-expense capacity.
+  Public support progress consumes only the exact D6 page profile and compatible
+  Phase 13/16/28 source projection; typed counts do not require a Phase 28 goal.
+  It never exposes an internal Field Account balance, support-credit amount, or
+  ministry-expense capacity.
   Currency implementation also rejects implicit USD, mutable account currency,
   destructive merge, selector-only balance discovery, mixed-currency totals,
   provider-rate inference, a generic readiness flag, provider calls during
@@ -2640,77 +2646,463 @@ runtime and production authorization are not claimed.
 
 ### Phase 22 — Public Missionary & Project Page Workflow (`public-ministry-pages`)
 
+**Status.** `PRD exists` — implementation-ready planning, not implemented. The founder accepted the completed
+[formal closure audit §51](./phase-22-public-ministry-pages-research-evidence.md#51-formal-phase-22-closure-audit--d1d27-are-product-decision-complete)
+on 2026-08-14 and froze D1–D27 as the complete Phase 22 grooming authority. No
+D28 is opened. The founder subsequently invoked `/to-spec`; the canonical
+[Phase 22 PRD](./phase-22-public-ministry-pages.md) and active
+[`add-public-ministry-pages` OpenSpec change](../../../openspec/changes/add-public-ministry-pages/proposal.md)
+now carry the approved implementation contract. Parent specification issue
+[#1281](https://github.com/Asymmetric-al/core/issues/1281) owns 41 native child
+issues, [#1282](https://github.com/Asymmetric-al/core/issues/1282) through
+[#1322](https://github.com/Asymmetric-al/core/issues/1322), connected by 116
+native blocking relationships. P22-01/#1282 alone is the current
+`ready-for-agent` frontier. Implementation, migration, and production remain
+separate work governed by each ticket's live blockers.
+
 **What this phase is (plain language).** The public pages where donors meet
 missionaries and projects — connected to _real_ operational records instead
 of the mock data the public `/workers` pages render today. A missionary's
-public page shows their story, a support progress bar, and a give button
-that lands in the right designation with the right attribution; the
-missionary can propose edits; staff approve; and **restricted workers are
-protected by construction** (Phase 10).
+public page shows their story, an optional source-authoritative support
+progress presentation, and a give button that lands in the right designation
+with the right attribution. A missionary can prepare and deliberately submit
+edits; the tenant's current Phase 22 Review & Release Profile decides whether
+an authorized staff member reviews that exact candidate or it releases after
+all mandatory checks pass; and **restricted workers are protected by
+construction** (Phase 10).
 
-**Why it sits here.** Needs the Phase 5 runtime contract, Phase 9 parties
-(pages represent parties), **Phase 10 safety (hard — a public identity
-surface must not exist before the publication firewall)**, and Phase 13
-designations (CTAs carry designation + source code + site/locale context).
+**Why it sits here.** Needs the Phase 5 runtime contract; Phase 9 Parties and
+organization-owned Ministry Assignments; **Phase 10 safety (hard — a public
+identity surface must not exist before the publication firewall)**; Phase 12
+authorization; Phase 13 Designations (CTAs carry designation + source code +
+site/locale context); and optional Phase 21 support projections.
 
 **What it covers.**
 
-- **Public page ↔ party linkage**: presentation identity (CMS content)
-  referencing operational identity (party) — reference, never copy; the
-  public projection renders only Phase 10 public-tier fields (alias,
-  approved photo, generalized region for restricted workers).
-- **Support progress**: percent-raised / monthly-support-vs-goal computed
-  from source-authoritative ledger facts and commitments (13/16; offline
-  gifts included via 15) against an approved Phase 28 support-raising goal,
-  through the existing PII-safe public projection pattern. Base public pages
-  ship cleanly without this optional progress widget until that approved goal
-  projection exists. Its numerator and denominator must use the same explicit
-  currency and period; a converted comparison is a visibly labelled Phase 33
-  reporting projection, never source truth. It never exposes or substitutes a
-  Phase 21 Field Account balance, available-to-spend amount, assessment,
-  expense, or accounting total. When donor-facing assessment disclosure is
-  required, Phase 22 may render only the approved general policy-language
-  projection; it never exposes an account-specific profile, rate,
-  determination, or support-credited result and never recalculates progress
-  from those effects.
-- **Missionary edit workflow**: workspace-submitted drafts → staff review
-  queue → publish, consuming Phase 10's publication firewall + review-verdict
-  contract and photo/EXIF scrubbing in the pipeline; shareable expiring review
-  links.
+- **Missionary Page ↔ Ministry Assignment linkage**: presentation identity
+  references one organization-owned operational Ministry Assignment—never a
+  copied Party, household, Support Assignment, Field Account, or CMS ownership
+  shortcut. Each spouse, teammate, leader, and contributor remains a separate
+  Party and principal. D1 Display Participant and contributor facts decide
+  public portrayal and editing; the public projection renders only Phase 10
+  public-tier fields such as an approved alias, approved photo, and generalized
+  region for restricted workers.
+- **Exact typed Project/Campaign Page subjects**: every Project/Campaign Page
+  binds immutably to exactly one owner-certified CRM Ministry Project, Phase 13
+  Giving Campaign, or separately public-subject-eligible Phase 13 Designation.
+  The CRM operational layer owns the minimal Ministry Project identity and
+  lifecycle; Phase 13 owns Campaign/Designation truth; Phase 22 owns only the
+  exact Page Subject Binding and release-pinned privacy-safe snapshot. Subject,
+  D7 Giving, D6 progress, D1 contributors/display, D2 reach/release, D8
+  lifecycle, D9 media, D11 Updates, D13 discovery, and D14 search/share remain
+  independent. Staff answer one plain-language **What is this page about?**
+  question and then review separate **This Page is about**, **Gifts go to**,
+  **Progress shown**, **Who can edit**, **Public reach**, and review/release
+  rows. Before first release a correction is a CAS-guarded binding successor;
+  afterward a different subject requires a new Page identity plus D8 succession.
+  No CMS record, fund, `fundId`, title, accounting project, Party relationship,
+  Campaign owner, or Designation membership may fabricate a project or infer
+  permissions, public identity, Giving, progress, or lifecycle.
+- **Optional, page-resolved support progress**: every released page explicitly
+  selects **Do not show public progress** or exactly one compatible typed
+  metric. Page Family and tenant defaults only seed new drafts; they never
+  decide visibility, assume missionary means monthly or project means finite,
+  or live-inherit into released pages. Eligible sources remain distinct:
+  Phase 13 owns corrected posted-effective gross received and typed counts,
+  Phase 16 owns a separately certified active-commitment projection, and Phase
+  28 owns a referenced Support-Raising Goal Version. Phase 15 contributes only
+  after an offline gift becomes Phase 13 posted-effective truth. Every monetary
+  comparison uses one exact ISO currency, compatible period and goal, names
+  whether it is **committed** or **received**, and shows a through date. There
+  is no mixed commitment/receipt formula, mutable counter, manual total,
+  converted public grand total, or Phase 20/21/33 fallback. Privacy is applied
+  before aggregation; incomplete, stale, suppressed, or unsafe truth omits only
+  the optional block and opens one cause-owned staff exception rather than
+  showing zero or last-known data. Giving remains independently controlled.
+- **Missionary edit workflow**: private workspace drafts become immutable
+  release candidates only after deliberate submission. The tenant selects
+  `Review before publishing` or `Publish after checks` prospectively for each
+  page/update path; both modes consume Phase 10's publication firewall and
+  review-verdict contract and use Phase 22's sole current-proofed release
+  command. Review-mode staff judge the exact rendered candidate through
+  **Approve & publish** or **Request changes**; healthy automatic candidates do
+  not enter the staff queue. Phase 22 adds no second consent workflow or
+  participant/field/asset permission matrix. A contributor assignment alone
+  never grants publication authority; in the automatic lane an authorized
+  contributor may initiate **Publish changes**, while the tenant profile and
+  current system proofs still decide whether one release succeeds.
 - **Optional AI drafting assistance**: a tenant may bind an independently
   authorized public-profile drafting purpose through the shared D10 AI Provider
   Connection, write-only Credential Revision, and prospective
-  capability-certified Binding Version. Phase 22—not Phase 21 or the model—owns
+  capability-certified Binding Version. One quiet **Help me write** control may
+  act only on an exact D1 contributor-editable D3 narrative field, block, or
+  selection through a source-visible minimum-data manifest, immutable private
+  suggestion, accessible original-versus-suggestion review, and explicit CAS-
+  guarded Use into an ordinary successor working revision. The code-owned action
+  catalog is small; AI never reads broad Page, CRM, supporter, receipt, expense,
+  financial, progress, or Giving context and never submits or publishes.
+  **Translate to English** is separately available only for a pair-certified
+  source language and exact existing Phase 24 English BCP 47 target locale. It
+  names both languages, treats detection as confirmable help, separates mixed-
+  language ambiguity, preserves the original, and cannot combine translation
+  with rewriting or factual localization. Every result carries the adjacent
+  **Check this translation** warning and asks the author to review names, dates,
+  numbers, quotations, Scripture, ministry terms, relationships, and cultural
+  meaning; important content should be checked by a fluent English reader and
+  is never represented as certified. Phase 22—not Phase 21 or the model—owns
   biography draft meaning, source selection, human acceptance, moderation,
-  consent, review, and publication. The feature is suggestion-only, never reads
-  receipt evidence, never bypasses the Phase 10 firewall, and has a complete
+  consent, review, and publication. The feature is tenant-off-by-default,
+  suggestion-only, never bypasses the Phase 10 firewall, and has a complete
   manual writing path.
-- **Giving CTAs** preserving site, source code, locale, currency, and
-  designation through the Phase 5 checkout handoff into the Phase 13 cart.
-  The server resolves the designation's exact Legal Entity and
-  SettlementAccountBinding and shows the issuer before confirmation; a Site
-  never defines or overrides financial ownership.
-- **Project/campaign pages** with the same mechanics (designation-backed,
-  progress from ledger truth).
-- **Page lifecycle**: created on mobilization and retired safely on departure.
-  Phase 21 D5's exact Worker Lifecycle Authority Reference may trigger the
-  presentation task, but Phase 22 retires or redirects only after Phase 13/16
-  proves the financial destination or recurring-term successor. A page never
-  chooses or silently redirects money, and no orphaned page continues
-  collecting for an inactive destination.
+- **Canonical Ministry Updates with exact audience projections**: one stable,
+  source-scoped Ministry Update has immutable Revisions and one exact Audience
+  Release Manifest. Independently recoverable Public Page and authenticated
+  purpose-authorized Supporter projections consume D1 contribution authority,
+  D3's exact Feed Binding, D4/D5's sole review/release lane, D2's current reach,
+  Phase 10's per-egress ceiling, Phase 12 current authorization, Phase 24
+  locale, and D9/Phase 29 media. The missionary uses one accessible autosaving
+  **Ministry updates** composer—**My Feed** is only a legacy alias—with separate
+  **Save draft**, tenant-seeded **Supporters**, **Public page**, or **Public page
+  and supporters** choices, exact previews, an optional deliberately authored
+  public-safe variant, and one consequence review. Publication, current
+  protected access, supporter relationship, notification intent, recipient/
+  consent/suppression/cadence, provider delivery, engagement, and Giving remain
+  separate truths. **Publish & notify supporters** may be one quiet interaction
+  but routes notification through Phases 28/17/6; it is never hidden email or
+  collapsed authority. Corrections and withdrawal are audience-specific and
+  append-only, current protected membership is re-proved on every governed
+  request, and migration uses one complete disposition manifest and authority
+  cutover rather than copied posts, inferred audiences, or dual write.
+- **Bounded authenticated supporter responses**: one prospective immutable
+  tenant Supporter Response Profile Version selects exactly **Responses off**,
+  **Like + I prayed**, or **Like + I prayed + comments**. New tenants begin off;
+  guided setup recommends acknowledgements without comments. Every response is
+  contained inside one exact D11 Supporter Release Projection-bound Engagement
+  Space and re-proves current purpose-authorized membership, Phase 10 safety,
+  and Phase 12 authority on every operation. Like and I prayed are fixed,
+  reversible, idempotent acknowledgements. Optional comments are bounded plain
+  text with one reply level, append-only self-edit/withdrawal, privacy-safe
+  tombstones, and one quiet reversible moderation lane. Counts/viewer state are
+  rebuildable audience-local projections; anonymous public releases contain no
+  protected response fact. Phase 22 emits typed response/moderation occurrences
+  only—Phases 17/6 independently own any communication, and D7/Phase 13 owns
+  Giving. No existing demo reactions, mutable counters, comments, raw browser
+  tables, or Realtime policies are grandfathered as D12 authority.
+- **Scoped public ministry discovery**: one exact Tenant, Legal Entity,
+  environment, Site, and locale-scoped Public Ministry Discovery Profile uses
+  **Together** by quiet default or tenant-selected **Separate by Page Family**
+  presentation over one complete D2/Phase-10-admitted Directory Projection,
+  bounded server query contract, and family-typed card contract. Separate
+  Missionary and Project destinations are views, never separate membership,
+  index, search, cache, or inclusion authorities. Search uses admitted public
+  fields only, deterministic locale-pinned behavior, bounded filters, opaque
+  generation-bound keyset cursors, complete shadow rebuilds, atomic head
+  activation, and affected-positive-first removal. D6 progress and D7 Giving
+  remain optional independent references; Phase 5/D8 retain request and route
+  authority. No page-level directory toggle, raw browser table/Realtime read,
+  hidden facet count, map/exact coordinate, popularity or financial ranking,
+  unsafe locale fallback, dual-read migration, or concurrent indexable
+  Together/Separate catalogs may become D13 authority.
+- **Release-bound public search and sharing presentation**: one immutable,
+  locale-exact D14 manifest contains distinct Search and Share results for each
+  exact current Phase-10-safe Page Release and Public Page Ministry Update
+  Release. Listed-public releases are server-rendered, canonical, reciprocal-
+  locale and exact-host sitemap eligible, locally search-index eligible, and
+  shareable; Shared-by-link releases remain public and shareable but `noindex`
+  and absent from public discovery; stricter truth emits no content-specific
+  anonymous presentation. Each canonical Ministry Update has one stable opaque
+  Site/locale permalink whose posture derives from complete current placement
+  coverage. One code-owned compiler produces coherent HTML/head, crawler
+  directives, canonical/alternate links, significant-release `lastmod`,
+  sharded sitemaps, visible-fact JSON-LD, Open Graph-compatible metadata, and an
+  exact D9-certified social derivative. Staff get generated defaults and only
+  bounded locale title/description and certified-image choices inside the sole
+  D4/D5 lane; visitors get native Share plus Copy-link/click-only fallbacks.
+  Search-ready, crawler submission, crawl, index, rank, snippet, share opening,
+  completed sharing, cache refresh, local removal, and external forgetting
+  remain distinct facts.
+- **Bounded public-ministry measurement**: one prospective Tenant × Legal
+  Entity × Site profile is persisted **Off** until staff explicitly selects
+  guided **Staff only** or **Staff + assigned page contributors**. Exactly four
+  fixed, first-party, immutable-release-bound interactions—qualified Page load,
+  full Update open, Share options opened, and Give button selected—use
+  best-effort same-origin post-render or explicit-action intake; fetch, render,
+  preview, crawler, scanner, social-card, and monitor paths create nothing.
+  Durable measurement contains no raw IP/header, URL/referrer, identity,
+  fingerprint, cookie/session, free-form, replay, or cross-site/device data.
+  Private occurrences and idempotency evidence expire within 24 hours; sealed
+  daily aggregates retain for one code-owned 24-month period with append-only
+  corrections. Every report read/export re-proves current Phase 12 staff or D1
+  exact-page assignment authority. One accessible **Public page activity**
+  report uses fixed 7/30/90 complete-day presets, suppression-safe values,
+  distinct coverage states, and **Data complete through** truth. D15 never
+  claims people, reach, completed shares, conversion, gifts, attribution,
+  settlement, or payment; its failure never changes the public or Giving path,
+  and replay-free production proof precedes activation.
+- **One exact Giving destination per released page for the MVP**: every
+  Missionary Ministry Page and Project/Campaign Page pins one immutable Page
+  Giving Binding to exactly one Phase 13 Designation, and every CTA placement
+  shares it. Phase 5 carries only untrusted plain parameters; cart/checkout
+  entry and the final pre-provider boundary re-prove the current D2 release,
+  Phase 10-safe label and eligibility, Tenant, Legal Entity, Site, binding,
+  Designation, Settlement Account Binding, environment, currency, cadence,
+  registered attribution, and internal return path. Suggested amount/frequency
+  and per-CTA source code remain bounded context, never routing authority. A
+  stale or ineligible destination makes only Giving unavailable with no silent
+  fallback; any separately labelled general-giving path starts a fresh donor
+  choice. Phase 13's campaign `expected designations` remains staff intent and
+  a future seam, not a Phase 22 MVP public picker. A Site never defines or
+  overrides financial ownership.
+- **Project/campaign pages** with the same publication and Giving mechanics;
+  progress is absent or uses the page's exact D6 source-authoritative profile,
+  never a Page-Family default or copied campaign counter.
+- **Source-qualified route and lifecycle disposition**: a route/lifecycle source
+  event opens one cause-owned case but never chooses the public result. Staff may
+  keep the current eligible release, publish a substantive coverage-aware
+  Transition Notice Release at the current address, permanently move only the
+  same immutable Listed-public Page to its already released eligible new
+  canonical route, or remove the route through the same real privacy-safe `404`
+  plus `noindex` as an unknown page. A different proved successor presentation
+  is a clearly labelled fresh link, never a redirect or inherited Giving action.
+  The external URL namespace is uniquely Site × locale × canonical path; exact
+  Tenant, Legal Entity, Page Family, Page, route class, and release scope remain
+  mandatory composite integrity. Shared/restricted direct links never redirect;
+  resolver outage is neutral no-store `503`; every request freshly checks D2 and
+  Phase 10 before cached content. D7/Phase 13 Giving and Phase 16 recurring truth
+  remain independent, so a page disposition never chooses, closes, moves, or
+  silently redirects money.
+- **Release-bound, privacy-preserving public media**: one Phase-29-compatible
+  Public Ministry Media Asset contract separates short-lived private Upload
+  Intakes, immutable Sanitized Media Master Versions, bounded certified Public
+  Media Derivative Manifests, and context-owned Public Ministry Media Placement
+  Versions. Original filenames and prohibited source metadata never enter a
+  durable identity, public URL or response, derivative, log, analytic, error,
+  export, title, or alt-text default. Qualifying still images are fully decoded,
+  bounded, reconstructed, re-encoded, and independently reparsed before they
+  can become ready; raw originals, raw provider URLs, mutable overwrite, SVG,
+  animation, arbitrary remote fetch, and unproved formats remain ineligible.
+  Every placement pins its exact semantic role, focal point or crop, contextual
+  alt-or-decorative decision, caption/attribution, master, and responsive/card/
+  social derivative set. D3 owns typed placement, D4/D5 remain the sole review
+  lane, and the Page Release Manifest atomically pins only certified
+  derivatives after fresh D2 and Phase 10 proof. Replacement keeps the old
+  coherent release live until the new release succeeds. Ordinary removal is a
+  page draft; urgent remove-everywhere is smallest-scope Phase 10 containment
+  with exact where-used evidence. An opaque Asym-controlled resolver serves
+  private-origin bytes and records targeted purge outcomes without claiming
+  recall from external copies. Phase 22 owns public-media meaning, placement,
+  release eligibility, and withdrawal intent; Phase 29 owns shared byte
+  custody, scans, transformations, copy inventory, access, retention, and
+  disposal evidence.
+- **Authenticated exact-version Public Ministry Preview**: a contributor
+  previews one explicitly selected coherently saved working revision; an
+  authorized staff editor/reviewer or existing verified tenant principal with
+  one exact Phase 12 page-scoped `Preview only` named grant previews one
+  immutable submitted candidate. Every HTML, RSC/data, media, refresh, and
+  session-continuation request reauthenticates and reauthorizes the exact
+  principal, active tenant assignment, Tenant, Legal Entity, Site, Page Family,
+  Page, locale, version/candidate, purpose, assignment/capability/grant and
+  expiry, authorization epoch, environment, Phase 10 ceiling, D3 renderer
+  generation, and D9 media coverage. Preview uses Phase 5's production-
+  equivalent reader and renderer, is private, `no-store`, non-indexable,
+  referrer-suppressed, and makes Giving, forms, embeds, notifications,
+  tracking, and other consequential controls visibly inert. Authentication,
+  Draft Mode, a copied URL, role, relationship, CMS user, or service role grants
+  nothing. No anonymous, bearer, shared-password, preview-token, or separate
+  guest-identity path exists, and preview never means reviewed, released,
+  live, Giving-ready, payable, or paid.
+- **Release-bound Public Ministry runtime composition**: Phase 5 executes the
+  public runtime and cache mechanics; Phase 22 owns Public Ministry semantics,
+  current-serving admission, and adverse-first convergence across controlled
+  surfaces. Every Asym-controlled response evaluates current serving before
+  returning reusable positive content, and no Payload publish state, cache,
+  deployment, provider result, or effect worker becomes a second public
+  authority. D18 is recorded in
+  [ADR-0135](../../adr/0135-release-bound-public-ministry-runtime-composition.md).
+- **Organization-owned Ministry Assignments with separated support access**:
+  one stable Phase-9-owned, Tenant- and Legal-Entity-scoped Ministry Assignment is the exact
+  Missionary Ministry Page subject. Zero-to-many effective-dated, append-only-
+  corrected Party memberships model spouses, teammates, leaders, coaches,
+  staff, and contributors without shared accounts or implicit access. One
+  optional prospective Phase-21-owned Support Binding Version may connect the
+  Ministry Assignment to one exact Support Assignment. It never grants access:
+  each person separately requires the current purpose-, projection-, target-,
+  field-, currency-, and history-specific Phase 12 Support Workspace grant, and
+  the tenant's D9 publication must permit the selected module. A quiet **People
+  & access** experience can apply explicit same-scope membership, display,
+  contributor, notification, responsibility, and support-access facts through
+  bounded presets after one literal consequence review. Membership, marriage,
+  display, editing, Designation, notification preference, or the binding itself
+  cannot expose supporter identity, read support data, move money, or rewrite
+  history. Raw tables remain browser-inaccessible; coarse Tenant RLS plus the
+  sole server-side Phase 12 policy decision point, live authorization epochs,
+  append-only evidence, deny-first revocation, and production-shaped isolation
+  proof are mandatory. D19 is recorded in
+  [ADR-0136](../../adr/0136-organization-owned-ministry-assignments-and-separated-support-access.md).
 
-**Boundaries & guardrails.** Public pages are presentation, never
-operational identity or financial truth. Missionary edits route through
-approval. Restricted-worker rules are enforced at the projection, not by
-page-by-page configuration (SiteStacker's page-level "Authenticate" checkbox
-model is the anti-pattern).
+- **Two bounded Page Family Semantic Catalogs and quiet authoring**: D20 fills
+  D3's concrete launch vocabulary with one immutable code-owned Missionary
+  Ministry catalog and one non-interchangeable Project/Campaign catalog. Every
+  semantic role declares source/edit authority, cardinality, certified zone,
+  locale/accessibility/performance behavior, and exact empty, unavailable,
+  invalid, and withdrawn outcomes. A prospective D3 profile may set only an
+  eligible optional editorial role to **Off**, **Available**, or **Expected**,
+  choose bounded order inside certified zones, and make it staff-only or
+  contributor-editable. Expected is private completeness guidance, never
+  public filler. Contributors work through one quiet **Basics**, **Story**,
+  **Media**, **Support & giving**, and **Updates** form; staff configure two
+  compact family surfaces with safe defaults and prospective consequence
+  preview. Every D2 release pins the exact catalog/renderer/profile/content/
+  locale/brand/managed-reference generations. Unknown, wrong-family,
+  unauthorized, stale, or over-budget input rejects the new candidate and
+  preserves the last certified release. The current shared seven-block Payload
+  builder, copied mutable templates, free CTA URLs, duplicated serializers, and
+  silent unknown-block omission are migration evidence only. D20 is recorded in
+  [ADR-0137](../../adr/0137-two-bounded-page-family-semantic-catalogs.md).
 
-**Open questions for grooming.** Slug policy for restricted workers (never
-name-derived); page templates per org vs per-missionary customization
-latitude; whether staff can override a missionary's page entirely; and, after
-source-owned financial succession is proved, whether the departed-worker page
-redirects to the approved successor presentation or shows an explanatory
-message.
+- **Complete-surface authority cutover with incremental private Page
+  adoption**: D21 replaces the current mock, static, generic, and copied Public
+  Ministry surface through one immutable-scope Adoption Case per exact Tenant ×
+  Legal Entity × environment × Site × verified-host set × locale. Preparation
+  is additive, chunked, resumable, private, and non-authoritative; the public
+  surface changes once through one content-addressed complete Adoption Coverage
+  Manifest and a short current-reproved, idempotent CAS authority cutover.
+  Every discovered route, Page/version, shared template, subject/identity hint,
+  Giving hint, Update, media artifact, preview, directory/search/sitemap/social
+  output, cache variant, API/reader, fixture, and import path receives exactly
+  one non-overlapping disposition. A narrowly certified compatible-legacy D2
+  release may preserve proved-safe editorial presentation only where D20 allows
+  it; it is never raw Payload publication, a fallback reader, or managed truth.
+  The D10 production-shaped shadow has no public effects, staff review only
+  genuine exceptions and one complete visitor-consequence summary, and the one
+  literal action is **Start using these prepared pages**. After cutover the
+  Phase 5/D18 gateway is the sole reader, current admission prevents stale
+  positive bytes from regaining authority, and recovery may select only a
+  currently re-proved generation-compatible safe release—never mock data, the
+  legacy reader, destructive rollback, or deployment-as-content authority. D21
+  is recorded in
+  [Phase 22 research evidence §44](./phase-22-public-ministry-pages-research-evidence.md#44-ratified-d21-research--complete-public-ministry-surface-authority-cutover)
+  and
+  [ADR-0138](../../adr/0138-complete-public-ministry-surface-authority-cutover.md).
+
+**Boundaries & guardrails.** Public pages are presentation, never operational
+identity or financial truth. Missionary edits route through the tenant's exact
+Review & Release Profile and the same mandatory safety/release proof; automatic
+release is system execution of standing tenant authority, not contributor
+publication authority. Restricted-worker rules are enforced at the projection,
+not by page-by-page configuration (SiteStacker's page-level "Authenticate"
+checkbox model is the anti-pattern).
+
+**Scope-freeze record.** D1–D27 are binding and no founder-level product question
+remains open. D12's bounded Supporter
+Response contract is recorded in
+[ADR-0129](../../adr/0129-bounded-supporter-response-profiles.md). D13 ratifies
+one source-complete directory/search authority with tenant-chosen Together or
+Separate-by-family presentation, recorded in
+[Phase 22 research evidence §29](./phase-22-public-ministry-pages-research-evidence.md#29-ratified-d13-adversarial-review--one-authority-tenant-chosen-directory-topology)
+and
+[ADR-0130](../../adr/0130-scoped-public-ministry-discovery-with-tenant-chosen-topology.md).
+D14's exact search/share manifest, stable Update permalink, safe sharing, and
+honest external-outcome contract are recorded in
+[Phase 22 research evidence §32](./phase-22-public-ministry-pages-research-evidence.md#32-ratified-d14-selected-option-adversarial-review-and-hardened-decision)
+and
+[ADR-0131](../../adr/0131-release-bound-public-search-and-sharing-presentation.md).
+D15's bounded first-party measurement, current-assignment visibility, privacy
+ceiling, through-dated reporting, and failure-isolation contract are recorded
+in
+[Phase 22 research evidence §36](./phase-22-public-ministry-pages-research-evidence.md#36-ratified-d15-synthesis-and-hardened-decision)
+and
+[ADR-0132](../../adr/0132-bounded-public-ministry-measurement-and-contributor-visibility.md).
+D16's source-bounded assistant, exact-English-locale translation rider,
+check-work warning, and shared-D10/manual-continuity contract are recorded in
+[Phase 22 research evidence §§37–39](./phase-22-public-ministry-pages-research-evidence.md#37-ratified-d16-research--source-bounded-public-page-writing-assistant)
+and
+[ADR-0133](../../adr/0133-source-bounded-public-page-writing-assistance.md).
+D17's owner-certified closed subject-kind contract, CRM-owned Ministry Project
+source, independently authoritative Page Subject/Giving/progress/permission
+bindings, and immutable subject-succession rules are recorded in
+[Phase 22 research evidence §41](./phase-22-public-ministry-pages-research-evidence.md#41-ratified-d17-research--one-exact-source-qualified-typed-projectcampaign-page-subject)
+and
+[ADR-0134](../../adr/0134-exact-typed-public-page-subject-bindings.md).
+D18's release-bound composition, current-serving admission, adverse-first
+convergence, and Phase 5 execution boundary are recorded in
+[ADR-0135](../../adr/0135-release-bound-public-ministry-runtime-composition.md).
+D19's organization-owned Ministry Assignment subject, effective-dated Party
+memberships, independently authorized Support Workspace access, and
+Phase-21-owned optional Support Binding are recorded in
+[Phase 22 research evidence §42](./phase-22-public-ministry-pages-research-evidence.md#42-ratified-d19-research--organization-owned-ministry-assignments-and-separated-support-access)
+and
+[ADR-0136](../../adr/0136-organization-owned-ministry-assignments-and-separated-support-access.md).
+D20's exact family catalogs, D3 section offerings, bounded authoring experience,
+source/edit authority, release pinning, and fail-closed candidate behavior are
+recorded in
+[Phase 22 research evidence §43](./phase-22-public-ministry-pages-research-evidence.md#43-ratified-d20-research--two-small-code-owned-page-family-semantic-catalogs-under-d3)
+and
+[ADR-0137](../../adr/0137-two-bounded-page-family-semantic-catalogs.md).
+D21's complete surface census and adoption coverage, incremental private
+preparation, compatible-legacy boundary, production-shaped shadow, one current-
+reproved CAS authority transition, quiet role-specific UX, and no-fallback
+post-cutover contract are recorded in
+[Phase 22 research evidence §44](./phase-22-public-ministry-pages-research-evidence.md#44-ratified-d21-research--complete-public-ministry-surface-authority-cutover)
+and
+[ADR-0138](../../adr/0138-complete-public-ministry-surface-authority-cutover.md).
+D22's quiet disposable Public Page Operations Projection, three fixed
+permission-filtered navigation views, source-owned root causes and resolution,
+cause-to-impact grouping, finite owner actions, and prohibition on Page-health,
+mutable close, and second-workflow authority are recorded in
+[Phase 22 research evidence §45](./phase-22-public-ministry-pages-research-evidence.md#45-ratified-d22-research--quiet-derived-public-page-operations)
+and
+[ADR-0139](../../adr/0139-derived-public-page-operations-with-cause-owned-actions.md).
+No current mock, `public.locations`, exact-coordinate map, browser filtering,
+raw table/Realtime policy, independent family index, global metadata helper,
+raw-id URL, original-filename serializer, fictional share URL, or inert Share
+control, Session Replay, access-log-derived counter, or mock/financial
+missionary Analytics, generic seven-block builder, free author-entered CTA URL,
+mutable copied template, silent unknown-block omission, page-by-page authority
+flag, mixed reader, fuzzy adoption, or destructive legacy rollback is
+grandfathered. D23 Public Pages setup/settings is ratified as the exact
+C-prime-R: one scope-first disposable summary over source-owned versions with
+one owner-specific amendment at a time. D24 is ratified as one
+attribution-preserving Staff-authored Page Revision path inside D1's sole
+working head and the unchanged D4/D5/D2 review-and-release lane: staff edit,
+review, release, reach, safety, and managed-fact authority remain separate;
+active or submitted contributor work remains immutable and attributed; routine
+staff edits remain quiet; and successor-only, current-reproved CAS prevents an
+override, destructive restore, or last-write-wins path. See
+[Phase 22 research evidence §47](./phase-22-public-ministry-pages-research-evidence.md#47-ratified-d24-research--attribution-preserving-staff-authored-page-revisions)
+and
+[ADR-0141](../../adr/0141-attribution-preserving-staff-authored-page-revisions.md).
+The founder ratified D25 as the exact hardened C-prime-R. It keeps the design
+database-minimal: actionability is derived
+per action from current owner facts; one coalesced Payload recovery buffer sits
+beneath the sole Page-and-locale head; deliberate sources remain immutable; and
+no D25 table, status, queue, timer, tenant expiry matrix, or per-autosave event
+stream is added. See
+[Phase 22 research evidence §48](./phase-22-public-ministry-pages-research-evidence.md#48-ratified-d25-research--cause-gated-actionability-with-bounded-recoverable-editorial-work)
+and
+[ADR-0142](../../adr/0142-derived-editorial-actionability-and-bounded-recovery.md).
+The founder ratified D26 as the exact hardened A-prime-R. One calm statement
+beside the existing final action records the actual current submitter's exact
+candidate-bound Public Content Sharing Attestation; it adds no checkbox, D26
+table, Page Boolean, rights workflow, public-render lookup, inherited evidence,
+or staff verification duty. Missing granular affirmative Phase 10 records alone
+create no Page checklist, while known objections, `do_not_publish`, restricted-
+person rules, and stricter current safety remain non-overridable. See
+[Phase 22 research evidence §49](./phase-22-public-ministry-pages-research-evidence.md#49-ratified-d26-research--one-calm-page-content-sharing-attestation)
+and
+[ADR-0143](../../adr/0143-candidate-bound-public-content-sharing-attestation.md).
+D27 is ratified as one Site-scoped Page with exactly one
+Missionary and one Project/Campaign family presentation pattern per Site,
+independent Page × locale editorial releases, public fallback disabled, and a
+complete-cohort compatible family-head switch fenced against concurrent D2
+release changes rather than copied layout or per-Page fanout. This is an
+explicit amendment to the current multi-decision presentation
+composition. See
+[Phase 22 research evidence §50](./phase-22-public-ministry-pages-research-evidence.md#50-ratified-d27-research--one-family-pattern-with-independent-locale-content)
+and
+[ADR-0144](../../adr/0144-site-family-presentation-with-independent-locale-releases.md).
+Implementation, migration, and production activation remain separate work
+governed by the published issue graph and each ticket's live blockers.
 
 ---
 
@@ -2736,8 +3128,11 @@ that consume their safety and publication contracts, not the CMS foundation.
   draft/preview (the Phase 5 nav draft-leak fix must hold through the menu
   editor).
 - **Redirects UI + runtime enforcement** (the Payload redirects plugin only
-  _stores_ them — the public app must enforce, with loop/collision
-  validation and cache-tag invalidation).
+  _stores_ them — the public app must enforce, with loop/collision validation
+  and cache-tag invalidation). This owns ordinary CMS redirects only. Phase 22
+  D8 remains authoritative for Missionary Ministry and Project/Campaign Page
+  route dispositions; Phase 23 infrastructure cannot authorize a cross-page
+  successor, change the uniform privacy-safe `404`, or override D2/Phase 10.
 - **Visibility windows**: scheduled publish **and unpublish** via Payload
   `schedulePublish` — which silently never fires without a deployed jobs
   runner; wire the runner (Inngest vs Payload jobs — one scheduler, decided
@@ -2747,9 +3142,18 @@ that consume their safety and publication contracts, not the CMS foundation.
   tenant-scoped choke point (SiteStacker's dynamic content types are the
   parity bar). Missionary, project, and opportunity blocks remain unavailable
   until the Phase 10 public projection and Phase 22 publication workflow are
-  active; Payload never queries or copies raw operational rows.
+  active; Payload never queries or copies raw operational rows. Missionary and
+  Project lists plus public site search consume D13's current exact-scope
+  Directory Projection, bounded query contract, family constraints, cards, and
+  active topology. Phase 23 may compose or place those results but creates no
+  second membership, visibility, index, query, cache, ranking, locale-fallback,
+  or external-search authority.
 - **Adopt Payload core, don't rebuild**: Folders, Query Presets, Trash,
   autosave, version history, Live Preview; SEO/search/form-builder plugins.
+  Payload SEO fields and plugins may assist ordinary CMS authoring only. They
+  cannot become a second Phase 22 metadata, canonical, sitemap, permalink,
+  reach, route, safety, or publication head; D14's exact release-bound compiler
+  and manifest remain authoritative for Public Ministry Pages and Updates.
 - **Localization flags enabled now** on content collections (retrofitting
   `localized: true` later forces a storage-shape migration — cheap insurance
   under the fresh-build posture), even while the UI ships English-only.
@@ -2799,7 +3203,20 @@ Studio shell) and Phase 2/5 (primitives + runtime).
   (Phase 5).
 - **Localization management**: enabled locales per site/tenant, translation
   status visibility, fallback-chain configuration, per-locale system-message
-  overrides (with Phase 17).
+  overrides (with Phase 17). D13 public discovery always requests one exact
+  current Site locale and pins its declared search configuration or literal-
+  token mode. A general CMS fallback chain cannot make a missing translation,
+  legal name, unsafe source language, or cross-locale Page Release searchable.
+  D14 additionally consumes only the exact verified Site host and admitted
+  locale for canonical URLs, reciprocal alternates, sitemaps, public Update
+  permalinks, card media, and cache identity. An unverified domain, provider
+  verification, IndexNow acceptance, or general fallback never establishes
+  reach, search readiness, or locale admission.
+  Phase 22 D16 may create only a reviewed writing suggestion for an already
+  existing exact English-locale working revision. Its **Translate to English**
+  action never enables a locale, creates a locale draft or route, marks
+  translation complete, chooses fallback, establishes an alternate, or proves
+  release/publication; Phase 24 remains authoritative for each of those facts.
 - **Currency management**: per-site default plus enabled donor presentment
   currencies, donor-facing conversion disclosure, and clear separation of
   presentment from settlement. The ordinary path lets Stripe convert activity
@@ -3124,6 +3541,10 @@ projections available when their tenant-selected modules are active.
   neither authority live-synchronizes or rewrites the other. Phase 21
   separately owns finance-closed Support Cycles, assessments, compensation
   funding coverage, and optional policy-derived ministry-expense capacity.
+  Phase 22 D6 may reference one exact compatible Goal Version for a page's
+  optional public metric, but Phase 28 never makes that goal public, changes a
+  page profile, or silently updates a released denominator. A new goal version
+  becomes public only through Phase 22's normal prospective page release.
 - **Interaction log shared with staff** (one log, permission-scoped
   visibility — the same phone call is never logged twice or lost).
 
@@ -3296,6 +3717,26 @@ authority.
   quarantining, or disposing bytes cannot activate Field Accounts, alter an
   Opening Position, make reference history authoritative, replay side effects,
   or create accounting truth. Opening evidence is never public storage.
+- **Public Ministry Media byte lifecycle** (22): Phase 22 D9 owns the semantic
+  Public Ministry Media Asset, page/locale placement meaning, release
+  eligibility, exact Page Release Manifest pin, where-used meaning, and
+  withdrawal intent. Phase 29 supplies the compatible private Upload Intake,
+  immutable Sanitized Media Master and derivative byte custody, scanning and
+  bounded transformation execution, copy inventory, access, quarantine, hold,
+  retention, and disposal evidence. It must preserve D9's opaque identities,
+  discarded-source-name, private-origin, no-public-original, immutable-
+  generation, independent-output-proof, and scope-isolation invariants. Moving,
+  restoring, purging, or deleting bytes cannot release a page, establish
+  safety, rewrite a placement, or prove external forgetting. Existing generic
+  media rows, filename-bearing serializers, mutable provider objects, and raw
+  public URLs are not grandfathered as D9 assets or evidence.
+  D14 may select only the exact current D9-certified social derivative and
+  contextual placement text pinned by its release coverage. Phase 29 owns byte
+  custody and processing evidence, not search eligibility, share presentation,
+  permalink posture, external cache state, or completed-sharing truth.
+  D25 editorial prose, semantic versions, and the bounded recovery buffer remain
+  private Payload content; Phase 29 gains no editorial-text family,
+  actionability, retention-policy, or scratch-cleanup authority from D25.
 
 **Boundaries & guardrails.** Storage providers hold bytes only. Phase 29 owns
 generic storage-object metadata, signed access, and access audit; the source
@@ -3304,10 +3745,11 @@ authorization purpose, legal status, and retention policy. No direct-to-bucket
 access from clients outside the signed flow, and filenames/folders never
 define domain truth.
 
-**Open questions for grooming.** Virus/malware scanning (provider-native vs
-service); upload size/type policy per surface; whether missionary resources
-(org → field distribution) ship here or with 28; CDN posture for public
-media.
+**Open questions for grooming.** Exact certified scanning/processing/storage
+provider choices and operational thresholds; upload size/type policy for
+non-D9 surfaces; whether missionary resources (org → field distribution) ship
+here or with 28; and CDN implementation within D9's already-ratified private-
+origin, opaque-resolver, immutable-release, and honest-withdrawal constraints.
 
 ---
 
@@ -3495,6 +3937,14 @@ rides the framework instead of defining it ad hoc.
   Phase 31 must not generalize that provider-specific financial authority into
   a second connector. Financial projections carry explicit Legal Entity,
   currency, source, and as-of semantics and never expose provider credentials.
+- **Optional future Public Ministry measurement adapter**: Phase 22 D15 owns
+  only its suppression-safe aggregate facts and local report. Phase 31 may later
+  certify one external analytics mapping/egress lane only after exact purpose,
+  fields, consent or objection posture, provider, region, retention, deletion,
+  and observed-versus-modeled behavior are proved. It may never export D15's
+  transient occurrences, identifiers, raw request data, replay, or a generic
+  tenant-authored event payload and cannot reinterpret external results as
+  people, shares, conversions, gifts, attribution, settlement, or payment.
 - **Optional D26 records destination**: only after D26's complete browser lane
   exists, Phase 31 may certify a tenant-owned storage destination using
   provider-native authorization, exact destination identity, least privilege,
@@ -3628,6 +4078,11 @@ Phase 21 D26 Records Export Package, records-retention artifact, offboarding
 archive, or custody transfer. Report filters and scheduled runs never define
 archival completeness, source-family watermarks, original-byte coverage,
 retention, hold, or disposition.
+
+Phase 33 conversions, custom metrics, report filters, materialized read models,
+or dashboards never become a Phase 22 D6 public-progress source, denominator,
+automatic fallback, or authoritative converted total. Phase 22 consumes only
+the exact source-owned Phase 13, Phase 16, and Phase 28 contracts ratified by D6.
 
 **Open questions for grooming.** Semantic-layer build-vs-adopt (Cube Core
 vs in-house definitions); which rollups are materialized vs live;
@@ -4070,7 +4525,17 @@ the actions it drafts) enrich it.
 
 - **Global search**: cross-record-type, permission-governed (Phase 3/10
   compiled into the query — restricted tiers excluded from indexing per the
-  Phase 10 ruling), extending the Phase 9 Cmd-K foundation platform-wide.
+  Phase 10 ruling), extending the Phase 9 Cmd-K foundation platform-wide. It
+  may consume D13's already-admitted public Directory Projection and typed card
+  references in the future, but cannot widen D2 reach, Phase 10 safety, Page
+  Family, Site/locale scope, or public indexed fields. D13 launches without a
+  dedicated external-search authority; a later Phase 40 engine remains a new
+  proof-gated adapter over owner-domain projections, never a retroactive D13
+  prerequisite or parallel public catalog.
+- **Phase 22 D25 independence:** D25's action resolver, recovery buffer, and
+  bounded reference-safe cleanup launch as deterministic owner-contract
+  behavior. Phase 40 cannot classify stale editorial work, inspect drafts,
+  operate recovery, or become an authority or prerequisite for D25.
 - **Data-quality queues as continuous control** (not periodic cleanup):
   duplicate suggestions (prevent-at-entry + real-time detect + small
   governed merges), completeness/staleness/consistency checks, growing the

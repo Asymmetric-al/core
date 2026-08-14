@@ -16,7 +16,7 @@
 
 **What still relies on Payload:** field widgets, document form state, save / save draft / publish, Lexical rich text inside Payload fields, relationship and upload pickers, **nested** document subviews (versions, API JSON, live preview tabs) where not wrapped—those still use Payload’s stock routing/components for stability.
 
-**What remains to be built (confirmed partial / deferred):** deeper native wrappers for every versions/live-preview subview; full donor landing-page use of the new public missionary/project helpers (helpers exist, checkout accepts CMS `missionary_id` / `fund_id` CTA targets); optional API **versioning** for public JSON (today: unversioned contract, additive fields only).
+**What remains to be built (confirmed partial / deferred):** deeper native wrappers for every versions/live-preview subview; full donor landing-page use of the new public missionary/project helpers (helpers exist, checkout accepts CMS `missionary_id` / `fund_id` CTA targets); optional API **versioning** for public JSON (today: unversioned contract, additive fields only); Phase 22 D14's release-bound Search/Share compiler, stable public Update permalinks, safe social-card delivery, and one bounded existing-lane **Search & sharing** editor section; Phase 22 D16's D10-routed, source-bounded semantic writing-assistance adapter with explicit suggestion review, CAS Use, exact-English-locale translation, and its check-work warning; D18's current-serving admission plus adverse-first controlled-surface convergence over Phase 5 runtime/cache mechanics; D22's private derived Public Pages operations workspace with source-owned actions; D23's private scope-first Public Page setup/settings projection over source-owned versions; D24's exact-authorized, attribution-preserving Staff-authored Page Revision command inside the sole D1/D4/D5/D2 lane; and D25's derived action evaluation plus one bounded Page-and-locale recovery buffer with reference-safe cleanup.
 
 ---
 
@@ -188,15 +188,96 @@ Payload/Web Studio is the durable **content** runtime. It owns page structure, n
 
 Payload/Web Studio is **not** the source of truth for giving, CRM, donor care, or email delivery facts:
 
-| Domain                                                                         | Source of truth                                                           | CMS relationship                                 |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------- | ------------------------------------------------ |
-| Content, media, navigation, templates, preview, publish state                  | Payload `cms` schema                                                      | Owns and mutates                                 |
-| Donor relationships, notes, donor detail, reports, CRM workflow records        | Asym Postgres CRM (package-layer CRM services; Twenty retired — ADR-0001) | May display read-only projections                |
-| Gifts, staged gifts, allocations, payment state, reconciliation, receipt facts | Stripe/Supabase giving pipeline                                           | May store CTA copy and validated references only |
-| Receipt sends, send logs, delivery events                                      | Resend/app email services                                                 | No direct provider sends from CMS                |
-| Mobilization stage transitions                                                 | Deferred mobilization workstream                                          | Read-only/deferred; not a CMS foundation blocker |
+| Domain                                                                                              | Source of truth                                                                                                          | CMS relationship                                                                 |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| CMS content, media, navigation, templates, preview bytes, and Payload-internal draft/version status | Payload `cms` schema                                                                                                     | Owns and mutates its stored bytes/status; never supplies D2 public release truth |
+| Donor relationships, notes, donor detail, reports, CRM workflow records                             | Asym Postgres CRM (package-layer CRM services; Twenty retired — ADR-0001)                                                | May display read-only projections                                                |
+| Ministry Project identity/lifecycle and Public Page Subject Bindings                                | CRM operational source for Ministry Projects; Phase 13 for Campaigns/Designations; Phase 22 for exact typed Page binding | References opaque, owner-certified identities only                               |
+| Missionary Ministry Assignment identity, memberships, and support binding                           | CRM operational source for Assignment/memberships; Phase 21 for the optional finance-authorized Support Binding          | References the opaque Assignment; never infers people or financial access        |
+| Public Ministry serving admission and controlled-surface convergence                                | Phase 22 D18 semantics; Phase 5 runtime/cache execution                                                                  | Payload publication and cache state are inputs/effects, never authority          |
+| Page-family semantic catalog and compatible release generations                                     | Phase 22 D20 code-owned catalogs and D2 release manifests                                                                | Payload blocks/preferences are authored input, never catalog authority           |
+| Complete-surface adoption coverage and reader-generation transition                                 | Phase 22 D21 Adoption Case, manifest, authority head, and cutover receipt                                                | Payload endpoints/flags/stock UI are migration evidence only                     |
+| Public Page operations causes, impacts, actions, and resolution                                     | Applicable current source-owning domains; D22 derives a private operations projection                                    | CMS lists/status and generic tasks are UI evidence, never authority              |
+| Public Page setup/settings choices, versions, consequences, and commands                            | Applicable D2-D20/Phase 21 D10 source owners; D23 derives a private setup/settings projection                            | CMS preferences/defaults are UI evidence, never configuration authority          |
+| Staff-authored Page content/version bytes and operational revision provenance                       | Payload owns bounded private content/version bytes; D1/D24 owns the coherent working head and attributed successor truth | Native roles/status/restore/publish are editor evidence, never authority         |
+| Unreleased editorial actionability and private recovery                                             | D1-D24 owner heads derive actions; Payload may store one bounded Page-and-locale recovery buffer                         | D25 adds no operational status; age and stored bytes grant no authority          |
+| Gifts, staged gifts, allocations, payment state, reconciliation, receipt facts                      | Stripe/Supabase giving pipeline                                                                                          | May store CTA copy and validated references only                                 |
+| Receipt sends, send logs, delivery events                                                           | Resend/app email services                                                                                                | No direct provider sends from CMS                                                |
+| Mobilization stage transitions                                                                      | Deferred mobilization workstream                                                                                         | Read-only/deferred; not a CMS foundation blocker                                 |
 
 Giving CTAs on CMS pages resolve into the donor checkout flow with validated `missionary_id` / `fund_id` references. Missionary giving and project page source-reference fields reject non-UUID values at the collection layer; create-from-template still validates tenant ownership against Supabase before creating those drafts. CMS must not create gifts, mutate giving tables, store payment truth, or write CRM donor-care records.
+
+The current Project Page `fundId` is migration evidence only. Phase 22 D17
+requires one operational, immutable-versioned Page Subject Binding to exactly
+one owner-certified CRM Ministry Project, Phase 13 Giving Campaign, or
+separately public-subject-eligible Phase 13 Designation. Payload references the
+opaque Page identity and owns presentation revisions; it does not own or infer
+the subject. The subject remains separate from the D7 Page Giving Binding, D6
+progress, D1 contributors/display, and every release/lifecycle contract.
+
+D18 likewise does not make Payload publication or caching authoritative. Phase
+5 executes runtime/cache mechanics; Phase 22 owns Public Ministry semantics,
+current-serving admission, and adverse-first convergence. No controlled public
+response may bypass that evaluation, and no cache, deployment, provider result,
+or worker becomes a second public authority. See
+[ADR-0135](../../adr/0135-release-bound-public-ministry-runtime-composition.md).
+
+D20 does not make the generic Payload block builder or copied templates a Page
+family catalog. A D2 release must be family-qualified and pin compatible exact
+catalog, renderer, profile, content, locale, brand, and managed-reference
+generations; unknown semantic input preserves the last certified release.
+
+D21 does not make Web Studio, Payload `_status`, the current public endpoints,
+collection feature flags, or deployment state an adoption switch. Page
+preparation may proceed privately and incrementally, but public authority moves
+once for the complete Site/verified-host/locale dependency closure through the
+separately authorized reader-generation CAS. Before cutover, legacy traffic
+remains safety-gated or unavailable; afterward the Phase 5/D18 gateway is the
+only reader. A stock-admin fallback may preserve editing access but may never
+restore raw Payload publication, the old reader, mock data, or an old cache.
+See [ADR-0138](../../adr/0138-complete-public-ministry-surface-authority-cutover.md).
+
+D22 does not make Payload lists or `_status`, the public directory, or generic
+Mission Control **Needs attention** and task state operational authority. The
+private Public Pages workspace derives permission-filtered cause and impact
+rows into exactly three stable views: **To review**, **Needs attention**, and
+**All pages**. It owns neither Page health nor resolution. Actions navigate to
+or invoke the applicable current source-owning workflow, and an optional shared task may
+support same-scope follow-up only; its lifecycle closes no source cause or Page
+impact. See
+[ADR-0139](../../adr/0139-derived-public-page-operations-with-cause-owned-actions.md).
+
+D23 does not make Payload preferences, collection defaults, the current
+`org-settings` JSON, tenant picker, or browser settings UI authoritative. Its
+private scope-first projection summarizes exact current source-owner versions
+and routes one Change action to one current-authorized owner command. Each
+successful amendment appends an immutable owner successor and confirms through
+authoritative readback. D23 owns no settings row, generic mutation API, global
+save/reset, readiness, release, activation, operations resolution, AI-provider
+credential, or per-Page choice. See
+[ADR-0140](../../adr/0140-derived-public-page-setup-and-settings.md).
+
+D24 does not make broad tenant staff/admin access, Payload locks, autosave,
+version history, `_status`, restore, Publish/Unpublish, REST/GraphQL/Local API,
+or the current audit hook authoritative. Those are storage, editor, and
+migration seams. One Phase 22 command re-proves the exact Phase 12 staff
+Page-content-edit capability and D3/D20 allowlist, records the actor,
+predecessor, same-scope content source, semantic comparison, and safe
+supersession reason where required, then idempotently CAS-advances D1's sole
+working head. Actor-context Payload calls use `overrideAccess: false` and
+`overrideLock: false`, but Payload owns only the bounded private content/version
+bytes; D4/D5 and D2 remain review and release authority. See
+[ADR-0141](../../adr/0141-attribution-preserving-staff-authored-page-revisions.md).
+
+D25 does not make autosave age, Payload status, native restore, a version cap,
+stored bytes, or actor history into actionability or retention authority. One
+server resolver derives only currently permitted actions from existing owner
+heads; each selected command re-proves its facts. Payload may keep one
+coalesced, non-semantic Page-and-locale recovery buffer, but only a sealed
+immutable semantic version and digest may be referenced by a revision or
+candidate. D24's reference-safe reconciler is the sole scratch cleanup owner.
+See
+[ADR-0142](../../adr/0142-derived-editorial-actionability-and-bounded-recovery.md).
 
 ---
 
@@ -245,6 +326,11 @@ Media uploads are limited to image MIME types (`avif`, `gif`, `jpeg`, `png`, `we
 
 Giving source-reference fields (`missionaryId`, `fundId`, `supabaseMissionaryId`) remain content references, not payment/CRM facts. Missionary and fund references validate UUID shape and, when request context is available, validate against the authenticated request's public Supabase tenant UUID. The Payload tenant document id remains the relationship used for CMS writes.
 
+This inventory describes the current prototype, not the D17 target. A UUID-
+shaped `fundId`, copied title/description, or successful Payload relationship
+lookup cannot establish an exact typed Page subject, a Ministry Project, Giving,
+progress, permissions, or release eligibility.
+
 **Inference:** public donor rendering of layout blocks vs legacy `content` is app-specific; Payload stores both during rollout (`legacyContentFallback` on pages).
 
 ---
@@ -254,7 +340,7 @@ Giving source-reference fields (`missionaryId`, `fundId`, `supabaseMissionaryId`
 - **Versioning:** Public JSON is **not** URL-versioned (`/v1/...`); contract evolves by **additive** fields and careful consumer updates. **Document versions** are a Payload CMS feature, not HTTP API versioning.
 - **Consumers:** `apps/donor/lib/cms/client.ts` — forward `x-forwarded-host` for tenant resolution on admin origin, apply public CMS cache tags, and distinguish `found` / `not-found` / `tenant-not-found` / `bad-request` / `unavailable`.
 - **Backward compatibility:** `pages` response shape preserved; serializer **adds** fields.
-- **Public serialization:** CTA hrefs are sanitized. Missionary/project page CTAs resolve to `/checkout?missionary_id=...` or `/checkout?fund_id=...`; media relationship objects are reduced to public id/alt/url/size fields before leaving the admin API.
+- **Public serialization:** CTA hrefs are sanitized. Missionary/project page CTAs resolve to `/checkout?missionary_id=...` or `/checkout?fund_id=...`; media relationship objects are reduced to public id/alt/url/size fields before leaving the admin API. This is current-state behavior only: the raw URL and original-filename-bearing media seam, global metadata helpers, fictional Update share URL, and inert Share controls do not satisfy D9/D14. The target public serializer emits only the exact release-bound manifest and opaque D9-certified delivery references.
 
 ---
 
@@ -307,7 +393,23 @@ Giving source-reference fields (`missionaryId`, `fundId`, `supabaseMissionaryId`
 
 The native edit shell now reports loading, dirty, saving, autosave, validation, lock, trash, preview, and publish states without replacing Payload's document form. The authenticated preview route uses `overrideAccess: false`; public routes stay published-only and never receive draft data.
 
-**Preview convergence (Phase 5 (Public Website Runtime Contract)):** preview converges on the public runtime via Next.js Draft Mode — staff preview renders the **real public page** through the shared published-content reader with drafts on, behind a signed-secret route that authenticates the staff user, checks the tenant, enables Draft Mode (so the request is dynamic and drafts are never cached), redirects to a validated internal path, and marks the response `noindex`; it reads with `overrideAccess: false` so a tenant-A staffer cannot preview tenant-B drafts. The authenticated admin-template preview above remains the **interim** path until the Draft Mode public preview is proven. A shareable, expiring non-staff review token and Payload Live Preview remain reserved seams. See `docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md` (A10) and ADR-0028/ADR-0030.
+**Preview convergence (Phase 5 Public Website Runtime Contract + Phase 22
+D10):** Public Ministry Preview converges on the public runtime's real reader and
+renderer. A contributor previews one explicitly selected coherently saved
+working revision; a reviewer or named page-scoped `Preview only` grantee
+previews one immutable submitted candidate. Every HTML, RSC/data, media,
+refresh, and session-continuation request must reauthenticate the non-anonymous
+principal and reauthorize the exact current Tenant, Legal Entity, Site, Page,
+locale, version/candidate, assignment or grant, authorization epoch, Phase 10
+ceiling, D3 renderer generation, and D9 media coverage. Draft Mode and a signed
+internal route select the draft read perspective but never grant authority. The
+result is private, `no-store`, non-indexable, referrer-suppressed, and
+side-effect-dark; copied URLs grant nothing. The authenticated admin-template
+preview above remains an **interim, mutable preview** and is not D10-conforming
+until it uses this exact-version authorization and public-runtime renderer. No
+shareable/bearer non-staff preview token remains a reserved seam. Payload Live
+Preview may later improve rendering latency only under this same authorization
+contract. See the Phase 5 contract (A10), ADR-0028/ADR-0030, and ADR-0127.
 
 ---
 
@@ -384,21 +486,109 @@ Handled inside Payload’s default edit view and field components. **Risk:** rep
 - `missionaryProfile` link on giving pages only when profile `slug` matches missionary UUID (**documented** in Phase 3 doc).
 - Public API remains **unversioned** — additive changes only unless a versioning project is approved.
 - Payload + DB upgrades: test import map and Lexical after bumps.
+- Phase 22 D14 is not implemented. Web Studio still lacks the one collapsed
+  optional **Search & sharing** section with generated defaults, bounded locale
+  title/description and D9-certified image selection, approximate previews, and
+  Reset to generated inside D4/D5's sole review/release lane. Payload SEO fields
+  or plugins must not be expanded into a separate SEO studio, canonical/sitemap
+  authority, permalink head, or review queue.
+- Current global/root metadata, raw/name-derived URLs, generic structured data,
+  mutable CMS media/original filenames, fictional Update permalinks, and inert
+  Share buttons remain migration evidence. Certification requires one exact
+  released URL/body/head/card/sitemap coverage digest across Listed-public,
+  Shared-by-link/noindex, and non-public states.
+- Phase 22 D16 is not implemented. Payload/Lexical has no authority to call a
+  model, select hidden Page context, apply a suggestion, or establish translation
+  status. Any future staff affordance must be a thin view over the shared D10
+  control plane and D16 semantic working-revision target, with the original
+  preserved and no provider logic in the editor.
+- Phase 22 D17 is not implemented. The current Project Page wizard's fund-only
+  selector, soft `fundId`, copied fund text, and application-level duplicate
+  precheck are not subject authority. The target setup asks **What is this page
+  about?**, selects one exact eligible typed source through the operational
+  command boundary, displays subject/Giving/progress/contributor/reach/review as
+  separate facts, and creates Payload's private draft idempotently only after
+  operational truth commits. Released subjects cannot be repointed in place.
+- Phase 22 D18 is not implemented. The current Payload published read and donor
+  fetch cache do not yet prove current-serving admission before every
+  Asym-controlled Public Ministry response or adverse-first convergence across
+  all controlled variants.
+- Phase 22 D19 is not implemented. The current `missionaryId` and single-person
+  assumptions are migration evidence, not Ministry Assignment identity,
+  participant membership, display/contributor authority, or support access. Web
+  Studio may show one quiet **People & access** summary, but the operational
+  boundary owns Assignment and membership facts, Phase 21 owns any finance-
+  authorized Support Binding write, and Phase 12 alone authorizes each person's
+  exact Support Workspace projection. Payload must never store permission
+  arrays, copied support data, or raw-table access as page configuration.
+- Phase 22 D20 is not implemented. The current seven generic blocks, copied
+  templates, free CTA URLs, collection forms, and duplicated serializers do not
+  prove either code-owned family catalog, tenant profile compatibility, or an
+  exact-generation-pinned D2 release. Unknown or incompatible semantic input
+  must fail closed while the last certified public release remains available.
+- Phase 22 D21 is not implemented. The current public endpoints, mock
+  `/workers`, serializers, Payload publish state, native/stock feature flags,
+  and collection rollback controls do not prove complete adoption coverage or
+  select reader authority. The target privately prepares immutable successor
+  plan/manifest versions, proves a production-shaped side-effect-dark whole-
+  surface shadow, and performs one exact-cohort CAS. No page-by-page public
+  toggle, old-reader fallback, raw Payload read, or deployment rollback may
+  create mixed public authority.
+- Phase 22 D22 is not implemented. Current Payload lists and document status,
+  the public directory, and generic Mission Control **Needs attention** or task
+  records do not prove the private, complete, permission-filtered operations
+  projection. The target has exactly **To review**, **Needs attention**, and
+  **All pages** views, keeps causes separate from impacts, routes every action
+  to its source owner, and treats task lifecycle as non-authoritative.
+- Phase 22 D23 is not implemented. Current Payload preferences and collection
+  defaults, mutable `org-settings` JSON, tenant-only scope picker, and browser
+  forms do not prove one complete-scope, permission-filtered, disposable
+  setup/settings projection. The target stores no setting, distinguishes
+  organization choice from built-in/safe-fallback/Off/unavailable states, and
+  changes one owner version at a time without global Save all or activation.
+- Phase 22 D24 is not implemented. Current broad update/delete access, native
+  document editing, locks, autosave/version history, `_status`, restore,
+  Publish/Unpublish, APIs, audit hooks, and feature flags do not prove an exact
+  staff Page-content capability, attributed successor, source/predecessor
+  lineage, or working-head CAS. The target uses one ordinary D1 successor and
+  the existing D4/D5/D2 lane; it creates no override, parallel staff workflow,
+  candidate mutation, or Payload-native release authority.
+- Phase 22 D25 is not implemented. The current 300 ms autosave, Payload version
+  history and caps, locks, restore, trash, audit hook, and browser state do not
+  prove current actionability, recovery safety, or retention. The target stores
+  no D25 operational state, derives actions from current owner truth, keeps one
+  bounded Page-and-locale recovery buffer, seals deliberate immutable semantic
+  versions, and lets only D24's reference-safe reconciler reclaim scratch.
+- Phase 22 D26 is not implemented. Current uploads, sanitization, terms,
+  Payload roles, autosave, `_status`, native publish, and general legal copy do
+  not prove a candidate may be shared. The target puts one calm sentence beside
+  the existing final D4/D5 action and atomically records the actual actor's
+  constant-size attestation inside that exact immutable candidate. D2 or D11
+  may pin it; no checkbox, D26 table, Page Boolean, rights workflow,
+  public-render lookup, inheritance, fabricated legacy evidence, or native
+  bypass is permitted.
 
 ---
 
 ## 21. Decision log (major)
 
-| Decision                                              | Rationale                                |
-| ----------------------------------------------------- | ---------------------------------------- |
-| Payload stays in `apps/admin`                         | Single runtime; no second CMS            |
-| Custom views vs fork                                  | Upgrade-safe, supported extension points |
-| Mission Control shell owns list/default edit          | Product UX; Payload owns fields          |
-| TanStack Form only outside Payload document body      | Avoid duplicate form engines             |
-| Lexical as editor                                     | Payload rich text path in this repo      |
-| Separate collections for templates / giving / project | Clear access, previews, public routes    |
-| `create-from-template` as Payload endpoint            | Same `req`, access control, audit hooks  |
-| Thin Next routes for staff DB reads                   | `data-access-boundary.md` compliance     |
+| Decision                                              | Rationale                                                                     |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Payload stays in `apps/admin`                         | Single runtime; no second CMS                                                 |
+| Custom views vs fork                                  | Upgrade-safe, supported extension points                                      |
+| Mission Control shell owns list/default edit          | Product UX; Payload owns fields                                               |
+| TanStack Form only outside Payload document body      | Avoid duplicate form engines                                                  |
+| Lexical as editor                                     | Payload rich text path in this repo                                           |
+| Separate collections for templates / giving / project | Clear access, previews, public routes                                         |
+| `create-from-template` as Payload endpoint            | Same `req`, access control, audit hooks                                       |
+| Thin Next routes for staff DB reads                   | `data-access-boundary.md` compliance                                          |
+| D20 family catalogs remain code-owned                 | Bounded semantics and renderer compatibility cannot drift through tenant data |
+| D21 private preparation plus one cohort cutover       | Incremental staff work without a mixed visitor surface or legacy fallback     |
+| D22 private derived operations workspace              | Quiet triage without Page health, duplicate resolution, or task authority     |
+| D23 private derived setup/settings workspace          | Easy amendment without a second settings authority or cross-owner save        |
+| D24 attributed ordinary staff successor               | Organization editing without erasing contributor work or adding a workflow    |
+| D25 derived actionability plus bounded recovery       | Preserve work quietly without a database state machine or destructive restore |
+| D26 candidate-bound content-sharing attestation       | One calm final-action confirmation without a rights or consent subsystem      |
 
 ---
 

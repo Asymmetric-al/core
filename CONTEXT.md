@@ -17,22 +17,130 @@ environment, or billing account.
 _Avoid_: Inngest tenant, customer app, billing environment, solo-missionary
 tenant
 
+**Ministry Assignment** (Phase 9 source; Phase 22 D19 separation):
+A stable, organization-owned CRM identity for one ministry carried by zero or
+more separately identified people within one Tenant and Legal Entity. A
+Missionary Ministry Page references one exact Ministry Assignment as its
+operational subject; the assignment itself grants no public display, page
+editing, support-data access, notification, or financial authority.
+_Avoid_: missionary account, shared login, household fund, page owner, support
+balance owner
+
+**Ministry Assignment Participant Membership** (Phase 9 source; Phase 22 D19 separation):
+The prospective, effective-dated association of one Party with one Ministry
+Assignment during one exact half-open interval. It is distinct from public
+display, page contribution, Phase 21 Support Assignment participation, and all
+Phase 12 access grants.
+_Avoid_: implicit spouse access, team role, page permission, finance permission
+
+**Ministry Assignment Support Binding Version** (Phase 21 source; Phase 22 D19 composition):
+An optional, prospective, immutable same-scope reference from one Ministry
+Assignment to one Phase 21 Support Assignment, written only through Phase 21's
+separately finance-authorized command and consumed by Phase 22. It permits
+separately authorized experiences to compose the two domains, but never grants
+access, moves money, exposes supporter identity, or changes either domain's
+history.
+_Avoid_: shared fund ownership, balance permission, inferred support link,
+mutable account pointer
+
 **Ministry Update**:
-A missionary-authored update post — field news, prayer requests, support
-progress — created in the missionary workspace, governed by tenant moderation
-and visibility settings, and surfaced across donor, public, and communication
-experiences as one connected concept. It is not public page content and not a
-one-off email, though pages and communications may display or reference it.
-_Avoid_: newsletter, blog post, page content, donor email
+A stable, source-scoped update identity — field news, prayer requests, or
+support context — created through the missionary workspace and expressed
+through immutable Ministry Update Revisions. It is not public-page content,
+supporter membership, a notification, or an email, although separately
+authorized release projections and communications may display or reference an
+exact Revision. The legacy product label **My Feed** refers to this same concept
+and may remain only as migration, search, help, or route-alias language; it
+never creates a second record, feed authority, or publication path.
+_Avoid_: mutable post, newsletter, blog post, page content, donor email, My Feed
+as a separate domain or source of truth
+
+**Ministry Update Revision** (Phase 22):
+An immutable version of one canonical Ministry Update, including its exact
+source/purpose, typed content, deliberately authored audience variants, locale,
+and governed media references. Draft autosave may create recoverable working
+versions, but submission and every release pin one exact Revision; later work
+never changes what was reviewed, released, or communicated.
+_Avoid_: mutable published post, latest-version release, copied page post,
+copied email post
+
+**Ministry Update Audience Release Manifest** (Phase 22):
+The immutable record of which exact public-page and/or purpose-authorized
+supporter consequences were requested for one Ministry Update Revision under
+one audience-contract version. It pins the exact Public Content Release
+Candidate and its D26 Public Content Sharing Attestation without copying or
+reinterpreting that evidence. It is intent and coverage, not proof that a
+projection became visible, that a person currently has access, or that a
+notification was sent or delivered.
+_Avoid_: visibility flag, partners enum, recipient list, email send state
+
+**Ministry Update Release Projection** (Phase 22):
+An independently authoritative, audience-specific released view of one exact
+Ministry Update Revision. A Public Page projection also pins the exact Site,
+Page, Feed Binding, locale, and Publication Reach; a Supporter projection pins
+the governed purpose-authorized audience contract while re-proving current
+membership and safety on every protected request. The two projections can
+succeed, fail, narrow, or be corrected independently.
+_Avoid_: copied post, tenant-wide feed, permanent supporter list, public mirror
+
+**Public Ministry Update Permalink** (Phase 22 D14):
+The stable opaque public route for one canonical Ministry Update on one exact
+Site and locale, collision-proved through the shared Site × locale route
+registry while D11 remains Update/Revision truth. Complete current D11 public-
+placement coverage makes it Listed when any safe placement is Listed, public
+but `noindex` when every admitted placement is `Shared by link — public`, and
+absent when no admitted public placement remains; it is never a feed fragment,
+query identity, raw record ID, or copied page-owned post.
+_Avoid_: feed-fragment URL, per-page copied update, raw-id route, latest post URL
 
 **Ministry Update Engagement**:
-The reactions (love/prayer/fire) and comment thread on a Ministry Update,
-owned by one shared module so counts, viewer state, and persistence behave
-identically on every surface. A surface chooses appearance and comment
-presentation; it never re-implements reaction state, optimistic updates, or
-the wire contract.
+Audience-bound interaction evidence associated with an exact Ministry Update
+Release Projection and Revision, owned by one shared module so authorization,
+counts, viewer state, and persistence behave consistently on every eligible
+surface. In Phase 22 it consists only of the fixed `Like` and `I prayed`
+acknowledgements and, when the tenant explicitly enables them, bounded comments
+and one-level replies inside an exact Supporter Engagement Space. Engagement
+never widens access and never proves delivery, reading, understanding,
+relationship health, prayer outcome, or giving.
 _Avoid_: per-surface reaction forks, local-only reaction state, unpersisted
-engagement UI
+engagement UI, arbitrary reactions, engagement as audience authority, public
+identity leakage
+
+**Supporter Response Profile Version** (Phase 22):
+An immutable prospective tenant ceiling selecting exactly one of **Responses
+off**, **Like + I prayed**, or **Like + I prayed + comments**, plus the bounded
+comment publication posture and existing authorized moderation group when
+comments are enabled. It does not silently change existing releases, widen a
+Supporter Release Projection, or grant a supporter access.
+_Avoid_: tenant-wide response toggle, mutable reaction settings, comments on by
+default, profile as audience authority
+
+**Ministry Update Engagement Space** (Phase 22):
+The exact protected interaction scope for one immutable Ministry Update
+Revision and one D11 Supporter Release Projection, carrying the complete tenant,
+legal-entity, environment, purpose, audience, safety/authorization epoch,
+Response Profile Version, and operation-generation identity. Responses,
+comments, counts, cursors, and viewer state never move or aggregate across
+Engagement Spaces.
+_Avoid_: update-only reaction key, cross-audience comment thread, public
+engagement cache, tenant-wide counts
+
+**Ministry Update Acknowledgement** (Phase 22):
+One supporter's reversible and idempotent `Like` or `I prayed` response within
+one exact Engagement Space, represented by append-only occurrences and a
+rebuildable current projection. `I prayed` records only the acknowledgement; it
+does not prove reading, prayer, outcome, relationship health, notification, or
+giving.
+_Avoid_: prayer verification, mutable reaction counter, engagement score,
+financial or communication evidence
+
+**Ministry Update Moderation Disposition** (Phase 22):
+An append-only, reasoned visibility, hold, restoration, safety-redaction, or
+actor-restriction outcome against an exact comment revision and Engagement
+Space. It preserves evidence and never lets staff rewrite a supporter's words in
+place.
+_Avoid_: staff-edited comment, destructive moderation delete, global supporter
+ban by accident, moderation as audience membership
 
 **Assistant**:
 An AI agent or assistant that helps a staff member, missionary, or donor
@@ -96,22 +204,195 @@ channel
 The governed way the public tenant website actually runs: host-based tenant
 resolution, published-only isolated content reads, reference validation,
 enumeration-safe checkout handoff, tagged caching with secured invalidation,
-and Draft Mode preview — one contract every public page type builds on.
+and authenticated exact-version preview — one contract every public page type
+builds on. Draft Mode is only rendering plumbing. Phase 22 responses compose
+the current page release with typed public-safe operational projections through
+this server boundary; browsers never receive or query raw operational rows.
 _Avoid_: per-page fetch rules, ad hoc public data paths
+
+**Public Ministry Runtime Composition Contract** (Phase 22 D18):
+The semantic contract that composes one exact current Public Ministry Page or
+Ministry Update response from an immutable release and independently owned
+reach, safety, route, media, progress, Giving, and discovery facts without
+becoming any of those truths. D21 selects this contract's gateway for one
+complete adoption cohort but never changes its per-request authority rules.
+_Avoid_: cached page truth, whole-page freshness status, publication cache
+
+**Current-serving evaluation** (Phase 22 D18):
+A disposable, exact-scope determination of whether the current request may serve
+the current release, return a privacy-safe absence, follow an authorized
+same-page redirect, or remain temporarily unavailable. It is derived from D2,
+Phase 10, and D8 authority and never replaces them.
+_Avoid_: cache authorization, CDN publication state, stale safety check
+
+**Controlled Public Surface** (Phase 22 D18):
+An Asym- or tenant-operated response, artifact, cache, route, media derivative,
+or discovery output whose current positive behavior Asym can govern and whose
+convergence it can evidence. Recipient-held and third-party copies are not
+controlled surfaces.
+_Avoid_: the whole internet, external copy, guaranteed search removal
+
+**Public Ministry Surface Convergence Operation** (Phase 22 D18):
+The append-only, exact-generation record of the intended and observed changes
+across every applicable Controlled Public Surface after an owner-authorized
+positive or adverse cause. It distinguishes requested, accepted, observed,
+not-verifiable, and external outcomes rather than claiming universal recall.
+One D21 cutover emits a cause for this operation; the cutover receipt is not a
+convergence result.
+_Avoid_: cache purge, takedown complete, provider success
+
+**Public Ministry Surface Adoption Case** (Phase 22 D21):
+The immutable-scope coordination identity for privately preparing the smallest
+complete Tenant × Legal Entity × environment × Site × enumerated verified-host
+membership generation × locale dependency closure to use Phase 22's sole
+public reader. It owns adoption coverage and cutover evidence, not Page release,
+route, safety, Giving, media, or cache truth.
+_Avoid_: tenant migration flag, page-by-page public switch, v2 rollout
+
+**Public Ministry Adoption Plan Version** (Phase 22 D21):
+The immutable prospective plan naming the source census, target generations,
+bounded dispositions, and preparation rules for one Public Ministry Surface
+Adoption Case. It is non-authoritative until the exact Surface Authority Cutover
+succeeds.
+_Avoid_: live migration configuration, mutable rollout plan, release head
+
+**Public Ministry Adoption Coverage Manifest** (Phase 22 D21):
+The content-addressed proof that every tenant-scoped source item and controlled
+public consequence in one adoption cohort has exactly one non-overlapping
+disposition. It references owner facts plus one certified code/schema coverage
+generation; it does not duplicate source-code readers, fixtures, tests, and
+import paths as tenant rows or turn a legacy hint, omission, or provider outcome
+into operational truth.
+_Avoid_: migration checklist, page selection list, publish-all batch
+
+**Public Ministry Adoption Disposition** (Phase 22 D21):
+One finite, source-kind-valid classification of an exact item in an Adoption
+Coverage Manifest, referencing the D1–D20 facts that authorize its prepared
+release, route outcome, private preservation, quarantine, or retirement. It never
+substitutes for those facts or infers authority from legacy data.
+_Avoid_: migration status, free-form outcome, inferred mapping
+
+**Compatible Legacy Page Release** (Phase 22 D21):
+An immutable D2 Page Release whose proved-safe legacy editorial payload was
+normalized once into a family-qualified public presentation and pinned to exact
+catalog, profile, compatibility-renderer, content, locale, brand, and managed-
+reference generations. It is served only by the sole Phase 5/D18 gateway and is
+neither a raw legacy read nor a continuing legacy editing path. No new release
+of this kind may be created after its cohort cutover; the next edit uses the
+ordinary current family catalog.
+_Avoid_: legacy reader, fallback page, raw Payload release, compatibility mode
+
+**Public Ministry Surface Authority Head** (Phase 22 D21):
+The sole exact-cohort selector of the pre-Phase-22 surface or the Phase 5/D18
+gateway generation. It is separate from every Page's D2 current-release head and
+cannot be selected per Page.
+_Avoid_: public-pages-v2 flag, Page release head, tenant-global toggle
+
+**Public Ministry Surface Authority Cutover** (Phase 22 D21):
+The one-time, CAS-guarded advancement of the reader-generation boundary for one
+complete adoption cohort after current scope, authority, coverage, and generation
+reproof. The successful local transaction advances the head, appends its
+receipt, and emits one D18 outbox cause. It is not a D2 Page head, tenant-global
+toggle, distributed-atomic publish, or proof of controlled/external convergence.
+_Avoid_: per-page enable flag, deployment promotion, cache purge, content rollback
+
+**Public Ministry Surface Adoption Authority** (Phase 22 D21):
+The exact Phase 12 authorization to review complete adoption consequences and
+advance one Public Ministry Surface Authority Head. It grants no content review,
+Designation, route, media, safety-override, support-data, or Page-release power.
+_Avoid_: site admin, Page Release Authority, publish-all permission, safety override
+
+**Public Ministry Adoption Readiness Projection** (Phase 22 D21):
+The disposable, rebuildable staff view of exact adoption evidence grouped as
+**Ready to use**, **Needs a decision**, or **Not moving as a current ministry
+page**. It is not a mutable readiness record, public-serving state, or permission.
+_Avoid_: migration status row, approval queue, live state, cutover authority
+
+**Public Page Operations Projection** (Phase 22 D22):
+The disposable, permission-filtered staff view of exact owner-domain Public
+Page work through **To review**, **Needs attention**, and **All pages**. These
+are navigation views, never Page states, source truth, or repair authority.
+_Avoid_: Page health, operations ledger, second review queue, issue truth
+
+**Public Page Setup & Settings Projection** (Phase 22 D23):
+The disposable, scope-first, permission-filtered staff summary of exact current
+source-owned Public Page configuration versions, safe fallbacks, built-in
+defaults, creation seeds, Off states, and capability availability. It owns only
+presentation and routing to one owner command at a time; it owns no setting,
+profile head, history, release, activation, or operations truth.
+_Avoid_: settings database, setup-complete state, activation wizard, global save
+
+**Public Page Setting Descriptor** (Phase 22 D23):
+Finite code-owned presentation and routing metadata for one configuration owner,
+compatible adapter generation, exact applicable scope, source head/version,
+state meaning, capabilities, owner-supplied consequences, and literal owner
+action. It is not a policy schema, mutable setting, generic command, URL, or
+workflow DSL.
+_Avoid_: universal profile, inherited settings JSON, arbitrary action link
+
+**Staff-authored Page Revision** (Phase 22 D24):
+An ordinary D1 Page Revision whose authored bytes are CMS-owned, created under
+a current exact-scope staff Page-content-edit capability, preserving the staff
+actor and authority path, predecessor and same-scope content source, and
+semantic comparison. When it deliberately supersedes active or submitted
+contributor work it also preserves one safe reason; it grants no review,
+release, reach, safety, managed-fact, or notification-delivery authority.
+_Avoid_: staff override, approve with edits, direct live edit, edit as
+missionary, staff draft branch, staff-approved page
+
+**Editorial Actionability Evaluation** (Phase 22 D25):
+One disposable, permission-filtered server result that derives the actions the
+current Principal may take from exact current owner-domain facts and, where
+safe, one source-owned explanation. It is recomputed for every read, each
+owning command performs its own commit-time reproof, and age is context only;
+it is never stored as Page, candidate, recovery, health, stale, archive, expiry,
+retention, or resolution truth.
+_Avoid_: actionable flag, stale status, archive state, expiry state, workflow row
+
+**Public Page Recovery Buffer** (Phase 22 D25):
+One private, mutable, non-semantic CMS recovery object for the exact Page and
+locale beneath the expected D1 coherent working head and current editor lease.
+It coalesces unsaved editor work but is never a Page Revision, release
+candidate, evidence occurrence, per-actor branch, retained-record class, or
+source of public truth.
+_Avoid_: missionary draft branch, actor autosave record, semantic revision,
+offline archive, recoverable authorization
+
+**Public Page Operational Cause** (Phase 22 D22):
+One stable, versioned owner-domain condition with exact scope, current human
+actionability, responsible owner, and privacy-safe visitor consequence. Only
+fresh evidence from that owner can resolve or supersede it.
+_Avoid_: alert row, task status, mutable incident, manually resolved warning
+
+**Public Page Operations Impact** (Phase 22 D22):
+The exact permission-filtered Page or Ministry Update consequence of one Public
+Page Operational Cause. It lets one cause affect many Pages without creating
+many causes, tasks, or notifications.
+_Avoid_: duplicate Page issue, unrestricted affected count, copied source fact
+
+**Cause-owned Public Page Action** (Phase 22 D22):
+One finite code-owned action that enters the owning workflow with current actor,
+scope, capability, source-version, and fact reproof. D22 may navigate to it but
+cannot execute, close, waive, or reinterpret the owning condition.
+_Avoid_: arbitrary action URL, Mark fixed, Force live, generic retry, dashboard repair
 
 **Published-content reader / choke-point** (Phase 5):
 The sole entry for public content reads. It takes the resolved tenant (and
 reserved site) as a required argument, always applies tenant-and-published,
 runs with Payload access control enforced, and returns empty when no tenant
-resolves. A hard-blocking lint forbids raw Payload reads in public paths.
+resolves. A hard-blocking lint forbids raw Payload reads in public paths. For a
+Phase 22 page, Payload publication is necessary content evidence but is not
+sufficient: the current page release, Phase 10 ceiling, and containment must
+also permit the response. The reader composes content evidence with separately
+owned public-safe projections; Payload is never their source of truth.
 _Avoid_: direct Payload reads in public code, hand-written tenant `where`
 clauses, `overrideAccess: true` public reads
 
 **Public serializer** (Phase 5):
 The allowlist between CMS documents and the public. It emits only named
 public-safe fields and typed layout blocks; new or unknown fields are
-excluded by default; media is normalized to public URLs. Raw Payload
-documents never cross it.
+excluded by default; media is normalized to reach-appropriate public-safe
+delivery references. Raw Payload documents never cross it.
 _Avoid_: passing raw CMS documents to pages, denylist filtering, leaking
 internal fields by default
 
@@ -132,27 +413,469 @@ trusted charge value; the handoff carries the reserved attribution fields
 _Avoid_: hand-rolled giving URLs, client-trusted amounts or references,
 enumeration-leaking giving forms
 
-**Preview (Draft Mode) / preview token** (Phase 5):
-Staff preview renders the real public page with drafts on via Next.js Draft
-Mode, behind a signed-secret route that authenticates the staff user and
-checks the tenant; the response is never cached and never indexed. A
-shareable, expiring non-staff preview token is a reserved seam.
-_Avoid_: separate preview templates that drift from the live page, publicly
-reachable drafts, indexable preview URLs
+**Public Ministry Preview** (Phases 5, 12, and 22):
+A private, non-shareable, production-equivalent rendering of one exact saved
+Page Revision or immutable Public Content Release Candidate, available only to
+a currently authorized non-anonymous Principal. Draft Mode may select the read
+perspective but never grants authority.
+_Avoid_: bearer preview token, shared password, any-signed-in-user access,
+mutable latest draft, separate preview renderer, reviewed/live/Giving-ready
+claim
 
 **Public page identity** (Phase 5):
-A public page's presentation identity — display name, slug, publish state —
-linked to, but never equal to, the operational record behind it. CMS wins
-for presentation; operational truth wins for identity, money, and existence;
-a dangling or cross-tenant reference fails safe.
+A public page's presentation identity — display name, slug, and content-
+publication state — linked to, but never equal to, the operational record
+behind it. CMS wins for presentation; operational truth wins for identity,
+money, and existence; a dangling or cross-tenant reference fails safe. CMS
+content publication does not establish Phase 22 anonymous reach.
 _Avoid_: treating the page as the operational record, copying operational
 truth into CMS
 
+**Public Ministry Page** (Phase 22):
+A tenant-owned, Site-scoped public presentation of exactly one approved typed
+subject, composed through the shared Publication contract and linked to
+operational truth by reference. Locale is not part of the Page identity; each
+language's author-written meaning belongs to a subordinate Public Page Locale
+Lineage.
+_Avoid_: missionary profile as the page, arbitrary CMS page, public Party row
+
+**Public Page Locale Lineage** (Phase 22 D27):
+The independently versioned editorial lineage for one exact Public Ministry
+Page and Phase-24-owned BCP 47 locale. It contains localized author-written
+meaning but owns no Page identity, family structure, reach, review, release,
+route, attestation, or search/share authority.
+_Avoid_: localized Page copy, locale template, fallback document, translated
+release
+
+**Ministry Project** (Phase 9 CRM source; consumed by Phase 22 D17):
+An organization-controlled ministry or project with stable opaque identity,
+exact Tenant and Legal Entity scope, immutable versions, and source-owned
+lifecycle, independently of its public Page, fundraising Campaign, Designation,
+progress, or accounting project.
+_Avoid_: CMS project page, fund-as-project, campaign-as-project, accounting
+project, project-management workspace
+
+**Public Ministry Discovery Profile Version** (Phase 22 D13):
+The immutable prospective choice for one exact Tenant, Legal Entity,
+environment, Site, and locale to present current eligible Public Ministry Pages
+either **Together** or **Separate by Page Family**. It changes public-directory
+composition only; it never changes page reach, safety, release, route, progress,
+Giving, indexing outcome, or removal truth.
+_Avoid_: directory toggle, search visibility, separate catalog configuration,
+page inclusion setting
+
+**Public Ministry Directory Projection** (Phase 22 D13):
+One immutable, generation-bound, rebuildable public-card corpus containing
+exactly one row for every current D2 `Listed publicly` Page Release that passes
+the current Phase 10 ceiling, and no row for any other release. It preserves
+source and coverage generations while exposing only approved public card fields;
+it is not CMS, Party, Designation, progress, or Field Account truth.
+_Avoid_: worker directory table, locations feed, public Party view, search index
+as authority, mutable current catalog
+
+**Public Search & Sharing Presentation Manifest** (Phase 22 D14):
+The immutable, release-bound, locale-exact manifest that compiles separate
+Search Presentation and Share Presentation results for one exact current safe
+Page Release or Public Page Ministry Update Release. Every HTML, metadata,
+JSON-LD, card-media, sitemap, and share-payload fact resolves the same complete
+release and safety coverage; the manifest never becomes a second publication,
+reach, route, media, audience, or directory authority.
+_Avoid_: SEO record, social publication head, page metadata row, mutable search
+settings, provider index state
+
+**Search Presentation** (Phase 22 D14):
+The typed local result describing whether and how one exact public release may
+be presented to standards-compatible crawlers, including its canonical,
+crawler directives, admitted locale alternates, sitemap disposition, visible-
+fact structured data, and search-facing metadata. `Search ready` proves only
+that Asym's current local artifacts and public response are coherent; it never
+proves crawl, index, rank, snippet, cache, de-indexing, or forgetting.
+_Avoid_: indexed status, ranking state, SEO score, provider acceptance
+
+**Search-ready** (Phase 22 D14):
+A local, through-dated proof that one exact eligible public release has coherent
+server-rendered content, canonical and crawler directives, admitted locale
+alternates, sitemap disposition, structured data, certified media, and public-
+response behavior. It says only what Asym has made ready; an external crawler's
+fetch, index, rank, chosen snippet, cache, removal, or forgetting is a separate
+observed outcome.
+_Avoid_: indexed, ranked, submitted successfully, guaranteed discoverable
+
+**Share Presentation** (Phase 22 D14):
+The typed local result containing one exact clean public permalink, link-card
+metadata, D9-certified same-origin social derivative, and bounded user-
+initiated share payload. It may exist for Shared-by-link content even when no
+Search Presentation is index eligible, and it never proves the selected target
+or a completed, cached, refreshed, or removed external share.
+_Avoid_: social post, auto-share, share completion, third-party widget state
+
+**Public Ministry Measurement Profile** (Phase 22 D15):
+The immutable prospective Tenant × Legal Entity × Site choice of **Off**,
+**Staff only**, or **Staff + assigned page contributors** that governs only
+whether D15's four fixed interactions are measured and who may view their
+aggregates. It never changes Publication Reach, release authority, Search or
+Share Presentation, contributor assignment, Giving, attribution, or
+operational telemetry.
+_Avoid_: analytics switch, page-tracking toggle, contributor permission, SEO
+setting
+
+**Public Ministry Measurement Occurrence** (Phase 22 D15):
+A private, best-effort, non-identity-bearing observation that one exact
+immutable Page Release or Public Ministry Update Release satisfied exactly one
+fixed D15 interaction definition: qualified page load, full update open, Share
+options opened, or Give button selected. It is not a person, session, verified
+human, completed share, cart, conversion, gift, settlement, or payment.
+_Avoid_: pageview, visitor event, engagement, share, donation conversion
+
+**Public Ministry Activity Aggregate** (Phase 22 D15):
+A sealed daily, exact-scope aggregate of Public Ministry Measurement
+Occurrences with append-only corrections and one code-owned retention period.
+It is delayed measurement fact, not D12 Ministry Update Engagement, a D14
+search/share outcome, or Phase 13 attribution or financial truth.
+_Avoid_: real-time analytics, supporter activity, share count, conversion
+report
+
+**Public Page Activity Projection** (Phase 22 D15):
+The current-authorized, suppression-safe, through-dated projection used by the
+**Public page activity** report. Its coverage is Complete, Delayed, Partial, or
+Unavailable; each visible result is either a disclosed number, including a
+proved zero, or **Not enough activity to show safely**.
+_Avoid_: mutable counter, raw occurrence view, visitor timeline, financial
+analytics
+
+**Public Page Writing Source Package** (Phase 22 D16):
+The immutable minimum-data authorization package for one explicit writing-help
+invocation against one exact D1 working revision and D3 semantic field, block,
+or within-block selection. It pins current contributor/editor authority, exact
+Tenant, Legal Entity, Site, Page Family, Page, source and target locale and
+direction, target and source digests, selected author-supplied facts, action and
+schema generations, the shared D10 AI Egress Manifest and Capability Binding,
+and idempotency identity. It is not broad Page context, a prompt, permission,
+or publication truth.
+_Avoid_: whole-page prompt, AI context blob, editor selection state, model memory
+
+**Public Page Writing Suggestion Version** (Phase 22 D16):
+One private, immutable, typed, non-authoritative result of an exact Public Page
+Writing Source Package and D10 Invocation. Its separately encrypted content body
+is short-lived; its body-free provenance and outcome remain. It cannot alter a
+working revision until current authority, safety, source, target, and concurrency
+are re-proved and the actor explicitly uses it to create one ordinary D1
+successor revision.
+_Avoid_: AI-authored page, current draft, accepted fact, approval, publication
+
+**Translate to English** (Phase 22 D16 action):
+A suggestion-only transformation from one authoritative or actor-confirmed
+source language to one exact existing Phase-24-owned English BCP 47 target
+locale. It preserves and compares the original, treats provider detection as a
+hint, separates mixed-language ambiguity, labels language and direction
+independently, and requires **Use English draft** plus the adjacent check-work
+warning. It creates no locale, translation status, release, bilingual-review,
+official, or certified-translation fact.
+_Avoid_: generic English, automatic localization, translate and rewrite,
+translation complete, certified translation
+
+**Public Ministry Directory Query Contract** (Phase 22 D13):
+The bounded server-only interface that applies the trusted Site, locale, active
+topology, optional server-owned Page Family constraint, allowlisted query and
+filters, limit, and generation-bound opaque keyset cursor to one current Public
+Ministry Directory Projection. A query, cursor, route, public identifier, cache,
+or client component never grants scope, membership, or safety authority.
+_Avoid_: browser-side directory filtering, raw Supabase query, arbitrary search
+DSL, cursor as authorization, separate family search service
+
+**Public Page Presentation Profile Version** (Phase 22):
+The immutable, family-certified presentation contract selected by one current
+Public Page Family Presentation Activation for an exact Site and Page Family
+and shared by every Page and locale in that family. It defines shell, typed
+sections, edit boundaries, and deterministic presentation behavior without
+owning referenced facts or locale editorial meaning.
+_Avoid_: mutable template, inherited theme patch, page-builder configuration
+
+**Public Page Family Presentation Activation** (Phase 22 D27):
+The explicit, immutable, all-or-nothing selection of one compatible Public Page
+Presentation Profile Version for every current Page and independently released
+locale in one exact Tenant, Legal Entity, environment, Site, and Page Family.
+It changes presentation only and grants no editorial, translation, attestation,
+review, reach, release, safety, Giving, or search authority.
+_Avoid_: apply-to-all-pages edit, template sync, bulk republish, locale rollout
+
+**Public Page Family Presentation Activation Manifest** (Phase 22 D27):
+The immutable evidence identifying one Public Page Family Presentation
+Activation, its exact affected release cohort, base and successor presentation
+generations, compatibility result, and complete-cohort proof. It is the current
+family-profile selector but never a second Page Release Manifest.
+_Avoid_: current template row, layout deployment record, release manifest,
+profile-ready flag
+
+**Page Family Semantic Catalog Generation** (Phase 22 D20):
+An immutable, code-owned registry of the exact semantic section and slot
+contracts available to one Public Ministry Page family. A D3 profile selects
+only from its compatible generation, and every D2 release pins that generation.
+A D21 Compatible Legacy Page Release remains subject to this exact generation
+pin and is never a raw legacy schema or reader.
+_Avoid_: generic block catalog, tenant schema, mutable page builder,
+cross-family component list
+
+**Editorial Section Offering** (Phase 22 D20):
+The prospective D3-profile choice for one optional editorial section: **Off**,
+**Available**, or **Expected**. Expected adds private completeness guidance only;
+it neither requires a public placeholder nor fabricates content.
+_Avoid_: visibility toggle, required public content, empty placeholder
+
+**Presentation Block Contract** (Phase 22 D3/D20):
+The family-qualified semantic contract for one role inside a Page Family
+Semantic Catalog Generation, including its source and edit authority, allowed
+placement and cardinality, safety ceiling, and deterministic empty or unavailable
+outcome. For public progress it owns the accessible visual contract only; D6
+owns visibility, metric, and source meaning.
+_Avoid_: arbitrary component, raw CMS block, custom-code section
+
+**Public Progress Metric Contract** (Phase 22):
+The closed, code-certified semantic definition of one public progress measure,
+including its owning source, eligible numerator and goal kind, period, currency,
+privacy treatment, and unavailable behavior. It is not a tenant-authored formula.
+_Avoid_: custom metric, blended progress, manual total
+
+**Public Support Progress Profile Version** (Phase 22):
+The immutable choice resolved for one Public Ministry Page release to show no
+public progress or exactly one compatible Public Progress Metric Contract with
+its exact source, goal, period, currency, and disclosure scope. Tenant and Page-
+Family defaults may seed a new draft but never govern an existing page at runtime.
+_Avoid_: progress toggle, live inherited default, page-family assumption
+
+**Public Support Progress Projection** (Phase 22):
+The disposable, source-watermarked, privacy-safe result for the exact Public
+Support Progress Profile Version, rebuilt from the owning phase's current facts
+and append-only corrections. It is neither CMS content nor a writable counter.
+_Avoid_: current amount, cached truth, public ledger query
+
+**Page Giving Binding** (Phase 22):
+The immutable, release-pinned reference from one Public Ministry Page to exactly
+one Phase 13 Designation for the Phase 22 MVP. It is independent of page reach,
+source attribution, cart state, and contribution truth, and every CTA on the page
+shares it.
+_Avoid_: public giving offer, fund picker, CMS checkout URL, source-code routing,
+automatic fallback
+
+**Public Page Route Generation** (Phase 22):
+The immutable, never-reused canonical path identity for one exact Tenant, Legal
+Entity, Site, locale, Page Family, and Public Ministry Page under one versioned
+path-normalization contract. It is operational route truth, not a mutable CMS
+slug or provider URL.
+_Avoid_: live slug, reusable path, CMS redirect identity
+
+**Public Page Route Disposition** (Phase 22):
+The append-only, source- and cause-qualified decision governing what one prior
+Public Page Route Generation now returns: its current release, a Transition
+Notice Release, a same-page permanent move, or a privacy-safe not-found result.
+It cannot close or replace a Designation, move money, or change recurring support.
+_Avoid_: archived flag, arbitrary redirect, lifecycle status, financial successor
+
+**Transition Notice Release** (Phase 22):
+An immutable D2-governed Public Ministry Page release at an existing address that
+states only proved, through-dated transition facts and may offer a separately
+labelled fresh link to an eligible successor presentation. It never inherits or
+transports a Designation, amount, cadence, attribution, or recurring-gift action.
+_Avoid_: soft 404, redirect interstitial, successor-giving handoff
+
+**Public Page Route Effect Manifest** (Phase 22):
+The immutable, content-addressed expected-effects record for one activated Public
+Page Route Disposition, covering the origin response, scoped cache invalidation,
+internal links, canonical and structured metadata, social metadata, and sitemap
+membership. External propagation observations attach separately and never become
+local route authority.
+_Avoid_: purge-complete flag, search-removal proof, mutable deployment checklist
+
+**Ministry Update Feed Binding** (Phase 22):
+The exact page-scoped relationship selecting which canonical Ministry Update
+source stream or source set a Public Ministry Page may display. It neither
+copies updates into the page nor infers inclusion from subject, contributor,
+spouse, team, project, or Support Assignment relationships.
+_Avoid_: page-owned updates, author-implies-display, tenant-wide update feed
+
+**Page Subject Binding** (Phase 22):
+The immutable-versioned, exact relationship identifying the one approved source
+a Public Ministry Page represents. A Missionary Ministry Page binds to exactly
+one CRM Ministry Assignment; a Project/Campaign Page binds to exactly one CRM
+Ministry Project, Phase 13 Giving Campaign, or separately public-subject-
+eligible Phase 13 Designation. The binding grants no participant, display,
+editorial, publication, financial, progress, notification, or workspace
+authority.
+_Avoid_: generic type plus id, subject-implies-editor, display membership,
+fund-as-project, inferred Giving or progress
+
+**Display Participant** (Phase 22):
+A Phase 10-approved person presented on a Public Ministry Page without any
+authority to edit, review, publish, manage, or receive page notifications.
+_Avoid_: page contributor, page owner, implicit editor
+
+**Public Page Contributor Assignment** (Phase 22):
+The explicit, page-scoped assignment authorizing one authenticated principal to
+prepare only the bounded public-content changes permitted for that page. It is
+independent of Page Subject Bindings, Party relationships, Support Assignments,
+and publication authority.
+_Avoid_: missionary editor role, subject-derived permission, shared login
+
+**Page Release Authority** (Phase 22):
+The current tenant-owned authorization to release one exact eligible page
+revision after mandatory safety checks: an authorized staff action in review
+mode or system execution of the tenant's standing profile in publish-after-
+checks mode. Phase 12 resolves staff capabilities; a Publication Reach Policy
+supplies requested reach but never grants release authority. It is distinct
+from D21 Public Ministry Surface Adoption Authority, which can change only the
+complete cohort's reader-generation head and cannot release a Page.
+_Avoid_: contributor publish right, reach-policy-as-authority, save means
+publish, subject approval
+
+**Publication Reach** (Phase 22):
+The maximum anonymous exposure permitted for an exact Public Ministry Page
+release: Listed publicly, Shared by link — public, or Not public. It is
+independent of content approval and Giving readiness.
+_Avoid_: visibility flag, privacy level, CMS publish state
+
+**Publication Reach Policy** (Phase 22):
+The tenant-owned prospective default for requested Publication Reach within one
+exact Legal Entity, Site, and typed Page Family. It cannot alter an existing
+release or override the Phase 10 publication ceiling.
+_Avoid_: tenant-global public switch, retroactive page update, safety override
+
+**Requested Publication Reach** (Phase 22):
+The reach outcome requested for an exact page release from its pinned tenant
+policy or an explicit authorized choice. It is an input to safety resolution,
+not permission or proof that the page may be served.
+_Avoid_: effective visibility, approved reach, public entitlement
+
+**Release-time Publication Reach** (Phase 22):
+The immutable reach outcome for an exact release after Requested Publication
+Reach is bounded by the Phase 10 evidence current at release.
+_Avoid_: live reach, mutable visibility, latest safety state
+
+**Page Release Manifest** (Phase 22):
+The immutable evidence for one exact page-and-locale release, binding its CMS
+revision, requested and release-time reach, governing policy and safety
+evidence, participant coverage, Page Release Authority, release-time D3
+presentation-profile, catalog, and renderer baseline, exact Public Support
+Progress Profile and metric-contract generations, exact Page Giving Binding,
+route generation, exact Public Ministry Media Placement Versions and Public
+Media Derivative Manifests, exact Public Content Release Candidate and its D26
+Public Content Sharing Attestation, actor, and time. Current presentation also
+resolves the current Public Page Family Presentation Activation; historical
+presentation resolves the activation effective at the observation time rather
+than rewriting this manifest. D21 may reference or select a compatible
+immutable manifest during adoption, but its Surface Authority Head is never
+this Page's current-release head.
+_Avoid_: mutable published row, CMS status as release proof, latest timestamp
+wins
+
+**Public Ministry Media Asset** (Phase 22):
+The Tenant- and Legal-Entity-scoped semantic identity of one still image
+proposed for public ministry presentation. It is neither the source bytes or
+filename nor a provider object, URL, placement, or released-page fact.
+_Avoid_: CMS media row, upload, public file, image URL
+
+**Public Ministry Media Upload Intake** (Phase 22/29 seam):
+A short-lived private, non-authoritative source offered for validation and
+sanitization under one exact Upload Intent. It is never public or reusable
+media truth and expires after its bounded processing or quarantine purpose.
+_Avoid_: original asset, permanent upload, public original
+
+**Sanitized Media Master Version** (Phase 22/29 seam):
+An immutable reconstructed still-image generation certified to the exact
+processor generation and proved free of prohibited source-derived metadata,
+auxiliary images, and original-name data. It is the sole source for D9 public
+derivatives but is not itself a page placement or release.
+_Avoid_: cleaned original, latest image, mutable master
+
+**Public Media Derivative Manifest** (Phase 22/29 seam):
+The immutable proof that one bounded responsive, card, and social derivative
+set came from one exact Sanitized Media Master Version and satisfies its exact
+type, dimension, digest, privacy, and processor-generation contract.
+_Avoid_: image variants, CDN transform, current renditions
+
+**Public Ministry Media Placement Version** (Phase 22):
+The immutable context-specific binding of one exact Page, locale, typed block
+and semantic role to one master and derivative manifest, together with its
+focal point or crop, contextual alt text or explicit decorative decision,
+caption, and attribution. Reuse of an Asset never reuses placement meaning.
+_Avoid_: asset usage, image field, reusable alt text
+
+**Public Ministry Media Delivery Reference** (Phase 22):
+An opaque, release-qualified public reference that resolves to certified
+private-origin bytes only while the exact Page release, D2 reach, and current
+Phase 10 safety permit. It is never a raw storage, CMS, transform-provider, or
+CDN URL.
+_Avoid_: public bucket URL, provider URL, permanent image URL
+
+**Public Ministry Media Withdrawal** (Phase 22):
+An append-only, smallest-scope end to Asym's public-serving eligibility for an
+exact placement or asset, with where-used and observed provider/cache effect
+evidence. It cannot claim recall from external caches, archives, screenshots,
+downloads, or other copies.
+_Avoid_: delete means forgotten, purge complete, destructive removal
+
+**Live Publication Reach** (Phase 22):
+The current maximum anonymous reach after the release-time result is bounded by
+the latest locally authoritative Phase 10 ceiling and active Publication
+Containment.
+_Avoid_: cached reach, last published state, external search presence
+
+**Shared by link — public** (Phase 22):
+Anonymous, reshareable Public Ministry Page reach omitted from Asym discovery
+surfaces and marked against indexing where supported. Possession of its link is
+not authentication or confidentiality.
+_Avoid_: private link, secure link, invitation-only page
+
+**Publication Containment** (Phase 22):
+An append-only, cause-owned narrowing of current public serving that preserves
+release history and cannot grant or restore exposure.
+_Avoid_: unpublish toggle, destructive rollback, undo safety hold
+
+**Public Content Review & Release Profile Version** (Phase 22):
+The immutable prospective tenant choice between staff review and
+publish-after-checks for one exact Public Ministry Page or Ministry Update
+publication scope. It cannot override Phase 10 or grant contributors generic
+publication authority.
+_Avoid_: approval toggle, workflow matrix, contributor publish role
+
+**Public Content Release Candidate** (Phase 22):
+The immutable exact page or Ministry Update revision deliberately submitted for
+review or publish-after-checks, together with its live base and complete public
+consequences. A protected D6 profile or D7 Page Giving Binding change is one such
+consequence; an owning-source value or correction advancing a compatible
+disposable projection is not editorial work. An autosave or mutable working
+draft is not a candidate.
+_Avoid_: latest draft, Payload version as approval target, pending page
+
+**Public Content Sharing Attestation** (Phase 22 D26):
+The immutable, candidate-bound record that the actual currently authorized
+submitter confirmed they are allowed to share the exact words and images
+publicly. It is neither verified rights or person consent nor Page ownership,
+safety, review, release, or an authority grant.
+_Avoid_: rights-cleared checkbox, blanket Page permission, media license proof,
+Page owner consent
+
+**Public Content Review Decision** (Phase 22):
+Append-only staff judgment bound to one exact Public Content Release Candidate:
+approve and attempt release, request changes, or terminally reject. It cannot
+float to a later draft or override a Phase 10 hard safety outcome.
+_Avoid_: approval toggle, approval of latest, approve anyway, publish result
+
+**Publish after checks** (Phase 22):
+The tenant-selected posture in which a deliberately submitted
+contributor-editable Public Content Release Candidate may release without staff
+review only after every current owning-domain and structural proof permits it.
+It is system execution of tenant-owned release authority, not contributor or AI
+authority.
+_Avoid_: auto-save publish, review bypass, routine-text-only mode
+
 **Cache tag scheme** (Phase 5):
-The tenant/document-derived tags on cached public reads, used for prompt
-invalidation when content publishes. Tags invalidate; they never isolate —
-cache-key isolation comes from passing the resolved tenant as a function
-argument. Site and locale tag dimensions are reserved.
+The exact-scope tags on cached public reads, used for narrow invalidation when
+content or a managed projection changes. Tags invalidate; they never isolate —
+cache-key isolation comes from passing the resolved tenant, site, page, locale,
+release, profile, projection, and safety epoch as function arguments. Ordinary
+positive refresh may use bounded stale-while-revalidate; adverse corrections,
+hiding, retirement, containment, or Phase 10 narrowing expire the affected
+scope immediately while request-time serving gates remain authoritative.
 _Avoid_: tag-only tenant isolation, route-segment cache config, unbounded
 "never expire" caching
 
@@ -878,7 +1601,8 @@ principal acts within for one request. A person serving several organizations
 may have several Tenant assignments but acts within exactly one at a time; the
 resolver refuses a membership-backed request without one. A public/anonymous
 principal instead uses a Public Projection Context. It is not Phase 21's
-Support Assignment, and identifiers must make that distinction explicit.
+Support Assignment or Phase 22's Ministry Assignment, and identifiers must make
+all three meanings explicit.
 _Avoid_: active assignment without domain qualifier, client-chosen tenant,
 Support Assignment as login context, person-global permission resolution
 
@@ -2378,14 +3102,17 @@ The immutable organization-controlled subject for one approved field purpose.
 It belongs to one Tenant and Legal Entity and may have zero, one, or many Party
 participants; one Party may participate in several Support Assignments. It is
 not a person-, household-, login-, donor-, or provider-owned fund and is not
-Phase 12's Active Tenant Assignment.
+Phase 12's Active Tenant Assignment or Phase 22's CRM Ministry Assignment. An
+optional Ministry Assignment Support Binding Version references it without
+merging either identity or granting access.
 _Avoid_: worker owns fund, household account, polymorphic owner, bare assignment
 
 **Support Assignment Participant Membership** (Phase 21):
 The prospective, effective-dated, append-only-corrected fact that one Party is
 associated with one Support Assignment during one exact half-open interval. It
 grants no workspace access, claimant/reviewer/payee authority, notification,
-donor-purpose authority, financial ownership, or money movement.
+donor-purpose authority, financial ownership, or money movement and is never
+inferred from Ministry Assignment Participant Membership.
 _Avoid_: spouse implies access, participant owns account, membership as role or
 balance allocation
 
@@ -2582,8 +3309,9 @@ profile as source truth
 The current request-time `resolveProjection` decision for one Principal, Active
 Tenant Assignment, Tenant, Legal Entity, Support Assignment, purpose,
 projection, capability set, floor, resource version, and governance epoch. A
-participant membership, invitation, named grant, preset, role, or visible
-workspace control is not the decision by itself.
+Ministry Assignment, either assignment's participant membership, their optional
+binding, invitation, named grant, preset, role, or visible workspace control is
+not the decision by itself.
 _Avoid_: workspace-access Boolean, participant means viewer, client-selected
 Support Assignment, grant row as current access
 
@@ -3533,8 +4261,8 @@ _Avoid_: model output as audit truth, secret-bearing trace, retry without identi
 **AI Suggestion Version** (shared contract; accepted by the owning domain):
 A typed non-authoritative model result with source and invocation provenance,
 quality warnings, and an explicit accepted, rejected, or superseded outcome.
-Only the owning domain's authorized command may translate a confirmed
-suggestion into its source truth.
+Only the owning domain's authorized command may apply a confirmed suggestion
+to create ordinary source truth.
 _Avoid_: AI decision, automatic fact, cross-domain write authority
 
 **Reimbursement Obligation** (Phase 21):

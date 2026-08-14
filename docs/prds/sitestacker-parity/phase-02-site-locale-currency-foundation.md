@@ -648,3 +648,120 @@ reordered, or fragment-mixed fallback. Every other contract continues to use
 Phase 2's fixed order. `rendered_locale` remains a frozen issuance/render fact.
 Phase 24, not Phase 17 or Phase 18, owns broad site, CMS, public-shell, staff-
 shell, domain, currency, and jurisdiction localization.
+
+## Dated Phase 22 D13 public-discovery locale clarification (2026-08-06)
+
+Phase 2 continues to resolve the trusted request Site and requested/default
+locale context. Once that process selects one exact active locale for a Phase
+22 D13 directory request, D13 may query only the current Discovery Profile and
+Directory Projection for that exact Tenant, Legal Entity, environment, Site,
+and locale. Missing or ineligible translated page content is absent; directory
+membership, cards, search documents, results, cursors, and caches never silently
+fall back to another locale, a source-language release, a legal name, or another
+Site.
+
+Phase 24 owns tenant-facing enabled-locale, domain, label, and translation-
+readiness administration. It cannot create D13 directory membership, override
+D2 reach or Phase 10 safety, or reinterpret a missing exact-locale release as an
+eligible fallback. Phase 2's general content fallback is therefore request-
+context input, not authority to widen this narrower public-discovery contract.
+
+## Dated Phase 22 D14 search-and-sharing locale clarification (2026-08-06)
+
+D14 accepts only the exact Phase 2/24-resolved verified host, Site, and admitted
+locale for one release. Canonical and public Update permalink URLs, reciprocal
+locale alternates, sitemap membership and shards, social-card URLs/media,
+structured data, share payloads, and every cache/effect coordinate bind that
+same scope. A request host, root Site default, sibling Site, source language,
+general CMS fallback chain, stale domain verification, provider redirect, or
+external search/social cache cannot establish or replace it.
+
+Reciprocal alternates are emitted only when both exact locale releases are
+current, publicly eligible, and mutually admitted. Missing or unsafe locale
+truth is omitted rather than falling back. Phase 24 domain verification and
+locale administration supply independently authoritative inputs; verification
+alone never establishes D2 reach, D14 search readiness, sitemap inclusion,
+provider submission, crawling, indexing, ranking, or sharing.
+
+## Dated Phase 22 D15 measurement-scope amendment (2026-08-06)
+
+D15 admits only the exact Site, verified host, and locale resolved by Phase 2
+and Phase 24. A raw host, URL, query, or referrer never becomes durable
+measurement, and a missing, unsafe, or mismatched locale never falls back or
+merges into another aggregate cell. The governing Measurement Profile remains
+Tenant × Legal Entity × Site scoped; locale and host are mandatory occurrence
+and aggregate dimensions, not new tenant-facing profile switches.
+
+## Dated Phase 22 D16 English-translation locale clarification (2026-08-06)
+
+Phase 2 continues to own validated BCP 47 locale identity and trusted Site
+context; Phase 24 owns enabled locales, locale draft/status lifecycle, fallback,
+and staff localization management. D16's **Translate to English** action may
+target only one exact existing English-locale working revision such as `en-US`
+or `en-GB`. Generic `English`, browser locale, provider-detected language, a
+tenant default, or an arbitrary model language label cannot create or replace
+that target.
+
+The source locale comes from authoritative Page-locale truth when available or
+from explicit actor confirmation. Provider detection is only a displayed hint,
+and materially mixed-language content is confirmed or separated. D16 records
+language and direction independently and creates only a writing suggestion and,
+after deliberate Use, an ordinary D1 successor draft. It never enables a locale,
+creates a locale record or route, changes fallback, marks translation ready or
+complete, creates a reciprocal alternate, or proves release or publication.
+
+## Dated Phase 22 D18 public-runtime scope amendment (2026-08-06)
+
+Phase 2 and Phase 24 continue to own verified host, Site, locale, canonical-path,
+and environment truth. Every D18 current-serving evaluation, reusable immutable
+fragment key, provider namespace, applicable-surface coverage plan, and Public
+Ministry Surface Convergence Operation must carry those exact owner-resolved
+dimensions together with Tenant and Legal Entity. A raw `Host` header, forwarded
+host, request path, cache key, tag, deployment default, provider account, browser
+locale, or prior successful resolution cannot create, widen, or substitute that
+scope. A hosting provider's host-cache behavior is defense in depth only.
+
+An ordinary positive host, Site, locale, or route-generation replacement becomes
+eligible only through its owning phase and one coherently available immutable
+release generation. A known adverse owner fact first removes or denies only its
+affected positive behavior; inability to resolve current authority returns the
+existing neutral non-shared unavailable outcome and never silently falls back to
+another Site, locale, host, route, or tenant. D18 composes these facts but owns no
+domain, locale lifecycle, fallback, canonical-path, or Site authority.
+
+## Dated Phase 22 D21 surface-adoption scope amendment (2026-08-14)
+
+Phase 22 D21 consumes, but does not recreate, one exact Phase 2/24 scope:
+Tenant, Legal Entity, environment, Site, an immutable enumerated verified-host
+membership generation and digest, and locale. A hostname string, wildcard,
+request header, deployment domain, CMS tenant, previously verified host, or
+mutable "all current hosts" query cannot define or widen an adoption cohort.
+Adding, removing, transferring, canonicalizing, or changing verification for
+any member host invalidates the prepared D21 plan and manifest; final cutover
+must compare the pinned membership generation and digest to the current owner
+head and abort without public effect on drift.
+
+Every request after cutover still resolves one exact current host and locale
+through Phase 2/24 before the Phase 5/D18 gateway selects the cohort's reader
+generation. If a sitemap, directory, search artifact, canonical set, or other
+controlled surface spans more than one locale or host cohort, D21 must either
+include its complete dependency closure in the same cutover or use owner-
+certified generation composition that cannot return mixed authority. D21 owns
+no domain verification, locale activation, fallback, currency, canonical URL,
+or Site lifecycle fact.
+
+## Dated Phase 22 D22 operations-scope amendment (2026-08-14)
+
+Phase 22 D22 may derive projected references to source-owned Public Page
+operational causes and their impacts only inside
+one exact owner-resolved Tenant × Legal Entity × environment × Site × locale
+scope. A hostname, route, cache namespace, deployment default, selected UI
+row, task link, or prior authorization cannot create, infer, or widen that
+scope. Phase 2 and Phase 24 remain authoritative for its constituent Site,
+host, environment, and locale facts.
+
+Exact scope and current authorization must be applied before D22 rows, grouped
+causes, impact counts, search, export, notifications, shared-task links, or
+caches are produced. The D22 operations projection is disposable and
+rebuildable from source-owned facts; it creates no new Site, locale, domain,
+route, environment, or tenant-assignment truth.

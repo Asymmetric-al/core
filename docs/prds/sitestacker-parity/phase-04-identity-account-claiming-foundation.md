@@ -408,3 +408,29 @@ records the actual actor and source proof; identity ambiguity quarantines only
 the affected positive action until Phase 4 and the owning lifecycle source
 establish current identity. Historical actor and claimant provenance never
 retargets or collapses.
+
+## Dated Phase 22 D19 Ministry Assignment identity and invitation amendment (2026-08-06)
+
+Every spouse, teammate, leader, coach, staff member, contributor, and support
+viewer retains one separately proved Party and login Principal. Ministry
+Assignment membership, marriage/household/team relationship, public display,
+Page contribution, Phase 21 Support Assignment membership or binding, email
+possession, invitation delivery, and prior access never prove identity or grant
+another person's session. Shared spouse/team credentials and impersonation are
+forbidden.
+
+One D19 **People & access** operation may create an exact recipient invitation
+intent alongside separately selected local source-owner facts, but the invitation
+remains expiring, single-use, revocable, and authority-free. Acceptance proves
+only the intended verified Principal binding; each selected contributor,
+Support Workspace, responsibility, or notification consequence still requires
+its owning command and final Phase 12 authorization/revocation reproof. Pending,
+failed, expired, forwarded, mismatched, replayed, or revoked invitations grant
+nothing and do not roll back unrelated valid association evidence.
+
+Party merge/split, principal relink, email change, spouse separation, departure,
+death/incapacity, and account recovery preserve historical actors and trigger
+explicit deny-first owner-domain reconciliation. They never union or transfer
+Ministry Assignment membership, Display Participant status, Contributor
+Assignment, Support Binding, Phase 21 participation, Support Workspace access,
+history floor, responsibility, or notification preference.

@@ -212,6 +212,75 @@ These are guarded by Mission Control auth middleware and require `staff`, `admin
 - CMS giving CTAs may store copy and content references, but public CTA URLs resolve to the donor checkout flow by validated `missionary_id` / `fund_id` references; CMS must not create gifts or store payment truth.
 - Payload/CMS tenant ids and public Supabase tenant UUIDs stay separate. Payload writes use CMS tenant document ids; giving/CRM reference validation uses `publicTenantId` from authenticated request context.
 
+### Phase 22 D20-D21 authority qualification
+
+The current Payload blocks, templates, public endpoints, serializers, feature
+flags, and published-only reads are implementation and migration seams. They do
+not establish either D20 family-catalog compatibility or D21 public-reader
+authority. Private preparation may reuse them only behind the certified family-
+qualified adapter and the production-shaped, side-effect-dark shadow. Public
+traffic changes once for a complete dependency-closed cohort through the D21
+CAS; after it succeeds, the sole Phase 5/D18 gateway has no raw Payload, mock
+data, legacy reader, or old-cache fallback.
+
+### Phase 22 D22 operations qualification
+
+The current Payload lists and `_status`, public directory, and generic Mission
+Control **Needs attention** or task surfaces are not D22 authority. They are
+only migration and UI evidence. Do not add an operational Page health field,
+resolution switch, or task-driven closure to Payload. The target private
+workspace derives one permission-filtered projection with exactly **To
+review**, **Needs attention**, and **All pages** views; each action routes to its
+applicable current source owner, and optional shared task lifecycle closes nothing.
+
+### Phase 22 D23 setup/settings qualification
+
+Do not extend Payload preferences, collection defaults, `tenants.org_settings`,
+or a generic Web Studio form into D23 authority. D23 is one private,
+scope-first, disposable summary of exact current source-owned versions. Every
+Change action opens one owner-specific form and invokes only that owner's
+current-authorized immutable-successor command. Do not add global Save all,
+mutable reset, inferred tenant choices, settings inheritance, D21 activation,
+D22 resolution, AI-provider configuration, or per-Page mutation to the CMS.
+
+### Phase 22 D24 staff-revision qualification
+
+Do not treat broad route roles, native update/delete, document locks, autosave,
+version history, `_status`, restore, Publish/Unpublish, or direct Payload API
+access as D24 staff-edit authority. Actor-context Local API calls require
+`overrideAccess: false` and `overrideLock: false`, but those flags are necessary
+containment rather than product authority. The D1/D24 server command must
+separately re-prove the exact Phase 12 capability and D3/D20 allowlist, preserve
+actor/source/predecessor provenance, and CAS-advance the one working head. Never
+mutate a candidate or create a parallel staff workflow; Payload owns only the
+bounded private content/version bytes.
+
+### Phase 22 D25 editorial-recovery qualification
+
+Do not treat Payload autosave age, locks, `_status`, version history/caps,
+restore, trash, the coarse audit hook, or stored bytes as actionability,
+recovery, or retention authority. D25 adds no operational status, queue,
+recovery body, per-autosave event, expiry scan, or materialized projection. The
+exact adapter may keep one Page-and-locale recovery buffer using the fixed two-
+second trailing dirty debounce, 15-second maximum wait, explicit save/flush,
+digest no-op suppression, one in-flight write, and generation fencing. Seal an
+immutable semantic version before any revision or candidate reference. Disable
+blind native pruning for governed Page collections; D24's reconciler alone may
+delete reference-proved scratch or inert prepares. Certify these behaviors
+against the exact installed Payload prerelease rather than an older vendored or
+public-doc version.
+
+### Phase 22 D26 candidate-attestation qualification
+
+Do not treat upload completion, sanitization, terms, media fields, autosave,
+roles, `_status`, or native publish as proof that content may be shared. The
+existing D4/D5 final command alone records one actual-actor Public Content
+Sharing Attestation atomically in the exact immutable candidate, which D2 or
+D11 may later pin. Add no required checkbox, D26 table, Page Boolean, rights
+workflow, public-render join, inherited evidence, fabricated legacy evidence,
+or Payload-native bypass. Certify the combined command and negative bypass
+paths against the exact installed Payload prerelease.
+
 ## Rollback notes
 
 ### Collection-level Web Studio rollback
@@ -231,6 +300,10 @@ bun run cms:importmap
 ```
 
 Then redeploy. Disabled collections fall back to stock Payload list/edit views while the rest of Web Studio remains native.
+
+This is an **editor UI fallback only**. For a D21-adopted cohort it must not
+change the Public Ministry Surface Authority Head, restore the legacy public
+reader, republish raw Payload documents, or bypass any D1-D20 command.
 
 For import-map-only repairs, prefer `bun run cms:importmap` without
 `NODE_ENV=test` so the command sees `.env.local` and the same plugin/env shape as

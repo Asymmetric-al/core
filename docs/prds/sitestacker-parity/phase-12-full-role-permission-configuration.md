@@ -1115,3 +1115,379 @@ Consequential commits and every byte retrieval reauthorize and CAS-reprove the
 current facts; a stale or narrower decision fails without revealing hidden
 coverage. Forced coarse Tenant RLS remains defense in depth, never product
 authority.
+
+## Dated Phase 22 D10 Public Ministry Preview capability amendment (2026-08-06)
+
+Phase 12 defines `public_pages.preview` as a distinct capability atom. It is
+always bounded to one exact Tenant, Legal Entity, Site, Page Family, Public
+Ministry Page, locale, purpose, and saved revision or immutable Public Content
+Release Candidate. An existing verified tenant principal may receive it through
+the existing named-person grant machinery with reason, provenance, current
+state, authorization epoch, and expiry. D10 creates no preview-specific guest,
+invitation, directory, bearer-token, shared-password, or second authorization
+system; an invitation or authenticated session alone grants nothing.
+
+The capability permits only the exact private, side-effect-dark preview. It
+does not imply edit, save, submit, withdraw, review, approve, release,
+publication, CMS administration, operational identity, financial access,
+Giving readiness, or visibility into another page or version. D1 contributor
+assignments and staff/reviewer capabilities feed the same Phase 12 policy
+decision point rather than a parallel resolver.
+
+Every HTML, RSC/data, media, refresh, and session-continuation request re-proves
+the non-anonymous Principal, Active Tenant Assignment, Tenant, Legal Entity,
+Site, Page Family, Page, locale, exact revision/candidate, purpose, current
+assignment/capability/grant and expiry, governing floor, and authorization/
+governance epoch. Revocation, expiry, tenant switching, or a narrower floor
+denies the next request. Supabase's `authenticated` role, Payload
+authentication, role names, Party/subject/spouse/team relationships, Draft Mode,
+URL possession, prior success, or service-role execution never substitutes for
+that decision.
+
+## Dated Phase 22 D11-D12 Ministry Update audience and response capability amendment (2026-08-06)
+
+Phase 12 keeps Supporter Response Profile administration, protected Ministry
+Update reading, each consequential response operation, and protected response
+export independently grantable. The capability catalog MUST distinguish at
+least prospective tenant-profile administration, protected Update access,
+acknowledgement creation/removal, comment/reply creation, self-edit,
+self-withdrawal, reporting, comment review, reversible hold/hide/restore,
+reasoned privacy/safety redaction, response-scope closure, smallest-scope actor
+restriction, and protected export. Exact stable capability identifiers may be
+refined during specification, but one broad `manage_engagement`, supporter,
+moderator, administrator, or service-role grant cannot collapse those powers.
+
+Every count, list, read, react, unreact, comment, reply, edit, withdraw, report,
+moderate, export, stream, and notification-deep-link request proves the current
+Principal, Active Tenant Assignment, Tenant, Legal Entity, environment, source
+and purpose, Update and immutable Revision, D11 Supporter Release Projection and
+version, audience contract, D12 Engagement Space and Response Profile Version,
+current Phase 10 result, operation generation, applicable capability, and
+authorization/governance epochs. Elevated commits reauthorize and CAS-reprove
+the complete scope before appending one action and audit result.
+
+D1 contributor authority may narrow or immediately close responses for its
+exact governed source when policy permits, but reopening uses D4/D5's existing
+review and release authority. A commenter may edit or withdraw only their own
+exact comment under the bounded lifecycle. The configured moderation group is
+an existing Phase 12 group and does not create a second identity or permission
+system. Staff may apply only separately granted moderation dispositions; they
+cannot silently rewrite a supporter's words or gain unrelated supporter,
+financial, communication, page, or tenant authority.
+
+Authentication, the Supabase `authenticated` role, a donation, follow,
+supporter label, Party/subject/spouse/team relationship, Support Assignment,
+page contribution, prior access, cached membership, CMS access, table
+ownership, `BYPASSRLS`, or service-role execution never substitutes for the
+same policy decision. Forced Tenant and Legal Entity predicates, composite
+foreign keys, and RLS remain defense in depth but do not replace the
+application's exact capability and owner-domain checks.
+
+## Dated Phase 22 D13 public-discovery capability amendment (2026-08-06)
+
+Phase 12 keeps D13 profile configuration, consequence preview, activation,
+private exclusion diagnosis, containment, rebuild initiation, and protected
+operational inspection independently grantable under the sole policy decision
+point. Every such operation proves the current Principal, Active Tenant
+Assignment, exact Tenant, Legal Entity, environment, Site, locale, intended
+operation, Discovery Profile Version, projection generation, source purpose,
+Phase 10 floor, and authorization/governance epochs. Consequential activation,
+containment, and rebuild commands reauthorize and CAS-reprove that complete
+scope before committing.
+
+Anonymous directory access is not a Phase 12 staff grant; it is the narrow
+server-resolved projection already admitted by D2 and Phase 10 for one trusted
+public request context. A route segment, public identifier, query, filter,
+cursor, family label, browser state, cached result, Supabase `anon` or
+`authenticated` role, table ownership, `BYPASSRLS`, or service-role execution
+never grants scope or membership. Private exclusion reasons, coverage gaps,
+rebuild evidence, containment causes, and operational identifiers remain
+available only through their exact current staff diagnostic capability and
+never leak through public results, counts, errors, timing, or metadata.
+
+## Dated Phase 22 D15 activity-report authorization amendment (2026-08-06)
+
+D15 separates current capabilities for profile configuration, staff report
+read/export, contributor exact-page report read, and protected diagnostics.
+Staff re-prove the applicable Phase 12 purpose on every operation. A contributor
+must be authenticated and re-prove one current exact D1 Public Page Contributor
+Assignment for the reported page on every read; a canonical Update occurrence
+is contributor-visible only when pinned to an admitted placement on that exact
+page. Revocation removes historical and future report access immediately.
+
+JWT/user metadata, staff title, spouse/team/subject relationship, prior access,
+CMS role, Support Assignment, table ownership, service role, or `BYPASSRLS`
+never grants D15 authority. The server owns the decision and structurally
+complete RLS provides defense in depth; contributors never receive tenant-wide,
+source, identity, raw-occurrence, sparse-cell, or financial drill-down.
+
+## Dated Phase 22 D16 writing-assistance authorization amendment (2026-08-06)
+
+D16 keeps the following current powers separate: manage the shared D10 Provider
+Connection/Credential, activate or retire the exact `public-profile drafting`
+Capability Binding, view protected usage/diagnostics, invoke writing help for an
+exact semantic target, and apply one suggestion into a working revision. A D1
+Public Page Contributor Assignment supplies necessary Page edit scope only; it
+never grants provider configuration, credential, tenant-wide invocation,
+diagnostic, approval, locale-management, or publication authority. Separately
+authorized staff Page editors use the same target-bounded invoke/apply checks.
+
+Every invoke and apply derives and re-proves the Principal, Active Tenant
+Assignment, Tenant, Legal Entity, environment, Site, Page Family, Page, source
+and target locale, current D1/staff edit authority, working revision, semantic
+target, authorization epoch, Phase 10 result, exact D10 Binding and revocation
+state, and operation generation. **Translate to English** additionally proves
+the actor's required source and target draft access and the exact certified
+language pair. JWT/user metadata, role label, subject/display/spouse/team/
+project relationship, CMS login, source Page visibility, prior suggestion,
+provider account access, service role, `BYPASSRLS`, or possession of a key never
+substitutes. RLS and complete composite keys remain defense in depth; the server
+owns the current policy decision.
+
+## Dated Phase 22 D17 Page-subject authorization amendment (2026-08-06)
+
+Phase 12 separately governs the capabilities to create a private Public Page,
+choose an exact D17 subject, append a pre-first-release correction, inspect a
+source-owned exception, and initiate a new Page plus D8 succession after first
+release. Each command derives and re-proves Principal, Active Tenant Assignment,
+Tenant, Legal Entity, environment, Site, Page Family, Page, exact source kind and
+version, current source eligibility/lifecycle, authorization epoch, and
+operation generation; RLS and same-scope composite keys remain defense in depth.
+
+A D1 contributor, Display Participant, missionary subject, spouse, teammate,
+project participant/lead, Campaign owner, fund/Designation manager, Party
+relationship, Support Assignment, CMS/Payload account, role label, prior
+approval, service role, or `BYPASSRLS` status grants no D17 selection,
+correction, lifecycle, Page, or financial authority. Missionaries may view the
+read-only **About this page** summary only when their current D1/staff scope
+permits it; donors receive no authorization-bearing source fact.
+
+## Dated Phase 22 D18 convergence-status and residual-repair authorization amendment (2026-08-06)
+
+D18 normal activation and convergence are automatic and grant no new tenant or
+contributor capability. A current D1 Public Page Contributor may see only the
+quiet **Public**, **Updating**, or **Not public** runtime summary for an assigned
+Page. That summary is separate from and cannot replace D2's exact **Listed
+publicly**, **Shared by link — public**, or **Not public** reach label. It grants
+no operation, provider, cache, diagnostic, repair, release, route, media,
+progress, Giving, discovery, search/share, subject, or measurement authority.
+
+Phase 12 separately governs staff access to a missed controlled-surface deadline
+and to the one residual cause-owned repair supported for that exact scope. Every
+inspection or action derives and re-proves Principal, Active Tenant Assignment,
+Tenant, Legal Entity, environment, Site, verified host, locale, Page Family,
+Page or Ministry Update, release and operation generation, affected surface,
+owner-labelled cause, current authorization epoch, and current owner-domain
+truth. RLS and composite scope are defense in depth; an assignee, prior
+publisher, Payload role, provider account, task ownership, service role, or
+`BYPASSRLS` status grants nothing by itself.
+
+There is no ordinary capability for a tenant or contributor to set TTLs, edit
+cache keys or surface coverage, purge a tenant, force live, mark fixed, suppress
+an exception, retry blindly, or declare convergence. A rare destructive
+provider action requires an exact supported capability, least privilege,
+impact preview, stampede/rate protection, append-only audit, and the still-
+authoritative local admission gate. Healthy work opens no task; staff receive
+plain visitor impact, last proof, automatic next step, and one narrow action only
+after a deadline is missed or an owner cause genuinely requires intervention.
+
+## Dated Phase 22 D19 Ministry Assignment collaboration and support-access amendment (2026-08-06)
+
+Phase 22 D19 reuses the sole Phase 12 policy decision point and does not create
+a Ministry Assignment ACL. Phase 9 owns Ministry Assignment identity,
+lifecycle, and Participant Membership; D1 owns Display Participants and Public
+Page Contributor Assignments; Phase 21 owns the separately finance-authorized
+Ministry Assignment Support Binding Version, Support Assignments, Participant
+Membership, support activity, and Field Account truth. Phase 12 alone owns the
+current principal-bound decision to expose an exact Support Workspace
+projection and fields.
+
+The capability manifest keeps at least the following powers independently
+grantable:
+
+- view one exact CRM Ministry Assignment;
+- create one CRM Ministry Assignment;
+- append one Ministry Assignment lifecycle successor or correction;
+- add one Ministry Assignment Participant Membership;
+- prospectively end or append a correction to one Participant Membership;
+- inspect one Ministry Assignment Support Binding without changing it;
+- create or succeed one same-scope Support Binding only through a separately
+  named finance-authorized binding capability unavailable from Page,
+  contributor, display, missionary, and general CRM roles;
+- manage D1 public display and Page contribution through separate existing
+  capability atoms rather than one broad Page-management grant;
+- grant or widen exact Support Workspace projection, target, purpose, field,
+  and history-floor access;
+- narrow or revoke that support access independently from every other choice;
+- manage the separately owned notification preference;
+- manage an exact owner-domain operational responsibility; and
+- inspect protected assignment, binding, access-decision, invitation,
+  revocation, and operation evidence under an exact audit purpose.
+
+One **People & access** surface may invoke several of those owner-domain
+commands only when the actor is independently authorized for every selected
+consequence. Its tenant-safe presets and labels are input conveniences, never
+authorization. Local facts and one outbox intent may commit atomically, but the
+records, state machines, histories, and external invitation or notification
+outcomes remain separate. The minimum-safe Support Workspace preset excludes
+supporter identity, contact details, evidence, and other sensitive fields unless
+each field is separately authorized.
+
+Every list, count, read, edit, invite, grant, revoke, bind, rebind, export,
+notification eligibility check, job, repair, audit request, and Realtime-
+triggered refetch derives and re-proves the Principal and the discriminated
+current Tenant Authorization Context—an Active Tenant Assignment for a
+membership-backed human, or the contractually applicable Service, Operator, or
+Public context—plus Tenant, Legal Entity, purpose, projection, target, field
+set, history floor, capability, current authorization/governance epoch, and the
+exact Ministry Assignment, Page, and/or Support Assignment only where the
+operation applies. A pure Support Workspace read does not fabricate or require
+a Ministry Assignment binding, and a background operation does not fabricate an
+Active Tenant Assignment. A stale JWT, old deep link, cached navigation, open
+Realtime connection, service role, table owner, or `BYPASSRLS` path never
+substitutes for the applicable decision.
+
+Ministry Assignment participation, marriage, household, team or leadership
+relationship, Page subject, display, contributor status, Phase 21 participant
+membership, Support Binding, Designation, D6 progress, notification preference,
+and prior access grant nothing by themselves. Forced coarse Tenant RLS,
+explicit least-privilege Data API grants and revocations, complete composite
+keys, browser-inaccessible raw tables with no `anon` or `authenticated` raw-
+table grant, security-invoker or unexposed views, safe private definer
+functions, and signal-only private Realtime remain catalog-tested defense in
+depth. Fine-grained grants do not live in RLS relationship joins, JWT arrays,
+`user_metadata`, cookies, URLs, or client-selected scope.
+
+## Dated Phase 22 D21 surface-adoption authorization amendment (2026-08-14)
+
+Phase 12 adds one independently grantable capability atom: **activate one
+prepared Public Ministry surface** for an exact Tenant, Legal Entity,
+environment, Site, immutable verified-host membership generation, and locale.
+It is separate from viewing adoption status, resolving an owner-domain
+exception, editing or reviewing a Page, activating a D2 release, changing D8
+routes, inspecting protected evidence, running D18 residual repair, managing
+Payload, and administering roles. A tenant may grant several atoms to the same
+qualified staff Principal, but possession of one never implies another and D21
+does not mandate a second approver or duplicate D4/D5 review queue.
+
+The final action re-proves the current Principal and Active Tenant Assignment,
+the exact activation capability and scope, current authorization/governance and
+revocation epochs, immutable plan/manifest and host-set digests, current owner
+heads, and the single-winner reader-generation CAS. Contributor or subject
+status, prior Page publication, a Page release permission, Missionary or
+Ministry Assignment membership, support access, CMS or Payload role, provider
+account, service credential, task ownership, table ownership, or `BYPASSRLS`
+grants no D21 inspection, exception-resolution, or activation authority.
+
+There is no capability to force-ready, silently exclude an item, weaken Phase
+10, infer a subject or Designation, bulk-approve unresolved high-risk mappings,
+mark convergence complete, restore the legacy reader, or bypass a failed current
+reproof. Raw manifests and protected diagnostics require their own audit-
+purposed read capability; the ordinary exception projection is privacy-
+minimized. Revocation wins before cutover, and a stale tab, repeated click, or
+concurrent actor receives the durable current result without a second switch.
+
+## Dated Phase 22 D22 action-specific operations authorization amendment (2026-08-14)
+
+Phase 12 must authorize D22 projection read, owner-domain action, optional
+shared-task collaboration, and protected-evidence inspection as independent
+capabilities over the exact Tenant × Legal Entity × environment × Site ×
+locale and affected object scope. Authorization is applied before rows,
+groupings, counts, search, export, notification, task links, or cache content is
+returned, and the exact owner action is re-authorized against current facts at
+execution. Permission-filtered absence is not represented by a revealing
+disabled action.
+
+Page subject, contributor or reviewer status, Ministry or Support Assignment,
+relationship, linked-task ownership, prior visibility, UI selection, client
+claim, raw-table access, service credential, table ownership, or `BYPASSRLS`
+status grants none of these capabilities. A shared task may coordinate one
+same-scope follow-up only after the structural and atomic/idempotent proof; its
+assignee, state, or closure cannot authorize an owner command or resolve the
+underlying cause.
+
+## Dated Phase 22 D24 staff Page-content authorization amendment (2026-08-14)
+
+Phase 12 must resolve staff Page-content editing as one independently grantable
+capability over the exact Tenant, Legal Entity, environment, Site, locale, Page
+Family, Page, current assignment where applicable, and D3/D20 editable semantic
+targets. It is separate from contributor editing, preview, review, approval,
+release, reach, Phase-10 containment, setup/settings, D21 adoption, D22
+operations, protected history or comparison access, managed-source changes,
+and notification delivery. A tenant may grant several capabilities to one
+qualified Principal, but no broad staff/admin or Payload role collapses them.
+
+Every D24 Page, revision, candidate, author, comparison, reason, history,
+action, count, cache, save, successor, and retry is permission-filtered before
+disclosure and re-proved at deliberate commit against the current Principal and
+Active Tenant Assignment, exact scope, capability and authorization epoch,
+lifecycle, safety ceiling, catalog/allowlist, source digest, and working-head
+generation. Reviewer, contributor, subject, participant, Ministry Assignment,
+Support Assignment, relationship, task, prior edit, URL, JWT metadata, Payload
+role, service credential, table ownership, or `BYPASSRLS` grants nothing by
+itself. Revocation or a failed current proof denies the new mutation without
+deleting preserved attributed history; a concurrent head advance returns a
+visible conflict rather than last-write-wins success.
+
+## Dated Phase 22 D25 action-specific editorial-recovery authorization amendment (2026-08-14)
+
+Phase 12 must authorize discovery of preserved work, viewing saved content,
+viewing a comparison, reviewing or reusing saved changes, editing the current
+Page, viewing or withdrawing a submission, requesting changes, rejecting,
+approving, and releasing as independent capabilities over the exact current
+Tenant, Legal Entity, environment, Site, Page Family, Page, locale, subject,
+assignment where applicable, field set, history floor, and authorization epoch.
+The disposable D25 Editorial Actionability Evaluation may expose only actions
+proved for that read; it is not authority, and every owning command repeats its
+own current proof at commit. An unavailable action is omitted with a safe
+owner-domain explanation where permitted, not exposed as a revealing disabled
+control.
+
+Authorization precedes every existence signal, actor identity, content byte,
+comparison, count, history item, recovery-buffer reference, candidate, deep
+link, cache entry, and action. A prior assignment, relationship, authorship,
+contribution, review role, release role, stored Payload byte, recovery buffer,
+candidate reference, URL, stale session, JWT metadata, CMS role, service
+credential, table ownership, or `BYPASSRLS` grants no access. Revocation wins
+immediately without deleting preserved evidence. The fact that approval or
+release is currently unavailable does not remove independently authorized
+**View submission**, **Request changes**, terminal rejection, explicit
+withdrawal, or D24 **Edit page** actions.
+
+**Review saved changes** and **Use as starting point** require current edit and
+source-history access plus current same-Page, same-locale, same-family, and
+same-subject proof. They may create only a newly attributed D1 successor after
+current safety, catalog, media, lifecycle, source digest, and expected-head
+reproof; they never submit, approve, release, revive former authority, or copy
+work across scope. A stale tab, late autosave, resolver result, age label, or
+Payload native restore/delete operation cannot bypass that command boundary.
+
+## Dated Phase 22 D26 actual-submitter attestation authorization amendment (2026-08-14)
+
+Only the actual currently authorized actor performing the existing D4/D5
+**Submit for review** or **Publish changes** command may create the candidate's
+Public Content Sharing Attestation. The command must server-derive and re-prove
+the current Principal, Active Tenant Assignment, exact Tenant, Legal Entity,
+environment, Site, Page Family, Page or independently released Ministry Update,
+locale, candidate identity and digest, applicable contributor or staff editing
+capability, expected head, and authorization epoch before atomically freezing
+the candidate and attestation. A client-supplied actor, subject, relationship,
+prior assignment, URL, session claim, Payload role, service credential, table
+ownership, or `BYPASSRLS` status grants nothing.
+
+The attestation is evidence of that actor's deliberate confirmation, not an
+edit, submit, review, approval, release, reach, safety, media, or legal-rights
+capability. A staff reviewer approving an unchanged contributor candidate does
+not attest again and acquires no verification meaning. If staff materially
+revise content, D24 creates a new staff-attributed candidate and the actual
+staff submitter performs the same one action-bound confirmation. No subject,
+spouse, teammate, Ministry Assignment, Support Assignment, contributor,
+reviewer, or broad staff/admin status may attest for another actor or create a
+fictional Page owner.
+
+Revocation, reassignment, a changed candidate or digest, translation, clone,
+import, different scope, statement-version successor, or concurrent head
+advance prevents inheritance and requires a new current proof. Failure or an
+ambiguous response leaves the prior safe release unchanged; authoritative
+readback and the original idempotency identity determine whether the combined
+candidate-and-attestation command committed before any retry.

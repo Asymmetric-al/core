@@ -51,3 +51,53 @@ outage (retry or degrade the affected element, not the whole page).
 - The presentation-identity split is load-bearing for later phases
   (family/team pages, restricted-worker suppression) and must not be
   collapsed into "the page is the record."
+
+## Dated Phase 22 D17 clarification (2026-08-06)
+
+The historical phrase “a project page its fund” and the current Payload
+`project-pages.fundId` field describe prototype behavior, not the final subject
+contract. A Phase 22 Project/Campaign Page now owns one operational,
+immutable-versioned Page Subject Binding to exactly one owner-certified CRM
+Ministry Project, Phase 13 Giving Campaign, or separately public-subject-
+eligible Phase 13 Designation. Payload may retain legacy hints only as migration
+input and references the opaque Page identity for presentation; it never owns or
+infers the subject.
+
+Reference-not-copy now means the public release pins a minimum Phase-10-safe
+subject snapshot rather than joining anonymous traffic to the live source or
+copying operational identity into CMS. The D17 subject remains independent of
+D7 Giving, D6 progress, D1 contributors/display, D2 release/reach, and D8
+lifecycle. A subject correction before first release appends a successor; after
+first release another subject requires a new Page identity plus D8 succession.
+
+## Dated Phase 22 D19 clarification (2026-08-06)
+
+A Missionary Ministry Page references one CRM-owned Ministry Assignment through
+its immutable-versioned Page Subject Binding. Payload stores authored
+presentation against the opaque Page identity and a release pins only the
+minimum Phase-10-safe Ministry Assignment snapshot. Payload never copies or
+owns the assignment, participant roster, relationships, optional Phase 21
+Support Binding, support activity, supporter identity, Field Account balance,
+grant, or notification preference.
+
+Ministry Assignment Participant Membership, D1 Display Participant and Public
+Page Contributor Assignment, Phase 21 Support Assignment participation, Phase
+12 Support Workspace authorization, and notification preference remain
+independent even when one People & access workflow creates selected local facts.
+Anonymous reads never join raw CRM or finance truth, and authenticated support
+reads always return through the owner-authorized Phase 12/21 projection.
+
+## Dated Phase 22 D21 clarification (2026-08-14)
+
+Legacy CMS ids, names, URLs, slugs, `missionaryId`, and `fundId` are adoption
+hints only. A D21 coverage disposition must reference the exact current D1-D20
+owner fact that authorizes its subject, presentation, Giving, progress, route,
+media, reach, or retirement result. A matching string, successful legacy read,
+or missing row cannot supply that authority. Unknown or ambiguous input stays
+unadopted and cannot silently become a general-fund CTA, public Page, zero, or
+retirement.
+
+The sole post-cutover Phase 5/D18 gateway may preserve a proved-safe legacy
+appearance only after a certified one-time adapter normalizes it into an
+immutable, family-qualified D2 release. It never reads mutable legacy records at
+request time or turns copied legacy values into managed operational truth.
