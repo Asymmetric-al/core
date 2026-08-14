@@ -22,9 +22,9 @@ rights, consent, review, or release system.
 
 Adopt the exact founder-ratified Phase 22 D26 A-prime-R formulation:
 
-> **A-prime-amended-and-hardened (A-prime-R) — one calm, action-bound Public
+> **A-prime-amended-and-hardened (A-prime-R)** — one calm, action-bound Public
 > Content Sharing Attestation for each exact immutable Public Content Release
-> Candidate:** the currently authorized Public Page Contributor or staff actor
+> Candidate: the currently authorized Public Page Contributor or staff actor
 > responsible for the words and images they deliberately submit or publish
 > sees one plain sentence immediately beside the existing D4/D5 action — **“By
 > submitting, you confirm you’re allowed to share the words and images on this
@@ -67,7 +67,7 @@ Adopt the exact founder-ratified Phase 22 D26 A-prime-R formulation:
 > face or child detection, frightening warranty or indemnity language, public
 > attestation data, fabricated legacy evidence, admin bypass, or any claim that
 > attested, verified, consent-complete, safe, reviewed, approved, released,
-> cached, publicly reachable, or still publicly available are the same fact.\*\*
+> cached, publicly reachable, or still publicly available are the same fact.
 
 The attestation is compact immutable evidence inside the existing candidate,
 not a D26 table, Page Boolean, public field, or runtime lookup. Candidate and
@@ -102,6 +102,10 @@ output. Other Phase 10 purposes and separately required evidence are unchanged.
 
 - Every submission and direct-publication path, including service and provider
   adapters, must be unable to bypass candidate-bound evidence.
+- Service and provider adapters may prepare or validate a candidate only. The
+  submission or publication command must carry a verified human caller and
+  current authorization context through the user-bound D4/D5 action; a
+  background or service identity cannot supply the attestation's actual actor.
 - Candidate normalization and digest behavior must be deterministic and
   versioned across upgrades.
 - Migration surfaces must distinguish **not captured** from false, denied, or

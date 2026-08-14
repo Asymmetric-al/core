@@ -22,9 +22,11 @@ cardinalities, and accessibility, performance, locale, and failure contracts.
 They share governed rendering primitives and one Publication contract rather
 than one universal polymorphic page schema.
 
-For each Tenant × Legal Entity × Site × Page Family, the product supplies one
-built-in accessible default and permits one prospective tenant-selected complete
-profile version. D3 originally allowed an exact-Page exception to select another
+For each Tenant × Legal Entity × environment × Site × Page Family, the product
+supplies one built-in accessible default and permits one prospective
+tenant-selected complete profile version. Reusable immutable profile-version
+content remains distinct from this environment-scoped activation head. D3
+originally allowed an exact-Page exception to select another
 complete certified profile of the same family; D27 supersedes that rule, so no
 Page-specific exception ships (see the qualification below). Profiles never
 deep-merge, cascade, mutate after activation, or cross families. Every D2 Page

@@ -237,10 +237,14 @@ The Missionary launch catalog is managed public identity; optional Introduction,
 Our ministry story, Ministry focus, and How you can pray; D9 media; optional D6
 Support progress; required D7-managed Give; one bounded D11 Ministry Updates
 feed; and locked organization stewardship/disclosure/help. The Project/Campaign
-catalog is managed project identity; optional Project summary, The need, What
-this project will do, and prospective Expected impact; D9 media; optional D6
-Project progress; required D7-managed Give; one exactly bound D11 Project
-Updates feed; and locked organization stewardship/disclosure/help.
+catalog uses one managed D17 kind-qualified subject identity for a CRM Ministry
+Project, Giving Campaign, or eligible Designation; optional Project summary,
+The need, What this project will do, and prospective Expected impact; D9 media;
+optional D6 Project progress; required D7-managed Give; one D11 Updates feed
+selected by the Page-scoped Feed Binding and exact subject/purpose scope; and
+locked organization stewardship/disclosure/help. Source-kind-incompatible
+identity fields or feeds are unavailable rather than fabricated, inferred, or
+relabeled as project truth.
 
 One Site-family profile head applies to every current Page and locale in that
 family. Presentation activation compiles the complete current Page-by-locale

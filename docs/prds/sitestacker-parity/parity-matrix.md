@@ -420,7 +420,8 @@ questions**. Benchmark source root: `https://sitestacker.training`.
   and accessible Share fallback from one coverage digest, with Listed-public,
   Shared-by-link/noindex, and non-public states remaining distinct; D15 Off
   produces no occurrences, every fetch/render/preview/machine path remains
-  effect-free, duplicate intake is idempotent and bound to one exact release,
+  measurement-effect-free, duplicate intake is idempotent and bound to one
+  exact release,
   current assignment revocation removes contributor report access immediately,
   low-count and coverage states never silently become zero, and measurement
   failure never changes Page, Share, Give, cart, or checkout behavior; and D16
@@ -438,7 +439,8 @@ questions**. Benchmark source root: `https://sitestacker.training`.
   convergence, without stale fallback or a second public head; and D19 proves a
   couple or team can share one Missionary Ministry Page while each person keeps
   an own-identity login and only explicitly authorized people can read the exact
-  D9-permitted Support Workspace modules, fields, currencies, and history; and
+  Phase-12-authorized, D19-associated Support Workspace modules, fields,
+  currencies, and history; and
   D20 proves each Page uses exactly one compatible family catalog generation,
   contributors can edit only offered authorized semantic roles, and unknown,
   wrong-family, duplicate, over-cardinality, or over-budget input cannot enter a

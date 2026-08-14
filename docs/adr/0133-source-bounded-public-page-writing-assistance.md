@@ -35,9 +35,11 @@ It may operate only for a currently authorized D1 contributor or separately
 authorized staff Page editor on one eligible D3 narrative field, block, or
 within-block selection of one saved D1 working revision.
 
-The code-owned action catalog is deliberately small: guided drafting, spelling
-and grammar, clarity, shortening, fact-supplied detail, three neutral tones, a
-bounded same-source instruction, and **Translate to English**. Every invocation
+The code-owned action catalog is deliberately small: **Start from guided
+answers**, **Fix spelling & grammar**, **Improve clarity**, **Shorten**, **Add
+detail** only from explicitly selected or newly supplied facts, three certified
+neutral tones, one length-bounded same-source transformation instruction under
+**More**, and **Translate to English** under its separate rider. Every invocation
 shows its exact sources and freezes one minimum-data Public Page Writing Source
 Package plus the shared D10 Egress Manifest and Invocation Evidence. Provider
 calls are server-side, typed, source-minimal, tool-free, retrieval-free, and

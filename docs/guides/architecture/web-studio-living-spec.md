@@ -366,9 +366,17 @@ progress, permissions, or release eligibility.
 
 **Plain language:** Every editorial document belongs to a **tenant**. Staff see only their tenant; super-admins see more. Public readers never authenticate; the server picks a tenant from host or query and only returns **published** rows for that tenant.
 
-**Technical:** `tenant` relationship on collections; `applyTenantFromContext` hooks; access in `tenant-access.ts`; public handlers call `resolveTenantFromRequest` then `where: { tenant: { equals: tenant.id }, _status: published }` (or equivalent).
+**Technical:** `tenant` relationship on collections; `applyTenantFromContext`
+hooks; access in `tenant-access.ts`; public content handlers resolve the request
+context and read only through `PublishedContentReader` with
+`overrideAccess: false`. Its explicit tenant-and-published predicates are
+defense in depth. `apps/admin/src/cms/public/resolve-tenant.ts` is the sole
+allowlisted non-content exception: it may resolve the tenant document required
+to construct the context, but it must not read or serialize public content.
 
-**Do not break:** widening `overrideAccess` on public routes; skipping tenant predicate.
+**Do not break:** bypassing `PublishedContentReader`; widening
+`overrideAccess` on public-content reads; skipping the tenant-and-published
+predicate; or expanding the tenant-resolution exception into a content reader.
 
 ---
 

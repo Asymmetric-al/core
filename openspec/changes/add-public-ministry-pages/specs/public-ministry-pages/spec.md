@@ -492,8 +492,10 @@ absent when no admitted public placement remains.
 - **WHEN** an admitted Shared release is fetched for a link preview
 - **THEN** its approved bounded share presentation may be returned
 - **AND** the release emits `noindex` and remains absent from platform-owned
-  directories, search, feeds, and sitemaps; external indexing or removal is not
-  claimed
+  directories, search, feeds, and sitemaps
+- **AND** its public route is not path-disallowed in `robots.txt`, so a crawler
+  can fetch the response and observe `noindex`; external indexing or removal is
+  not claimed
 
 #### Scenario: One Update is placed on Pages with different reach
 
@@ -585,6 +587,11 @@ require the actor to confirm provider detection, and require materially mixed-
 language ranges to be separated or explicitly confirmed. Translation SHALL NOT
 simultaneously rewrite, shorten, change tone, localize dates, amounts,
 currencies or units, persuade, or add facts.
+Each valid attempt SHALL create at most one typed, encrypted, non-authoritative
+suggestion whose body expires within 24 hours or sooner when the actor chooses
+Use or Discard, the exact source is superseded, or relevant authority is
+revoked. Expiration SHALL NOT alter the author's ordinary saved revision or
+create a release, workflow, or publication fact.
 
 #### Scenario: An author improves selected prose
 
@@ -743,11 +750,19 @@ The Missionary launch catalog SHALL contain managed public identity; optional
 Introduction, Our ministry story, Ministry focus, and How you can pray; D9
 media; optional D6 Support progress; one required D7-managed Give semantic role;
 one bounded D11 Ministry Updates feed; and locked organization stewardship,
-disclosure, and help. The Project/Campaign launch catalog SHALL contain managed
-project identity; optional Project summary, The need, What this project will do,
-and prospective Expected impact; D9 media; optional D6 Project progress; one
-required D7-managed Give semantic role; one exactly bound D11 Project Updates
-feed; and locked organization stewardship, disclosure, and help.
+disclosure, and help. The Project/Campaign launch catalog SHALL contain one
+managed D17 kind-qualified public subject identity for a CRM Ministry Project,
+Giving Campaign, or eligible Designation; optional Project summary, The need,
+What this project will do, and prospective Expected impact; D9 media; optional
+D6 Project progress; one required D7-managed Give semantic role; one D11
+Updates feed selected by the Page-scoped Feed Binding and exact subject/purpose
+scope; and locked organization stewardship, disclosure, and help. A source-
+kind-incompatible identity field or feed SHALL be unavailable and SHALL NOT be
+fabricated, inferred, or relabelled as project truth.
+For either family, contributors SHALL receive one quiet authoring experience
+organized as `Basics`, `Story`, `Media`, `Support & giving`, and `Updates`.
+Those groups SHALL expose only compatible tenant-enabled roles and SHALL NOT
+become tenant-authored schema, layout, permission, or publication controls.
 
 #### Scenario: A profile selects family blocks
 
@@ -774,6 +789,8 @@ feed; and locked organization stewardship, disclosure, and help.
 - **THEN** only that family's exact launch catalog roles are offered
 - **AND** required managed Give and stewardship roles cannot be removed or
   replaced by editorial blocks
+- **AND** each Project/Campaign managed role resolves through the exact D17
+  subject kind and explicit D11 Feed Binding rather than project-name inference
 
 ### Requirement: D21 Public Surface Adoption Uses One Complete Authority Cutover
 
@@ -801,6 +818,14 @@ brand, managed references, and owner generations; public requests SHALL never
 read mutable legacy or raw Payload data. Unknown or unmappable semantics SHALL
 not qualify, no new compatible-legacy release may be created after cutover, and
 the next editorial change SHALL use an ordinary current-catalog successor.
+D21 SHALL NOT create migration-specific Page lifecycle or editorial states.
+Ordinary D5 and D18 labels remain authoritative. Staff adoption readiness SHALL
+be a disposable projection using only `Ready to use`, `Needs a decision`, and
+`Not moving as a current ministry page`; the last label SHALL name its exact D8
+redirect, transition, terminal, private-preservation, or retirement outcome.
+Cutover receipts MAY say `Could not start — current site still in use`, `Started
+— public copies updating`, or `Started — prepared pages in use`, but SHALL NOT
+become Page state or use `Live` as D21 truth.
 
 #### Scenario: Pages are prepared incrementally
 
@@ -920,6 +945,11 @@ submitted contributor candidate SHALL preserve the candidate, author,
 attestation, and exact diff; a bounded staff reason SHALL be required only when
 staff materially supersede contributor-submitted work. That reason SHALL be
 short, notification-safe, and visible to the contributor.
+D24 MAY emit one privacy-minimized idempotent occurrence only after committed
+material supersession or a genuine conflict. Existing D5 request-for-action and
+D2/D4/D5 release occurrences SHALL be reused rather than duplicated; Phase 6
+retains recipient and delivery authority, and Phase 17 retains governed message
+content authority.
 
 #### Scenario: Staff correct organization-authored copy
 
@@ -1060,6 +1090,11 @@ organization`, and a single-locale Site SHALL hide unnecessary locale machinery.
 `Start from existing language` MAY seed a private target-locale draft with exact
 provenance, but it SHALL NOT translate or release content and the target locale
 SHALL complete its own Phase 24, D16 where applicable, D26, D4/D5, and D2 path.
+Historical presentation reconstruction SHALL resolve both the exact D2 locale
+release and D3 family activation effective at the observation time. Old proved
+generations SHALL remain available for that reconstruction and append-only
+reactivation; destructive rollback and mutable `latest` resolution are
+prohibited.
 
 #### Scenario: One locale is edited
 

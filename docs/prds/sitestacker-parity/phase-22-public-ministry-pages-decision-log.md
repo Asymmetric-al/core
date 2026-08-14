@@ -352,7 +352,9 @@ Project/Campaign Page continues to use D17's separately typed subject arms.
   publication primitives, not one condition-heavy universal page schema.
 - One built-in accessible family default keeps ordinary tenant setup quiet. A
   tenant may activate one prospective complete profile version for each exact
-  Tenant × Legal Entity × Site × Page Family scope.
+  Tenant × Legal Entity × environment × Site × Page Family scope. Reusable
+  profile-version content remains distinct from the environment-scoped
+  activation head.
 - Historical D3 rule, superseded by D27: a Page-specific exception could select
   another complete certified profile of the same family; Phase 22 ships no such
   exception. Profiles do not inherit fragments, deep-merge patches, accept
@@ -2475,7 +2477,7 @@ contract.
 - Only same-origin, fixed-schema, best-effort post-render or explicit-action
   `POST` intake may create a measurement occurrence. All fetch, render,
   preview, crawler, scanner, social-card, sitemap, monitor, and provider paths
-  remain effect-free, and measurement failure never blocks the public or giving
+  remain measurement-effect-free, and measurement failure never blocks the public or giving
   journey.
 - The local Share or Give behavior runs first. Measurement never consumes
   transient user activation or delays native Share, Copy link, fallback
@@ -2553,7 +2555,7 @@ contract.
 
 ### Decision
 
-> **C-prime-amended-and-hardened (C-prime-R) — one quiet, tenant-off-by-default,
+> **C-prime-amended-and-hardened (C-prime-R)** — one quiet, tenant-off-by-default,
 > source-bounded, suggestion-only Public Page Writing Assistant that consumes
 > and never duplicates Phase 21 D10's exact `public-profile drafting` AI control
 > plane; appears only to a currently authorized D1 contributor or separately
@@ -2564,7 +2566,7 @@ contract.
 > clarity, Shorten, Add detail only from explicitly selected or newly supplied
 > facts, three bounded neutral tones, one length-bounded same-source
 > transformation instruction under More, and an explicit **Translate to
-> English\*\* action only for an independently certified source-language → exact
+> English** action only for an independently certified source-language → exact
 > Phase-24-owned English BCP 47 locale pair. Translation pins and visibly names
 > the authoritative or actor-confirmed source language and exact target such as
 > `en-US` or `en-GB`; provider detection is only a confirmable hint; materially
@@ -2634,7 +2636,7 @@ contract.
 > Designation, progress, Giving, reach, Ministry Update, locale, translation
 > status, submission, approval, release, or publication. Translation success,
 > author Use, staff approval, competent bilingual review, release, publication,
-> and certified translation remain independently authoritative facts.\*\*
+> and certified translation remain independently authoritative facts.
 
 ### Binding interpretation
 
@@ -3599,6 +3601,15 @@ field or supporter identity.
 
 ### D3 elaboration, not a new configuration system
 
+The founder quote's `managed project identity`, `project update feed`, and
+environment-less D3 tuple are historical family shorthand. D17 and D27 govern
+current implementation: every activation head is Tenant × Legal Entity ×
+environment × Site × Page Family, managed subject presentation is qualified by
+the exact CRM Ministry Project, Giving Campaign, or eligible Designation kind,
+and Update inclusion uses one explicit Page-scoped D11 Feed Binding. An
+incompatible source-kind field or feed is unavailable, never inferred,
+fabricated, or relabelled as project truth.
+
 - D20 supplies the concrete launch contents of D3's already-ratified
   family-qualified block-catalog generations. It creates no second profile
   resolver, release head, workflow, permission system, public-source selector,
@@ -3634,18 +3645,18 @@ field or supporter identity.
 
 ### Project/Campaign Page launch catalog
 
-| Semantic section                                   | Authority and edit boundary                                                   | Bounded flexibility and public outcome                                                                                                   |
-| -------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **Project identity and hero**                      | Required managed projection from D17's exact typed subject, Phase 10, and D9. | Tenant selects only a compatible treatment. Contributors cannot type or copy operational identity.                                       |
-| **Project summary**                                | Release-frozen editorial content.                                             | Zero or one short summary; Off, Available, or Expected; staff-only or contributor-editable. Empty content omits the section.             |
-| **The need**                                       | Release-frozen bounded safe rich text.                                        | Zero or one clear need statement with allowlisted structure and safe locale/link behavior.                                               |
-| **What this project will do**                      | Release-frozen bounded rich text or structured short steps.                   | Zero or one plan section. It cannot impersonate current source-owned lifecycle or completion truth.                                      |
-| **Expected impact**                                | Release-frozen bounded editorial claim list reviewed under D4/D5.             | Zero or one bounded list. Wording remains prospective; it is not an achieved result, metric, counter, ledger fact, or D6 progress input. |
-| **Approved photos and media**                      | D9-owned released media references.                                           | Same bounded, responsive, metadata-safe, accessible media contract as the Missionary family.                                             |
-| **Project progress**                               | D6-owned managed projection.                                                  | Optional placement only; no contributor-entered totals, formulas, dates, or manual progress.                                             |
-| **Give**                                           | Required managed surface over the page's one D7 Page Giving Binding.          | One exact Designation and one consistent destination across certified placements.                                                        |
-| **Project Updates**                                | D11 feed with an exact canonical project/purpose binding.                     | Optional bounded feed. Subject, contributor, teammate, or fund proximity never infers inclusion.                                         |
-| **Organization stewardship, disclosure, and help** | Required tenant/site-managed content, contributor-locked.                     | One compatible certified treatment in its locked context.                                                                                |
+| Semantic section                                   | Authority and edit boundary                                                            | Bounded flexibility and public outcome                                                                                                   |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Subject identity and hero**                      | Required managed projection from D17's exact kind-qualified subject, Phase 10, and D9. | Tenant selects only a compatible treatment. Contributors cannot type, copy, or relabel operational identity.                             |
+| **Project summary**                                | Release-frozen editorial content.                                                      | Zero or one short summary; Off, Available, or Expected; staff-only or contributor-editable. Empty content omits the section.             |
+| **The need**                                       | Release-frozen bounded safe rich text.                                                 | Zero or one clear need statement with allowlisted structure and safe locale/link behavior.                                               |
+| **What this project will do**                      | Release-frozen bounded rich text or structured short steps.                            | Zero or one plan section. It cannot impersonate current source-owned lifecycle or completion truth.                                      |
+| **Expected impact**                                | Release-frozen bounded editorial claim list reviewed under D4/D5.                      | Zero or one bounded list. Wording remains prospective; it is not an achieved result, metric, counter, ledger fact, or D6 progress input. |
+| **Approved photos and media**                      | D9-owned released media references.                                                    | Same bounded, responsive, metadata-safe, accessible media contract as the Missionary family.                                             |
+| **Project progress**                               | D6-owned managed projection.                                                           | Optional placement only; no contributor-entered totals, formulas, dates, or manual progress.                                             |
+| **Give**                                           | Required managed surface over the page's one D7 Page Giving Binding.                   | One exact Designation and one consistent destination across certified placements.                                                        |
+| **Updates**                                        | D11 feed selected by the Page-scoped Feed Binding and exact subject/purpose scope.     | Optional bounded feed. Subject, contributor, teammate, or fund proximity never infers inclusion; incompatible feeds are unavailable.     |
+| **Organization stewardship, disclosure, and help** | Required tenant/site-managed content, contributor-locked.                              | One compatible certified treatment in its locked context.                                                                                |
 
 ### Flexibility and quiet authoring experience
 
@@ -5550,9 +5561,9 @@ preserve them without retroactive reinterpretation.
 the simple page-level Option A and accepting the following adversarially
 hardened A-prime-R as binding Phase 22 planning truth.
 
-> **A-prime-amended-and-hardened (A-prime-R) — one calm, action-bound Public
+> **A-prime-amended-and-hardened (A-prime-R)** — one calm, action-bound Public
 > Content Sharing Attestation for each exact immutable Public Content Release
-> Candidate:** the currently authorized Public Page Contributor or staff actor
+> Candidate: the currently authorized Public Page Contributor or staff actor
 > responsible for the words and images they deliberately submit or publish
 > sees one plain sentence immediately beside the existing D4/D5 action — **“By
 > submitting, you confirm you’re allowed to share the words and images on this
@@ -5594,7 +5605,7 @@ hardened A-prime-R as binding Phase 22 planning truth.
 > face or child detection, frightening warranty or indemnity language, public
 > attestation data, fabricated legacy evidence, admin bypass, or any claim that
 > attested, verified, consent-complete, safe, reviewed, approved, released,
-> cached, publicly reachable, or still publicly available are the same fact.\*\*
+> cached, publicly reachable, or still publicly available are the same fact.
 
 ### Why the raw Option A needs this small hardening
 

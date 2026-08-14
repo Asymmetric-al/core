@@ -7610,7 +7610,7 @@ proof. [Sentry Session Replay](https://docs.sentry.dev/platforms/javascript/sess
 ### 34.3 Minimal data, Supabase, and RLS boundary
 
 `GET`, `HEAD`, rendering, RSC/prefetch, preview, sitemap, crawler, social-card,
-scanner, and monitor requests remain effect-free. A first-party same-origin
+scanner, and monitor requests remain measurement-effect-free. A first-party same-origin
 POST occurs only after a production public release is visibly rendered or an
 exact Share/Give action occurs. Delivery is best-effort and never delays or
 blocks content, Share, Give routing, cart, or checkout. No persistent offline
@@ -9178,10 +9178,11 @@ The candidate catalogs are intentionally shallow and small:
   Ministry story, Ministry focus, and Prayer focus; managed D9 media; optional
   managed D6 Support progress; required D7 Give; optional exact D11 Ministry
   Updates feed; locked organization stewardship/disclosure/help.
-- **Project/Campaign:** managed project identity/hero; optional Project summary,
-  The need, What this project will do, and bounded prospective Expected impact;
-  managed D9 media; optional managed D6 Project progress; required D7 Give;
-  optional project-qualified D11 Updates feed; locked organization
+- **Project/Campaign:** managed D17 kind-qualified subject identity/hero;
+  optional Project summary, The need, What this project will do, and bounded
+  prospective Expected impact; managed D9 media; optional managed D6 Project
+  progress; required D7 Give; optional D11 Updates feed selected by the exact
+  Page-scoped Feed Binding and subject/purpose scope; locked organization
   stewardship/disclosure/help.
 
 Every top-level role is zero-or-one except required managed roles; focus, impact,

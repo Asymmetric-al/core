@@ -355,9 +355,11 @@ without participation where the organization explicitly authorizes it.
 
 A D19 Support Workspace invitation binds the exact Tenant, intended Party and
 recipient proof, Support Assignment, reviewed Phase 12 grant intent, purpose,
-expiry, version, and idempotency identity. Acceptance may establish only that
-explicitly reviewed access after current identity and authorization reproof. A
-pending, failed, expired, mismatched, revoked, or indeterminate invitation
+expiry, version, and idempotency identity. As superseded by Phase 22 D19,
+acceptance establishes only the intended verified Principal binding after
+current identity proof. Reviewed access intent must then enter the owning grant
+command and pass current Phase 12 authorization/revocation reproof. A pending,
+failed, expired, mismatched, revoked, or indeterminate invitation
 grants nothing and creates no participation, claimant/reviewer/payee authority,
 notification preference, or financial effect.
 
@@ -421,10 +423,12 @@ forbidden.
 
 One D19 **People & access** operation may create an exact recipient invitation
 intent alongside separately selected local source-owner facts, but the invitation
-remains expiring, single-use, revocable, and authority-free. Acceptance proves
-only the intended verified Principal binding; each selected contributor,
-Support Workspace, responsibility, or notification consequence still requires
-its owning command and final Phase 12 authorization/revocation reproof. Pending,
+remains expiring, single-use, revocable, and authority-free. This later Phase 22
+rule supersedes the older invitation shorthand that acceptance may itself
+establish reviewed Support Workspace access. Acceptance proves only the intended
+verified Principal binding; each selected contributor, Support Workspace,
+responsibility, or notification consequence still requires its owning command
+and final Phase 12 authorization/revocation reproof. Pending,
 failed, expired, forwarded, mismatched, replayed, or revoked invitations grant
 nothing and do not roll back unrelated valid association evidence.
 

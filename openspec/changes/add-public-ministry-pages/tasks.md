@@ -69,6 +69,10 @@ assistance; adoption and operations; then production certification.
 | P22-40 | [#1321](https://github.com/Asymmetric-al/core/issues/1321) | Materialize the immutable go-live authorization manifest             |
 | P22-41 | [#1322](https://github.com/Asymmetric-al/core/issues/1322) | Perform the generation-fenced public-surface cutover                 |
 
+P22-24 through P22-26 implement only D12 authenticated, purpose-authorized
+Supporter Engagement Spaces. Anonymous public comments and reactions remain
+out of scope.
+
 ## 1. Contract And Dependency Foundation
 
 - [ ] 1.1 Record the Phase 22 ownership map and dependency assertions so the
@@ -313,5 +317,10 @@ publishing`, `Page appearance and discovery`, `Optional features`, and
       restore, operational runbooks, kill switches, and named rollback-by-successor
       procedures before production authorization.
 - [ ] 9.6 Re-run strict OpenSpec validation and the repository-required lint,
-      type, unit, integration, browser, accessibility, and build gates; retain the
-      evidence manifest and owner sign-offs for every D1-D27 production gate.
+      type, unit, integration, browser, accessibility, and build gates. For every
+      implementation slice that changes `packages/ui`, run
+      `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` before and
+      after the slice, record both scores and the configured floor in the release
+      evidence manifest, and reject unassessed or below-floor output. Retain the
+      manifest and owner sign-offs for every D1-D27 production gate; Shadscan is
+      supplementary and never substitutes for accessibility or browser proof.

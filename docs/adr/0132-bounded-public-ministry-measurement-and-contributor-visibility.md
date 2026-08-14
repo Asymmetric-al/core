@@ -35,7 +35,7 @@ donor funnel, tag manager, or recurring tenant-administration burden.
   unique visitors, sessions, journeys, funnels, conversion rates, completed
   shares, gifts, or attribution claims.
 - `GET`, `HEAD`, render, prefetch, preview, crawler, sitemap, scanner, monitor,
-  and provider requests remain effect-free. Intake is same-origin,
+  and provider requests remain measurement-effect-free. Intake is same-origin,
   fixed-schema, best-effort, post-render or action-triggered, and cannot block
   public or giving behavior.
 - Raw request and identity material is discarded before durable measurement.

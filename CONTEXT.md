@@ -385,6 +385,10 @@ Phase 22 page, Payload publication is necessary content evidence but is not
 sufficient: the current page release, Phase 10 ceiling, and containment must
 also permit the response. The reader composes content evidence with separately
 owned public-safe projections; Payload is never their source of truth.
+`resolve-tenant.ts` is the sole allowlisted non-content exception: it may resolve
+the tenant document needed to construct this context, but it may not read or
+serialize public content. Explicit tenant-and-published predicates inside the
+reader are defense in depth and never replace `overrideAccess: false`.
 _Avoid_: direct Payload reads in public code, hand-written tenant `where`
 clauses, `overrideAccess: true` public reads
 

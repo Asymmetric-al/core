@@ -1192,7 +1192,7 @@ Add:
 > conversions are not eligible numerator, denominator, fallback, or public
 > authority. Unsafe, stale, incompatible, or uncomputable progress is omitted
 > at the smallest scope while Giving remains independently controlled.
-
+>
 > **One exact MVP Giving destination.** Every released Phase 22 page pins one
 > immutable Page Giving Binding to exactly one Phase 13 Designation, and all CTA
 > placements share it. Phase 5 transports only untrusted context; current page,
@@ -1203,7 +1203,7 @@ Add:
 > remains staff intent and a future seam, not an MVP public picker. Phase 20
 > settlement or accounting state cannot select or validate the public
 > destination.
-
+>
 > **Source-qualified public route disposition.** Phase 22 D8 owns immutable
 > Public Page Route Generations, cause/source-qualified disposition cases,
 > Transition Notice Releases, same-Page Listed-public canonical moves, uniform
@@ -1216,7 +1216,7 @@ Add:
 > new-Giving truth or Phase 16 recurring truth. Phase 20 accounting, settlement,
 > posting, or reconciliation state cannot select a public route disposition,
 > prove a successor page, or advance external cache/search cleanup.
-
+>
 > **Release-bound public ministry media.** Phase 22 D9 owns public-media
 > meaning, context-specific placement, Page Release binding, and withdrawal
 > intent. Phase 29-compatible custody owns private intake bytes, immutable
@@ -1230,7 +1230,7 @@ Add:
 > None is a contribution, Designation, expense, receipt, accounting source,
 > Accounting Posting Intent, Accounting Release, QBO/Xero delivery, payment, or
 > reconciliation fact, and Phase 20 cannot make a media asset public or safe.
-
+>
 > **Scoped public discovery is presentation only.** Phase 22 D13 owns one
 > exact-scope Public Ministry Discovery Profile, the source-complete Public
 > Ministry Directory Projection, bounded public query and typed-card contracts,

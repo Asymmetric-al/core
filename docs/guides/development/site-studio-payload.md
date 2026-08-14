@@ -205,7 +205,10 @@ These are guarded by Mission Control auth middleware and require `staff`, `admin
 
 ### Ownership boundary
 
-- Payload/Web Studio owns content structure, drafts, versions, media, navigation, templates, preview, and publish state.
+- Payload/Web Studio owns content structure, drafts, versions, media,
+  navigation, templates, preview, and private or legacy `_status` storage
+  metadata. Native Publish/Unpublish and `_status` never establish D2/D4/D5
+  product release authority.
 - Asym Postgres (`packages/api` CRM services) owns donor relationships, notes, donor detail, donor reports, and CRM workflow records (ADR-0001; Twenty CRM retired 2026-07-06).
 - Stripe/Supabase giving owns gifts, staged gifts, allocations, receipt facts, reconciliation, and payment state.
 - Resend/app email services own send logs, receipt sends, and delivery events.

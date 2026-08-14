@@ -376,3 +376,12 @@ current Phase 10 override, D9/D2/D11/D18 containment, content-free diagnostics,
 and no public-render lookup or D26 table. Complete mobile, keyboard,
 screen-reader, reflow, localization, forced-colors, and no-extra-step usability
 proof before certification.
+
+### Phase 22 UI-quality evidence
+
+For any Phase 22 implementation slice that changes `packages/ui`, run
+`bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` before and
+after the slice. Record both scores, the configured floor, and the exact changed
+paths in the release evidence manifest. Treat an unassessed or below-floor
+result as a failed gate; never treat the score as accessibility, browser,
+performance, or public-safety certification.

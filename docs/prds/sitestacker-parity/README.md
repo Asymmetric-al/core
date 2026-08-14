@@ -754,6 +754,21 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   by 116 native blocking relationships. P22-01/#1282 alone among the 41
   implementation children is the current `ready-for-agent` frontier; issue
   posture is planning metadata, not build or production proof.
+  Reproducible contract checks are
+  `bunx @fission-ai/openspec@1.7.0 validate add-public-ministry-pages --strict`,
+  `bunx @fission-ai/openspec@1.7.0 validate --all --strict`,
+  `bun run format:check`, and `bun run skills:verify`. PR
+  [#1323 Files changed](https://github.com/Asymmetric-al/core/pull/1323/files) is
+  the exact changed-path inventory. Its
+  [required checks](https://github.com/Asymmetric-al/core/pull/1323/checks) and
+  persistent Shadscan report are the final machine-check evidence once CI is
+  green. The assessed pre-commit `packages/ui` baseline is 29/100 against the
+  configured floor of 29, using
+  `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive`; because this
+  planning publication changes no UI path, final CI must prove the same floor
+  without remediation. The blast radius is the Phase 22 PRD, decision/research
+  evidence, ADRs, active OpenSpec change, and named cross-phase contract
+  amendments; it grants no runtime authority.
 - [`phase-22-public-ministry-pages-decision-log.md`](./phase-22-public-ministry-pages-decision-log.md)
   — the scope-frozen supporting Phase 22 grooming authority. The founder closed the
   `/grill-with-docs` session at D1–D27 on 2026-08-14:
@@ -853,8 +868,9 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   Ministry Assignment to an independently authoritative Support Assignment,
   but membership, marriage, display, editing, notification, Designation, or the
   binding itself grants no financial access or mutation. The quiet **People &
-  access** experience previews the exact D9-permitted support modules, fields,
-  currencies, and history before applying explicit local facts; every raw table
+  access** experience previews the exact Phase-12-authorized, D19-associated
+  support modules, fields, currencies, and history before applying explicit
+  local facts; every raw table
   remains browser-inaccessible and all support reads pass through Phase 12's
   current server-side policy decision point.
   D20 concretizes D3 as two non-interchangeable immutable code-owned Page Family

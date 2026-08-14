@@ -34,6 +34,16 @@ settings, operations, adoption, and recovery behavior SHALL cross
 Page-locale release through the same domain boundary before Phase 5 renders or
 uses cache. Browsers SHALL NOT receive direct grants to private Phase 22, CRM,
 financial, assignment, response, measurement-occurrence, or CMS-admin tables.
+For D24 staff revisions, user-context Payload Local API calls SHALL preserve the
+authenticated actor and use `overrideAccess: false` and `overrideLock: false`.
+An inert private content prepare MAY precede the operational commit, but the
+service SHALL advance the exact working head only through the expected-head CAS
+and SHALL NOT claim cross-store atomicity. Same-scope integrity SHALL combine
+complete operational provenance constraints with adapter validation of the
+exact Payload version scope and digest; it SHALL NOT require or imply a
+cross-schema CMS-to-operational foreign key. A complete transaction retry is
+permitted only for proved serialization or deadlock failures, while an
+ambiguous result requires authoritative inspection before any retry.
 
 #### Scenario: An authenticated actor saves Page work
 

@@ -124,6 +124,11 @@ Adopt the complete Phase 22 D21 C-prime-R ruling:
 > reachable, served, cached, converged, crawled, indexed, share-cached,
 > gift-ready, donated, or externally forgotten are the same fact.**
 
+The historical labels inside that ratified quote are interpreted only through
+the canonical status planes below. **Will not be public** is not a Page state,
+and the quoted launch wording is passive communication rather than a new D5 or
+D18 status vocabulary.
+
 The immutable adoption cohort is one Tenant × Legal Entity × environment × Site
 × verified-host set × locale. Incremental work is private preparation only. Every
 source and effect receives one non-overlapping disposition before a single

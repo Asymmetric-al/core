@@ -443,11 +443,16 @@ before publishing` or `Publish after checks`. Setup starts with one disclosed
   re-encode and independent metadata-free reparse. Intake is short-lived and
   private; public derivatives are eager, immutable, and never provider on-demand
   transforms or overwritten objects.
-- **D10:** Preview is available only to authenticated users who are currently
-  authorized for the exact Page and candidate. Preview URLs are not bearer
-  capabilities. Responses are no-store, noindex, protected from unsafe referrer
-  propagation, and denied to anonymous crawlers. Giving, responses, analytics,
-  notifications, webhooks, and other effects are inert in preview.
+- **D10:** Preview is available only to authenticated users with a current,
+  separately proved exact-Page authorization for the selected target. An
+  assigned contributor may preview one deliberately selected, coherently saved
+  working revision; a reviewer, authorized staff editor, or named Page-scoped
+  `Preview only` grantee may preview one immutable submitted candidate. Neither
+  target falls forward to latest, live, or another revision. Preview URLs are
+  not bearer capabilities. Responses are no-store, noindex, protected from
+  unsafe referrer propagation, and denied to anonymous crawlers. Giving,
+  responses, analytics, notifications, webhooks, and other effects are inert in
+  preview.
 
 ### D11–D16 Updates, engagement, discovery, measurement, and assistance
 
@@ -564,11 +569,15 @@ direct`, or `Professional`, one length-bounded Page-Family-specific same-source
     photos/media; optional D6 Support progress; the required D7-managed Give
     role; one bounded D11 Ministry Updates feed; and locked organization
     stewardship, disclosure, and help.
-  - The Project/Campaign catalog ships managed project identity; optional
-    Project summary, The need, What this project will do, and prospective
-    Expected impact; approved D9 photos/media; optional D6 Project progress; the
-    required D7-managed Give role; one exactly bound D11 Project Updates feed;
-    and locked organization stewardship, disclosure, and help.
+  - The Project/Campaign catalog ships one managed D17 kind-qualified subject
+    identity for a CRM Ministry Project, Giving Campaign, or eligible
+    Designation; optional Project summary, The need, What this project will do,
+    and prospective Expected impact; approved D9 photos/media; optional D6
+    Project progress; the required D7-managed Give role; one D11 Updates feed
+    selected by the Page-scoped Feed Binding and exact subject/purpose scope;
+    and locked organization stewardship, disclosure, and help. Incompatible
+    source-kind fields or feeds are unavailable rather than fabricated or
+    relabelled as project facts.
     Every certified Give placement on a Page uses its one D7 binding; managed
     values never become contributor-entered substitutes, and empty optional
     sections collapse without filler.
@@ -748,6 +757,12 @@ The five mandatory end-to-end journeys are:
   bounded queues, worker crash recovery, ambiguous-outcome inspection, targeted
   adverse convergence, renderer compatibility, cohort completeness, rollback by
   forward disposition, and diagnostic usefulness without sensitive logging.
+- UI-changing implementation slices run
+  `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` before and
+  after the slice and record both scores plus the configured floor in the
+  release evidence manifest. Unassessed or below-floor output fails the slice;
+  this supplementary signal never replaces accessibility, browser,
+  performance, or public-safety proof.
 
 ### Decision traceability
 

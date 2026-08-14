@@ -68,9 +68,19 @@ Adopt the complete Phase 22 D20 C-prime-R ruling:
 > releasing, reaching the public, Giving readiness, source freshness, or cache
 > propagation are the same fact.**
 
+The founder-ratified quote's environment-less D3 tuple and its `managed project
+identity` and `project update feed` phrases are historical family shorthand.
+D27 makes the current activation scope Tenant × Legal Entity × environment ×
+Site × Page Family. The current Project/Campaign contract uses D17's kind-
+qualified subject identity for a CRM Ministry Project, Giving Campaign, or
+eligible Designation and one explicit Page-scoped D11 Feed Binding. A source-
+kind-incompatible identity field or feed is unavailable; the renderer never
+fabricates project semantics, infers an Update subject, or relabels a Campaign
+or Designation as a CRM Project.
+
 The Missionary Ministry Page launch catalog contains these semantic roles:
 
-1. required managed public identity and hero;
+1. one required, managed public identity and hero;
 2. optional Introduction;
 3. optional Ministry story;
 4. optional Ministry focus;
@@ -83,7 +93,7 @@ The Missionary Ministry Page launch catalog contains these semantic roles:
 
 The Project/Campaign Page launch catalog contains these semantic roles:
 
-1. required managed project identity and hero;
+1. one required, managed D17 kind-qualified public subject identity and hero;
 2. optional Project summary;
 3. optional The need;
 4. optional What this project will do;
@@ -91,7 +101,8 @@ The Project/Campaign Page launch catalog contains these semantic roles:
 6. bounded D9-approved media;
 7. optional D6 Project progress;
 8. one required D7-managed Give role;
-9. one optional exactly project-bound D11 Updates feed; and
+9. one optional D11 Updates feed selected by the Page-scoped Feed Binding and
+   exact subject/purpose scope; and
 10. required organization stewardship, disclosure, and help.
 
 Every top-level semantic role is required or zero-to-one. Focus, impact, and
@@ -108,8 +119,11 @@ as source-labelled summaries rather than disabled inputs. Autosave, preview,
 review feedback, conflict recovery, and the final D4 action remain explicit and
 accessible. The staff experience starts with one accessible built-in default per
 family and exposes only bounded optionality, edit ownership, certified treatments,
-and non-drag-only ordering inside certified zones. Existing live releases never
-change from a profile or catalog update without a new D2 release.
+and non-drag-only ordering inside certified zones. Draft profile or catalog
+changes never alter the live presentation. A fully proved D27-compatible D3
+successor may recompose the complete current cohort without content
+republication; any catalog, semantic, locale, media, renderer, or otherwise
+incompatible change remains on the D2 migration/release path.
 
 No launch catalog includes generic FAQ, testimonial, arbitrary statistic or
 counter, map or exact location, form, carousel, arbitrary video or iframe,

@@ -79,8 +79,9 @@ Workbench.
 
 **Phase 22 D16 consumption amendment (2026-08-06).** Phase 22 now consumes the
 `public-profile drafting` purpose for one source-bounded Public Page Writing
-Assistant, including an independently source-language → exact-English-locale-
-certified **Translate to English** action. This shared foundation continues to
+Assistant, including an independently certified source-language and exact
+English-locale pair for the **Translate to English** action. The generated text
+is not a certified translation. This shared foundation continues to
 own only connection, credential, binding, egress, invocation, adapter, usage,
 cost, and revocation truth. Phase 22 exclusively owns exact Page sources,
 suggestions, application into a working revision, the check-work warning, and

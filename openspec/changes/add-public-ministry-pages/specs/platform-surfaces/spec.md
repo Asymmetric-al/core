@@ -11,6 +11,10 @@ final intent, review feedback, Ministry Update, optional exact-Page activity, an
 recovery actions without exposing staff configuration, tenant-wide queues,
 private supporter details, or financial depth that the person was not separately
 granted.
+The Page editor SHALL organize only compatible tenant-enabled roles into the
+five quiet groups `Basics`, `Story`, `Media`, `Support & giving`, and `Updates`.
+It SHALL NOT expose generic layout, schema, permission, workflow, or publication
+controls to contributors.
 
 #### Scenario: A missionary manages several assigned Pages
 
@@ -45,6 +49,12 @@ Responses off`, never as saved organization choices. Presentation authoring
 SHALL separate `Page design — all languages` from `Content — this language`;
 contributors SHALL see tenant-owned structure as `Set by your organization`,
 and single-locale Sites SHALL not show unnecessary locale machinery.
+The exact D10 candidate preview SHALL remain review truth; the separate current
+public Page SHALL appear only as `View live page`. In the review surface,
+`Approve & publish` and `Request changes` SHALL remain primary, while `Edit
+page` SHALL be secondary and appear only with independent D24 edit authority;
+it SHALL create a successor rather than changing the reviewed candidate in
+place.
 
 #### Scenario: Staff review a contributor change
 
@@ -106,6 +116,11 @@ SHALL distinguish release activation, current admission, expiration requested,
 provider acceptance, controlled response observation, unverifiable coverage,
 and external observation. No UI SHALL offer `Purge`, `Force live`, or `Mark
 fixed` as public truth.
+D21 migration SHALL add no Page lifecycle or editorial status. Its staff-only
+readiness projection SHALL use `Ready to use`, `Needs a decision`, or `Not
+moving as a current ministry page`, with the last state naming the exact D8
+disposition. Cutover receipt wording SHALL remain a transient operation result,
+not Page state, and SHALL never use `Live` as D21 truth.
 
 #### Scenario: Healthy propagation requires no work
 
@@ -219,6 +234,11 @@ still require a separate `Submit for review` or `Publish changes` action. The UI
 SHALL NOT label work Expired or Archived, expose branch/merge/version jargon,
 offer destructive Restore, or steal focus; recovery SHALL remain usable in a
 single-column mobile layout.
+When writing assistance is eligible, one subdued `Help me write` control SHALL
+show `What AI will use` before egress and present the suggestion outside the
+editable draft with exact `Replace selected text` or `Insert draft`, `Try
+again`, and `Discard` actions. Mobile SHALL expose the same semantic actions in
+an accessible bottom sheet or equivalent without gesture-only behavior.
 
 At final intent the surface SHALL place the D26 confirmation immediately beside
 `Submit for review` or `Publish changes`, without a checkbox or modal. Image
