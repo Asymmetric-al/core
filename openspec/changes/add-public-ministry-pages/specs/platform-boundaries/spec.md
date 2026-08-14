@@ -192,16 +192,28 @@ remain purpose-specific and capability-honest.
 ### Requirement: Phase 22 Operations And Settings Remain Derived Projections
 
 Mission Control's Public Pages operations and setup/settings workspaces SHALL be
-disposable projections over source-owned current facts. Each action SHALL route
-to its owning contract and re-prove current permission and version. The
-workspaces SHALL NOT create parallel health, task, workflow, settings, or
-permission authority.
+disposable projections over source-owned current facts. The operations projection
+SHALL consume one finite, code-owned, versioned registry covering every D1–D21
+owner contract; each compatible owner version SHALL supply either a privacy-safe
+condition/action adapter or a source-owned `not participating`, `Off`, or
+`unavailable` disposition. Missing or incompatible coverage SHALL remain
+`Partial`/`Unavailable` and SHALL NOT trigger raw owner-table reads, copied status
+logic, a guessed task, or a healthy result. Each action SHALL route to its owning
+contract and re-prove current permission and version. The workspaces SHALL NOT
+create parallel health, task, workflow, settings, or permission authority.
 
 #### Scenario: One cause affects many Pages
 
 - **WHEN** one profile, host, source, or provider cause affects several Pages
 - **THEN** the operations projection coalesces impact around that owner cause
 - **AND** repair updates the source rather than dismissing a duplicate status
+
+#### Scenario: An owner adapter is missing or incompatible
+
+- **WHEN** a participating D1–D21 owner has no compatible current adapter
+- **THEN** operations coverage is `Partial` or `Unavailable`
+- **AND** production authorization fails for a core or launch-selected owner
+  without fabricating a tenant task or reading the owner's raw table
 
 #### Scenario: An administrator changes one setting
 

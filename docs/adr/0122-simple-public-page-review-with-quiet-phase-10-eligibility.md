@@ -22,9 +22,14 @@ terminal rejection exists only when a submission must stop. In automatic mode,
 healthy candidates publish after all checks without entering the staff queue.
 
 Approval is append-only evidence bound to the exact candidate and never floats
-to a changed draft. D2's sole compare-and-swap release command independently
-re-proves current authority, candidate head, policy, safety, reach, renderer,
-and dependencies and reports release truth separately from approval.
+to a changed draft. The common D4/D5 candidate and review lane then invokes the
+content owner's release boundary: D2's sole compare-and-swap Page release
+command and Page Release Manifest for a Page, or D11's audience-scoped release
+command, Audience Release Manifest, and selected projection head for a Ministry
+Update. Each command independently re-proves its current authority, candidate
+head, policy, safety, reach, renderer, and dependencies and reports its owned
+release truth separately from approval; neither command or manifest may
+substitute for the other.
 
 Phase 10 remains the quiet, non-overridable public-eligibility ceiling. D1
 Display Participant membership identifies who may be represented but does not
@@ -42,7 +47,8 @@ remedy and never offer **Approve anyway**.
 - Staff receive exact previews, concise semantic diffs, actionable feedback,
   and no FYI noise from healthy automatic releases.
 - Tenant flexibility is preserved without arbitrary workflow configuration,
-  while Phase 10 safety and D2 concurrency guarantees remain unchanged.
+  while Phase 10 safety and the applicable D2 Page or D11 Update concurrency
+  guarantees remain unchanged.
 - A profile change is prospective and never surprise-publishes an existing
   review backlog.
 

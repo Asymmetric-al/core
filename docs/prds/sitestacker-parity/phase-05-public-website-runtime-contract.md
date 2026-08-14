@@ -588,8 +588,11 @@ HTML, RSC or prefetch payloads, public APIs, metadata, social cards, sitemaps,
 robots output, media URLs, client hydration, public caches, or analytics. An
 anonymous request cannot enumerate or infer D22 state.
 
-Any public consequence shown by Phase 5 remains the output of the applicable
-D2/D7/D8/D10/D18 owner contract, not of the operations projection. D22 may
+Any anonymous public consequence shown by Phase 5 remains the output of the
+applicable D2 release, D3 presentation, D6 progress, D7 Giving, D8 route, D9
+media, D11 Update, D13 directory, D14 search/share, or D18 serving contract, not
+of the operations projection. D10 owns authenticated inert preview only and
+cannot authorize anonymous output. D22 may
 navigate an authorized staff member to an owner command, but it cannot publish,
 unpublish, redirect, invalidate, restore, or mark a public consequence resolved
 through a projection row or shared-task transition.

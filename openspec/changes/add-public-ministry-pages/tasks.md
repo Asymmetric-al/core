@@ -5,7 +5,7 @@
 Parent specification issue:
 [#1281](https://github.com/Asymmetric-al/core/issues/1281). The approved delivery
 graph is published as 41 behavior-led native child issues, P22-01 through
-P22-41 / #1282–#1322, connected by 116 native blocking relationships.
+P22-41 / #1282–#1322, connected by 117 native blocking relationships.
 P22-01/#1282 alone among the 41 implementation children is the current
 `ready-for-agent` frontier. Native GitHub blocking relationships are the live
 execution-order authority.
@@ -91,13 +91,20 @@ out of scope.
       locale, subject, Designation, release, profile generation, and assignment.
 - [ ] 1.4 Add contract tests proving Phase 22 references rather than copies
       owning-phase operational, financial, identity, safety, and communication
-      truth, and never treats a projection or CMS document as authority.
+      truth, and never treats a projection or CMS document as authority. Define the
+      finite, code-owned, versioned D1–D21 D22 owner registry and adapter protocol:
+      every compatible owner version supplies either a privacy-safe condition/
+      action descriptor or a source-owned not-participating, Off, or unavailable
+      disposition, never raw-table or copied status access.
 
 ## 2. Page Identity Subjects Assignments And Access
 
-- [ ] 2.1 Deliver creation of exactly one Missionary Ministry Page or one
-      Project/Campaign Page for an eligible typed subject, with structural
-      same-scope foreign keys, duplicate prevention, and immutable subject history.
+- [ ] 2.1 Deliver creation of exactly one Missionary Ministry Page bound to one
+      exact current Phase 9 CRM Ministry Assignment, or one Project/Campaign Page
+      bound to one exact D17-qualified subject, with structural same-scope foreign
+      keys, duplicate prevention, and immutable subject history. No generic Party,
+      user, membership, contributor, display, Designation, fund, support, or CMS
+      reference may substitute for the family-qualified subject.
 - [ ] 2.2 Deliver a pre-first-release subject correction and a post-release Page
       succession flow, including CAS conflicts, prohibited fuzzy substitution, and
       an understandable staff consequence review.
@@ -114,22 +121,45 @@ out of scope.
 ## 3. Editorial Revision Review And Release
 
 - [ ] 3.1 Deliver one private, coalesced, non-semantic Payload recovery buffer
-      per exact Page and locale beneath the expected working head, using the
+      per exact Page and locale beneath the expected working head and current
+      editor lease, using the
       code-owned two-second debounce and fifteen-second maximum wait without
       advancing a semantic head, candidate, audit, notification, or outbox. Suppress
       digest-equal writes, permit at most one in-flight write for an exact expected
-      working-head generation, and fence a late response from a superseded
-      generation into a recoverable checkpoint instead of replacing current work;
-      explicit Save draft seals one attributed immutable successor through CAS.
+      working-head generation and editor lease, and fence a late response from a
+      superseded generation or displaced lease into a recoverable checkpoint instead
+      of replacing current work; explicit Save draft seals one attributed immutable
+      successor through CAS. Prove with two contributors on the same head that only
+      the current lease persists recovery; a displaced session may retain only
+      ephemeral in-memory recovery and cannot replace the buffer or create another
+      product head.
 - [ ] 3.2 Deliver one final-intent candidate flow whose existing `Submit for
 review` or `Publish changes` action atomically binds the exact revision,
       digest, actor, complete scope, action, and code-owned D26 statement. Show
       exactly `By submitting, you confirm you’re allowed to share the words and
 images on this page publicly.` or `By publishing, you confirm you’re allowed to
-share the words and images on this page publicly.` beside that action; upload,
-      autosave, preview, and unchanged approval do not attest.
+share the words and images on this page publicly.` beside the Page action. For a
+      Ministry Update, use the same one-step statement with `in this update
+      publicly`, `in this update with authorized supporters`, or `in this update
+      publicly and with authorized supporters` according to the exact requested
+      D11 `Public page`, `Supporters`, or `Public page and supporters` audience
+      selection. At Submit or Publish, bind its statement identifier and version
+      atomically to the exact candidate and requested audience selection; if
+      release later succeeds, D11's Audience Release Manifest pins that candidate,
+      selection, and attestation. Upload, autosave, preview, and unchanged approval
+      do not attest or pre-create release truth.
 - [ ] 3.3 Deliver the tenant-selected publish-after-checks path, including all
       release-time safety and dependency reproofs and an honest published outcome.
+      The common D4/D5 lane invokes D2's Page release command and Page Release
+      Manifest for a Page, or D11's audience-scoped release command, Audience
+      Release Manifest, and selected projection head for a Ministry Update; neither
+      owner command may substitute for the other. The final Page action MUST first
+      atomically commit the exact candidate and its D26 attestation. D2 then reads,
+      re-proves, and pins only that committed pair; a Page Release Manifest or head
+      cannot predate or exist without it. A failed or ambiguous release preserves
+      the prior public head and leaves the candidate and evidence inspectable and
+      idempotently retryable without re-attestation unless the candidate materially
+      changes or current authority requires a new action.
 - [ ] 3.4 Deliver the tenant-selected staff-review path through one quiet D4/D5
       queue with exact diff and preview, `Approve & publish`, and `Request changes`
       with a bounded actionable reason, plus a deliberately secondary terminal
@@ -147,18 +177,34 @@ share the words and images on this page publicly.` beside that action; upload,
 
 - [ ] 4.1 Deliver the two small code-owned semantic block catalogs and one
       versioned Site-and-family presentation profile for Missionary and
-      Project/Campaign layouts, including bounded Ministry Update placement.
+      Project/Campaign layouts, including bounded Ministry Update placement. Each
+      family catalog contains exactly one required D7-managed Give semantic role and
+      locked organization stewardship, disclosure, and help roles; compatible
+      profiles cannot remove, replace, duplicate, or convert them into editorial
+      blocks. D3 alone creates and versions each exact Page-scoped Feed Binding that
+      selects the Ministry Update source and purpose set the Page may present; D11
+      consumes that binding and never recreates, infers, or substitutes it.
 - [ ] 4.2 Deliver independently authored and released locale content under one
       Site-scoped Page identity, with exact-locale serving and no automatic prose
       fallback or per-locale layout exception.
 - [ ] 4.3 Deliver D27 all-or-nothing compatible family-profile activation across
       the complete current locale-release cohort, fenced by epoch and release-head
       digest, while ordinary locale edits continue through D2 release history.
+      Retain every old proved generation needed to reconstruct the exact D2 locale
+      release and D3 family activation effective at an observation time; historical
+      rendering and append-only reactivation never resolve mutable `latest` or use
+      destructive rollback.
 - [ ] 4.4 Deliver the exact `Not public`, `Shared by link — public`, and `Listed
-publicly` reach labels with `Not public` as the honest fail-safe until an
-      authorized tenant default is deliberately saved. Re-prove the Phase 10 hard
+publicly` reach labels from one exact Tenant × Legal Entity × Site × typed Page
+      Family profile, with `Not public` as the honest fail-safe until an authorized
+      actor deliberately saves that exact-scope default. Re-prove the Phase 10 hard
       ceiling at candidate creation, release, directory/search compilation, cache
-      admission, and every serve without calling a shared public link private.
+      admission, and every serve without calling a shared public link private. When
+      a Listed Page narrows to `Shared by link — public`, issue a new opaque non-name-
+      derived Route Generation and make the old discoverable path a non-redirecting
+      privacy-safe tombstone before serving the successor at its new noindex route.
+      Missing, stale, ambiguous, incompatible, or unauthorized profile truth falls
+      to the labelled `Not public` state and never consults a sibling scope.
 - [ ] 4.5 Deliver every currently displayed participant's quiet `Stop showing me
 publicly` action, which immediately invokes smallest-scope containment
       without staff hoops. Restoration requires a newly admitted release, and the
@@ -168,18 +214,29 @@ publicly` action, which immediately invokes smallest-scope containment
 
 - [ ] 5.1 Deliver exact current-release public serving through D18 gate-before-
       cache composition, including positive freshness classes, no-store failures,
-      adverse-first invalidation, and no stale safety fallback.
+      adverse-first invalidation, and no stale safety fallback. Every owner-labelled
+      adverse cause transactionally appends one exact-scope convergence operation
+      referencing its owning disposition and carrying desired generation, input
+      digest, idempotency identity, controlled-surface coverage, deadline, fenced
+      attempts, and residual-only recovery. Provider acceptance and controlled-
+      response observation remain separate facts.
 - [ ] 5.2 Deliver exactly one Phase 13 Designation binding for every released
       Page while allowing incomplete private preparation, and preserve Site,
       exact CTA/link `source_code`, locale, currency, Page, exact D2 release, exact
       Page Giving Binding, and Designation context through the Phase 5 handoff with
-      action-time reproof before cart and provider mutation. When the
+      action-time reproof before cart and provider mutation. Replacing a
+      Designation is a prospective staff-controlled Page change through the
+      ordinary candidate and D2 successor-release path; it never mutates the
+      Page Giving Binding beneath an existing release. When the
       tenant supplies it, a separately labelled fresh general-giving link may be
       shown without inheriting Page destination, amount, cadence, source, or return
       context and never as fallback or substitution.
 - [ ] 5.3 Deliver optional per-Page typed support progress that reads only
       certified source projections, omits missing/stale/incompatible facts, and
-      never invents zero, currency conversion, or payment truth.
+      never invents zero, currency conversion, or payment truth. Only an actor with
+      the exact current tenant staff/D6 progress-settings capability may select
+      `Hidden` or one certified metric; contributors, represented subjects, display
+      participants, and relationship-derived actors receive no such authority.
 - [ ] 5.4 Deliver a source-qualified route and lifecycle case in which cause
       opens work but never chooses the outcome: continue, a through-dated
       transition-notice release, same-Page Listed-only permanent redirect, or
@@ -187,16 +244,23 @@ publicly` action, which immediately invokes smallest-scope containment
       the independently current Phase 13 Giving state; D8 never manufactures an
       intentional no-Giving posture or infers a replacement fund. Prove every
       permanent redirect is one hop, has a currently eligible destination, and
-      cannot create a self-loop or cycle.
+      cannot create a self-loop or cycle. A Listed-to-Shared successor atomically
+      activates a fresh high-entropy opaque same-Site/Page/locale route and
+      permanently tombstones the old path with a nonredirecting privacy-safe
+      `404`/`noindex`; Phase 10 containment alone mints no replacement route.
 - [ ] 5.5 Deliver Phase-29-owned private byte custody and processing behind
       Phase-22-owned public media identity, placement, release eligibility, and
       withdrawal. Launch accepts JPEG, PNG, and still WebP only; rejects SVG,
-      animation, video, audio, and documents; expires bounded raw intake and
-      discards source names; and proves metadata-free, opaque, release-bound public
-      derivatives with accessible alt text while originals remain unservable.
+      animation, video, audio, and documents; enforces byte, pixel, dimension,
+      channel, frame, decode-time, memory, and output ceilings before a sandboxed,
+      complete, bounded one-frame decode, controlled sRGB reconstruction, and
+      re-encode; expires bounded raw intake and discards source names; and proves
+      with adversarial fixtures that every limit fails without unbounded worker use
+      or a public object. Public derivatives remain metadata-free, opaque, release-
+      bound, and accessible while originals remain unservable.
 - [ ] 5.6 Deliver exact-version authenticated preview with every-request
-      authorization, no bearer URLs, no-store/noindex behavior, and all consequential
-      public actions disabled.
+      authorization, no bearer URLs, private, no-store, non-indexable, non-archivable,
+      referrer-suppressed behavior, and all consequential public actions disabled.
 
 ## 6. Ministry Updates And Supporter Responses
 
@@ -208,7 +272,13 @@ publicly` action, which immediately invokes smallest-scope containment
       project/purpose and is never inferred from participants, contributors,
       relationships, Designations, or Support Assignments. Preserve `My Feed`
       only as a migration, search, and help alias for Ministry Updates, never as
-      a second feed, route, release, audience, or copied-post authority.
+      a second feed, route, release, audience, or copied-post authority. Preview one
+      exact canonical Update candidate only for one deliberately selected public or
+      supporter audience with current per-request D11, Phase 12, and Phase 10 proof;
+      cross-audience, public-preview, simultaneous-unlabelled, and mutable-latest
+      fallback are prohibited. A mixed audience-release outcome preserves each
+      successful projection head and each failed audience's prior-good head, then
+      retries only residual work without rolling back or replaying success.
 - [ ] 6.2 Deliver the prospective tenant response profile with persisted
       `Responses off`, `Like + I prayed`, or `Like + I prayed + comments`, starting
       Off and recommending acknowledgement-only in guided setup. Bind each
@@ -233,12 +303,15 @@ publicly` action, which immediately invokes smallest-scope containment
 
 ## 7. Discovery Search Sharing Measurement And Writing Assistance
 
-- [ ] 7.1 Deliver one scoped directory corpus with tenant-selectable combined or
-      separate Missionary and Project views, bounded filters/search, keyset
-      pagination, and Phase 10/List-only compilation. Re-prove current D2 release,
+- [ ] 7.1 Deliver one scoped directory corpus with `Together` as the quiet built-in
+      topology until a currently authorized actor saves `Separate by Page Family`;
+      both presentations use the same membership, projection, search, card, and
+      cache authority. Provide bounded filters/search, keyset pagination, and Phase
+      10/List-only compilation. Re-prove current D2 release,
       Phase 10 ceiling, and Listed admission for every returned result at query time;
       adverse narrowing excludes the result before asynchronous index cleanup.
-- [ ] 7.2 Deliver distinct release-bound Search and Share presentations with
+- [ ] 7.2 Deliver distinct, non-interchangeable release-bound Search and Share
+      outputs within one immutable D14 manifest, with
       canonical, robots, sitemap, structured-data, Open Graph, and safe social
       media. Listed content is discoverable and shareable; `Shared by link —
 public` retains bounded release-exact share metadata and a deliberate Share
@@ -248,25 +321,40 @@ public` retains bounded release-exact share metadata and a deliberate Share
       Update permalink used by more than one Page placement, compute reach across
       the complete current placement union: any admitted Listed placement makes it
       Listed, otherwise every admitted Shared-by-link placement makes it public
-      noindex, and no admitted placement makes it absent.
+      noindex, and no admitted placement makes it absent. A Listed-to-Shared
+      rotation makes the fresh opaque route canonical only in the served response
+      and D14 manifest, emits `noindex`, admits only its bounded Share Presentation,
+      and keeps directory, local-search, sitemap, public-feed, and locale-discovery
+      outputs absent. The permanent old-path tombstone remains absent from every
+      presentation and discovery output before the Shared release becomes serveable.
 - [ ] 7.3 Deliver the bounded first-party measurement profile with only the four
       approved POST interactions, 24-hour occurrence retention, sealed daily
       aggregates, suppression-safe contributor reporting, and total failure
       isolation from visitor and giving flows. Persist no raw request identity and
       no durable visitor or session identifier; retain deduplication/idempotency
-      material only with the bounded occurrence and for no more than 24 hours.
+      material only with the bounded occurrence and for no more than 24 hours. Begin
+      every exact Tenant, Legal Entity, and Site profile in persisted `Off` and
+      record no D15 occurrence until a currently authorized actor prospectively
+      saves an explicit `Off`, `Staff only`, or `Staff + current assigned Page
+contributors` choice. Prove a sibling Legal Entity or Site's enabled profile
+      cannot admit an occurrence, and pin every occurrence and aggregate to the
+      exact profile version.
 - [ ] 7.4 Deliver tenant-off, source-bounded writing suggestions through Phase
       21 D10's exact `public-profile drafting` binding and the closed launch catalog:
       Start from guided answers, Fix spelling & grammar, Improve clarity, Shorten,
       Add detail only from explicitly selected or newly supplied facts, `Warm and
 personal`, `Clear and direct`, or `Professional`, one length-bounded same-source
       instruction under More, and Translate to English. Send only the exact selected
-      source package and require compare-before-apply, short-lived output, and
-      current-draft CAS.
+      source package and require compare-before-apply, encrypted non-authoritative
+      output whose body expires within 24 hours or sooner on Use, Discard, exact-
+      source supersession, or relevant authority revocation, and current-draft CAS.
 - [ ] 7.5 Deliver Translate to English only for an independently certified source
-      language and already-created exact Phase 24 English locale draft. It must not
-      create a locale, route, fallback, translation status, or release, and every
-      result must show: `Check this translation. AI translation can make mistakes
+      language and an existing Phase-24-enabled English target locale and D1
+      Page/locale lineage. It must not create a locale, route, fallback, translation
+      status, or release. After compare-before-apply, deliberate `Use English draft`
+      creates one ordinary D1 successor in that existing English locale lineage
+      through current-head CAS; a missing lineage, stale head, or failed proof
+      changes nothing. Every result must show: `Check this translation. AI translation can make mistakes
 or miss context. Review this English draft carefully before using it.` plus
       `What should I check?` with `Check names, dates, numbers, quotations,
 Scripture, ministry terms, relationships, and cultural meaning. For important
@@ -290,6 +378,14 @@ translation.` Before provider egress, name the exact Phase 24 source and English
       fixture, test, and import path. Give every item exactly one source-valid,
       non-overlapping certified-release, compatible-legacy-release, D8 disposition,
       private-reference/export, quarantine/Not-public, or proved-retirement outcome;
+      a `compatible-legacy-release` disposition materializes at most once before
+      cutover as one frozen family-qualified immutable D2 release DTO whose manifest
+      pins the D20 catalog, D3 profile, compatibility renderer, content, locale,
+      brand, managed references, and owner generations. Public requests never read
+      mutable legacy or raw Payload data; no new compatible-legacy release may be
+      created after cutover, historical D26 evidence missing from that one preserved
+      release is recorded as `not captured` without minting an attestation, and the
+      next edit uses the ordinary current catalog and D26 candidate path;
       then run a production-shaped, structurally side-effect-dark full-surface
       shadow covering every inclusion, exclusion, visitor result, locale, and
       restricted-worker outcome with no production authority.
@@ -303,14 +399,21 @@ translation.` Before provider egress, name the exact Phase 24 source and English
       exact inputs inside the CAS; it never resolves a floating `latest` version.
 - [ ] 8.3 Deliver one quiet derived Public Pages operations workspace with `To
 review`, `Needs attention`, and `All pages`, cause-owned impact grouping,
-      owner-specific actions, protected restricted counts, and no duplicated task or
-      health authority.
+      owner-specific actions, protected restricted counts, and the complete finite,
+      versioned D1–D21 owner-condition registry without a hand-picked subset,
+      duplicated task, or health authority. Missing, stale, unsupported,
+      contradictory, or partial adapter coverage is `Partial`/`Unavailable`, never
+      healthy or a guessed task. Prove D7 `Giving unavailable` plus `Review
+      designation` while Page content remains independently public and no substitute
+      destination or unauthorized detail is exposed.
 - [ ] 8.4 Deliver first setup with exactly three foreground choices: `Who can find
 new Missionary pages?`, `Who can find new Project pages?`, and `Should staff
 review contributor changes?`. Show missing reach as `Safe fallback — not yet
 chosen`/Not public and missing review as review-required, use the built-in D3
       family designs, and keep optional capabilities collapsed instead of forcing
-      additional setup decisions.
+      additional setup decisions. Operate within one visibly selected exact Legal
+      Entity and Site and write exactly the two D2 family-policy heads for that
+      scope, never tenant-global or sibling-scope defaults.
 - [ ] 8.5 Deliver ongoing settings in exactly four calm groups: `Visibility and
 publishing`, `Page appearance and discovery`, `Optional features`, and
       `Chosen on each page`. Derive current source-owned profile versions, label
@@ -328,7 +431,9 @@ publishing`, `Page appearance and discovery`, `Optional features`, and
 
 - [ ] 9.1 Add unit, property, contract, RLS, concurrency, and fault-injection
       tests for exact scope, immutable succession, one-current-head invariants,
-      release/profile composition, adverse convergence, idempotency, and retention.
+      release/profile composition, adverse convergence, idempotency, retention,
+      D22 adapter completeness/version skew/missing coverage, and cross-scope
+      owner-condition isolation.
 - [ ] 9.2 Add end-to-end journeys for missionary editing and publication, staff
       review, public viewing and giving, Ministry Updates and supporter responses,
       family-profile activation, and complete-surface adoption/recovery.

@@ -82,6 +82,13 @@ executable actions. The current admission is a small disposable local projection
 of D2, Phase 10, and D8 authority, not a new authority. Unknown returns a
 neutral, non-enumerating, non-shared unavailable response.
 
+For avoidance of doubt, the quoted reference to D2's sole CAS activation is
+Page-specific. Page and Ministry Update work may share D4/D5 candidate and
+review semantics, but D2 alone owns Page activation and the Page Release
+Manifest, while D11 alone owns audience-scoped Ministry Update activation, the
+Audience Release Manifest, and selected projection heads. Neither owner command,
+manifest, or head may stand in for the other.
+
 The safe default caches only identity-free shells or immutable release fragments
 and composes the final identity-bearing response after current admission. Shared
 complete responses require exact provider/product/environment/route/variant

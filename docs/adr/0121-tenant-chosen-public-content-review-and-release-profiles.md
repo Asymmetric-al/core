@@ -36,13 +36,16 @@ Phase 10 remains authoritative: `allowed` follows the tenant's mode,
 contradictory, or unavailable non-substitutable proof creates a cause-owned
 exception that ordinary review cannot override.
 
-Both modes invoke D2's sole idempotent compare-and-swap release command. It
-re-proves current actor/system authority, assignment, profile, safety, reach,
-target head, compatibility generations, and every dependency before atomically
-recording the immutable Page Release Manifest, advancing the current head, and
-writing the outbox event. Automatic release is system execution of the tenant's
-standing Page Release Authority, not generic contributor permission or AI
-judgment.
+Both modes invoke the applicable sole idempotent compare-and-swap release
+command: D2 for an exact Page candidate and immutable Page Release Manifest, or
+D11 for an exact canonical Ministry Update candidate, the deliberately selected
+audience, its resulting Audience Release Manifest, and projection head. The command re-proves
+current actor/system authority, assignment, profile, safety, reach, target head,
+selected Update audience where applicable, compatibility generations, and every
+dependency before atomically recording the applicable immutable manifest,
+advancing only its owner head, and writing the outbox event. Automatic release
+is system execution of the tenant's standing Page or Update Release Authority,
+not generic contributor permission or AI judgment.
 
 Payload remains authoring substrate. Its `_status`, Admin UI, REST, GraphQL,
 Local API, service role, restore, bulk, and scheduler paths cannot create public

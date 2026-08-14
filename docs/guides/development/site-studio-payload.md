@@ -187,12 +187,20 @@ Output is written under `site-studio-review/<date>/cloud-agent/`:
   - Success: `{ tenant: { slug }, updates: [] }`
   - `limit` is clamped to `1..20`
 
-Production public routes resolve Tenant and Site only through the exact
-platform-trusted `x-forwarded-host` or `host` mapping. A subdomain-slug shortcut
-or `?tenant=<slug>` override is legacy/development-test behavior only, must be
-explicitly environment-gated, and never participates in production resolution.
-Development/test may also use the loopback fallback from
-`CMS_LOCAL_DEFAULT_TENANT_SLUG`.
+The current legacy resolver resolves `primaryDomain`, then accepts a first-label
+tenant-slug fallback in every environment; it reads `x-forwarded-host` directly,
+and its reserved `siteId` remains `null`. Only `?tenant=<slug>` and the loopback
+`CMS_LOCAL_DEFAULT_TENANT_SLUG` fallback are currently environment-gated. These
+are documented implementation gaps, not Phase 22-conforming production authority.
+
+Before P22-14 can activate, Phase 5's certified public-request resolver,
+consuming Phase 2 Site/host truth, must resolve an exact non-null Tenant and Site
+only through the certified production ingress and exact registered-host mapping;
+it must fail closed on unknown, disabled, or unproved scope. A forwarded-host
+value is usable only when the deployment path proves it is platform-set or
+otherwise application-trusted. First-label slug, query-parameter,
+loopback-default, and `siteId: null` results remain explicit legacy/development-
+test inputs and cannot select a production Public Ministry Page.
 
 ### Staff endpoints (auth required)
 

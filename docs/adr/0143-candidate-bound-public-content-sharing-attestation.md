@@ -87,6 +87,20 @@ direct objection, `do_not_publish`, restricted-person rule, safety ceiling, or
 stricter current Phase 10 prohibition still blocks or contains affected public
 output. Other Phase 10 purposes and separately required evidence are unchanged.
 
+## Later D11 audience wording qualification
+
+The founder-ratified Page wording above remains exact for Page candidates. A
+Ministry Update uses the same one calm final action and evidence shape, but the
+code-owned statement must accurately name its requested D11 audience selection:
+`in this update publicly` for `Public page`, `in this update with authorized
+supporters` for `Supporters`, or `in this update publicly and with authorized
+supporters` for `Public page and supporters`. At Submit or Publish, the statement
+identifier and version bind atomically to the exact Update candidate and that
+requested audience selection. If release later succeeds, D11's Audience Release
+Manifest pins the same candidate, requested audience selection, and attestation.
+This creates no tenant-authored copy, second checkbox, second attestation
+workflow, pre-created release truth, or audience authority.
+
 ## Consequences
 
 ### Positive

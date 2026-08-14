@@ -199,7 +199,7 @@ or Giving destination integrity.
 
 The immutable parent planning issue is
 [#1281](https://github.com/Asymmetric-al/core/issues/1281). Its approved native
-child graph is P22-01 through P22-41, issues #1282–#1322, connected by 116 native
+child graph is P22-01 through P22-41, issues #1282–#1322, connected by 117 native
 blocking relationships. P22-01/#1282 alone among the 41 implementation children
 is the current `ready-for-agent` frontier. Publishing this planning graph does
 not prove implementation,

@@ -137,6 +137,13 @@ versioned owner descriptors and supplies presentation, scope navigation, and
 safe owner-command routing only. Canonical versions, heads, histories,
 consequences, and commands stay with their owners.
 
+The quoted reference to D2's sole release command is Page-specific. D23 may
+present the common D4/D5 candidate and review posture, but a Page outcome routes
+only to D2's Page CAS and Page Release Manifest, while a Ministry Update outcome
+routes only to D11's audience-scoped CAS, Audience Release Manifest, and
+selected projection head. Neither owner command, manifest, or head may
+substitute for the other.
+
 ## Later Phase 22 D27 qualification
 
 D27 makes D3 presentation a Site × Page Family setting rather than a Page- or

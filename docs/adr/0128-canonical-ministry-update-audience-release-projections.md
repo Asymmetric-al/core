@@ -121,11 +121,19 @@ for their own facts rather than being reimplemented inside an update feature.
 
 ## Later Phase 22 D26 qualification
 
-D11 pins the exact Ministry Update candidate and its D26 Public Content Sharing
-Attestation in the Audience Release Manifest and released projection. That
-attestation never widens the selected audience, creates supporter access,
-duplicates release evidence, or substitutes for current safety and
-authorization.
+D26 atomically binds the exact Ministry Update candidate, the requested D11
+audience selection, and the code-owned statement identifier and version at the
+consequential Submit or Publish action. The statement is audience-accurate: `in
+this update publicly` for `Public page`, `in this update with authorized
+supporters` for `Supporters`, or `in this update publicly and with authorized
+supporters` for `Public page and supporters`.
+
+If release later succeeds, D11 pins that exact candidate, requested audience
+selection, and D26 Public Content Sharing Attestation in the Audience Release
+Manifest and released projection. The attestation never widens the selected
+audience, creates supporter access, duplicates release evidence, or substitutes
+for current safety and authorization; it does not create another audience or
+release path.
 
 ## Related decisions
 

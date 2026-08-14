@@ -5,13 +5,17 @@
 ### Requirement: D1 Typed Public Page Families Share One Publication Contract
 
 The platform SHALL provide exactly two public Page families, Missionary Ministry
-and Project/Campaign, under one tenant-owned publication contract. A Page SHALL
-reference one exact operational subject rather than copy it, and each authorized
+and Project/Campaign, under one tenant-owned publication contract. A Missionary
+Ministry Page SHALL reference one exact current Phase 9 CRM Ministry Assignment
+as its operational subject; a Project/Campaign Page SHALL reference one exact
+D17-qualified operational subject. A Party, user, Participant Membership,
+contributor, display participant, Designation, fund, Support Assignment, or CMS
+copy SHALL NOT substitute for the family-qualified subject. Each authorized
 contributor SHALL act through their own identity and an explicit organization
 assignment. Autosave SHALL update only one coalesced non-semantic scratch buffer
-beneath the expected Page-and-locale head. A deliberate semantic save or final
-intent SHALL create or advance the private immutable revision lineage; no
-scratch write or contributor edit is itself public truth.
+beneath the expected Page-and-locale head and current editor lease. A deliberate
+semantic save or final intent SHALL create or advance the private immutable
+revision lineage; no scratch write or contributor edit is itself public truth.
 
 #### Scenario: A missionary edits all assigned Pages from one workspace
 
@@ -36,18 +40,24 @@ scratch write or contributor edit is itself public truth.
 
 ### Requirement: D2 Publication Reach Is Tenant-Defaulted And Phase-10-Ceiling-Resolved
 
-Each Page-locale release SHALL have exactly one prospective reach of `Not
-public`, `Shared by link — public`, or `Listed publicly`, derived from the tenant
-default unless an authorized Page choice exists. Phase 10 SHALL impose a
-non-waivable ceiling at
-release and every serve. Reach history SHALL be immutable and SHALL NOT be
-implemented as a page-level authentication or safety switch.
+The platform SHALL maintain a prospective immutable Publication Reach Profile
+Version lineage for each exact Tenant × Legal Entity × Site × typed Page Family,
+with at most one current saved head. Each Page-locale release SHALL have exactly
+one prospective reach of `Not public`, `Shared by link — public`, or `Listed
+publicly`, derived only from that exact-scope head or an authorized same-scope
+Page request. A missing, stale, ambiguous, incompatible, or unauthorized head
+SHALL resolve honestly to the `Not public` fallback without consulting another
+Legal Entity, Site, or Page Family and without creating a tenant choice. Phase 10
+SHALL impose a non-waivable ceiling at release and every serve. Reach history
+SHALL be immutable and SHALL NOT be implemented as a page-level authentication
+or safety switch.
 
 #### Scenario: A tenant default applies to a new Page
 
 - **WHEN** an authorized actor creates a Page without selecting a different
   permitted reach
-- **THEN** the current tenant reach profile supplies the proposed value
+- **THEN** the current exact Tenant × Legal Entity × Site × typed Page Family
+  reach profile supplies the proposed value
 - **AND** the release still requires Phase 10 admission
 
 #### Scenario: Safety narrows after release
@@ -62,11 +72,30 @@ implemented as a page-level authentication or safety switch.
 - **THEN** the Page may be served only as permitted by Phase 10 and D18
 - **AND** it is marked noindex and omitted from directories and sitemaps
 
+#### Scenario: A Listed Page narrows to Shared by link
+
+- **WHEN** an authorized successor release narrows an already Listed Page to
+  `Shared by link — public`
+- **THEN** D2 and D8 atomically activate a fresh high-entropy, opaque, non-name-
+  derived Route Generation for the same exact Site, Page, and locale
+- **AND** the formerly discoverable path becomes a permanent non-redirecting
+  privacy-safe `404`/`noindex` tombstone before the Shared release is serveable
+- **AND** the old path is never reused or redirected to the new Shared route
+
+#### Scenario: Safety narrows before a Shared successor exists
+
+- **WHEN** Phase 10 narrows an already Listed Page before an authorized Shared-
+  by-link successor release exists
+- **THEN** the formerly Listed route is denied immediately
+- **AND** containment does not mint or authorize a new Shared route
+
 #### Scenario: Publication reach has not been deliberately chosen
 
-- **WHEN** no tenant D2 choice exists for the exact Page-family scope
+- **WHEN** no tenant D2 choice exists for the exact Tenant × Legal Entity × Site
+  × typed Page Family scope
 - **THEN** the safe fallback is `Not public`
 - **AND** the UI identifies it as a fallback rather than a tenant choice
+- **AND** no sibling Legal Entity, Site, or Page Family profile is consulted
 
 #### Scenario: A represented person stops public display
 
@@ -82,7 +111,11 @@ Profile per exact Site and Page Family. Missionary and Project/Campaign Pages
 MAY use different layouts, but all current Pages and locale releases in one
 Site-family cohort SHALL conform to its profile. Layouts SHALL use bounded typed
 blocks, including a bounded Ministry Updates placement, and SHALL NOT allow
-arbitrary code, per-Page layout forks, or locale-specific layout forks.
+arbitrary code, per-Page layout forks, or locale-specific layout forks. D3 SHALL
+own one immutable, exact Page-scoped Feed Binding that selects the Ministry
+Update source and purpose set the Page may present. D11 SHALL consume that
+binding and SHALL NOT recreate, infer, or substitute it; display or contributor
+membership SHALL NOT supply it.
 
 #### Scenario: A tenant configures its two Page families
 
@@ -96,6 +129,15 @@ arbitrary code, per-Page layout forks, or locale-specific layout forks.
   release has no eligible content
 - **THEN** the renderer follows the block's code-owned omission behavior
 - **AND** it does not invent, copy, or silently substitute content
+
+#### Scenario: A Page presents Ministry Updates
+
+- **WHEN** a D3 profile places the bounded Ministry Updates block on an exact Page
+- **THEN** the Page pins one immutable D3 Feed Binding selecting its exact source
+  and purpose set
+- **AND** D11 consumes that binding without becoming its owner
+- **AND** a missing, stale, incompatible, or unauthorized binding omits the block
+  and opens only the D3-owned staff exception
 
 #### Scenario: A tenant changes a family design
 
@@ -187,7 +229,8 @@ coverage, and freshness.
 
 #### Scenario: A missionary Page hides progress
 
-- **WHEN** the tenant or authorized Page owner selects `Hidden`
+- **WHEN** an actor with the exact current tenant staff/D6 progress-settings
+  capability selects `Hidden`
 - **THEN** the public layout omits progress without an empty meter or zero
 - **AND** Giving remains available when its independent D7 checks pass
 
@@ -207,14 +250,18 @@ coverage, and freshness.
 
 ### Requirement: D7 Every Page Has Exactly One Phase-13 Designation
 
-For the MVP, every released Page SHALL bind exactly one eligible Phase 13
-Designation; an incomplete draft MAY exist but SHALL NOT release. Every Page
-Give action SHALL use the same binding and SHALL preserve the exact Site, source
-code, locale, currency choice, Page, release, and Designation context through
-the Phase 5 checkout handoff. Phase 13 SHALL re-prove eligibility before cart
-and provider effects. A tenant MAY provide one separately labelled general-
-giving link, but it SHALL carry no inherited Page destination, amount, cadence,
-or attribution and SHALL NOT act as a fallback or substitution.
+For the MVP, every released Page SHALL pin one immutable Page Giving Binding to
+exactly one eligible Phase 13 Designation; an incomplete draft MAY exist but
+SHALL NOT release. Replacing that Designation SHALL be a prospective
+staff-controlled Page change through the ordinary candidate and successor-
+release path and SHALL NOT mutate the binding beneath an existing release. Every
+Page Give action SHALL use the release-pinned binding and SHALL preserve the
+exact Site, source code, locale, currency choice, Page, release, and Designation
+context through the Phase 5 checkout handoff. Phase 13 SHALL re-prove
+eligibility before cart and provider effects. A tenant MAY provide one
+separately labelled general-giving link, but it SHALL carry no inherited Page
+destination, amount, cadence, or attribution and SHALL NOT act as a fallback or
+substitution.
 
 #### Scenario: A visitor gives from a current Page
 
@@ -229,6 +276,13 @@ or attribution and SHALL NOT act as a fallback or substitution.
   Designation
 - **THEN** Give is disabled with a calm accurate explanation
 - **AND** safe Page content may remain visible under its independent authority
+
+#### Scenario: Staff replace a Page Designation
+
+- **WHEN** authorized staff select a different eligible Phase 13 Designation
+- **THEN** the change creates an attributed Page candidate and a newly admitted
+  successor release that pins its own Page Giving Binding
+- **AND** the existing release and its donor destination remain immutable
 
 #### Scenario: Attribution is altered in transit
 
@@ -256,10 +310,19 @@ another fund by inference.
 
 #### Scenario: An eligible Listed Page changes path
 
-- **WHEN** an authorized successor route is released for the same Page and
-  locale
+- **WHEN** an authorized Listed successor route is released for the same Page
+  and locale while both origin and target remain Listed
 - **THEN** the old route returns one bounded permanent redirect to it
 - **AND** the redirect chain remains single-hop and cycle-free
+
+#### Scenario: A Listed Page becomes Shared by link
+
+- **WHEN** D2 admits an authorized `Shared by link — public` successor release
+  for a previously Listed Page
+- **THEN** D8 atomically activates its new exact-scope opaque Route Generation
+  and permanently tombstones the former Listed path
+- **AND** the former path returns the privacy-safe nonredirecting `404`/`noindex`
+  response and is never reused
 
 #### Scenario: A subject departs with no approved successor
 
@@ -313,10 +376,15 @@ Phase 22 owns public meaning, placement, release eligibility, and withdrawal.
 ### Requirement: D10 Preview Requires Current Authenticated Exact-Version Authority
 
 Preview SHALL be available only to a currently authenticated actor authorized
-for the exact tenant, Site, Page, locale, and immutable revision. Every request,
-including assets and nested data, SHALL re-prove authority. Preview responses
-SHALL be no-store and noindex, SHALL disable consequential public actions, and
-SHALL NOT rely on bearer URLs, shared secrets, or copied production pages.
+for the exact tenant, Site, Page or canonical Ministry Update, locale, immutable
+revision or candidate, and selected audience projection where applicable. An
+Update preview SHALL bind one exact canonical Update candidate and one
+deliberately selected public or supporter audience projection; every request
+SHALL re-prove current D11, Phase 12, and Phase 10 authority for that audience.
+Every request, including assets and nested data, SHALL re-prove authority.
+Preview responses SHALL be private, no-store, non-indexable, non-archivable, and
+referrer-suppressed, SHALL disable consequential public actions, and SHALL NOT
+rely on bearer URLs, shared secrets, or copied production pages.
 Preview SHALL remain pinned to the requested coherently saved Revision or exact
 submitted candidate when newer work is saved. It SHALL NOT silently follow a
 mutable working head, latest Revision, live release, or provider fallback; a
@@ -335,6 +403,15 @@ version.
 - **WHEN** an unauthenticated or differently scoped actor follows the URL
 - **THEN** the request is denied without revealing Page existence or content
 - **AND** possession of the address supplies no authority
+
+#### Scenario: Staff preview one Update audience
+
+- **WHEN** authorized staff deliberately select the public or supporter projection
+  of one exact canonical Ministry Update candidate
+- **THEN** preview renders only that audience projection through the production-
+  equivalent reader and remains pinned to the exact candidate
+- **AND** public-audience preview cannot reveal supporter-only content, while
+  supporter preview re-proves current audience authority on every request
 
 #### Scenario: Authority changes during preview
 
@@ -357,9 +434,12 @@ version.
 The platform SHALL maintain one canonical immutable Ministry Update lineage and
 SHALL derive exact audience-scoped release projections from it. Public and
 authenticated-supporter projections SHALL be independently admitted and MAY be
-placed on more than one eligible Page without copying the Update. Corrections
-and withdrawals SHALL be append-only; prior audience access SHALL NOT imply
-current access. Every Page feed SHALL use one exact same-scope D3 Feed Binding
+placed on more than one eligible Page without copying the Update. Mixed release
+outcomes SHALL preserve every successful audience head and every failed
+audience's prior-good head, and recovery SHALL retry only residual work without
+rolling back or replaying a successful audience. Corrections and withdrawals
+SHALL be append-only; prior audience access SHALL NOT imply current access. Every
+Page feed SHALL use one exact same-scope D3 Feed Binding
 to an authorized canonical source and purpose set. Subject, contributor,
 display, spouse/team, Support Assignment, Designation, or Page proximity SHALL
 NOT infer Update membership; a Project feed SHALL require the exact canonical
@@ -379,8 +459,8 @@ second feed, route, release, audience, or copied-post authority.
 
 - **WHEN** the audience manifest admits authenticated supporters but not public
   visitors
-- **THEN** public Page, search, sitemap, share-card, and preview projections omit
-  the supporter content
+- **THEN** public Page, public-audience preview, search, sitemap, and share-card
+  projections omit the supporter content
 - **AND** authenticated reads re-prove the exact current supporter scope
 
 #### Scenario: Published Update content needs correction
@@ -389,6 +469,15 @@ second feed, route, release, audience, or copied-post authority.
 - **THEN** the platform creates a successor fact and converges every affected
   placement adverse-first
 - **AND** it does not rewrite the released version in place
+
+#### Scenario: One selected Update audience fails to release
+
+- **WHEN** a multi-audience release advances one audience but another audience
+  fails admission or release-projection delivery
+- **THEN** the successful audience head remains current and the failed
+  audience's prior-good head remains unchanged
+- **AND** recovery retries only the failed residual work without replaying or
+  rolling back the successful audience
 
 #### Scenario: An Update is merely related to a Page participant
 
@@ -468,10 +557,13 @@ pagination; it SHALL NOT query operational tables or infer hidden subjects.
 
 ### Requirement: D14 Search And Social Presentation Is Release-Bound
 
-For each current eligible release, the platform SHALL compile one bounded Public
-Search Presentation containing canonical URL, robots directive, sitemap
-eligibility, safe structured data, title, description, and social share image.
-Listed content SHALL be indexable and shareable; Shared-by-link content MAY be
+For each current eligible release, the platform SHALL compile one immutable D14
+manifest containing distinct, non-interchangeable bounded Search Presentation
+and Share Presentation outputs. Search SHALL carry canonical URL, robots
+directive, sitemap eligibility, safe structured data, title, and description;
+Share SHALL carry only the release-exact safe social metadata and media allowed
+for deliberate sharing. Listed content SHALL be indexable and shareable;
+Shared-by-link content MAY be
 shareable but SHALL be noindex and absent from discovery; Not-public and
 restricted content SHALL expose no public share projection. Ministry Update
 public URLs SHALL use one opaque permalink per canonical Update, Site, and
@@ -512,16 +604,20 @@ absent when no admitted public placement remains.
 
 ### Requirement: D15 Measurement Is First-Party Bounded And Non-Authoritative
 
-Each tenant SHALL select `Off`, `Staff only`, or `Staff + current assigned Page
-contributors` for Public Ministry measurement. Measurement SHALL record exactly
-qualified visible Page loads, full Ministry Update opens, Share-menu opens, and
-Give-CTA selections through best-effort POSTs that never block visitor or giving
+For each exact Tenant × Legal Entity × Site, the platform SHALL maintain one
+prospective versioned Public Ministry Measurement Profile whose persisted
+initial state is `Off` and whose current value is exactly `Off`, `Staff only`, or
+`Staff + current assigned Page contributors`. Occurrence admission SHALL resolve
+only that exact profile and SHALL record nothing while it is Off, missing, stale,
+incompatible, ambiguous, or unauthorized. Measurement SHALL record exactly qualified
+visible Page loads, full Ministry Update opens, Share-menu opens, and Give-CTA
+selections through best-effort POSTs that never block visitor or giving
 behavior. It SHALL NOT identify unique people, infer conversions, or ingest raw
 request identity. Ephemeral occurrences and idempotency material SHALL expire
 within 24 hours; sealed daily aggregates SHALL use append-only corrections and a
-code-owned 24-month retention. Before an authorized actor saves an explicit
-choice, the persisted profile SHALL be `Off` and the platform SHALL record no
-D15 occurrences.
+code-owned 24-month retention. Changing one Site's profile SHALL NOT authorize
+collection for another Legal Entity or Site, and every admitted occurrence and
+aggregate SHALL pin the exact profile version.
 The fixed report SHALL be titled `Public page activity`, use `Aggregate activity
 for your public pages and ministry updates`, label the four metrics `Qualified
 page loads`, `Full update opens`, `Share options opened`, and `Give button
@@ -755,7 +851,7 @@ managed D17 kind-qualified public subject identity for a CRM Ministry Project,
 Giving Campaign, or eligible Designation; optional Project summary, The need,
 What this project will do, and prospective Expected impact; D9 media; optional
 D6 Project progress; one required D7-managed Give semantic role; one D11
-Updates feed selected by the Page-scoped Feed Binding and exact subject/purpose
+Updates feed selected by D3's Page-scoped Feed Binding and exact subject/purpose
 scope; and locked organization stewardship, disclosure, and help. A source-
 kind-incompatible identity field or feed SHALL be unavailable and SHALL NOT be
 fabricated, inferred, or relabelled as project truth.
@@ -790,7 +886,7 @@ become tenant-authored schema, layout, permission, or publication controls.
 - **AND** required managed Give and stewardship roles cannot be removed or
   replaced by editorial blocks
 - **AND** each Project/Campaign managed role resolves through the exact D17
-  subject kind and explicit D11 Feed Binding rather than project-name inference
+  subject kind and explicit D3 Feed Binding rather than project-name inference
 
 ### Requirement: D21 Public Surface Adoption Uses One Complete Authority Cutover
 
@@ -863,15 +959,24 @@ become Page state or use `Live` as D21 truth.
 - **THEN** the sole gateway may serve only the normalized immutable DTO
 - **AND** later edits use the current catalog without raw-legacy fallback or a
   second compatibility release
+- **AND** missing historical D26 evidence is recorded as `not captured` without
+  minting an attestation; the first successor candidate follows ordinary D26
 
 ### Requirement: D22 Public Pages Operations Is Quiet Derived And Cause-Owned
 
 Mission Control SHALL provide one disposable Public Pages workspace with `To
 review`, `Needs attention`, and `All pages`. It SHALL derive rows and counts from
-source-owned Page, review, safety, route, media, serving, and adoption facts;
-coalesce shared causes; identify impact, owner, and next action; and remain quiet
-when no action is required. It SHALL NOT become a task system, health authority,
-workflow status table, or leak restricted identities through counts.
+a finite, code-owned, versioned registry covering every D1–D21 owner contract.
+For each owner and compatible version, the registry SHALL contain either a
+privacy-safe owner-condition/action adapter or an explicit source-owned `not
+participating`, `Off`, or `unavailable` coverage disposition. Missing, stale,
+unsupported, contradictory, or partial adapter coverage SHALL produce an honest
+`Partial` or `Unavailable` coverage state and SHALL NOT become zero, healthy,
+resolved, or a guessed tenant action. D22 SHALL read no raw owner tables or
+duplicate owner status logic. It SHALL coalesce shared causes; identify impact,
+owner, and next action; and remain quiet when no action is required. It SHALL NOT
+become a task system, health authority, workflow status table, or leak restricted
+identities through counts.
 
 #### Scenario: Several Pages share one cause
 
@@ -891,6 +996,23 @@ workflow status table, or leak restricted identities through counts.
 - **WHEN** the viewer lacks permission to inspect their identity or cause
 - **THEN** counts and groupings are suppressed or generalized safely
 - **AND** drill-down never reveals the protected rows
+
+#### Scenario: Giving becomes unavailable while a Page remains public
+
+- **WHEN** D7 proves the release-pinned Designation ineligible while D2 and D18
+  still admit the Page
+- **THEN** authorized capable staff see one cause-owned `Giving unavailable`
+  condition with the current visitor consequence and `Review designation` action
+- **AND** Page content remains independently public, no substitute Designation
+  is selected, and an unauthorized viewer receives no action or protected detail
+
+#### Scenario: A participating owner adapter is not currently compatible
+
+- **WHEN** a participating D1–D21 owner lacks a compatible current adapter
+- **THEN** D22 exposes coverage as `Partial` or `Unavailable` without fabricating
+  a tenant task
+- **AND** production authorization fails for a core or launch-selected owner
+  until exact adapter coverage is proved
 
 ### Requirement: D23 Setup And Settings Is One Derived Scope-First Workspace
 
@@ -1041,18 +1163,30 @@ restore, rewind, merge, submit, publish, or revive former authorization.
 ### Requirement: D26 Content-Sharing Attestation Is One Calm Candidate-Bound Confirmation
 
 At the consequential Submit or Publish action, the current actor SHALL make one
-calm confirmation using the action-adjacent copy `By submitting, you confirm
-you’re allowed to share the words and images on this page publicly.` or `By
-publishing, you confirm you’re allowed to share the words and images on this
-page publicly.` The evidence SHALL bind the exact Page or independently released
-Ministry Update candidate digest, scope, actor, and action atomically, without a
-persistent checkbox, modal, preference, or separate attestation table exposed to
-users. Reviewer approval of an unchanged candidate SHALL retain the submitter's
-evidence and create no new attestation. Reused, imported, cloned, translated, or
-materially changed content SHALL become an ordinary attributed successor candidate
-and require the current actor's new Submit/Publish confirmation. Any staff-authored
-successor SHALL additionally follow D24; a non-staff successor remains in D1. Only
-material staff supersession triggers D24's bounded contributor-visible reason.
+calm confirmation using a code-owned candidate-kind and audience-accurate
+action-adjacent statement. A Page SHALL use `By submitting, you confirm you’re
+allowed to share the words and images on this page publicly.` or `By publishing,
+you confirm you’re allowed to share the words and images on this page publicly.`
+An Update with `Public page` SHALL use the equivalent `in this update publicly`
+statement; an Update with `Supporters` SHALL use the equivalent `in this update
+with authorized supporters` statement; and an Update with `Public page and
+supporters` SHALL use the equivalent `in this update publicly and with
+authorized supporters` statement.
+The evidence SHALL bind the
+exact Page or independently released Ministry Update candidate digest, selected
+audience, scope, actor, and action atomically, without a persistent checkbox,
+modal, preference, or separate attestation table exposed to users. Reviewer
+approval of an unchanged candidate SHALL retain the submitter's evidence and
+create no new attestation. Except for the one D21 compatible-legacy release
+preserved without creating a new editorial candidate, reused, imported, cloned,
+translated, or materially changed content SHALL become an ordinary attributed
+successor candidate and require the current actor's new Submit/Publish
+confirmation. The compatible-legacy release SHALL record missing historical
+evidence as `not captured`, SHALL NOT mint a new attestation, and SHALL NOT
+satisfy the first successor candidate's confirmation. Any staff-authored
+successor SHALL additionally follow D24; a non-staff successor remains in D1.
+Only material staff supersession triggers D24's bounded contributor-visible
+reason.
 Preserved earlier attestation remains provenance history and SHALL NOT satisfy the
 successor's confirmation.
 Attestation SHALL NOT waive Phase 10 or make Asym authoritative for underlying

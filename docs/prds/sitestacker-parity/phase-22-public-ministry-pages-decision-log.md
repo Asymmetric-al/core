@@ -13,7 +13,7 @@ to build.
   completed. The linked PRD/OpenSpec package is implementation-ready planning,
   and parent specification issue
   [#1281](https://github.com/Asymmetric-al/core/issues/1281) owns the approved
-  41-ticket graph, #1282–#1322, with 116 native blocking relationships.
+  41-ticket graph, #1282–#1322, with 117 native blocking relationships.
   P22-01/#1282 alone among the 41 implementation children is the current
   `ready-for-agent` frontier. Phase 22 is not implemented, deployed, or live;
   the live issue graph does not alter any historical decision recorded below.
@@ -709,6 +709,15 @@ for review`; automatic mode uses `Publish changes`; a production-rendered
 - staff override of unknown egress or mandatory missing proof; and
 - conflation of release, reach, Giving, cache, communication, or discovery
   outcomes.
+
+### Later D11 authority qualification
+
+The ratified D4/D5 candidate and review lane remains shared, but its release
+command is owner-specific. A Page invokes D2 and records an immutable Page
+Release Manifest; a Ministry Update invokes D11 for the deliberately selected
+audience and records its Audience Release Manifest and projection head. Neither command or
+manifest may substitute for the other, and every automatic or reviewed action
+re-proves the selected Update audience where applicable.
 
 **Architectural record:**
 [ADR-0121](../../adr/0121-tenant-chosen-public-content-review-and-release-profiles.md).
@@ -3606,7 +3615,7 @@ environment-less D3 tuple are historical family shorthand. D17 and D27 govern
 current implementation: every activation head is Tenant × Legal Entity ×
 environment × Site × Page Family, managed subject presentation is qualified by
 the exact CRM Ministry Project, Giving Campaign, or eligible Designation kind,
-and Update inclusion uses one explicit Page-scoped D11 Feed Binding. An
+and Update inclusion uses one explicit Page-scoped D3 Feed Binding. An
 incompatible source-kind field or feed is unavailable, never inferred,
 fabricated, or relabelled as project truth.
 
@@ -3655,7 +3664,7 @@ fabricated, or relabelled as project truth.
 | **Approved photos and media**                      | D9-owned released media references.                                                    | Same bounded, responsive, metadata-safe, accessible media contract as the Missionary family.                                             |
 | **Project progress**                               | D6-owned managed projection.                                                           | Optional placement only; no contributor-entered totals, formulas, dates, or manual progress.                                             |
 | **Give**                                           | Required managed surface over the page's one D7 Page Giving Binding.                   | One exact Designation and one consistent destination across certified placements.                                                        |
-| **Updates**                                        | D11 feed selected by the Page-scoped Feed Binding and exact subject/purpose scope.     | Optional bounded feed. Subject, contributor, teammate, or fund proximity never infers inclusion; incompatible feeds are unavailable.     |
+| **Updates**                                        | D11 feed selected by D3's Page-scoped Feed Binding and exact subject/purpose scope.    | Optional bounded feed. Subject, contributor, teammate, or fund proximity never infers inclusion; incompatible feeds are unavailable.     |
 | **Organization stewardship, disclosure, and help** | Required tenant/site-managed content, contributor-locked.                              | One compatible certified treatment in its locked context.                                                                                |
 
 ### Flexibility and quiet authoring experience
@@ -5752,6 +5761,20 @@ objections, `do_not_publish`, restricted-person rules, stricter current safety
 outcomes, and every named owner boundary remain non-overridable. This planning
 ratification authorizes no runtime, migration, issue, notification,
 legal-policy, or production activation.
+
+### Later D11 audience wording qualification
+
+The ratified Page statement remains unchanged. A Ministry Update uses the same
+single action-bound confirmation with code-owned wording that accurately names
+its requested D11 audience selection: `in this update publicly` for `Public
+page`, `in this update with authorized supporters` for `Supporters`, or `in this
+update publicly and with authorized supporters` for `Public page and
+supporters`. At Submit or Publish, the statement identifier/version is pinned
+atomically to the exact candidate and requested audience selection. If release
+later succeeds, D11's Audience Release Manifest pins that candidate, requested
+audience selection, and attestation. This qualification adds no tenant-authored
+wording, checkbox, modal, second attestation workflow, or pre-created release
+truth.
 
 **Architectural record:**
 [ADR-0143](../../adr/0143-candidate-bound-public-content-sharing-attestation.md).

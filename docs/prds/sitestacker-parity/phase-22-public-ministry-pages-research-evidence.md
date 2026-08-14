@@ -13,7 +13,7 @@
   the D1–D27 closure. The PRD/OpenSpec package is implementation-ready planning,
   and parent specification issue
   [#1281](https://github.com/Asymmetric-al/core/issues/1281) owns 41 approved
-  native child issues, #1282–#1322, with 116 native blocking relationships.
+  native child issues, #1282–#1322, with 117 native blocking relationships.
   P22-01/#1282 alone among the 41 implementation children is the current
   `ready-for-agent` frontier; Phase 22 remains unimplemented, undeployed, and
   not live

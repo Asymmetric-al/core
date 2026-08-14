@@ -529,7 +529,7 @@ questions**. Benchmark source root: `https://sitestacker.training`.
   change are now the implementation-ready specification, while Phase 22 remains
   unimplemented. Parent issue
   [#1281](https://github.com/Asymmetric-al/core/issues/1281) owns 41 approved
-  native child issues, #1282–#1322, and 116 native blocking relationships;
+  native child issues, #1282–#1322, and 117 native blocking relationships;
   P22-01/#1282 alone among the 41 implementation children is the current
   `ready-for-agent` frontier. That planning posture is not build, deployment,
   or production proof. D24 is ratified as one

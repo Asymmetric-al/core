@@ -73,7 +73,7 @@ identity` and `project update feed` phrases are historical family shorthand.
 D27 makes the current activation scope Tenant × Legal Entity × environment ×
 Site × Page Family. The current Project/Campaign contract uses D17's kind-
 qualified subject identity for a CRM Ministry Project, Giving Campaign, or
-eligible Designation and one explicit Page-scoped D11 Feed Binding. A source-
+eligible Designation and one explicit Page-scoped D3 Feed Binding. A source-
 kind-incompatible identity field or feed is unavailable; the renderer never
 fabricates project semantics, infers an Update subject, or relabels a Campaign
 or Designation as a CRM Project.
@@ -101,7 +101,7 @@ The Project/Campaign Page launch catalog contains these semantic roles:
 6. bounded D9-approved media;
 7. optional D6 Project progress;
 8. one required D7-managed Give role;
-9. one optional D11 Updates feed selected by the Page-scoped Feed Binding and
+9. one optional D11 Updates feed selected by D3's Page-scoped Feed Binding and
    exact subject/purpose scope; and
 10. required organization stewardship, disclosure, and help.
 

@@ -213,9 +213,13 @@ The tenant chooses Review before publishing or Publish after checks. In review
 mode, authorized staff normally choose Approve & publish or Request changes;
 terminal rejection is secondary. Approval binds only to that candidate. In
 automatic mode, the same owning-source and safety proofs execute without a
-human queue. Both modes call D2's one CAS release command, which re-proves all
-current authority and atomically appends the immutable release, advances the
-current locale head, and writes the outbox event.
+human queue. Both modes share D4/D5 candidate and review semantics, then invoke
+the content owner's release boundary: D2's one Page CAS release command and
+Page Release Manifest for a Page, or D11's audience-scoped CAS release command,
+Audience Release Manifest, and selected projection head for a Ministry Update.
+Each owner command re-proves its current authority, appends only its immutable
+release, advances only its owned head, and writes its owned outbox event; the
+commands and manifests are never interchangeable.
 
 D26 is one plain-language candidate-bound confirmation integrated into Submit
 or Publish. It records actual actor, exact candidate digest/scope/action, and
@@ -275,6 +279,14 @@ only a fresh explicit link and inherits no Designation, amount, cadence, source
 code, return path, or recurring action. Resolver failure is a neutral no-store
 `503`, never false nonexistence.
 
+An authorized `Listed publicly` to `Shared by link — public` successor
+atomically activates a fresh high-entropy, opaque, non-name-derived Route
+Generation for the same exact Site, Page, and locale and permanently replaces
+the old discoverable path with the privacy-safe nonredirecting `404`/`noindex`
+tombstone before the Shared release is serveable. Phase 10 containment denies an
+unsafe Listed route immediately but cannot mint a Shared route without that
+authorized successor.
+
 ### Media preview and authoring assistance
 
 A public media flow is Upload Intent → private non-authoritative Intake →
@@ -309,8 +321,11 @@ separate `lang`/`dir` comparison, the full warning that AI may make mistakes or
 miss context, the literal `Use English draft` action, and an expandable checklist
 for names, dates, numbers, quotations, Scripture, ministry terms, relationships,
 cultural meaning, fluent review for important content, and `This is not a
-certified translation.` Translation never creates a locale, route, variant,
-translation status, fallback, or release.
+certified translation.` After compare-before-apply, deliberate `Use English
+draft` creates one ordinary D1 successor through current-head CAS in the already
+existing Phase-24-enabled English locale lineage. Translation never creates a
+locale, route, variant, translation status, fallback, or release; a missing
+lineage, stale head, or failed proof changes nothing.
 
 ### Ministry Updates and supporter responses
 
@@ -357,9 +372,14 @@ Public Updates use stable opaque per-Site/locale permalinks. Share is a
 user-initiated native Web Share or first-party Copy link with bounded click-only
 fallbacks, never a passive third-party tracker.
 
-D15 is off or Staff only or Staff + current assigned contributors. It accepts
-exactly four fixed-schema events: qualified visible Page load, full Update open,
-Share menu open, and Give CTA selection. Events arise only from best-effort
+D15 has one prospective versioned Measurement Profile per exact Tenant × Legal
+Entity × Site. Every exact scope begins in persisted Off state; collection starts
+only after a currently authorized actor saves Staff only or Staff + current
+assigned contributors for that scope. Missing, stale, incompatible, ambiguous,
+unauthorized, or sibling-scope profiles admit nothing, and every occurrence and
+aggregate pins the exact profile version. D15 accepts exactly four fixed-schema
+events: qualified visible Page load, full
+Update open, Share menu open, and Give CTA selection. Events arise only from best-effort
 post-render or explicit-action POSTs, never GET/HEAD/render/RSC/prefetch/
 preview/crawler/social/probe traffic. Durable measurement contains no raw IP,
 user agent, URL/query, referrer, location, fingerprint, cookie, visitor/session
@@ -436,11 +456,17 @@ current-serving, and external outcomes remain separate truth planes.
 
 ### Quiet operations and settings
 
-D22 derives To review, Needs attention, and All pages from owner facts. It
-groups by root cause and permitted impact and links to the exact owner action.
-It stores no Page-health/status/task authority, does not expose restricted
-counts, and does not mark a condition fixed because a task or command completed;
-fresh owner proof must clear it.
+D22 derives To review, Needs attention, and All pages from one finite, code-owned,
+versioned registry covering every D1–D21 owner contract. Each compatible owner
+version supplies either a privacy-safe condition/action adapter or a source-owned
+not-participating, Off, or unavailable disposition; missing, stale, unsupported,
+contradictory, or partial coverage is honestly Partial/Unavailable and cannot
+become zero, healthy, resolved, or a guessed action. D22 groups by root cause and
+permitted impact and links to the exact owner action, including D7 Giving
+readiness and Review designation. It reads no raw owner tables, stores no Page-
+health/status/task authority, does not expose restricted counts, and does not
+mark a condition fixed because a task or command completed; fresh owner proof
+must clear it.
 
 D23 is one scope-first setup/settings projection over source-owned profile
 versions. First setup asks only `Who can find new Missionary pages?`, `Who can

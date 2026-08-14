@@ -405,7 +405,7 @@ Before creating issues or tickets, check:
   issue posture is not build proof. Phase 22 has an implementation-ready PRD,
   active OpenSpec change, parent specification issue
   [#1281](https://github.com/Asymmetric-al/core/issues/1281), and 41 native child
-  issues #1282–#1322 with 116 native blockers; #1282 alone among those 41
+  issues #1282–#1322 with 117 native blockers; #1282 alone among those 41
   implementation children is the current ready frontier, but the phase is not
   implemented. PR [#1323 Files changed](https://github.com/Asymmetric-al/core/pull/1323/files)
   is the exact planning-publication inventory; its

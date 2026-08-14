@@ -751,7 +751,7 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   [#1281](https://github.com/Asymmetric-al/core/issues/1281) has 41 approved
   native child issues, [#1282](https://github.com/Asymmetric-al/core/issues/1282)
   through [#1322](https://github.com/Asymmetric-al/core/issues/1322), connected
-  by 116 native blocking relationships. P22-01/#1282 alone among the 41
+  by 117 native blocking relationships. P22-01/#1282 alone among the 41
   implementation children is the current `ready-for-agent` frontier; issue
   posture is planning metadata, not build or production proof.
   Reproducible contract checks are

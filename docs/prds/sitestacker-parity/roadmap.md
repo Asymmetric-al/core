@@ -2655,7 +2655,7 @@ D28 is opened. The founder subsequently invoked `/to-spec`; the canonical
 now carry the approved implementation contract. Parent specification issue
 [#1281](https://github.com/Asymmetric-al/core/issues/1281) owns 41 native child
 issues, [#1282](https://github.com/Asymmetric-al/core/issues/1282) through
-[#1322](https://github.com/Asymmetric-al/core/issues/1322), connected by 116
+[#1322](https://github.com/Asymmetric-al/core/issues/1322), connected by 117
 native blocking relationships. P22-01/#1282 alone among the 41 implementation
 children is the current `ready-for-agent` frontier. Implementation, migration,
 and production remain separate work governed by each ticket's live blockers.
@@ -2723,8 +2723,11 @@ site/locale context); and optional Phase 21 support projections.
   release candidates only after deliberate submission. The tenant selects
   `Review before publishing` or `Publish after checks` prospectively for each
   page/update path; both modes consume Phase 10's publication firewall and
-  review-verdict contract and use Phase 22's sole current-proofed release
-  command. Review-mode staff judge the exact rendered candidate through
+  review-verdict contract, then use the content owner's current-proofed release
+  command: D2's Page CAS and Page Release Manifest for a Page, or D11's
+  audience-scoped CAS, Audience Release Manifest, and selected projection head
+  for a Ministry Update. Neither command or manifest may substitute for the
+  other. Review-mode staff judge the exact rendered candidate through
   **Approve & publish** or **Request changes**; healthy automatic candidates do
   not enter the staff queue. Phase 22 adds no second consent workflow or
   participant/field/asset permission matrix. A contributor assignment alone
@@ -3214,9 +3217,11 @@ Studio shell) and Phase 2/5 (primitives + runtime).
   reach, search readiness, or locale admission.
   Phase 22 D16 may create only a reviewed writing suggestion for an already
   existing exact English-locale working revision. Its **Translate to English**
-  action never enables a locale, creates a locale draft or route, marks
+  action never enables a locale, creates a locale record or route, marks
   translation complete, chooses fallback, establishes an alternate, or proves
-  release/publication; Phase 24 remains authoritative for each of those facts.
+  release/publication. Deliberate **Use English draft** may create only an
+  ordinary D1 successor draft in that existing locale lineage; Phase 24 remains
+  authoritative for every locale and release fact.
 - **Currency management**: per-site default plus enabled donor presentment
   currencies, donor-facing conversion disclosure, and clear separation of
   presentment from settlement. The ordinary path lets Stripe convert activity

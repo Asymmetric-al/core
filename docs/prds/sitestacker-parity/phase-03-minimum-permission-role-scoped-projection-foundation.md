@@ -852,7 +852,8 @@ successor revision as distinct record families. The AI provider receives no
 general contributor, staff, public, CMS, Party, supporter, financial, or Page
 projection. One purpose-specific server projection subtracts to the exact D3
 narrative target, deliberately supplied answers, and individually selected
-Phase-10-admitted facts named in the D10 Egress Manifest.
+Phase-10-admitted facts named in the Phase 21 D10 Egress Manifest for the exact
+`public-profile drafting` binding.
 
 Suggestions and translation warnings are private authoring facts and never
 enter anonymous public, directory, search/share, measurement, supporter, or

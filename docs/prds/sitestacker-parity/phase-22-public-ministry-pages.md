@@ -351,9 +351,13 @@ exceptions expose one cause-owned, re-proved action.
   active, explicit contributor assignment for the exact Page; being a spouse,
   team member, subject participant, supporter, or financial viewer grants
   nothing by inference.
-- **D2:** A versioned tenant Publication Reach profile supplies family defaults.
-  A Page requests one of `Not public`, `Shared by link — public`, or `Listed
-publicly`; Phase 10 computes the release-time and live ceilings. Shared by
+- **D2:** A prospective immutable Publication Reach profile lineage has at most
+  one current saved head per exact Tenant × Legal Entity × Site × typed Page
+  Family. A Page requests one of `Not public`, `Shared by link — public`, or
+  `Listed publicly` from that exact-scope head or an authorized same-scope Page
+  request; missing or unprovable truth falls safely to `Not public` without
+  consulting a sibling scope. Phase 10 computes the release-time and live
+  ceilings. Shared by
   link is an unlisted public URL, not authentication or secrecy. Every egress
   uses effective live reach, including routing, directory, sitemap, metadata,
   media, Updates, measurement, and cache admission.
@@ -462,10 +466,12 @@ before publishing` or `Publish after checks`. Setup starts with one disclosed
   material is never automatically redacted into a public post; an author must
   deliberately supply a public-safe variant. A release fact is distinct from
   email, notification, or feed delivery outcome.
-- A Page pins an exact Feed Binding that selects the source and purpose set it
-  may present; display membership never supplies that binding. Public Update
-  ordering uses released time plus opaque identifier, and an empty or
-  unprovable Updates section collapses quietly.
+- **D3 Feed Binding:** D3 alone owns and versions the exact Page-scoped Feed
+  Binding that selects the Ministry Update source and purpose set the Page may
+  present. D11 consumes that binding and never recreates, infers, or substitutes
+  it; display membership never supplies it. Public Update ordering uses released
+  time plus opaque identifier, and an empty or unprovable Updates section
+  collapses quietly.
 - Prior Asym wording `My Feed` survives only as a migration, search, and help
   alias for Ministry Updates. It never names a second feed, copied post model,
   route authority, or independently releasable content source.
@@ -501,10 +507,14 @@ comments`; guided setup recommends acknowledgement-only. It is a ceiling over
   Shared by link, and absent when no admitted public placement remains. Share
   controls use first-party copy and platform-native invocation; passive
   third-party social SDKs and public share counters are excluded.
-- **D15:** Measurement is tenant-off-by-default and has only `Staff only` or
-  `Staff + assigned contributors` visibility when enabled. The accepted events
-  are qualified Page load, full Update open, share menu open, and Give CTA
-  selection. Only explicit POST admission records an occurrence; reads,
+- **D15:** Every exact Tenant × Legal Entity × Site Measurement Profile begins
+  in persisted `Off`; collection starts only after a currently authorized actor
+  saves `Staff only` or `Staff + assigned contributors` for that scope. Missing,
+  stale, incompatible, ambiguous, unauthorized, or sibling-scope profiles admit
+  nothing, and each occurrence and aggregate pins the exact profile version. The
+  accepted events are qualified Page load, full
+  Update open, share menu open, and Give CTA selection. Only explicit POST
+  admission records an occurrence; reads,
   prefetches, bots, health checks, previews, and retries create none.
   Occurrences contain no supporter identity or fingerprint, expire within 24
   hours, and feed idempotently sealed daily aggregates retained for 24 months
@@ -574,7 +584,7 @@ direct`, or `Professional`, one length-bounded Page-Family-specific same-source
     Designation; optional Project summary, The need, What this project will do,
     and prospective Expected impact; approved D9 photos/media; optional D6
     Project progress; the required D7-managed Give role; one D11 Updates feed
-    selected by the Page-scoped Feed Binding and exact subject/purpose scope;
+    selected by D3's Page-scoped Feed Binding and exact subject/purpose scope;
     and locked organization stewardship, disclosure, and help. Incompatible
     source-kind fields or feeds are unavailable rather than fabricated or
     relabelled as project facts.
@@ -599,8 +609,14 @@ direct`, or `Professional`, one length-bounded Page-Family-specific same-source
   minimum 5,000-Page, multi-locale, skewed-tenant fixture.
 - **D22:** The Public Pages workspace is a disposable, permission-filtered
   projection with `To review`, `Needs attention`, and `All pages`. It derives
-  state from release and source facts, coalesces duplicate symptoms under one
-  root cause, explains consequence and owner, and stays quiet when healthy.
+  state from one finite, code-owned, versioned registry covering every D1–D21
+  owner contract. Each compatible owner version supplies either a privacy-safe
+  condition/action adapter or a source-owned not-participating, Off, or
+  unavailable disposition; missing or incompatible coverage is honestly Partial
+  or Unavailable and blocks core/selected-capability production proof rather than
+  becoming healthy or a guessed task. D7 Giving readiness and Review designation
+  are included. The workspace coalesces duplicate symptoms under one root cause,
+  explains consequence and owner, and stays quiet when healthy.
   There is no mutable task status, health toggle, close button, or shadow
   authority. Every action leaves the projection and enters its cause-owning
   command with current reproof.
@@ -636,22 +652,28 @@ submitted version`; either appends from and CAS-advances the current head while
   alone grants no authority. Cleanup is reference-safe and does not delete
   immutable editorial evidence.
 - **D26:** The actual actor's existing Submit or Publish action records one calm
-  Public Content Sharing Attestation for the exact immutable Page or independently
-  released Ministry Update candidate. It confirms permission to share the
-  included words and images publicly; it is not a checkbox, contract repository,
-  rights-management workflow, verified ownership, or legal guarantee. The owning
-  D2 Page Release Manifest or D11 Audience Release Manifest/Projection only pins
-  the exact statement version, actor, tenant, legal entity, environment, Site,
-  family or Update identity, locale, candidate and normalized digest, action,
-  and server time—it cannot manufacture missing evidence. An unchanged reviewer
-  approval retains the submitter's evidence; a clone, import, translation,
-  different scope, material edit, or new candidate requires the current actor's
-  new confirmation. Phase 10, current authorization, objections, takedowns, and
-  safety rules always prevail. Historical content without evidence is labeled
-  `not captured`; evidence is never fabricated.
-  The action-adjacent copy is exactly `By submitting, you confirm you’re allowed
-to share the words and images on this page publicly.` or `By publishing, you
-confirm you’re allowed to share the words and images on this page publicly.`
+  Public Content Sharing Attestation for the exact immutable Page or Ministry
+  Update candidate. For a Page, the action-adjacent copy is exactly `By
+submitting, you confirm you’re allowed to share the words and images on this
+page publicly.` or `By publishing, you confirm you’re allowed to share the
+words and images on this page publicly.` For a Ministry Update, the same
+  sentence uses `in this update publicly`, `in this update with authorized
+supporters`, or `in this update publicly and with authorized supporters`
+  according to the exact requested D11 `Public page`, `Supporters`, or `Public
+page and supporters` audience selection. At Submit or Publish, the candidate,
+  requested audience selection where applicable, exact statement identifier and
+  version, actor, tenant, legal entity, environment, Site, family or Update
+  identity, locale, normalized digest, action, and server time bind atomically.
+  D2's Page Release Manifest or D11's Audience Release Manifest and selected
+  projection head may pin only that committed evidence if the owner-specific
+  release later succeeds; neither can manufacture or predate it. The attestation
+  is not a checkbox, contract repository, rights-management workflow, verified
+  ownership, or legal guarantee. An unchanged reviewer approval retains the
+  submitter's evidence; a clone, import, translation, different scope, material
+  edit, or new candidate requires the current actor's new confirmation. Phase 10,
+  current authorization, objections, takedowns, and safety rules always prevail.
+  Historical content without evidence is labeled `not captured`; evidence is
+  never fabricated.
 - **D27:** Page identity is Site-scoped and excludes locale: one exact subject
   may have one Page per family on a Site, with independently released locale
   lineages beneath it. An exact locale request never falls back or synthesizes
@@ -814,7 +836,7 @@ govern wherever earlier research explored broader choices.
 The approved Phase 22 delivery graph contains 41 behavior-led tracer bullets,
 P22-01 through P22-41, represented by native child issues
 [#1282](https://github.com/Asymmetric-al/core/issues/1282) through
-[#1322](https://github.com/Asymmetric-al/core/issues/1322), with 116 native
+[#1322](https://github.com/Asymmetric-al/core/issues/1322), with 117 native
 blocking relationships. [P22-01](https://github.com/Asymmetric-al/core/issues/1282)
 alone among the 41 implementation children is the current `ready-for-agent`
 frontier; every later ticket remains governed by its live native blockers. The
