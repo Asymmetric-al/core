@@ -144,7 +144,8 @@ bun run dev:donor
 - Open a saved draft from `pages`, `ministry-updates`, `missionary-giving-pages`, or `project-pages` and confirm Payload's preview button opens `/web-studio/preview/<collection>/<id>` while unauthenticated access redirects to `/login`.
 - Confirm the edit shell state strip changes for unsaved edits, save/publish, autosave, validation errors, and preview availability.
 - Confirm collection lists are tenant-filtered for non-super-admin users.
-- Call:
+- In development/test only, with the query override explicitly environment-gated,
+  call:
   - `GET /api/cms/public/pages/<slug>?tenant=<tenant-slug>`
   - `GET /api/cms/public/navigation?tenant=<tenant-slug>`
   - `GET /api/cms/public/updates?tenant=<tenant-slug>`
@@ -186,12 +187,12 @@ Output is written under `site-studio-review/<date>/cloud-agent/`:
   - Success: `{ tenant: { slug }, updates: [] }`
   - `limit` is clamped to `1..20`
 
-Tenant resolution priority:
-
-1. `x-forwarded-host` or `host` exact domain match
-2. subdomain slug fallback
-3. `?tenant=<slug>` only when the host does not resolve a tenant
-4. development/test only: loopback host fallback from `CMS_LOCAL_DEFAULT_TENANT_SLUG`
+Production public routes resolve Tenant and Site only through the exact
+platform-trusted `x-forwarded-host` or `host` mapping. A subdomain-slug shortcut
+or `?tenant=<slug>` override is legacy/development-test behavior only, must be
+explicitly environment-gated, and never participates in production resolution.
+Development/test may also use the loopback fallback from
+`CMS_LOCAL_DEFAULT_TENANT_SLUG`.
 
 ### Staff endpoints (auth required)
 

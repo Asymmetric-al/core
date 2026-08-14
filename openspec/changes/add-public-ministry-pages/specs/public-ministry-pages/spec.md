@@ -944,8 +944,11 @@ be independent from D5 review and release authority. Deriving a revision from
 active or submitted contributor work SHALL preserve its exact revision, author,
 available candidate and attestation evidence, and exact diff; a bounded staff
 reason SHALL be required only when staff materially supersede active or submitted
-contributor work. That reason SHALL be
-short, notification-safe, and visible to the contributor.
+contributor work. That reason SHALL be short, notification-safe, and visible to
+the contributor.
+Preserved prior attestation evidence SHALL remain provenance history only and
+SHALL NOT satisfy the successor candidate. When the successor is submitted or
+published, D26 SHALL atomically record the current actor's new confirmation.
 D24 MAY emit one privacy-minimized idempotent occurrence only after committed
 material supersession or a genuine conflict. Existing D5 request-for-action and
 D2/D4/D5 release occurrences SHALL be reused rather than duplicated; Phase 6
@@ -1050,6 +1053,8 @@ materially changed content SHALL become an ordinary attributed successor candida
 and require the current actor's new Submit/Publish confirmation. Any staff-authored
 successor SHALL additionally follow D24; a non-staff successor remains in D1. Only
 material staff supersession triggers D24's bounded contributor-visible reason.
+Preserved earlier attestation remains provenance history and SHALL NOT satisfy the
+successor's confirmation.
 Attestation SHALL NOT waive Phase 10 or make Asym authoritative for underlying
 rights.
 Image selection SHALL say `Use a photo you're allowed to share. We remove hidden

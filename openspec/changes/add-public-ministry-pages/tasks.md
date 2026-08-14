@@ -171,9 +171,9 @@ publicly` action, which immediately invokes smallest-scope containment
       adverse-first invalidation, and no stale safety fallback.
 - [ ] 5.2 Deliver exactly one Phase 13 Designation binding for every released
       Page while allowing incomplete private preparation, and preserve Site,
-      source code, locale, currency, Page, exact D2 release, and Designation context
-      through the Phase 5 handoff with action-time reproof before cart and provider
-      mutation. When the
+      exact CTA/link `source_code`, locale, currency, Page, exact D2 release, exact
+      Page Giving Binding, and Designation context through the Phase 5 handoff with
+      action-time reproof before cart and provider mutation. When the
       tenant supplies it, a separately labelled fresh general-giving link may be
       shown without inheriting Page destination, amount, cadence, source, or return
       context and never as fallback or substitution.

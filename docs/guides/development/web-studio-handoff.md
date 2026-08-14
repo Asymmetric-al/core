@@ -14,22 +14,25 @@ preview/version integration, or a Phase 22 D20-D26 seam named below.
 ## Workflow
 
 1. Read the ordered sources below and identify the owning contract.
-2. Record the exact changed paths and multi-file blast radius.
+2. Record the exact changed paths, a short behavior-change summary, and the
+   multi-file blast radius, especially for D20-D26 or public-authority changes.
 3. Make the smallest change through the owning boundary without promoting a
    migration seam into authority.
 4. Run `bun run format:check`, focused tests, `bun run verify:data-boundary`, and
    `bun run verify:cms-public-sole-entry` where applicable.
 5. If `packages/ui` changes, run the pinned Shadscan command before and after the
-   slice and retain both scores.
+   slice, assess both scores, and block the commit if either score is missing,
+   unassessed, or below the configured floor of 29.
 
 ## Checklist
 
-- [ ] Exact changed paths and blast radius are documented.
+- [ ] Exact changed paths, behavior changes, and blast radius are documented.
 - [ ] Focused tests and applicable structural checks pass.
 - [ ] Public reads still use the sole Phase 5/D18 gateway.
 - [ ] A `packages/ui` change records
       `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` before and
-      after, against the current 29/100 baseline and floor of 29.
+      after; both scores are assessed and at least the configured floor of 29, or
+      the commit remains blocked.
 
 ---
 
