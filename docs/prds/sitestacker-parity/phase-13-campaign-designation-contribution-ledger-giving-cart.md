@@ -2062,9 +2062,11 @@ Settlement Account Binding, locale, Site, and environment facts. A legacy
 `fundId`, missionary ID, CTA URL, page title, route, profile row, campaign
 relationship, visual similarity, or general-fund convention is migration
 evidence only and cannot select, replace, or widen a Giving destination. Every
-adopted CTA receives one explicit owner-valid disposition; an ambiguous or
-ineligible destination leaves Giving unavailable or the Page non-public rather
-than defaulting.
+adopted CTA receives one explicit owner-valid disposition. An ambiguous,
+missing, or ineligible adoption binding keeps the Page non-public rather than
+defaulting. Only a previously exact released binding that later becomes
+ineligible may leave independently safe Page content public with Giving
+unavailable.
 
 An existing browser tab, copied CTA, return path, or cart that crosses the D21
 reader-generation boundary must preserve and server-revalidate its exact

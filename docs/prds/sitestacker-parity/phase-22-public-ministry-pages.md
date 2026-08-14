@@ -657,8 +657,9 @@ confirm you’re allowed to share the words and images on this page publicly.`
   lineages beneath it. An exact locale request never falls back or synthesizes
   content. One presentation profile head governs the full Site-and-family
   cohort. A compatible profile version is shadow-rendered for every affected
-  current and candidate locale release; activation is all-or-nothing and binds
-  an epoch plus complete release-head-set digest. Incompatible or migration-
+  current locale release; open candidates are revalidated when they advance and
+  are never rewritten. Activation is all-or-nothing and binds an epoch plus
+  complete release-head-set digest. Incompatible or migration-
   requiring changes create ordinary successor revisions and releases instead
   of mutating content. The UI separates family-wide `Page design — all
 languages` from per-locale `Content — this language`.

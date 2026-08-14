@@ -6,6 +6,33 @@
 
 ---
 
+## Triggers
+
+Use this handoff before changing Web Studio, CMS-owned public content,
+preview/version integration, or a Phase 22 D20-D26 seam named below.
+
+## Workflow
+
+1. Read the ordered sources below and identify the owning contract.
+2. Record the exact changed paths and multi-file blast radius.
+3. Make the smallest change through the owning boundary without promoting a
+   migration seam into authority.
+4. Run `bun run format:check`, focused tests, `bun run verify:data-boundary`, and
+   `bun run verify:cms-public-sole-entry` where applicable.
+5. If `packages/ui` changes, run the pinned Shadscan command before and after the
+   slice and retain both scores.
+
+## Checklist
+
+- [ ] Exact changed paths and blast radius are documented.
+- [ ] Focused tests and applicable structural checks pass.
+- [ ] Public reads still use the sole Phase 5/D18 gateway.
+- [ ] A `packages/ui` change records
+      `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` before and
+      after, against the current 29/100 baseline and floor of 29.
+
+---
+
 ## Where work stands
 
 **Shipped:** Native shell + list + default document views for all editorial collections including Phase 3 (`page-templates`, `missionary-giving-pages`, `project-pages`). Template gallery, wizards, `POST /api/web-studio/create-from-template`, additive public routes, donor client helpers, staff missionary/fund directory APIs (via `@asym/api`), data-boundary–compliant route files.

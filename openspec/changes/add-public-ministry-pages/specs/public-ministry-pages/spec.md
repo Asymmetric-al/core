@@ -940,10 +940,11 @@ selected value.
 
 Authorized staff MAY create ordinary immutable Page successor revisions through
 the same D1 editorial lineage used by contributors. Staff edit authority SHALL
-be independent from D5 review and release authority. Deriving a revision from a
-submitted contributor candidate SHALL preserve the candidate, author,
-attestation, and exact diff; a bounded staff reason SHALL be required only when
-staff materially supersede contributor-submitted work. That reason SHALL be
+be independent from D5 review and release authority. Deriving a revision from
+active or submitted contributor work SHALL preserve its exact revision, author,
+available candidate and attestation evidence, and exact diff; a bounded staff
+reason SHALL be required only when staff materially supersede active or submitted
+contributor work. That reason SHALL be
 short, notification-safe, and visible to the contributor.
 D24 MAY emit one privacy-minimized idempotent occurrence only after committed
 material supersession or a genuine conflict. Existing D5 request-for-action and
@@ -1045,9 +1046,12 @@ Ministry Update candidate digest, scope, actor, and action atomically, without a
 persistent checkbox, modal, preference, or separate attestation table exposed to
 users. Reviewer approval of an unchanged candidate SHALL retain the submitter's
 evidence and create no new attestation. Reused, imported, cloned, translated, or
-materially changed content SHALL become a D24 successor candidate and require
-the current actor's new Submit/Publish confirmation. Attestation SHALL NOT waive
-Phase 10 or make Asym authoritative for underlying rights.
+materially changed content SHALL become an ordinary attributed successor candidate
+and require the current actor's new Submit/Publish confirmation. Any staff-authored
+successor SHALL additionally follow D24; a non-staff successor remains in D1. Only
+material staff supersession triggers D24's bounded contributor-visible reason.
+Attestation SHALL NOT waive Phase 10 or make Asym authoritative for underlying
+rights.
 Image selection SHALL say `Use a photo you're allowed to share. We remove hidden
 location and file details before it appears publicly.` and MAY progressively
 disclose `Photo sharing tips` for recognizable people, children, precise

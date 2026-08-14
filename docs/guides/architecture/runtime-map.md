@@ -4,6 +4,37 @@
 
 This project runs API routes with a Node.js runtime policy, and Next.js 16 Cache Components enabled (`cacheComponents: true`). In this mode, route segment config exports are disabled across App Router segment files, and route-level runtime exports can trigger build failures. Several handlers and shared implementations depend on Node-only behavior, including admin access paths that rely on `SUPABASE_SERVICE_ROLE_KEY`, request/session flows that use `next/headers` `cookies()`, payment flows that use the Stripe SDK, and GraphQL endpoints that use `graphql-yoga`.
 
+## Triggers
+
+Use this map before adding or changing an App Router segment or any Phase 22
+D10-D18 preview, public-read, cache, metadata, media, measurement, authoring,
+subject-composition, or containment path.
+
+## Workflow
+
+1. Identify the exact Tenant, Legal Entity, environment, Site, Page Family, Page,
+   locale, and applicable D10-D18 owner contract; for public serving identify the
+   exact release generation, and for preview identify the exact saved revision or
+   immutable candidate.
+2. For preview, re-prove D10 exact-target authorization before private no-store
+   output. For public serving, re-prove D2 release, Phase 10 safety, D8 route, and
+   current-serving admission before cache access or public output.
+3. Invoke the owner boundary. Public positive output may use only the admitted
+   release; preview may use only its selected authorized target and never the
+   published cache. Adverse or unknown facts deny the affected output before
+   broader rebuild.
+4. Run the applicable structural and runtime checks, then record exact changed
+   paths and blast radius.
+
+## Checklist
+
+- [ ] No forbidden route-segment export was added.
+- [ ] Preview authorization occurs before private output, and public
+      current-serving admission occurs before public cache access or output.
+- [ ] Adverse or unknown changes contain positive output first, with no stale
+      fallback restoring it.
+- [ ] Exact changed paths, blast radius, and verification results are recorded.
+
 ## Rule
 
 For every `apps/*/app/**/{route,layout,page}.{ts,tsx,js,jsx,mts,mjs}` file while `cacheComponents` is enabled:

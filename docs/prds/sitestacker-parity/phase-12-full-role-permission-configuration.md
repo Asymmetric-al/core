@@ -1119,7 +1119,7 @@ authority.
 ## Dated Phase 22 D10 Public Ministry Preview capability amendment (2026-08-06)
 
 Phase 12 defines `public_pages.preview` as a distinct capability atom. It is
-always bounded to one exact Tenant, Legal Entity, Site, Page Family, Public
+always bounded to one exact Tenant, Legal Entity, environment, Site, Page Family, Public
 Ministry Page, locale, purpose, and saved revision or immutable Public Content
 Release Candidate. An existing verified tenant principal may receive it through
 the existing named-person grant machinery with reason, provenance, current
@@ -1136,7 +1136,7 @@ decision point rather than a parallel resolver.
 
 Every HTML, RSC/data, media, refresh, and session-continuation request re-proves
 the non-anonymous Principal, Active Tenant Assignment, Tenant, Legal Entity,
-Site, Page Family, Page, locale, exact revision/candidate, purpose, current
+environment, Site, Page Family, Page, locale, exact revision/candidate, purpose, current
 assignment/capability/grant and expiry, governing floor, and authorization/
 governance epoch. Revocation, expiry, tenant switching, or a narrower floor
 denies the next request. Supabase's `authenticated` role, Payload

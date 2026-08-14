@@ -69,7 +69,7 @@ assistance; adoption and operations; then production certification.
 | P22-40 | [#1321](https://github.com/Asymmetric-al/core/issues/1321) | Materialize the immutable go-live authorization manifest             |
 | P22-41 | [#1322](https://github.com/Asymmetric-al/core/issues/1322) | Perform the generation-fenced public-surface cutover                 |
 
-P22-24 through P22-26 implement only D12 authenticated, purpose-authorized
+P22-24 through P22-26 implement only D12-authenticated, purpose-authorized
 Supporter Engagement Spaces. Anonymous public comments and reactions remain
 out of scope.
 
@@ -81,9 +81,11 @@ out of scope.
       metrics and Phase 21 support/AI contracts gate only the exact optional
       capability that selected them and never base Page authoring or serving.
 - [ ] 1.2 Establish `PublicMinistryPagesService` as the only supported
-      application boundary for contributor editing, exact public serving, and
-      adoption/recovery; add architecture tests that reject direct browser access to
-      private Phase 22 tables, Payload override access, or alternate public readers.
+      application boundary for every authenticated revision, attestation, review,
+      preview, release, assignment, settings, operations, adoption, and recovery
+      action and for exact public serving; add architecture tests that reject direct
+      browser access to private Phase 22 tables, Payload override access, or
+      alternate public readers.
 - [ ] 1.3 Define stable, typed identifiers and composite scope keys for Tenant,
       Legal Entity, environment, Site, verified host set, Page Family, Page,
       locale, subject, Designation, release, profile generation, and assignment.
@@ -114,7 +116,10 @@ out of scope.
 - [ ] 3.1 Deliver one private, coalesced, non-semantic Payload recovery buffer
       per exact Page and locale beneath the expected working head, using the
       code-owned two-second debounce and fifteen-second maximum wait without
-      advancing a semantic head, candidate, audit, notification, or outbox;
+      advancing a semantic head, candidate, audit, notification, or outbox. Suppress
+      digest-equal writes, permit at most one in-flight write for an exact expected
+      working-head generation, and fence a late response from a superseded
+      generation into a recoverable checkpoint instead of replacing current work;
       explicit Save draft seals one attributed immutable successor through CAS.
 - [ ] 3.2 Deliver one final-intent candidate flow whose existing `Submit for
 review` or `Publish changes` action atomically binds the exact revision,
@@ -126,9 +131,11 @@ share the words and images on this page publicly.` beside that action; upload,
 - [ ] 3.3 Deliver the tenant-selected publish-after-checks path, including all
       release-time safety and dependency reproofs and an honest published outcome.
 - [ ] 3.4 Deliver the tenant-selected staff-review path through one quiet D4/D5
-      queue with exact diff and preview, `Approve & publish`, and `Request changes`,
-      plus a deliberately secondary terminal `Reject` action for work that must not
-      remain actionable, without a second workflow or staff override mutation.
+      queue with exact diff and preview, `Approve & publish`, and `Request changes`
+      with a bounded actionable reason, plus a deliberately secondary terminal
+      `Reject` action requiring a bounded reason and explicit plain-language
+      consequence confirmation for work that must not remain actionable, without a
+      second workflow or staff override mutation.
 - [ ] 3.5 Deliver staff-authored successor revisions while preserving every
       author, candidate, and attestation fact. Materially superseding active or
       submitted contributor work requires one short contributor-visible reason;
@@ -164,8 +171,9 @@ publicly` action, which immediately invokes smallest-scope containment
       adverse-first invalidation, and no stale safety fallback.
 - [ ] 5.2 Deliver exactly one Phase 13 Designation binding for every released
       Page while allowing incomplete private preparation, and preserve Site,
-      source code, locale, currency, Page, and Designation context through the
-      Phase 5 handoff with reproof before cart and provider mutation. When the
+      source code, locale, currency, Page, exact D2 release, and Designation context
+      through the Phase 5 handoff with action-time reproof before cart and provider
+      mutation. When the
       tenant supplies it, a separately labelled fresh general-giving link may be
       shown without inheriting Page destination, amount, cadence, source, or return
       context and never as fallback or substitution.
@@ -177,7 +185,9 @@ publicly` action, which immediately invokes smallest-scope containment
       transition-notice release, same-Page Listed-only permanent redirect, or
       privacy-safe 404. A transition notice retains D7's exact binding and renders
       the independently current Phase 13 Giving state; D8 never manufactures an
-      intentional no-Giving posture or infers a replacement fund.
+      intentional no-Giving posture or infers a replacement fund. Prove every
+      permanent redirect is one hop, has a currently eligible destination, and
+      cannot create a self-loop or cycle.
 - [ ] 5.5 Deliver Phase-29-owned private byte custody and processing behind
       Phase-22-owned public media identity, placement, release eligibility, and
       withdrawal. Launch accepts JPEG, PNG, and still WebP only; rejects SVG,
@@ -225,18 +235,26 @@ publicly` action, which immediately invokes smallest-scope containment
 
 - [ ] 7.1 Deliver one scoped directory corpus with tenant-selectable combined or
       separate Missionary and Project views, bounded filters/search, keyset
-      pagination, and Phase 10/List-only compilation.
+      pagination, and Phase 10/List-only compilation. Re-prove current D2 release,
+      Phase 10 ceiling, and Listed admission for every returned result at query time;
+      adverse narrowing excludes the result before asynchronous index cleanup.
 - [ ] 7.2 Deliver distinct release-bound Search and Share presentations with
       canonical, robots, sitemap, structured-data, Open Graph, and safe social
       media. Listed content is discoverable and shareable; `Shared by link —
 public` retains bounded release-exact share metadata and a deliberate Share
       action while remaining noindex and absent from directories, navigation,
       sitemaps, public-feed discovery, and locale discovery; stricter content emits
-      no content-specific anonymous share or search projection.
+      no content-specific anonymous share or search projection. For a Ministry
+      Update permalink used by more than one Page placement, compute reach across
+      the complete current placement union: any admitted Listed placement makes it
+      Listed, otherwise every admitted Shared-by-link placement makes it public
+      noindex, and no admitted placement makes it absent.
 - [ ] 7.3 Deliver the bounded first-party measurement profile with only the four
       approved POST interactions, 24-hour occurrence retention, sealed daily
       aggregates, suppression-safe contributor reporting, and total failure
-      isolation from visitor and giving flows.
+      isolation from visitor and giving flows. Persist no raw request identity and
+      no durable visitor or session identifier; retain deduplication/idempotency
+      material only with the bounded occurrence and for no more than 24 hours.
 - [ ] 7.4 Deliver tenant-off, source-bounded writing suggestions through Phase
       21 D10's exact `public-profile drafting` binding and the closed launch catalog:
       Start from guided answers, Fix spelling & grammar, Improve clarity, Shorten,
@@ -253,7 +271,10 @@ or miss context. Review this English draft carefully before using it.` plus
       `What should I check?` with `Check names, dates, numbers, quotations,
 Scripture, ministry terms, relationships, and cultural meaning. For important
 content, ask a fluent English reader to review it. This is not a certified
-translation.`
+translation.` Before provider egress, name the exact Phase 24 source and English
+      target locales, show the provider-detected source language for actor
+      confirmation rather than treating it as truth, and require a mixed-language
+      selection to be split or explicitly confirmed.
 
 ## 8. Adoption Cutover Operations Settings And Recovery
 
@@ -272,9 +293,14 @@ translation.`
       then run a production-shaped, structurally side-effect-dark full-surface
       shadow covering every inclusion, exclusion, visitor result, locale, and
       restricted-worker outcome with no production authority.
-- [ ] 8.2 Deliver the one CAS-guarded public-reader cutover and prove crash
-      recovery, concurrent attempts, legacy-reader rejection, and no dual write,
-      dual reader, destructive rollback, or lost in-flight Page edit.
+- [ ] 8.2 Deliver the one CAS-guarded public-reader cutover. When a shared
+      artifact crosses the proposed cohort and lacks an atomically selectable,
+      generation-pinned partition, require every dependent case to join one
+      coordinated shared-authority CAS. Prove crash recovery, concurrent attempts,
+      legacy-reader rejection, and no dual write, dual reader, destructive rollback,
+      or lost in-flight Page edit. The cutover pins the immutable Adoption Plan and
+      Coverage Manifest stable identifiers and content digests and re-proves those
+      exact inputs inside the CAS; it never resolves a floating `latest` version.
 - [ ] 8.3 Deliver one quiet derived Public Pages operations workspace with `To
 review`, `Needs attention`, and `All pages`, cause-owned impact grouping,
       owner-specific actions, protected restricted counts, and no duplicated task or
