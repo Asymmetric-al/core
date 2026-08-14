@@ -528,8 +528,9 @@ questions**. Benchmark source root: `https://sitestacker.training`.
   unimplemented. Parent issue
   [#1281](https://github.com/Asymmetric-al/core/issues/1281) owns 41 approved
   native child issues, #1282–#1322, and 116 native blocking relationships;
-  P22-01/#1282 alone is the current `ready-for-agent` frontier. That planning
-  posture is not build, deployment, or production proof. D24 is ratified as one
+  P22-01/#1282 alone among the 41 implementation children is the current
+  `ready-for-agent` frontier. That planning posture is not build, deployment,
+  or production proof. D24 is ratified as one
   attribution-preserving Staff-authored Page Revision path inside the sole D1
   working head and D4/D5/D2 review-and-release lane.
   D25 is ratified as the database-minimal, action-specific hardened C-prime-R;

@@ -679,9 +679,9 @@ safety decision.
 - No public original media, filename/metadata disclosure, raw provider URL,
   arbitrary remote fetch or transform, cross-tenant asset dedupe, or claim of
   external recall/erasure.
-- No public comments/reactions, arbitrary social graph, third-party share widget,
-  ad pixel, tag manager, session replay, unique-visitor identity, generic
-  analytics payload, or product-measurement backfill from logs.
+- No anonymous public comments/reactions, arbitrary social graph, third-party
+  share widget, ad pixel, tag manager, session replay, unique-visitor identity,
+  generic analytics payload, or product-measurement backfill from logs.
 - No mixed legacy/new production reader, dual write, destructive rollback,
   blind retry, stale adverse fallback, route reuse, fuzzy subject migration,
   force release, or status conflation.

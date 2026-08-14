@@ -14,9 +14,9 @@ to build.
   and parent specification issue
   [#1281](https://github.com/Asymmetric-al/core/issues/1281) owns the approved
   41-ticket graph, #1282–#1322, with 116 native blocking relationships.
-  P22-01/#1282 alone is the current `ready-for-agent` frontier. Phase 22 is not
-  implemented, deployed, or live; the live issue graph does not alter any
-  historical decision recorded below.
+  P22-01/#1282 alone among the 41 implementation children is the current
+  `ready-for-agent` frontier. Phase 22 is not implemented, deployed, or live;
+  the live issue graph does not alter any historical decision recorded below.
 
 ## D1 — Typed Public Ministry Pages and dashboard-native contribution
 
@@ -353,8 +353,9 @@ Project/Campaign Page continues to use D17's separately typed subject arms.
 - One built-in accessible family default keeps ordinary tenant setup quiet. A
   tenant may activate one prospective complete profile version for each exact
   Tenant × Legal Entity × Site × Page Family scope.
-- A page-specific exception selects another complete certified profile of the
-  same family. Profiles do not inherit fragments, deep-merge patches, accept
+- Historical D3 rule, superseded by D27: a Page-specific exception could select
+  another complete certified profile of the same family; Phase 22 ships no such
+  exception. Profiles do not inherit fragments, deep-merge patches, accept
   page-authored schemas, or cross Page Families.
 - Every D2 Page Release Manifest pins one exact compatible profile version,
   block-catalog and renderer generation, locale policy, referenced brand
@@ -4151,7 +4152,7 @@ safety override, direct repair, or Restore legacy reader command.
    export, and retirement evidence.
 
 Detailed repository and current primary-source evidence is recorded in the
-[Phase 22 research evidence](./phase-22-public-ministry-pages-research-evidence.md#44-ratified-d21-research--complete-surface-authority-cutover-with-incremental-page-preparation).
+[Phase 22 research evidence](./phase-22-public-ministry-pages-research-evidence.md#44-ratified-d21-research--complete-public-ministry-surface-authority-cutover).
 
 **Architectural record:**
 [ADR-0138](../../adr/0138-complete-public-ministry-surface-authority-cutover.md).

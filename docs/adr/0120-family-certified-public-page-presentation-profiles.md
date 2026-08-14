@@ -24,10 +24,12 @@ than one universal polymorphic page schema.
 
 For each Tenant × Legal Entity × Site × Page Family, the product supplies one
 built-in accessible default and permits one prospective tenant-selected complete
-profile version. An exact page exception may select another complete certified
-profile of the same family; profiles never deep-merge, cascade, mutate after
-activation, or cross families. Every D2 Page Release Manifest pins the exact
-compatible profile, block-catalog and renderer generation, locale policy,
+profile version. D3 originally allowed an exact-Page exception to select another
+complete certified profile of the same family; D27 supersedes that rule, so no
+Page-specific exception ships (see the qualification below). Profiles never
+deep-merge, cascade, mutate after activation, or cross families. Every D2 Page
+Release Manifest pins the exact compatible profile, block-catalog and renderer
+generation, locale policy,
 referenced brand version, resolved layout digest, and content revision. A new
 default cannot silently change an existing release.
 

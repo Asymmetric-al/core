@@ -318,4 +318,4 @@ D26 and receives a fresh actual-actor attestation.
 - [ADR-0137](./0137-two-bounded-page-family-semantic-catalogs.md)
 - [ADR-0142](./0142-derived-editorial-actionability-and-bounded-recovery.md)
 - [Phase 22 D21 decision](../prds/sitestacker-parity/phase-22-public-ministry-pages-decision-log.md#d21--how-does-a-tenant-replace-the-legacy-public-ministry-surface-without-exposing-mixed-authority)
-- [Phase 22 D21 research](../prds/sitestacker-parity/phase-22-public-ministry-pages-research-evidence.md#44-ratified-d21-research--complete-surface-authority-cutover-with-incremental-page-preparation)
+- [Phase 22 D21 research](../prds/sitestacker-parity/phase-22-public-ministry-pages-research-evidence.md#44-ratified-d21-research--complete-public-ministry-surface-authority-cutover)

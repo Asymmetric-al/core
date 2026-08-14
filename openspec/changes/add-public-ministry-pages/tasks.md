@@ -6,8 +6,9 @@ Parent specification issue:
 [#1281](https://github.com/Asymmetric-al/core/issues/1281). The approved delivery
 graph is published as 41 behavior-led native child issues, P22-01 through
 P22-41 / #1282–#1322, connected by 116 native blocking relationships.
-P22-01/#1282 alone is the current `ready-for-agent` frontier. Native GitHub
-blocking relationships are the live execution-order authority.
+P22-01/#1282 alone among the 41 implementation children is the current
+`ready-for-agent` frontier. Native GitHub blocking relationships are the live
+execution-order authority.
 
 Implement through the confirmed `PublicMinistryPagesService` application
 boundary. The unchecked items below are capability-proof checkpoints that the

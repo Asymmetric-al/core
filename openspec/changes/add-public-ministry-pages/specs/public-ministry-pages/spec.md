@@ -371,8 +371,8 @@ second feed, route, release, audience, or copied-post authority.
 
 - **WHEN** the author releases one canonical Update to eligible current Page
   placements
-- **THEN** each placement references the same exact Update version and audience
-  projection
+- **THEN** every placement references the same exact Update version and Audience
+  Release Manifest through its own exact Page-scoped public Release Projection
 - **AND** removing one placement does not mutate the canonical Update or others
 
 #### Scenario: An Update is supporter-only
@@ -491,7 +491,9 @@ absent when no admitted public placement remains.
 
 - **WHEN** an admitted Shared release is fetched for a link preview
 - **THEN** its approved bounded share presentation may be returned
-- **AND** robots and discovery artifacts continue to prevent indexing/listing
+- **AND** the release emits `noindex` and remains absent from platform-owned
+  directories, search, feeds, and sitemaps; external indexing or removal is not
+  claimed
 
 #### Scenario: One Update is placed on Pages with different reach
 
@@ -515,7 +517,9 @@ Give-CTA selections through best-effort POSTs that never block visitor or giving
 behavior. It SHALL NOT identify unique people, infer conversions, or ingest raw
 request identity. Ephemeral occurrences and idempotency material SHALL expire
 within 24 hours; sealed daily aggregates SHALL use append-only corrections and a
-code-owned 24-month retention.
+code-owned 24-month retention. Before an authorized actor saves an explicit
+choice, the persisted profile SHALL be `Off` and the platform SHALL record no
+D15 occurrences.
 The fixed report SHALL be titled `Public page activity`, use `Aggregate activity
 for your public pages and ministry updates`, label the four metrics `Qualified
 page loads`, `Full update opens`, `Share options opened`, and `Give button
@@ -540,12 +544,14 @@ NOT be conveyed by color alone.
 
 #### Scenario: An assigned contributor opens activity
 
-- **WHEN** the tenant permits contributor visibility and current assignment is
-  re-proved
+- **WHEN** the tenant permits contributor visibility and current assignment and
+  exact admitted Page-placement provenance are re-proved
 - **THEN** the contributor receives suppression-safe exact-Page totals and
   trends with a completeness label
 - **AND** tenant-wide, identity, event, sparse-cell, source, and financial
   drill-down remain unavailable
+- **AND** a canonical-permalink occurrence without exact placement provenance
+  stays staff-only and is never fanned out across placements
 
 #### Scenario: A chart is unavailable or unusable
 

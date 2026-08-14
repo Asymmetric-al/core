@@ -800,8 +800,9 @@ P22-01 through P22-41, represented by native child issues
 [#1282](https://github.com/Asymmetric-al/core/issues/1282) through
 [#1322](https://github.com/Asymmetric-al/core/issues/1322), with 116 native
 blocking relationships. [P22-01](https://github.com/Asymmetric-al/core/issues/1282)
-is the sole current `ready-for-agent` frontier; every later ticket remains
-governed by its live native blockers. The issue bodies point back to this PRD,
+alone among the 41 implementation children is the current `ready-for-agent`
+frontier; every later ticket remains governed by its live native blockers. The
+issue bodies point back to this PRD,
 the active OpenSpec change, D1–D27, and the accepted ADRs. The complete issue
 index and the distinction between delivery slices and OpenSpec proof checkpoints
 are recorded in the
