@@ -50,6 +50,15 @@ implementation-coupled tests.
 - [ ] Refactor happened only after green, if at all
 - [ ] Docs/format/mirror/provenance work did not invent a fake RED test
 
+The vendored Matt Pocock body below is kept for provenance. These lines are
+**non-operative in Core** and must not override the overlay:
+
+- "Refactoring is not part of the loop."
+- "Test only at pre-agreed seams" / confirm seams with the user before writing
+  a test.
+- "No production code without a failing test first" for documentation-only,
+  formatting-only, exact generated-mirror, or provenance-only work.
+
 ---
 
 Test-driven development.
