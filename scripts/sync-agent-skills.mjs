@@ -312,10 +312,21 @@ async function moveDirectory(fromPath, toPath) {
   try {
     await renameWithRetry(fromPath, toPath);
   } catch (error) {
-    if (getErrorCode(error) !== "EXDEV") {
+    const destExists = await pathExists(toPath);
+    const code = getErrorCode(error);
+    const isCrossDevice =
+      code === "EXDEV" ||
+      (destExists && (code === "EEXIST" || code === "ENOTEMPTY"));
+
+    if (!isCrossDevice) {
       throw error;
     }
 
+    // `fs.cp` into an existing dest merges leftover files. Replace must
+    // remove the dest first so extras from the previous tree cannot survive.
+    if (destExists) {
+      await rmWithRetry(toPath);
+    }
     await cp(fromPath, toPath, { recursive: true, force: true });
     await rmWithRetry(fromPath);
   }
@@ -338,7 +349,14 @@ async function swapStagedDirectory(stagingDir, targetDir) {
     await moveDirectory(stagingDir, targetDir);
   } catch (error) {
     if (hasBackup) {
-      await moveDirectory(backupDir, targetDir);
+      try {
+        await moveDirectory(backupDir, targetDir);
+      } catch (restoreError) {
+        throw new AggregateError(
+          [error, restoreError],
+          `Failed to restore ${targetDir} from backup ${backupDir} after swap error`,
+        );
+      }
     }
     throw error;
   }

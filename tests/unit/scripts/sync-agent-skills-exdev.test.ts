@@ -38,19 +38,22 @@ function runSync(tempRoot: string, environment: Record<string, string> = {}) {
 function leftoverSwapDirectories(root: string) {
   const leftovers: string[] = [];
 
-  for (const skillsRoot of [
+  for (const relative of [
+    ".agents",
     ".agents/skills",
+    ".cursor",
     ".cursor/skills",
+    ".claude",
     ".claude/skills",
   ]) {
-    const absolute = path.join(root, skillsRoot);
+    const absolute = path.join(root, relative);
     if (!existsSync(absolute)) {
       continue;
     }
 
     for (const name of readdirSync(absolute)) {
       if (name.includes(".backup-") || name.includes(".staging-")) {
-        leftovers.push(path.join(skillsRoot, name));
+        leftovers.push(path.join(relative, name));
       }
     }
   }
@@ -121,6 +124,49 @@ describe("sync-agent-skills EXDEV fallback", () => {
     await expect(
       readFile(path.join(tempRoot, ".agents/skills/vitest/SKILL.md"), "utf8"),
     ).resolves.toContain("description: Fresh");
+    expect(leftoverSwapDirectories(tempRoot)).toEqual([]);
+  });
+
+  it("detects swap leftovers next to skill roots, not only inside them", async () => {
+    const tempRoot = await createTempRepo("sync-exdev-leftover-scan");
+    await mkdir(path.join(tempRoot, ".agents/.skills.backup-dead"), {
+      recursive: true,
+    });
+
+    expect(leftoverSwapDirectories(tempRoot)).toEqual([
+      ".agents/.skills.backup-dead",
+    ]);
+  });
+
+  it("removes extra dest files when EXDEV replace copies over an existing mirror", async () => {
+    const tempRoot = await createTempRepo("sync-exdev-stale");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    const canonicalDir = path.join(tempRoot, "docs/ai/skills/vitest");
+    await mkdir(canonicalDir, { recursive: true });
+    await writeFile(
+      path.join(canonicalDir, "SKILL.md"),
+      "---\nname: vitest\ndescription: First\n---\n",
+    );
+
+    expect(runSync(tempRoot)).toContain("agent skill sync complete");
+
+    const stalePath = path.join(tempRoot, ".agents/skills/vitest/stale.txt");
+    await writeFile(stalePath, "should not survive replace\n");
+
+    await writeFile(
+      path.join(canonicalDir, "SKILL.md"),
+      "---\nname: vitest\ndescription: After EXDEV\n---\n",
+    );
+
+    expect(
+      runSync(tempRoot, { CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1" }),
+    ).toContain("agent skill sync complete");
+
+    expect(existsSync(stalePath)).toBe(false);
+    await expect(
+      readFile(path.join(tempRoot, ".agents/skills/vitest/SKILL.md"), "utf8"),
+    ).resolves.toContain("description: After EXDEV");
     expect(leftoverSwapDirectories(tempRoot)).toEqual([]);
   });
 });
