@@ -30,7 +30,7 @@
 
 ## 5. Validation
 
-- [x] 5.1 Strict-validate this OpenSpec change and all specs/changes
+- [x] 5.1 Strict-validate this OpenSpec change (`bunx @fission-ai/openspec@latest validate modernize-agent-dev-environment --strict`)
 - [x] 5.2 Run focused unit tests, `git diff --check`, and relevant existing guardrails
 - [x] 5.3 Confirm `packages/ui/components.json` is still `base-maia` / `zinc` / `cssVariables: true`
 - [x] 5.4 Report omitted repo-wide gates honestly

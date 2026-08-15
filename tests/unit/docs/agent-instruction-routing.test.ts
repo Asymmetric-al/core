@@ -87,18 +87,29 @@ describe("agent instruction routing fixtures", () => {
 
     for (const relativePath of NESTED_AGENTS_PATHS) {
       const content = readRepoFile(relativePath);
-      expect(content).toContain("## Triggers");
-      expect(content).toMatch(/## Workflow( Steps)?/);
-      expect(content).toMatch(/## Checklist/);
-      expect(content).not.toContain("Source-of-truth order");
+      expect(content, relativePath).toContain("## Triggers");
+      expect(content, relativePath).toMatch(/## Workflow( Steps)?/);
+      expect(content, relativePath).toMatch(/## Checklist/);
+      expect(content, relativePath).not.toContain("Source-of-truth order");
       if (nextjsAppAgents.has(relativePath)) {
-        expect(content).toContain("<!-- BEGIN:nextjs-agent-rules -->");
-        expect(content).toContain("<!-- END:nextjs-agent-rules -->");
+        expect(content, relativePath).toContain(
+          "<!-- BEGIN:nextjs-agent-rules -->",
+        );
+        expect(content, relativePath).toContain(
+          "<!-- END:nextjs-agent-rules -->",
+        );
         continue;
       }
 
-      expect(content).not.toContain("<!-- BEGIN:nextjs-agent-rules -->");
+      expect(content, relativePath).not.toContain(
+        "<!-- BEGIN:nextjs-agent-rules -->",
+      );
     }
+
+    expect(readRepoFile("apps/admin/AGENTS.md")).toContain("3030");
+    expect(readRepoFile("apps/admin/AGENTS.md")).toContain("Mission Control");
+    expect(readRepoFile("apps/donor/AGENTS.md")).toContain("3000");
+    expect(readRepoFile("apps/missionary/AGENTS.md")).toContain("4000");
   });
 
   it("routes UI, dashboard, form, registry, Base UI, and theme work through exact base-maia", () => {
@@ -130,7 +141,7 @@ describe("agent instruction routing fixtures", () => {
   });
 
   it("rejects alternate shadcn styles and conflicting registry islands in UI guidance", () => {
-    expect(uiAgents).toContain("base-nova");
+    expect(uiAgents).toMatch(/Another shadcn style \(`base-nova`/);
     expect(uiAgents).toContain("Do not keep the original visual system");
     expect(moaiSkill).toContain("base-nova");
     expect(agents).not.toMatch(/choose another shadcn style/i);
@@ -143,6 +154,7 @@ describe("agent instruction routing fixtures", () => {
     expect(tddSkill).toContain("Do not wait for the user to type `/tdd`");
     expect(tddSkill).toContain("documentation-only");
     expect(tddSkill).toContain("exact generated-mirror updates");
+    expect(tddSkill).toContain("non-operative in Core");
   });
 
   it("routes Next.js work through explore-first, bundled docs, MCP, and agent-browser", () => {
@@ -154,6 +166,7 @@ describe("agent instruction routing fixtures", () => {
     expect(agents).toContain("agent-browser");
     expect(agents).toContain("cacheComponents: true");
     expect(agents).toContain("partialPrefetching: true");
+    expect(copilotRoot).toContain("apps/<app>/node_modules/next/dist/docs/");
   });
 
   it("routes TanStack work from installed packages only", () => {
@@ -184,12 +197,21 @@ describe("agent instruction routing fixtures", () => {
     expect(skillRouting).toContain(
       "**Resend CLI** (`docs/ai/skills/resend-cli/`)",
     );
-    expect(readRepoFile("packages/eve-runtime/AGENTS.md")).toContain(
-      "Do not expose the full\nrepository development skill library",
-    );
+    expect(
+      readRepoFile("packages/eve-runtime/AGENTS.md").replace(/\s+/g, " "),
+    ).toContain("Do not expose the full repository development skill library");
     expect(readRepoFile("supabase/AGENTS.md")).toContain(
       "docs/ai/skills/supabase/SKILL.md",
     );
+  });
+
+  it("keeps Cursor Cloud supabase workaround unique and seed-safe", () => {
+    const cloud = readRepoFile("docs/guides/development/cursor-cloud.md");
+    expect(cloud).toContain("docker info");
+    expect(cloud).toContain('STAGING="$(mktemp -d)"');
+    expect(cloud).toContain("$STAGING/seed.sql");
+    expect(cloud).not.toContain("/tmp/supabase_mig_staging");
+    expect(cloud).toContain("```bash");
   });
 
   it("keeps Copilot shadcn/studio instructions path-scoped", () => {

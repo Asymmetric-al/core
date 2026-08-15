@@ -57,13 +57,22 @@ Then open `http://localhost:3000`. For all three apps with one command, use `bun
 
 ### Local Supabase startup
 
-Docker and Supabase CLI must be installed and running before starting local Supabase. After Docker is running (`sudo dockerd &`), run `supabase start` from the repo root.
+Docker and Supabase CLI must be installed and running before starting local Supabase. After starting Docker (`sudo dockerd &`), wait until `docker info` succeeds before running `supabase start` from the repo root.
 
 **Known issue**: Migration `20260214090000_foundation_1_schema.sql` uses `LOCK TABLE` outside a transaction block, which fails with the Supabase CLI. Later migrations also have dependency chains that require the foundation schema. Workaround:
 
-1. Move **all** `2026*` migrations and `seed.sql` out: `mkdir -p /tmp/supabase_mig_staging && for f in supabase/migrations/2026*.sql; do mv "$f" /tmp/supabase_mig_staging/; done && mv supabase/seed.sql /tmp/`
+Use a unique staging directory so concurrent cloud VMs do not collide, and keep `seed.sql` out of the migration restore glob:
+
+```bash
+STAGING="$(mktemp -d)"
+mkdir -p "$STAGING/migrations"
+for f in supabase/migrations/2026*.sql; do mv "$f" "$STAGING/migrations/"; done
+mv supabase/seed.sql "$STAGING/seed.sql"
+```
+
+1. Move **all** `2026*` migrations and `seed.sql` out as shown above.
 2. Run `supabase start` (applies only the init migration `20250101000000`)
-3. Restore all moved files back: `mv /tmp/supabase_mig_staging/*.sql supabase/migrations/ && mv /tmp/seed.sql supabase/seed.sql`
+3. Restore migrations and seed separately: `mv "$STAGING/migrations/"*.sql supabase/migrations/` and `mv "$STAGING/seed.sql" supabase/seed.sql`.
 4. Apply foundation migration: `docker exec -i supabase_db_asymmetrical-platform psql -U postgres -d postgres --single-transaction < supabase/migrations/20260214090000_foundation_1_schema.sql`
 5. Record it in the migration table: `docker exec -i supabase_db_asymmetrical-platform psql -U postgres -d postgres -c "INSERT INTO supabase_migrations.schema_migrations (version) VALUES ('20260214090000');"`
 6. Apply remaining migrations in order (without `--single-transaction` for those with explicit `BEGIN`/`COMMIT`); record each version in `supabase_migrations.schema_migrations`
@@ -75,7 +84,7 @@ Keep secrets in **repo-root** `.env.local` (gitignored). Each app’s `next.conf
 
 Optional (older pattern): symlink root `.env.local` into each app if you rely on tooling that only reads `apps/<app>/.env.local`:
 
-```
+```bash
 ln -sf ../../.env.local apps/donor/.env.local
 ln -sf ../../.env.local apps/admin/.env.local
 ln -sf ../../.env.local apps/missionary/.env.local
