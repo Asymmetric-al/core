@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import {
+  access,
   cp,
   mkdir,
   readFile,
@@ -238,6 +239,31 @@ function getTemporarySiblingPath(targetDir, label) {
  * reliable without masking real permission failures.
  */
 const TRANSIENT_RENAME_CODES = new Set(["EPERM", "EACCES", "EBUSY"]);
+const WINDOWS_RM_RETRY_CODES = new Set(["EPERM", "EACCES", "EBUSY", "ENOTEMPTY"]);
+
+async function pathExists(targetPath) {
+  try {
+    await access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function renameOnce(fromPath, toPath) {
+  // Overlayfs can reject same-directory rename of lower-layer entries with EXDEV.
+  // Tests set CORE_SKILLS_SIMULATE_RENAME_EXDEV=1 to exercise the copy+rm fallback.
+  if (
+    process.env.CORE_SKILLS_SIMULATE_RENAME_EXDEV === "1" &&
+    (await pathExists(fromPath))
+  ) {
+    const error = new Error("EXDEV: simulated cross-device rename");
+    error.code = "EXDEV";
+    throw error;
+  }
+
+  await rename(fromPath, toPath);
+}
 
 async function renameWithRetry(fromPath, toPath) {
   const maxAttempts = 6;
@@ -245,7 +271,7 @@ async function renameWithRetry(fromPath, toPath) {
 
   for (let attempt = 1; ; attempt += 1) {
     try {
-      await rename(fromPath, toPath);
+      await renameOnce(fromPath, toPath);
       return;
     } catch (error) {
       const isTransient = TRANSIENT_RENAME_CODES.has(getErrorCode(error));
@@ -258,12 +284,44 @@ async function renameWithRetry(fromPath, toPath) {
   }
 }
 
+async function rmWithRetry(targetPath) {
+  const maxAttempts = 6;
+  let delayMs = 50;
+
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await rm(targetPath, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      const isTransient = WINDOWS_RM_RETRY_CODES.has(getErrorCode(error));
+      if (!isTransient || attempt >= maxAttempts) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      delayMs = Math.min(delayMs * 2, 800);
+    }
+  }
+}
+
+async function moveDirectory(fromPath, toPath) {
+  try {
+    await renameWithRetry(fromPath, toPath);
+  } catch (error) {
+    if (getErrorCode(error) !== "EXDEV") {
+      throw error;
+    }
+
+    await cp(fromPath, toPath, { recursive: true, force: true });
+    await rmWithRetry(fromPath);
+  }
+}
+
 async function swapStagedDirectory(stagingDir, targetDir) {
   const backupDir = getTemporarySiblingPath(targetDir, "backup");
   let hasBackup = false;
 
   try {
-    await renameWithRetry(targetDir, backupDir);
+    await moveDirectory(targetDir, backupDir);
     hasBackup = true;
   } catch (error) {
     if (getErrorCode(error) !== "ENOENT") {
@@ -272,17 +330,17 @@ async function swapStagedDirectory(stagingDir, targetDir) {
   }
 
   try {
-    await renameWithRetry(stagingDir, targetDir);
+    await moveDirectory(stagingDir, targetDir);
   } catch (error) {
     if (hasBackup) {
-      await renameWithRetry(backupDir, targetDir);
+      await moveDirectory(backupDir, targetDir);
     }
     throw error;
   }
 
   if (hasBackup) {
     try {
-      await rm(backupDir, { recursive: true, force: true });
+      await rmWithRetry(backupDir);
     } catch (cleanupError) {
       console.warn(
         `warning: failed to remove backup directory ${backupDir}`,
