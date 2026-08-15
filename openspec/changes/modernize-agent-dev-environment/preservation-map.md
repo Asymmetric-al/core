@@ -1,0 +1,35 @@
+# Content preservation map
+
+Moved or condensed from root `AGENTS.md` during
+`modernize-agent-dev-environment`. Agents discover relocated material through
+the compact pointers that remain in root `AGENTS.md`.
+
+| Previous purpose | New location | Reason | How agents discover it |
+| --- | --- | --- | --- |
+| Full deterministic skill catalog (Supabase refresh, Mattpocock table, Inngest family, Emil pack, extras) | `docs/ai/rules/agent-skill-routing.md` | Too large for always-on root; still required for skill selection | Root `## Required skills (load when the trigger matches)` + `docs/ai/skills/repo-entry/SKILL.md` |
+| Cursor Cloud ports, Mission Control setup, donor CI env wrapper, local Supabase `LOCK TABLE` workaround, env var notes | `docs/guides/development/cursor-cloud.md` | Operational runbook, not a high-frequency coding contract | Root Cloud sandboxes pointer |
+| Review-bot P0/P1/P2 policy | `docs/ai/rules/review-bots.md` | Client-specific review policy; not needed on every implementation turn | Root Review bots pointer |
+| Full Nia preamble, query examples, and required-helper-docs tutorial | `docs/ai/nia.md` (already existed) | Optional indexing service; not required for basic correctness | Root Tooling pointer; contributing/frontend hash links updated |
+| Stale first `NEXT-AGENTS-MD` compressed index inside Agent compatibility | Removed | Duplicate of the official EOF index; older (`06-fetching-data.mdx`) | Agents use the remaining EOF `<!-- NEXT-AGENTS-MD-START -->` block |
+| Detailed `base-maia` / CLI / registry / semantic-token workflow | `packages/ui/AGENTS.md` plus `docs/ai/rules/frontend.md` | Progressive disclosure; root keeps the invariant only | Root UI invariant + nested `packages/ui/AGENTS.md` |
+| App identity, ports, Instant Navigation reminder | `apps/admin/AGENTS.md`, `apps/donor/AGENTS.md`, `apps/missionary/AGENTS.md` | App-scoped; must not define a second visual system | Nested AGENTS.md next to each app |
+| Canonical DB layer / browser hooks / auth integration | `packages/api/AGENTS.md`, `packages/database/AGENTS.md`, `packages/auth/AGENTS.md` | Package-scoped unique rules | Nested AGENTS.md |
+| `skills:sync` mutates vs `skills:verify` must not | `scripts/AGENTS.md` | Maintenance-script rule | Nested `scripts/AGENTS.md` |
+| Instant Navigation Stream/Cache/Block, `instant()`, `agent-browser` | **Kept compact in root** | High-frequency; `docs/ai/rules/frontend.md` cites `AGENTS.md` | Root Instant Navigation heading |
+| TanStack CLI + Table v9 source-verification | **Kept compact in root** | High-frequency; Table docs cite this heading | Root TanStack headings |
+| Next.js docs source of truth including `.next-docs` fallback | **Kept compact in root** | Required when `node_modules` docs are missing | Root Next.js docs heading |
+| Next.js / Inngest / ReUI MCP pointers | **Kept compact in root** | Live diagnostics routing | Root MCP headings |
+| Shadscan floor / `packages/ui` scan path | **Kept compact in root** | Pre-commit contract | Root Shadscan heading |
+| Quality Gate + Code Style | **Kept compact in root** | Always-on working contract | Root `## Quality gate` and `## Code Style` |
+| Claude Code mirror policy (`bun run skills:sync`, do not hand-edit `.claude/`) | **Kept compact in root** | Prevents generated drift | Root Agent compatibility |
+| `CLAUDE.md` `@AGENTS.md` import | Unchanged | Claude Code adapter | Root + `CLAUDE.md` |
+| Copilot thin pointer | `.github/copilot-instructions.md` (unchanged role) | Client adapter | Copilot loads it automatically |
+| Duplicate always-on Copilot shadcn-studio file | Compatibility `.md` kept; both files narrowed off `applyTo: "**"` | Avoid silent global injection | Copilot path-specific instructions |
+
+## Intentionally not deleted
+
+- Canonical skills, including infrequently used community skills
+- `.next-docs/` sandbox fallback
+- Numbered OpenSpec commands (Core aliases; see `docs/ai/rules/openspec.md`)
+- `docs/ai/skills/tdd/` and `docs/ai/skills/moai-library-shadcn/` (Core overlays added)
+- Existing shadcn config guardrails (`scripts/verify/shadcn-config-guardrails.mjs`)
