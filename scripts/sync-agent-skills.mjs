@@ -239,7 +239,12 @@ function getTemporarySiblingPath(targetDir, label) {
  * reliable without masking real permission failures.
  */
 const TRANSIENT_RENAME_CODES = new Set(["EPERM", "EACCES", "EBUSY"]);
-const WINDOWS_RM_RETRY_CODES = new Set(["EPERM", "EACCES", "EBUSY", "ENOTEMPTY"]);
+const WINDOWS_RM_RETRY_CODES = new Set([
+  "EPERM",
+  "EACCES",
+  "EBUSY",
+  "ENOTEMPTY",
+]);
 
 async function pathExists(targetPath) {
   try {

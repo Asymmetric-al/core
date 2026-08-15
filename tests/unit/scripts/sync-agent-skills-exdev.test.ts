@@ -26,20 +26,13 @@ async function copyScript(tempRoot: string, relativePath: string) {
   await cp(sourcePath, targetPath);
 }
 
-function runSync(
-  tempRoot: string,
-  environment: Record<string, string> = {},
-) {
-  return execFileSync(
-    process.execPath,
-    ["scripts/sync-agent-skills.mjs"],
-    {
-      cwd: tempRoot,
-      encoding: "utf8",
-      env: { ...isolatedGitEnv, ...environment },
-      stdio: "pipe",
-    },
-  );
+function runSync(tempRoot: string, environment: Record<string, string> = {}) {
+  return execFileSync(process.execPath, ["scripts/sync-agent-skills.mjs"], {
+    cwd: tempRoot,
+    encoding: "utf8",
+    env: { ...isolatedGitEnv, ...environment },
+    stdio: "pipe",
+  });
 }
 
 function leftoverSwapDirectories(root: string) {
@@ -102,10 +95,7 @@ describe("sync-agent-skills EXDEV fallback", () => {
       ".claude/skills",
     ]) {
       await expect(
-        readFile(
-          path.join(tempRoot, runtimeRoot, "vitest/SKILL.md"),
-          "utf8",
-        ),
+        readFile(path.join(tempRoot, runtimeRoot, "vitest/SKILL.md"), "utf8"),
       ).resolves.toContain("description: After EXDEV");
     }
 
@@ -129,10 +119,7 @@ describe("sync-agent-skills EXDEV fallback", () => {
     ).toContain("agent skill sync complete");
 
     await expect(
-      readFile(
-        path.join(tempRoot, ".agents/skills/vitest/SKILL.md"),
-        "utf8",
-      ),
+      readFile(path.join(tempRoot, ".agents/skills/vitest/SKILL.md"), "utf8"),
     ).resolves.toContain("description: Fresh");
     expect(leftoverSwapDirectories(tempRoot)).toEqual([]);
   });

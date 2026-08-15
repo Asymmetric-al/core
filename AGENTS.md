@@ -54,18 +54,18 @@ Nia (MCP) is optional repository search. Ordinary Core work must still succeed w
 
 Cursor and similar tools merge nested `AGENTS.md` with this file. Open the nearest nested file for the directory you are changing:
 
-| Path | Scope |
-| --- | --- |
-| `apps/admin/AGENTS.md` | Mission Control / admin app |
-| `apps/donor/AGENTS.md` | Donor app |
-| `apps/missionary/AGENTS.md` | Missionary app |
-| `packages/api/AGENTS.md` | Server data access and mutations |
-| `packages/auth/AGENTS.md` | Auth helpers and session plumbing |
-| `packages/database/AGENTS.md` | Generated DB types and browser table hooks |
-| `packages/ui/AGENTS.md` | Shared UI, `base-maia`, Base UI, semantic tokens |
+| Path                             | Scope                                               |
+| -------------------------------- | --------------------------------------------------- |
+| `apps/admin/AGENTS.md`           | Mission Control / admin app                         |
+| `apps/donor/AGENTS.md`           | Donor app                                           |
+| `apps/missionary/AGENTS.md`      | Missionary app                                      |
+| `packages/api/AGENTS.md`         | Server data access and mutations                    |
+| `packages/auth/AGENTS.md`        | Auth helpers and session plumbing                   |
+| `packages/database/AGENTS.md`    | Generated DB types and browser table hooks          |
+| `packages/ui/AGENTS.md`          | Shared UI, `base-maia`, Base UI, semantic tokens    |
 | `packages/eve-runtime/AGENTS.md` | Product Eve runtime (not this coding-agent library) |
-| `supabase/AGENTS.md` | Migrations, seed, demo RLS |
-| `scripts/AGENTS.md` | Operational scripts, skill sync/verify |
+| `supabase/AGENTS.md`             | Migrations, seed, demo RLS                          |
+| `scripts/AGENTS.md`              | Operational scripts, skill sync/verify              |
 
 Do not copy this root file into nested files. Nested files hold unique local rules only.
 

@@ -170,4 +170,3 @@ in this repo.
 **Removed upstream routes:** `/to-prd`, `/to-plan`, `/to-issues`, `/diagnose`, and `/zoom-out` are not present in current upstream `skills/engineering/`; use `/to-spec`, `/to-tickets`, `/diagnosing-bugs`, `/ask-matt`, or `/wayfinder` as appropriate.
 
 ---
-

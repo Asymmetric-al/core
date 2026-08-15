@@ -49,9 +49,15 @@ describe("agent instruction routing fixtures", () => {
   const tddSkill = readRepoFile("docs/ai/skills/tdd/SKILL.md");
   const moaiSkill = readRepoFile("docs/ai/skills/moai-library-shadcn/SKILL.md");
   const copilotRoot = readRepoFile(".github/copilot-instructions.md");
-  const copilotStudio = readRepoFile(".github/instructions/shadcn-studio-mcp.instructions.md");
-  const copilotUi = readRepoFile(".github/instructions/packages-ui.instructions.md");
-  const copilotAppsUi = readRepoFile(".github/instructions/apps-ui.instructions.md");
+  const copilotStudio = readRepoFile(
+    ".github/instructions/shadcn-studio-mcp.instructions.md",
+  );
+  const copilotUi = readRepoFile(
+    ".github/instructions/packages-ui.instructions.md",
+  );
+  const copilotAppsUi = readRepoFile(
+    ".github/instructions/apps-ui.instructions.md",
+  );
   const componentsJson = readRepoFile("packages/ui/components.json");
 
   it("keeps root AGENTS.md inside the measured Codex instruction budget", () => {
@@ -60,11 +66,15 @@ describe("agent instruction routing fixtures", () => {
     expect(bytes).toBeGreaterThan(8_000);
     expect(bytes).toBeLessThanOrEqual(MAX_ROOT_AGENTS_BYTES);
     expect(countOccurrences(agents, "<!-- NEXT-AGENTS-MD-START -->")).toBe(1);
-    expect(countOccurrences(agents, "<!-- BEGIN:nextjs-agent-rules -->")).toBe(1);
+    expect(countOccurrences(agents, "<!-- BEGIN:nextjs-agent-rules -->")).toBe(
+      1,
+    );
     expect(countOccurrences(agents, "<!-- END:nextjs-agent-rules -->")).toBe(1);
     expect(authored).toContain("base-maia");
     expect(authored).toContain("Test-Driven Development");
-    expect(authored).toContain("openspec/specs/agent-instruction-system/spec.md");
+    expect(authored).toContain(
+      "openspec/specs/agent-instruction-system/spec.md",
+    );
     expect(authored).toContain("## Code Style");
   });
 
@@ -153,8 +163,12 @@ describe("agent instruction routing fixtures", () => {
     expect(agents).toContain("9.0.0-beta.9");
     expect(agents).toContain("@tanstack/react-virtual");
     expect(agents).toContain("@tanstack/store");
-    expect(agents).toContain("TanStack Charts, Hotkeys, and Pacer are not installed");
-    expect(agents).toContain("packages/ui/components/shadcn/data-table/tanstack.ts");
+    expect(agents).toContain(
+      "TanStack Charts, Hotkeys, and Pacer are not installed",
+    );
+    expect(agents).toContain(
+      "packages/ui/components/shadcn/data-table/tanstack.ts",
+    );
   });
 
   it("routes Supabase, Payload, Stripe, Resend, Eve, and OpenSpec work without bloating root catalogs", () => {
@@ -164,17 +178,25 @@ describe("agent instruction routing fixtures", () => {
     expect(agents).toContain("docs/ai/skills/resend-cli/SKILL.md");
     expect(agents).toContain("docs/ai/skills/eve/SKILL.md");
     expect(agents).toContain("openspec/specs/agent-instruction-system/spec.md");
-    expect(agents).toContain("Skip OpenSpec for formatting, typos, exact generated mirrors");
-    expect(skillRouting).toContain("**Resend CLI** (`docs/ai/skills/resend-cli/`)");
+    expect(agents).toContain(
+      "Skip OpenSpec for formatting, typos, exact generated mirrors",
+    );
+    expect(skillRouting).toContain(
+      "**Resend CLI** (`docs/ai/skills/resend-cli/`)",
+    );
     expect(readRepoFile("packages/eve-runtime/AGENTS.md")).toContain(
       "Do not expose the full\nrepository development skill library",
     );
-    expect(readRepoFile("supabase/AGENTS.md")).toContain("docs/ai/skills/supabase/SKILL.md");
+    expect(readRepoFile("supabase/AGENTS.md")).toContain(
+      "docs/ai/skills/supabase/SKILL.md",
+    );
   });
 
   it("keeps Copilot shadcn/studio instructions path-scoped", () => {
     expect(parseApplyTo(copilotStudio)).not.toBe("**");
-    expect(parseApplyTo(copilotStudio)).toContain("docs/ai/rules/shadcn-studio-mcp.md");
+    expect(parseApplyTo(copilotStudio)).toContain(
+      "docs/ai/rules/shadcn-studio-mcp.md",
+    );
     expect(copilotRoot).not.toContain("Skip for now");
   });
 });
@@ -185,7 +207,11 @@ describe("agent instruction file inventory", () => {
   });
 
   it("keeps generated skill mirrors under the canonical trio", () => {
-    const generatedRoots = [".agents/skills", ".claude/skills", ".cursor/skills"];
+    const generatedRoots = [
+      ".agents/skills",
+      ".claude/skills",
+      ".cursor/skills",
+    ];
     for (const root of generatedRoots) {
       expect(readdirSync(join(REPO_ROOT, root)).length).toBeGreaterThan(0);
     }

@@ -98,4 +98,3 @@ Standard commands documented in `AGENTS.md` monorepo rules section:
 - Typecheck: `bun run typecheck`
 - Unit tests: `bun run test:unit`
 - All checks: `bun run check`
-

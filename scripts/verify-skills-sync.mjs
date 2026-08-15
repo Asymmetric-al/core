@@ -1,19 +1,8 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import {
-  existsSync,
-  readFileSync,
-  statSync,
-} from "node:fs";
-import {
-  cp,
-  mkdtemp,
-  mkdir,
-  readdir,
-  readFile,
-  rm,
-} from "node:fs/promises";
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { cp, mkdtemp, mkdir, readdir, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -245,7 +234,9 @@ async function compareTrees(liveRoot, expectedRoot) {
         drifted = true;
         continue;
       }
-      if (normalizeNewlines(liveContent) !== normalizeNewlines(expectedContent)) {
+      if (
+        normalizeNewlines(liveContent) !== normalizeNewlines(expectedContent)
+      ) {
         drifted = true;
       }
     }
@@ -291,7 +282,9 @@ async function renderExpectedMirrors(repoRoot, syncScriptPath) {
       if (syncResult.stderr) {
         process.stderr.write(syncResult.stderr);
       }
-      throw new Error("Unable to render expected skill mirrors for verification.");
+      throw new Error(
+        "Unable to render expected skill mirrors for verification.",
+      );
     }
 
     return tempRoot;
@@ -342,7 +335,11 @@ async function main() {
     }
   }
 
-  const syncScriptPath = path.join(repoRoot, "scripts", "sync-agent-skills.mjs");
+  const syncScriptPath = path.join(
+    repoRoot,
+    "scripts",
+    "sync-agent-skills.mjs",
+  );
   const expectedRoot = await renderExpectedMirrors(repoRoot, syncScriptPath);
 
   try {
