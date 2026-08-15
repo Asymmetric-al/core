@@ -12,10 +12,24 @@ const isolatedGitEnv = Object.fromEntries(
   Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
 );
 
-function listVerifyTempDirs() {
-  return readdirSync(os.tmpdir()).filter((name) =>
+function listVerifyTempDirs(tmpRoot: string) {
+  return readdirSync(tmpRoot).filter((name) =>
     name.startsWith("core-skills-verify-"),
   );
+}
+
+function verifyTempEnv(tmpRoot: string): NodeJS.ProcessEnv {
+  return {
+    TMPDIR: tmpRoot,
+    TEMP: tmpRoot,
+    TMP: tmpRoot,
+  };
+}
+
+async function createIsolatedTmpRoot() {
+  const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "skills-verify-tmp-"));
+  tempRoots.push(tmpRoot);
+  return tmpRoot;
 }
 
 async function createTempRepo(prefix: string) {
@@ -123,17 +137,23 @@ afterEach(async () => {
 describe("verify-skills-sync drift reporting", () => {
   it("prints the drifted relative path and kind, then leaves no verify temp dirs", async () => {
     const tempRoot = await createSyncedVerifyRepo();
+    const isolatedTmp = await createIsolatedTmpRoot();
     const driftedPath = path.join(
       tempRoot,
       ".agents/skills/sample-skill/SKILL.md",
     );
     await writeFile(driftedPath, "# Drifted skill\n");
 
-    const beforeTemps = new Set(listVerifyTempDirs());
+    const beforeTemps = new Set(listVerifyTempDirs(isolatedTmp));
 
     let failed = false;
     try {
-      runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs");
+      runNodeScript(
+        tempRoot,
+        "scripts/verify-skills-sync.mjs",
+        [],
+        verifyTempEnv(isolatedTmp),
+      );
     } catch (error) {
       failed = true;
       const output = combinedExecError(error);
@@ -145,7 +165,7 @@ describe("verify-skills-sync drift reporting", () => {
     expect(failed).toBe(true);
     expect(await readFile(driftedPath, "utf8")).toBe("# Drifted skill\n");
 
-    const leftoverTemps = listVerifyTempDirs().filter(
+    const leftoverTemps = listVerifyTempDirs(isolatedTmp).filter(
       (name) => !beforeTemps.has(name),
     );
     expect(leftoverTemps).toEqual([]);
@@ -153,15 +173,21 @@ describe("verify-skills-sync drift reporting", () => {
 
   it("fails on an extra live skill file without deleting it, and names the path", async () => {
     const tempRoot = await createSyncedVerifyRepo();
+    const isolatedTmp = await createIsolatedTmpRoot();
     const orphanPath = path.join(tempRoot, ".cursor/skills/orphan/SKILL.md");
     await mkdir(path.dirname(orphanPath), { recursive: true });
     await writeFile(orphanPath, "# Orphan skill\n");
 
-    const beforeTemps = new Set(listVerifyTempDirs());
+    const beforeTemps = new Set(listVerifyTempDirs(isolatedTmp));
 
     let failed = false;
     try {
-      runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs");
+      runNodeScript(
+        tempRoot,
+        "scripts/verify-skills-sync.mjs",
+        [],
+        verifyTempEnv(isolatedTmp),
+      );
     } catch (error) {
       failed = true;
       const output = combinedExecError(error);
@@ -174,7 +200,43 @@ describe("verify-skills-sync drift reporting", () => {
     expect(existsSync(orphanPath)).toBe(true);
     expect(await readFile(orphanPath, "utf8")).toBe("# Orphan skill\n");
 
-    const leftoverTemps = listVerifyTempDirs().filter(
+    const leftoverTemps = listVerifyTempDirs(isolatedTmp).filter(
+      (name) => !beforeTemps.has(name),
+    );
+    expect(leftoverTemps).toEqual([]);
+  }, 20_000);
+
+  it("does not treat leftover verify temp dirs outside this test as leftovers", async () => {
+    const tempRoot = await createSyncedVerifyRepo();
+    const isolatedTmp = await createIsolatedTmpRoot();
+    const driftedPath = path.join(
+      tempRoot,
+      ".agents/skills/sample-skill/SKILL.md",
+    );
+    await writeFile(driftedPath, "# Drifted skill\n");
+
+    const beforeTemps = new Set(listVerifyTempDirs(isolatedTmp));
+    const outsider = await mkdtemp(
+      path.join(os.tmpdir(), "core-skills-verify-"),
+    );
+    tempRoots.push(outsider);
+
+    let failed = false;
+    try {
+      runNodeScript(
+        tempRoot,
+        "scripts/verify-skills-sync.mjs",
+        [],
+        verifyTempEnv(isolatedTmp),
+      );
+    } catch {
+      failed = true;
+    }
+
+    expect(failed).toBe(true);
+    expect(existsSync(outsider)).toBe(true);
+
+    const leftoverTemps = listVerifyTempDirs(isolatedTmp).filter(
       (name) => !beforeTemps.has(name),
     );
     expect(leftoverTemps).toEqual([]);
