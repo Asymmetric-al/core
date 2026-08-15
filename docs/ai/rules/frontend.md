@@ -13,6 +13,7 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 
 - Foundational HTML, CSS, and vanilla JS craft (semantics, selector discipline, a11y hygiene, readable JS) are summarized for agents in **`docs/ai/skills/bendc-frontend-guidelines/SKILL.md`** (vendored from [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines)). That skill is **subordinate to this file** and to motion skills when they conflict. Tokens, Tailwind, TypeScript strictness, and motion gates in this doc always win.
 - Shared UI primitives live in `packages/ui`. Apps should consume them via `@asym/ui`.
+  The detailed `base-maia` implementation contract is `packages/ui/AGENTS.md`.
 - Do not generate shadcn components inside `apps/*`.
 - All shared primitives are Base UI (`@base-ui/react`) via the shadcn `base-maia` style. The repo is Base UI only.
 - For app code, follow the existing feature structure already used in each app.
@@ -78,7 +79,7 @@ implementation task.
 
 - If you are using shadcn/studio MCP workflows (`/cui`, `/rui`, `/iui`, `/ftc`), follow `rules/shadcn-studio-mcp.md` exactly.
 - Do not apply shadcn/studio MCP rules for manual UI edits.
-- If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` and use the preamble built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md` for search calls (see `AGENTS.md#nia-mcp-usage-always-repo-scoped` and `docs/ai/nia.md`).
+- If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` and use the preamble built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md` for search calls (see `docs/ai/nia.md`).
 
 ### Browser data and state management
 

@@ -36,7 +36,7 @@ Optional MCP tooling configuration for contributors is documented in `docs/mcp-c
 
 ### Nia (MCP) usage (repo-scoped)
 
-If you use Nia for repo search, follow the canonical policy in [`AGENTS.md#nia-mcp-usage-always-repo-scoped`](../../../AGENTS.md#nia-mcp-usage-always-repo-scoped) and the operations guide in [`docs/ai/nia.md`](../../ai/nia.md). Short version:
+If you use Nia for repo search, follow the canonical policy in [`docs/ai/nia.md`](../../ai/nia.md). Short version:
 
 - Contributors use their own Nia API key and subscribe to the public `Asymmetric-al/core` indexed source (never share keys).
 - Configure Nia MCP in user/global MCP settings, not committed project config, because MCP headers contain credentials.
