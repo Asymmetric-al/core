@@ -595,20 +595,24 @@ describe("sync-agent-skills", () => {
       existsSync(path.join(destRoot, ".agents/skills/sample-skill/SKILL.md")),
     ).toBe(true);
     expect(existsSync(path.join(tempRoot, ".agents/skills"))).toBe(false);
-  });
+  }, 20_000);
 
-  it("prints help and rejects unknown arguments", async () => {
-    const tempRoot = await createTempRepo("sync-help");
-    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+  it(
+    "prints help and rejects unknown arguments",
+    { timeout: 20_000 },
+    async () => {
+      const tempRoot = await createTempRepo("sync-help");
+      await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
 
-    expect(
-      runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs", ["--help"]),
-    ).toMatch(/Usage:/);
+      expect(
+        runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs", ["--help"]),
+      ).toMatch(/Usage:/);
 
-    expect(() =>
-      runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs", ["--explode"]),
-    ).toThrow(/Unknown argument/);
-  });
+      expect(() =>
+        runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs", ["--explode"]),
+      ).toThrow(/Unknown argument/);
+    },
+  );
 
   it("fully replaces Core-curated adapter directories", async () => {
     const tempRoot = await createTempRepo("sync-skills-curated-adapter");

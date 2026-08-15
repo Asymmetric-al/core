@@ -205,15 +205,17 @@ async function collectRelativeFiles(root) {
   return files;
 }
 
-function reportDriftAndExit() {
+function reportDrift(entries) {
   console.error(
     "Skill mirror drift detected. Run `bun run skills:sync` and commit mirror updates.",
   );
-  process.exit(1);
+  for (const entry of entries) {
+    console.error(`${entry.tree}/${entry.relativePath} (${entry.reason})`);
+  }
 }
 
 async function compareTrees(liveRoot, expectedRoot) {
-  let drifted = false;
+  const drifted = [];
 
   for (const tree of comparedTrees) {
     const liveFiles = await collectRelativeFiles(path.join(liveRoot, tree));
@@ -227,17 +229,17 @@ async function compareTrees(liveRoot, expectedRoot) {
       const expectedContent = expectedFiles.get(relativePath);
 
       if (!expectedContent) {
-        drifted = true;
+        drifted.push({ tree, relativePath, reason: "extra" });
         continue;
       }
       if (!liveContent) {
-        drifted = true;
+        drifted.push({ tree, relativePath, reason: "missing" });
         continue;
       }
       if (
         normalizeNewlines(liveContent) !== normalizeNewlines(expectedContent)
       ) {
-        drifted = true;
+        drifted.push({ tree, relativePath, reason: "changed" });
       }
     }
   }
@@ -341,14 +343,17 @@ async function main() {
     "sync-agent-skills.mjs",
   );
   const expectedRoot = await renderExpectedMirrors(repoRoot, syncScriptPath);
+  let drifted = [];
 
   try {
-    const drifted = await compareTrees(repoRoot, expectedRoot);
-    if (drifted) {
-      reportDriftAndExit();
-    }
+    drifted = await compareTrees(repoRoot, expectedRoot);
   } finally {
     await rmWithRetry(expectedRoot);
+  }
+
+  if (drifted.length > 0) {
+    reportDrift(drifted);
+    process.exit(1);
   }
 
   console.log("Skill mirrors match canonical sources.");
