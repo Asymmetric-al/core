@@ -306,6 +306,21 @@ attested and never removed solely for that historical absence. The next
 editorial, cloned, imported, translated, or reach-widening candidate follows
 D26 and receives a fresh actual-actor attestation.
 
+## Later Phase 2/24 verified-host qualification
+
+The ratified `verified-host set` is not a hostname list resolved at cutover. It
+means one immutable, enumerated Phase 2/24 host-membership generation and digest
+pinned identically by the Adoption Case, selected Plan Version, production-shaped
+shadow, and Coverage Manifest. A hostname string, wildcard, request header,
+deployment domain, previously verified host, or mutable `all current hosts` query
+cannot define or widen the adoption cohort.
+
+The final CAS compares both pinned host-membership coordinates to the current
+Phase 2/24 owner head. Adding, removing, transferring, canonicalizing, or
+reverifying any host after preparation invalidates that evidence and aborts the
+cutover with no public effect; the case must prepare a successor rather than
+silently reinterpret the selected manifest.
+
 ## Related decisions
 
 - [ADR-0118](./0118-typed-public-ministry-pages-and-explicit-contributor-assignments.md)

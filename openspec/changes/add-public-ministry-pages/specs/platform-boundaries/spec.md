@@ -107,8 +107,12 @@ distinct facts and SHALL NOT individually prove convergence.
 
 Legacy-to-Phase-22 adoption SHALL use private, resumable, non-authoritative
 preparation and shadow comparison over a complete Tenant, Legal Entity,
-environment, Site, verified-host-set, and locale cohort. Every Page and shared
-artifact SHALL receive one non-overlapping disposition. One idempotent,
+environment, Site, immutable enumerated verified-host membership generation and
+digest, and locale cohort. Host strings, wildcards, request headers, deployment
+domains, previously verified hosts, and mutable current-host queries SHALL NOT
+define or widen that cohort. Every Page and shared artifact SHALL receive one
+non-overlapping disposition. The Adoption Case, Plan, shadow, and Coverage
+Manifest SHALL pin the same host-membership generation and digest. One idempotent,
 generation-fenced CAS SHALL transfer public reader authority; no partial tenant
 enablement, mixed reader, dual write, destructive rollback, or legacy fallback
 is permitted afterward.
@@ -120,6 +124,10 @@ one coordinated shared-authority CAS. The selected Adoption Plan Version and
 Coverage Manifest SHALL be immutable, content-addressed successors; corrections
 SHALL create successors rather than mutate them or resolve through a floating
 latest pointer.
+The final CAS SHALL compare the pinned host-membership generation and digest to
+the current Phase 2/24 owner head and SHALL abort with no public effect when a
+host was added, removed, transferred, canonicalized, or reverified after
+preparation.
 
 A Compatible Legacy Page Release MAY preserve proved-safe legacy presentation
 only through a certified one-time family-qualified adapter that freezes an
@@ -135,6 +143,13 @@ cutover, and the next edit SHALL use an ordinary current-catalog successor.
   lacks an exact disposition
 - **THEN** cutover is blocked for that cohort
 - **AND** current public authority remains unchanged
+
+#### Scenario: Verified-host membership drifts after shadow proof
+
+- **WHEN** the current Phase 2/24 host-membership generation or digest differs
+  from the value pinned by the selected adoption evidence
+- **THEN** final CAS aborts without changing public reader authority
+- **AND** no host string or mutable membership query repairs the selected case
 
 #### Scenario: A cutover response is lost
 
@@ -193,6 +208,11 @@ remain purpose-specific and capability-honest.
 
 Mission Control's Public Pages operations and setup/settings workspaces SHALL be
 disposable projections over source-owned current facts. The operations projection
+SHALL resolve current authorization and one exact Tenant, Legal Entity,
+environment, Site, and locale before enumerating, grouping, counting, searching,
+exporting, notifying, linking, badging, subscribing through Realtime, or caching
+any result. A host, route, selected row, task link, cache namespace, or prior
+authorization SHALL NOT infer or widen that scope. The operations projection
 SHALL consume one finite, code-owned, versioned registry covering every D1–D21
 owner contract; each compatible owner version SHALL supply either a privacy-safe
 condition/action adapter or a source-owned `not participating`, `Off`, or
@@ -201,12 +221,34 @@ condition/action adapter or a source-owned `not participating`, `Off`, or
 logic, a guessed task, or a healthy result. Each action SHALL route to its owning
 contract and re-prove current permission and version. The workspaces SHALL NOT
 create parallel health, task, workflow, settings, or permission authority.
+The authorized product audit export SHALL use a versioned machine-readable schema
+with stable opaque IDs, immutable lineage, exact scope, source provenance, and
+coverage time for Pages, releases, routes/dispositions, assignments, and selected
+and effective profile references. It SHALL be privacy-filtered before enumeration
+and SHALL NOT be replaced by an infrastructure backup/export.
 
 #### Scenario: One cause affects many Pages
 
 - **WHEN** one profile, host, source, or provider cause affects several Pages
 - **THEN** the operations projection coalesces impact around that owner cause
 - **AND** repair updates the source rather than dismissing a duplicate status
+
+#### Scenario: Sibling-scope causes exist before aggregation
+
+- **WHEN** the operations workspace prepares rows or aggregates for one exact
+  authorized Site and locale
+- **THEN** structural scope and current authorization exclude sibling evidence
+  before grouping, counting, searching, exporting, notifying, linking, badging,
+  subscribing, or caching
+- **AND** a host, route, selected row, task link, or prior authorization cannot
+  widen the result
+
+#### Scenario: An administrator requests a portable publication audit
+
+- **WHEN** the actor is currently authorized for the exact operations scope
+- **THEN** the product export uses its versioned schema, stable opaque IDs,
+  immutable lineage, source provenance, and privacy-filtered record families
+- **AND** an infrastructure backup cannot substitute for that result
 
 #### Scenario: An owner adapter is missing or incompatible
 

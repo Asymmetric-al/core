@@ -42,15 +42,19 @@ revision lineage; no scratch write or contributor edit is itself public truth.
 
 The platform SHALL maintain a prospective immutable Publication Reach Profile
 Version lineage for each exact Tenant × Legal Entity × Site × typed Page Family,
-with at most one current saved head. Each Page-locale release SHALL have exactly
-one prospective reach of `Not public`, `Shared by link — public`, or `Listed
+with at most one current saved head. Each Page-locale release SHALL immutably pin
+one requested reach of `Not public`, `Shared by link — public`, or `Listed
 publicly`, derived only from that exact-scope head or an authorized same-scope
-Page request. A missing, stale, ambiguous, incompatible, or unauthorized head
-SHALL resolve honestly to the `Not public` fallback without consulting another
-Legal Entity, Site, or Page Family and without creating a tenant choice. Phase 10
-SHALL impose a non-waivable ceiling at release and every serve. Reach history
-SHALL be immutable and SHALL NOT be implemented as a page-level authentication
-or safety switch.
+Page request, and one separately computed release-time effective reach after the
+Phase 10 ceiling is applied. Current effective reach SHALL remain a disposable
+serve-time derivation bounded by that immutable release-time result, the current
+Phase 10 ceiling, and append-only containment. Requested, release-time effective,
+and current effective reach SHALL remain distinct in storage, APIs, and staff UI;
+widening SHALL require a newly authorized successor release. A missing, stale,
+ambiguous, incompatible, or unauthorized head SHALL resolve honestly to the `Not
+public` fallback without consulting another Legal Entity, Site, or Page Family
+and without creating a tenant choice. Reach history SHALL be immutable and SHALL
+NOT be implemented as a page-level authentication or safety switch.
 
 #### Scenario: A tenant default applies to a new Page
 
@@ -59,6 +63,15 @@ or safety switch.
 - **THEN** the current exact Tenant × Legal Entity × Site × typed Page Family
   reach profile supplies the proposed value
 - **AND** the release still requires Phase 10 admission
+
+#### Scenario: Staff inspect configured and live reach
+
+- **WHEN** Phase 10 or containment narrows a released Page beneath the tenant's
+  requested reach
+- **THEN** staff can distinguish the immutable requested value, immutable
+  release-time effective value, and disposable current effective value
+- **AND** the system does not rewrite historical intent or widen without a
+  successor release
 
 #### Scenario: Safety narrows after release
 
@@ -107,21 +120,25 @@ or safety switch.
 ### Requirement: D3 Presentation Profiles Are Versioned Site-And-Family Contracts
 
 The platform SHALL provide one current versioned Public Page Presentation
-Profile per exact Site and Page Family. Missionary and Project/Campaign Pages
-MAY use different layouts, but all current Pages and locale releases in one
-Site-family cohort SHALL conform to its profile. Layouts SHALL use bounded typed
-blocks, including a bounded Ministry Updates placement, and SHALL NOT allow
-arbitrary code, per-Page layout forks, or locale-specific layout forks. D3 SHALL
-own one immutable, exact Page-scoped Feed Binding that selects the Ministry
-Update source and purpose set the Page may present. D11 SHALL consume that
-binding and SHALL NOT recreate, infer, or substitute it; display or contributor
-membership SHALL NOT supply it.
+Profile per exact Tenant × Legal Entity × environment × Site × Page Family.
+Missionary and Project/Campaign Pages MAY use different layouts, but all current
+Pages and locale releases in one exact-scope Site-family cohort SHALL conform to
+its profile. A profile from another environment or sibling scope SHALL NOT be
+consulted or activated as fallback. Layouts SHALL use bounded typed blocks,
+including a bounded Ministry Updates placement, and SHALL NOT allow arbitrary
+code, per-Page layout forks, or locale-specific layout forks. D3 SHALL own one
+immutable, exact Page-scoped Feed Binding that selects the Ministry Update source
+and purpose set the Page may present. D11 SHALL consume that binding and SHALL
+NOT recreate, infer, or substitute it; display or contributor membership SHALL
+NOT supply it.
 
 #### Scenario: A tenant configures its two Page families
 
 - **WHEN** staff selects a Missionary profile and a Project/Campaign profile
 - **THEN** each choice is previewed against representative current content
-- **AND** the activated versions apply consistently to their complete cohorts
+- **AND** each activated exact Tenant, Legal Entity, environment, Site, and Page
+  Family version applies consistently to its complete cohort
+- **AND** a sibling environment or scope cannot supply the current head
 
 #### Scenario: A Page lacks content for an optional block
 
@@ -150,16 +167,16 @@ membership SHALL NOT supply it.
 The platform SHALL maintain one prospective, immutable Review and Release
 Profile lineage with at most one current head for each exact Tenant × Legal
 Entity × environment × Site × Page Family × publication-path scope. The current
-version SHALL select either `Staff review required`
-or `Publish after checks`. Private autosave SHALL remain outside release state;
+version SHALL select either `Review before publishing` or `Publish after checks`.
+Private autosave SHALL remain outside release state;
 a final intent SHALL bind one exact candidate revision and SHALL run the same
 safety, permission, dependency, and CAS checks in either mode. A missing, stale,
 incompatible, ambiguous, or unauthorized exact-scope profile SHALL use the
-disclosed `Staff review required` fallback and SHALL NOT consult or inherit a
+disclosed `Review before publishing` fallback and SHALL NOT consult or inherit a
 tenant-global or sibling Legal Entity, Site, Page Family, or publication path.
 
 Absent a deliberate tenant D4 choice, the disclosed safe fallback SHALL be
-`Staff review required`. One organization choice MAY be progressively
+`Review before publishing`. One organization choice MAY be progressively
 customized only for the Missionary Page, Project/Campaign Page, and Ministry
 Update publication paths the tenant actually uses.
 
@@ -233,12 +250,18 @@ create a second editorial workflow.
 
 ### Requirement: D6 Public Support Progress Is Typed Source-Authoritative And Optional Per Page
 
-Each Page SHALL independently select `Hidden` or exactly one compatible,
-source-certified progress presentation. Supported types SHALL distinguish
-sustained monthly support from bounded project/campaign goals. Phase 21 and the
-owning financial phases SHALL remain authoritative; Phase 22 SHALL render only
-an approved public projection with exact currency, definition, through-date,
-coverage, and freshness.
+Each Page release SHALL pin one immutable, prospective Public Support Progress
+Profile Version selecting `Hidden` or exactly one compatible, source-certified
+progress presentation. Supported types SHALL distinguish sustained monthly
+support from bounded project/campaign goals. A change to visibility, metric,
+goal, currency, period, formula, or scope SHALL create an ordinary D4/D5
+candidate and D2 successor Page release and SHALL NOT mutate the profile beneath
+an existing release. Tenant or family defaults MAY seed private drafts but SHALL
+NOT remain in live resolution. Only source-owned numeric facts and watermarks MAY
+refresh a compatible released projection without editorial republishing. Phase
+21 and the owning financial phases SHALL remain authoritative; Phase 22 SHALL
+render only an approved public projection with exact currency, definition,
+through-date, coverage, and freshness.
 
 #### Scenario: A missionary Page hides progress
 
@@ -246,6 +269,14 @@ coverage, and freshness.
   capability selects `Hidden`
 - **THEN** the public layout omits progress without an empty meter or zero
 - **AND** Giving remains available when its independent D7 checks pass
+
+#### Scenario: Staff change a released progress profile
+
+- **WHEN** authorized staff change visibility, metric, goal, currency, period,
+  formula, or scope for a released Page
+- **THEN** the change creates an attributed D4/D5 candidate and D2 successor
+  release that pins its own immutable profile
+- **AND** the current release remains unchanged until that successor is admitted
 
 #### Scenario: A project uses a bounded goal
 
@@ -347,23 +378,29 @@ another fund by inference.
 #### Scenario: Route authority is unavailable
 
 - **WHEN** the exact route disposition cannot be proved
-- **THEN** the runtime returns a no-store unavailable response
+- **THEN** the runtime returns a neutral `503` with `Retry-After` and
+  `Cache-Control: no-store`
 - **AND** it does not guess from a slug, legacy table, cache, or adjacent Page
 
 ### Requirement: D9 Public Media Is Sanitized Certified And Release-Bound
 
 All Public Ministry Media SHALL pass from private tenant-scoped intake through
 type verification, safety processing, metadata removal, re-encoding, and
-certified derivatives before a placement can be pinned to a release. Public
-URLs, response headers, and downloads SHALL use opaque names and SHALL never
-expose the original filename, private object key, embedded metadata, or origin
-asset. Launch SHALL accept JPEG, PNG, and still WebP only; video, audio,
+certified derivatives before a placement can be pinned to a release. Every
+immutable placement version SHALL also pin its semantic role, crop/focal point,
+contextual alternative text or explicit decorative decision, caption and
+attribution where applicable, and exact certified master and derivative
+manifest. Alternative text belongs to the placement rather than the reusable
+asset; asset-global or filename-derived text SHALL NOT substitute for contextual
+meaning. Public URLs, response headers, and downloads SHALL use opaque names and
+SHALL never expose the original filename, private object key, embedded metadata,
+or origin asset. Launch SHALL accept JPEG, PNG, and still WebP only; video, audio,
 documents, SVG, animation, and multi-image inputs SHALL be unavailable. Raw
 intake SHALL expire on a bounded schedule, and the source filename SHALL be
 discarded from operational/public records once an internal job identity exists.
 Phase 29 SHALL own private byte custody, scanning, transformation execution,
-copy inventory, retention, holds, disposal, and authorized byte delivery;
-Phase 22 owns public meaning, placement, release eligibility, and withdrawal.
+copy inventory, retention, holds, disposal, and authorized byte delivery; Phase
+22 owns public meaning, placement, release eligibility, and withdrawal.
 
 #### Scenario: A missionary uploads a revealing photograph
 
@@ -372,6 +409,14 @@ Phase 22 owns public meaning, placement, release eligibility, and withdrawal.
 - **THEN** the origin remains private and a sanitized derivative receives an
   opaque public identity
 - **AND** the public response exposes neither the filename nor metadata
+
+#### Scenario: One certified image is reused in two contexts
+
+- **WHEN** the same sanitized master appears in two Page placements with
+  different semantic meaning
+- **THEN** each immutable placement pins its own contextual alternative text or
+  explicit decorative decision, crop, role, and applicable caption/attribution
+- **AND** neither placement inherits filename-derived or asset-global text
 
 #### Scenario: Sanitization fails
 
@@ -398,6 +443,15 @@ Every request, including assets and nested data, SHALL re-prove authority.
 Preview responses SHALL be private, no-store, non-indexable, non-archivable, and
 referrer-suppressed, SHALL disable consequential public actions, and SHALL NOT
 rely on bearer URLs, shared secrets, or copied production pages.
+Each successful document or governed-asset preview request SHALL append
+privacy-minimized access evidence with the actual actor and principal, Tenant,
+Legal Entity, environment, Site, exact Page or canonical Update, locale,
+immutable candidate or revision, audience and resource kind where applicable,
+authorization/grant epoch, outcome, server time, and opaque correlation. The
+evidence SHALL NOT copy content, filename, URL, token, IP address, or user agent.
+Nested requests MAY be boundedly coalesced only when the evidence still proves
+every governed resource kind accessed; every byte request SHALL still reauthorize.
+An access-evidence write failure SHALL fail the governed preview request closed.
 Preview SHALL remain pinned to the requested coherently saved Revision or exact
 submitted candidate when newer work is saved. It SHALL NOT silently follow a
 mutable working head, latest Revision, live release, or provider fallback; a
@@ -410,6 +464,8 @@ version.
 - **THEN** the server composes that revision through the preview projection
 - **AND** the response identifies its non-public state and disables Give,
   responses, measurement, and other side effects
+- **AND** access evidence identifies the actor and exact preview target without
+  copying its content
 
 #### Scenario: A copied preview URL is opened by someone else
 
@@ -570,7 +626,12 @@ Project/Campaign directory/search views, but those views SHALL be thin
 projections over the same exact-scope corpus. No directory query, cursor, cache,
 count, or fallback SHALL read a sibling Site or locale corpus. Search SHALL use
 bounded public fields, stable ordering, and keyset pagination; it SHALL NOT query
-operational tables or infer hidden subjects.
+operational tables or infer hidden subjects. Ordering and filtering SHALL be
+deterministic and code-owned, use only public-safe fields, and SHALL NOT use
+popularity, financial amount or progress, Giving readiness, fundraising urgency,
+engagement or supporter counts, hidden-result counts, distance, maps, exact
+coordinates, or inferred sensitivity. Hidden entries SHALL NOT affect presented
+counts, facets, or ordering.
 
 #### Scenario: A tenant selects separate directory views
 
@@ -578,6 +639,14 @@ operational tables or infer hidden subjects.
 - **THEN** both views query the same exact Tenant, Legal Entity, environment,
   Site, and locale corpus with server-owned family constraints
 - **AND** the choice does not fork indexing, reach, or safety authority
+
+#### Scenario: A sensitive ranking signal is proposed
+
+- **WHEN** a directory implementation attempts to order or shape results from
+  financial progress, Giving readiness, popularity, urgency, engagement,
+  supporter or hidden-result counts, distance, coordinates, or inferred safety
+- **THEN** contract validation rejects the ranking or facet
+- **AND** hidden entries cannot influence visible counts or deterministic order
 
 #### Scenario: Reach narrows during a rebuild
 
@@ -607,6 +676,18 @@ locale rather than sensitive titles or names. Complete current safe placement
 coverage SHALL make that permalink Listed when any admitted placement is
 Listed, public but noindex when every admitted placement is Shared-by-link, and
 absent when no admitted public placement remains.
+Structured data SHALL be emitted only by a code-owned visible-fact allowlist:
+`WebPage` and an eligible `BreadcrumbList` by default; `ProfilePage`/`Person`
+only when the exact release truthfully represents one genuinely public-safe
+person; and `Article`/`BlogPosting` only for an eligible public Ministry Update
+permalink. Arbitrary JSON-LD, generic `Person` injection, `SearchAction`,
+`DonateAction`, and invented claims SHALL be prohibited. A reciprocal locale
+alternate SHALL bind the exact verified host, Site, Page or Update, and locale
+releases and SHALL be emitted only when both coherent D2/D3 composites are
+current, independently eligible for D14 Search Presentation—and therefore
+currently Listed under D2 and Phase 10—self-inclusive, and mutually admitted;
+missing, stale, unsafe, unlisted, or one-way locale truth SHALL be omitted rather
+than inherited or synthesized.
 
 #### Scenario: A Listed release is compiled
 
@@ -614,6 +695,21 @@ absent when no admitted public placement remains.
 - **THEN** canonical, robots, sitemap, structured-data, and Open Graph output all
   reference that exact release
 - **AND** the content is accessible without relying on client-only rendering
+
+#### Scenario: Structured data exceeds the visible-fact allowlist
+
+- **WHEN** compilation proposes arbitrary JSON-LD, generic Person injection,
+  `SearchAction`, `DonateAction`, or a claim absent from the exact release
+- **THEN** the D14 manifest rejects that structured-data output
+- **AND** no search or share response falls back to the proposed schema
+
+#### Scenario: A sibling locale is not mutually eligible
+
+- **WHEN** either locale release is missing, stale, unsafe, not currently Listed
+  and D14 Search-Presentation-eligible, or does not reciprocally admit the other
+  exact release
+- **THEN** neither release emits that alternate-locale relationship
+- **AND** no source-language, root-Site, or CMS fallback creates it
 
 #### Scenario: A Shared-by-link Page is shared socially
 
@@ -654,6 +750,12 @@ within 24 hours; sealed daily aggregates SHALL use append-only corrections and a
 code-owned 24-month retention. Changing one Site's profile SHALL NOT authorize
 collection for another Legal Entity or Site, and every admitted occurrence and
 aggregate SHALL pin the exact profile version.
+Production collection SHALL remain blocked until the exact Site presents its
+truthful current measurement notice and the applicable owner-authorized simple
+objection or stricter consent path is current and honored or satisfied for the
+occurrence where required. Missing, stale, or unsatisfied proof SHALL admit no
+occurrence. D15 SHALL NOT infer which path applies from geography or treat a
+saved profile as sufficient collection authority.
 The fixed report SHALL be titled `Public page activity`, use `Aggregate activity
 for your public pages and ministry updates`, label the four metrics `Qualified
 page loads`, `Full update opens`, `Share options opened`, and `Give button
@@ -668,6 +770,15 @@ NOT be conveyed by color alone.
 - **WHEN** the tenant disables measurement or the intake service is unavailable
 - **THEN** Page, Update, Share, Give, cart, and checkout behavior is unchanged
 - **AND** no event is reconstructed later from access or error logs
+
+#### Scenario: Measurement is enabled before its notice path is ready
+
+- **WHEN** an enabled exact-Site profile lacks current, satisfied proof of the
+  applicable truthful notice and owner-authorized objection or stricter consent
+  path
+- **THEN** occurrence admission records nothing and opens only the cause-owned
+  setup exception
+- **AND** Page and Giving behavior continues without retroactive backfill
 
 #### Scenario: A qualified interaction is posted twice
 
@@ -928,8 +1039,11 @@ become tenant-authored schema, layout, permission, or publication controls.
 
 Migration from the legacy public ministry surface SHALL prepare Pages
 incrementally in private, but SHALL switch public reader authority only for one
-complete exact Tenant, Legal Entity, environment, Site, verified-host-set, and
-locale cohort. Preparation SHALL be chunked, resumable, non-authoritative, and
+complete exact Tenant, Legal Entity, environment, Site, immutable enumerated
+verified-host membership generation and digest, and locale cohort. A hostname,
+wildcard, request header, deployment domain, previously verified host, or mutable
+`all current hosts` query SHALL NOT define or widen the cohort. Preparation SHALL
+be chunked, resumable, non-authoritative, and
 backed by a complete source/disposition manifest and production-shaped shadow.
 One idempotent CAS cutover SHALL transfer Phase 5/D18 authority; there SHALL be no
 mixed production reader, dual write, destructive rollback, or legacy fallback.
@@ -941,6 +1055,10 @@ dependent case SHALL participate in one coordinated CAS over the shared
 authority head. Adoption Plan Versions and Coverage Manifests SHALL be immutable
 successors selected by stable identifier and digest; correction SHALL never
 mutate a selected record or float to `latest`.
+Final cutover SHALL compare the pinned verified-host membership generation and
+digest to the current Phase 2/24 owner head inside the CAS and SHALL abort without
+public effect when any host was added, removed, transferred, canonicalized, or
+reverified after preparation.
 
 A `Compatible Legacy Page Release` MAY be selected only once before cutover
 when a certified family-qualified generation-pinned adapter normalizes proved-
@@ -973,6 +1091,14 @@ become Page state or use `Live` as D21 truth.
 - **THEN** cutover is blocked at the smallest exact cohort
 - **AND** the operations view identifies the cause-owned repair
 
+#### Scenario: Verified-host membership changes after preparation
+
+- **WHEN** final CAS finds that the pinned host-membership generation or digest
+  no longer matches the current Phase 2/24 owner head
+- **THEN** cutover aborts with no public reader change
+- **AND** recovery prepares a successor case rather than reinterpreting the
+  selected Plan or Manifest
+
 #### Scenario: Cutover races or crashes
 
 - **WHEN** two actors execute the same generation or the process loses its
@@ -1001,8 +1127,12 @@ become Page state or use `Live` as D21 truth.
 ### Requirement: D22 Public Pages Operations Is Quiet Derived And Cause-Owned
 
 Mission Control SHALL provide one disposable Public Pages workspace with `To
-review`, `Needs attention`, and `All pages`. It SHALL derive rows and counts from
-a finite, code-owned, versioned registry covering every D1–D21 owner contract.
+review`, `Needs attention`, and `All pages` for one exact owner-resolved Tenant ×
+Legal Entity × environment × Site × locale scope. Current authorization and that
+scope SHALL be applied before enumerating rows, grouping causes, counting,
+searching, exporting, notifying, linking, badging, subscribing through Realtime,
+or caching. It SHALL derive rows and counts from a finite, code-owned, versioned
+registry covering every D1–D21 owner contract.
 For each owner and compatible version, the registry SHALL contain either a
 privacy-safe owner-condition/action adapter or an explicit source-owned `not
 participating`, `Off`, or `unavailable` coverage disposition. Missing, stale,
@@ -1013,6 +1143,13 @@ duplicate owner status logic. It SHALL coalesce shared causes; identify impact,
 owner, and next action; and remain quiet when no action is required. It SHALL NOT
 become a task system, health authority, workflow status table, or leak restricted
 identities through counts.
+An authorized administrative audit export SHALL use a versioned machine-readable
+schema and preserve stable opaque IDs, immutable lineage, exact scope, source
+owner, version, provenance, coverage time, and dispositions for Pages, releases,
+routes, assignments, and selected and effective profile references. Export SHALL
+be privacy-filtered at request and execution time, SHALL NOT read raw owner
+tables, and SHALL NOT be represented as an infrastructure backup or proof that
+external custody, migration, or deletion completed.
 
 #### Scenario: Several Pages share one cause
 
@@ -1032,6 +1169,23 @@ identities through counts.
 - **WHEN** the viewer lacks permission to inspect their identity or cause
 - **THEN** counts and groupings are suppressed or generalized safely
 - **AND** drill-down never reveals the protected rows
+
+#### Scenario: Operations data exists in a sibling scope
+
+- **WHEN** the workspace derives rows, causes, counts, search, exports,
+  notifications, shared-task links, badges, subscriptions, or caches for one
+  exact Site and locale
+- **THEN** current authorization and exact owner scope are applied before any
+  aggregation or result is produced
+- **AND** sibling Site or locale evidence cannot enter even a generalized count
+
+#### Scenario: An administrator exports publication history
+
+- **WHEN** a currently authorized administrator requests the exact-scope audit
+- **THEN** the export contains stable opaque IDs, immutable lineage, scope,
+  provenance, and dispositions for the governed record families
+- **AND** it contains no unauthorized sibling data or claim that backup,
+  migration, external custody, or deletion completed
 
 #### Scenario: Giving becomes unavailable while a Page remains public
 
@@ -1266,10 +1420,11 @@ sanitization proves permission.
 A Page identity SHALL be Site, Page Family, and exact subject, not locale. Each
 supported locale SHALL have an independent immutable revision and release
 lineage, and requests SHALL require an exact current locale release with no prose
-fallback. Each Site-family SHALL have exactly one current D3 Presentation Profile
-head. Activating a successor profile SHALL prove compatibility against the
-complete current locale-release cohort and SHALL atomically CAS one activation
-generation fenced by scope epoch and release-head-set digest. D27 SHALL govern
+fallback. Each exact Tenant × Legal Entity × environment × Site × Page Family
+SHALL have exactly one current D3 Presentation Profile head. Activating a
+successor profile SHALL prove compatibility against the complete current locale-
+release cohort and SHALL atomically CAS one activation generation fenced by scope
+epoch and release-head-set digest. D27 SHALL govern
 over every older Phase 22 exception that could imply Page- or locale-specific
 layout versions.
 Authoring SHALL distinguish `Page design — all languages` from `Content — this
@@ -1313,3 +1468,5 @@ prohibited.
 - **THEN** the new profile generation becomes current for the whole cohort at
   once
 - **AND** a race, gap, incompatible release, or changed digest blocks activation
+- **AND** no sibling Tenant, Legal Entity, environment, Site, or Page Family head
+  is consulted or advanced

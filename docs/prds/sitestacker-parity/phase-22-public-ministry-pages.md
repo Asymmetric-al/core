@@ -57,9 +57,10 @@ Phase 5 resolves an exact release only after current-source admission. The
 release binds content, safe media, route, profile, reach, progress, Giving, and
 search/share presentation. Adverse changes deny before stale caches; Giving is
 re-proved when selected. Production adoption shadows a complete Tenant × Legal
-Entity × environment × Site × verified-host-set × locale cohort, then performs
-one CAS reader cutover with no legacy fallback. Healthy workspaces stay quiet;
-exceptions expose one cause-owned, re-proved action.
+Entity × environment × Site × immutable enumerated verified-host membership
+generation and digest × locale cohort, then performs one CAS reader cutover with
+no legacy fallback. Healthy workspaces stay quiet; exceptions expose one cause-
+owned, re-proved action.
 
 ## User Stories
 
@@ -356,8 +357,11 @@ exceptions expose one cause-owned, re-proved action.
   Family. A Page requests one of `Not public`, `Shared by link — public`, or
   `Listed publicly` from that exact-scope head or an authorized same-scope Page
   request; missing or unprovable truth falls safely to `Not public` without
-  consulting a sibling scope. Phase 10 computes the release-time and live
-  ceilings. Shared by
+  consulting a sibling scope. Every release immutably pins requested reach and a
+  separate Phase-10-bounded release-time effective reach; current effective reach
+  is derived from that release result, the current ceiling, and containment at
+  every serve. APIs and staff UI keep all three meanings distinct, and widening
+  requires a successor release. Shared by
   link is an unlisted public URL, not authentication or secrecy. Every egress
   uses effective live reach, including routing, directory, sitemap, metadata,
   media, Updates, measurement, and cache admission.
@@ -414,8 +418,12 @@ exceptions expose one cause-owned, re-proved action.
   currency, formula version, coverage, and freshness contract. Public numbers
   come from source-owned projections that include eligible offline facts. Field
   Account balances, converted totals, manually typed values, negative goals,
-  stale results, and missing-as-zero are forbidden. If proof fails, omit the
-  module and expose a staff-owned exception.
+  stale results, and missing-as-zero are forbidden. Each release pins an
+  immutable page-resolved profile; defaults seed drafts only, and changing
+  visibility, metric, goal, currency, period, formula, or scope creates a D4/D5
+  candidate and D2 successor release. Compatible source-owned numeric facts and
+  watermarks may refresh without editorial republishing. If proof fails, omit
+  the module and expose a staff-owned exception.
 - **D7:** Each Page has exactly one Phase 13 Designation binding in the MVP.
   Draft setup may remain incomplete, but no Page releases without the binding.
   Every Page Give CTA is a presentation of that binding. A tenant may also show
@@ -433,6 +441,10 @@ exceptions expose one cause-owned, re-proved action.
   slug reuse, cross-subject redirects, and restricted-identity redirects are
   invalid. Page retirement does not decide whether a Designation can accept,
   redirect, refund, or reallocate gifts.
+- Resolver, authoritative route-proof, or storage unavailability returns a
+  neutral `503` with valid `Retry-After` and `Cache-Control: no-store`; it never
+  masquerades as the uniform privacy-safe `404` reserved for proved unknown,
+  tombstoned, or otherwise authoritatively ineligible routes.
 - **D9:** Media follows private intake, validation and threat scanning,
   orientation-aware decode, still-raster normalization, metadata stripping,
   safe master creation, responsive derivative generation, accessible placement,
@@ -443,6 +455,11 @@ exceptions expose one cause-owned, re-proved action.
   the original filename is discarded from operational/public records once a
   safe internal job identity exists. A withdrawal creates an adverse disposition
   and contains every affected derivative and release at the smallest safe scope.
+- Each immutable placement—not the reusable asset—pins semantic role, crop/focal
+  point, contextual alternative text or an explicit decorative decision,
+  caption/attribution where applicable, and the exact certified derivative
+  manifest. The same pixels may have different reviewed meaning in different
+  placements; filename-derived or asset-global alt text is never a fallback.
 - Launch accepts JPEG, PNG, and still WebP only; optional formats require an
   explicit decoder corpus certification. SVG, animation, multiple-image files,
   documents, and video are rejected. Byte, pixel, dimension, channel, frame,
@@ -460,6 +477,12 @@ exceptions expose one cause-owned, re-proved action.
   unsafe referrer propagation, and denied to anonymous crawlers. Giving,
   responses, analytics, notifications, webhooks, and other effects are inert in
   preview.
+- Every successful candidate-document or governed-asset request also appends
+  privacy-minimized exact access evidence for actor/principal, scope, target,
+  authorization epoch, outcome, time, and opaque correlation. Content, source
+  names, URLs/tokens, IP addresses, and user agents are excluded; evidence-write
+  failure fails the governed request closed, while nested asset evidence may be
+  boundedly coalesced without skipping per-request authorization.
 
 ### D11–D16 Updates, engagement, discovery, measurement, and assistance
 
@@ -501,8 +524,10 @@ comments`; guided setup recommends acknowledgement-only. It is a ceiling over
   keyset pagination, minimum-input and rate controls, and Phase 10-safe aliases
   and generalized geography. Queries, cursors, caches, counts, and missing-
   source handling never cross or fall back to a sibling Site or locale. It
-  offers no financial, popularity, engagement,
-  supporter-count, hidden-count, distance, or map ranking.
+  offers no financial amount/progress, Giving-readiness, popularity, urgency,
+  engagement, supporter-count, hidden-count, distance, map, coordinate, or
+  inferred-sensitivity ranking, and hidden entries do not affect visible counts,
+  facets, or order.
 - **D14:** Each release has one immutable Search & Share manifest. Listed pages
   may enter canonical locale metadata, sitemaps, safe structured data, and
   social cards. Shared-by-link pages remain noindex and absent from discovery
@@ -513,6 +538,14 @@ comments`; guided setup recommends acknowledgement-only. It is a ceiling over
   Shared by link, and absent when no admitted public placement remains. Share
   controls use first-party copy and platform-native invocation; passive
   third-party social SDKs and public share counters are excluded.
+- Structured data comes only from the code-owned visible-fact allowlist:
+  `WebPage` and eligible `BreadcrumbList` by default, narrowly eligible
+  `ProfilePage`/`Person`, and public-Update `Article`/`BlogPosting`; arbitrary
+  JSON-LD, generic Person injection, `SearchAction`, `DonateAction`, and invented
+  claims are rejected. Reciprocal locale alternates appear only when both exact
+  verified-host/Site/identity/locale releases and their coherent D2/D3 composites
+  are current, independently eligible for D14 Search Presentation—and therefore
+  currently Listed under D2 and Phase 10—self-inclusive, and mutually admitted.
 - **D15:** Every exact Tenant × Legal Entity × Site Measurement Profile begins
   in persisted `Off`; collection starts only after a currently authorized actor
   saves `Staff only` or `Staff + assigned contributors` for that scope. Missing,
@@ -526,6 +559,11 @@ comments`; guided setup recommends acknowledgement-only. It is a ceiling over
   hours, and feed idempotently sealed daily aggregates retained for 24 months
   with freshness and completeness labels. Measurement is never on the public
   serving or checkout critical path.
+- Saving an enabled profile is necessary but not sufficient for production
+  collection: the exact Site also needs current proof of a truthful visitor
+  notice and its applicable owner-authorized simple objection or stricter consent
+  path. Unknown, stale, missing, or unsatisfied proof records nothing, creates no
+  retroactive backfill, and makes no universal compliance claim.
 - **D16:** The writing assistant is optional, suggestion-only, and available
   only through an eligible exact-purpose provider binding authorized by Phase
   21 D10. It sends selected source text and the minimum policy context needed
@@ -605,7 +643,8 @@ direct`, or `Professional`, one length-bounded Page-Family-specific same-source
 ### D21–D27 adoption, workspaces, recovery, and locale consistency
 
 - **D21:** Production adoption uses a complete Tenant × Legal Entity ×
-  environment × Site × verified-host-set × locale cohort and an immutable census
+  environment × Site × immutable enumerated verified-host membership generation
+  and digest × locale cohort and an immutable census
   of every legacy route; Page, draft/autosave/version, template/global, subject,
   former-editor assignment, media, Update/preview, Giving binding; directory,
   search, sitemap, canonical/robots/social artifact; cache namespace/variant;
@@ -617,8 +656,18 @@ direct`, or `Professional`, one length-bounded Page-Family-specific same-source
   or direct-CMS authority. Page-by-page content adoption may continue inside
   Phase 22 only through explicit safe dispositions. Production proof includes a
   minimum 5,000-Page, multi-locale, skewed-tenant fixture.
+- The Adoption Case, Plan, shadow, and Manifest pin the same host-membership
+  generation and digest. Final CAS compares both to the current Phase 2/24 owner
+  head; any host add/remove/transfer/canonicalization/reverification drift aborts
+  with no public effect. Raw host strings, wildcards, request headers, deployment
+  domains, and mutable current-host queries cannot define the cohort.
 - **D22:** The Public Pages workspace is a disposable, permission-filtered
-  projection with `To review`, `Needs attention`, and `All pages`. It derives
+  projection with `To review`, `Needs attention`, and `All pages`. It resolves
+  current authorization and exact Tenant × Legal Entity × environment × Site ×
+  locale before rows, grouped causes, counts, search, export, notifications,
+  shared-task links, badges, Realtime, or caches. A host, route, selected row,
+  task link, cache namespace, or prior authorization cannot infer or widen that
+  scope. It derives
   state from one finite, code-owned, versioned registry covering every D1–D21
   owner contract. Each compatible owner version supplies either a privacy-safe
   condition/action adapter or a source-owned not-participating, Off, or
@@ -630,6 +679,11 @@ direct`, or `Professional`, one length-bounded Page-Family-specific same-source
   There is no mutable task status, health toggle, close button, or shadow
   authority. Every action leaves the projection and enters its cause-owning
   command with current reproof.
+- A currently authorized administrator can export a privacy-filtered, versioned,
+  machine-readable publication audit with stable opaque IDs, immutable lineage,
+  exact scope, source owner/version/provenance, coverage time, and dispositions
+  for Pages, releases, routes, assignments, and selected/effective profiles.
+  Infrastructure backup/export does not satisfy this product portability path.
 - **D23:** Setup and settings store no duplicate settings object. First setup
   asks only `Who can find new Missionary pages?`, `Who can find new Project
 pages?`, and `Should staff review contributor changes?`, while clearly

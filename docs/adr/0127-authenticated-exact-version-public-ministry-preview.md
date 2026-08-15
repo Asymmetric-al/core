@@ -79,6 +79,17 @@ generation, or media-eligibility outage fails closed without falling back to
 raw, latest, live, or public content. Revocation wins the next fetch, while the
 product truthfully cannot recall pixels already rendered or copied.
 
+Each successful candidate-document or governed-preview-asset request appends one
+privacy-minimized access record for the actual actor and principal, Tenant,
+Legal Entity, environment, Site, exact Page or canonical Update, locale,
+immutable candidate or revision, selected audience and resource kind where
+applicable, authorization/grant epoch, outcome, server time, and opaque
+correlation. The record never copies content, original filename, public or signed
+URL, token, IP address, or user agent. Nested assets may be boundedly coalesced
+only when the evidence still proves every governed resource kind accessed, while
+every byte request continues to reauthorize. If the durable access record cannot
+be committed, the governed preview request fails closed.
+
 Preview is never evidence that content was reviewed, approved, released,
 published, live, Giving-ready, delivered, payable, or paid.
 
@@ -98,6 +109,9 @@ published, live, Giving-ready, delivered, payable, or paid.
 - Side-effect-dark preview prevents an authorized viewer from accidentally
   giving, submitting a form, notifying supporters, or polluting public
   analytics while evaluating an unreleased candidate.
+- Privacy-minimized access evidence makes exact preview inspection auditable
+  without turning draft bodies, media names, URLs, tokens, or request identity
+  into a second sensitive event corpus.
 - Per-request checks make revocation and Phase 10 narrowing effective on the
   next governed fetch. RLS and Payload access remain defense in depth, not the
   product decision.

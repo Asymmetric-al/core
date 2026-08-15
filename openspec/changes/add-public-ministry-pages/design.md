@@ -118,6 +118,10 @@ owns the semantic composition rule that every Asym-controlled public egress must
 pass current admission before content/cache selection. Cache tags invalidate;
 they do not isolate or authorize. Unknown current admission fails with a neutral
 non-enumerating, non-shared unavailable response.
+Each release pins its requested reach and separately computed release-time
+effective reach; current effective reach is derived again from current Phase 10
+and containment before every serve. APIs and staff UI keep all three meanings
+distinct, and only a newly authorized successor may widen exposure.
 
 ### Giving progress support and communication authority
 
@@ -134,6 +138,11 @@ CTA selection and public availability are not checkout, gift, settlement, or
 payment. The final Phase 13 boundary re-resolves every action. Optional public
 progress is absent or one code-certified metric per Page; missing or stale
 truth omits only that widget and never becomes zero or a fallback metric.
+Each release pins one immutable page-resolved Progress Profile. Defaults seed
+private drafts only; changing visibility, metric, goal, currency, period,
+formula, or scope creates a D4/D5 candidate and D2 successor release, while
+compatible source-owned numeric corrections refresh only the disposable public
+projection.
 
 Phase 22 owns Ministry Update content, audience-release projection, and bounded
 response occurrences. Phase 17/6 owns notification preparation, recipient
@@ -240,6 +249,8 @@ managed-source roles, cardinality, compatible placement, accessible rendering,
 failure behavior, and migration rules. A D3 Site-family Presentation Profile
 chooses Off/Available/Expected roles, ordering, and bounded staff/contributor
 editability without defining new roles or source truth.
+Its one current activation head is keyed by exact Tenant, Legal Entity,
+environment, Site, and Page Family and never falls back to a sibling scope.
 
 The Missionary launch catalog is managed public identity; optional Introduction,
 Our ministry story, Ministry focus, and How you can pray; D9 media; optional D6
@@ -254,8 +265,9 @@ locked organization stewardship/disclosure/help. Source-kind-incompatible
 identity fields or feeds are unavailable rather than fabricated, inferred, or
 relabeled as project truth.
 
-One Site-family profile head applies to every current Page and locale in that
-family. Presentation activation compiles the complete current Page-by-locale
+One exact Tenant × Legal Entity × environment × Site × Page Family profile head
+applies to every current Page and locale in that scope. Presentation activation
+compiles the complete current Page-by-locale
 cohort, pins catalog/renderer/profile/brand dependencies, and CAS-advances one
 family activation epoch and release-head-set digest only when every member is
 compatible. Failure preserves the prior whole current presentation. Pages that
@@ -280,8 +292,8 @@ privacy-safe `404` as an unknown route.
 Shared-by-link and restricted/direct-link routes never redirect after rotation.
 Paths are never reused after tombstoning. A different successor Page receives
 only a fresh explicit link and inherits no Designation, amount, cadence, source
-code, return path, or recurring action. Resolver failure is a neutral no-store
-`503`, never false nonexistence.
+code, return path, or recurring action. Resolver failure is a neutral `503` with
+`Retry-After` and `Cache-Control: no-store`, never false nonexistence.
 
 An authorized `Listed publicly` to `Shared by link — public` successor
 atomically activates a fresh high-entropy, opaque, non-name-derived Route
@@ -309,6 +321,11 @@ SVG, animation, remote fetch, cross-tenant deduplication, or arbitrary transform
 are prohibited. A replacement leaves the old safe release coherent until the
 new release succeeds; urgent withdrawal uses Phase 10 containment and records
 where-used plus observed purge outcomes without claiming recall.
+Every placement version—not the reusable asset—pins the semantic role,
+focal-point/crop, contextual alternative text or explicit decorative decision,
+caption/attribution where applicable, and exact certified derivative manifest.
+The same sanitized pixels may therefore carry different reviewed meaning in two
+placements without asset-global or filename-derived fallback.
 
 Preview is authenticated and exact-version only. Every HTML, RSC/data, media,
 refresh, and continuation request reauthorizes. Contributor preview selects one
@@ -316,6 +333,12 @@ saved revision; staff/reviewer/named preview selects the immutable candidate.
 No bearer link, shared password, guest token, or preview-specific identity
 exists. Responses are private, no-store, noindex, referrer-suppressed, absent
 from public analytics/discovery, and all consequential controls are inert.
+Each successful candidate-document or governed-asset request appends privacy-
+minimized access evidence for the actual actor/principal, exact scope and target,
+authorization epoch, outcome, time, and opaque correlation. Nested asset events
+may be boundedly coalesced without skipping per-request authorization; content,
+source names, URLs/tokens, IP addresses, and user agents are excluded, and an
+evidence-write failure fails the governed request closed.
 
 D16 writing help uses the closed action catalog: guided draft, spelling/grammar,
 clarity, shorten, detail only from selected/newly supplied facts, three neutral
@@ -368,7 +391,9 @@ or Separate by Page Family. Both are thin views over the same admitted corpus.
 Only current Listed releases enter after Phase 10/containment proof. Search has
 bounded allowlisted fields/filters, deterministic ordering, pinned locale
 behavior, opaque generation-bound keyset cursors, and no hidden-result counts,
-popularity/progress/financial ranking, maps, coordinates, or raw source reads.
+popularity, financial amount/progress, Giving-readiness, urgency, engagement,
+supporter-count, distance, map, coordinate, inferred-sensitivity, or raw-source
+ranking. Hidden entries do not influence visible counts, facets, or ordering.
 
 D14 compiles distinct Search Presentation and Share Presentation results for an
 exact Page or public Update release. Listed releases are canonical, sitemap and
@@ -379,6 +404,16 @@ withdrawn/tombstoned truth emits no content-specific anonymous metadata.
 Public Updates use stable opaque per-Site/locale permalinks. Share is a
 user-initiated native Web Share or first-party Copy link with bounded click-only
 fallbacks, never a passive third-party tracker.
+The code-owned structured-data allowlist emits `WebPage` and an eligible
+`BreadcrumbList` by default, `ProfilePage`/`Person` only for one exact genuinely
+public-safe person, and `Article`/`BlogPosting` only for an eligible public Update
+permalink. Arbitrary JSON-LD, generic Person injection, `SearchAction`,
+`DonateAction`, and invented claims are rejected. Reciprocal locale alternates
+bind exact verified-host/Site/Page-or-Update/locale releases and appear only when
+both coherent D2/D3 composites are current, independently eligible for D14 Search
+Presentation—and therefore currently Listed under D2 and Phase 10—self-inclusive,
+and mutually admitted; one-way, stale, unsafe, unlisted, missing, or fallback
+truth emits no alternate.
 
 D15 has one prospective versioned Measurement Profile per exact Tenant × Legal
 Entity × Site. Every exact scope begins in persisted Off state; collection starts
@@ -394,6 +429,12 @@ user agent, URL/query, referrer, location, fingerprint, cookie, visitor/session
 ID, donor/supporter identity, or free-form property. Unlinked occurrence and
 idempotency evidence expires within 24 hours; sealed daily aggregates retain
 for 24 months with append-only corrections.
+Saving an enabled profile is necessary but not sufficient for production
+collection. The exact Site must also have current proof of a truthful notice and
+the applicable owner-authorized simple objection or stricter consent path;
+unknown, missing, stale, or unsatisfied proof records nothing, creates no
+retroactive backfill, and never blocks Page or Giving behavior. D15 does not
+infer the applicable path or claim universal legal compliance.
 
 ### Current serving and adverse convergence
 
@@ -448,8 +489,9 @@ private reads and commands while public lifecycle follows D2/D8/Phase 10.
 
 ### Complete-surface authority cutover
 
-D21 adopts one exact Tenant × Legal Entity × environment × Site × verified
-host-set × locale cohort. Private resumable preparation builds a complete
+D21 adopts one exact Tenant × Legal Entity × environment × Site × immutable
+enumerated verified-host membership generation and digest × locale cohort.
+Private resumable preparation builds a complete
 source/disposition census and production-shaped, side-effect-dark shadow of
 every legacy route; Page, draft/autosave/version, template/global, content
 source, subject, former-editor assignment, media, Update/preview, Giving binding;
@@ -458,6 +500,11 @@ variant; API, reader, serializer, fixture, test, and import path; and exactly on
 non-overlapping disposition, plus all resulting locale releases, profiles, and
 safety outcomes. No shadow request writes public caches, search submissions,
 analytics, notifications, or checkout truth.
+The Adoption Case, Plan, shadow, and Manifest pin that exact host-membership
+generation and digest. Final CAS compares both to the current Phase 2/24 owner
+head; host add/remove/transfer/canonicalization/reverification drift aborts with
+no public effect, and raw host strings or mutable current-host queries never
+define the cohort.
 
 One CAS cutover advances the production reader generation only after current
 actor, permission, manifest, source, release/profile head, safety, route,
@@ -468,8 +515,14 @@ current-serving, and external outcomes remain separate truth planes.
 
 ### Quiet operations and settings
 
-D22 derives To review, Needs attention, and All pages from one finite, code-owned,
-versioned registry covering every D1–D21 owner contract. Each compatible owner
+D22 resolves current authorization and one exact Tenant, Legal Entity,
+environment, Site, and locale before it derives any row, grouped cause, count,
+search result, export, notification, shared-task link, badge, Realtime
+subscription, or cache. A host, route, selected row, task link, cache namespace,
+or prior authorization cannot infer or widen scope. It then derives To review,
+Needs attention, and All pages
+from one finite, code-owned, versioned registry covering every D1–D21 owner
+contract. Each compatible owner
 version supplies either a privacy-safe condition/action adapter or a source-owned
 not-participating, Off, or unavailable disposition; missing, stale, unsupported,
 contradictory, or partial coverage is honestly Partial/Unavailable and cannot
@@ -479,6 +532,11 @@ readiness and Review designation. It reads no raw owner tables, stores no Page-
 health/status/task authority, does not expose restricted counts, and does not
 mark a condition fixed because a task or command completed; fresh owner proof
 must clear it.
+The same workspace offers a currently authorized, privacy-filtered product audit
+export with a versioned machine-readable schema, stable opaque IDs, immutable
+lineage, exact scope, source version/provenance, coverage time, and dispositions
+for Pages, releases, routes, assignments, and selected/effective profiles. An
+infrastructure backup/export does not satisfy that portability contract.
 
 D23 is one scope-first setup/settings projection over source-owned profile
 versions. First setup asks only `Who can find new Missionary pages?`, `Who can
