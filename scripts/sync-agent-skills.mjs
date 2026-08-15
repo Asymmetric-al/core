@@ -15,16 +15,16 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..");
 
-const sourceRoot = path.join(repoRoot, "docs", "ai", "skills");
+let repoRoot = path.resolve(__dirname, "..");
+let sourceRoot = path.join(repoRoot, "docs", "ai", "skills");
 
 // Canonical skill targets. `docs/ai/skills/*` is overlaid into each target.
 // The manifest records canonical file ownership so removed canonical files can
 // be pruned without deleting extra runtime assets installed by an ecosystem
 // package. `.claude/skills` is included so Claude Code discovers project skills
 // the same way Cursor and the .agents runtime do.
-const targetRoots = [
+let targetRoots = [
   path.join(repoRoot, ".agents", "skills"),
   path.join(repoRoot, ".cursor", "skills"),
   path.join(repoRoot, ".claude", "skills"),
@@ -34,7 +34,7 @@ const targetRoots = [
 // installs). `.agents/skills` is the mirror source, so it is intentionally not
 // listed here. Each skill directory is replaced atomically so removed ecosystem
 // files cannot remain stale in Cursor or Claude Code.
-const skillMirrorRoots = [
+let skillMirrorRoots = [
   path.join(repoRoot, ".cursor", "skills"),
   path.join(repoRoot, ".claude", "skills"),
 ];
@@ -42,7 +42,7 @@ const skillMirrorRoots = [
 // Whole-directory mirrors for Claude Code. The source is the Cursor copy
 // (already format-checked), and the target is fully replaced on each sync so
 // deletions propagate and no stale files linger.
-const treeMirrors = [
+let treeMirrors = [
   {
     label: "commands",
     sourceRoot: path.join(repoRoot, ".cursor", "commands"),
@@ -54,6 +54,78 @@ const treeMirrors = [
     targetRoot: path.join(repoRoot, ".claude", "agents"),
   },
 ];
+
+function configureRepoRoot(root) {
+  repoRoot = path.resolve(root);
+  sourceRoot = path.join(repoRoot, "docs", "ai", "skills");
+  targetRoots = [
+    path.join(repoRoot, ".agents", "skills"),
+    path.join(repoRoot, ".cursor", "skills"),
+    path.join(repoRoot, ".claude", "skills"),
+  ];
+  skillMirrorRoots = [
+    path.join(repoRoot, ".cursor", "skills"),
+    path.join(repoRoot, ".claude", "skills"),
+  ];
+  treeMirrors = [
+    {
+      label: "commands",
+      sourceRoot: path.join(repoRoot, ".cursor", "commands"),
+      targetRoot: path.join(repoRoot, ".claude", "commands"),
+    },
+    {
+      label: "agents",
+      sourceRoot: path.join(repoRoot, ".cursor", "agents"),
+      targetRoot: path.join(repoRoot, ".claude", "agents"),
+    },
+  ];
+}
+
+function printSyncHelp() {
+  console.log(`Usage: node scripts/sync-agent-skills.mjs [--repo-root <path>]
+
+Options:
+  --repo-root <path>  Repository root to sync (default: parent of this script)
+  --help, -h          Show this help
+
+Synchronizes canonical skills under docs/ai/skills/ into .agents/skills,
+.cursor/skills, and .claude/skills, and mirrors Cursor commands/agents into
+.claude/.`);
+}
+
+function parseSyncArgs(argv) {
+  let parsedRoot = null;
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+
+    if (argument === "--help" || argument === "-h") {
+      return { help: true, repoRoot: parsedRoot };
+    }
+
+    if (argument === "--repo-root") {
+      const value = argv[index + 1];
+      if (!value || value.startsWith("-")) {
+        throw new Error("Unknown argument: --repo-root requires a path");
+      }
+      parsedRoot = value;
+      index += 1;
+      continue;
+    }
+
+    if (argument.startsWith("--repo-root=")) {
+      parsedRoot = argument.slice("--repo-root=".length);
+      if (!parsedRoot) {
+        throw new Error("Unknown argument: --repo-root requires a path");
+      }
+      continue;
+    }
+
+    throw new Error(`Unknown argument: ${argument}`);
+  }
+
+  return { help: false, repoRoot: parsedRoot };
+}
 
 const CANONICAL_MANIFEST_FILENAME = ".repo-canonical-skills.json";
 const CANONICAL_MANIFEST_VERSION = 2;
@@ -622,6 +694,15 @@ async function listAgentSkillsForMirror() {
 }
 
 async function main() {
+  const options = parseSyncArgs(process.argv.slice(2));
+  if (options.help) {
+    printSyncHelp();
+    return;
+  }
+  if (options.repoRoot) {
+    configureRepoRoot(options.repoRoot);
+  }
+
   const canonicalSkills = await listCanonicalSkillsForSync();
   const canonicalSkillFiles = await buildCanonicalSkillFiles(canonicalSkills);
   const previousManifests = new Map();
