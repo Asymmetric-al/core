@@ -79,7 +79,7 @@ or safety switch.
 - **THEN** D2 and D8 atomically activate a fresh high-entropy, opaque, non-name-
   derived Route Generation for the same exact Site, Page, and locale
 - **AND** the formerly discoverable path becomes a permanent non-redirecting
-  privacy-safe `404`/`noindex` tombstone before the Shared release is serveable
+  privacy-safe `404`/`noindex` tombstone before the Shared release is servable
 - **AND** the old path is never reused or redirected to the new Shared route
 
 #### Scenario: Safety narrows before a Shared successor exists
@@ -147,16 +147,29 @@ membership SHALL NOT supply it.
 
 ### Requirement: D4 Review And Release Profiles Govern Final Intent
 
-The platform SHALL provide one prospective, versioned Review and Release
-Profile per supported scope. It SHALL select either `Staff review required` or
-`Publish after checks`. Private autosave SHALL remain outside release state; a
-final intent SHALL bind one exact candidate revision and SHALL run the same
-safety, permission, dependency, and CAS checks in either mode.
+The platform SHALL maintain one prospective, immutable Review and Release
+Profile lineage with at most one current head for each exact Tenant × Legal
+Entity × environment × Site × Page Family × publication-path scope. The current
+version SHALL select either `Staff review required`
+or `Publish after checks`. Private autosave SHALL remain outside release state;
+a final intent SHALL bind one exact candidate revision and SHALL run the same
+safety, permission, dependency, and CAS checks in either mode. A missing, stale,
+incompatible, ambiguous, or unauthorized exact-scope profile SHALL use the
+disclosed `Staff review required` fallback and SHALL NOT consult or inherit a
+tenant-global or sibling Legal Entity, Site, Page Family, or publication path.
 
 Absent a deliberate tenant D4 choice, the disclosed safe fallback SHALL be
 `Staff review required`. One organization choice MAY be progressively
 customized only for the Missionary Page, Project/Campaign Page, and Ministry
 Update publication paths the tenant actually uses.
+
+#### Scenario: A sibling publication scope uses a different review posture
+
+- **WHEN** final intent is submitted for one exact Tenant, Legal Entity,
+  environment, Site, Page Family, and publication path
+- **THEN** D4 resolves and pins only that exact scope's current profile version
+- **AND** a profile from another Legal Entity, Site, family, or publication path
+  cannot authorize or bypass review for the candidate
 
 #### Scenario: A tenant requires staff review
 
@@ -447,6 +460,25 @@ project/purpose binding. The prior product label `My Feed` MAY remain as a
 migration, search, and help alias for Ministry Updates but MUST NOT create a
 second feed, route, release, audience, or copied-post authority.
 
+When one deliberately authored version is independently safe for both selected
+audiences, both projections MAY reference it. When supporter-protected detail
+makes that copy unsafe for the public audience, however, a public projection
+SHALL advance only from a deliberately authored and, where configured,
+reviewed public-safe variant in the same canonical Revision. Mechanical
+redaction, truncation, omission, summarization, translation, or AI
+transformation SHALL NOT manufacture that variant. A missing or failed
+public-safe variant SHALL leave only the public projection unchanged or absent
+and SHALL NOT block an independently eligible supporter projection.
+
+#### Scenario: Supporter detail is not safe for a public projection
+
+- **WHEN** an author selects public release for an Update whose supporter copy
+  contains detail not independently admitted for the public audience
+- **THEN** public final intent requires the exact deliberately supplied
+  public-safe variant in the canonical Revision
+- **AND** no mechanical transformation manufactures public copy, while an
+  independently eligible supporter release may still advance
+
 #### Scenario: One Update is placed on several Pages
 
 - **WHEN** the author releases one canonical Update to eligible current Page
@@ -530,17 +562,21 @@ and one existing authorized moderation group.
 
 ### Requirement: D13 Directories Use One Scoped Corpus With Bounded Family Views
 
-The platform SHALL build one exact-scope Public Ministry Directory corpus from
-current Listed, Phase-10-admitted releases. A tenant MAY present one combined
-directory with typed sections or separate Missionary and Project/Campaign
-directory/search views, but those views SHALL be thin projections over the same
-corpus. Search SHALL use bounded public fields, stable ordering, and keyset
-pagination; it SHALL NOT query operational tables or infer hidden subjects.
+The platform SHALL build one complete, generation-bound Public Ministry
+Directory corpus for each exact Tenant × Legal Entity × environment × Site ×
+locale scope from current Listed, Phase-10-admitted releases. A tenant MAY
+present one combined directory with typed sections or separate Missionary and
+Project/Campaign directory/search views, but those views SHALL be thin
+projections over the same exact-scope corpus. No directory query, cursor, cache,
+count, or fallback SHALL read a sibling Site or locale corpus. Search SHALL use
+bounded public fields, stable ordering, and keyset pagination; it SHALL NOT query
+operational tables or infer hidden subjects.
 
 #### Scenario: A tenant selects separate directory views
 
 - **WHEN** staff chooses separate Missionary and Project/Campaign presentation
-- **THEN** both views query the same scoped corpus with family constraints
+- **THEN** both views query the same exact Tenant, Legal Entity, environment,
+  Site, and locale corpus with server-owned family constraints
 - **AND** the choice does not fork indexing, reach, or safety authority
 
 #### Scenario: Reach narrows during a rebuild
@@ -1129,6 +1165,12 @@ item and open a private operational exception. `Review saved changes` and `Use
 as starting point` SHALL create a newly attributed same-Page, same-locale,
 same-family, same-subject successor from the current head; they SHALL NOT
 restore, rewind, merge, submit, publish, or revive former authorization.
+Before constructing that successor, the recovery command SHALL revalidate every
+current D3/D20 semantic target, D9 media reference, D17 subject, Phase 9/D19
+association lifecycle fact, Phase 10 safety result, and Phase 12 authorization.
+Removed, withdrawn, incompatible, or unsafe fields and media SHALL NOT be
+silently copied into the successor; the UI SHALL identify the affected material
+and current owner consequence without leaking protected content.
 
 #### Scenario: Routine autosave succeeds
 
@@ -1142,8 +1184,11 @@ restore, rewind, merge, submit, publish, or revive former authorization.
 
 - **WHEN** profile, reach, subject, route, media, assignment, or safety truth
   makes an action unavailable
-- **THEN** the UI explains the exact cause and safe actions
-- **AND** age alone neither approves nor discards the work
+- **THEN** recovery revalidates the complete current owner-fact set before
+  constructing any successor and does not silently copy removed or unsafe
+  material
+- **AND** the UI explains the exact permission-safe owner cause and required
+  editor action, while age alone neither approves nor discards the work
 
 #### Scenario: Save completion is ambiguous
 

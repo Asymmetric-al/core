@@ -209,11 +209,15 @@ Candidate pinned to its exact live base, content digest, semantic diff, public
 egress consequences, D26 attestation, locale, profile/catalog/renderer, media,
 feed, reach, safety, and managed dependencies.
 
-The tenant chooses Review before publishing or Publish after checks. In review
-mode, authorized staff normally choose Approve & publish or Request changes;
-terminal rejection is secondary. Approval binds only to that candidate. In
-automatic mode, the same owning-source and safety proofs execute without a
-human queue. Both modes share D4/D5 candidate and review semantics, then invoke
+The tenant chooses Review before publishing or Publish after checks through one
+prospective immutable profile for each exact Tenant, Legal Entity, environment,
+Site, Page Family, and publication path. Missing or unusable exact-scope truth
+uses the disclosed review-required fallback and never inherits a tenant-global
+or sibling-scope posture. In review mode, authorized staff normally choose
+Approve & publish or Request changes; terminal rejection is secondary. Approval
+binds only to that candidate. In automatic mode, the same owning-source and
+safety proofs execute without a human queue. Both modes share D4/D5 candidate
+and review semantics, then invoke
 the content owner's release boundary: D2's one Page CAS release command and
 Page Release Manifest for a Page, or D11's audience-scoped CAS release command,
 Audience Release Manifest, and selected projection head for a Ministry Update.
@@ -283,7 +287,7 @@ An authorized `Listed publicly` to `Shared by link — public` successor
 atomically activates a fresh high-entropy, opaque, non-name-derived Route
 Generation for the same exact Site, Page, and locale and permanently replaces
 the old discoverable path with the privacy-safe nonredirecting `404`/`noindex`
-tombstone before the Shared release is serveable. Phase 10 containment denies an
+tombstone before the Shared release is servable. Phase 10 containment denies an
 unsafe Listed route immediately but cannot mint a Shared route without that
 authorized successor.
 
@@ -333,7 +337,11 @@ A Ministry Update has one canonical immutable version lineage and one exact
 Audience Release Manifest. Independently authoritative public Page and
 authenticated purpose-authorized Supporter Release Projections reference the
 same source without copying posts. An optional explicitly authored public-safe
-variant remains part of the same Update lineage. Public placement pins exact
+variant remains part of the same Update lineage. One authored version may serve
+both audiences only when independently safe for both; otherwise no redaction,
+truncation, omission, summarization, translation, or AI transformation may
+manufacture the required public-safe variant. Its absence blocks only the public
+projection. Public placement pins exact
 Site, Page, Feed Binding, reach, profile/renderer, media, locale, and safety
 evidence; supporter access re-proves current membership and purpose on every
 content, media, pagination, engagement, and deep-link request.
@@ -391,8 +399,12 @@ for 24 months with append-only corrections.
 
 D18 defines four freshness classes: immutable released presentation, current
 serving admission, optional operational projections, and executable actions.
-The current admission is a small disposable D2 + Phase 10 + D8 evaluation
-performed before reusable content. Every HTML, RSC/data, JSON, metadata,
+The current admission is a small disposable evaluation of the exact D2 Page-
+locale release, current D27-governed D3 Site-family Presentation Activation,
+their compatible coordination generation, and current Phase 10 and D8 result,
+performed before cache access or reusable content. A missing, stale, mixed, or
+incompatible pair cannot reuse the release-time profile or a prior cached
+composite. Every HTML, RSC/data, JSON, metadata,
 sitemap/robots, directory/search, Update, media/image, resolver, and CDN response
 uses it. D7 executable actions re-prove later at Phase 13.
 
@@ -494,8 +506,12 @@ D25 derives available actions from current causes at read time and creates no
 editorial status table. One coalesced Payload buffer per Page/locale saves after
 approximately two seconds of quiet and no later than fifteen seconds while
 editing. Buffers are scratch, not semantic Page versions. Recovery opens the
-buffer and deliberately seals a successor; withdrawal reuses the existing
-candidate path. Age alone never publishes, deletes, abandons, or authorizes.
+buffer and deliberately seals a successor only after revalidating every current
+D3/D20 semantic target, D9 media reference, D17 subject, Phase 9/D19 association
+lifecycle fact, Phase 10 result, and Phase 12 authorization. Removed, withdrawn,
+incompatible, or unsafe content is never silently copied. Withdrawal reuses the
+existing candidate path. Age alone never publishes, deletes, abandons, or
+authorizes.
 
 ## Persistence Concurrency And Durable Execution
 

@@ -372,13 +372,16 @@ exceptions expose one cause-owned, re-proved action.
   environment × Site × Page Family. Pages and locales cannot override the
   layout. Missionary and Project families may differ. The renderer accepts only
   code-owned blocks and options certified for that family and profile version.
-- **D4:** One prospective versioned Review & Release Profile chooses `Review
-before publishing` or `Publish after checks`. Setup starts with one disclosed
+- **D4:** One prospective versioned Review & Release Profile for each exact
+  Tenant × Legal Entity × environment × Site × Page Family × publication
+  path chooses `Review before publishing` or `Publish after checks`. Setup starts with one disclosed
   organization fallback of review-before-publishing until the tenant makes a
   deliberate choice; progressive customization exposes only the Missionary Page,
   Project/Campaign Page, and Ministry Update publication paths the tenant uses.
   The selected exact-scope version is pinned when a candidate is submitted;
-  later profile changes are prospective. Mandatory eligibility, safety,
+  missing or unusable scope truth uses the disclosed review-required fallback
+  and never a tenant-global or sibling-scope profile. Later profile changes are
+  prospective. Mandatory eligibility, safety,
   attestation, source, subject, route, media, and release checks apply in either
   posture. Automatic release is a policy outcome, not a bypass.
 - **D5:** Staff review has one lane and three outcomes: `Approve & publish`,
@@ -490,12 +493,15 @@ comments`; guided setup recommends acknowledgement-only. It is a ceiling over
   and one existing authorized moderation group. Moderation is append-only and
   current-source authorized. Anonymous public projections disclose no protected
   counts, identities, or response corpus.
-- **D13:** The Public Ministry Directory is one release-derived contract whose
+- **D13:** The Public Ministry Directory is one release-derived contract with
+  one corpus per exact Tenant × Legal Entity × environment × Site × locale, whose
   presentation topology is either combined family sections or separate
   Missionary and Project surfaces. Only currently Listed releases participate.
   Search uses bounded tenant-approved public fields, deterministic ordering,
   keyset pagination, minimum-input and rate controls, and Phase 10-safe aliases
-  and generalized geography. It offers no financial, popularity, engagement,
+  and generalized geography. Queries, cursors, caches, counts, and missing-
+  source handling never cross or fall back to a sibling Site or locale. It
+  offers no financial, popularity, engagement,
   supporter-count, hidden-count, distance, or map ranking.
 - **D14:** Each release has one immutable Search & Share manifest. Listed pages
   may enter canonical locale metadata, sitemaps, safe structured data, and
@@ -549,9 +555,13 @@ direct`, or `Professional`, one length-bounded Page-Family-specific same-source
   source type and opaque identifier. Subject eligibility is re-proved; fuzzy
   matching and copied subject data are invalid. After first release, replacing
   the subject creates a new Page and uses D8 to disposition the prior route.
-- **D18:** Phase 5 is the sole public runtime execution boundary. It resolves an immutable
-  release and separately current source facts, classifies each dependency by
-  freshness, and completes admission before cache lookup or body streaming.
+- **D18:** Phase 5 is the sole public runtime execution boundary. It resolves the
+  immutable D2 Page-locale release and current D27-governed D3 Site-family
+  Presentation Activation as one compatible coordination-generation-pinned pair,
+  then resolves separately current source facts, classifies each dependency by
+  freshness, and completes admission before cache lookup or body streaming. A
+  missing, stale, mixed, or incompatible pair cannot reuse the release-time
+  profile or a prior cached composite.
   Safety, reach, route, subject, assignment, media withdrawal, and lifecycle are
   adverse-first dependencies: a newly adverse fact denies immediately and may
   not use stale-if-error. Positive editorial presentation may use bounded stale
@@ -645,7 +655,11 @@ submitted version`; either appends from and CAS-advances the current head while
   exact Page and locale below the authoritative head, using a code-owned
   two-second debounce and fifteen-second maximum flush interval. Recovery is
   current-user authorized, encrypted and bounded, never indexed or publicly
-  readable, and can only create an ordinary successor after conflict proof.
+  readable, and can only create an ordinary successor after conflict proof and
+  revalidation of every current D3/D20 semantic target, D9 media reference, D17
+  subject, Phase 9/D19 association lifecycle fact, Phase 10 result, and Phase 12
+  authorization. Removed, withdrawn, incompatible, or unsafe content is never
+  silently copied.
   A dependency may block approval or release without disabling independently
   authorized View submission, Request changes, terminal Reject, Withdraw, or
   D24 Edit actions; the candidate never gains a generic `stale` status. Age

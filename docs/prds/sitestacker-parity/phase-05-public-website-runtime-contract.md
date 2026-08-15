@@ -518,11 +518,17 @@ points, function-level cache arguments and tags, invalidation transport, and
 provider adapters. D18 supplies only Public Ministry freshness semantics,
 component degradation, and applicable-surface coverage. Request-specific host,
 Site, locale, route, and authorization inputs stay outside reusable content. One
-small disposable **current-serving evaluation** resolves the exact current D2,
-Phase 10, and D8 outcome before any identity-bearing reusable positive payload
-is selected. Known absence uses the existing privacy-safe response; authority
-uncertainty returns the existing neutral `no-store` unavailable response and is
-never cached as absence or stale-positive content.
+small disposable **current-serving evaluation** resolves the exact current D2
+Page-and-locale release, the current D27-governed D3 Site-and-family Presentation
+Activation, their compatible composite and coordination generation, and the
+current Phase 10 and D8 outcome before any cache lookup, body stream, or identity-
+bearing reusable positive payload is selected. A missing, stale, mixed,
+incompatible, or unproved release/activation pair cannot fall back to the
+release-time profile or a prior cached composite. Known absence uses the existing
+privacy-safe response; authority uncertainty returns the existing neutral `no-
+store` unavailable response and is never cached as absence or stale-positive
+content. Cache identity includes both immutable release and activation/composite
+generation.
 
 Released editorial presentation and immutable certified fragments may use A9's
 exact-argument function cache. Page- or Update-specific complete HTML,

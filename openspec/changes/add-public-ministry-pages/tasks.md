@@ -88,7 +88,10 @@ out of scope.
       alternate public readers.
 - [ ] 1.3 Define stable, typed identifiers and composite scope keys for Tenant,
       Legal Entity, environment, Site, verified host set, Page Family, Page,
-      locale, subject, Designation, release, profile generation, and assignment.
+      locale, subject, Designation, release, profile generation, assignment, and
+      D4 Review & Release Profile. Key D4 by the complete Tenant, Legal Entity,
+      environment, Site, Page Family, and publication path; no tenant-global or
+      sibling-scope value may substitute for an absent exact key.
 - [ ] 1.4 Add contract tests proving Phase 22 references rather than copies
       owning-phase operational, financial, identity, safety, and communication
       truth, and never treats a projection or CMS document as authority. Define the
@@ -150,6 +153,9 @@ share the words and images on this page publicly.` beside the Page action. For a
       do not attest or pre-create release truth.
 - [ ] 3.3 Deliver the tenant-selected publish-after-checks path, including all
       release-time safety and dependency reproofs and an honest published outcome.
+      Resolve and pin only the exact Tenant, Legal Entity, environment, Site, Page
+      Family, and publication-path D4 profile; an absent or unusable exact profile
+      uses the disclosed review-required fallback and never a sibling profile.
       The common D4/D5 lane invokes D2's Page release command and Page Release
       Manifest for a Page, or D11's audience-scoped release command, Audience
       Release Manifest, and selected projection head for a Ministry Update; neither
@@ -165,7 +171,9 @@ share the words and images on this page publicly.` beside the Page action. For a
       with a bounded actionable reason, plus a deliberately secondary terminal
       `Reject` action requiring a bounded reason and explicit plain-language
       consequence confirmation for work that must not remain actionable, without a
-      second workflow or staff override mutation.
+      second workflow or staff override mutation. Re-prove the same complete D4
+      scope at decision and release; a sibling scope cannot supply or bypass the
+      required posture.
 - [ ] 3.5 Deliver staff-authored successor revisions while preserving every
       author, candidate, and attestation fact. Materially superseding active or
       submitted contributor work requires one short contributor-visible reason;
@@ -214,8 +222,13 @@ publicly` action, which immediately invokes smallest-scope containment
 
 - [ ] 5.1 Deliver exact current-release public serving through D18 gate-before-
       cache composition, including positive freshness classes, no-store failures,
-      adverse-first invalidation, and no stale safety fallback. Every owner-labelled
-      adverse cause transactionally appends one exact-scope convergence operation
+      adverse-first invalidation, and no stale safety fallback. Resolve the current
+      D2 Page-and-locale release and current D27-governed D3 Site-and-family
+      Presentation Activation as one compatible, coordination-generation-pinned
+      pair before cache lookup or body streaming; missing, stale, mixed, or
+      incompatible inputs never fall back to the release-time profile or a prior
+      cached composite. Every owner-labelled adverse cause transactionally appends
+      one exact-scope convergence operation
       referencing its owning disposition and carrying desired generation, input
       digest, idempotency identity, controlled-surface coverage, deadline, fenced
       attempts, and residual-only recovery. Provider acceptance and controlled-
@@ -272,7 +285,14 @@ publicly` action, which immediately invokes smallest-scope containment
       project/purpose and is never inferred from participants, contributors,
       relationships, Designations, or Support Assignments. Preserve `My Feed`
       only as a migration, search, and help alias for Ministry Updates, never as
-      a second feed, route, release, audience, or copied-post authority. Preview one
+      a second feed, route, release, audience, or copied-post authority. Reuse one
+      authored version for both audiences only when it is independently safe for
+      both. When supporter-protected detail makes that copy unsafe publicly, require
+      a deliberately authored and, where configured, reviewed public-safe variant
+      in the same canonical Revision; mechanical redaction, truncation, omission,
+      summarization, translation, or AI transformation cannot manufacture it.
+      Missing or failed public-safe copy blocks only the public projection and never
+      an independently eligible supporter projection. Preview one
       exact canonical Update candidate only for one deliberately selected public or
       supporter audience with current per-request D11, Phase 12, and Phase 10 proof;
       cross-audience, public-preview, simultaneous-unlabelled, and mutable-latest
@@ -303,10 +323,14 @@ publicly` action, which immediately invokes smallest-scope containment
 
 ## 7. Discovery Search Sharing Measurement And Writing Assistance
 
-- [ ] 7.1 Deliver one scoped directory corpus with `Together` as the quiet built-in
-      topology until a currently authorized actor saves `Separate by Page Family`;
+- [ ] 7.1 Deliver one complete, generation-bound directory corpus per exact Tenant,
+      Legal Entity, environment, Site, and locale with `Together` as the quiet
+      built-in topology until a currently authorized actor saves `Separate by Page
+Family` for that scope;
       both presentations use the same membership, projection, search, card, and
-      cache authority. Provide bounded filters/search, keyset pagination, and Phase
+      cache authority. Directory membership, queries, cards, cursors, caches,
+      counts, and missing-source handling never read or fall back to a sibling Site
+      or locale. Provide bounded filters/search, keyset pagination, and Phase
       10/List-only compilation. Re-prove current D2 release,
       Phase 10 ceiling, and Listed admission for every returned result at query time;
       adverse narrowing excludes the result before asynchronous index cleanup.
@@ -326,7 +350,7 @@ public` retains bounded release-exact share metadata and a deliberate Share
       and D14 manifest, emits `noindex`, admits only its bounded Share Presentation,
       and keeps directory, local-search, sitemap, public-feed, and locale-discovery
       outputs absent. The permanent old-path tombstone remains absent from every
-      presentation and discovery output before the Shared release becomes serveable.
+      presentation and discovery output before the Shared release becomes servable.
 - [ ] 7.3 Deliver the bounded first-party measurement profile with only the four
       approved POST interactions, 24-hour occurrence retention, sealed daily
       aggregates, suppression-safe contributor reporting, and total failure
@@ -413,19 +437,28 @@ chosen`/Not public and missing review as review-required, use the built-in D3
       family designs, and keep optional capabilities collapsed instead of forcing
       additional setup decisions. Operate within one visibly selected exact Legal
       Entity and Site and write exactly the two D2 family-policy heads for that
-      scope, never tenant-global or sibling-scope defaults.
+      scope plus the D4 profile heads for the Page-family/publication paths the
+      tenant actually uses. Every head remains exact Tenant, Legal Entity,
+      environment, Site, and applicable family/path scope; the single plain-language
+      review answer is never stored or resolved as a tenant-global runtime default.
 - [ ] 8.5 Deliver ongoing settings in exactly four calm groups: `Visibility and
 publishing`, `Page appearance and discovery`, `Optional features`, and
       `Chosen on each page`. Derive current source-owned profile versions, label
       owner/default/off/unavailable states honestly, preview consequences, and send
-      each change through one owner-specific CAS and authoritative readback without
+      each D4 value by its complete Tenant, Legal Entity, environment, Site, Page
+      Family, and publication path with no sibling fallback, and send each change
+      through one owner-specific CAS and authoritative readback without
       a settings database, universal Save, or retroactive bulk apply.
 - [ ] 8.6 Deliver action-specific D25 recovery only for unreleased D1 working
       content and D4/D5 candidates. Derive currently permitted View submission,
       Request changes, Reject, Withdraw, Edit page, Review saved changes, or Use as
       starting point actions from current owner facts; name the exact owner cause
       instead of a generic `stale` status, treat age as display-only, preserve
-      referenced evidence, and add no D25 task/status/retention database.
+      referenced evidence, and add no D25 task/status/retention database. Before
+      constructing a successor, revalidate every current D3/D20 semantic target,
+      D9 media reference, D17 subject, Phase 9/D19 association lifecycle fact,
+      Phase 10 result, and Phase 12 authorization; never silently copy a removed,
+      withdrawn, incompatible, or unsafe field or asset.
 
 ## 9. Verification Security Accessibility And Release Gates
 
