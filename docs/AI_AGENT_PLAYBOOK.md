@@ -85,10 +85,11 @@ Use turbo filters when working on one app:
 
 ## OpenSpec workflow
 
-- Read `openspec/project.md` plus the relevant files under `openspec/specs/` and `openspec/changes/` before non-trivial feature, behavior, or multi-step project work.
-- Use `bunx @fission-ai/openspec@latest <command>` as the repo-safe default for OpenSpec CLI work. If `openspec` is already on `PATH`, that is equivalent. If Bun is unavailable, use `npx -y @fission-ai/openspec@latest <command>`.
-- Use `bunx @fission-ai/openspec@latest list`, `show`, `view`, and `validate` when working from an active change.
+- Read `openspec/config.yaml` and `openspec/project.md` plus the relevant files under `openspec/specs/` and `openspec/changes/` before non-trivial feature, behavior, or multi-step project work.
+- Use the locally pinned CLI only: `bun run openspec -- <command>`.
+- Use `bun run openspec -- list`, `show`, and `validate` when working from an active change.
 - Keep OpenSpec focused on durable project context and intended behavior; keep `AGENTS.md` as the always-on routing layer.
+- Do not run `openspec update` against this repository. Do not use a moving latest npm dist-tag for OpenSpec.
 
 ## Fallback docs generation (`.next-docs`)
 

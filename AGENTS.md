@@ -38,15 +38,24 @@ Package manager: Bun. Task runner: Turborepo (`turbo.json` uses `"envMode": "loo
 
 ## Source-of-truth order
 
-When instructions conflict, use this order:
+When instructions conflict, distinguish intended behavior from current reality. Do not silently pick whichever source is more convenient.
 
-1. **OpenSpec** (when `openspec/` exists): `openspec/specs/` = merged product intent; `openspec/changes/` = proposed work not yet folded into specs. Active changes do not automatically override current source or merged specs.
-2. **Repo instruction system:** this file, nearest nested `AGENTS.md`, `.cursor/rules`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.github/instructions/*.md`, `docs/ai/*` rulebooks.
-3. **Canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrors under `.cursor/skills/`, `.agents/skills/`, `.claude/skills/` via `bun run skills:sync`).
-4. **Installed package docs and types:** nearest `node_modules/<pkg>/` docs and TypeScript types for the exact installed version.
-5. **MCP / CLI facts:** Next.js devtools MCP against a running dev server, official TanStack CLI/Intent for installed packages, other enabled MCP servers.
-6. **External docs:** current official docs for the installed version.
-7. **General model knowledge:** last resort. Never substitute memory for version-specific or repo-specific facts.
+### Intended behavior
+
+1. Explicit current human decision for this task.
+2. The approved active OpenSpec change for the exact work.
+3. Durable OpenSpec specifications and accepted ADRs.
+4. PRDs, decision logs, roadmaps, and GitHub issues.
+5. Agent memory, summaries, provider guidance, and general model knowledge.
+
+### Current reality
+
+1. Current repository code and migrations.
+2. Tests and CI.
+3. Runtime configuration, logs, deployment state, and provider evidence.
+4. Documentation and summaries.
+
+An approved active OpenSpec change governs what a branch is trying to change. It does not prove that the behavior has shipped. When material high-authority sources conflict, stop that unsafe action, surface the contradiction, and reconcile the sources.
 
 Nia (MCP) is optional repository search. Ordinary Core work must still succeed with local source, Git, tests, installed docs, and standard search. Canonical Nia workflow: `docs/ai/nia.md`. Stack tags: `docs/ai/stack-registry.md`. Do not make Nia mandatory for basic correctness.
 
@@ -69,6 +78,10 @@ Cursor and similar tools merge nested `AGENTS.md` with this file. Open the neare
 
 Do not copy this root file into nested files. Nested files hold unique local rules only.
 
+## Twenty CRM
+
+Asym Postgres owns all CRM truth. Twenty CRM is retired; do not restore Twenty clients, credentials, routes, webhooks, synchronization, projections, or provider-backed CRM reads.
+
 ## UI invariant
 
 All UI/UX work must use the shared shadcn/Base UI system in `packages/ui` and preserve the exact `base-maia` style, Zinc-oriented semantic CSS-variable tokens, and existing Core design language. Do not introduce another style, preset, primitive base, component system, or app-local fork.
@@ -85,9 +98,15 @@ Do not invent an artificial RED test for documentation-only edits, formatting-on
 
 ## OpenSpec
 
-OpenSpec is Core’s durable agreement layer, not ceremony around every edit. Read `openspec/project.md`, `openspec/specs/agent-instruction-system/spec.md`, and `docs/ai/rules/openspec.md` before creating or updating a change. Use the existing `agent-instruction-system` capability for instruction-system work. Do not treat `openspec/project.md` as automatically injected unless the installed OpenSpec version actually does that.
+OpenSpec is Core’s durable planning and specification system. `openspec/config.yaml` supplies injected planning context. `openspec/project.md` remains the detailed human-oriented index. Read `openspec/specs/agent-instruction-system/spec.md` and `docs/ai/rules/openspec.md` before creating or updating a change.
+
+Use the repository-pinned local CLI: `bun run openspec -- <command>`. Pass an explicit change ID for mutating operations. Selected skills: Explore, Propose, Update, Apply, Verify, Sync, Archive (`docs/ai/skills/openspec-explore` and siblings). Numbered commands `/1-start-project` through `/4-close-project` remain the Core wrappers.
+
+Strict validation and OpenSpec Verify precede completion. Archive normally follows merge. Do not run `openspec update` against the live customized repository. Do not enable Stores, a custom schema, or native OpenSpec command generation.
 
 Create or update a change for durable repository conventions. Skip OpenSpec for formatting, typos, exact generated mirrors, provenance-only metadata, and mechanical corrections already required by an accepted spec.
+
+Repository coding agents may use OpenSpec workflow skills. Product-runtime Eve remains separate. Runtime Eve may read and review OpenSpec through the read-only Guardian. This upgrade grants no Eve mutation, sync, or archive authority.
 
 ## Explore first, then workflow skills
 
@@ -128,6 +147,7 @@ Canonical source is `docs/ai/skills/`. Refresh mirrors with `bun run skills:sync
 - **Tiptap:** `docs/ai/skills/tiptap/SKILL.md`
 - **grill-for-unknowns:** `docs/ai/skills/grill-for-unknowns/SKILL.md` only when explicitly invoked; do not pair it redundantly with `grilling` or `grill-with-docs`
 - **Matt Pocock pack:** `docs/ai/skills/ask-matt/SKILL.md` is the router (`grilling`, `grill-with-docs`, `wayfinder`, `to-spec`, `to-tickets`, `implement`, `code-review`, `research`, `prototype`, `diagnosing-bugs`, `domain-modeling`, `tdd`, …)
+- **OpenSpec workflows:** `docs/ai/skills/openspec-explore` plus propose, update-change, apply-change, verify-change, sync-specs, and archive-change. Numbered commands wrap these.
 - **Cursor Team Kit / babysit / OpenSpec numbered commands:** see `docs/ai/rules/agent-skill-routing.md`
 
 GitHub `AL-###` issue/PR workflow has no `SKILL.md` today; follow `docs/ai/rules/general.md`.

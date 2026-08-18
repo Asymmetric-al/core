@@ -105,6 +105,10 @@
     "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs",
     "skills:sync": "node scripts/sync-agent-skills.mjs",
     "skills:verify": "node scripts/verify-skills-sync.mjs",
+    "openspec": "bunx --no-install --package @fission-ai/openspec openspec",
+    "openspec:version": "bun run openspec -- --version",
+    "openspec:validate": "bun run openspec -- validate --all --strict",
+    "openspec:audit-archive": "bun run openspec -- validate --archived",
     "skills:refresh-upstream": "node scripts/refresh-upstream-skills.mjs",
     "skills:refresh-emilkowalski": "node scripts/refresh-upstream-skills.mjs --only=emilkowalski/skills",
     "skills:refresh-grill-for-unknowns": "node scripts/refresh-upstream-skills.mjs --only=nicobailon/grill-for-unknowns",
@@ -180,6 +184,7 @@
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",
     "@axe-core/playwright": "^4.10.1",
+    "@fission-ai/openspec": "1.9.0",
     "@inngest/test": "1.0.0",
     "@lhci/cli": "^0.15.1",
     "@next/playwright": "16.3.0-preview.9",

@@ -199,3 +199,27 @@ evidence, official facts, or an existing artifact.
   supersede, void, or replacement effect
 - AND Phase 18, Phase 17, and Phase 6 preserve exact lineage without mutating
   or silently redelivering the prior artifact
+
+#### Scenario: A gift becomes eligible and a receipt is sent
+
+- GIVEN canonical posted gift truth is eligible under the source-domain policy
+- WHEN the source domain issues an immutable receipt-facts version
+- THEN document production creates or reuses the one canonical artifact for
+  that facts and template version
+- AND the communication spine delivers that exact artifact idempotently and
+  records the outcome
+
+#### Scenario: A receipt send fails
+
+- WHEN the governed delivery path rejects or fails the receipt send
+- THEN the communication event records the truthful failure
+- AND the canonical gift facts, receipt-facts version, and document artifact
+  remain independently correct and retryable under their owning contracts
+
+#### Scenario: A corrected gift changes an issued receipt
+
+- WHEN an approved source-domain correction changes official receipt facts
+- THEN the source domain issues a new facts version and determines the
+  supersede, void, or replacement effect
+- AND document production and communication preserve lineage without mutating
+  or silently redelivering the prior artifact

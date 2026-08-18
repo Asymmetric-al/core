@@ -1,37 +1,65 @@
 schema: spec-driven
 
 context: |
-  Asymmetric.al core: Bun + Turborepo monorepo for an all-in-one platform for
-  Christian missions sending organizations (support-raising operating model).
-  Three Next.js App Router apps — Mission Control/admin, donor, missionary —
-  plus the public tenant website experience, with shared workspace packages
-  (api, auth, database, env, ui).
-  Tech: Next.js 16.3.0-preview.9, React 19.2.x, TypeScript 6.0.x, Tailwind v4, Supabase,
-  Stripe, TanStack Query, Inngest (workflow orchestration), Twenty (CRM
-  backing subsystem), Payload (CMS engine for Web Studio).
-  Spec layout is two-layered: openspec/specs/platform-* are durable
-  intent-layer specs (product intent, surfaces, principles, boundaries);
-  the capability specs (donation-lifecycle, contribution-operations, crm-core,
-  workflow-orchestration, agent-instruction-system) hold verifiable system
-  behavior. openspec/project.md carries fuller repo conventions and must stay
-  aligned with AGENTS.md.
+  Asymmetric.al/core is a Bun and Turborepo monorepo for Mission Control,
+  donor, missionary, and public-site experiences.
+
+  Asym Postgres owns application and CRM truth. Twenty CRM is retired and
+  must not be reintroduced as a product dependency.
+
+  OpenSpec uses two layers:
+  - platform-* specs govern durable product direction, boundaries, and priorities;
+  - capability specs govern accepted verifiable behavior.
+  Active changes describe proposed deltas and do not prove that behavior shipped.
+
+  AGENTS.md is the always-on coding-agent router. Canonical skills live under
+  docs/ai/skills and are mirrored by the repository skill workflow.
+
+  Substantive behavior changes use TDD. UI work preserves the shared shadcn/Base
+  UI system and exact base-maia style.
+
+  Use installed package docs and repository evidence for version and runtime
+  facts. Surface material source-of-truth conflicts rather than guessing.
 
 rules:
   proposal:
-    - Read openspec/project.md plus the relevant intent and capability specs
-      before proposing.
-    - Create a change only when durable behavior, workflow, or long-lived
-      conventions shift; spikes and tooling-only work may skip spec deltas.
+    - State one clear intent, scope, non-goals, affected capabilities, and rollback.
+    - Read relevant current specs, active changes, and accepted ADRs first.
+    - Surface authority contradictions before implementation.
+
   specs:
-    - Intent-layer specs (platform-*) capture durable product intent; their
-      scenarios may describe agent decision-making.
-    - Capability specs capture verifiable system behavior; write scenarios as
-      WHEN/THEN about the product, not agent guidance.
-    - Name new capabilities for the durable capability, not the current vendor
-      or implementation.
-    - The canonical priority ladder lives in platform-principles; do not
-      restate a competing ordering in another spec.
+    - Describe observable durable behavior, not implementation.
+    - Preserve all still-valid scenarios in a MODIFIED requirement.
+    - Cover tenant, Legal Entity, role, authorization, privacy, money, recovery,
+      accessibility, and failure behavior when relevant.
+
+  design:
+    - Identify affected apps, packages, APIs, jobs, stores, providers, and routes.
+    - Record data ownership, security boundaries, compatibility, migration,
+      validation, and rollback.
+
   tasks:
-    - Do not bulk-regenerate AGENTS.md, Cursor, Copilot, or Codex instruction
-      files; this repo hand-maintains them. Review any OpenSpec-generated
-      instruction diffs manually before applying.
+    - Use unique hierarchical task IDs.
+    - Include TDD, focused tests, applicable repository checks, migration proof,
+      operational verification, and rollback evidence.
+    - Never mark work complete without evidence.
+
+operations:
+  apply:
+    guidance:
+      - Use an explicit change ID and re-read current artifacts from disk.
+      - Surface out-of-scope work before implementing it.
+      - Update artifacts when implementation discoveries materially change the plan.
+      - Use TDD for behavioral changes and focused tests before broad checks.
+      - Invoke the Core Guardian for material product, data, tenant, authorization,
+        financial, publication, or communication changes.
+
+  archive:
+    guidance:
+      - Archive only after implementation has become accepted repository reality.
+      - Require complete applicable tasks, strict validation, OpenSpec verification,
+        applicable Core checks, and no unresolved critical findings.
+      - Record accepted warnings and follow-up work honestly.
+
+githubCopilot:
+  cloudAgent: false

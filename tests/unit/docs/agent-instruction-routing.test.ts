@@ -75,6 +75,12 @@ describe("agent instruction routing fixtures", () => {
     expect(authored).toContain(
       "openspec/specs/agent-instruction-system/spec.md",
     );
+    expect(authored).toContain("Intended behavior");
+    expect(authored).toContain("Current reality");
+    expect(authored).toContain("Twenty CRM is retired");
+    expect(authored).toContain("bun run openspec");
+    expect(authored).toContain("docs/ai/skills/openspec-explore");
+    expect(authored).not.toContain("@fission-ai/openspec@latest");
     expect(authored).toContain("## Code Style");
   });
 

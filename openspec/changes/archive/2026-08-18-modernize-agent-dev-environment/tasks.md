@@ -30,7 +30,7 @@
 
 ## 5. Validation
 
-- [x] 5.1 Strict-validate this OpenSpec change (`bunx @fission-ai/openspec@latest validate modernize-agent-dev-environment --strict`)
+- [x] 5.1 Strict-validate this OpenSpec change (`bun run openspec -- validate modernize-agent-dev-environment --strict`)
 - [x] 5.2 Run focused unit tests, `git diff --check`, and relevant existing guardrails
 - [x] 5.3 Confirm `packages/ui/components.json` is still `base-maia` / `zinc` / `cssVariables: true`
 - [x] 5.4 Report omitted repo-wide gates honestly
@@ -38,6 +38,6 @@
 ## Omitted gates
 
 - `bun run check`, `bun run lint`, `bun run typecheck`, and full `bun run test:unit` were not run for this instruction-system change. Focused suites that did run: routing fixtures, skill quality-gate, grill-for-unknowns, Emil Kowalski, babysit, script verifiers, EXDEV sync, and shadcn config guardrails.
-- `bunx @fission-ai/openspec@latest validate modernize-agent-dev-environment --strict` passed. `validate --all --strict` failed on unrelated active change `add-guest-giving-and-gift-anonymity`; that change was not edited here.
+- `bun run openspec -- validate modernize-agent-dev-environment --strict` passed. `validate --all --strict` failed on unrelated active change `add-guest-giving-and-gift-anonymity`; that change was not edited here.
 - Live Codex / Claude / Copilot truncation and Next.js MCP against a running donor/admin server were not claimed.
 - Nia index for `Asymmetric-al/core` still reflects `develop`; local files and Vitest are the evidence for this branch.

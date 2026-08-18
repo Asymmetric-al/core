@@ -109,5 +109,5 @@
       legacy flat-gift writes, direct offline writes, and feature-local receipt
       sends are rejected.
 - [ ] 7.5 Run targeted formatting and tests, then run
-      `bunx @fission-ai/openspec@latest validate add-guest-giving-and-gift-anonymity --strict`;
+      `bun run openspec -- validate add-guest-giving-and-gift-anonymity --strict`;
       archive only after deployment evidence proves the canonical paths.

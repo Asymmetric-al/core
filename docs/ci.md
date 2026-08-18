@@ -49,17 +49,18 @@ bun run ci:preflight
 1. `verify:git-attribution`
 2. `format:check`
 3. `skills:verify`
-4. `lint`
-5. `verify:data-boundary`
-6. `verify:cms-public-sole-entry`
-7. `verify:workspace-contract`
-8. `verify:bun-lock-drift`
-9. `verify:eslint`
-10. `verify:shadcn-config`
-11. `verify:shadcn-diff`
-12. `typecheck`
-13. `build` (with CI-compatible env defaults for local parity)
-14. `test:unit`
+4. `openspec:validate`
+5. `lint`
+6. `verify:data-boundary`
+7. `verify:cms-public-sole-entry`
+8. `verify:workspace-contract`
+9. `verify:bun-lock-drift`
+10. `verify:eslint`
+11. `verify:shadcn-config`
+12. `verify:shadcn-diff`
+13. `typecheck`
+14. `build` (with CI-compatible env defaults for local parity)
+15. `test:unit`
 
 Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage order),
 `tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
@@ -127,26 +128,16 @@ not be pointed at production data.
 > retired ([ADR-0001](adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md));
 > the section is retained for history until the cleanup ticket removes it.
 
-Twenty CRM production cutovers use the same fast CI gate plus OpenSpec and
-data-boundary checks before any domain can depend on Twenty in production.
+Twenty CRM is retired. Historical cutover evidence remains in
+`docs/guides/operations/twenty-crm-cutover.md` and the archived OpenSpec change
+`openspec/changes/archive/2026-07-02-integrate-twenty-crm-core/`. Do not re-run
+that change's validation as a live production gate.
 
-Run this sequence for Phase 07 cutover evidence:
+Current OpenSpec validation uses the locally pinned CLI:
 
 ```bash
-bun run format:check
-bun run skills:verify
-bun run verify:data-boundary
-bun run lint
-bun run typecheck
-bun run build
-bun run test:unit
-bunx @fission-ai/openspec@latest validate integrate-twenty-crm-core --strict
+bun run openspec:validate
 ```
-
-Record the command results in the domain evidence note described by
-`docs/guides/operations/twenty-crm-cutover.md`. This gate does not replace the
-domain-specific production requirements for monitoring, backup/restore proof,
-rollback rehearsal, security review, and support ownership.
 
 ### Tooling warning audit (periodic)
 

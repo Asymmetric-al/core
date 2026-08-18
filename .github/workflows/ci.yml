@@ -40,6 +40,7 @@ jobs:
       - run: bun ci --no-cache --backend=copyfile
       - run: bun run format:check
       - run: bun run skills:verify
+      - run: bun run openspec:validate
 
   lint:
     runs-on: ubuntu-latest

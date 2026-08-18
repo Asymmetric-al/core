@@ -23,5 +23,5 @@
 
 - [ ] 4.1 Integration + E2E: authorized staff refund executes and reflects
       across surfaces; unauthorized staff are rejected server-side.
-- [ ] 4.2 `bunx @fission-ai/openspec@latest validate --all --strict` passes;
+- [ ] 4.2 `bun run openspec -- validate --all --strict` passes;
       archive after deployment verification.
