@@ -4,6 +4,7 @@ import { createAuditLogger } from "@asym/lib/audit/logger";
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { POST } from "../../src/donate";
 import {
   resolveGiftIntakeCharge,
   toGiftProcessingFeeStripeMetadata,
@@ -61,8 +62,6 @@ vi.mock("../../src/stripe/tenant-client", () => ({
 vi.mock("../../src/donate/saga", () => ({
   processDonationSagaOutboxEvent: vi.fn(),
 }));
-
-import { POST } from "../../src/donate";
 
 const mockedGetAdminClient = vi.mocked(getAdminClient);
 const mockedGetAuthContext = vi.mocked(getAuthContext);
