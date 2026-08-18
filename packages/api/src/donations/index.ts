@@ -6,6 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { beginGiftIntake } from "../donate/begin-gift-intake";
 import { resolveRequiredIdempotencyKey } from "../donate/idempotency";
 import { processDonationSagaOutboxEvent } from "../donate/saga";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
@@ -15,17 +16,6 @@ function getSupabaseAdmin() {
   const { client, error } = getAdminClient();
   if (!client) return { supabaseAdmin: null, error };
   return { supabaseAdmin: client, error: null };
-}
-
-function parseRpcObject<T extends Record<string, unknown>>(
-  value: unknown,
-): T | null {
-  if (!value) return null;
-  if (Array.isArray(value)) {
-    const first = value[0];
-    return first && typeof first === "object" ? (first as T) : null;
-  }
-  return typeof value === "object" ? (value as T) : null;
 }
 
 export async function GET(request: NextRequest) {
@@ -125,63 +115,62 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
-    const { data: beginRaw, error: beginError } = await supabaseAdmin.rpc(
-      "begin_donation_saga",
-      {
-        p_tenant_id: ctx.tenantId,
-        p_profile_id: ctx.profileId,
-        p_actor_user_id: ctx.userId,
-        p_missionary_id: missionaryId,
-        p_amount: amount,
-        p_currency: currency,
-        p_fund_id: null,
-        p_idempotency_key: idempotencyKey,
-        p_ip_address: request.headers.get("x-forwarded-for"),
-        p_user_agent: request.headers.get("user-agent"),
+    const begin = await beginGiftIntake({
+      rpc: async (fn, rpcArgs) => {
+        const response = await supabaseAdmin.rpc(fn, rpcArgs as never);
+        return { data: response.data, error: response.error };
       },
-    );
-    if (beginError) {
-      if (beginError.code === "P0002") {
-        return NextResponse.json(
-          { error: "Missionary not found" },
-          { status: 404 },
-        );
-      }
-      if (beginError.code === "22023") {
-        return NextResponse.json(
-          { error: beginError.message },
-          { status: 400 },
-        );
-      }
-      return NextResponse.json({ error: beginError.message }, { status: 500 });
-    }
+      tenantId: ctx.tenantId,
+      profileId: ctx.profileId,
+      actorUserId: ctx.userId,
+      missionaryId,
+      fundId: null,
+      amountCents: amount,
+      currency,
+      idempotencyKey,
+      ipAddress: request.headers.get("x-forwarded-for"),
+      userAgent: request.headers.get("user-agent"),
+    });
 
-    const beginResult = parseRpcObject<{
-      outbox_id?: string;
-      donation_id?: string;
-    }>(beginRaw);
-    const outboxId = beginResult?.outbox_id ?? null;
-    const donationId = beginResult?.donation_id ?? null;
-    if (!outboxId || !donationId) {
-      return NextResponse.json(
-        { error: "Failed to start donation saga" },
-        { status: 500 },
-      );
+    if (!begin.ok) {
+      switch (begin.code) {
+        case "not_found":
+          return NextResponse.json(
+            { error: "Missionary not found" },
+            { status: 404 },
+          );
+        case "invalid":
+          return NextResponse.json({ error: begin.message }, { status: 400 });
+        case "incomplete":
+          return NextResponse.json(
+            { error: "Failed to start donation saga" },
+            { status: 500 },
+          );
+        case "failed":
+          return NextResponse.json({ error: begin.message }, { status: 500 });
+        default: {
+          const _exhaustive: never = begin;
+          return NextResponse.json(
+            { error: String(_exhaustive) },
+            { status: 500 },
+          );
+        }
+      }
     }
 
     const { stripe } = tenantStripe;
     const sagaResult = await processDonationSagaOutboxEvent({
       supabaseAdmin,
       stripe,
-      outboxId,
+      outboxId: begin.outboxId,
       actorUserId: ctx.userId,
     });
     if (sagaResult.status !== "completed") {
       return NextResponse.json(
         {
           error: sagaResult.error ?? "Donation is still processing",
-          donationId,
-          outboxId,
+          donationId: begin.donationId,
+          outboxId: begin.outboxId,
           status: sagaResult.status,
         },
         { status: sagaResult.status === "processing" ? 202 : 500 },
@@ -193,7 +182,7 @@ export async function POST(request: NextRequest) {
       .select(
         "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
       )
-      .eq("id", donationId)
+      .eq("id", begin.donationId)
       .single();
     if (donationError || !donation) {
       return NextResponse.json(

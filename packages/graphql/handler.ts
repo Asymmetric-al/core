@@ -13,6 +13,12 @@ import {
 import { createSchema, createYoga } from "graphql-yoga";
 import { revalidateTag } from "next/cache";
 
+import { beginGraphQLGiftIntake } from "./gift-intake";
+import {
+  addGraphQLMinistryUpdateComment,
+  applyGraphQLMinistryUpdateReaction,
+} from "./ministry-update-engagement";
+
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 interface GraphQLContext {
@@ -24,6 +30,17 @@ interface GraphQLContext {
 function revalidatePostTags(postId: string, tenantId: string) {
   revalidateTag(`posts:tenant:${tenantId}`, "max");
   revalidateTag(`post:${postId}`, "max");
+}
+
+function yogaRpcClient(supabaseAdmin: SupabaseClient) {
+  // Generated Supabase RPC overloads are not assignable to the structural
+  // command client; narrow the wrap here instead of leaking `any` into adapters.
+  return {
+    rpc: async (fn: string, rpcArgs: Record<string, unknown>) => {
+      const response = await supabaseAdmin.rpc(fn as never, rpcArgs as never);
+      return { data: response.data, error: response.error };
+    },
+  };
 }
 
 function resolveRequiredIdempotencyKeyFromHeaders(headers: Headers): string {
@@ -571,23 +588,13 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { data, error } = await ctx.supabaseAdmin.rpc("atomic_like_post", {
-        p_post_id: args.postId,
-        p_user_id: auth.userId,
-        p_tenant_id: auth.tenantId,
+      return applyGraphQLMinistryUpdateReaction({
+        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        kind: "like",
+        postId: args.postId,
+        userId: auth.userId,
+        tenantId: auth.tenantId,
       });
-
-      if (error) {
-        if (error.code === "P0002") throw new Error("Post not found");
-        throw new Error(error.message);
-      }
-
-      const result = (data ?? null) as { applied?: boolean } | null;
-      if (result?.applied) {
-        revalidatePostTags(args.postId, auth.tenantId);
-      }
-
-      return true;
     },
 
     unlikePost: async (
@@ -598,26 +605,13 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { data, error } = await ctx.supabaseAdmin.rpc(
-        "atomic_unlike_post",
-        {
-          p_post_id: args.postId,
-          p_user_id: auth.userId,
-          p_tenant_id: auth.tenantId,
-        },
-      );
-
-      if (error) {
-        if (error.code === "P0002") throw new Error("Post not found");
-        throw new Error(error.message);
-      }
-
-      const result = (data ?? null) as { applied?: boolean } | null;
-      if (result?.applied) {
-        revalidatePostTags(args.postId, auth.tenantId);
-      }
-
-      return true;
+      return applyGraphQLMinistryUpdateReaction({
+        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        kind: "unlike",
+        postId: args.postId,
+        userId: auth.userId,
+        tenantId: auth.tenantId,
+      });
     },
 
     prayForPost: async (
@@ -628,26 +622,13 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { data, error } = await ctx.supabaseAdmin.rpc(
-        "atomic_pray_for_post",
-        {
-          p_post_id: args.postId,
-          p_user_id: auth.userId,
-          p_tenant_id: auth.tenantId,
-        },
-      );
-
-      if (error) {
-        if (error.code === "P0002") throw new Error("Post not found");
-        throw new Error(error.message);
-      }
-
-      const result = (data ?? null) as { applied?: boolean } | null;
-      if (result?.applied) {
-        revalidatePostTags(args.postId, auth.tenantId);
-      }
-
-      return true;
+      return applyGraphQLMinistryUpdateReaction({
+        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        kind: "pray",
+        postId: args.postId,
+        userId: auth.userId,
+        tenantId: auth.tenantId,
+      });
     },
 
     unprayForPost: async (
@@ -658,26 +639,13 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { data, error } = await ctx.supabaseAdmin.rpc(
-        "atomic_unpray_for_post",
-        {
-          p_post_id: args.postId,
-          p_user_id: auth.userId,
-          p_tenant_id: auth.tenantId,
-        },
-      );
-
-      if (error) {
-        if (error.code === "P0002") throw new Error("Post not found");
-        throw new Error(error.message);
-      }
-
-      const result = (data ?? null) as { applied?: boolean } | null;
-      if (result?.applied) {
-        revalidatePostTags(args.postId, auth.tenantId);
-      }
-
-      return true;
+      return applyGraphQLMinistryUpdateReaction({
+        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        kind: "unpray",
+        postId: args.postId,
+        userId: auth.userId,
+        tenantId: auth.tenantId,
+      });
     },
 
     addComment: async (
@@ -688,30 +656,18 @@ const resolvers = {
       requireAuth(ctx.auth);
       const auth = ctx.auth as AuthenticatedContext;
 
-      const { data: rpcData, error: rpcError } = await ctx.supabaseAdmin.rpc(
-        "atomic_add_post_comment",
-        {
-          p_post_id: args.postId,
-          p_user_id: auth.userId,
-          p_tenant_id: auth.tenantId,
-          p_content: args.content,
-        },
-      );
-
-      if (rpcError) {
-        if (rpcError.code === "P0002") throw new Error("Post not found");
-        throw new Error(rpcError.message);
-      }
-
-      const rpcResult = (rpcData ?? null) as { comment_id?: string } | null;
-      if (!rpcResult?.comment_id) {
-        throw new Error("Failed to create comment");
-      }
+      const commentId = await addGraphQLMinistryUpdateComment({
+        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        postId: args.postId,
+        userId: auth.userId,
+        tenantId: auth.tenantId,
+        content: args.content,
+      });
 
       const { data: comment, error } = await ctx.supabaseAdmin
         .from("post_comments")
         .select("*, author:profiles!user_id(*)")
-        .eq("id", rpcResult.comment_id)
+        .eq("id", commentId)
         .single();
 
       if (error || !comment)
@@ -734,38 +690,25 @@ const resolvers = {
         ctx.request.headers,
       );
 
-      const { data: beginRaw, error: beginError } = await ctx.supabaseAdmin.rpc(
-        "begin_donation_saga",
-        {
-          p_tenant_id: auth.tenantId,
-          p_profile_id: auth.profileId,
-          p_actor_user_id: auth.userId,
-          p_missionary_id: args.input.missionaryId,
-          p_amount: args.input.amount,
-          p_currency: (args.input.currency || "usd").toLowerCase(),
-          p_fund_id: null,
-          p_idempotency_key: idempotencyKey,
-          p_ip_address: ctx.request.headers.get("x-forwarded-for"),
-          p_user_agent: ctx.request.headers.get("user-agent"),
-        },
-      );
-      if (beginError) {
-        if (beginError.code === "P0002")
-          throw new Error("Missionary not found");
-        throw new Error(beginError.message);
-      }
-
-      const beginResult = (beginRaw ?? null) as { donation_id?: string } | null;
-      if (!beginResult?.donation_id) {
-        throw new Error("Failed to create donation");
-      }
+      const begin = await beginGraphQLGiftIntake({
+        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        tenantId: auth.tenantId,
+        profileId: auth.profileId,
+        actorUserId: auth.userId,
+        missionaryId: args.input.missionaryId,
+        amountCents: args.input.amount,
+        currency: (args.input.currency || "usd").toLowerCase(),
+        idempotencyKey,
+        ipAddress: ctx.request.headers.get("x-forwarded-for"),
+        userAgent: ctx.request.headers.get("user-agent"),
+      });
 
       const { data: donation, error } = await ctx.supabaseAdmin
         .from("donations")
         .select(
           "*, donor:profiles!donor_id(*), missionary:missionaries!missionary_id(*, profile:profiles!profile_id(*))",
         )
-        .eq("id", beginResult.donation_id)
+        .eq("id", begin.donationId)
         .single();
       if (error || !donation)
         throw new Error(error?.message ?? "Donation not found");
