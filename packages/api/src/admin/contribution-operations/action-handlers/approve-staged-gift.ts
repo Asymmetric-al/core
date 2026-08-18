@@ -1,7 +1,3 @@
-import type {
-  ContributionActionResult,
-  ExecuteContributionActionInput,
-} from "../types";
 import {
   appendAuditEvent,
   assertExpectedRevisionMatches,
@@ -12,6 +8,11 @@ import {
   requireDependency,
   requireStringPayload,
 } from "../action-runtime";
+
+import type {
+  ContributionActionResult,
+  ExecuteContributionActionInput,
+} from "../types";
 
 export async function executeApproveStagedGift<TContribution>(
   input: ExecuteContributionActionInput<TContribution>,

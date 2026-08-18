@@ -1,9 +1,4 @@
 import { ApiHttpError } from "../../../shared/http-errors";
-import { directContributionCapabilityForAction } from "../permissions";
-import type {
-  ContributionActionResult,
-  ExecuteContributionActionInput,
-} from "../types";
 import {
   appendAuditEvent,
   assertCanExecuteDirectly,
@@ -19,6 +14,12 @@ import {
   requiresCorrectionApproval,
   sendCorrectionNotification,
 } from "../action-runtime";
+import { directContributionCapabilityForAction } from "../permissions";
+
+import type {
+  ContributionActionResult,
+  ExecuteContributionActionInput,
+} from "../types";
 
 function receiptDeliveryProposalFromPayload(
   payload: Record<string, unknown>,

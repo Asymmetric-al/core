@@ -23,12 +23,12 @@ import {
   directContributionCapabilityForAction,
   isProviderGranularContributionAction,
 } from "./permissions";
-import { getContributionActionPolicy } from "./policy";
 import { isFailedProviderOutcomeStatus } from "./types";
 import { ApiHttpError } from "../../shared/http-errors";
 
 import type {
   ContributionActionDependencies,
+  ContributionActionPolicy,
   ContributionActionResult,
   ContributionActionType,
   ContributionCorrectionRecordInput,
@@ -97,10 +97,10 @@ function normalizeOptionalStringValue(
 }
 
 function normalizeStringPayloadField(
-  payload: Record<string, unknown> | undefined,
+  payload: Record<string, unknown>,
   key: string,
-): Record<string, unknown> | undefined {
-  if (!payload || !(key in payload)) {
+): Record<string, unknown> {
+  if (!(key in payload)) {
     return payload;
   }
 
@@ -117,7 +117,7 @@ function normalizeStringPayloadField(
 
 function normalizeActionPayload(
   input: ExecuteContributionActionInput,
-): Record<string, unknown> | undefined {
+): Record<string, unknown> {
   let normalizedPayload = commandPayload(input);
 
   if (
@@ -189,7 +189,7 @@ export function assertReasonAndConfirmation(
     ExecuteContributionActionInput,
     "reason" | "confirmationToken" | "approvedRequestId" | "command"
   >,
-  policy: ReturnType<typeof getContributionActionPolicy>,
+  policy: ContributionActionPolicy,
 ) {
   if (policy.requiresReason && !input.reason?.trim()) {
     throw new ApiHttpError(
@@ -285,7 +285,7 @@ export function assertActorPermissions(
     | "command"
     | "approvedRequestId"
   >,
-  policy: ReturnType<typeof getContributionActionPolicy>,
+  policy: ContributionActionPolicy,
   options: { requiresApproval: boolean },
 ) {
   if (input.approvedRequestId) {

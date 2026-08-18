@@ -1,8 +1,8 @@
-import { ApiHttpError } from "../../shared/http-errors";
 import {
   CONTRIBUTION_ACTION_TYPES,
   type ContributionActionType,
 } from "./types";
+import { ApiHttpError } from "../../shared/http-errors";
 
 export type ContributionCommandExtras = Record<string, unknown>;
 

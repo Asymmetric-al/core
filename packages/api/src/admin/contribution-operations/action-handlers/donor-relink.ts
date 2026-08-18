@@ -1,8 +1,3 @@
-import { directContributionCapabilityForAction } from "../permissions";
-import type {
-  ContributionActionResult,
-  ExecuteContributionActionInput,
-} from "../types";
 import {
   appendAuditEvent,
   assertCanExecuteDirectly,
@@ -18,6 +13,12 @@ import {
   requiresCorrectionApproval,
   sendCorrectionNotification,
 } from "../action-runtime";
+import { directContributionCapabilityForAction } from "../permissions";
+
+import type {
+  ContributionActionResult,
+  ExecuteContributionActionInput,
+} from "../types";
 
 export async function executeDonorRelink<TContribution>(
   input: ExecuteContributionActionInput<TContribution>,

@@ -1,11 +1,11 @@
 import { executeContributionAction } from "./actions";
-import { parseContributionCommand } from "./command";
 import {
   assertCanDecideCorrectionRequest,
   resolveCorrectionApprovalPolicy,
   type CorrectionApprovalPolicy,
   type CorrectionApprovalPolicyRow,
 } from "./approval-policy";
+import { parseContributionCommand } from "./command";
 import {
   parseReceiptDeliverySelection,
   resolveConfirmedReceiptDelivery,

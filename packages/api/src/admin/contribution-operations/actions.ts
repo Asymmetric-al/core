@@ -7,21 +7,6 @@
  * module owns permission, normalize, reason/confirmation, and dispatch.
  */
 
-import { ApiHttpError } from "../../shared/http-errors";
-import { getContributionActionPolicy } from "./policy";
-import type {
-  ContributionActionResult,
-  ExecuteContributionActionInput,
-} from "./types";
-import {
-  applyApprovedCorrectionRequest,
-  assertActorPermissions,
-  assertReasonAndConfirmation,
-  commandActionType,
-  isApprovalRequestAction,
-  normalizeActionInput,
-  requiresCorrectionApproval,
-} from "./action-runtime";
 import {
   executeApproveStagedGift,
   executeCorrection,
@@ -32,6 +17,22 @@ import {
   executeResendReceipt,
   executeStripeReplay,
 } from "./action-handlers";
+import {
+  applyApprovedCorrectionRequest,
+  assertActorPermissions,
+  assertReasonAndConfirmation,
+  commandActionType,
+  isApprovalRequestAction,
+  normalizeActionInput,
+  requiresCorrectionApproval,
+} from "./action-runtime";
+import { getContributionActionPolicy } from "./policy";
+import { ApiHttpError } from "../../shared/http-errors";
+
+import type {
+  ContributionActionResult,
+  ExecuteContributionActionInput,
+} from "./types";
 
 export async function executeContributionAction<TContribution = unknown>(
   rawInput: ExecuteContributionActionInput<TContribution>,
