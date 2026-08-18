@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { executeContributionAction } from "./actions";
+import { parseContributionCommand } from "./command";
 import { recordCorrectionApprovalOutcome } from "./approval-notifications";
 import {
   decideContributionCorrectionRequest,
@@ -211,12 +212,11 @@ export const POST = withOperation(
         sourceSurface: body.sourceSurface,
         contributionId: body.contributionId,
         stagedGiftId: body.stagedGiftId ?? null,
-        actionType: body.actionType,
+        command: parseContributionCommand(body.actionType, body.payload),
         reason: body.reason ?? null,
         confirmationToken: body.confirmationToken ?? null,
         expectedRevision: body.expectedRevision ?? null,
         idempotencyKey: body.idempotencyKey ?? null,
-        payload: body.payload,
         dependencies: createContributionActionDependencies(supabaseAdmin),
       });
 
