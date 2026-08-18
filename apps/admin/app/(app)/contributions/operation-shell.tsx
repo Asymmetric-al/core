@@ -88,10 +88,7 @@ import type {
  * contribution operation contract as contribution detail.
  */
 
-export {
-  OPERATION_CATEGORY_LABELS,
-  OPERATION_DEFINITIONS,
-};
+export { OPERATION_CATEGORY_LABELS, OPERATION_DEFINITIONS };
 export type {
   OperationCategory,
   OperationDefinition,

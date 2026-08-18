@@ -49,7 +49,9 @@ export function commandPayload(
   return serializeContributionCommand(input.command);
 }
 
-export function requireDependency<TKey extends keyof ContributionActionDependencies>(
+export function requireDependency<
+  TKey extends keyof ContributionActionDependencies,
+>(
   dependencies: ContributionActionDependencies | undefined,
   key: TKey,
 ): NonNullable<ContributionActionDependencies[TKey]> {
@@ -245,10 +247,7 @@ function hasLegacyDirectActionPermission(
 }
 
 function assertApprovedRequestCapabilities(
-  input: Pick<
-    ExecuteContributionActionInput,
-    "actorCapabilities" | "command"
-  >,
+  input: Pick<ExecuteContributionActionInput, "actorCapabilities" | "command">,
 ) {
   if (!hasActorCapability(input, APPROVE_CORRECTION_CAPABILITY)) {
     throw new ApiHttpError(
@@ -269,7 +268,9 @@ function assertApprovedRequestCapabilities(
 // actions (including stripe_replay via isCorrectionAction). Other
 // provider-granular actions throw in assertActorPermissions before this
 // branch is consulted.
-export function isApprovalRequestAction(actionType: ContributionActionType): boolean {
+export function isApprovalRequestAction(
+  actionType: ContributionActionType,
+): boolean {
   return (
     actionType === "refund" ||
     actionType === "donor_relink" ||
@@ -280,10 +281,7 @@ export function isApprovalRequestAction(actionType: ContributionActionType): boo
 export function assertActorPermissions(
   input: Pick<
     ExecuteContributionActionInput,
-    | "actorPermissions"
-    | "actorCapabilities"
-    | "command"
-    | "approvedRequestId"
+    "actorPermissions" | "actorCapabilities" | "command" | "approvedRequestId"
   >,
   policy: ContributionActionPolicy,
   options: { requiresApproval: boolean },
@@ -578,7 +576,9 @@ export function sanitizeProviderOutcome(
   return sanitized;
 }
 
-export function isCorrectionAction(actionType: ContributionActionType): boolean {
+export function isCorrectionAction(
+  actionType: ContributionActionType,
+): boolean {
   return (
     actionType === "amount_correction" ||
     actionType === "designation_correction" ||
@@ -591,7 +591,9 @@ export function isCorrectionAction(actionType: ContributionActionType): boolean 
   );
 }
 
-export function requiresCorrectionApproval(input: ExecuteContributionActionInput) {
+export function requiresCorrectionApproval(
+  input: ExecuteContributionActionInput,
+) {
   const approvalPolicy =
     input.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
 
@@ -674,7 +676,9 @@ function stableFingerprint(value: unknown): string {
     .slice(0, 32);
 }
 
-export function normalizedToken(value: string | null | undefined): string | null {
+export function normalizedToken(
+  value: string | null | undefined,
+): string | null {
   const trimmedValue = value?.trim();
   return trimmedValue ? trimmedValue : null;
 }
@@ -817,7 +821,9 @@ async function resolvePendingCorrectionPayload(
   return { ...payload, stripeEventId };
 }
 
-export function providerIdempotencyKey(input: ExecuteContributionActionInput): string {
+export function providerIdempotencyKey(
+  input: ExecuteContributionActionInput,
+): string {
   const explicitIdempotencyKey = normalizedToken(input.idempotencyKey);
   if (explicitIdempotencyKey) {
     return explicitIdempotencyKey;

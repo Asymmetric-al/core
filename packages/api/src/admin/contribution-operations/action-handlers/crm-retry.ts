@@ -30,8 +30,7 @@ export async function executeCrmRetry<TContribution>(
     stagedGiftId,
   );
   assertExpectedRevisionMatches(input, canonicalContribution);
-  const retryScope =
-    payload.scope === "designation" ? "designation" : "parent";
+  const retryScope = payload.scope === "designation" ? "designation" : "parent";
 
   if (retryScope === "designation") {
     const allocationId = requireStringPayload(payload, "allocationId");

@@ -89,7 +89,9 @@ export type ContributionCommand =
 
 const CONTRIBUTION_ACTION_TYPE_SET = new Set<string>(CONTRIBUTION_ACTION_TYPES);
 
-function isContributionActionType(value: string): value is ContributionActionType {
+function isContributionActionType(
+  value: string,
+): value is ContributionActionType {
   return CONTRIBUTION_ACTION_TYPE_SET.has(value);
 }
 
@@ -122,7 +124,9 @@ function extrasFromPayload(
 }
 
 function representedKeys(entries: Array<[string, unknown]>): Set<string> {
-  return new Set(entries.filter(([, value]) => value !== undefined).map(([key]) => key));
+  return new Set(
+    entries.filter(([, value]) => value !== undefined).map(([key]) => key),
+  );
 }
 
 /**
@@ -149,7 +153,10 @@ export function parseContributionCommand(
       return {
         type: actionType,
         stagedGiftId,
-        extras: extrasFromPayload(bag, representedKeys([["stagedGiftId", stagedGiftId]])),
+        extras: extrasFromPayload(
+          bag,
+          representedKeys([["stagedGiftId", stagedGiftId]]),
+        ),
       };
     }
     case "approve_staged_gift": {
@@ -157,7 +164,10 @@ export function parseContributionCommand(
       return {
         type: actionType,
         stagedGiftId,
-        extras: extrasFromPayload(bag, representedKeys([["stagedGiftId", stagedGiftId]])),
+        extras: extrasFromPayload(
+          bag,
+          representedKeys([["stagedGiftId", stagedGiftId]]),
+        ),
       };
     }
     case "retry_staged_gift":
@@ -203,7 +213,8 @@ export function parseContributionCommand(
     }
     case "amount_correction": {
       const amount = "amount" in bag ? bag.amount : undefined;
-      const receiptDelivery = "receiptDelivery" in bag ? bag.receiptDelivery : undefined;
+      const receiptDelivery =
+        "receiptDelivery" in bag ? bag.receiptDelivery : undefined;
       return {
         type: actionType,
         amount,
@@ -227,7 +238,8 @@ export function parseContributionCommand(
       };
     }
     case "allocation_correction": {
-      const designationLines = "designationLines" in bag ? bag.designationLines : undefined;
+      const designationLines =
+        "designationLines" in bag ? bag.designationLines : undefined;
       const fundId = "fundId" in bag ? bag.fundId : undefined;
       const missionaryId = "missionaryId" in bag ? bag.missionaryId : undefined;
       return {
@@ -264,7 +276,10 @@ export function parseContributionCommand(
       return {
         type: actionType,
         stripeEventId,
-        extras: extrasFromPayload(bag, representedKeys([["stripeEventId", stripeEventId]])),
+        extras: extrasFromPayload(
+          bag,
+          representedKeys([["stripeEventId", stripeEventId]]),
+        ),
       };
     }
     default: {
@@ -300,7 +315,9 @@ export function serializeContributionCommand(
   switch (command.type) {
     case "resend_receipt":
     case "approve_staged_gift":
-      return overlayDefined(command.extras, { stagedGiftId: command.stagedGiftId });
+      return overlayDefined(command.extras, {
+        stagedGiftId: command.stagedGiftId,
+      });
     case "retry_staged_gift":
     case "crm_repost":
       return overlayDefined(command.extras, {
@@ -333,7 +350,9 @@ export function serializeContributionCommand(
     case "payment_state_correction":
       return overlayDefined(command.extras, { status: command.status });
     case "stripe_replay":
-      return overlayDefined(command.extras, { stripeEventId: command.stripeEventId });
+      return overlayDefined(command.extras, {
+        stripeEventId: command.stripeEventId,
+      });
     default: {
       const exhaustive: never = command;
       return exhaustive;

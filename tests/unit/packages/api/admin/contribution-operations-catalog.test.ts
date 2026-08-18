@@ -84,7 +84,10 @@ describe("OPERATION_DEFINITIONS", () => {
     expect(definition.fields).toEqual([]);
     expect(definition.receiptFields).toEqual([]);
     expect(
-      definition.buildPayload({ values: { ...EMPTY_VALUES }, stagedGiftId: null }),
+      definition.buildPayload({
+        values: { ...EMPTY_VALUES },
+        stagedGiftId: null,
+      }),
     ).toEqual({});
   });
 
@@ -143,7 +146,10 @@ describe("OPERATION_DEFINITIONS", () => {
     expect(definition.requiresReason).toBe(true);
     expect(definition.requiresConfirmation).toBe(true);
     expect(
-      definition.buildPayload({ values: { ...EMPTY_VALUES }, stagedGiftId: null }),
+      definition.buildPayload({
+        values: { ...EMPTY_VALUES },
+        stagedGiftId: null,
+      }),
     ).toEqual({});
   });
 
@@ -186,7 +192,9 @@ describe("contributionActionTitle", () => {
 
     expect(CONTRIBUTION_ACTION_TYPES).toHaveLength(15);
     for (const actionType of CONTRIBUTION_ACTION_TYPES) {
-      expect(contributionActionTitle(actionType)).toBe(expectedTitles[actionType]);
+      expect(contributionActionTitle(actionType)).toBe(
+        expectedTitles[actionType],
+      );
     }
   });
 });
