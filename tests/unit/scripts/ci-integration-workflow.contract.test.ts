@@ -83,11 +83,20 @@ describe("ci-integration workflow contract", () => {
     expect(testE2e).toContain("continue-on-error:");
     expect(testE2e).toContain("github.base_ref == 'develop'");
     expect(testE2e).toContain("refs/heads/develop");
-    expect(testE2e).toContain("Use placeholder Supabase for develop E2E");
+    expect(testE2e).toContain(
+      "Use placeholder Supabase for non-production E2E",
+    );
+    expect(testE2e).toContain("github.base_ref != 'production'");
     expect(testE2e).toContain(
       "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co",
     );
     expect(testE2e).toContain("NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key");
+
+    const continueOnError = testE2e
+      .split("\n")
+      .find((line) => line.includes("continue-on-error:"));
+    expect(continueOnError).toContain("github.base_ref == 'develop'");
+    expect(continueOnError).not.toContain("github.base_ref != 'production'");
 
     expect(integrationGate).toContain(
       "needs: [migrate, smoke, e2e-smoke-gate]",

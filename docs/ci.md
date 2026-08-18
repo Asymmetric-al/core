@@ -17,6 +17,10 @@ Current workflow semantics:
 - `Shadscan` (`.github/workflows/shadscan.yml`) uses the same pull-request bases; pushes remain `develop` only.
 - `test-e2e-smoke` is **blocking on `develop`** through `integration-gate`, which depends on `e2e-smoke-gate` (not a separate branch-protection check).
 - `test-e2e` is **informational on `develop`** (`continue-on-error: true` there).
+- Stacked `cursor/**` PRs run the same placeholder Supabase E2E path as `develop`
+  (`example.supabase.co`, zero-config bypass). They do **not** inherit
+  `continue-on-error`; full E2E must pass. Production PRs keep hosted secrets
+  and `e2e-gate`.
 - `test-e2e` is enforced on `production` through the workflow's `e2e-gate`, and
   branch protection must require `ci-gate`, `integration-gate`, and `e2e-gate`
   before production release PRs can merge.
