@@ -6,10 +6,20 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import {
+  GiftProcessingFeePolicyError,
+  resolveGiftIntakeCharge,
+  toGiftProcessingFeeStripeMetadata,
+  type GiftProcessingFeeQuote,
+} from "./fee-policy";
 import { resolveRequiredIdempotencyKey } from "./idempotency";
 import { processDonationSagaOutboxEvent } from "./saga";
 import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
-import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
+import {
+  ApiHttpError,
+  ensureJsonBody,
+  toErrorResponse,
+} from "../shared/http-errors";
 import { findDonorByProfileId } from "../shared/queries";
 import { withOperation } from "../shared/with-operation";
 import { resolveTenantStripe } from "../stripe/tenant-client";
@@ -35,9 +45,14 @@ export const POST = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
-    const { amount, currency, missionary_id, fund_id } = donatePostSchema.parse(
-      await ensureJsonBody(request),
-    );
+    const {
+      amount,
+      currency,
+      missionary_id,
+      fund_id,
+      cover_fees,
+      payment_method,
+    } = donatePostSchema.parse(await ensureJsonBody(request));
 
     const tenantStripe = await resolveTenantStripe({
       supabaseAdmin,
@@ -54,7 +69,20 @@ export const POST = withOperation(
     }
 
     const { stripe, publishableKey } = tenantStripe;
-    const amountInCents = Math.round(amount * 100);
+    let feeQuote: GiftProcessingFeeQuote;
+    try {
+      feeQuote = resolveGiftIntakeCharge({
+        amount,
+        coverFees: cover_fees,
+        paymentMethod: payment_method,
+      });
+    } catch (error) {
+      if (error instanceof GiftProcessingFeePolicyError) {
+        throw new ApiHttpError(400, error.message);
+      }
+      throw error;
+    }
+    const amountInCents = feeQuote.chargedAmountCents;
     const idempotencyKey = resolveRequiredIdempotencyKey(request.headers);
 
     const { data: beginRaw, error: beginError } = await supabaseAdmin.rpc(
@@ -109,6 +137,7 @@ export const POST = withOperation(
       stripe,
       outboxId,
       actorUserId: ctx.userId,
+      extraPaymentIntentMetadata: toGiftProcessingFeeStripeMetadata(feeQuote),
     });
 
     if (sagaResult.status !== "completed") {

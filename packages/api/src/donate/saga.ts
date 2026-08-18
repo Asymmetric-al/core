@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 
-import { createDonationPaymentIntent } from "./payment-intent";
+import {
+  createDonationPaymentIntent,
+  mergeDonationPaymentIntentMetadata,
+} from "./payment-intent";
 
 import type { getAdminClient } from "@asym/database/supabase/admin";
 import type Stripe from "stripe";
@@ -14,6 +17,7 @@ interface DonationSagaProcessParams {
   stripe: Stripe;
   outboxId: string;
   actorUserId: string;
+  extraPaymentIntentMetadata?: Record<string, string>;
 }
 
 interface DonationSagaProcessResult {
@@ -178,6 +182,7 @@ async function processClaimedDonationSagaEvent(params: {
   lockId: string;
   outboxId: string;
   claim: DonationSagaClaimRow;
+  extraPaymentIntentMetadata?: Record<string, string>;
 }): Promise<DonationSagaProcessResult> {
   const donationId = stringOrNull(params.claim.donation_id);
   const donorId = stringOrNull(params.claim.donor_id);
@@ -208,14 +213,15 @@ async function processClaimedDonationSagaEvent(params: {
     currency,
     customerId: stripeCustomerId,
     idempotencyKey,
-    metadata: {
-      donation_id: donationId,
-      donor_id: donorId,
-      missionary_id: stringOrNull(params.claim.missionary_id) ?? "",
-      fund_id: stringOrNull(params.claim.fund_id) ?? "",
-      tenant_id: tenantId,
-      user_id: params.actorUserId,
-    },
+    metadata: mergeDonationPaymentIntentMetadata({
+      donationId,
+      donorId,
+      missionaryId: stringOrNull(params.claim.missionary_id) ?? "",
+      fundId: stringOrNull(params.claim.fund_id) ?? "",
+      tenantId,
+      actorUserId: params.actorUserId,
+      extra: params.extraPaymentIntentMetadata,
+    }),
   });
 
   const gatewayResponse = {
@@ -255,6 +261,7 @@ export async function processDonationSagaOutboxEvent({
   stripe,
   outboxId,
   actorUserId,
+  extraPaymentIntentMetadata,
 }: DonationSagaProcessParams): Promise<DonationSagaProcessResult> {
   const lockId = randomUUID();
   let lockClaimed = false;
@@ -315,6 +322,7 @@ export async function processDonationSagaOutboxEvent({
       lockId,
       outboxId: claimOutboxId,
       claim: claim ?? {},
+      extraPaymentIntentMetadata,
     });
   } catch (error) {
     if (lockClaimed) {

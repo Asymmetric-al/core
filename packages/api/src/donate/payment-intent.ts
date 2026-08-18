@@ -16,6 +16,58 @@ export interface DonationPaymentIntentMetadata {
   fund_id?: string;
   tenant_id?: string;
   user_id?: string;
+  gift_amount_cents?: string;
+  cover_fees?: string;
+  payment_method?: string;
+  cover_amount_cents?: string;
+  estimated_fee_cents?: string;
+}
+
+export const GIFT_PROCESSING_FEE_METADATA_KEYS = [
+  "gift_amount_cents",
+  "cover_fees",
+  "payment_method",
+  "cover_amount_cents",
+  "estimated_fee_cents",
+] as const;
+
+export function pickGiftProcessingFeeMetadata(
+  extra: Record<string, string> | undefined,
+): Partial<DonationPaymentIntentMetadata> {
+  if (!extra) {
+    return {};
+  }
+
+  const picked: Partial<DonationPaymentIntentMetadata> = {};
+
+  for (const key of GIFT_PROCESSING_FEE_METADATA_KEYS) {
+    const value = extra[key];
+    if (typeof value === "string" && value.length > 0) {
+      picked[key] = value;
+    }
+  }
+
+  return picked;
+}
+
+export function mergeDonationPaymentIntentMetadata(input: {
+  donationId: string;
+  donorId: string;
+  missionaryId: string;
+  fundId: string;
+  tenantId: string;
+  actorUserId: string;
+  extra?: Record<string, string>;
+}): DonationPaymentIntentMetadata {
+  return {
+    ...pickGiftProcessingFeeMetadata(input.extra),
+    donation_id: input.donationId,
+    donor_id: input.donorId,
+    missionary_id: input.missionaryId,
+    fund_id: input.fundId,
+    tenant_id: input.tenantId,
+    user_id: input.actorUserId,
+  };
 }
 
 export interface DonationPaymentIntentParams {

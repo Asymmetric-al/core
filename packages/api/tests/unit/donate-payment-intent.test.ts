@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createDonationPaymentIntent } from "../../src/donate/payment-intent";
+import {
+  createDonationPaymentIntent,
+  mergeDonationPaymentIntentMetadata,
+  pickGiftProcessingFeeMetadata,
+} from "../../src/donate/payment-intent";
 
 /**
  * TDD — server-side PaymentIntent leg of the donate flow (money path).
@@ -91,5 +95,56 @@ describe("createDonationPaymentIntent", () => {
       createDonationPaymentIntent(stripe, { ...baseParams, amountCents: 12.5 }),
     ).rejects.toThrow();
     expect(create).not.toHaveBeenCalled();
+  });
+});
+
+describe("pickGiftProcessingFeeMetadata", () => {
+  it("keeps known Gift processing-fee policy keys and drops spoofed claim identity", () => {
+    expect(
+      pickGiftProcessingFeeMetadata({
+        gift_amount_cents: "10000",
+        cover_fees: "true",
+        payment_method: "card",
+        cover_amount_cents: "330",
+        estimated_fee_cents: "320",
+        donation_id: "spoofed-donation",
+        user_id: "spoofed-actor",
+        empty: "",
+      }),
+    ).toEqual({
+      gift_amount_cents: "10000",
+      cover_fees: "true",
+      payment_method: "card",
+      cover_amount_cents: "330",
+      estimated_fee_cents: "320",
+    });
+  });
+});
+
+describe("mergeDonationPaymentIntentMetadata", () => {
+  it("writes claim identity last so Gift processing-fee extras cannot override donation_id", () => {
+    expect(
+      mergeDonationPaymentIntentMetadata({
+        donationId: "don-claim",
+        donorId: "donor-claim",
+        missionaryId: "miss-claim",
+        fundId: "fund-claim",
+        tenantId: "tenant-claim",
+        actorUserId: "actor-claim",
+        extra: {
+          gift_amount_cents: "10000",
+          donation_id: "spoofed-donation",
+          user_id: "spoofed-actor",
+        },
+      }),
+    ).toEqual({
+      gift_amount_cents: "10000",
+      donation_id: "don-claim",
+      donor_id: "donor-claim",
+      missionary_id: "miss-claim",
+      fund_id: "fund-claim",
+      tenant_id: "tenant-claim",
+      user_id: "actor-claim",
+    });
   });
 });

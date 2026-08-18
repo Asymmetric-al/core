@@ -89,6 +89,77 @@ describe("donation saga helpers", () => {
     });
   });
 
+  it("merges Gift processing-fee extras onto first-shot PaymentIntent metadata without letting extras override donation_id", async () => {
+    const rpc = vi.fn().mockImplementation((fn: string) => {
+      if (fn === "claim_donation_saga_event") {
+        return Promise.resolve({
+          data: {
+            claimed: true,
+            donation_id: "don-fee",
+            donor_id: "donor-fee",
+            missionary_id: "miss-fee",
+            fund_id: "fund-fee",
+            tenant_id: "tenant-fee",
+            amount: 10330,
+            currency: "usd",
+            attempt_count: 1,
+            idempotency_key: "idem-fee",
+            stripe_customer_id: "cus_fee",
+          },
+          error: null,
+        });
+      }
+      if (fn === "complete_donation_saga_event") {
+        return Promise.resolve({ data: { completed: true }, error: null });
+      }
+      return Promise.resolve({ data: null, error: null });
+    });
+    const from = vi.fn(() => {
+      throw new Error("from() should not be called in this path");
+    });
+
+    const stripe = createStripeMock();
+    (
+      stripe.paymentIntents.create as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
+      id: "pi_fee",
+      client_secret: "secret_fee",
+      status: "requires_payment_method",
+    });
+
+    await processDonationSagaOutboxEvent({
+      supabaseAdmin: { rpc, from } as never,
+      stripe,
+      outboxId: "out-fee",
+      actorUserId: "actor-fee",
+      extraPaymentIntentMetadata: {
+        gift_amount_cents: "10000",
+        cover_fees: "true",
+        payment_method: "card",
+        cover_amount_cents: "330",
+        estimated_fee_cents: "320",
+        donation_id: "spoofed-donation",
+      },
+    });
+
+    const create = stripe.paymentIntents.create as ReturnType<typeof vi.fn>;
+    expect(create.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({
+        amount: 10330,
+        metadata: expect.objectContaining({
+          gift_amount_cents: "10000",
+          cover_fees: "true",
+          payment_method: "card",
+          cover_amount_cents: "330",
+          estimated_fee_cents: "320",
+          donation_id: "don-fee",
+          user_id: "actor-fee",
+        }),
+      }),
+    );
+    expect(create.mock.calls[0]?.[0].metadata.donation_id).toBe("don-fee");
+  });
+
   it("returns stored completed state when claim is already consumed", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: { claimed: false },
