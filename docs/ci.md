@@ -2,18 +2,19 @@
 
 ## Overview
 
-Two workflow files run on every PR to `develop` and `production`, and on every push to
-`develop` and `production`:
+Two workflow files run on every PR whose base is `develop`, `production`, or a
+`cursor/**` stacked branch, and on every push to `develop` and `production`:
 
-| Workflow          | File                                   | Branches                                | Jobs                                            | Target time               |
-| ----------------- | -------------------------------------- | --------------------------------------- | ----------------------------------------------- | ------------------------- |
-| Fast checks       | `.github/workflows/ci.yml`             | PRs + pushes on `develop`, `production` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
-| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
+| Workflow          | File                                   | Branches                                                                       | Jobs                                            | Target time               |
+| ----------------- | -------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- | ------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | PRs on `develop`, `production`, `cursor/**`; pushes on `develop`, `production` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs on `develop`, `production`, `cursor/**`; pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
 
 Current workflow semantics:
 
-- `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `production`).
-- `ci-integration.yml` runs on the same active long-lived branches.
+- `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `production`) and for stacked Cursor Cloud PRs whose base matches `cursor/**`.
+- `ci-integration.yml` runs on the same pull-request bases. Pushes still run only on `develop` and `production`.
+- `Shadscan` (`.github/workflows/shadscan.yml`) uses the same pull-request bases; pushes remain `develop` only.
 - `test-e2e-smoke` is **blocking on `develop`** through `integration-gate`, which depends on `e2e-smoke-gate` (not a separate branch-protection check).
 - `test-e2e` is **informational on `develop`** (`continue-on-error: true` there).
 - `test-e2e` is enforced on `production` through the workflow's `e2e-gate`, and

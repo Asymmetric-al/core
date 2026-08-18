@@ -2,7 +2,10 @@ name: CI Integration
 
 on:
   pull_request:
-    branches: [develop, production]
+    branches:
+      - develop
+      - production
+      - "cursor/**"
   push:
     branches: [develop, production]
 
