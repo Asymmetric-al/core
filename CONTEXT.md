@@ -188,6 +188,13 @@ behind the scenes. Guest giving is not anonymous giving and not an unknown
 donor.
 _Avoid_: account-first checkout, anonymous gift, unknown donor
 
+**Gift processing-fee policy**:
+The Core quote of estimated Stripe processing cost on a Guest Giving gift, in
+integer cents, by payment method. Checkout is a thin adapter; Gift intake
+recomputes charged cents and never trusts a client total. Distinct from tenant
+processor-cost attribution.
+_Avoid_: UI-owned Stripe rates, trusted client gross-up, "100% reaches the field"
+
 **Claimable Donor Access**:
 Donor portal access created during checkout without a password step. The donor
 later claims it through email verification or magic link. Creating it never
