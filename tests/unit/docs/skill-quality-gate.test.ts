@@ -30,6 +30,14 @@ const vendoredSkillPaths = [
   "docs/ai/skills/emil-design-eng/SKILL.md",
   "docs/ai/skills/grill-for-unknowns/SKILL.md",
   "docs/ai/skills/resend-cli/SKILL.md",
+  "docs/ai/skills/tdd/SKILL.md",
+  "docs/ai/skills/moai-library-shadcn/SKILL.md",
+  ".agents/skills/tdd/SKILL.md",
+  ".agents/skills/moai-library-shadcn/SKILL.md",
+  ".cursor/skills/tdd/SKILL.md",
+  ".cursor/skills/moai-library-shadcn/SKILL.md",
+  ".claude/skills/tdd/SKILL.md",
+  ".claude/skills/moai-library-shadcn/SKILL.md",
   ".agents/skills/supabase/SKILL.md",
   ".agents/skills/components-build/SKILL.md",
   ".agents/skills/emil-design-eng/SKILL.md",
@@ -77,9 +85,21 @@ describe("skill quality gate overlays", () => {
     const agents = readRepoFile("AGENTS.md");
     const findSkills = readRepoFile("docs/ai/skills/find-skills/SKILL.md");
 
-    expect(agents).toContain("To **restore** those installs");
-    expect(agents).toContain("To **pull newer upstream** content for Supabase");
-    expect(agents).toContain("**Resend CLI** (`docs/ai/skills/resend-cli/`)");
+    const skillRouting = readRepoFile("docs/ai/rules/agent-skill-routing.md");
+    expect(skillRouting).toContain("To **restore** those installs");
+    expect(skillRouting).toContain(
+      "To **pull newer upstream** content for Supabase",
+    );
+    expect(skillRouting).toContain(
+      "**Resend CLI** (`docs/ai/skills/resend-cli/`)",
+    );
+    expect(agents).not.toContain("To **restore** those installs");
+    expect(agents).not.toContain(
+      "To **pull newer upstream** content for Supabase",
+    );
+    expect(agents).not.toContain(
+      "**Resend CLI** (`docs/ai/skills/resend-cli/`)",
+    );
     expect(findSkills).toContain("**Example — Resend CLI:**");
     expect(findSkills).toContain("**Example — Resend platform skills:**");
     expect(findSkills).toContain("**Example — Resend app integration:**");

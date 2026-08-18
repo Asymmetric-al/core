@@ -39,7 +39,7 @@ and are prepared to review and revert the full diff.
 
 ### Repo-local skills (Asymmetric-al/core)
 
-Before searching the public index, check **`docs/ai/skills/`** and **`AGENTS.md` → Skill Routing**. Canonical repo-owned skills live under `docs/ai/skills/` and are mirrored to `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` with `bun run skills:sync` (CI: `bun run skills:verify`).
+Before searching the public index, check **`docs/ai/skills/`** and **`docs/ai/rules/agent-skill-routing.md`**. Canonical repo-owned skills live under `docs/ai/skills/` and are mirrored to `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` with `bun run skills:sync` (CI: `bun run skills:verify`).
 
 Use the canonical docs path when routing or documenting repo-critical skills. Treat `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` as runtime mirrors for tool compatibility, not the primary authoring location.
 
@@ -188,5 +188,5 @@ npx skills init my-xyz-skill
 
 ## Checklist
 
-- [ ] Checked `docs/ai/skills/` and **Skill Routing** in `AGENTS.md` before suggesting `npx skills find`
+- [ ] Checked `docs/ai/skills/` and **Skill Routing** in `docs/ai/rules/agent-skill-routing.md` before suggesting `npx skills find`
 - [ ] For repo work, pointed at canonical paths under `docs/ai/skills/` and `bun run skills:sync` when mirrors matter

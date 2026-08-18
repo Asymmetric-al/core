@@ -1,5 +1,5 @@
 ---
-applyTo: "**"
+applyTo: "docs/ai/rules/shadcn-studio-mcp.md,.github/instructions/shadcn-studio-mcp*"
 ---
 
 # Instructions for Using the shadcn/studio MCP SERVER

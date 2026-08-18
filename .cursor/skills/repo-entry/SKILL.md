@@ -21,7 +21,7 @@ This skill is the **compact entry point** for the instruction and skill system. 
 ## Workflow
 
 1. Read and follow root **`AGENTS.md`** (Next.js managed block, routing, Nia, MCP, monorepo commands).
-2. For **canonical** task skills maintained by this repo, use **`docs/ai/skills/*/SKILL.md`** and the **Skill Routing** section in `AGENTS.md`.
+2. For **canonical** task skills maintained by this repo, use **`docs/ai/skills/*/SKILL.md`** and **`docs/ai/rules/agent-skill-routing.md`**.
 3. After changing skills under `docs/ai/skills/`, run **`bun run skills:sync`** and ensure **`bun run skills:verify`** passes before committing.
 4. Optional tool-specific or ecosystem skills may originate under
    **`.agents/skills/`** and be mirrored into **`.cursor/skills/`** and
@@ -31,7 +31,7 @@ This skill is the **compact entry point** for the instruction and skill system. 
 ## Checklist
 
 - [ ] `AGENTS.md` opened for the current task’s domain (rules, Nia scoping, checks).
-- [ ] Relevant `docs/ai/skills/<topic>/SKILL.md` files loaded per Skill Routing.
+- [ ] Relevant `docs/ai/skills/<topic>/SKILL.md` files loaded per `docs/ai/rules/agent-skill-routing.md`.
 - [ ] If `docs/ai/skills/` was edited: `bun run skills:sync` and `bun run skills:verify` run and clean.
 
 ## See also
