@@ -8,15 +8,72 @@ import {
   isDonationInitialized,
   isStripeFinalCheckoutSuccess,
   normalizeCheckoutFrequency,
+  quoteGuestGivingCheckoutFees,
   resolveCheckoutIdempotencyKey,
   resolveCheckoutMode,
 } from "../../../../apps/donor/app/(public)/(solid)/checkout/checkout-donation";
+
+describe("quoteGuestGivingCheckoutFees", () => {
+  it("quotes card cover-fees in dollars without leaking Stripe rates", () => {
+    expect(
+      quoteGuestGivingCheckoutFees({
+        giftAmount: 100,
+        coverFees: true,
+        paymentMethod: "card",
+      }),
+    ).toEqual({
+      giftAmount: 100,
+      coverAmount: 3.3,
+      chargedAmount: 103.3,
+      estimatedStripeFee: 3.3,
+      coverFees: true,
+      paymentMethod: "card",
+    });
+  });
+
+  it("still exposes the cover amount when the donor is not covering", () => {
+    expect(
+      quoteGuestGivingCheckoutFees({
+        giftAmount: 100,
+        coverFees: false,
+        paymentMethod: "card",
+      }).coverAmount,
+    ).toBe(3.3);
+  });
+
+  it("quotes ACH cover-fees in dollars", () => {
+    expect(
+      quoteGuestGivingCheckoutFees({
+        giftAmount: 100,
+        coverFees: true,
+        paymentMethod: "ach",
+      }).chargedAmount,
+    ).toBe(100.81);
+  });
+
+  it("quotes zero for a gift below one cent", () => {
+    expect(
+      quoteGuestGivingCheckoutFees({
+        giftAmount: 0,
+        coverFees: true,
+        paymentMethod: "card",
+      }),
+    ).toMatchObject({
+      giftAmount: 0,
+      coverAmount: 0,
+      chargedAmount: 0,
+      estimatedStripeFee: 0,
+    });
+  });
+});
 
 describe("buildDonateRequestBody", () => {
   it("maps missionaryId/fundId to the snake_case saga contract", () => {
     expect(
       buildDonateRequestBody({
         amount: 100,
+        coverFees: false,
+        paymentMethod: "card",
         currency: "usd",
         missionaryId: "m_1",
         fundId: "f_1",
@@ -24,6 +81,8 @@ describe("buildDonateRequestBody", () => {
     ).toEqual({
       amount: 100,
       currency: "usd",
+      cover_fees: false,
+      payment_method: "card",
       missionary_id: "m_1",
       fund_id: "f_1",
     });
@@ -33,29 +92,77 @@ describe("buildDonateRequestBody", () => {
     expect(
       buildDonateRequestBody({
         amount: 50,
+        coverFees: false,
+        paymentMethod: "card",
         missionaryId: "  ",
         fundId: null,
       }),
-    ).toEqual({ amount: 50, currency: "usd" });
+    ).toEqual({
+      amount: 50,
+      currency: "usd",
+      cover_fees: false,
+      payment_method: "card",
+    });
   });
 
   it("allows a general checkout request to omit designation fields", () => {
-    expect(buildDonateRequestBody({ amount: 75, currency: "usd" })).toEqual({
+    expect(
+      buildDonateRequestBody({
+        amount: 75,
+        coverFees: false,
+        paymentMethod: "card",
+        currency: "usd",
+      }),
+    ).toEqual({
       amount: 75,
       currency: "usd",
+      cover_fees: false,
+      payment_method: "card",
+    });
+  });
+
+  it("posts the gift amount with cover-fees flags, never a client-grossed total", () => {
+    expect(
+      buildDonateRequestBody({
+        amount: 100,
+        coverFees: true,
+        paymentMethod: "card",
+        currency: "usd",
+      }),
+    ).toEqual({
+      amount: 100,
+      currency: "usd",
+      cover_fees: true,
+      payment_method: "card",
     });
   });
 
   it("trims designation identifiers", () => {
     expect(
-      buildDonateRequestBody({ amount: 25, missionaryId: " m_2 " }),
-    ).toEqual({ amount: 25, currency: "usd", missionary_id: "m_2" });
+      buildDonateRequestBody({
+        amount: 25,
+        coverFees: false,
+        paymentMethod: "ach",
+        missionaryId: " m_2 ",
+      }),
+    ).toEqual({
+      amount: 25,
+      currency: "usd",
+      cover_fees: false,
+      payment_method: "ach",
+      missionary_id: "m_2",
+    });
   });
 
   it("rejects a non-positive amount (server requires > 0)", () => {
-    expect(() => buildDonateRequestBody({ amount: 0, fundId: "f_1" })).toThrow(
-      /amount/i,
-    );
+    expect(() =>
+      buildDonateRequestBody({
+        amount: 0,
+        coverFees: false,
+        paymentMethod: "card",
+        fundId: "f_1",
+      }),
+    ).toThrow(/amount/i);
   });
 });
 
@@ -193,7 +300,7 @@ describe("checkout request fingerprint", () => {
     );
   });
 
-  it("changes when amount, designation, donor, fee, schedule, frequency, method, or postal code changes", () => {
+  it("changes when amount, designation, donor, fee, schedule, method, or postal code changes", () => {
     const base = buildCheckoutRequestFingerprint(baseFingerprintInput);
     const variants = [
       { amount: 103 },
@@ -205,7 +312,6 @@ describe("checkout request fingerprint", () => {
       { coverFees: false },
       { startDate: "2026-07-07" },
       { endDate: "2026-09-01" },
-      { frequency: "monthly" as const },
       { paymentMethod: "wallet" as const },
       { postalCode: "94104" },
     ];
@@ -218,6 +324,15 @@ describe("checkout request fingerprint", () => {
         }),
       ).not.toBe(base);
     }
+  });
+
+  it("does not change when frequency is monthly because checkout coerces to one-time", () => {
+    expect(
+      buildCheckoutRequestFingerprint({
+        ...baseFingerprintInput,
+        frequency: "monthly",
+      }),
+    ).toBe(buildCheckoutRequestFingerprint(baseFingerprintInput));
   });
 });
 

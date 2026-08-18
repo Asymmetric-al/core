@@ -53,6 +53,7 @@ import {
   isDonationInitialized,
   isStripeFinalCheckoutSuccess,
   normalizeCheckoutFrequency,
+  quoteGuestGivingCheckoutFees,
   resolveCheckoutIdempotencyKey,
   resolveCheckoutMode,
   type CheckoutMode,
@@ -140,8 +141,6 @@ type PaymentSuccessSnapshot = Readonly<{
 }>;
 
 const PRESET_AMOUNTS = [50, 100, 250, 500];
-const STRIPE_FEE_PERCENT = 0.029;
-const STRIPE_FEE_FIXED = 0.3;
 const PAYMENT_PROCESSING_MESSAGE =
   "Your contribution is still processing — we'll email your receipt once it's confirmed.";
 const CHECKOUT_CONFIGURATION_ERROR =
@@ -298,7 +297,7 @@ function SummaryCard({
       <div className="p-8 space-y-6">
         <div className="space-y-4">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-zinc-500 font-medium">Base Amount</span>
+            <span className="text-zinc-500 font-medium">Your gift</span>
             <span className="font-semibold text-zinc-950 font-syne">
               {formatCurrency(amount)}
             </span>
@@ -307,8 +306,8 @@ function SummaryCard({
           {coverFees && (
             <div className="flex justify-between items-center text-sm animate-in fade-in slide-in-from-top-2">
               <span className="text-zinc-500 font-medium flex items-center gap-2">
-                <Zap className="size-3.5 text-zinc-900 fill-zinc-900" />{" "}
-                Processing Fee
+                <Zap className="size-3.5 text-zinc-900 fill-zinc-900" /> Cover
+                processing fees
               </span>
               <span className="font-semibold text-zinc-900 font-syne">
                 {formatCurrency(fees)}
@@ -611,8 +610,14 @@ function ConfigStep({
           onClick={() => onCoverFeesChange(!coverFees)}
           role="checkbox"
           aria-checked={coverFees}
+          aria-label="Cover processing fees"
           tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && onCoverFeesChange(!coverFees)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onCoverFeesChange(!coverFees);
+            }
+          }}
         >
           <div
             className={cn(
@@ -638,15 +643,20 @@ function ConfigStep({
                 coverFees ? "text-white/80" : "text-zinc-400",
               )}
             >
-              Add <strong>{formatCurrency(calculatedFees)}</strong> so 100% of
-              your gift reaches the field.
+              Add <strong>{formatCurrency(calculatedFees)}</strong> to help
+              cover estimated processing costs.
             </p>
           </div>
-          <Switch
-            checked={coverFees}
-            onCheckedChange={onCoverFeesChange}
-            className="data-checked:bg-white data-checked:opacity-100"
-          />
+          <div
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            <Switch
+              checked={coverFees}
+              onCheckedChange={onCoverFeesChange}
+              className="data-checked:bg-white data-checked:opacity-100"
+            />
+          </div>
         </div>
       </div>
 
@@ -1222,12 +1232,17 @@ function CheckoutContent({
   const setPostalCode = (value: string) =>
     setCheckoutState((prev) => ({ ...prev, postalCode: value }));
 
-  const calculatedFees = useMemo(() => {
-    const gross = (amount + STRIPE_FEE_FIXED) / (1 - STRIPE_FEE_PERCENT);
-    return gross - amount;
-  }, [amount]);
-
-  const total = coverFees ? amount + calculatedFees : amount;
+  const feeQuote = useMemo(
+    () =>
+      quoteGuestGivingCheckoutFees({
+        giftAmount: amount,
+        coverFees,
+        paymentMethod,
+      }),
+    [amount, coverFees, paymentMethod],
+  );
+  const calculatedFees = feeQuote.coverAmount;
+  const total = feeQuote.chargedAmount;
   const mountedPublishableKey = stripeOverride
     ? normalizePublishableKey(stripeOverride.publishableKey)
     : runtimeConfig.status === "ready"
@@ -1240,7 +1255,7 @@ function CheckoutContent({
   const currentRequestFingerprint = useMemo(
     () =>
       buildCheckoutRequestFingerprint({
-        amount: total,
+        amount,
         coverFees,
         currency: "usd",
         donorEmail: donorInfo.email,
@@ -1255,6 +1270,7 @@ function CheckoutContent({
         startDate,
       }),
     [
+      amount,
       coverFees,
       donorInfo.email,
       donorInfo.firstName,
@@ -1263,11 +1279,10 @@ function CheckoutContent({
       frequency,
       fundId,
       hasEndDate,
+      missionaryId,
       paymentMethod,
       postalCode,
       startDate,
-      total,
-      missionaryId,
     ],
   );
   const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
@@ -1603,8 +1618,10 @@ function CheckoutContent({
 
     try {
       const body = buildDonateRequestBody({
-        amount: total,
+        amount,
         currency: "usd",
+        coverFees,
+        paymentMethod,
         missionaryId,
         fundId,
       });

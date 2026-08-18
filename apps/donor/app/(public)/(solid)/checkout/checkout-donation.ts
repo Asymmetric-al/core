@@ -1,5 +1,10 @@
 /**
- * Pure, framework-free state logic for the donor checkout → POST /api/donate wiring.
+ * Guest Giving checkout adapter for POST /api/donate.
+ *
+ * Checkout stays a thin adapter: Gift processing-fee policy lives in Core
+ * (`@asym/api/donate/fee-policy`). This module converts dollars ↔ cents and
+ * posts the donor-entered gift plus cover-fees flags. The server recomputes
+ * charged cents and never trusts a client-computed total.
  *
  * Public-issue requirement: **checkout success must be confirmed by Stripe
  * PaymentIntent state.** A successful `/api/donate` response only proves that the
@@ -8,9 +13,13 @@
  * response alone.
  */
 
+import { quoteGiftProcessingFee } from "@asym/api/donate/fee-policy";
+
 export type DonateRequestBody = {
   amount: number;
   currency: string;
+  cover_fees: boolean;
+  payment_method: CheckoutPaymentMethod;
   missionary_id?: string;
   fund_id?: string;
 };
@@ -32,6 +41,15 @@ export type DonateResult =
 export type CheckoutMode = "live" | "test";
 export type CheckoutFrequency = "one-time" | "monthly";
 export type CheckoutPaymentMethod = "card" | "ach" | "wallet";
+
+export type GuestGivingCheckoutFeeQuote = {
+  giftAmount: number;
+  coverAmount: number;
+  chargedAmount: number;
+  estimatedStripeFee: number;
+  coverFees: boolean;
+  paymentMethod: CheckoutPaymentMethod;
+};
 
 export type CheckoutRequestFingerprintInput = {
   amount: number;
@@ -70,12 +88,53 @@ const trimToUndefined = (
 };
 
 /**
+ * Convert Guest Giving dollars into Core's Gift processing-fee quote.
+ * Amounts below one cent quote as zero so the config step can render before
+ * the donor types a gift.
+ */
+export function quoteGuestGivingCheckoutFees(input: {
+  giftAmount: number;
+  coverFees: boolean;
+  paymentMethod: CheckoutPaymentMethod;
+}): GuestGivingCheckoutFeeQuote {
+  const giftAmountCents = Math.round(input.giftAmount * 100);
+  if (!Number.isFinite(input.giftAmount) || giftAmountCents < 1) {
+    return {
+      giftAmount: 0,
+      coverAmount: 0,
+      chargedAmount: 0,
+      estimatedStripeFee: 0,
+      coverFees: input.coverFees,
+      paymentMethod: input.paymentMethod,
+    };
+  }
+
+  const quote = quoteGiftProcessingFee({
+    giftAmountCents,
+    coverFees: input.coverFees,
+    paymentMethod: input.paymentMethod,
+  });
+
+  return {
+    giftAmount: quote.giftAmountCents / 100,
+    coverAmount: quote.coverAmountCents / 100,
+    chargedAmount: quote.chargedAmountCents / 100,
+    estimatedStripeFee: quote.estimatedStripeFeeCents / 100,
+    coverFees: quote.coverFees,
+    paymentMethod: quote.paymentMethod,
+  };
+}
+
+/**
  * Build the POST /api/donate body from checkout inputs, matching
- * `donatePostSchema` in `@asym/api`. Blank/null designations are omitted so
- * general giving posts no designation fields.
+ * `donatePostSchema` in `@asym/api`. `amount` is the donor-entered gift, not
+ * the grossed-up charge. Blank/null designations are omitted so general giving
+ * posts no designation fields.
  */
 export function buildDonateRequestBody(input: {
   amount: number;
+  coverFees: boolean;
+  paymentMethod: CheckoutPaymentMethod;
   currency?: string | null;
   missionaryId?: string | null;
   fundId?: string | null;
@@ -87,6 +146,8 @@ export function buildDonateRequestBody(input: {
   const body: DonateRequestBody = {
     amount: input.amount,
     currency: trimToUndefined(input.currency) ?? "usd",
+    cover_fees: input.coverFees,
+    payment_method: input.paymentMethod,
   };
 
   const missionaryId = trimToUndefined(input.missionaryId);
@@ -121,22 +182,18 @@ export function normalizeCheckoutFrequency(
   return "one-time";
 }
 
-/**
- * Deterministic immutable attempt fingerprint. The idempotency key may only be
- * reused when every field that could alter the checkout attempt still matches.
- */
 export function buildCheckoutRequestFingerprint(
   input: CheckoutRequestFingerprintInput,
 ): string {
   return JSON.stringify({
     amount: normalizeMoneyAmount(input.amount),
     coverFees: input.coverFees,
-    currency: normalizeStringField(input.currency).toLowerCase() || "usd",
+    currency: normalizeStringField(input.currency).toLowerCase(),
     donorEmail: normalizeStringField(input.donorEmail).toLowerCase(),
     donorFirstName: normalizeStringField(input.donorFirstName),
     donorLastName: normalizeStringField(input.donorLastName),
     endDate: normalizeStringField(input.endDate),
-    frequency: input.frequency ?? "one-time",
+    frequency: normalizeCheckoutFrequency(input.frequency),
     fundId: normalizeStringField(input.fundId),
     missionaryId: normalizeStringField(input.missionaryId),
     paymentMethod: input.paymentMethod,
@@ -145,23 +202,17 @@ export function buildCheckoutRequestFingerprint(
   });
 }
 
-export function resolveCheckoutIdempotencyKey({
-  currentFingerprint,
-  existingFingerprint,
-  existingKey,
-  generateKey,
-}: ResolveIdempotencyKeyInput): ResolveIdempotencyKeyResult {
-  if (existingKey && existingFingerprint === currentFingerprint) {
-    return {
-      idempotencyKey: existingKey,
-      isNewKey: false,
-    };
+export function resolveCheckoutIdempotencyKey(
+  input: ResolveIdempotencyKeyInput,
+): ResolveIdempotencyKeyResult {
+  if (
+    input.existingKey &&
+    input.existingFingerprint === input.currentFingerprint
+  ) {
+    return { idempotencyKey: input.existingKey, isNewKey: false };
   }
 
-  return {
-    idempotencyKey: generateKey(),
-    isNewKey: true,
-  };
+  return { idempotencyKey: input.generateKey(), isNewKey: true };
 }
 
 const readString = (body: unknown, key: string): string | null => {
@@ -171,10 +222,11 @@ const readString = (body: unknown, key: string): string | null => {
 };
 
 /**
- * Interpret the saga's HTTP response into an initialization result.
+ * Map POST /api/donate HTTP results onto checkout states.
  *
- * A 200 with a non-empty `donationId` means the server initialized the donation
- * and PaymentIntent. It is not final payment confirmation.
+ * 200 = saga initialized a donation + PaymentIntent (not paid).
+ * 202 = saga still processing; retry with the same idempotency key.
+ * Anything else is an error the donor can retry from.
  */
 export function interpretDonateResponse(
   status: number,
@@ -185,16 +237,20 @@ export function interpretDonateResponse(
     if (!donationId) {
       return {
         kind: "error",
-        message: "Payment could not be confirmed by the server.",
+        message:
+          "Donation initialized without an identifier. Please try again.",
       };
     }
+
     return {
       kind: "initialized",
       donation: {
         donationId,
-        paymentIntentId: readString(body, "paymentIntentId"),
-        clientSecret: readString(body, "clientSecret"),
-        publishableKey: readString(body, "publishableKey"),
+        paymentIntentId:
+          trimToUndefined(readString(body, "paymentIntentId")) ?? null,
+        clientSecret: trimToUndefined(readString(body, "clientSecret")) ?? null,
+        publishableKey:
+          trimToUndefined(readString(body, "publishableKey")) ?? null,
       },
     };
   }

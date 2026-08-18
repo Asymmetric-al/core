@@ -330,6 +330,17 @@ const confirmPayment = () => {
   fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
 };
 
+const toggleCoverProcessingFees = () => {
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: "Cover processing fees" }),
+  );
+};
+
+const guestGivingDefaultFeeFlags = {
+  cover_fees: false,
+  payment_method: "card",
+} as const;
+
 const fetchMock = () => vi.mocked(globalThis.fetch);
 
 const requestAt = (index: number) => {
@@ -378,6 +389,7 @@ describe("CheckoutPageClient donation designations", () => {
     expect(requestAt(0).body).toEqual({
       amount: 100,
       currency: "usd",
+      ...guestGivingDefaultFeeFlags,
     });
     expect(
       screen.queryByRole("heading", { name: /target unspecified/i }),
@@ -402,6 +414,7 @@ describe("CheckoutPageClient donation designations", () => {
       amount: 100,
       currency: "usd",
       fund_id: TEST_FUND_ID,
+      ...guestGivingDefaultFeeFlags,
     });
   });
 });
@@ -847,6 +860,7 @@ describe("CheckoutPageClient live card confirmation", () => {
       amount: 100,
       currency: "usd",
       missionary_id: TEST_MISSIONARY_ID,
+      ...guestGivingDefaultFeeFlags,
     });
     expect(screen.queryByText(/monthly support/i)).toBeNull();
     expect(screen.queryByText(/recurring/i)).toBeNull();
@@ -935,5 +949,54 @@ describe("CheckoutPageClient idempotency retry keys", () => {
     expect(requestAt(0).body.fund_id).toBe(TEST_FUND_ID);
     expect(requestAt(1).headers["Idempotency-Key"]).toBe("idem-2");
     expect(requestAt(1).body.fund_id).toBe(TEST_OTHER_FUND_ID);
+  });
+});
+
+describe("CheckoutPageClient Gift processing-fee policy", () => {
+  it("posts the donor-entered gift when cover-fees is on, not a client gross-up", async () => {
+    fetchMock().mockImplementation(initializedDonationResponse);
+    stripeState.stripe.confirmCardPayment.mockResolvedValue({
+      paymentIntent: { status: "succeeded" },
+    });
+
+    renderCheckout();
+    toggleCoverProcessingFees();
+    expect(screen.getByText(/estimated processing costs/i)).toBeTruthy();
+    expect(screen.queryByText(/reaches the field/i)).toBeNull();
+
+    advanceToPayment();
+    confirmPayment();
+
+    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
+    expect(requestAt(0).body).toEqual({
+      amount: 100,
+      currency: "usd",
+      missionary_id: TEST_MISSIONARY_ID,
+      cover_fees: true,
+      payment_method: "card",
+    });
+  });
+
+  it("quotes ACH cover-fees on confirm without posting a live bank payment", async () => {
+    renderCheckout();
+    toggleCoverProcessingFees();
+    advanceToPayment();
+
+    expect(
+      screen.getByRole("button", { name: /confirm \$103.30/i }),
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("tab", { name: /^bank$/i }));
+
+    expect(
+      screen.getByRole("button", { name: /confirm \$100.81/i }),
+    ).toBeTruthy();
+
+    confirmPayment();
+
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "Card payments are the only checkout method currently available",
+    );
+    expect(fetchMock()).not.toHaveBeenCalled();
   });
 });
