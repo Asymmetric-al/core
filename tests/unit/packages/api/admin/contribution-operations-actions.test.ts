@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { executeContributionAction } from "../../../../../packages/api/src/admin/contribution-operations/actions";
 import { resolveCorrectionApprovalPolicy } from "../../../../../packages/api/src/admin/contribution-operations/approval-policy";
+import { executeContributionActionFromBag as executeContributionAction } from "./contribution-operations-test-helpers";
 
 const APPROVAL_SUPPRESSED_POLICY = resolveCorrectionApprovalPolicy({
   ownership_mode: "no_approval_required",

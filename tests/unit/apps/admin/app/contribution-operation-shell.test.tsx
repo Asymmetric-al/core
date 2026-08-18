@@ -10,6 +10,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { OPERATION_DEFINITIONS as CATALOG_OPERATION_DEFINITIONS } from "@asym/api/admin/contribution-operations/catalog";
 import {
   ContributionOperationShell,
   OPERATION_DEFINITIONS,
@@ -322,6 +323,12 @@ function HubAmountProbe() {
 
   return <p>Hub amount: {amountCents ?? "loading"}</p>;
 }
+
+describe("contribution operation catalog re-export", () => {
+  it("is the Core catalog object identity", () => {
+    expect(OPERATION_DEFINITIONS).toBe(CATALOG_OPERATION_DEFINITIONS);
+  });
+});
 
 describe("ContributionOperationShell", () => {
   beforeEach(() => {
