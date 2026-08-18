@@ -43,7 +43,7 @@ export const tiles: Tile[] = [
     icon: "Users",
     purpose: "Search and work with people, churches, and orgs in one surface.",
     inside:
-      "Fork of Twenty CRM · People · Churches · Households · Activity · Notes · Tasks · Fundraiser-friendly reports",
+      "People · Churches · Households · Activity · Notes · Tasks · Fundraiser-friendly reports",
     quickActions: [
       { label: "Add person", href: "/crm/people/new", icon: "UserPlus" },
       { label: "Add pledge", href: "/crm/pledges/new", icon: "FileText" },

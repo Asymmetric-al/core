@@ -162,7 +162,6 @@ const ADMIN_TABLE_ROUTES = [
   "apps/admin/app/(app)/crm",
   "apps/admin/app/(app)/crm/notes",
   "apps/admin/app/(app)/crm/relationships",
-  "apps/admin/app/(app)/crm/projections",
   "apps/admin/app/(app)/contributions",
   "apps/admin/app/(app)/tasks",
   "apps/admin/app/(app)/events",

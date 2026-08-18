@@ -41,6 +41,32 @@ const appBrowserSupabaseImportAllowlist = new Set([
   "apps/admin/lib/authenticated-fetch.ts",
 ]);
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
+const SKIP_DIRECTORY_NAMES = new Set([
+  "node_modules",
+  ".next",
+  "dist",
+  "coverage",
+  ".turbo",
+]);
+const RETIRED_TWENTY_RUNTIME_MARKERS = [
+  "TWENTY_API_URL",
+  "TWENTY_API_KEY",
+  "TWENTY_WEBHOOK_SECRET",
+  "TWENTY_WORKSPACE_ID",
+  "TWENTY_RATE_LIMIT_RPM",
+  "CRM_SYNC_INBOUND_ENABLED",
+  "CRM_SYNC_OUTBOUND_ENABLED",
+  "CRM_SYNC_REPLAY_ENABLED",
+  "CRM_SYNC_RECONCILIATION_ENABLED",
+  "CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS",
+  "@asym/api/crm/client",
+  "@asym/api/src/crm/client",
+  "packages/api/src/crm/client",
+  "NEXT_PUBLIC_TWENTY_",
+];
+const HISTORICAL_TWENTY_PATH_PREFIXES = ["docs/", "openspec/", "tests/"];
+const RETIRED_TWENTY_SCAN_ROOTS = ["apps", "packages", "scripts"];
+const RETIRED_TWENTY_SCANNER_PATH = "scripts/verify/data-boundary-check.mjs";
 
 function toRepoRelative(filePath) {
   return path.relative(repoRoot, filePath).split(path.sep).join("/");
@@ -53,6 +79,9 @@ function collectTypeScriptFiles(directoryPath) {
   for (const entry of entries) {
     const entryPath = path.join(directoryPath, entry.name);
     if (entry.isDirectory()) {
+      if (SKIP_DIRECTORY_NAMES.has(entry.name)) {
+        continue;
+      }
       files.push(...collectTypeScriptFiles(entryPath));
       continue;
     }
@@ -63,6 +92,58 @@ function collectTypeScriptFiles(directoryPath) {
   }
 
   return files;
+}
+
+export function collectRetiredTwentyRuntimeViolationsFromSource(
+  relativePath,
+  source,
+) {
+  const normalized = relativePath.replaceAll("\\", "/");
+  if (
+    HISTORICAL_TWENTY_PATH_PREFIXES.some((prefix) =>
+      normalized.startsWith(prefix),
+    ) ||
+    normalized === RETIRED_TWENTY_SCANNER_PATH
+  ) {
+    return [];
+  }
+
+  const isScannedRuntime =
+    RETIRED_TWENTY_SCAN_ROOTS.some((root) =>
+      normalized.startsWith(`${root}/`),
+    ) || normalized === ".env.example";
+
+  if (!isScannedRuntime) {
+    return [];
+  }
+
+  return RETIRED_TWENTY_RUNTIME_MARKERS.flatMap((marker) =>
+    source.includes(marker)
+      ? [`${normalized}: retired Twenty runtime reference (${marker})`]
+      : [],
+  );
+}
+
+export function collectRetiredTwentyRuntimeViolations() {
+  const files = RETIRED_TWENTY_SCAN_ROOTS.flatMap((dir) => {
+    const directoryPath = path.join(repoRoot, dir);
+    if (!statExists(directoryPath)) {
+      return [];
+    }
+    return collectTypeScriptFiles(directoryPath);
+  });
+
+  const envExample = path.join(repoRoot, ".env.example");
+  if (statExists(envExample)) {
+    files.push(envExample);
+  }
+
+  return files.flatMap((filePath) =>
+    collectRetiredTwentyRuntimeViolationsFromSource(
+      toRepoRelative(filePath),
+      readFileSync(filePath, "utf8"),
+    ),
+  );
 }
 
 function collectApiRouteFiles() {
@@ -233,6 +314,18 @@ function runDataBoundaryCheck() {
     );
     console.error(
       "Raw @supabase/supabase-js imports are forbidden in app source; browser Supabase auth helpers require an explicit allowlist entry.",
+    );
+    process.exit(1);
+  }
+
+  const retiredTwentyRuntimeViolations =
+    collectRetiredTwentyRuntimeViolations();
+  if (retiredTwentyRuntimeViolations.length > 0) {
+    console.error("Retired Twenty CRM runtime violations detected:");
+    console.error(retiredTwentyRuntimeViolations.join("\n"));
+    console.error("");
+    console.error(
+      "Asym Postgres owns CRM truth. Remove live Twenty clients, credentials, routes, webhooks, and sync flags from current runtime source.",
     );
     process.exit(1);
   }

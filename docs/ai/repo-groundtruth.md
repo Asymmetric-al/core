@@ -118,8 +118,8 @@ Tooling: `tooling/eslint-config` → `@asym/eslint-config`,
 business-data-access layer. App API route handlers under `apps/*/app/api/` must
 be thin re-exports and must not import `@asym/database/supabase/*`,
 `@supabase/ssr`, or `@supabase/supabase-js` directly. Twenty CRM is retired
-(ADR-0001); remaining dormant Twenty clients must not be imported from app
-source and must not be restored. Enforced by ESLint `no-restricted-imports`
+(ADR-0001); Twenty clients must not be restored or imported from app
+source. Enforced by ESLint `no-restricted-imports`
 plus `scripts/verify/data-boundary-check.mjs` (`data-access-boundary.md:9-25`;
 `verify:data-boundary` script present).
 

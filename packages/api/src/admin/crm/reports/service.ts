@@ -41,13 +41,6 @@ interface LabelRow {
   } | null;
 }
 
-interface FailureRow {
-  id: string;
-  status: string | null;
-  last_error: string | null;
-  updated_at: string | null;
-}
-
 function assertNoError(
   error: { message?: string } | null,
   fallback: string,
@@ -212,34 +205,15 @@ async function buildSyncFailureRows(
   tenantId: string,
   params: AdminCrmReportParams,
 ): Promise<CrmReportRow[]> {
-  const [jobsResult, linksResult] = await Promise.all([
-    supabaseAdmin
-      .from("crm_outbound_jobs")
-      .select("id, status, last_error, updated_at")
-      .eq("tenant_id", tenantId)
-      .in("status", ["failed", "dead_letter"])
-      .limit(250),
-    supabaseAdmin
-      .from("donation_crm_links")
-      .select("id, link_status, updated_at")
-      .eq("tenant_id", tenantId)
-      .eq("scope", "parent")
-      .in("link_status", ["queued", "failed"])
-      .limit(250),
-  ]);
-  assertNoError(jobsResult.error, "Failed to load failed CRM jobs.");
-  assertNoError(linksResult.error, "Failed to load drifted CRM gift links.");
+  const linksResult = await supabaseAdmin
+    .from("donation_crm_links")
+    .select("id, link_status, updated_at")
+    .eq("tenant_id", tenantId)
+    .eq("scope", "parent")
+    .in("link_status", ["queued", "failed"])
+    .limit(250);
+  assertNoError(linksResult.error, "Failed to load leftover CRM gift links.");
 
-  const jobRows = ((jobsResult.data ?? []) as FailureRow[]).map((row) => ({
-    amountCents: 0,
-    donorCount: 0,
-    giftCount: 0,
-    id: row.id,
-    label: row.last_error ?? "CRM outbound job failure",
-    lastGiftAt: row.updated_at,
-    metadata: { source: "crm_outbound_jobs" },
-    status: row.status,
-  }));
   const linkRows = (
     (linksResult.data ?? []) as Array<{
       id: string;
@@ -257,7 +231,7 @@ async function buildSyncFailureRows(
     status: row.link_status,
   }));
 
-  return [...jobRows, ...linkRows].filter((row) =>
+  return linkRows.filter((row) =>
     matchesSearch(row.label, params.filters.search),
   );
 }

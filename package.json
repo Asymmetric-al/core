@@ -100,7 +100,6 @@
     "verify:bun-lock-drift": "node scripts/verify/bun-lock-drift.mjs",
     "verify:data-boundary": "node scripts/verify/data-boundary-check.mjs",
     "verify:cms-public-sole-entry": "node scripts/verify/cms-public-sole-entry.mjs",
-    "verify:twenty-crm-health": "bun scripts/verify/twenty-crm-health.ts",
     "cutover:assess:documents": "bun scripts/document-cutover/assess-document-cutover.ts",
     "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs",
     "skills:sync": "node scripts/sync-agent-skills.mjs",
