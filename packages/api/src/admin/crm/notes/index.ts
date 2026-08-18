@@ -1,4 +1,3 @@
-import { serverEnv } from "@asym/env";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -6,10 +5,9 @@ import { parseAdminCrmNotesParams } from "./query";
 import {
   createMissionControlCrmNote,
   listMissionControlCrmNotes,
+  type NotesClient,
 } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
-import { resolveCrmSyncRuntimeConfig } from "../../../crm/sync/config";
-import { createSupabaseCrmSyncStore } from "../../../crm/sync/store";
 import { revalidateAdminCrmCache } from "../../../shared/cache-tags";
 import { ensureJsonBody, toErrorResponse } from "../../../shared/http-errors";
 import { withOperation } from "../../../shared/with-operation";
@@ -17,6 +15,7 @@ import { withOperation } from "../../../shared/with-operation";
 const createNoteSchema = z.object({
   body: z.string().trim().min(1, "Note body is required.").max(10_000),
   linkedRecordId: z.string().trim().min(1).max(160).nullable().optional(),
+  linkedRecordLabel: z.string().trim().min(1).max(160).nullable().optional(),
   linkedRecordType: z
     .enum(["donor_profile", "missionary_profile", "organization"])
     .nullable()
@@ -26,7 +25,7 @@ const createNoteSchema = z.object({
 });
 
 export const GET = withOperation(
-  async ({ auth, request, requestId }) => {
+  async ({ auth, request, requestId, supabaseAdmin }) => {
     const actor = requireCrmAccess(auth, {
       action: "crm.note.read",
       resourceType: "note",
@@ -36,8 +35,8 @@ export const GET = withOperation(
     try {
       const response = await listMissionControlCrmNotes({
         actor,
-        env: serverEnv,
         params,
+        supabase: supabaseAdmin as unknown as NotesClient,
       });
 
       return NextResponse.json({ ...response, requestId });
@@ -61,18 +60,16 @@ export const POST = withOperation(
     try {
       const response = await createMissionControlCrmNote({
         actor,
-        commandClient: supabaseAdmin,
         input,
         requestId,
-        store: createSupabaseCrmSyncStore(supabaseAdmin),
-        syncConfig: resolveCrmSyncRuntimeConfig(serverEnv),
+        supabase: supabaseAdmin as unknown as NotesClient,
       });
 
       revalidateAdminCrmCache(actor.tenantId);
 
-      return NextResponse.json({ ...response, requestId }, { status: 202 });
+      return NextResponse.json({ ...response, requestId }, { status: 201 });
     } catch (error) {
-      return toErrorResponse(error, "Failed to queue CRM note.", requestId);
+      return toErrorResponse(error, "Failed to save CRM note.", requestId);
     }
   },
   {

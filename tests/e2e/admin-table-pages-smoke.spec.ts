@@ -58,17 +58,20 @@ const TABLE_ROUTES = [
   { path: "/mobilize/locations", name: "Locations" },
 ] as const;
 
-const CRM_TWENTY_SURFACES = [
+const CRM_LOCAL_SURFACES = [
   {
     path: "/crm/notes",
     heading: "CRM Notes",
-    emptyState: /No CRM notes|CRM reads are not configured/i,
+    emptyState: /No CRM notes/i,
   },
   {
     path: "/crm/relationships",
     heading: "CRM Relationships",
-    emptyState: /No CRM relationships|CRM reads are not configured/i,
+    emptyState: /No CRM relationships/i,
   },
+] as const;
+
+const CRM_TWENTY_SURFACES = [
   {
     path: "/crm/projections",
     heading: "CRM Projections",
@@ -99,6 +102,29 @@ test.describe("Admin table pages smoke", () => {
       await expectMissionControlChrome(page);
     });
   }
+
+  test.describe("Local CRM notes and relationships", () => {
+    for (const { emptyState, heading, path } of CRM_LOCAL_SURFACES) {
+      test(`${heading} (${path}) loads local Asym Postgres data without overlay`, async ({
+        page,
+      }) => {
+        await ensureAdminDemo(page);
+        await page.goto(adminPath(path));
+        await page.waitForLoadState("domcontentloaded");
+
+        await expect(page.locator("#__next_error__")).toHaveCount(0);
+        await expectMissionControlChrome(page);
+        await expect(
+          page.getByRole("heading", { name: heading }),
+        ).toBeVisible();
+        await expect(page.getByText(emptyState).first()).toBeVisible({
+          timeout: 120_000,
+        });
+        await expect(page.getByText(/Asym Postgres/i).first()).toBeVisible();
+        await expect(page.getByText(/Twenty/i)).toHaveCount(0);
+      });
+    }
+  });
 
   test.describe("Twenty-backed CRM surfaces", () => {
     for (const { emptyState, heading, path } of CRM_TWENTY_SURFACES) {

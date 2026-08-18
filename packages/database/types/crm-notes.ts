@@ -1,54 +1,54 @@
-export type CrmNoteSortField = "createdAt" | "updatedAt" | "title";
+export type CrmNoteSortField = "updatedAt" | "createdAt" | "title";
 export type CrmNoteSortDirection = "asc" | "desc";
 
-export interface CrmNoteRow {
+export type CrmNoteRow = {
   id: string;
   tenantId: string;
   title: string;
   body: string;
   bodyPreview: string;
-  authorName: string | null;
+  authorName: string;
   linkedRecordId: string | null;
   linkedRecordLabel: string | null;
   linkedRecordType: string | null;
   visibility: "standard" | "restricted";
-  source: "twenty" | "queued";
-  outboundJobId: string | null;
+  source: "local";
   createdAt: string;
   updatedAt: string;
-}
+};
 
-export interface AdminCrmNotesListResponse {
+export type AdminCrmNotesSort = {
+  field: CrmNoteSortField;
+  direction: CrmNoteSortDirection;
+};
+
+export type AdminCrmNotesListResponse = {
+  mode: "local";
+  configured: boolean;
+  missing: string[];
   rows: CrmNoteRow[];
   nextCursor: string | null;
   hasMore: boolean;
   limit: number;
-  configured: boolean;
-  mode: "twenty" | "not_configured";
-  missing: string[];
-  sort: {
-    field: CrmNoteSortField;
-    direction: CrmNoteSortDirection;
-  };
-  filters: {
-    search: string | null;
-  };
-  rollback: {
-    existingCrmPath: "/crm";
-    disableWritesByPausingDomain: "notes";
-  };
-}
+  sort: AdminCrmNotesSort;
+  filters: { search: string | null };
+  rollback: { existingCrmPath: "/crm" };
+};
 
-export interface AdminCrmNoteCreateResponse {
+export type CreateAdminCrmNoteInput = {
+  title: string;
+  body: string;
+  visibility?: "standard" | "restricted";
+  linkedRecordId?: string | null;
+  linkedRecordType?: string | null;
+  linkedRecordLabel?: string | null;
+};
+
+export type AdminCrmNoteCreateResponse = {
   note: CrmNoteRow;
-  outboundJobId: string;
-  outboundStatus: string;
-  commandLogId: string | null;
-  replay: {
-    outboundJobId: string;
-  };
+  commandLogId: string;
+  duplicate?: boolean;
   rollback: {
     existingCrmPath: "/crm";
-    disableWritesByPausingDomain: "notes";
   };
-}
+};

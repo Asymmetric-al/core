@@ -54,6 +54,7 @@ export type {
   AdminCrmRelationshipsListResponse,
   CrmRelationshipAuthorityScope,
   CrmRelationshipDomain,
+  CrmRelationshipRecordKind,
   CrmRelationshipReport,
   CrmRelationshipRow,
   CrmRelationshipSortDirection,

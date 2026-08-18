@@ -8,11 +8,11 @@
 
 ## 2. Local CRM replacements (TDD)
 
-- [ ] 2.1 Failing tests for local relationship reads and tenant isolation
-- [ ] 2.2 Implement Asym Postgres relationship reads; remove Twenty mode/labels from that path
-- [ ] 2.3 Failing tests for local note create, tenant isolation, restricted visibility, read-after-write, and audit
-- [ ] 2.4 Implement authoritative local notes with forward migration and RLS
-- [ ] 2.5 Keep Mission Control notes and relationships screens working without Twenty
+- [x] 2.1 Failing tests for local relationship reads and tenant isolation
+- [x] 2.2 Implement Asym Postgres relationship reads; remove Twenty mode/labels from that path
+- [x] 2.3 Failing tests for local note create, tenant isolation, restricted visibility, read-after-write, and audit
+- [x] 2.4 Implement authoritative local notes with forward migration and RLS
+- [x] 2.5 Keep Mission Control notes and relationships screens working without Twenty
 
 ## 3. Twenty runtime removal
 
