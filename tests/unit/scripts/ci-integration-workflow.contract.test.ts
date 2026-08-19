@@ -163,4 +163,17 @@ describe("ci-integration workflow contract", () => {
     expect(donorSmoke).toContain("[chromium-donor]");
     expect(donorSmoke).toContain("upload-crop.spec.ts");
   }, 60_000);
+
+  it("can collect the admin table pages smoke spec for CMS E2E", () => {
+    const listed = listPlaywrightTests([
+      "tests/e2e/admin-table-pages-smoke.spec.ts",
+      "--project=chromium",
+      "--workers=1",
+      "--list",
+    ]);
+    expect(listed).toContain("admin-table-pages-smoke.spec.ts");
+    expect(listed).toContain("CRM Notes");
+    expect(listed).not.toContain("CRM Projections");
+    expect(listed).not.toContain("Cannot find module");
+  }, 60_000);
 });

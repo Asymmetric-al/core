@@ -80,3 +80,31 @@ Do not archive until implementation is accepted repository reality.
 - `bun run skills:verify`
 - `bun run check`
 - `bun run ci:preflight`
+- `bun run lint`
+- `bun run typecheck`
+- `bun run test:unit`
+- `bun run format:check`
+- `bun run verify:workspace-contract`
+
+Scoped app commands:
+
+- `bun run dev:admin`
+- `bun run dev:donor`
+- `bun run dev:missionary`
+- `bunx turbo run lint --filter=@asym/admin`
+- `bunx turbo run lint --filter=@asym/donor`
+- `bunx turbo run lint --filter=@asym/missionary-app`
+- `bunx turbo run typecheck --filter=@asym/admin`
+- `bunx turbo run typecheck --filter=@asym/donor`
+- `bunx turbo run typecheck --filter=@asym/missionary-app`
+
+## Operating Constraints
+
+- Preserve the small Next.js-managed opening block in `AGENTS.md`; keep the
+  committed `.next-docs/` fallback searchable without embedding its compressed
+  file index in the always-on root instructions.
+- Preserve nested `AGENTS.md` files under `supabase/` and `scripts/`.
+- Keep instruction diffs surgical and avoid touching product code, tests,
+  database files, or unrelated infra when working on the instruction system.
+- When a change affects durable workflow or intended behavior, update OpenSpec
+  alongside the checked-in instruction files.

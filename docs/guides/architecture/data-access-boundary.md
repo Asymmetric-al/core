@@ -17,11 +17,10 @@ reserved for approved low-level auth/session/storage helpers, not feature-local
 table reads.
 
 Asym Postgres owns all CRM truth. Twenty CRM is retired. App source must not
-import remaining dormant Twenty client wrappers from
-`packages/api/src/crm/client/*`, must not import `@asym/api/crm/client*`, must
-not restore Twenty credentials, routes, webhooks, or sync, and must never
-reference `TWENTY_API_KEY`, `TWENTY_WEBHOOK_SECRET`, or any `NEXT_PUBLIC_TWENTY_*`
-value.
+restore Twenty clients, credentials, routes, webhooks, synchronization, or
+projections. Do not import `@asym/api/crm/client*` or recreate
+`packages/api/src/crm/client/*`, and never reference `TWENTY_API_KEY`,
+`TWENTY_WEBHOOK_SECRET`, or any `NEXT_PUBLIC_TWENTY_*` value.
 
 ## Enforcement
 
@@ -29,7 +28,7 @@ value.
 2. Secondary: `scripts/verify/data-boundary-check.mjs` runs in CI as a belt-and-suspenders guard.
 
 The CI script scans API route handlers for direct Supabase imports and app
-source for remaining Twenty client imports or retired Twenty credential usage.
+source for restored Twenty client imports or retired Twenty credential usage.
 Routes outside `app/api/` (for example `apps/donor/app/auth/callback/route.ts`,
 which now re-exports `GET` from `@asym/api/auth/callback`) are outside the API
 route Supabase scope but follow the same delegation pattern.

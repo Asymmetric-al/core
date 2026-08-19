@@ -104,7 +104,7 @@ implementation task.
 
 ### Instant Navigation (Next.js 16.3)
 
-- All apps run `cacheComponents: true` + `partialPrefetching: true`; navigations must stay instant (see **Instant Navigation (Next.js 16.3)** in root `AGENTS.md`).
+- All apps run `cacheComponents: true` + `partialPrefetching: true`; navigations must stay instant. This section is the detailed repository contract behind the compact root invariant.
 - Every server `await` in a page/layout is an explicit Stream / Cache / Block decision:
   - Stream request-time data with `<Suspense fallback={...}>`.
   - Cache request-reusable data with `'use cache'`.

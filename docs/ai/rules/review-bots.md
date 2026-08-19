@@ -41,8 +41,9 @@ goal is signal over noise: real bugs surface, nits do not bury them.
 **Rules of engagement:**
 
 - Report findings with `file:line` evidence for any behavior claim; no speculative findings.
-- Security findings are investigated regardless of confidence; style disputes are settled by repo
-  config (`greptile.json`, these guidelines), not by debate threads.
+- Security findings are investigated regardless of confidence; style disputes
+  are settled by checked-in formatter/linter configuration and these
+  guidelines, not by debate threads.
 - After the first review round, re-reviews should raise only **new** P0/P1 findings — suppress
   fresh nits — to avoid fix→new-nit loops.
 - Merge safety is enforced by GitHub required checks, not by review bots; a passing/failing review
