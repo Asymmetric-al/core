@@ -22,6 +22,11 @@ export const CRM_RELATIONSHIP_DOMAINS: CrmRelationshipDomain[] = [
 const CHURCH_NAME_PATTERN = /church|ministry/i;
 const CARE_SENSITIVE_PATTERN =
   /care|private|counsel|pastoral|member[-_\s]?care|care[-_\s]?plan/;
+const CARE_SENSITIVE_ACTIVITY_TYPES = new Set([
+  "pastoral_note",
+  "care_plan_update",
+  "crisis_intervention",
+]);
 
 export function normalizeKey(value: string): string {
   return value
@@ -122,6 +127,11 @@ export function isCareSensitiveRelationship(
   record: JsonRecord,
   objectName = "",
 ): boolean {
+  const activityType = objectName || readText(record, ["type"]);
+  if (CARE_SENSITIVE_ACTIVITY_TYPES.has(activityType)) {
+    return true;
+  }
+
   return CARE_SENSITIVE_PATTERN.test(
     [
       objectName,

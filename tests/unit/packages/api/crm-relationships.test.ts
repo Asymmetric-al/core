@@ -380,6 +380,47 @@ describe("local CRM relationships", () => {
     expect(result.report.excludedCareActivityCount).toBe(1);
   });
 
+  it("excludes crisis intervention activity even when the Twenty care regex would miss it", async () => {
+    const supabase = supabaseWith({
+      donors: [],
+      missionaries: [],
+      profiles: [],
+      donor_pledges: [],
+      member_care_activities: [
+        {
+          id: "care-crisis",
+          tenant_id: TENANT_A,
+          missionary_id: "missionary-sam",
+          type: "crisis_intervention",
+          title: "Crisis intervention",
+          description: "Confidential crisis details",
+          occurred_at: "2026-08-03T00:00:00.000Z",
+        },
+        {
+          id: "care-public",
+          tenant_id: TENANT_A,
+          missionary_id: "missionary-sam",
+          type: "check_in",
+          title: "Check-in",
+          description: "Public follow-up",
+          occurred_at: "2026-08-02T00:00:00.000Z",
+        },
+      ],
+    });
+
+    const result = await listMissionControlCrmRelationships({
+      actor: actor(),
+      supabase,
+      params: { ...params, domains: ["activity"] },
+    });
+
+    expect(result.rows.map((row) => row.displayName)).toEqual(["Check-in"]);
+    expect(JSON.stringify(result.rows)).not.toContain(
+      "Confidential crisis details",
+    );
+    expect(result.report.excludedCareActivityCount).toBe(1);
+  });
+
   it("counts church-named organization duplicates as merge candidates", async () => {
     const supabase = supabaseWith({
       donors: [
