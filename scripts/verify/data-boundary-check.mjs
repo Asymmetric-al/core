@@ -47,6 +47,10 @@ const SKIP_DIRECTORY_NAMES = new Set([
   "dist",
   "coverage",
   ".turbo",
+  // Gitignored Nitro/Eve build trees. Local `.output` chunks can still mention
+  // retired Twenty env names; those files are not current runtime source.
+  ".output",
+  ".nitro",
 ]);
 const RETIRED_TWENTY_RUNTIME_MARKERS = [
   "TWENTY_API_URL",

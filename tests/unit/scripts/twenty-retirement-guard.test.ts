@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -37,5 +38,24 @@ describe("Twenty CRM retirement guard", () => {
 
   it("passes a clean current runtime tree", () => {
     expect(collectRetiredTwentyRuntimeViolations()).toEqual([]);
+  });
+
+  it("skips generated Eve and Nitro output directories while walking runtime trees", () => {
+    const scanner = readFileSync(
+      new URL(
+        "../../../scripts/verify/data-boundary-check.mjs",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+
+    expect(scanner).toMatch(
+      /SKIP_DIRECTORY_NAMES = new Set\(\[[\s\S]*"\.output"[\s\S]*"\.nitro"/u,
+    );
+    expect(
+      collectRetiredTwentyRuntimeViolations().some((violation) =>
+        violation.includes(".output/"),
+      ),
+    ).toBe(false);
   });
 });
