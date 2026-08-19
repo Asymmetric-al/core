@@ -25,4 +25,18 @@ for source_file in \
   fi
 done
 
-sudo apt-get update
+# Successful canvas installs finish in about one minute. Some GitHub-hosted
+# runners hang forever on `apt-get update` (lint/migrate had no job timeout
+# and sat on this step for 25+ minutes). Bound the fetch and retry once so a
+# bad mirror cannot occupy a runner for the 6-hour default job cap.
+APT_GET_TIMEOUT_SECONDS="${APT_GET_TIMEOUT_SECONDS:-180}"
+
+bounded_apt_get() {
+  sudo timeout --kill-after=10s "${APT_GET_TIMEOUT_SECONDS}s" apt-get "$@"
+}
+
+if ! bounded_apt_get update; then
+  echo "apt-get update failed or timed out after ${APT_GET_TIMEOUT_SECONDS}s; retrying once"
+  sleep 5
+  bounded_apt_get update
+fi
