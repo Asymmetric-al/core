@@ -34,6 +34,18 @@ describe("github apt install scripts bound hung metadata fetches", () => {
     expect(prepare).toContain("APT_GET_TIMEOUT_SECONDS");
   });
 
+  it("pins Ubuntu apt away from Azure mirrors before update", () => {
+    const prepare = readScript("scripts/github/prepare-apt.sh");
+
+    expect(prepare).toContain("http://archive.ubuntu.com/ubuntu/");
+    expect(prepare).toContain("http://security.ubuntu.com/ubuntu/");
+    expect(prepare).toContain("azure.archive.ubuntu.com/ubuntu");
+    expect(prepare).toContain("mirror+file:/etc/apt/apt-mirrors.txt");
+    expect(prepare).toContain('Acquire::http::Timeout "20"');
+    expect(prepare).toContain('Acquire::https::Timeout "20"');
+    expect(prepare).toContain('Acquire::Retries "2"');
+  });
+
   it("wraps canvas and postgres client installs with a longer GNU timeout and retries once", () => {
     const canvas = readScript("scripts/github/install-canvas-deps.sh");
     const postgres = readScript("scripts/github/install-postgresql-client.sh");
