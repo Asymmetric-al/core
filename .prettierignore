@@ -50,6 +50,7 @@ apps/admin/payload-types.ts
 .agents
 .claude/worktrees
 .claude/worktrees.bak-push
+.claude/settings.local.json
 .next-docs
 .nia-sync
 .traycer

@@ -2,9 +2,9 @@
 
 - **Primary instructions:** root `AGENTS.md` (repo-wide routing, skills, monorepo commands). Preserve exact `base-maia`. Nia is optional.
 
-- **Animation routing:** Follow the exact routes in root `AGENTS.md`: load `emil-design-engineering` first and `anim` for Core's operative contract; use `emil-design-eng`, `animation-vocabulary`, `apple-design`, `improve-animations`, or explicit-only `review-animations` only for their narrow triggers; pair `motion` only when `motion/react` API details matter.
-- **TanStack routing:** Follow the root `AGENTS.md` TanStack CLI and Intent section. In short: use the official TanStack CLI, run `npx --yes @tanstack/intent@latest list`, load Intent skills only for packages returned by that current command, and use `tanstack doc` / `tanstack search-docs` plus repo TanStack guides for packages not returned by Intent. Do not use repo-local or unofficial TanStack skills.
-- **Inngest routing:** Official Inngest agent skills are routed from root `AGENTS.md`, mirrored to `.cursor/skills/`, and paired with the `inngest-dev` MCP server in `.cursor/mcp.json` when the Inngest dev server is running.
-- **ReUI routing:** ReUI agent skills are routed from root `AGENTS.md`, mirrored to `.cursor/skills/`, and paired with the `reui` MCP server in `.cursor/mcp.json` for registry search, planning, inline APIs, and validation.
+- **Skill routing:** Use `docs/ai/rules/agent-skill-routing.md` when discovery is ambiguous. In particular, animation work starts with `emil-design-engineering` plus `anim`; the remaining motion skills keep their narrow documented triggers.
+- **TanStack routing:** Follow `docs/guides/development/tanstack-integration.md`: use the official TanStack CLI, load Intent skills only for packages returned by the current list command, and use official docs for remaining packages.
+- **Inngest routing:** Official Inngest skills are documented in `docs/ai/rules/agent-skill-routing.md`, mirrored to `.cursor/skills/`, and paired with the `inngest-dev` MCP server in `.cursor/mcp.json` when the dev server is running.
+- **ReUI routing:** ReUI guidance is documented in `docs/ai/skills/reui/SKILL.md`, mirrored to `.cursor/skills/`, and paired with the `reui` MCP server in `.cursor/mcp.json`.
 - **Cursor project rules:** `.cursor/rules/` (scoped behavior; optional `*.mdc` with frontmatter).
 - **MCP (Cursor):** `.cursor/mcp.json` mirrors root `.mcp.json` for the same server definitions.
