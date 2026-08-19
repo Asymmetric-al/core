@@ -9,15 +9,26 @@ function readRepoFile(path: string) {
 }
 
 describe("missionary donors TanStack migration", () => {
-  it("uses the shared missionary donor hook and shared tables for both donor surfaces", () => {
+  it("uses the shared missionary donor hook on the page view-model", () => {
     const source = readRepoFile(
       "apps/missionary/app/donors/use-donors-page-view.tsx",
     );
 
     expect(source).toMatch(/useMissionaryDonorRows/);
+    expect(source).not.toMatch(/useDataTableVirtualization/);
+    expect(source).not.toMatch(/<table/);
+    expect(source).not.toMatch(/DataTableResponsive/);
+  });
+
+  it("renders the partner roster through the shared table adapter", () => {
+    const source = readRepoFile(
+      "apps/missionary/app/donors/donors-page-roster.tsx",
+    );
+
     expect(source).toMatch(/DataTableResponsive/);
     expect(source).not.toMatch(/useDataTableVirtualization/);
     expect(source).not.toMatch(/<table/);
+    expect(source).not.toMatch(/from "@tanstack\/react-table"/);
   });
 
   it("keeps missionary donor identity behind the server-redacted hook contract", () => {
