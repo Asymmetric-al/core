@@ -2,10 +2,6 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-const storeSource = readFileSync(
-  new URL("../../../../packages/api/src/crm/sync/store.ts", import.meta.url),
-  "utf8",
-);
 const stagedGiftsSource = readFileSync(
   new URL(
     "../../../../packages/api/src/giving/staged-gifts.ts",
@@ -51,49 +47,10 @@ function sourceSection(
   return source.slice(start, end);
 }
 
-const parentLinkSingletonRead =
-  /\.from\("donation_crm_links"\)[\s\S]*?\.eq\("scope", "parent"\)[\s\S]*?\.maybeSingle\(\)/;
 const parentLinkCollectionRead =
   /\.from\("donation_crm_links"\)[\s\S]*?\.eq\("scope", "parent"\)[\s\S]*?(?:\.in\(|\.limit\()/;
 
 describe("CRM donation link parent-scope contract", () => {
-  it("keeps outbound success/failure singleton reads scoped to parent links", () => {
-    const success = sourceSection(
-      storeSource,
-      "async recordOutboundSuccess(input)",
-      "async recordOutboundFailure(input)",
-    );
-    const failure = sourceSection(
-      storeSource,
-      "async recordOutboundFailure(input)",
-      "async loadReconciliationSnapshot(input)",
-    );
-
-    expect(success).toMatch(parentLinkSingletonRead);
-    expect(success).toContain('scope: "parent"');
-    expect(failure).toMatch(parentLinkSingletonRead);
-  });
-
-  it("keeps reconciliation gift-link drift scoped to parent links", () => {
-    const reconciliation = sourceSection(
-      storeSource,
-      "async loadReconciliationSnapshot(input)",
-      "requireNoError(orphanLinks.error",
-    );
-
-    expect(reconciliation).toMatch(parentLinkCollectionRead);
-  });
-
-  it("keeps staged gift queueing scoped to parent links", () => {
-    const queueStagedGiftPostingToTwenty = sourceSection(
-      stagedGiftsSource,
-      "export async function queueStagedGiftPostingToTwenty(",
-    );
-
-    expect(queueStagedGiftPostingToTwenty).toMatch(parentLinkSingletonRead);
-    expect(queueStagedGiftPostingToTwenty).toContain('scope: "parent"');
-  });
-
   it("backs parent staged gift singleton reads with a partial unique index", () => {
     expect(crmLinksMigrationSource).toContain(
       "CREATE UNIQUE INDEX IF NOT EXISTS idx_donation_crm_links_parent_staged_gift",
@@ -107,7 +64,7 @@ describe("CRM donation link parent-scope contract", () => {
     expect(crmLinksMigrationSource).toContain("AND scope = 'parent'");
   });
 
-  it("keeps CRM detail and report readers scoped to parent links", () => {
+  it("keeps CRM detail and report leftover gift-link readers scoped to parent links", () => {
     const detail = sourceSection(
       crmDetailSource,
       "const [linkResult, sharedInputs] =",
@@ -116,10 +73,23 @@ describe("CRM donation link parent-scope contract", () => {
     const report = sourceSection(
       crmReportsSource,
       "async function buildSyncFailureRows(",
-      "assertNoError(jobsResult.error",
+      'assertNoError(linksResult.error, "Failed to load leftover CRM gift links.")',
     );
 
     expect(detail).toMatch(parentLinkCollectionRead);
     expect(report).toMatch(parentLinkCollectionRead);
+  });
+
+  it("does not queue Twenty CRM posts when approving a staged gift for finance", () => {
+    const approve = sourceSection(
+      stagedGiftsSource,
+      "export async function approveStagedGiftForFinance(",
+      "export function rejectRetiredCrmPostingRetry()",
+    );
+
+    expect(approve).toContain('crm_post_status: "not_required"');
+    expect(approve).not.toContain("donation_crm_links");
+    expect(approve).not.toContain('crm_provider: "twenty"');
+    expect(approve).not.toContain("queueStagedGiftPostingToTwenty");
   });
 });

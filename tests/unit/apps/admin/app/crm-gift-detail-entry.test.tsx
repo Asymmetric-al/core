@@ -215,7 +215,6 @@ const crmDonorDetail = {
   },
   reconciliation: {
     crmWriteMode: "disabled",
-    twentyIsPaymentTruth: false,
     platformPaymentTruth: true,
   },
 };
