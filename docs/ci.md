@@ -2,20 +2,25 @@
 
 ## Overview
 
-Two workflow files run on every PR to `develop` and `production`, and on every push to
-`develop` and `production`:
+Two workflow files run on every PR whose base is `develop`, `production`, or a
+`cursor/**` stacked branch, and on every push to `develop` and `production`:
 
-| Workflow          | File                                   | Branches                                | Jobs                                            | Target time               |
-| ----------------- | -------------------------------------- | --------------------------------------- | ----------------------------------------------- | ------------------------- |
-| Fast checks       | `.github/workflows/ci.yml`             | PRs + pushes on `develop`, `production` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
-| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
+| Workflow          | File                                   | Branches                                                                       | Jobs                                            | Target time               |
+| ----------------- | -------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- | ------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | PRs on `develop`, `production`, `cursor/**`; pushes on `develop`, `production` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs on `develop`, `production`, `cursor/**`; pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
 
 Current workflow semantics:
 
-- `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `production`).
-- `ci-integration.yml` runs on the same active long-lived branches.
+- `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `production`) and for stacked Cursor Cloud PRs whose base matches `cursor/**`.
+- `ci-integration.yml` runs on the same pull-request bases. Pushes still run only on `develop` and `production`.
+- `Shadscan` (`.github/workflows/shadscan.yml`) uses the same pull-request bases; pushes remain `develop` only.
 - `test-e2e-smoke` is **blocking on `develop`** through `integration-gate`, which depends on `e2e-smoke-gate` (not a separate branch-protection check).
 - `test-e2e` is **informational on `develop`** (`continue-on-error: true` there).
+- Stacked `cursor/**` PRs run the same placeholder Supabase E2E path as `develop`
+  (`example.supabase.co`, zero-config bypass). They do **not** inherit
+  `continue-on-error`; full E2E must pass. Production PRs keep hosted secrets
+  and `e2e-gate`.
 - `test-e2e` is enforced on `production` through the workflow's `e2e-gate`, and
   branch protection must require `ci-gate`, `integration-gate`, and `e2e-gate`
   before production release PRs can merge.
@@ -49,17 +54,18 @@ bun run ci:preflight
 1. `verify:git-attribution`
 2. `format:check`
 3. `skills:verify`
-4. `lint`
-5. `verify:data-boundary`
-6. `verify:cms-public-sole-entry`
-7. `verify:workspace-contract`
-8. `verify:bun-lock-drift`
-9. `verify:eslint`
-10. `verify:shadcn-config`
-11. `verify:shadcn-diff`
-12. `typecheck`
-13. `build` (with CI-compatible env defaults for local parity)
-14. `test:unit`
+4. `openspec:validate`
+5. `lint`
+6. `verify:data-boundary`
+7. `verify:cms-public-sole-entry`
+8. `verify:workspace-contract`
+9. `verify:bun-lock-drift`
+10. `verify:eslint`
+11. `verify:shadcn-config`
+12. `verify:shadcn-diff`
+13. `typecheck`
+14. `build` (with CI-compatible env defaults for local parity)
+15. `test:unit`
 
 Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage order),
 `tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
@@ -127,26 +133,16 @@ not be pointed at production data.
 > retired ([ADR-0001](adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md));
 > the section is retained for history until the cleanup ticket removes it.
 
-Twenty CRM production cutovers use the same fast CI gate plus OpenSpec and
-data-boundary checks before any domain can depend on Twenty in production.
+Twenty CRM is retired. Historical cutover evidence remains in
+`docs/guides/operations/twenty-crm-cutover.md` and the archived OpenSpec change
+`openspec/changes/archive/2026-07-02-integrate-twenty-crm-core/`. Do not re-run
+that change's validation as a live production gate.
 
-Run this sequence for Phase 07 cutover evidence:
+Current OpenSpec validation uses the locally pinned CLI:
 
 ```bash
-bun run format:check
-bun run skills:verify
-bun run verify:data-boundary
-bun run lint
-bun run typecheck
-bun run build
-bun run test:unit
-bunx @fission-ai/openspec@latest validate integrate-twenty-crm-core --strict
+bun run openspec:validate
 ```
-
-Record the command results in the domain evidence note described by
-`docs/guides/operations/twenty-crm-cutover.md`. This gate does not replace the
-domain-specific production requirements for monitoring, backup/restore proof,
-rollback rehearsal, security review, and support ownership.
 
 ### Tooling warning audit (periodic)
 

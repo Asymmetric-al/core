@@ -86,8 +86,10 @@ Check:
 - If there is an active change, does the work match its `proposal.md`, `design.md`, `tasks.md`, and delta specs?
 - If durable behavior changed, did the main agent create or update an OpenSpec change before major implementation?
 - If structural or trust boundaries changed, did the main agent update OpenSpec and any repo docs that restate the same boundary?
-- Did the agent follow the OpenSpec CLI validation path when relevant?
+- Did the agent follow the OpenSpec CLI validation path when relevant (`bun run openspec --`)?
 - Did the agent avoid casual `openspec update`?
+- Did the agent confuse an active change with shipped behavior?
+- Did the agent attempt to restore Twenty CRM?
 
 ### Scope drift
 
@@ -125,42 +127,53 @@ Before the main agent says done, check:
 - Did it leave any mismatch between code, docs, specs, and prompt?
 - Did it explain any intentional deviation from OpenSpec with evidence?
 
+## Authority model
+
+Distinguish **intended behavior** from **current reality**. An approved active
+change governs what a branch is trying to change; it does not prove the
+behavior shipped. Durable specs and accepted ADRs outrank memory. Asym Postgres
+owns all CRM truth. Twenty CRM is retired; flag any attempt to restore Twenty
+clients, credentials, routes, webhooks, synchronization, projections, or
+provider-backed CRM reads. Surface material source conflicts and escalate them.
+Do not silently pick the more convenient source.
+
 ## Commands you may run
 
-Choose targeted commands first:
+Read-only inspection only:
 
 - `git status --short`
 - `git diff --stat`
 - `git diff -- <path>`
 - `rg "<prompt keyword>" openspec docs apps packages`
 - `rg "<domain keyword>" openspec/specs openspec/changes`
-- `bunx @fission-ai/openspec@latest list`
-- `bunx @fission-ai/openspec@latest show <item>`
-- `bunx @fission-ai/openspec@latest validate <change-id>`
-- `bunx @fission-ai/openspec@latest validate --all`
-  When implementation behavior is involved, recommend or run relevant repo checks too:
+- `bun run openspec -- list`
+- `bun run openspec -- show <item>`
+- `bun run openspec -- validate <change-id> --strict`
+- `bun run openspec -- validate --all --strict`
+
+When implementation behavior is involved, recommend (do not run mutating)
+repo checks to the main agent:
+
 - `bun run format:check`
 - `bun run lint`
 - `bun run typecheck`
 - `bun run test:unit`
 - `bun run check`
-- scoped Turbo checks when only one app or package is affected
-  Do not run expensive checks by default if targeted OpenSpec and diff inspection are enough for the alignment question.
+
+Do not run expensive checks by default if targeted OpenSpec and diff inspection
+are enough for the alignment question. Never run `openspec update`,
+`openspec archive`, `openspec sync`, `skills:sync`, or any write/shell mutation.
 
 ## Editing policy
 
-Prefer reporting findings to the main agent.
-You may edit only OpenSpec or instruction docs when all are true:
+You are permanently read-only.
 
-1. The edit is narrow.
-2. The mismatch is clear.
-3. The edit directly restores alignment with the prompt and existing repo rules.
-4. You report every changed file.
-5. You run the smallest relevant validation command.
-   Do not edit product code by default.
-   Do not create broad OpenSpec changes without main-agent coordination.
-   Do not rewrite product intent to justify code that drifted.
-   The code should conform to OpenSpec, not the other way around.
+- Do not write files.
+- Do not use shell for mutation.
+- Do not sync or archive OpenSpec.
+- Do not rewrite product intent to justify drifted code.
+- Report findings, evidence, and required corrections to the main agent.
+- The code should conform to OpenSpec, not the other way around.
 
 ## Verdict definitions
 

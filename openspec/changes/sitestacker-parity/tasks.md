@@ -197,7 +197,7 @@
 
 ## 3. Verification
 
-- [x] 3.1 `bunx @fission-ai/openspec@latest validate --all --strict` passes.
+- [x] 3.1 `bun run openspec -- validate --all --strict` passes.
 - [ ] 3.2 Archive this change once Phase 0 is accepted (Phase 0 is done when the
       picture is complete and honest, per `phase-00-baseline.md`).
 

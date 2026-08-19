@@ -61,6 +61,13 @@
     "nextjs-app-router",
     "nextjs-supabase-auth",
     "npm-deps-cleanup",
+    "openspec-apply-change",
+    "openspec-archive-change",
+    "openspec-explore",
+    "openspec-propose",
+    "openspec-sync-specs",
+    "openspec-update-change",
+    "openspec-verify-change",
     "payloadcms-cms-migration",
     "payloadcms-payload",
     "playwright-best-practices",
@@ -470,6 +477,41 @@
     ],
     "npm-deps-cleanup": [
       "SKILL.md",
+      "references/upstream.md"
+    ],
+    "openspec-apply-change": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "openspec-archive-change": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "openspec-explore": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "openspec-propose": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "openspec-sync-specs": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "openspec-update-change": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "openspec-verify-change": [
+      "SKILL.md",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "payloadcms-cms-migration": [

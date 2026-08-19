@@ -1,9 +1,7 @@
-import { serverEnv } from "@asym/env";
 import { NextResponse } from "next/server";
 
 import { getAdminCrmDonorDetail } from "./service";
 import { requireCrmAccess } from "../../../crm/auth/access";
-import { resolveCrmSyncRuntimeConfig } from "../../../crm/sync/config";
 import { ApiHttpError, toErrorResponse } from "../../../shared/http-errors";
 import { withOperation } from "../../../shared/with-operation";
 import { resolveContributionCapabilities } from "../../contribution-operations/permissions";
@@ -30,8 +28,7 @@ export const GET = withOperation(
 
     try {
       const response = await getAdminCrmDonorDetail({
-        crmWritesEnabled:
-          resolveCrmSyncRuntimeConfig(serverEnv).outboundEnabled,
+        crmWritesEnabled: true,
         donorId: getRecordIdFromPath(request),
         role: actor.role,
         supabaseAdmin,

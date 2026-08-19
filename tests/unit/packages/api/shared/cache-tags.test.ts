@@ -50,7 +50,6 @@ describe("shared/cache-tags constant values", () => {
     expect(ADMIN_CACHE_TAGS.crm.records).toBe("admin:crm:records");
     expect(ADMIN_CACHE_TAGS.crm.notes).toBe("admin:crm:notes");
     expect(ADMIN_CACHE_TAGS.crm.relationships).toBe("admin:crm:relationships");
-    expect(ADMIN_CACHE_TAGS.crm.projections).toBe("admin:crm:projections");
     expect(ADMIN_CACHE_TAGS.crm.reports).toBe("admin:crm:reports");
   });
 
@@ -113,7 +112,6 @@ describe("revalidateAdminCrmCache", () => {
       "admin:crm:records",
       "admin:crm:notes",
       "admin:crm:relationships",
-      "admin:crm:projections",
       "admin:crm:reports",
     ]);
     expectAllUseMaxProfile();
@@ -127,7 +125,6 @@ describe("revalidateAdminCrmCache", () => {
       "admin:crm:records",
       "admin:crm:notes",
       "admin:crm:relationships",
-      "admin:crm:projections",
       "admin:crm:reports",
     ]);
   });

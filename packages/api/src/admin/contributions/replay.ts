@@ -1,10 +1,8 @@
-import { serverEnv } from "@asym/env";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { resolveCrmSyncRuntimeConfig } from "../../crm/sync/config";
 import { processDonationSagaOutboxEvent } from "../../donate/saga";
-import { queueStagedGiftPostingToTwenty } from "../../giving/staged-gifts";
+import { rejectRetiredCrmPostingRetry } from "../../giving/staged-gifts";
 import { revalidateAdminContributionsCache } from "../../shared/cache-tags";
 import {
   ApiHttpError,
@@ -174,18 +172,7 @@ export const POST = withOperation(
       }
 
       if (body.stagedGiftId) {
-        const replayed = await queueStagedGiftPostingToTwenty({
-          supabaseAdmin,
-          stagedGiftId: body.stagedGiftId,
-          tenantId: auth.tenantId,
-          actorProfileId: auth.profileId,
-          note: "Operator replay by staged gift id.",
-          crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
-        });
-
-        revalidateAdminContributionsCache(auth.tenantId);
-
-        return NextResponse.json({ replayed, requestId });
+        rejectRetiredCrmPostingRetry();
       }
 
       if (body.receiptSendId) {
