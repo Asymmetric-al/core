@@ -15,7 +15,6 @@ const recordStripeRawEventFailureMock = vi.fn();
 const handleStripeWebhookEventMock = vi.fn();
 const revalidateAdminContributionsCacheMock = vi.fn();
 const processDonationSagaOutboxEventMock = vi.fn();
-const queueStagedGiftPostingToTwentyMock = vi.fn();
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
@@ -53,16 +52,8 @@ vi.mock("@asym/env", () => ({
   serverEnv: {},
 }));
 
-vi.mock("../../../../../../packages/api/src/admin/crm/sync/config", () => ({
-  resolveCrmSyncRuntimeConfig: vi.fn(() => ({})),
-}));
-
 vi.mock("../../../../../../packages/api/src/donate/saga", () => ({
   processDonationSagaOutboxEvent: processDonationSagaOutboxEventMock,
-}));
-
-vi.mock("../../../../../../packages/api/src/giving/staged-gifts", () => ({
-  queueStagedGiftPostingToTwenty: queueStagedGiftPostingToTwentyMock,
 }));
 
 vi.mock("../../../../../../packages/api/src/shared/cache-tags", () => ({
@@ -172,5 +163,25 @@ describe("admin contributions replay route", () => {
     expect(revalidateAdminContributionsCacheMock).toHaveBeenCalledWith(
       "tenant_1",
     );
+  });
+
+  it("returns 410 when replaying a retired staged-gift CRM posting", async () => {
+    const POST = await loadPostRoute();
+
+    const response = await POST(
+      createJsonRequest({
+        stagedGiftId: "11111111-1111-4111-8111-111111111111",
+      }),
+    );
+    const payload = (await response.json()) as { error?: string };
+
+    expect({
+      status: response.status,
+      error: payload.error,
+    }).toEqual({
+      status: 410,
+      error: expect.stringMatching(/Twenty CRM posting is retired/i),
+    });
+    expect(revalidateAdminContributionsCacheMock).not.toHaveBeenCalled();
   });
 });

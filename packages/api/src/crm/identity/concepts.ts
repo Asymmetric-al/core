@@ -24,7 +24,7 @@ export type CrmIdentityLinkPolicy =
 export interface CrmIdentityConcept {
   id: CrmIdentityConceptId;
   label: string;
-  owner: "asym" | "supabase_auth" | "stripe" | "cms" | "twenty";
+  owner: "asym" | "supabase_auth" | "stripe" | "cms";
   description: string;
   linkPolicy: CrmIdentityLinkPolicy;
   notSameAs: CrmIdentityConceptId[];
@@ -61,9 +61,9 @@ export const CRM_IDENTITY_CONCEPTS = [
   {
     id: "crm_person",
     label: "CRM person",
-    owner: "twenty",
+    owner: "asym",
     description:
-      "Operational relationship person in Twenty, linked to Asym records by tenant-scoped link tables.",
+      "Operational relationship person owned by Asym Postgres. Provider links are references, not identity or truth.",
     linkPolicy: "direct_link",
     notSameAs: [
       "supabase_auth_user",
@@ -164,7 +164,7 @@ export const CRM_IDENTITY_CONCEPTS = [
     label: "Statement record",
     owner: "asym",
     description:
-      "Official giving statement truth. It is not a CRM identity and does not move to Twenty.",
+      "Official giving statement truth. It is not a CRM identity and does not move to an external CRM.",
     linkPolicy: "no_crm_identity_link",
     notSameAs: ["receipt_record", "payment_record", "crm_person"],
   },

@@ -28,11 +28,11 @@ describe("CRM authorization bridge", () => {
   it("creates an actor context from the authenticated Supabase staff user", () => {
     expect(
       requireCrmAccess(authContext(), {
-        action: "crm.gateway.read",
-        resourceType: "crm_gateway",
+        action: "crm.record.read",
+        resourceType: "record",
       }),
     ).toEqual({
-      action: "crm.gateway.read",
+      action: "crm.record.read",
       authTenantId: "tenant-1",
       isSuperAdmin: false,
       profileId: "profile-1",
@@ -55,8 +55,8 @@ describe("CRM authorization bridge", () => {
           profileId: null,
         }),
         {
-          action: "crm.gateway.read",
-          resourceType: "crm_gateway",
+          action: "crm.record.read",
+          resourceType: "record",
         },
       ),
     ).toThrow(/Unauthorized/);
@@ -71,8 +71,8 @@ describe("CRM authorization bridge", () => {
           memberships: [],
         }),
         {
-          action: "crm.gateway.read",
-          resourceType: "crm_gateway",
+          action: "crm.record.read",
+          resourceType: "record",
         },
       ),
     ).toThrow(/Forbidden/);
@@ -81,8 +81,8 @@ describe("CRM authorization bridge", () => {
   it("does not trust a client-supplied tenant for staff users", () => {
     expect(() =>
       requireCrmAccess(authContext(), {
-        action: "crm.gateway.read",
-        resourceType: "crm_gateway",
+        action: "crm.record.read",
+        resourceType: "record",
         resourceTenantId: "tenant-2",
       }),
     ).toThrow(/tenant/);
@@ -98,8 +98,8 @@ describe("CRM authorization bridge", () => {
           memberships: [],
         }),
         {
-          action: "crm.gateway.read",
-          resourceType: "crm_gateway",
+          action: "crm.record.read",
+          resourceType: "record",
           resourceTenantId: "tenant-2",
         },
       ),

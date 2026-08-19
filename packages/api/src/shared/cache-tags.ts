@@ -40,7 +40,6 @@ export const ADMIN_CACHE_TAGS = {
     records: "admin:crm:records",
     notes: "admin:crm:notes",
     relationships: "admin:crm:relationships",
-    projections: "admin:crm:projections",
     reports: "admin:crm:reports",
   },
 } as const;
@@ -92,9 +91,8 @@ export function revalidateTags(tags: string[]): void {
 
 /**
  * Invalidate every cached admin CRM read after a CRM mutation (note
- * creation, sync replay/reconcile, inbound Twenty webhook). Pass `null` when
- * the mutation has no tenant context (for example inbound webhooks resolved
- * downstream).
+ * creation or local record writes). Pass `null` when the mutation has no
+ * tenant context.
  */
 export function revalidateAdminCrmCache(tenantId: string | null): void {
   const crm = ADMIN_CACHE_TAGS.crm;
@@ -104,7 +102,6 @@ export function revalidateAdminCrmCache(tenantId: string | null): void {
     crm.records,
     crm.notes,
     crm.relationships,
-    crm.projections,
     crm.reports,
   ]);
 }

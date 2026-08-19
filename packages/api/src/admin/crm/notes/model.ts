@@ -1,14 +1,9 @@
-import {
-  findFirstString,
-  getNestedName,
-  isRecord,
-  timestampOrDefault,
-} from "../../../shared/json-coerce";
-
 import type { AdminCrmNotesParams } from "./query";
 import type { CrmNoteRow } from "@asym/database/types";
 
-function previewBody(body: string): string {
+type CrmNoteRecord = Record<string, unknown>;
+
+export function previewBody(body: string): string {
   const singleLine = body.replace(/\s+/g, " ").trim();
   if (singleLine.length <= 160) {
     return singleLine;
@@ -17,116 +12,59 @@ function previewBody(body: string): string {
   return `${singleLine.slice(0, 157).trimEnd()}...`;
 }
 
-function getArrayCandidate(value: unknown): unknown[] | null {
-  if (Array.isArray(value)) {
-    return value;
-  }
+function asString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
 
-  if (!isRecord(value)) {
+function isRestricted(value: unknown): value is "restricted" {
+  return value === "restricted";
+}
+
+export function mapCrmNoteRow(record: CrmNoteRecord): CrmNoteRow | null {
+  const id = asString(record.id);
+  const tenantId = asString(record.tenant_id);
+  const title = asString(record.title);
+  const body = asString(record.body) ?? "";
+
+  if (!id || !tenantId || !title) {
     return null;
   }
 
-  const candidates = [
-    value.data,
-    value.records,
-    value.items,
-    value.results,
-    value.notes,
-  ];
+  const createdAt = asString(record.created_at) ?? new Date(0).toISOString();
+  const updatedAt = asString(record.updated_at) ?? createdAt;
 
-  for (const candidate of candidates) {
-    if (Array.isArray(candidate)) {
-      return candidate;
-    }
-
-    if (isRecord(candidate)) {
-      const nested = getArrayCandidate(candidate);
-      if (nested) {
-        return nested;
-      }
-    }
-  }
-
-  return null;
-}
-
-export function normalizeTwentyNotesResponse(response: unknown): CrmNoteRow[] {
-  const records = getArrayCandidate(response) ?? [];
-
-  return records.flatMap((record): CrmNoteRow[] => {
-    if (!isRecord(record)) {
-      return [];
-    }
-
-    const id = findFirstString(record, ["id", "recordId"]);
-    const tenantId = findFirstString(record, [
-      "asymTenantId",
-      "tenantId",
-      "asym_tenant_id",
-    ]);
-
-    if (!id || !tenantId) {
-      return [];
-    }
-
-    const body =
-      findFirstString(record, ["body", "content", "text", "note"]) ?? "";
-    const title =
-      (findFirstString(record, ["title", "name"]) ?? previewBody(body)) ||
-      "Untitled note";
-    const createdAt = timestampOrDefault(
-      findFirstString(record, ["createdAt", "created_at"]),
-    );
-    const updatedAt = timestampOrDefault(
-      findFirstString(record, ["updatedAt", "updated_at"]) ?? createdAt,
-    );
-
-    return [
-      {
-        authorName:
-          findFirstString(record, ["authorName", "createdByName"]) ??
-          getNestedName(record.author) ??
-          getNestedName(record.createdBy),
-        body,
-        bodyPreview: previewBody(body || title),
-        createdAt,
-        id,
-        linkedRecordId: findFirstString(record, [
-          "linkedRecordId",
-          "asymLinkedRecordId",
-        ]),
-        linkedRecordLabel:
-          findFirstString(record, ["linkedRecordLabel", "relatedRecordName"]) ??
-          getNestedName(record.person) ??
-          getNestedName(record.company),
-        linkedRecordType: findFirstString(record, [
-          "linkedRecordType",
-          "asymLinkedRecordType",
-        ]),
-        outboundJobId: null,
-        source: "twenty",
-        tenantId,
-        title,
-        updatedAt,
-        visibility:
-          findFirstString(record, ["visibility", "asymVisibility"]) ===
-          "restricted"
-            ? "restricted"
-            : "standard",
-      },
-    ];
-  });
+  return {
+    authorName: asString(record.author_name) ?? "Mission Control",
+    body,
+    bodyPreview: previewBody(body || title),
+    createdAt,
+    id,
+    linkedRecordId: asString(record.linked_record_id),
+    linkedRecordLabel: asString(record.linked_record_label),
+    linkedRecordType: asString(record.linked_record_type),
+    source: "local",
+    tenantId,
+    title,
+    updatedAt,
+    visibility: isRestricted(record.visibility) ? "restricted" : "standard",
+  };
 }
 
 export function filterCrmNotesForTenant(
   rows: readonly CrmNoteRow[],
   tenantId: string,
   search: string | null,
+  options?: { includeRestricted?: boolean },
 ): CrmNoteRow[] {
   const normalizedSearch = search?.trim().toLowerCase() ?? "";
+  const includeRestricted = options?.includeRestricted ?? true;
 
   return rows.filter((row) => {
     if (row.tenantId !== tenantId) {
+      return false;
+    }
+
+    if (!includeRestricted && row.visibility === "restricted") {
       return false;
     }
 
@@ -181,31 +119,6 @@ export function sortCrmNotes(
   });
 }
 
-export function buildQueuedCrmNoteRow(input: {
-  body: string;
-  linkedRecordId?: string | null;
-  linkedRecordType?: string | null;
-  outboundJobId: string;
-  tenantId: string;
-  title: string;
-  visibility?: "standard" | "restricted";
-  now?: Date;
-}): CrmNoteRow {
-  const timestamp = (input.now ?? new Date()).toISOString();
-  return {
-    authorName: null,
-    body: input.body,
-    bodyPreview: previewBody(input.body || input.title),
-    createdAt: timestamp,
-    id: `queued:${input.outboundJobId}`,
-    linkedRecordId: input.linkedRecordId ?? null,
-    linkedRecordLabel: null,
-    linkedRecordType: input.linkedRecordType ?? null,
-    outboundJobId: input.outboundJobId,
-    source: "queued",
-    tenantId: input.tenantId,
-    title: input.title,
-    updatedAt: timestamp,
-    visibility: input.visibility ?? "standard",
-  };
+export function canActorReadRestrictedNotes(role: string | null | undefined) {
+  return role === "admin" || role === "super_admin";
 }
