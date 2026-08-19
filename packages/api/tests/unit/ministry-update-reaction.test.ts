@@ -42,27 +42,24 @@ describe("applyMinistryUpdateReaction", () => {
     vi.clearAllMocks();
   });
 
-  it.each(KIND_TO_RPC)(
-    "maps $kind to $rpcName",
-    async ({ kind, rpcName }) => {
-      const rpc = mockRpc({ data: { applied: true }, error: null });
+  it.each(KIND_TO_RPC)("maps $kind to $rpcName", async ({ kind, rpcName }) => {
+    const rpc = mockRpc({ data: { applied: true }, error: null });
 
-      const result = await applyMinistryUpdateReaction({
-        rpc,
-        kind,
-        postId: POST_ID,
-        userId: USER_ID,
-        tenantId: TENANT_ID,
-      });
+    const result = await applyMinistryUpdateReaction({
+      rpc,
+      kind,
+      postId: POST_ID,
+      userId: USER_ID,
+      tenantId: TENANT_ID,
+    });
 
-      expect(result).toEqual({ ok: true, applied: true });
-      expect(rpc).toHaveBeenCalledWith(rpcName, {
-        p_post_id: POST_ID,
-        p_user_id: USER_ID,
-        p_tenant_id: TENANT_ID,
-      });
-    },
-  );
+    expect(result).toEqual({ ok: true, applied: true });
+    expect(rpc).toHaveBeenCalledWith(rpcName, {
+      p_post_id: POST_ID,
+      p_user_id: USER_ID,
+      p_tenant_id: TENANT_ID,
+    });
+  });
 
   it("revalidates tenant and post tags when applied", async () => {
     const rpc = mockRpc({ data: { applied: true }, error: null });
@@ -80,7 +77,11 @@ describe("applyMinistryUpdateReaction", () => {
       `posts:tenant:${TENANT_ID}`,
       "max",
     );
-    expect(revalidateTagMock).toHaveBeenNthCalledWith(2, `post:${POST_ID}`, "max");
+    expect(revalidateTagMock).toHaveBeenNthCalledWith(
+      2,
+      `post:${POST_ID}`,
+      "max",
+    );
   });
 
   it("does not revalidate when applied is false", async () => {
