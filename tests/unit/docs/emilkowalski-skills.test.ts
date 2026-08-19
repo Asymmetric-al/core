@@ -80,7 +80,10 @@ describe("emilkowalski skill pack", () => {
         { source?: string; sourceType?: string; skillPath?: string }
       >;
     };
-    const agents = readFileSync(path.join(repoRoot, "AGENTS.md"), "utf8");
+    const skillRouting = readFileSync(
+      path.join(repoRoot, "docs/ai/rules/agent-skill-routing.md"),
+      "utf8",
+    );
 
     for (const skillName of Object.keys(upstreamFiles)) {
       const skill = readSkillFile(
@@ -91,7 +94,7 @@ describe("emilkowalski skill pack", () => {
       expect(skill).toMatch(/^---\r?\n/);
       expect(skill).toContain(`\nname: ${skillName}\n`);
       expect(skill).toMatch(/\ndescription: .+\n/);
-      expect(agents).toContain(`docs/ai/skills/${skillName}/SKILL.md`);
+      expect(skillRouting).toContain(`docs/ai/skills/${skillName}/SKILL.md`);
       expect(lock.skills[skillName]).toMatchObject({
         source: packSource,
         sourceType: "github",

@@ -204,7 +204,9 @@ Scoped app commands:
 
 ## Operating Constraints
 
-- Preserve the Next.js-managed block and compressed docs index in `AGENTS.md`.
+- Preserve the small Next.js-managed opening block in `AGENTS.md`; keep the
+  committed `.next-docs/` fallback searchable without embedding its compressed
+  file index in the always-on root instructions.
 - Preserve nested `AGENTS.md` files under `supabase/` and `scripts/`.
 - Keep instruction diffs surgical and avoid touching product code, tests,
   database files, or unrelated infra when working on the instruction system.
