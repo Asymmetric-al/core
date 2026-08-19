@@ -212,6 +212,14 @@ describe("GraphQL Gift and engagement source guards", () => {
     expect(giftIntake).not.toContain("Math.round(amount * 100)");
   });
 
+  it("keeps GraphQL createDonation enqueue-only and cents-passthrough", () => {
+    const handler = readRepoFile("packages/graphql/handler.ts");
+    expect(handler).toContain("amountCents: args.input.amount");
+    expect(handler).not.toContain("processDonationSagaOutboxEvent");
+    expect(handler).not.toContain("Math.round(amount * 100)");
+    expect(handler).not.toContain("amount * 100");
+  });
+
   it("moves HTTP Gift begin onto the shared command without changing processing", () => {
     const donate = readRepoFile("packages/api/src/donate/index.ts");
     const donations = readRepoFile("packages/api/src/donations/index.ts");
@@ -220,6 +228,8 @@ describe("GraphQL Gift and engagement source guards", () => {
     expect(donations).not.toContain("begin_donation_saga");
     expect(donate).toContain("processDonationSagaOutboxEvent");
     expect(donate).toContain("Math.round(amount * 100)");
+    expect(donations).toContain("processDonationSagaOutboxEvent");
+    expect(donations).not.toContain("Math.round(amount * 100)");
   });
 
   it("moves HTTP reaction adapters onto the shared command", () => {

@@ -63,7 +63,7 @@ export async function beginGiftIntake(
     p_missionary_id: input.missionaryId,
     p_fund_id: input.fundId,
     p_amount: input.amountCents,
-    p_currency: input.currency.toLowerCase(),
+    p_currency: input.currency.trim().toLowerCase(),
     p_idempotency_key: input.idempotencyKey,
     p_ip_address: input.ipAddress,
     p_user_agent: input.userAgent,

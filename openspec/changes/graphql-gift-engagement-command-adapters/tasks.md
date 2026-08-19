@@ -3,8 +3,8 @@
 ## 1. Gift Intake Begin Command
 
 - [x] 1.1 Add `beginGiftIntake` in `@asym/api` with amount field `amountCents`,
-      currency lowercasing, and typed `not_found` / `incomplete` / `invalid` /
-      `failed` results. Do not process the outbox.
+      currency trim then lowercasing, and typed `not_found` / `incomplete` /
+      `invalid` / `failed` results. Do not process the outbox.
 - [x] 1.2 Rewire HTTP donate and HTTP donations onto the command. Keep Stripe
       resolve before begin and `processDonationSagaOutboxEvent` after.
 - [x] 1.3 Add GraphQL Gift intake adapter that stays enqueue-only and does not

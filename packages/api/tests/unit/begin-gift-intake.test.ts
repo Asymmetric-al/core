@@ -56,6 +56,31 @@ describe("beginGiftIntake", () => {
     });
   });
 
+  it("trims then lowercases currency before the saga RPC", async () => {
+    const rpc = mockRpc({
+      data: {
+        donation_id: "don-1",
+        outbox_id: "out-1",
+        replayed: false,
+      },
+      error: null,
+    });
+
+    await beginGiftIntake({ ...BASE_INPUT, rpc, currency: " USD " });
+
+    expect(rpc).toHaveBeenCalledWith(
+      "begin_donation_saga",
+      expect.objectContaining({ p_currency: "usd" }),
+    );
+
+    await beginGiftIntake({ ...BASE_INPUT, rpc, currency: " usd" });
+
+    expect(rpc).toHaveBeenLastCalledWith(
+      "begin_donation_saga",
+      expect.objectContaining({ p_currency: "usd" }),
+    );
+  });
+
   it("parses an array-shaped RPC payload", async () => {
     const rpc = mockRpc({
       data: [
