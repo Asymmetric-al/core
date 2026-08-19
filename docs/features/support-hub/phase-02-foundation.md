@@ -8,6 +8,18 @@
 > seeds, TanStack DB collections, TanStack Query / react-db hooks, mutation
 > wrappers, derived selectors, and `nuqs`-backed route-state helpers. No
 > polished UI yet; the inbox shell phase consumes these primitives unchanged.
+>
+> **Current state (2026-08-19).** This document is historical. Live Donor Care
+> Support Hub UI reads and writes `apps/admin/app/api/admin/support/**` through
+> TanStack Query hooks. Browser TanStack DB collections are a tenant-scoped
+> read cache over those routes (`startSync: false`); they are not the Give
+> Hope seed interface. Schema lives in
+> `packages/database/collections/support-hub.schema.ts`. Give Hope seed lives
+> only in in-memory adapter fixtures. `supportHubAdapter` is
+> `supabaseSupportHubAdapter`. Persistence lives in
+> `supabase/migrations/20260501001500_support_hub_foundation.sql` and
+> `supabase/migrations/20260515025814_support_hub_core_modules.sql`. There is
+> no tenant-wide messages list; thread messages stay conversation-scoped.
 
 ## What landed in this phase
 

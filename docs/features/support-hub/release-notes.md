@@ -17,6 +17,13 @@ persistence cutover.
 - Mission Control Support Hub hooks now read and mutate through
   `/api/admin/support/**` route handlers. The browser no longer writes
   `supportStore.collections.*` directly.
+- Browser TanStack DB collections in
+  `packages/database/collections/support-hub.ts` are a tenant-scoped read
+  cache over those routes (`startSync: false`). Schema lives in
+  `packages/database/collections/support-hub.schema.ts`. Give Hope seed is
+  not the collection interface; it lives only in in-memory adapter fixtures.
+  `support_messages` is local-only identity; thread messages stay
+  conversation-scoped.
 - Resend `email.received` events call `routeInboundToSupportHub()`, persist
   inbound threading headers, and bridge routed inbound rows to Support Hub
   conversation/message ids.

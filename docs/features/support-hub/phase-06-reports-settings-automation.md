@@ -1,5 +1,16 @@
 # Support Hub — Phase 6: reports, inbox settings, SLA rules, and automation
 
+> **Current state (2026-08-19).** This document is historical. Live Donor Care
+> Support Hub UI reads and writes `apps/admin/app/api/admin/support/**` through
+> TanStack Query hooks. Browser TanStack DB collections are a tenant-scoped
+> read cache over those routes (`startSync: false`); they are not the Give
+> Hope seed interface. Give Hope seed lives only in in-memory adapter
+> fixtures. `supportHubAdapter` is `supabaseSupportHubAdapter`. Persistence
+> lives in `supabase/migrations/20260501001500_support_hub_foundation.sql`
+> and `supabase/migrations/20260515025814_support_hub_core_modules.sql`.
+> Seeded-collection counts below describe Phase 6 Give Hope fixtures, not
+> the live collection interface.
+
 Phases 1–5 are stacked. Phase 6 adds the manager-facing operating layer to the
 Donor Care Support Hub: nested `/support/reports/*` and `/support/settings/*`
 routes under a shared workspace shell, 12 settings panels, 5 report surfaces,
