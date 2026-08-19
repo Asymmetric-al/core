@@ -22,8 +22,8 @@ running `bun run skills:sync`.
 
 ### Workflow
 
-1. Follow the repo-scoped, preambled Nia workflow in `AGENTS.md`; if Nia cannot
-   provide current evidence, state that and use `rg` plus direct file reads.
+1. Follow the conditional, repo-scoped Nia workflow in `docs/ai/nia.md` when
+   Nia is available; otherwise use `rg` plus direct file reads.
 2. Treat `docs/ai/rules/frontend.md`, `emil-design-engineering`, and `anim` as
    higher-priority constraints when interpreting `AUDIT.md`.
 3. Write only under `plans/` or `animation-plans/` during audit/plan modes; do

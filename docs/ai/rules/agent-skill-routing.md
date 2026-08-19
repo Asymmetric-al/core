@@ -13,12 +13,15 @@
 - The agent needs to choose a canonical skill under `docs/ai/skills/`
 - The agent needs to restore ecosystem skills from `skills-lock.json`
 - The agent needs Core-specific notes for a vendor skill (Supabase, Resend CLI, Emil Kowalski, Matt Pocock, Inngest, shadcn, TDD)
-- Root `AGENTS.md` Skill Routing points here for the full catalog
+- Root `AGENTS.md` points here when discovered skill metadata is insufficient
+  or skill maintenance is requested
 
 ## Workflow
 
-1. Start from root `AGENTS.md` compact routing (OpenSpec, TDD, UI, Next.js, Supabase, TanStack).
-2. Open this catalog only when the compact map is not enough.
+1. Start from root `AGENTS.md` repository context, nearest nested instructions,
+   and the discovered skill descriptions exposed by Codex.
+2. Open this catalog only when descriptions are ambiguous or skill maintenance
+   is requested.
 3. Load the matching canonical `docs/ai/skills/<name>/SKILL.md`.
 4. For lockfile-managed ecosystem skills, restore with `npx skills experimental_install -y` rather than guessing copies.
 5. After editing canonical skills, run `bun run skills:sync` then `bun run skills:verify` (verify is non-mutating).
@@ -81,7 +84,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **Verify Next.js runtime behavior after edits (running dev server + browser + React tree):** `next-dev-loop` (first-party `vercel/next.js` skill; ecosystem install under `.agents/skills/`, mirrored to `.claude/skills/` and `.cursor/skills/`; requires `agent-browser` ≥0.27)
 - **Adopt Cache Components on existing routes (feature-by-feature):** `next-cache-components-adoption` (first-party `vercel/next.js` skill; ecosystem install)
-- **Grow a route's static shell / make navigations instant:** `next-cache-components-optimizer` (first-party `vercel/next.js` skill; ecosystem install) — see **Instant Navigation (Next.js 16.3)** in root `AGENTS.md`
+- **Grow a route's static shell / make navigations instant:** `next-cache-components-optimizer` (first-party `vercel/next.js` skill; ecosystem install) — see **Instant Navigation (Next.js 16.3)** in `docs/ai/rules/frontend.md`
 - The retired `vercel-labs/next-skills` knowledge skills (`next-best-practices`, `next-cache-components`, `next-upgrade`) and the stale community `nextjs` skill were removed in the 16.3 upgrade; the bundled `node_modules/next/dist/docs/` are the knowledge source now.
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
 - **Million React Doctor / performance & health audits (`millionco/react-doctor`):** `docs/ai/skills/react-doctor/SKILL.md`

@@ -11,7 +11,7 @@
 
 - Repo-owned skills are authored canonically under `docs/ai/skills/*/SKILL.md`.
 - Runtime mirrors are committed under `.agents/skills/*`, `.cursor/skills/*`, and `.claude/skills/*`.
-- Keep `AGENTS.md` as the routing layer. It should point at canonical files in `docs/ai/skills/*`, not at tool-specific mirrors.
+- Keep `AGENTS.md` as the compact domain router. Skill descriptions handle normal progressive discovery; detailed or ambiguous skill routes live in `docs/ai/rules/agent-skill-routing.md`, which points at canonical files rather than tool-specific mirrors.
 - For Codex desktop, `.agents/skills/*` is the closest repo-level match to Codex's documented skill discovery behavior.
 - For Cursor Agent Window, committed `.cursor/skills/*` improves visible availability, while `AGENTS.md` still provides the strongest always-on routing contract.
 - After pulling skill changes, run `bun run skills:verify`; if it reports drift, run `bun run skills:sync` and commit the refreshed mirrors.
@@ -100,7 +100,9 @@ When `node_modules` docs are unavailable, generate fallback docs:
 After running the command, verify:
 
 - `.next-docs/` exists
-- `AGENTS.md` contains the codemod-compressed docs index block
+- the small `<!-- BEGIN:nextjs-agent-rules -->` block remains intact
+- any generated `<!-- NEXT-AGENTS-MD-START -->` compressed index is removed
+  from `AGENTS.md`; agents search `.next-docs/` directly
 - If the generated block mentions `npx`, keep using Bun in this repo (`bunx ...`).
 
 This repo commits `.next-docs/` on purpose because remote/sandbox agent runs can start before dependencies are installed, while committed fallback docs are always readable.
