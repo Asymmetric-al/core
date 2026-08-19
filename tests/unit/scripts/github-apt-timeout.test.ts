@@ -34,21 +34,27 @@ describe("github apt install scripts bound hung metadata fetches", () => {
     expect(prepare).toContain("APT_GET_TIMEOUT_SECONDS");
   });
 
-  it("wraps canvas and postgres client installs with GNU timeout", () => {
+  it("wraps canvas and postgres client installs with a longer GNU timeout and retries once", () => {
     const canvas = readScript("scripts/github/install-canvas-deps.sh");
     const postgres = readScript("scripts/github/install-postgresql-client.sh");
 
     expect(canvas).toContain(TIMEOUT_FLAG);
     expect(canvas).toContain("apt-get install");
+    expect(canvas).toContain("APT_GET_INSTALL_TIMEOUT_SECONDS");
+    expect(canvas).toContain(":-600");
+    expect(canvas).toContain("retrying once");
     expect(postgres).toContain(TIMEOUT_FLAG);
     expect(postgres).toContain("apt-get install");
+    expect(postgres).toContain("APT_GET_INSTALL_TIMEOUT_SECONDS");
+    expect(postgres).toContain(":-600");
+    expect(postgres).toContain("retrying once");
   });
 
   it("caps lint and migrate jobs so hung apt cannot occupy a runner for 6 hours", () => {
     const ci = readScript(".github/workflows/ci.yml");
     const integration = readScript(".github/workflows/ci-integration.yml");
 
-    expect(jobBlock(ci, "lint")).toContain("timeout-minutes: 15");
-    expect(jobBlock(integration, "migrate")).toContain("timeout-minutes: 15");
+    expect(jobBlock(ci, "lint")).toContain("timeout-minutes: 25");
+    expect(jobBlock(integration, "migrate")).toContain("timeout-minutes: 25");
   });
 });
