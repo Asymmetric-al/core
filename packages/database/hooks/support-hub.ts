@@ -104,6 +104,10 @@ export function useSupportConversationsLive() {
   return useLiveQuery(supportConversationsCollection);
 }
 
+/**
+ * Live identity for the local-only messages collection. Thread messages
+ * still load through `useSupportMessages`; this hook does not list a tenant.
+ */
 export function useSupportMessagesLive() {
   return useLiveQuery(supportMessagesCollection);
 }
