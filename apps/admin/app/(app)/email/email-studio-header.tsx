@@ -99,11 +99,11 @@ export function EmailStudioHeader({
                 size="icon-sm"
                 onClick={onUndo}
                 disabled={!isEditorReady}
-              />
+              >
+                <Undo2 className="h-4 w-4" />
+              </Button>
             }
-          >
-            <Undo2 className="h-4 w-4" />
-          </TooltipTrigger>
+          />
           <TooltipContent>Undo (⌘Z)</TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -114,11 +114,11 @@ export function EmailStudioHeader({
                 size="icon-sm"
                 onClick={onRedo}
                 disabled={!isEditorReady}
-              />
+              >
+                <Redo2 className="h-4 w-4" />
+              </Button>
             }
-          >
-            <Redo2 className="h-4 w-4" />
-          </TooltipTrigger>
+          />
           <TooltipContent>Redo (⌘⇧Z)</TooltipContent>
         </Tooltip>
       </div>
@@ -132,11 +132,11 @@ export function EmailStudioHeader({
                 size="icon-sm"
                 onClick={() => onPreview("desktop")}
                 disabled={!isEditorReady}
-              />
+              >
+                <Monitor className="h-4 w-4" />
+              </Button>
             }
-          >
-            <Monitor className="h-4 w-4" />
-          </TooltipTrigger>
+          />
           <TooltipContent>Desktop preview</TooltipContent>
         </Tooltip>
         <Tooltip>
@@ -147,11 +147,11 @@ export function EmailStudioHeader({
                 size="icon-sm"
                 onClick={() => onPreview("mobile")}
                 disabled={!isEditorReady}
-              />
+              >
+                <Smartphone className="h-4 w-4" />
+              </Button>
             }
-          >
-            <Smartphone className="h-4 w-4" />
-          </TooltipTrigger>
+          />
           <TooltipContent>Mobile preview</TooltipContent>
         </Tooltip>
       </div>
@@ -177,9 +177,13 @@ export function EmailStudioHeader({
       </Button>
 
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-          <MoreVertical className="h-4 w-4" />
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="ghost" size="icon-sm">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          }
+        />
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={onNewTemplate}>
             <Plus className="mr-2 h-4 w-4" />
@@ -204,19 +208,15 @@ export function EmailStudioHeader({
       <Tooltip>
         <TooltipTrigger
           render={
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={onToggleFullscreen}
-            />
+            <Button variant="ghost" size="icon-sm" onClick={onToggleFullscreen}>
+              {isFullscreen ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
+            </Button>
           }
-        >
-          {isFullscreen ? (
-            <Minimize2 className="h-4 w-4" />
-          ) : (
-            <Maximize2 className="h-4 w-4" />
-          )}
-        </TooltipTrigger>
+        />
         <TooltipContent>
           {isFullscreen ? "Exit fullscreen" : "Fullscreen"}
         </TooltipContent>
