@@ -4,6 +4,10 @@ set -euo pipefail
 bash scripts/github/prepare-apt.sh
 
 APT_GET_INSTALL_TIMEOUT_SECONDS="${APT_GET_INSTALL_TIMEOUT_SECONDS:-600}"
+if ! [[ "$APT_GET_INSTALL_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "APT_GET_INSTALL_TIMEOUT_SECONDS must be a positive integer, got: ${APT_GET_INSTALL_TIMEOUT_SECONDS}" >&2
+  exit 1
+fi
 
 bounded_apt_install() {
   sudo timeout --kill-after=10s "${APT_GET_INSTALL_TIMEOUT_SECONDS}s" \

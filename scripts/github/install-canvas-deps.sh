@@ -8,6 +8,10 @@ bash scripts/github/prepare-apt.sh
 # mirror. A 180s cap killed in-progress downloads (exit 124) on build and
 # instant-nav while format/typecheck/migrate on the same SHA succeeded.
 APT_GET_INSTALL_TIMEOUT_SECONDS="${APT_GET_INSTALL_TIMEOUT_SECONDS:-600}"
+if ! [[ "$APT_GET_INSTALL_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "APT_GET_INSTALL_TIMEOUT_SECONDS must be a positive integer, got: ${APT_GET_INSTALL_TIMEOUT_SECONDS}" >&2
+  exit 1
+fi
 
 canvas_packages=(
   libpixman-1-dev
