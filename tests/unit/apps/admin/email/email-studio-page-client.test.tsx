@@ -14,29 +14,39 @@ import { toast } from "sonner";
 
 import EmailStudio from "../../../../../apps/admin/app/(app)/email/page-client";
 
-const editorHandle = vi.hoisted(() => ({
-  canRedo: vi.fn(() => false),
-  canUndo: vi.fn(() => false),
-  exportDesign: vi.fn(async () => ({})),
-  exportEmail: vi.fn(async () => ({
-    builder: "react_email",
-    builderVersion: "1.5.3",
-    design: {},
-    html: "<p>Current editor</p>",
-    text: "Current editor",
-  })),
-  focus: vi.fn(),
-  getBuilderKind: vi.fn(() => "react_email"),
-  insertMergeTag: vi.fn(),
-  loadDesign: vi.fn(),
-  redo: vi.fn(),
-  saveDesign: vi.fn(async () => ({})),
-  undo: vi.fn(),
-}));
+const editorHandle = vi.hoisted(() => {
+  const handle = {
+    appliedDesign: {} as Record<string, unknown>,
+    canRedo: vi.fn(() => false),
+    canUndo: vi.fn(() => false),
+    exportDesign: vi.fn(async () => ({})),
+    exportEmail: vi.fn(async () => ({
+      builder: "react_email" as const,
+      builderVersion: "1.5.3",
+      design: handle.appliedDesign,
+      html: "<p>Current editor</p>",
+      text: "Current editor",
+    })),
+    focus: vi.fn(),
+    getBuilderKind: vi.fn(() => "react_email" as const),
+    insertMergeTag: vi.fn(),
+    loadDesign: vi.fn((design: Record<string, unknown>) => {
+      if (!editorReadyControl.nestedReady) {
+        return;
+      }
+      handle.appliedDesign = design;
+    }),
+    redo: vi.fn(),
+    saveDesign: vi.fn(async () => ({})),
+    undo: vi.fn(),
+  };
+  return handle;
+});
 
 const editorMount = vi.hoisted(() => ({ count: 0 }));
 const editorReadyControl = vi.hoisted(() => ({
   defer: false,
+  nestedReady: false,
   fireReady: null as null | (() => void),
 }));
 
@@ -371,11 +381,16 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
     ReactModule.useEffect(() => {
       editorMount.count += 1;
       if (editorReadyControl.defer) {
-        editorReadyControl.fireReady = () => onReady?.();
+        editorReadyControl.nestedReady = false;
+        editorReadyControl.fireReady = () => {
+          editorReadyControl.nestedReady = true;
+          onReady?.();
+        };
         return () => {
           editorReadyControl.fireReady = null;
         };
       }
+      editorReadyControl.nestedReady = true;
       onReady?.();
     }, [onReady]);
 
@@ -463,13 +478,17 @@ function stubStudioFetch(
       if (method === "GET" && url === "/api/email/templates") {
         return jsonOk(legacyTemplatesResponse);
       }
-      if (method === "POST" && url === "/api/email/templates") {
+      if (
+        (method === "POST" && url === "/api/email/templates") ||
+        (method === "PATCH" && /^\/api\/email\/templates\/[^/]+$/.test(url))
+      ) {
         const body = JSON.parse(String(init?.body ?? "{}")) as {
           name?: string;
         };
+        const id = method === "PATCH" ? url.split("/").at(-1) : "tmpl_new";
         return jsonOk({
           success: true,
-          template: { id: "tmpl_new", name: body.name ?? "Untitled Email" },
+          template: { id, name: body.name ?? "Untitled Email" },
         });
       }
       if (method === "POST" && url === "/api/email/templates/test-send") {
@@ -485,12 +504,14 @@ function stubStudioFetch(
 describe("EmailStudio page", () => {
   beforeEach(() => {
     getQueryClient().clear();
+    editorHandle.appliedDesign = {};
     editorHandle.exportEmail.mockClear();
     editorHandle.loadDesign.mockClear();
     editorHandle.undo.mockClear();
     editorHandle.redo.mockClear();
     editorMount.count = 0;
     editorReadyControl.defer = false;
+    editorReadyControl.nestedReady = false;
     editorReadyControl.fireReady = null;
     vi.mocked(toast.success).mockClear();
     stubStudioFetch();
@@ -884,6 +905,54 @@ describe("EmailStudio page", () => {
         (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
           .disabled,
       ).toBe(false);
+    });
+  });
+
+  it("replays a selected React Email design after the nested editor becomes ready", async () => {
+    editorReadyControl.defer = true;
+    const fetchMock = stubStudioFetch((url, method) => {
+      if (method === "GET" && url === "/api/email/templates") {
+        return mixedTemplatesResponse();
+      }
+      return null;
+    });
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /react welcome/i }),
+    );
+
+    expect(editorHandle.appliedDesign).toEqual({});
+
+    editorReadyControl.fireReady?.();
+
+    await waitFor(() => {
+      expect(editorHandle.appliedDesign).toEqual(
+        reactWelcomeTemplate.design_json,
+      );
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save template/i }));
+
+    await waitFor(() => {
+      const persistCall = fetchMock.mock.calls.find(
+        ([url, init]) =>
+          String(url) === "/api/email/templates/react-welcome" &&
+          String((init as RequestInit | undefined)?.method) === "PATCH",
+      );
+      expect(persistCall).toBeTruthy();
+      const body = JSON.parse(
+        String((persistCall?.[1] as RequestInit | undefined)?.body),
+      ) as { designJson?: unknown };
+      expect(body.designJson).toEqual(reactWelcomeTemplate.design_json);
     });
   });
 

@@ -131,14 +131,18 @@ export default function EmailStudio() {
   const canEditCurrentTemplate = ui.isEditorReady && !isLegacyReadOnly;
   const canPreview = ui.isEditorReady || isLegacyReadOnly;
 
-  const loadEditorDesign = useCallback((design: Record<string, unknown>) => {
-    if (editorRef.current) {
-      pendingDesignRef.current = null;
-      editorRef.current.loadDesign(design);
-      return;
-    }
-    pendingDesignRef.current = design;
-  }, []);
+  const loadEditorDesign = useCallback(
+    (design: Record<string, unknown>) => {
+      if (ui.isEditorReady && editorRef.current) {
+        pendingDesignRef.current = null;
+        editorRef.current.loadDesign(design);
+        return;
+      }
+
+      pendingDesignRef.current = design;
+    },
+    [ui.isEditorReady],
+  );
 
   useEffect(() => {
     if (!templatesQuery.isError) {
