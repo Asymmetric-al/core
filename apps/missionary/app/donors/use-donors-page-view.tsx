@@ -21,6 +21,7 @@ import {
   formatDonorAddress,
   hasDonorsActiveFilters,
   removeTagSelection,
+  toPartnerSafeDonor,
   toggleTagSelection,
   type DonorsPageSummary,
   type DonorsStatFilterType,
@@ -130,7 +131,8 @@ function useDonorsPageView(): DonorsPageViewModel {
     "note" | "call" | "meeting" | "email"
   >("note");
   const donors = React.useMemo(
-    () => (donorsQuery.data ?? []) as Donor[],
+    () =>
+      (donorsQuery.data ?? []).map((row) => toPartnerSafeDonor(row as Donor)),
     [donorsQuery.data],
   );
   const error =

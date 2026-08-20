@@ -116,6 +116,7 @@ export function DonorsPageDetailContact() {
                 icon: Briefcase,
                 label: "Work Phone",
                 value: selectedDonor.work_phone,
+                preferred: false,
                 color: "zinc",
               },
             ] as const satisfies ReadonlyArray<{

@@ -95,7 +95,7 @@ export function DonorsPageDetail() {
   );
   const callHref = selectedDonor ? getDonorCallHref(selectedDonor) : null;
   const emailHref = selectedDonor
-    ? getDonorEmailHref(selectedDonor.email)
+    ? getDonorEmailHref(selectedDonor.email, selectedDonor.is_anonymous)
     : null;
 
   return (

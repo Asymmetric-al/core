@@ -82,6 +82,7 @@ describe("missionary Partners page module shape", () => {
     expect(viewHook).toMatch(
       /import\s+\{[^}]*useMissionaryDonorRows[^}]*\}\s+from\s+"@asym\/database\/hooks"/,
     );
+    expect(viewHook).toContain("toPartnerSafeDonor");
 
     for (const name of adapterFiles) {
       const source = readRepoFile(`apps/missionary/app/donors/${name}`);

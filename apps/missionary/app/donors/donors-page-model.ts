@@ -104,9 +104,56 @@ export function createTagEditorDraft(committedTags?: string[]): string[] {
   return [...(committedTags ?? [])];
 }
 
+export const ANONYMOUS_DONOR_LABEL = "Anonymous donor";
+
+function anonymousDonorInitials(label: string) {
+  return (
+    label
+      .split(" ")
+      .map((part) => part[0] ?? "")
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "??"
+  );
+}
+
+export function toPartnerSafeDonor(donor: Donor): Donor {
+  if (!donor.is_anonymous) {
+    return donor;
+  }
+
+  return {
+    ...donor,
+    name: ANONYMOUS_DONOR_LABEL,
+    initials: anonymousDonorInitials(ANONYMOUS_DONOR_LABEL),
+    email: "",
+    phone: "",
+    mobile: undefined,
+    work_phone: undefined,
+    avatar_url: undefined,
+    location: "",
+    address: {},
+    work_address: undefined,
+    website: undefined,
+    organization: undefined,
+    title: undefined,
+    birthday: undefined,
+    anniversary: undefined,
+    spouse: undefined,
+    notes: undefined,
+    tags: [],
+    activities: [],
+    is_anonymous: true,
+  };
+}
+
 export function getDonorCallHref(
-  donor: Pick<Donor, "phone" | "mobile">,
+  donor: Pick<Donor, "phone" | "mobile" | "is_anonymous">,
 ): string | null {
+  if (donor.is_anonymous) {
+    return null;
+  }
+
   const number = donor.phone?.trim() || donor.mobile?.trim();
   if (!number) {
     return null;
@@ -117,7 +164,12 @@ export function getDonorCallHref(
 
 export function getDonorEmailHref(
   email: string | null | undefined,
+  isAnonymous = false,
 ): string | null {
+  if (isAnonymous) {
+    return null;
+  }
+
   const value = email?.trim();
   if (!value) {
     return null;
