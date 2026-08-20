@@ -4,6 +4,7 @@ import {
   GiftProcessingFeePolicyError,
   giftProcessingFeeStripeMetadataEquals,
   quoteGiftProcessingFee,
+  readStoredGiftProcessingFeeStripeMetadata,
   resolveGiftIntakeCharge,
   toGiftProcessingFeeStripeMetadata,
   type GiftPaymentMethod,
@@ -212,6 +213,37 @@ describe("resolveGiftIntakeCharge", () => {
         currency: "eur",
       }),
     ).toThrow(/USD only/i);
+  });
+});
+
+describe("readStoredGiftProcessingFeeStripeMetadata", () => {
+  it("treats empty stored extras as a missing Gift quote", () => {
+    expect(readStoredGiftProcessingFeeStripeMetadata(null)).toBeUndefined();
+    expect(
+      readStoredGiftProcessingFeeStripeMetadata(undefined),
+    ).toBeUndefined();
+    expect(readStoredGiftProcessingFeeStripeMetadata({})).toBeUndefined();
+  });
+
+  it("returns a valid stored Gift quote", () => {
+    const extras = toGiftProcessingFeeStripeMetadata(
+      resolveGiftIntakeCharge({
+        amount: 100,
+        coverFees: true,
+        paymentMethod: "ach",
+      }),
+    );
+
+    expect(readStoredGiftProcessingFeeStripeMetadata(extras)).toEqual(extras);
+  });
+
+  it("fails closed on malformed non-empty stored extras", () => {
+    expect(() =>
+      readStoredGiftProcessingFeeStripeMetadata({ payment_method: "ach" }),
+    ).toThrow(GiftProcessingFeePolicyError);
+    expect(() =>
+      readStoredGiftProcessingFeeStripeMetadata([{ payment_method: "ach" }]),
+    ).toThrow(/malformed/i);
   });
 });
 

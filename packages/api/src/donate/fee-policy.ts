@@ -265,6 +265,32 @@ export function parseGiftProcessingFeeStripeMetadata(
   };
 }
 
+function isEmptyStoredFeeExtras(value: unknown): boolean {
+  if (value == null) {
+    return true;
+  }
+  if (typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  return Object.keys(value as Record<string, unknown>).length === 0;
+}
+
+export function readStoredGiftProcessingFeeStripeMetadata(
+  value: unknown,
+): GiftProcessingFeeStripeMetadata | undefined {
+  if (isEmptyStoredFeeExtras(value)) {
+    return undefined;
+  }
+
+  const parsed = parseGiftProcessingFeeStripeMetadata(value);
+  if (!parsed) {
+    throw new GiftProcessingFeePolicyError(
+      "Stored donation saga fee extras are malformed.",
+    );
+  }
+  return parsed;
+}
+
 export function giftProcessingFeeStripeMetadataEquals(
   left: GiftProcessingFeeStripeMetadata,
   right: GiftProcessingFeeStripeMetadata,

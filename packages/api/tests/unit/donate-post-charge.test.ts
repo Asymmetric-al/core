@@ -468,4 +468,38 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     expect(response.status).toBe(409);
     expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
   });
+
+  it("returns 500 when stored Gift fee extras are malformed on replay", async () => {
+    const collidingCardQuote = resolveGiftIntakeCharge({
+      amount: 100.81,
+      coverFees: false,
+      paymentMethod: "card",
+    });
+    mockedGetAdminClient.mockReturnValue({
+      client: {
+        rpc: rpcMock,
+        from: createReplayFromMock({
+          storedAmount: collidingCardQuote.chargedAmountCents,
+          storedFeeExtras: { payment_method: "ach" },
+        }),
+      } as never,
+      error: null,
+    });
+    rpcMock.mockResolvedValue({
+      data: { ...beginRpcResult, replayed: true },
+      error: null,
+    });
+
+    const response = await POST(
+      createDonateRequest({
+        amount: 100.81,
+        currency: "usd",
+        cover_fees: false,
+        payment_method: "card",
+      }),
+    );
+
+    expect(response.status).toBe(500);
+    expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
+  });
 });

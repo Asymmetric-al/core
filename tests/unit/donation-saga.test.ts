@@ -132,7 +132,7 @@ describe("donation saga helpers", () => {
       if (table !== "donation_saga_outbox") {
         throw new Error(`Unexpected table lookup: ${table}`);
       }
-      return { update: persistUpdate };
+      return { update: persistUpdate, select: emptyOutboxFeeExtrasSelect() };
     });
 
     const stripe = createStripeMock();
@@ -563,6 +563,52 @@ describe("donation saga helpers", () => {
     expect(stripe.paymentIntents.create).not.toHaveBeenCalled();
   });
 
+  it("fails closed when stored Gift fee extras are malformed on recovery", async () => {
+    const rpc = vi.fn().mockImplementation((fn: string) => {
+      if (fn === "claim_donation_saga_event") {
+        return Promise.resolve({
+          data: {
+            claimed: true,
+            donation_id: "don-malformed",
+            donor_id: "donor-malformed",
+            tenant_id: "tenant-malformed",
+            amount: 10081,
+            currency: "usd",
+            attempt_count: 2,
+            idempotency_key: "idem-malformed",
+            stripe_customer_id: "cus_malformed",
+          },
+          error: null,
+        });
+      }
+      return Promise.resolve({ data: null, error: null });
+    });
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { fee_extras: { payment_method: "ach" } },
+      error: null,
+    });
+    const selectEq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq: selectEq });
+    const from = vi.fn((table: string) => {
+      if (table !== "donation_saga_outbox") {
+        throw new Error(`Unexpected table lookup: ${table}`);
+      }
+      return { select };
+    });
+    const stripe = createStripeMock();
+
+    await expect(
+      processDonationSagaOutboxEvent({
+        supabaseAdmin: { rpc, from } as never,
+        stripe,
+        outboxId: "out-malformed",
+        actorUserId: "actor-malformed",
+      }),
+    ).rejects.toThrow(/malformed/i);
+
+    expect(stripe.paymentIntents.create).not.toHaveBeenCalled();
+  });
+
   it("persists caller fee extras onto the outbox before claiming", async () => {
     const extras = {
       gift_amount_cents: "10000",
@@ -632,6 +678,121 @@ describe("donation saga helpers", () => {
     );
   });
 
+  it("rejects caller fee extras that collide with a stored Gift quote before claiming", async () => {
+    const storedCardExtras = {
+      gift_amount_cents: "10000",
+      cover_fees: "false",
+      payment_method: "card" as const,
+      cover_amount_cents: "0",
+      estimated_fee_cents: "320",
+    };
+    const callerAchExtras = {
+      gift_amount_cents: "10000",
+      cover_fees: "true",
+      payment_method: "ach" as const,
+      cover_amount_cents: "80",
+      estimated_fee_cents: "80",
+    };
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const persistEq = vi.fn().mockResolvedValue({ data: null, error: null });
+    const persistUpdate = vi.fn().mockReturnValue({ eq: persistEq });
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { fee_extras: storedCardExtras },
+      error: null,
+    });
+    const selectEq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq: selectEq });
+    const from = vi.fn((table: string) => {
+      if (table !== "donation_saga_outbox") {
+        throw new Error(`Unexpected table lookup: ${table}`);
+      }
+      return { update: persistUpdate, select };
+    });
+    const stripe = createStripeMock();
+
+    await expect(
+      processDonationSagaOutboxEvent({
+        supabaseAdmin: { rpc, from } as never,
+        stripe,
+        outboxId: "out-immutable",
+        actorUserId: "actor-immutable",
+        extraPaymentIntentMetadata: callerAchExtras,
+      }),
+    ).rejects.toThrow(/do not match the caller quote/i);
+
+    expect(persistUpdate).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
+    expect(stripe.paymentIntents.create).not.toHaveBeenCalled();
+  });
+
+  it("skips rewriting matching stored Gift fee extras before claiming", async () => {
+    const extras = {
+      gift_amount_cents: "10000",
+      cover_fees: "true",
+      payment_method: "card" as const,
+      cover_amount_cents: "330",
+      estimated_fee_cents: "320",
+    };
+    const rpc = vi.fn().mockImplementation((fn: string) => {
+      if (fn === "claim_donation_saga_event") {
+        return Promise.resolve({
+          data: {
+            claimed: true,
+            donation_id: "don-match",
+            donor_id: "donor-match",
+            tenant_id: "tenant-match",
+            amount: 10330,
+            currency: "usd",
+            attempt_count: 1,
+            idempotency_key: "idem-match",
+            stripe_customer_id: "cus_match",
+          },
+          error: null,
+        });
+      }
+      if (fn === "complete_donation_saga_event") {
+        return Promise.resolve({ data: { completed: true }, error: null });
+      }
+      return Promise.resolve({ data: null, error: null });
+    });
+    const persistEq = vi.fn().mockResolvedValue({ data: null, error: null });
+    const persistUpdate = vi.fn().mockReturnValue({ eq: persistEq });
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { fee_extras: extras },
+      error: null,
+    });
+    const selectEq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq: selectEq });
+    const from = vi.fn((table: string) => {
+      if (table !== "donation_saga_outbox") {
+        throw new Error(`Unexpected table lookup: ${table}`);
+      }
+      return { update: persistUpdate, select };
+    });
+    const stripe = createStripeMock();
+    (
+      stripe.paymentIntents.create as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
+      id: "pi_match",
+      client_secret: "secret_match",
+      status: "requires_payment_method",
+    });
+
+    await processDonationSagaOutboxEvent({
+      supabaseAdmin: { rpc, from } as never,
+      stripe,
+      outboxId: "out-match",
+      actorUserId: "actor-match",
+      extraPaymentIntentMetadata: extras,
+    });
+
+    expect(persistUpdate).not.toHaveBeenCalled();
+    expect(rpc).toHaveBeenCalledWith(
+      "claim_donation_saga_event",
+      expect.objectContaining({ p_outbox_id: "out-match" }),
+    );
+  });
+
   it("fails closed when Gift fee extras persist cannot filter the outbox row", async () => {
     const extras = {
       gift_amount_cents: "10000",
@@ -644,7 +805,10 @@ describe("donation saga helpers", () => {
     const persistUpdate = vi
       .fn()
       .mockResolvedValue({ data: [{ id: "all-rows" }], error: null });
-    const from = vi.fn(() => ({ update: persistUpdate }));
+    const from = vi.fn(() => ({
+      update: persistUpdate,
+      select: emptyOutboxFeeExtrasSelect(),
+    }));
     const stripe = createStripeMock();
 
     await expect(

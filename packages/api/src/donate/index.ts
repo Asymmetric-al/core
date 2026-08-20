@@ -9,10 +9,11 @@ import { type NextRequest, NextResponse } from "next/server";
 import {
   GiftProcessingFeePolicyError,
   giftProcessingFeeStripeMetadataEquals,
-  parseGiftProcessingFeeStripeMetadata,
+  readStoredGiftProcessingFeeStripeMetadata,
   resolveGiftIntakeCharge,
   toGiftProcessingFeeStripeMetadata,
   type GiftProcessingFeeQuote,
+  type GiftProcessingFeeStripeMetadata,
 } from "./fee-policy";
 import { resolveRequiredIdempotencyKey } from "./idempotency";
 import { processDonationSagaOutboxEvent } from "./saga";
@@ -179,9 +180,20 @@ export const POST = withOperation(
           "Failed to load the existing donation fee extras for this idempotency key.",
         );
       }
-      const storedFeeExtras = parseGiftProcessingFeeStripeMetadata(
-        storedOutbox.fee_extras,
-      );
+      let storedFeeExtras: GiftProcessingFeeStripeMetadata | undefined;
+      try {
+        storedFeeExtras = readStoredGiftProcessingFeeStripeMetadata(
+          storedOutbox.fee_extras,
+        );
+      } catch (error) {
+        if (error instanceof GiftProcessingFeePolicyError) {
+          throw new ApiHttpError(
+            500,
+            "Failed to load the existing donation fee extras for this idempotency key.",
+          );
+        }
+        throw error;
+      }
       if (
         storedFeeExtras == null ||
         !giftProcessingFeeStripeMetadataEquals(

@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 
 import {
-  parseGiftProcessingFeeStripeMetadata,
+  GiftProcessingFeePolicyError,
+  giftProcessingFeeStripeMetadataEquals,
+  readStoredGiftProcessingFeeStripeMetadata,
   type GiftProcessingFeeStripeMetadata,
 } from "./fee-policy";
 import {
@@ -94,6 +96,16 @@ async function persistDonationSagaFeeExtras(
   outboxId: string,
   extras: GiftProcessingFeeStripeMetadata,
 ): Promise<void> {
+  const stored = await loadDonationSagaFeeExtras(supabaseAdmin, outboxId);
+  if (stored) {
+    if (!giftProcessingFeeStripeMetadataEquals(stored, extras)) {
+      throw new GiftProcessingFeePolicyError(
+        "Stored donation saga fee extras do not match the caller quote.",
+      );
+    }
+    return;
+  }
+
   const result = await supabaseAdmin
     .from("donation_saga_outbox")
     .update({ fee_extras: extras })
@@ -122,7 +134,7 @@ async function loadDonationSagaFeeExtras(
     );
   }
 
-  return parseGiftProcessingFeeStripeMetadata(result.data?.fee_extras);
+  return readStoredGiftProcessingFeeStripeMetadata(result.data?.fee_extras);
 }
 
 async function resolveDonationSagaFeeExtras(params: {
