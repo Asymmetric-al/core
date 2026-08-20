@@ -1,4 +1,5 @@
 import type { CorrectionApprovalPolicy } from "./approval-policy";
+import type { ContributionCommand } from "./command";
 import type { ReceiptDeliveryOutcome } from "./receipt-delivery";
 
 export type { ReceiptDeliveryOutcome };
@@ -329,7 +330,12 @@ export interface ExecuteContributionActionInput<TContribution = unknown> {
   sourceSurface: ContributionSourceSurface;
   contributionId: string;
   stagedGiftId?: string | null;
-  actionType: ContributionActionType;
+  /**
+   * Typed Contribution command. HTTP routes and stored correction requests
+   * still carry `actionType` plus a JSON payload bag; adapters parse that
+   * bag at this Core seam.
+   */
+  command: ContributionCommand;
   reason?: string | null;
   confirmationToken?: string | null;
   /**
@@ -339,7 +345,6 @@ export interface ExecuteContributionActionInput<TContribution = unknown> {
   expectedRevision?: string | null;
   /** Caller idempotency key so retried saves cannot double-apply. */
   idempotencyKey?: string | null;
-  payload?: Record<string, unknown>;
   organizationSettings?: ContributionOperationOrganizationSettings;
   userPreferences?: ContributionOperationUserPreferences;
   dependencies?: ContributionActionDependencies<TContribution>;

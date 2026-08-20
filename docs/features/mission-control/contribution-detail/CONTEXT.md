@@ -279,6 +279,10 @@ _Avoid_: Separate business logic
 The backend contract used for a contribution operation regardless of whether staff start from CRM donor gift history, Contributions Hub, or contribution detail.
 _Avoid_: Surface-specific save behavior
 
+**Contribution command**:
+A typed staff action against one Gift, executed by Contribution Operations Core. HTTP and stored correction requests still carry `actionType` plus a JSON payload bag; the Core parses that bag at its seam.
+_Avoid_: treating `payload?: Record<string, unknown>` as the Core interface, or duplicating the action catalog in Mission Control shells
+
 **Inline contribution operation**:
 A contribution operation launched directly from a row or compact surface, such as CRM donor gift history, while still using the shared contribution operation contract.
 _Avoid_: Inline shortcut with different validation

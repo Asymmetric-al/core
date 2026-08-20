@@ -39,6 +39,7 @@
     "./admin/users": "./src/admin/users.ts",
     "./admin/contribution-shared": "./src/admin/contribution-shared/index.ts",
     "./admin/contribution-operations": "./src/admin/contribution-operations/index.ts",
+    "./admin/contribution-operations/catalog": "./src/admin/contribution-operations/catalog.ts",
     "./admin/contribution-operations/crm-retry-support": "./src/admin/contribution-operations/crm-retry-support.ts",
     "./admin/contribution-operations/route": "./src/admin/contribution-operations/route.ts",
     "./admin/contribution-operations/types": "./src/admin/contribution-operations/types.ts",

@@ -24,7 +24,7 @@ import {
   type ViewSettingsPatch,
 } from "./crm-detail-shared";
 
-import type { OperationDefinition } from "../contributions/operation-shell";
+import type { OperationDefinition } from "@asym/api/admin/contribution-operations/catalog";
 import type {
   CrmDonorDetailResponse,
   CrmNamedView,

@@ -275,6 +275,13 @@ or provider history atomically.
 _Avoid_: silent edit; direct overwrite; one cross-domain transaction that
 rewrites gift, receipt, document, communication, and accounting truth
 
+**Contribution command**:
+A typed staff action against one Gift, executed by Contribution Operations
+Core. Transport and stored correction requests still name the action and carry
+a JSON payload bag; the Core parses that bag at its seam.
+_Avoid_: treating an untyped payload bag as the Core interface; duplicating the
+action catalog in Mission Control shells
+
 **Donation Saga**:
 The durable, outbox-driven process that creates a donation's payment intent and
 recovers a stuck handoff, guarded by a [[product-idempotency-key]] so a
