@@ -1,12 +1,15 @@
 import { randomUUID } from "node:crypto";
 
 import {
+  parseGiftProcessingFeeStripeMetadata,
+  type GiftProcessingFeeStripeMetadata,
+} from "./fee-policy";
+import {
   createDonationPaymentIntent,
   mergeDonationPaymentIntentMetadata,
   type DonationPaymentIntentMethodType,
 } from "./payment-intent";
 
-import type { GiftProcessingFeeStripeMetadata } from "./fee-policy";
 import type { getAdminClient } from "@asym/database/supabase/admin";
 import type Stripe from "stripe";
 
@@ -86,45 +89,6 @@ function paymentMethodTypesFromFeeMetadata(
   }
 }
 
-function parseStoredFeeExtras(
-  value: unknown,
-): GiftProcessingFeeStripeMetadata | undefined {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return undefined;
-  }
-
-  const record = value as Record<string, unknown>;
-  const paymentMethod = record.payment_method;
-  if (
-    paymentMethod !== "card" &&
-    paymentMethod !== "ach" &&
-    paymentMethod !== "wallet"
-  ) {
-    return undefined;
-  }
-
-  const giftAmountCents = record.gift_amount_cents;
-  const coverFees = record.cover_fees;
-  const coverAmountCents = record.cover_amount_cents;
-  const estimatedFeeCents = record.estimated_fee_cents;
-  if (
-    typeof giftAmountCents !== "string" ||
-    typeof coverFees !== "string" ||
-    typeof coverAmountCents !== "string" ||
-    typeof estimatedFeeCents !== "string"
-  ) {
-    return undefined;
-  }
-
-  return {
-    gift_amount_cents: giftAmountCents,
-    cover_fees: coverFees,
-    payment_method: paymentMethod,
-    cover_amount_cents: coverAmountCents,
-    estimated_fee_cents: estimatedFeeCents,
-  };
-}
-
 async function persistDonationSagaFeeExtras(
   supabaseAdmin: DonationSupabaseClient,
   outboxId: string,
@@ -166,7 +130,7 @@ async function loadDonationSagaFeeExtras(
         ? (result as { data?: { fee_extras?: unknown } | null }).data
             ?.fee_extras
         : undefined;
-    return parseStoredFeeExtras(feeExtras);
+    return parseGiftProcessingFeeStripeMetadata(feeExtras);
   } catch {
     return undefined;
   }

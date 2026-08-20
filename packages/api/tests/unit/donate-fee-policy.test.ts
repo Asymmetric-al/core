@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   GiftProcessingFeePolicyError,
+  giftProcessingFeeStripeMetadataEquals,
   quoteGiftProcessingFee,
   resolveGiftIntakeCharge,
   toGiftProcessingFeeStripeMetadata,
@@ -211,6 +212,43 @@ describe("resolveGiftIntakeCharge", () => {
         currency: "eur",
       }),
     ).toThrow(/USD only/i);
+  });
+});
+
+describe("giftProcessingFeeStripeMetadataEquals", () => {
+  it("treats ACH cover $100 and uncovered card $100.81 as colliding charged cents with different extras", () => {
+    const achCover = resolveGiftIntakeCharge({
+      amount: 100,
+      coverFees: true,
+      paymentMethod: "ach",
+    });
+    const cardUncovered = resolveGiftIntakeCharge({
+      amount: 100.81,
+      coverFees: false,
+      paymentMethod: "card",
+    });
+
+    expect(achCover.chargedAmountCents).toBe(10081);
+    expect(cardUncovered.chargedAmountCents).toBe(10081);
+    expect(
+      giftProcessingFeeStripeMetadataEquals(
+        toGiftProcessingFeeStripeMetadata(achCover),
+        toGiftProcessingFeeStripeMetadata(cardUncovered),
+      ),
+    ).toBe(false);
+  });
+
+  it("matches identical fee extras field-for-field", () => {
+    const quote = resolveGiftIntakeCharge({
+      amount: 100,
+      coverFees: true,
+      paymentMethod: "ach",
+    });
+    const extras = toGiftProcessingFeeStripeMetadata(quote);
+
+    expect(giftProcessingFeeStripeMetadataEquals(extras, { ...extras })).toBe(
+      true,
+    );
   });
 });
 

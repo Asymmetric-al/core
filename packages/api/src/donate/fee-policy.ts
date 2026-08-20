@@ -225,3 +225,55 @@ export function toGiftProcessingFeeStripeMetadata(
     estimated_fee_cents: String(quote.estimatedStripeFeeCents),
   };
 }
+
+export function parseGiftProcessingFeeStripeMetadata(
+  value: unknown,
+): GiftProcessingFeeStripeMetadata | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+  const paymentMethod = record.payment_method;
+  if (
+    paymentMethod !== "card" &&
+    paymentMethod !== "ach" &&
+    paymentMethod !== "wallet"
+  ) {
+    return undefined;
+  }
+
+  const giftAmountCents = record.gift_amount_cents;
+  const coverFees = record.cover_fees;
+  const coverAmountCents = record.cover_amount_cents;
+  const estimatedFeeCents = record.estimated_fee_cents;
+  if (
+    typeof giftAmountCents !== "string" ||
+    typeof coverFees !== "string" ||
+    typeof coverAmountCents !== "string" ||
+    typeof estimatedFeeCents !== "string"
+  ) {
+    return undefined;
+  }
+
+  return {
+    gift_amount_cents: giftAmountCents,
+    cover_fees: coverFees,
+    payment_method: paymentMethod,
+    cover_amount_cents: coverAmountCents,
+    estimated_fee_cents: estimatedFeeCents,
+  };
+}
+
+export function giftProcessingFeeStripeMetadataEquals(
+  left: GiftProcessingFeeStripeMetadata,
+  right: GiftProcessingFeeStripeMetadata,
+): boolean {
+  return (
+    left.gift_amount_cents === right.gift_amount_cents &&
+    left.cover_fees === right.cover_fees &&
+    left.payment_method === right.payment_method &&
+    left.cover_amount_cents === right.cover_amount_cents &&
+    left.estimated_fee_cents === right.estimated_fee_cents
+  );
+}

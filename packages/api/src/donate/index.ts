@@ -8,6 +8,8 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import {
   GiftProcessingFeePolicyError,
+  giftProcessingFeeStripeMetadataEquals,
+  parseGiftProcessingFeeStripeMetadata,
   resolveGiftIntakeCharge,
   toGiftProcessingFeeStripeMetadata,
   type GiftProcessingFeeQuote,
@@ -160,6 +162,36 @@ export const POST = withOperation(
         throw new ApiHttpError(
           409,
           "This idempotency key was already used for a different charged amount.",
+        );
+      }
+
+      const { data: storedOutbox, error: storedOutboxError } =
+        await supabaseAdmin
+          .from("donation_saga_outbox")
+          .select("fee_extras")
+          .eq("id", outboxId)
+          .eq("tenant_id", ctx.tenantId)
+          .single();
+
+      if (storedOutboxError || storedOutbox == null) {
+        throw new ApiHttpError(
+          500,
+          "Failed to load the existing donation fee extras for this idempotency key.",
+        );
+      }
+      const storedFeeExtras = parseGiftProcessingFeeStripeMetadata(
+        storedOutbox.fee_extras,
+      );
+      if (
+        storedFeeExtras == null ||
+        !giftProcessingFeeStripeMetadataEquals(
+          storedFeeExtras,
+          extraPaymentIntentMetadata,
+        )
+      ) {
+        throw new ApiHttpError(
+          409,
+          "This idempotency key was already used for a different gift fee quote.",
         );
       }
     }

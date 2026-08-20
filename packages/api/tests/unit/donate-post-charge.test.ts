@@ -117,6 +117,46 @@ function createDonationsFromMock(storedAmount: number | null) {
   });
 }
 
+function createReplayFromMock(options: {
+  storedAmount: number | null;
+  storedFeeExtras?: Record<string, string> | null;
+  feeExtrasError?: { message: string };
+}) {
+  return vi.fn((table: string) => {
+    if (table === "donations") {
+      return {
+        select: () => ({
+          eq: () => ({
+            eq: () => ({
+              single: async () =>
+                options.storedAmount == null
+                  ? { data: null, error: { message: "Donation not found" } }
+                  : { data: { amount: options.storedAmount }, error: null },
+            }),
+          }),
+        }),
+      };
+    }
+
+    expect(table).toBe("donation_saga_outbox");
+    return {
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            single: async () =>
+              options.feeExtrasError
+                ? { data: null, error: options.feeExtrasError }
+                : {
+                    data: { fee_extras: options.storedFeeExtras ?? {} },
+                    error: null,
+                  },
+          }),
+        }),
+      }),
+    };
+  });
+}
+
 describe("POST /api/donate Gift processing-fee policy", () => {
   const rpcMock = vi.fn();
   let storedDonationAmount: number | null = null;
@@ -311,7 +351,10 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     mockedGetAdminClient.mockReturnValue({
       client: {
         rpc: rpcMock,
-        from: createDonationsFromMock(storedDonationAmount),
+        from: createReplayFromMock({
+          storedAmount: storedDonationAmount,
+          storedFeeExtras: toGiftProcessingFeeStripeMetadata(expectedQuote),
+        }),
       } as never,
       error: null,
     });
@@ -348,7 +391,10 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     mockedGetAdminClient.mockReturnValue({
       client: {
         rpc: rpcMock,
-        from: createDonationsFromMock(storedDonationAmount),
+        from: createReplayFromMock({
+          storedAmount: storedDonationAmount,
+          storedFeeExtras: toGiftProcessingFeeStripeMetadata(expectedQuote),
+        }),
       } as never,
       error: null,
     });
@@ -377,5 +423,49 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     expect(
       toGiftProcessingFeeStripeMetadata(expectedQuote).payment_method,
     ).toBe("ach");
+  });
+
+  it("returns 409 when a replayed saga matches charged cents but not fee extras", async () => {
+    const storedAchCoverQuote = resolveGiftIntakeCharge({
+      amount: 100,
+      coverFees: true,
+      paymentMethod: "ach",
+    });
+    const collidingCardQuote = resolveGiftIntakeCharge({
+      amount: 100.81,
+      coverFees: false,
+      paymentMethod: "card",
+    });
+    expect(storedAchCoverQuote.chargedAmountCents).toBe(
+      collidingCardQuote.chargedAmountCents,
+    );
+
+    mockedGetAdminClient.mockReturnValue({
+      client: {
+        rpc: rpcMock,
+        from: createReplayFromMock({
+          storedAmount: storedAchCoverQuote.chargedAmountCents,
+          storedFeeExtras:
+            toGiftProcessingFeeStripeMetadata(storedAchCoverQuote),
+        }),
+      } as never,
+      error: null,
+    });
+    rpcMock.mockResolvedValue({
+      data: { ...beginRpcResult, replayed: true },
+      error: null,
+    });
+
+    const response = await POST(
+      createDonateRequest({
+        amount: 100.81,
+        currency: "usd",
+        cover_fees: false,
+        payment_method: "card",
+      }),
+    );
+
+    expect(response.status).toBe(409);
+    expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
   });
 });
