@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { sendEmail, verifyResendWebhookSignature } from "../../../../packages/email/resend";
+import {
+  sendEmail,
+  verifyResendWebhookSignature,
+} from "../../../../packages/email/resend";
 
 const mockCreateResendClientInstance = vi.hoisted(() => vi.fn());
 

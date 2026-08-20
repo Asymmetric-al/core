@@ -477,7 +477,7 @@ export default function EmailStudio() {
           >
             <AlertTitle>Legacy template selected read-only</AlertTitle>
             <AlertDescription>
-              Legacy templates can't be edited in React Email. Preview remains
+              Legacy templates cannot be edited in React Email. Preview remains
               available after closing the dialog.
             </AlertDescription>
           </Alert>
