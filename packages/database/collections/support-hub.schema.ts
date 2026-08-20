@@ -121,12 +121,36 @@ export type SupportAutomationConditionKind =
 export type SupportAutomationActionKind =
   (typeof SUPPORT_AUTOMATION_ACTION_KINDS)[number];
 
-const isoString = z
+const isoString = z.iso.datetime({ offset: true });
+
+const sqlCheckEmail = z
   .string()
   .min(1)
-  .refine((value) => !Number.isNaN(Date.parse(value)), {
-    message: "must be an ISO date string",
+  .refine((value) => value.indexOf("@") > 0, {
+    message: "must contain an @ after the first character",
   });
+
+export function normalizeSupportClockTime(value: string): string | null {
+  const trimmed = value.trim();
+  const match = /^(\d{1,2}):([0-5]\d)(?::[0-5]\d)?$/.exec(trimmed);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23) return null;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+export const supportClockTimeSchema = z.string().transform((value, ctx) => {
+  const normalized = normalizeSupportClockTime(value);
+  if (normalized === null) {
+    ctx.addIssue({
+      code: "custom",
+      message: "must be a 24-hour HH:mm clock value",
+    });
+    return z.NEVER;
+  }
+  return normalized;
+});
 
 /* ------------------------------------------------------------------------ */
 /*  Schemas                                                                  */
@@ -144,7 +168,7 @@ export const supportLabelSchema = z.object({
 export const supportAssigneeSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  email: z.string().email(),
+  email: z.email(),
   avatarUrl: z.string().nullable(),
   title: z.string().nullable(),
 });
@@ -157,15 +181,25 @@ export const supportTeamSchema = z.object({
   initials: z.string().min(1),
 });
 
-const supportContactRefSchema = z.object({
-  contactId: z.string().nullable(),
-  donorId: z.string().nullable(),
-  giftId: z.string().nullable(),
-  contributionId: z.string().nullable(),
-  missionaryId: z.string().nullable(),
-  crmPersonId: z.string().nullable(),
-  churchId: z.string().nullable(),
-});
+const supportContactRefSchema = z
+  .object({
+    contactId: z.string().nullable().optional(),
+    donorId: z.string().nullable().optional(),
+    giftId: z.string().nullable().optional(),
+    contributionId: z.string().nullable().optional(),
+    missionaryId: z.string().nullable().optional(),
+    crmPersonId: z.string().nullable().optional(),
+    churchId: z.string().nullable().optional(),
+  })
+  .transform((value) => ({
+    contactId: value.contactId ?? null,
+    donorId: value.donorId ?? null,
+    giftId: value.giftId ?? null,
+    contributionId: value.contributionId ?? null,
+    missionaryId: value.missionaryId ?? null,
+    crmPersonId: value.crmPersonId ?? null,
+    churchId: value.churchId ?? null,
+  }));
 
 const supportParticipantSchema = z.object({
   id: z.string().min(1),
@@ -231,13 +265,16 @@ export const supportConversationSchema = z.object({
   id: z.string().min(1),
   tenantId: z.string().min(1),
   inboxId: z.string().min(1),
-  subject: z.string().min(1),
+  subject: z.string().transform((value) => {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : "(no subject)";
+  }),
   status: z.enum(SUPPORT_CONVERSATION_STATUSES),
   priority: z.enum(SUPPORT_PRIORITIES),
   channel: z.enum(SUPPORT_CHANNELS),
   assignee: supportAssigneeSchema.nullable(),
   team: supportTeamSchema.nullable(),
-  externalContactEmail: z.string().email(),
+  externalContactEmail: sqlCheckEmail,
   externalContactName: z.string().nullable(),
   contact: supportContactRefSchema.nullable(),
   labels: z.array(supportLabelSchema),
@@ -264,10 +301,10 @@ export const supportInboxSchema = z.object({
   tenantId: z.string().min(1),
   name: z.string().min(1),
   channel: z.enum(SUPPORT_CHANNELS),
-  inboundAddress: z.string().email(),
-  fromAddress: z.string().email(),
+  inboundAddress: z.email(),
+  fromAddress: z.email(),
   fromName: z.string().min(1),
-  replyToAddress: z.string().email().nullable(),
+  replyToAddress: z.email().nullable(),
   description: z.string().nullable(),
   isDefault: z.boolean(),
   createdAt: isoString,
@@ -373,8 +410,8 @@ export const supportBusinessHoursSchema = z.object({
         "sunday",
       ]),
       enabled: z.boolean(),
-      openTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
-      closeTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+      openTime: supportClockTimeSchema,
+      closeTime: supportClockTimeSchema,
     }),
   ),
   holidays: z.array(
