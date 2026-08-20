@@ -67,6 +67,15 @@ function asRecord(value: unknown): Record<string, unknown> {
     : EMPTY_REACT_EMAIL_DESIGN;
 }
 
+function applyLoadedDesign(
+  editor: { commands: { setContent: (content: never) => void } },
+  design: Record<string, unknown> | string,
+) {
+  const nextDesign =
+    typeof design === "string" ? normalizeInitialDesign(design) : design;
+  editor.commands.setContent(nextDesign as never);
+}
+
 export const ReactEmailEditor = forwardRef<
   EmailStudioEditorHandle,
   ReactEmailEditorProps
@@ -75,6 +84,9 @@ export const ReactEmailEditor = forwardRef<
   ref,
 ) {
   const editorRef = useRef<EmailEditorRef>(null);
+  const pendingDesignRef = useRef<Record<string, unknown> | string | null>(
+    null,
+  );
   const [isReady, setIsReady] = useState(false);
   const content = useMemo(
     () => normalizeInitialDesign(initialDesign),
@@ -142,10 +154,13 @@ export const ReactEmailEditor = forwardRef<
 
   const loadDesign = useCallback((design: Record<string, unknown> | string) => {
     const editor = editorRef.current?.editor;
-    if (!editor) return;
-    const nextDesign =
-      typeof design === "string" ? normalizeInitialDesign(design) : design;
-    editor.commands.setContent(nextDesign as never);
+    if (!editor) {
+      pendingDesignRef.current = design;
+      return;
+    }
+
+    pendingDesignRef.current = null;
+    applyLoadedDesign(editor, design);
   }, []);
 
   const undo = useCallback(() => {
@@ -205,10 +220,24 @@ export const ReactEmailEditor = forwardRef<
     ],
   );
 
-  const handleReady = useCallback(() => {
-    setIsReady(true);
-    onReady?.();
-  }, [onReady]);
+  const handleReady = useCallback(
+    (readyEditor?: EmailEditorRef) => {
+      const editor = readyEditor?.editor ?? editorRef.current?.editor;
+      if (!editor) {
+        return;
+      }
+
+      const pending = pendingDesignRef.current;
+      if (pending !== null) {
+        pendingDesignRef.current = null;
+        applyLoadedDesign(editor, pending);
+      }
+
+      setIsReady(true);
+      onReady?.();
+    },
+    [onReady],
+  );
 
   const handleUpdate = useCallback(
     (editor: EmailEditorRef) => {

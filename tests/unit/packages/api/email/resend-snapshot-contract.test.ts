@@ -97,4 +97,57 @@ describe("@asym/email Resend validation snapshot contract", () => {
     expect(snapshot.domainAuthenticated).toBe(true);
     expect(isResendValidationSendReady(snapshot)).toBe(false);
   });
+
+  it("keeps restricted-key snapshots send-ready without faking domainAuthenticated", () => {
+    const snapshot = createResendValidationSnapshot(
+      verifiedResendValidationResult({
+        senderIdentities: [],
+        domainAuthentication: [],
+        deliverabilityScore: 40,
+        warnings: [
+          {
+            code: "RESTRICTED_API_KEY",
+            severity: "warning",
+            message:
+              "This API key cannot list domains. Sending can still work if the key has send permission and the default from-address domain is verified.",
+          },
+        ],
+      }),
+      FIXED_RESEND_VALIDATED_AT,
+    );
+    const parsed = parseResendValidationSnapshot(snapshot);
+
+    expect(snapshot.domainAuthenticated).toBe(false);
+    expect(isResendValidationSendReady(snapshot)).toBe(true);
+    expect(parsed).not.toBeNull();
+    expect(parsed?.domainAuthenticated).toBe(false);
+    expect(isResendValidationSendReady(parsed!)).toBe(true);
+  });
+
+  it("blocks send when an incomplete domain list did not prove the from-domain", () => {
+    const snapshot = createResendValidationSnapshot(
+      verifiedResendValidationResult({
+        senderIdentities: [],
+        domainAuthentication: [
+          { id: 1, domain: "other.com", subdomain: null, valid: true },
+        ],
+        deliverabilityScore: 100,
+        warnings: [
+          {
+            code: "DOMAIN_LIST_INCOMPLETE",
+            severity: "error",
+            message:
+              "Domain listing stopped before Resend reported completion. Domain status may be incomplete.",
+          },
+        ],
+      }),
+      FIXED_RESEND_VALIDATED_AT,
+    );
+    const parsed = parseResendValidationSnapshot(snapshot);
+
+    expect(snapshot.domainAuthenticated).toBe(true);
+    expect(isResendValidationSendReady(snapshot)).toBe(false);
+    expect(parsed).not.toBeNull();
+    expect(isResendValidationSendReady(parsed!)).toBe(false);
+  });
 });
