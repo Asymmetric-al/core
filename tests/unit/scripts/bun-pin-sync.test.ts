@@ -75,6 +75,42 @@ describe("Bun toolchain pin sync", () => {
     expect(bunPins.length).toBeGreaterThan(0);
   });
 
+  it("keeps first-party Vercel apps on the Node Functions runtime", () => {
+    const appRoots = ["admin", "donor", "missionary"] as const;
+
+    for (const app of appRoots) {
+      const vercelConfig = JSON.parse(
+        readFileSync(path.join(repoRoot, "apps", app, "vercel.json"), "utf8"),
+      ) as {
+        bunVersion?: string;
+        installCommand?: string;
+        buildCommand?: string;
+      };
+
+      expect(
+        vercelConfig.bunVersion,
+        `${app} vercel.json bunVersion (Functions runtime opt-in)`,
+      ).toBeUndefined();
+      expect(vercelConfig.installCommand, `${app} installCommand`).toBe(
+        "bun install --cwd ../.. --frozen-lockfile",
+      );
+      expect(vercelConfig.installCommand).not.toContain("--save-text-lockfile");
+      expect(vercelConfig.buildCommand, `${app} buildCommand`).not.toMatch(
+        /--bun\b/,
+      );
+
+      const appPackage = JSON.parse(
+        readFileSync(path.join(repoRoot, "apps", app, "package.json"), "utf8"),
+      ) as { scripts?: Record<string, string> };
+
+      for (const scriptName of ["dev", "build", "start"] as const) {
+        const script = appPackage.scripts?.[scriptName] ?? "";
+        expect(script, `${app} scripts.${scriptName}`).not.toMatch(/--bun\b/);
+        expect(script, `${app} scripts.${scriptName}`).toMatch(/^next /);
+      }
+    }
+  });
+
   it("keeps bun.lock at lockfileVersion 1 for the installed Turborepo parser", () => {
     const lock = parseBunLock(
       readFileSync(path.join(repoRoot, "bun.lock"), "utf8"),

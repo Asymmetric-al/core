@@ -218,7 +218,7 @@ Commit both the canonical files and any mirror updates.
 
 ### Package Manager
 
-This repo uses **Bun** pinned in root `package.json` `packageManager` and `.bun-version` (currently **1.4.0**). Install that exact version locally (`bun run verify:bun-version` after setup). Prefer `bun` / `bunx` for scripts in this workspace; CI installs with `bun ci`. Apps still run on Node.js via Next.js — do not use `bun --bun` to swap the application runtime.
+This repo uses **Bun** pinned in root `package.json` `packageManager` and `.bun-version` (currently **1.4.0**). Install that exact version locally (`bun run verify:bun-version` after setup). Prefer `bun` / `bunx` for scripts in this workspace; CI installs with `bun ci`. Apps still run on **Node.js 24** via Next.js (`next build` / `next start`). Do not use `bun --bun`, and do not add `bunVersion` to `apps/*/vercel.json` — that switches Vercel Functions onto the Bun runtime ([changelog](https://vercel.com/changelog/bun-1-4-is-now-available-in-vercel-functions)), which is not this repo’s deploy path.
 
 ### Monorepo Workspace Contract
 

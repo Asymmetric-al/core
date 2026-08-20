@@ -14,7 +14,7 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
 - **Base branches:** use `develop` for development validation and `production` only for
   an intentional production release. `main` is retired/protected historical
   history and is not an active deploy target.
-- **Package manager:** `bun` pinned via `package.json#packageManager` and `.bun-version` (currently `bun@1.4.0`). `bun run setup` and `scripts/setup/*` call `bun run verify:bun-version` so a mismatched local Bun fails fast with upgrade instructions. Apps still run on Node.js via Next.js; Bun is the package manager and script runner, not a replacement Node runtime.
+- **Package manager:** `bun` pinned via `package.json#packageManager` and `.bun-version` (currently `bun@1.4.0`). `bun run setup` and `scripts/setup/*` call `bun run verify:bun-version` so a mismatched local Bun fails fast with upgrade instructions. Apps still run on Node.js via Next.js; Bun is the package manager and script runner, not a replacement Node runtime. Do not set `bunVersion` in app `vercel.json` files.
 - **Conventions:** `docs/conventions.md` (folder structure, code style, and pre-commit checklist).
 - **Setup (macOS/Linux):** `bun run setup` (creates/validates `.env.local`, installs deps, runs verification).
 - **Mission Control in Cursor Cloud:** `bun run setup:mission-control:cloud && bun run dev:mission-control` (writes gitignored dev placeholders only).

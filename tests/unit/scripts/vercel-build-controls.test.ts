@@ -93,6 +93,48 @@ describe("Vercel build controls verifier", () => {
     );
   });
 
+  it("rejects bunVersion because that opts Vercel Functions off Node onto Bun", () => {
+    // https://vercel.com/changelog/bun-1-4-is-now-available-in-vercel-functions
+    // bunVersion is the Functions/Middleware runtime, not the install tool.
+    // Next.js on Bun also requires `bun run --bun next build`. Neither belongs
+    // in these Node 24 Next.js apps.
+    for (const bunVersion of ["1.4.x", "1.x"] as const) {
+      const checks = validateLocalVercelConfig({
+        project: adminProject,
+        config: {
+          ...localConfig,
+          bunVersion,
+        },
+      });
+
+      expect(checks).toContainEqual(
+        expect.objectContaining({
+          ok: false,
+          label: "admin vercel.json omits bunVersion (Node Functions runtime)",
+          detail: bunVersion,
+        }),
+      );
+    }
+  });
+
+  it("rejects bun --bun in Vercel install/build commands", () => {
+    const checks = validateLocalVercelConfig({
+      project: adminProject,
+      config: {
+        ...localConfig,
+        buildCommand: "cd ../.. && bun run --bun build:admin",
+      },
+    });
+
+    expect(checks).toContainEqual(
+      expect.objectContaining({
+        ok: false,
+        label: "admin vercel.json commands stay off bun --bun",
+        detail: "cd ../.. && bun run --bun build:admin",
+      }),
+    );
+  });
+
   it("validates the ignored-build decision matrix", () => {
     expect(validateIgnoredBuildDecisionMatrix().every((item) => item.ok)).toBe(
       true,
