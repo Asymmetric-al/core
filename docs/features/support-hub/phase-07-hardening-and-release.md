@@ -3,6 +3,20 @@
 > Historical note: Phase 8 has now activated the Supabase adapter, route-backed
 > UI hooks, and Resend inbound routing. This Phase 7 document remains useful for
 > the adapter-boundary rationale and the pre-cutover implementation map.
+>
+> **Current state (2026-08-19).** The Donor Care Support Hub UI reads and writes
+> `apps/admin/app/api/admin/support/**` through TanStack Query hooks. Browser
+> TanStack DB collections are a tenant-scoped read cache over those routes
+> (`startSync: false`); they are not the Give Hope seed interface. Give Hope
+> seed lives only in in-memory adapter fixtures
+> (`packages/api/src/admin/support-hub/adapter/fixtures.ts`).
+> `supportHubAdapter` is `supabaseSupportHubAdapter`. Persistence lives in
+> `supabase/migrations/20260501001500_support_hub_foundation.sql` and
+> `supabase/migrations/20260515025814_support_hub_core_modules.sql`. There is
+> no tenant-wide messages list; `support_messages` is local-only identity and
+> thread messages stay on `GET /api/admin/support/conversations/:id/messages`.
+> Quotes below about an unwired UI and an in-memory collection interface are
+> historical Phase 7 wrap-up text.
 
 Phases 1–6 are stacked. Phase 7 makes the donor care Support Hub production-shaped: a real `packages/api/src/admin/support-hub/*` adapter layer with a single swap point for the Phase 8 Supabase implementation, 30 thin route handlers under `apps/admin/app/api/admin/support/**`, CRM-ready cross-link chips into `/crm` and `/contributions`, accessibility + performance + failure-recovery audits, ~47 new unit / component tests, an e2e smoke spec, and the operator + admin + release-note docs.
 

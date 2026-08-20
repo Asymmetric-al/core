@@ -7,7 +7,8 @@ import {
   SUPPORT_INBOX_VIEWS,
   SUPPORT_LABEL_TONES,
   SUPPORT_PRIORITIES,
-} from "@asym/database/hooks";
+  supportClockTimeSchema,
+} from "@asym/database/collections/support-hub.schema";
 import { z } from "zod";
 
 /**
@@ -175,8 +176,8 @@ export const saveBusinessHoursSchema = z.object({
         "sunday",
       ]),
       enabled: z.boolean(),
-      openTime: z.string().regex(/^\d{2}:\d{2}$/),
-      closeTime: z.string().regex(/^\d{2}:\d{2}$/),
+      openTime: supportClockTimeSchema,
+      closeTime: supportClockTimeSchema,
     }),
   ),
   holidays: z.array(

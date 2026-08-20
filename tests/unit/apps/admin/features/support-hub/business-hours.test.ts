@@ -56,6 +56,21 @@ describe("isWithinBusinessHours", () => {
       false,
     );
   });
+
+  it("accepts HTML type=time values such as 09:00:00", () => {
+    const htmlClockSchedule: SupportBusinessHours = {
+      ...SCHEDULE,
+      weeklySchedule: SCHEDULE.weeklySchedule.map((entry) =>
+        entry.day === "tuesday"
+          ? { ...entry, openTime: "09:00:00", closeTime: "17:00:00" }
+          : entry,
+      ),
+    };
+
+    expect(
+      isWithinBusinessHours(htmlClockSchedule, "2026-04-14T10:00:00.000Z"),
+    ).toBe(true);
+  });
 });
 
 describe("minutesWithinBusinessHours", () => {

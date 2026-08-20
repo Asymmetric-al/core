@@ -1,5 +1,6 @@
 "use client";
 
+import { supportClockTimeSchema } from "@asym/database/collections/support-hub.schema";
 import {
   SUPPORT_AUTOMATION_ACTION_KINDS,
   SUPPORT_AUTOMATION_CONDITION_KINDS,
@@ -13,7 +14,6 @@ import {
   supportInboxesCollection,
   supportLabelsCollection,
   supportMacrosCollection,
-  supportMessagesCollection,
   supportNotificationPreferencesCollection,
   supportSavedViewsCollection,
   supportSignaturesCollection,
@@ -32,10 +32,11 @@ import {
 import type { SupportReplyPayload } from "../models/editor-payload";
 
 /**
- * Single namespaced surface for everything the hooks layer consumes. By
- * routing through `supportStore.collections.*` and `supportStore.inputs.*`,
- * a later phase can swap the in-memory collection writers for
- * `@asym/api/admin/support-hub/*` mutations without touching any hook file.
+ * Single namespaced surface for everything the hooks layer consumes.
+ * `supportStore.collections` is the TanStack DB read surface over the
+ * adapter-backed `/api/admin/support/**` routes. Thread messages stay on
+ * `useSupportMessages`. Privileged writes stay server-command owned in
+ * `use-support-mutations.ts`.
  *
  * Adapter rule: do NOT call collection methods (insert/update/delete) from
  * outside the hooks module. Hooks own the optimistic flow + invalidation;
@@ -44,7 +45,6 @@ import type { SupportReplyPayload } from "../models/editor-payload";
 export const supportStore = {
   collections: {
     conversations: supportConversationsCollection,
-    messages: supportMessagesCollection,
     labels: supportLabelsCollection,
     macros: supportMacrosCollection,
     cannedResponses: supportCannedResponsesCollection,
@@ -201,8 +201,8 @@ export const supportStore = {
             "sunday",
           ]),
           enabled: z.boolean(),
-          openTime: z.string().regex(/^\d{2}:\d{2}$/),
-          closeTime: z.string().regex(/^\d{2}:\d{2}$/),
+          openTime: supportClockTimeSchema,
+          closeTime: supportClockTimeSchema,
         }),
       ),
       holidays: z.array(

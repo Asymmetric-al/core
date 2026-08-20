@@ -1,8 +1,26 @@
 # Support Hub — Final audit and wrap-up
 
-This is the canonical "what actually shipped" record for the Donor Care
-Support Hub stack. It supersedes the optimistic claims in some of the earlier
-phase docs. Read this first when you pick the work back up.
+> **Current state (2026-08-19).** This wrap-up was the canonical Phase 7
+> record. It is no longer a description of what currently runs. Live Donor
+> Care Support Hub UI reads and writes `apps/admin/app/api/admin/support/**`
+> through TanStack Query hooks. Browser TanStack DB collections are a
+> tenant-scoped read cache over those routes (`startSync: false`); they are
+> not the Give Hope seed interface. Give Hope seed lives only in in-memory
+> adapter fixtures
+> (`packages/api/src/admin/support-hub/adapter/fixtures.ts`).
+> `supportHubAdapter` is `supabaseSupportHubAdapter`. Persistence lives in
+> `supabase/migrations/20260501001500_support_hub_foundation.sql` and
+> `supabase/migrations/20260515025814_support_hub_core_modules.sql`. There is
+> no tenant-wide messages list; `support_messages` is local-only identity and
+> thread messages stay on `GET /api/admin/support/conversations/:id/messages`.
+> Tables below that say "no `support_*` tables", "unwired routes", or "two
+> seed surfaces" are historical Phase 7 wrap-up text. Do not rewrite those
+> rows as if they were always wrong.
+
+This was the canonical "what actually shipped" record for the Donor Care
+Support Hub stack at Phase 7 wrap-up. It supersedes the optimistic claims in
+some of the earlier phase docs. Read the 2026-08-19 banner first when you
+pick the work back up.
 
 ## PRs reviewed
 

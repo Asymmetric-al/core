@@ -35,6 +35,18 @@
 >
 > Read this notice + the wrap-up doc before treating any specific Phase 1
 > claim as a description of what currently runs.
+>
+> **Current state (2026-08-19).** The Phase 7 audit update above is itself
+> historical. Live Donor Care Support Hub UI reads and writes
+> `apps/admin/app/api/admin/support/**` through TanStack Query hooks. Browser
+> TanStack DB collections are a tenant-scoped read cache over those routes
+> (`startSync: false`); they are not the Give Hope seed interface. Give Hope
+> seed lives only in in-memory adapter fixtures.
+> `supportHubAdapter` is `supabaseSupportHubAdapter`. Persistence lives in
+> `supabase/migrations/20260501001500_support_hub_foundation.sql` and
+> `supabase/migrations/20260515025814_support_hub_core_modules.sql`. There is
+> no tenant-wide messages list; `support_messages` is local-only identity and
+> thread messages stay on `GET /api/admin/support/conversations/:id/messages`.
 
 ## 1. Goal
 

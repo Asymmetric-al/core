@@ -1,6 +1,17 @@
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
+  collectTypeScriptFiles,
   collectRetiredTwentyRuntimeViolations,
   collectRetiredTwentyRuntimeViolationsFromSource,
 } from "../../../scripts/verify/data-boundary-check.mjs";
@@ -37,5 +48,48 @@ describe("Twenty CRM retirement guard", () => {
 
   it("passes a clean current runtime tree", () => {
     expect(collectRetiredTwentyRuntimeViolations()).toEqual([]);
+  });
+
+  it("skips generated Eve and Nitro output directories while walking runtime trees", () => {
+    const scanner = readFileSync(
+      new URL(
+        "../../../scripts/verify/data-boundary-check.mjs",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+
+    expect(scanner).toMatch(
+      /SKIP_DIRECTORY_NAMES = new Set\(\[[\s\S]*"\.output"[\s\S]*"\.nitro"/u,
+    );
+    expect(
+      collectRetiredTwentyRuntimeViolations().some((violation) =>
+        violation.includes(".output/"),
+      ),
+    ).toBe(false);
+  });
+
+  it("does not walk generated .output or .nitro trees when collecting files", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "twenty-skip-dirs-"));
+
+    try {
+      mkdirSync(path.join(root, "src"));
+      mkdirSync(path.join(root, ".output"));
+      mkdirSync(path.join(root, ".nitro"));
+      writeFileSync(
+        path.join(root, "src", "runtime.ts"),
+        "const marker = 'visible';\n",
+      );
+      writeFileSync(path.join(root, ".output", "chunk.ts"), "TWENTY_API_KEY\n");
+      writeFileSync(path.join(root, ".nitro", "chunk.ts"), "TWENTY_API_KEY\n");
+
+      const files = collectTypeScriptFiles(root).map((filePath) =>
+        path.relative(root, filePath).split(path.sep).join("/"),
+      );
+
+      expect(files).toEqual(["src/runtime.ts"]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

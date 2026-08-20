@@ -75,6 +75,14 @@ export const supportHubQueryKeys = {
     ["admin", "support", "reports", slice, inboxId ?? "all"] as const,
 } as const;
 
+export const SUPPORT_HUB_COLLECTION_QUERY_TAG = "collection" as const;
+
+export function supportHubCollectionQueryKey<
+  const T extends readonly unknown[],
+>(key: T): [...T, typeof SUPPORT_HUB_COLLECTION_QUERY_TAG] {
+  return [...key, SUPPORT_HUB_COLLECTION_QUERY_TAG];
+}
+
 export type SupabaseTableQueryName = keyof typeof supabaseTableQueryKeys;
 export type AdminSurfaceQueryName = keyof typeof adminSurfaceQueryKeys;
 

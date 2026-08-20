@@ -1,3 +1,5 @@
+import { normalizeSupportClockTime } from "@asym/database/collections/support-hub.schema";
+
 import type { SupportBusinessHours } from "../types";
 
 /**
@@ -21,12 +23,12 @@ function mondayFirstIndex(date: Date): number {
 }
 
 function parseClock(value: string): { hours: number; minutes: number } | null {
-  if (!/^\d{2}:\d{2}$/.test(value)) return null;
-  const [hoursRaw, minutesRaw] = value.split(":");
+  const normalized = normalizeSupportClockTime(value);
+  if (!normalized) return null;
+  const [hoursRaw, minutesRaw] = normalized.split(":");
   const hours = Number(hoursRaw);
   const minutes = Number(minutesRaw);
   if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
-  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
   return { hours, minutes };
 }
 

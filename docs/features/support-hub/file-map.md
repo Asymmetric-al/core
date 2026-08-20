@@ -6,6 +6,19 @@
 > precedents (Care Hub, Contributions, Resend integration); exact route
 > granularity and filenames may shift slightly during implementation while
 > keeping package boundaries stable.
+>
+> **Current state (2026-08-19).** This map is a planning artifact. Live Donor
+> Care Support Hub UI reads and writes `apps/admin/app/api/admin/support/**`
+> through TanStack Query hooks. Browser collections live in
+> `packages/database/collections/support-hub.ts` as a tenant-scoped TanStack
+> DB read cache (`startSync: false`); schema lives in
+> `packages/database/collections/support-hub.schema.ts`. Give Hope seed is
+> not the collection interface. Give Hope seed lives only in in-memory
+> adapter fixtures. `supportHubAdapter` is `supabaseSupportHubAdapter`.
+> Persistence lives in
+> `supabase/migrations/20260501001500_support_hub_foundation.sql` and
+> `supabase/migrations/20260515025814_support_hub_core_modules.sql`. There is
+> no tenant-wide messages list; thread messages stay conversation-scoped.
 
 ## 0. Conventions used here
 

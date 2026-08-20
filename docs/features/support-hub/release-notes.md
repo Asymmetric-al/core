@@ -17,6 +17,13 @@ persistence cutover.
 - Mission Control Support Hub hooks now read and mutate through
   `/api/admin/support/**` route handlers. The browser no longer writes
   `supportStore.collections.*` directly.
+- Browser TanStack DB collections in
+  `packages/database/collections/support-hub.ts` are a tenant-scoped read
+  cache over those routes (`startSync: false`). Schema lives in
+  `packages/database/collections/support-hub.schema.ts`. Give Hope seed is
+  not the collection interface; it lives only in in-memory adapter fixtures.
+  `support_messages` is local-only identity; thread messages stay
+  conversation-scoped.
 - Resend `email.received` events call `routeInboundToSupportHub()`, persist
   inbound threading headers, and bridge routed inbound rows to Support Hub
   conversation/message ids.
@@ -91,6 +98,13 @@ Execute it only with a service-role connection.
 - Tenant-local SLA/business-hours calculations beyond persisted timezone data.
 
 ## Verification
+
+Confirm collections stay route-backed and Give Hope seed stays out of the
+browser module:
+
+```bash
+bunx vitest run tests/unit/packages/database/support-hub-collections.test.ts tests/unit/packages/database/collection-registry.test.ts
+```
 
 Phase 8 evidence is recorded at
 `docs/ops/phase-evidence/2026-05-15_phase-08_mission-control-platform-ux-core-modules.md`.

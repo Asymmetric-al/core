@@ -53,6 +53,22 @@ describe("collection registry", () => {
     expect(unsafeRealtimeTables).toEqual([]);
   });
 
+  it("marks Support Hub collections as route-backed server-command reads", () => {
+    const supportHub = collectionRegistry.find(
+      (entry) => entry.name === "supportHubCollections",
+    );
+
+    expect(supportHub).toMatchObject({
+      kind: "route-backed",
+      mutationPolicy: "server-command",
+      realtime: "not-applicable",
+      rls: "not-applicable",
+    });
+    expect(supportHub?.notes).not.toContain("local-only");
+    expect(supportHub?.notes).toContain("no tenant-wide messages collection");
+    expect(supportHub?.notes).toContain("route + adapter");
+  });
+
   it("marks unsafe requested tables as server-only until RLS and redaction are resolved", () => {
     const serverOnlyTables = collectionRegistry
       .filter((entry) => entry.kind === "server-only")

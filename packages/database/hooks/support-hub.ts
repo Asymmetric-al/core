@@ -12,7 +12,6 @@ import {
   supportInboxesCollection,
   supportLabelsCollection,
   supportMacrosCollection,
-  supportMessagesCollection,
   supportNotificationPreferencesCollection,
   supportSavedViewsCollection,
   supportSignaturesCollection,
@@ -37,16 +36,17 @@ export {
   SUPPORT_MESSAGE_TYPES,
   SUPPORT_PRIORITIES,
   SUPPORT_REPORT_SLICES,
+  normalizeSupportClockTime,
   supportAgentsCollection,
   supportAutomationRulesCollection,
   supportBusinessHoursCollection,
   supportCannedResponsesCollection,
+  supportClockTimeSchema,
   supportConversationsCollection,
   supportInboxSettingsCollection,
   supportInboxesCollection,
   supportLabelsCollection,
   supportMacrosCollection,
-  supportMessagesCollection,
   supportNotificationPreferencesCollection,
   supportSavedViewsCollection,
   supportSignaturesCollection,
@@ -102,10 +102,6 @@ export type {
 
 export function useSupportConversationsLive() {
   return useLiveQuery(supportConversationsCollection);
-}
-
-export function useSupportMessagesLive() {
-  return useLiveQuery(supportMessagesCollection);
 }
 
 export function useSupportLabelsLive() {

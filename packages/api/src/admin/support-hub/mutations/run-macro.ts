@@ -1,6 +1,9 @@
 import { supportHubAdapter } from "../adapter";
 
-import type { SupportMacro, SupportMacroAction } from "@asym/database/hooks";
+import type {
+  SupportMacro,
+  SupportMacroAction,
+} from "@asym/database/collections/support-hub.schema";
 
 export interface RunMacroInput {
   conversationId: string;
