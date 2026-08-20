@@ -14,15 +14,14 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { OPERATION_DEFINITIONS } from "@asym/api/admin/contribution-operations/catalog";
+
 import { ContributionDetailSheet } from "./contribution-detail-sheet";
 // Intentional module cycle with ./operation-shell: the shell reuses this
 // file's detail query + invalidation helpers, and the overlay mounts the
 // shell for refunds. Both sides only reference the other inside function
 // bodies, so evaluation order is safe.
-import {
-  ContributionOperationShell,
-  OPERATION_DEFINITIONS,
-} from "./operation-shell";
+import { ContributionOperationShell } from "./operation-shell";
 import { ADMIN_CONTRIBUTIONS_QUERY_KEY } from "./use-admin-contributions";
 
 import type { Contribution } from "./types";

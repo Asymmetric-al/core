@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   OPERATION_CATEGORY_LABELS,
   OPERATION_DEFINITIONS,
+  contributionActionName,
   contributionActionTitle,
   operationDefinitionFor,
 } from "../../../../../packages/api/src/admin/contribution-operations/catalog";
@@ -196,5 +197,16 @@ describe("contributionActionTitle", () => {
         expectedTitles[actionType],
       );
     }
+  });
+});
+
+describe("contributionActionName", () => {
+  it("keeps blocked CRM approve and retry distinguishable", () => {
+    expect(contributionActionName("approve_staged_gift")).toBe(
+      "CRM approval/posting",
+    );
+    expect(contributionActionName("retry_staged_gift")).toBe(
+      "CRM posting retry",
+    );
   });
 });

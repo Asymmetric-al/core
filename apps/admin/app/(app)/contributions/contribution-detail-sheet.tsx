@@ -1,6 +1,6 @@
 "use client";
 
-import { contributionActionTitle } from "@asym/api/admin/contribution-operations/catalog";
+import { contributionActionName } from "@asym/api/admin/contribution-operations/catalog";
 import {
   CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
   CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
@@ -1044,7 +1044,7 @@ export function ContributionDetailSheet({
                   className="text-xs text-muted-foreground leading-relaxed"
                 >
                   <span className="font-medium text-foreground">
-                    {contributionActionTitle(entry.actionType)}:
+                    {contributionActionName(entry.actionType)}:
                   </span>{" "}
                   {entry.blockedReason}
                   {entry.nextStep ? ` ${entry.nextStep}` : null}

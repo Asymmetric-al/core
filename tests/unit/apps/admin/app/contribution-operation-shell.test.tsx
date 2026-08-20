@@ -10,11 +10,8 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { OPERATION_DEFINITIONS as CATALOG_OPERATION_DEFINITIONS } from "@asym/api/admin/contribution-operations/catalog";
-import {
-  ContributionOperationShell,
-  OPERATION_DEFINITIONS,
-} from "../../../../../apps/admin/app/(app)/contributions/operation-shell";
+import { OPERATION_DEFINITIONS } from "@asym/api/admin/contribution-operations/catalog";
+import { ContributionOperationShell } from "../../../../../apps/admin/app/(app)/contributions/operation-shell";
 import { contributionDetailQueryKey } from "../../../../../apps/admin/app/(app)/contributions/contribution-detail-overlay";
 import { useAdminContributions } from "../../../../../apps/admin/app/(app)/contributions/use-admin-contributions";
 
@@ -323,12 +320,6 @@ function HubAmountProbe() {
 
   return <p>Hub amount: {amountCents ?? "loading"}</p>;
 }
-
-describe("contribution operation catalog re-export", () => {
-  it("is the Core catalog object identity", () => {
-    expect(OPERATION_DEFINITIONS).toBe(CATALOG_OPERATION_DEFINITIONS);
-  });
-});
 
 describe("ContributionOperationShell", () => {
   beforeEach(() => {

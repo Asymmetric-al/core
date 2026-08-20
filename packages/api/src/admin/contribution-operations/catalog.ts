@@ -199,10 +199,22 @@ const CONTRIBUTION_ACTION_TITLES: Record<ContributionActionType, string> = {
   stripe_replay: OPERATION_DEFINITIONS.stripe_replay.title,
 };
 
+const CONTRIBUTION_ACTION_NAMES: Record<ContributionActionType, string> = {
+  ...CONTRIBUTION_ACTION_TITLES,
+  approve_staged_gift: "CRM approval/posting",
+  retry_staged_gift: "CRM posting retry",
+};
+
 export function contributionActionTitle(
   actionType: ContributionActionType,
 ): string {
   return CONTRIBUTION_ACTION_TITLES[actionType];
+}
+
+export function contributionActionName(
+  actionType: ContributionActionType,
+): string {
+  return CONTRIBUTION_ACTION_NAMES[actionType];
 }
 
 export function operationDefinitionFor(

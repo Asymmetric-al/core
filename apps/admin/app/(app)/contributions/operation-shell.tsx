@@ -3,13 +3,11 @@
 // Import values from pure submodules, not the package barrel: the barrel
 // re-exports server-only modules (Stripe refunds, Supabase access) that must
 // not be evaluated in this client component's bundle.
-import {
-  OPERATION_CATEGORY_LABELS,
-  OPERATION_DEFINITIONS,
-  type OperationCategory,
-  type OperationDefinition,
-  type OperationFieldValues,
-  type SupportedOperationActionType,
+import type {
+  OperationCategory,
+  OperationDefinition,
+  OperationFieldValues,
+  SupportedOperationActionType,
 } from "@asym/api/admin/contribution-operations/catalog";
 import {
   CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
@@ -88,7 +86,6 @@ import type {
  * contribution operation contract as contribution detail.
  */
 
-export { OPERATION_CATEGORY_LABELS, OPERATION_DEFINITIONS };
 export type {
   OperationCategory,
   OperationDefinition,
