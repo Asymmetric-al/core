@@ -18,6 +18,53 @@ import {
   RETRY_CONFIG,
 } from "../../../../packages/email/constants";
 
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+function mockForeverTruncatedDomainListing(
+  fetchSpy: ReturnType<typeof vi.spyOn>,
+  seededPages: Array<{ id: string; name: string; status: string }> = [],
+) {
+  fetchSpy.mockImplementation(async (input) => {
+    const url = String(input);
+    if (url.includes("/domains?") && !url.includes("/domains/d_")) {
+      const afterMatch = /[?&]after=d_(\d+)/.exec(url);
+      const page = afterMatch ? Number(afterMatch[1]) + 1 : 0;
+      const seeded = seededPages[page];
+      return jsonResponse({
+        object: "list",
+        data: [
+          seeded ?? {
+            id: `d_${page}`,
+            name: `page${page}.com`,
+            status: "not_started",
+          },
+        ],
+        has_more: true,
+      });
+    }
+    if (/\/domains\/d_\d+$/.test(url)) {
+      const id = url.split("/").at(-1) ?? "d_0";
+      const page = Number(id.slice(2));
+      const seeded = seededPages[page];
+      return jsonResponse({
+        id,
+        name: seeded?.name ?? "page.com",
+        status: seeded?.status ?? "not_started",
+        records: [],
+      });
+    }
+    if (url.includes("/api-keys")) {
+      return jsonResponse({ data: [] });
+    }
+    throw new Error(`Unexpected fetch ${url}`);
+  });
+}
+
 describe("@asym/email resend service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -657,6 +704,41 @@ describe("@asym/email resend service", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it("rejects to display names that contain control characters before calling Resend", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+
+    const result = await sendEmail("re_test_key", {
+      to: { email: "recipient@example.com", name: "To\rName" },
+      from: { email: "from@example.com", name: "From Name" },
+      subject: "Hello",
+      html: "<p>Hello</p>",
+      idempotencyKey: "tenant-1/control-to",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("validation_error");
+    expect(result.errors?.[0]?.message).toMatch(/control character/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects reply-to display names that contain control characters before calling Resend", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+
+    const result = await sendEmail("re_test_key", {
+      to: { email: "recipient@example.com", name: "To Name" },
+      from: { email: "from@example.com", name: "From Name" },
+      replyTo: { email: "reply@example.com", name: "Reply\0Name" },
+      subject: "Hello",
+      html: "<p>Hello</p>",
+      idempotencyKey: "tenant-1/control-reply-to",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("validation_error");
+    expect(result.errors?.[0]?.message).toMatch(/control character/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it("trims idempotency keys before sending and rejects empty or oversized values", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     fetchSpy.mockResolvedValueOnce(
@@ -819,9 +901,13 @@ describe("@asym/email resend service", () => {
     expect(
       fetchSpy.mock.calls.some(([url]) => String(url).includes("/api-keys")),
     ).toBe(true);
-    expect(
-      isResendValidationSendReady(createResendValidationSnapshot(result)),
-    ).toBe(true);
+    const snapshot = createResendValidationSnapshot(result);
+    expect(snapshot.domainAuthenticated).toBe(false);
+    expect(isResendValidationSendReady(snapshot)).toBe(true);
+    const parsed = parseResendValidationSnapshot(snapshot);
+    expect(parsed).not.toBeNull();
+    expect(parsed?.domainAuthenticated).toBe(false);
+    expect(isResendValidationSendReady(parsed!)).toBe(true);
   });
 
   it("still invalidates when domain listing fails for a non-restricted error", async () => {
@@ -980,53 +1066,9 @@ describe("@asym/email resend service", () => {
     ).toBe(true);
   });
 
-  it("warns when domain listing stops before Resend reports completion", async () => {
+  it("blocks send when truncated listing never proves the from-domain", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
-    fetchSpy.mockImplementation(async (input) => {
-      const url = String(input);
-      if (url.includes("/domains?") && !url.includes("/domains/d_")) {
-        const afterMatch = /[?&]after=d_(\d+)/.exec(url);
-        const page = afterMatch ? Number(afterMatch[1]) + 1 : 0;
-        return new Response(
-          JSON.stringify({
-            object: "list",
-            data: [
-              {
-                id: `d_${page}`,
-                name: `page${page}.com`,
-                status: "not_started",
-              },
-            ],
-            has_more: true,
-          }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          },
-        );
-      }
-      if (/\/domains\/d_\d+$/.test(url)) {
-        return new Response(
-          JSON.stringify({
-            id: url.split("/").at(-1),
-            name: "page.com",
-            status: "not_started",
-            records: [],
-          }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          },
-        );
-      }
-      if (url.includes("/api-keys")) {
-        return new Response(JSON.stringify({ data: [] }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-      throw new Error(`Unexpected fetch ${url}`);
-    });
+    mockForeverTruncatedDomainListing(fetchSpy);
 
     const result = await validateResendApiKey("re_test_key", {
       defaultFromEmail: "from@example.com",
@@ -1039,7 +1081,10 @@ describe("@asym/email resend service", () => {
     expect(result.valid).toBe(true);
     expect(result.warnings).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ code: "DOMAIN_LIST_INCOMPLETE" }),
+        expect.objectContaining({
+          code: "DOMAIN_LIST_INCOMPLETE",
+          severity: "error",
+        }),
       ]),
     );
     expect(
@@ -1055,6 +1100,67 @@ describe("@asym/email resend service", () => {
         (warning) => warning.code === "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED",
       ),
     ).toBe(false);
+    const snapshot = createResendValidationSnapshot(result);
+    expect(snapshot.domainAuthenticated).toBe(false);
+    expect(isResendValidationSendReady(snapshot)).toBe(false);
+  });
+
+  it("does not treat a truncated list as send-ready when a listed verified domain is not the from-domain", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    mockForeverTruncatedDomainListing(fetchSpy, [
+      { id: "d_0", name: "other.com", status: "verified" },
+    ]);
+
+    const result = await validateResendApiKey("re_test_key", {
+      defaultFromEmail: "from@example.com",
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "DOMAIN_LIST_INCOMPLETE",
+          severity: "error",
+        }),
+      ]),
+    );
+    expect(
+      result.warnings?.some(
+        (warning) => warning.code === "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED",
+      ),
+    ).toBe(false);
+    const snapshot = createResendValidationSnapshot(result);
+    expect(snapshot.domainAuthenticated).toBe(true);
+    expect(isResendValidationSendReady(snapshot)).toBe(false);
+  });
+
+  it("keeps truncated listings send-ready when a listed verified domain matches the from-domain", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    mockForeverTruncatedDomainListing(fetchSpy, [
+      { id: "d_0", name: "example.com", status: "verified" },
+    ]);
+
+    const result = await validateResendApiKey("re_test_key", {
+      defaultFromEmail: "from@example.com",
+    });
+
+    expect(result.valid).toBe(true);
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "DOMAIN_LIST_INCOMPLETE",
+          severity: "warning",
+        }),
+      ]),
+    );
+    expect(
+      result.warnings?.some(
+        (warning) => warning.code === "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED",
+      ),
+    ).toBe(false);
+    const snapshot = createResendValidationSnapshot(result);
+    expect(snapshot.domainAuthenticated).toBe(true);
+    expect(isResendValidationSendReady(snapshot)).toBe(true);
   });
 
   it("retries domain detail enrichment on 429 and warns when details stay incomplete", async () => {

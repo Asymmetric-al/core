@@ -176,6 +176,18 @@ function getVerifiedDomainNames(
   ];
 }
 
+function isSenderDomainVerified(
+  defaultFromEmail: string | undefined,
+  verifiedDomainNames: readonly string[],
+): boolean {
+  if (!defaultFromEmail) {
+    return false;
+  }
+
+  const senderDomain = getEmailDomain(defaultFromEmail);
+  return senderDomain != null && verifiedDomainNames.includes(senderDomain);
+}
+
 function getSenderDomainMismatchWarning(
   defaultFromEmail: string | undefined,
   verifiedDomainNames: readonly string[],
@@ -556,16 +568,6 @@ export async function validateResendApiKey(
       }
     }
 
-    if (listedDomains.truncated) {
-      warnings.push({
-        code: "DOMAIN_LIST_INCOMPLETE",
-        message:
-          "Domain listing stopped before Resend reported completion. Domain status may be incomplete.",
-        severity: "warning",
-        helpUrl: DELIVERABILITY_HELP_URLS.DOMAIN_AUTHENTICATION,
-      });
-    }
-
     const listedRows = listedDomains.error ? [] : listedDomains.rows;
     const skipDomainCompletenessWarnings =
       restrictedListing || listedDomains.truncated;
@@ -591,6 +593,21 @@ export async function validateResendApiKey(
       (domain) => domain.valid,
     );
     const verifiedDomainNames = getVerifiedDomainNames(domainAuthentication);
+
+    if (listedDomains.truncated) {
+      warnings.push({
+        code: "DOMAIN_LIST_INCOMPLETE",
+        message:
+          "Domain listing stopped before Resend reported completion. Domain status may be incomplete.",
+        severity: isSenderDomainVerified(
+          options.defaultFromEmail,
+          verifiedDomainNames,
+        )
+          ? "warning"
+          : "error",
+        helpUrl: DELIVERABILITY_HELP_URLS.DOMAIN_AUTHENTICATION,
+      });
+    }
 
     if (
       !skipDomainCompletenessWarnings &&
