@@ -6,11 +6,11 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.resolve(
+const defaultRepoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
-const packageJsonPath = path.join(repoRoot, "package.json");
+const scriptPath = fileURLToPath(import.meta.url);
 
 function candidateBunPaths() {
   const candidates = process.env.BUN_BINARY ? [process.env.BUN_BINARY] : [];
@@ -32,7 +32,9 @@ function candidateBunPaths() {
   return [...new Set(candidates)];
 }
 
-function readExpectedVersion() {
+export function readExpectedVersion(root = defaultRepoRoot) {
+  const packageJsonPath = path.join(root, "package.json");
+
   if (!existsSync(packageJsonPath)) {
     throw new Error(`missing root package.json at ${packageJsonPath}`);
   }
@@ -60,7 +62,7 @@ function readExpectedVersion() {
     );
   }
 
-  const bunVersionPath = path.join(repoRoot, ".bun-version");
+  const bunVersionPath = path.join(root, ".bun-version");
 
   if (!existsSync(bunVersionPath)) {
     throw new Error("missing .bun-version; it must match packageManager");
@@ -95,11 +97,11 @@ function readInstalledVersion() {
   return null;
 }
 
-function main() {
+export function main(root = defaultRepoRoot) {
   let expected;
 
   try {
-    expected = readExpectedVersion();
+    expected = readExpectedVersion(root);
   } catch (error) {
     console.error(`error: ${error.message}`);
     process.exit(2);
@@ -127,4 +129,9 @@ function main() {
   console.log(`Bun version OK: bun@${installed}`);
 }
 
-main();
+const isDirectRun =
+  process.argv[1] && path.resolve(process.argv[1]) === scriptPath;
+
+if (isDirectRun) {
+  main();
+}

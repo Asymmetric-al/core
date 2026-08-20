@@ -28,27 +28,6 @@ function bunVersionFromPackageManager(
   return version;
 }
 
-function parseSemver(version: string): [number, number, number] {
-  const match = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
-  expect(match, `stable semver, got ${version}`).not.toBeNull();
-  return [Number(match![1]), Number(match![2]), Number(match![3])];
-}
-
-function isAtLeast(
-  version: string,
-  minimum: [number, number, number],
-): boolean {
-  const [major, minor, patch] = parseSemver(version);
-  const [minMajor, minMinor, minPatch] = minimum;
-  if (major !== minMajor) {
-    return major > minMajor;
-  }
-  if (minor !== minMinor) {
-    return minor > minMinor;
-  }
-  return patch >= minPatch;
-}
-
 describe("Bun toolchain pin sync", () => {
   const packageJson = readPackageJson();
   const packageManagerVersion = bunVersionFromPackageManager(
@@ -96,30 +75,22 @@ describe("Bun toolchain pin sync", () => {
     expect(bunPins.length).toBeGreaterThan(0);
   });
 
-  it("keeps bun.lock at a Turborepo-supported lockfileVersion", () => {
+  it("keeps bun.lock at lockfileVersion 1 for the installed Turborepo parser", () => {
     const lock = parseBunLock(
       readFileSync(path.join(repoRoot, "bun.lock"), "utf8"),
     ) as {
       lockfileVersion?: number;
       configVersion?: number;
     };
-    const lockfileVersion = lock.lockfileVersion;
-    const turboVersion = packageJson.devDependencies?.turbo;
 
-    expect(typeof lockfileVersion).toBe("number");
-    expect(
-      lockfileVersion,
-      "Bun 1.4 writes v2 by default; v3 is only for nested overrides and is not required here",
-    ).toBeGreaterThanOrEqual(1);
-    expect(lockfileVersion).toBeLessThanOrEqual(2);
+    // Turborepo 2.10.x parses bun lockfile versions 0 and 1 only.
+    // If Bun rewrites this file to 2 or 3, fail here until `turbo prune`
+    // proves the installed turbo can read it — do not guess from a changelog.
+    expect([0, 1]).toContain(lock.lockfileVersion);
+    expect(lock.lockfileVersion).toBe(1);
     expect(lock.configVersion).toBe(1);
-    expect(turboVersion, "root turbo pin").toMatch(/^\d+\.\d+\.\d+$/);
-
-    if (lockfileVersion >= 2) {
-      expect(
-        isAtLeast(turboVersion!, [2, 10, 11]),
-        `turbo ${turboVersion} must be >= 2.10.11 to parse bun.lock v${lockfileVersion}`,
-      ).toBe(true);
-    }
+    expect(packageJson.devDependencies?.turbo, "root turbo pin").toMatch(
+      /^\d+\.\d+\.\d+$/,
+    );
   });
 });
