@@ -64,8 +64,9 @@ describe("collection registry", () => {
       realtime: "not-applicable",
       rls: "not-applicable",
     });
-    expect(supportHub?.notes).toContain("local-only");
-    expect(supportHub?.notes).toContain("messages");
+    expect(supportHub?.notes).not.toContain("local-only");
+    expect(supportHub?.notes).toContain("no tenant-wide messages collection");
+    expect(supportHub?.notes).toContain("route + adapter");
   });
 
   it("marks unsafe requested tables as server-only until RLS and redaction are resolved", () => {
