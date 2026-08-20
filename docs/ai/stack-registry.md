@@ -9,7 +9,7 @@ Agents MUST use this to build better Nia query preambles and to pick the right d
 - React
 - TypeScript (default language); future TS 6/7 prep policy: `docs/guides/typescript-6-readiness.md`
 - Node.js (runtime target)
-- Bun (preferred package manager/runtime)
+- Bun (package manager and script runner; apps still run on Node.js)
 - PostgreSQL (Supabase Postgres)
 
 Nia keywords:

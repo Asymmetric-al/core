@@ -257,7 +257,7 @@ convention, not rule.
 | ---- | ------------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------- |
 | G-01 | Direct observation | 3 deployable apps: `@asym/admin`, `@asym/donor`, `@asym/missionary-app` | `apps/*/package.json` names                                         | Confirmed                 |
 | G-02 | Direct observation | 11 packages under `packages/*`, all `@asym/*`                           | `packages/*/package.json` names; `ls -1d packages/*/ \| wc -l` = 11 | Confirmed                 |
-| G-03 | Direct observation | Root package name is `give-hope`; Bun pinned `bun@1.3.14`               | root `package.json` `name`, `packageManager`                        | Confirmed                 |
+| G-03 | Direct observation | Root package name is `give-hope`; Bun pinned `bun@1.4.0`                | root `package.json` `name`, `packageManager`; `.bun-version`        | Confirmed                 |
 | G-04 | Direct observation | Next.js `16.2.6`, React `19.2.3`; root TS `6.0.3`                       | root + `apps/donor` `package.json`                                  | Confirmed                 |
 | G-05 | Direct observation | `apps/donor` declares `typescript: ^5.7.3` (diverges from root `6.0.3`) | `apps/donor/package.json`                                           | Confirmed (see C-03)      |
 | G-06 | Direct observation | `packages/mock-data` (`@asym/mock-data`) is a real workspace            | `packages/mock-data/package.json`; matched by `packages/*` glob     | Confirmed                 |

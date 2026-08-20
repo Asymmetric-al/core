@@ -52,7 +52,31 @@ function readExpectedVersion() {
     );
   }
 
-  return match[1].replace(/^v/, "");
+  const expected = match[1].replace(/^v/, "");
+
+  if (/canary/i.test(expected)) {
+    throw new Error(
+      `packageManager must pin stable Bun, not canary: ${packageManager}`,
+    );
+  }
+
+  const bunVersionPath = path.join(repoRoot, ".bun-version");
+
+  if (!existsSync(bunVersionPath)) {
+    throw new Error("missing .bun-version; it must match packageManager");
+  }
+
+  const bunVersionFile = readFileSync(bunVersionPath, "utf8")
+    .trim()
+    .replace(/^v/, "");
+
+  if (bunVersionFile !== expected) {
+    throw new Error(
+      `.bun-version (${bunVersionFile}) does not match packageManager bun@${expected}`,
+    );
+  }
+
+  return expected;
 }
 
 function readInstalledVersion() {

@@ -80,7 +80,13 @@ describe("qa smoke preview deployment workflow", () => {
   });
 
   it("uses the shared Bun version and portable install backend", () => {
-    expect(workflow).toContain('BUN_VERSION: "1.3.14"');
+    const packageManager = (
+      JSON.parse(readFileSync("package.json", "utf8")) as {
+        packageManager: string;
+      }
+    ).packageManager;
+    const bunVersion = packageManager.replace(/^bun@/, "");
+    expect(workflow).toContain(`BUN_VERSION: "${bunVersion}"`);
     expect(workflow).toContain("bun-version: ${{ env.BUN_VERSION }}");
     expect(workflow).toContain("bun ci --no-cache --backend=copyfile");
     expect(workflow).not.toContain('bun-version: "1.3.4"');

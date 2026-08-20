@@ -4,7 +4,7 @@ A high-performance Next.js 16.3.0-preview.9 (App Router) Turborepo monorepo for 
 
 ## Quickstart
 
-1. **Install prerequisites:** [Node.js 20.9+](https://nodejs.org/), [Bun 1.3.14](https://bun.sh), and Git on your PATH.
+1. **Install prerequisites:** [Node.js 20.9+](https://nodejs.org/), [Bun 1.4.0](https://bun.sh), and Git on your PATH.
 2. **Choose your setup path.**
 
 ### Credential-free Mission Control sandbox
@@ -218,7 +218,7 @@ Commit both the canonical files and any mirror updates.
 
 ### Package Manager
 
-This repo uses **Bun** pinned in root `package.json` `packageManager` (currently **1.3.14**). Install that exact version locally (`bun run verify:bun-version` after setup). Prefer `bun` / `bunx` for scripts in this workspace; CI installs with `bun ci`.
+This repo uses **Bun** pinned in root `package.json` `packageManager` and `.bun-version` (currently **1.4.0**). Install that exact version locally (`bun run verify:bun-version` after setup). Prefer `bun` / `bunx` for scripts in this workspace; CI installs with `bun ci`. Apps still run on Node.js via Next.js — do not use `bun --bun` to swap the application runtime.
 
 ### Monorepo Workspace Contract
 

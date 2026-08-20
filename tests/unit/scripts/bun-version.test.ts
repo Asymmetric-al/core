@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -7,6 +7,11 @@ import { describe, expect, it } from "vitest";
 
 const repoRoot = process.cwd();
 const scriptPath = path.join(repoRoot, "scripts", "verify", "bun-version.sh");
+const expectedPackageManager = (
+  JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8")) as {
+    packageManager: string;
+  }
+).packageManager;
 const bashSystemPath =
   "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
 
@@ -89,7 +94,9 @@ describe("bun version guard", () => {
       const result = runGuard();
 
       expect(result.status).toBe(0);
-      expect(result.stdout).toContain("Bun version OK: bun@1.3.14");
+      expect(result.stdout).toContain(
+        `Bun version OK: ${expectedPackageManager}`,
+      );
       expect(result.stderr).toBe("");
     },
     30000,
@@ -124,7 +131,7 @@ describe("bun version guard", () => {
       expect(result.status).toBe(1);
       expect(result.stderr).toContain("error: Bun version mismatch.");
       expect(result.stderr).toContain(
-        "expected (package.json packageManager): bun@1.3.14",
+        `expected (package.json packageManager): ${expectedPackageManager}`,
       );
       expect(result.stderr).toContain(
         "installed (bun --version):              bun@1.3.4",

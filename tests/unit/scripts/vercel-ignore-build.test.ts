@@ -63,6 +63,7 @@ describe("Vercel ignored-build helper", () => {
       "packages/api/src/profile/queries.ts",
       "packages/ui/components/button.tsx",
       "bun.lock",
+      ".bun-version",
       "package.json",
       "turbo.json",
       "scripts/resolve-monorepo-root.mjs",
