@@ -113,6 +113,9 @@ describe("donation saga migrations", () => {
     expect(migration).toMatch(/p_fee_extras JSONB DEFAULT '\{\}'::jsonb/);
     expect(migration).toMatch(/COALESCE\(p_fee_extras, '\{\}'::jsonb\)/);
     expect(migration).toMatch(
+      /INSERT INTO public\.donation_saga_outbox \([^)]*next_attempt_at,\s*fee_extras\s*\)/,
+    );
+    expect(migration).toMatch(
       /REVOKE EXECUTE ON FUNCTION public\.begin_donation_saga\(UUID, UUID, UUID, BIGINT, TEXT, UUID, UUID, TEXT, TEXT, TEXT, JSONB\) FROM PUBLIC, anon, authenticated;/,
     );
     expect(migration).toMatch(

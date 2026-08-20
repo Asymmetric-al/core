@@ -65,9 +65,12 @@ double-gross-up; tests lock gift `100`.
 
 ### PaymentIntent extras vs recovery
 
-Quote fields go on first-shot PaymentIntent metadata only. Recovery and batch
-processors may omit extras. That is acceptable: charged cents already live in
-`p_amount`. Documented in the donation-saga-outbox runbook.
+Quote fields go on first-shot PaymentIntent metadata and on
+`donation_saga_outbox.fee_extras`. Recovery and batch processors load stored
+extras before PaymentIntent create. A lookup or parse failure must fail closed.
+An empty stored `{}` (GraphQL or legacy begin without a Gift quote) still omits
+`payment_method_types`. Charged cents already live in `p_amount`. Documented in
+the donation-saga-outbox runbook.
 
 ### Staff path
 

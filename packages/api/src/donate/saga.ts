@@ -94,15 +94,12 @@ async function persistDonationSagaFeeExtras(
   outboxId: string,
   extras: GiftProcessingFeeStripeMetadata,
 ): Promise<void> {
-  const updated = supabaseAdmin
+  const result = await supabaseAdmin
     .from("donation_saga_outbox")
-    .update({ fee_extras: extras });
-  const result =
-    updated && typeof updated.eq === "function"
-      ? await updated.eq("id", outboxId)
-      : await updated;
+    .update({ fee_extras: extras })
+    .eq("id", outboxId);
 
-  if (result?.error) {
+  if (result.error) {
     throw new Error(
       result.error.message ?? "Failed to persist donation saga fee extras",
     );
@@ -113,31 +110,19 @@ async function loadDonationSagaFeeExtras(
   supabaseAdmin: DonationSupabaseClient,
   outboxId: string,
 ): Promise<GiftProcessingFeeStripeMetadata | undefined> {
-  const selected = supabaseAdmin
+  const result = await supabaseAdmin
     .from("donation_saga_outbox")
-    .select("fee_extras");
-  const filtered =
-    selected && typeof selected.eq === "function"
-      ? selected.eq("id", outboxId)
-      : selected;
-  const result =
-    filtered && typeof filtered.maybeSingle === "function"
-      ? await filtered.maybeSingle()
-      : await filtered;
-  const resultError =
-    result && typeof result === "object" && "error" in result
-      ? (result as { error?: { message?: string } | null }).error
-      : null;
-  if (resultError) {
+    .select("fee_extras")
+    .eq("id", outboxId)
+    .maybeSingle();
+
+  if (result.error) {
     throw new Error(
-      resultError.message ?? "Failed to load donation saga fee extras",
+      result.error.message ?? "Failed to load donation saga fee extras",
     );
   }
-  const feeExtras =
-    result && typeof result === "object" && "data" in result
-      ? (result as { data?: { fee_extras?: unknown } | null }).data?.fee_extras
-      : undefined;
-  return parseGiftProcessingFeeStripeMetadata(feeExtras);
+
+  return parseGiftProcessingFeeStripeMetadata(result.data?.fee_extras);
 }
 
 async function resolveDonationSagaFeeExtras(params: {

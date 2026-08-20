@@ -632,6 +632,35 @@ describe("donation saga helpers", () => {
     );
   });
 
+  it("fails closed when Gift fee extras persist cannot filter the outbox row", async () => {
+    const extras = {
+      gift_amount_cents: "10000",
+      cover_fees: "true",
+      payment_method: "ach" as const,
+      cover_amount_cents: "80",
+      estimated_fee_cents: "80",
+    };
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const persistUpdate = vi
+      .fn()
+      .mockResolvedValue({ data: [{ id: "all-rows" }], error: null });
+    const from = vi.fn(() => ({ update: persistUpdate }));
+    const stripe = createStripeMock();
+
+    await expect(
+      processDonationSagaOutboxEvent({
+        supabaseAdmin: { rpc, from } as never,
+        stripe,
+        outboxId: "out-unfiltered",
+        actorUserId: "actor-unfiltered",
+        extraPaymentIntentMetadata: extras,
+      }),
+    ).rejects.toThrow(/eq is not a function/);
+
+    expect(rpc).not.toHaveBeenCalled();
+    expect(stripe.paymentIntents.create).not.toHaveBeenCalled();
+  });
+
   it("fails closed when Gift fee extras cannot be persisted before claim", async () => {
     const extras = {
       gift_amount_cents: "10000",
