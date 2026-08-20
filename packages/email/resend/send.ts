@@ -18,6 +18,7 @@ import type {
 } from "./types";
 
 const DISPLAY_NAME_SPECIAL_CHARS = /[()<>[\]:;@\\,."]/;
+const DISPLAY_NAME_CONTROL_CHARS = /[\u0000-\u001F\u007F-\u009F]/;
 
 function formatAddress(email: string, name?: string): string {
   if (!name) {
@@ -104,6 +105,21 @@ function validationFailure(
   };
 }
 
+function displayNameHasControlCharacters(name: string | undefined): boolean {
+  return typeof name === "string" && DISPLAY_NAME_CONTROL_CHARS.test(name);
+}
+
+function collectDisplayNames(
+  options: SendEmailOptions,
+): Array<string | undefined> {
+  const recipients = Array.isArray(options.to) ? options.to : [options.to];
+  return [
+    options.from.name,
+    options.replyTo?.name,
+    ...recipients.map((recipient) => recipient.name),
+  ];
+}
+
 export function validateSendEmailOptions(
   options: SendEmailOptions,
   recipientCount: number,
@@ -151,6 +167,17 @@ export function validateSendEmailOptions(
         correlationId,
         recipientCount,
         `Resend supports at most ${RESEND_LIMITS.maxRecipientsPerEmail} recipients per single email request.`,
+      ),
+    };
+  }
+
+  if (collectDisplayNames(options).some(displayNameHasControlCharacters)) {
+    return {
+      idempotencyKey,
+      error: validationFailure(
+        correlationId,
+        recipientCount,
+        "Display names cannot contain control characters.",
       ),
     };
   }

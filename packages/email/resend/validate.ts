@@ -15,6 +15,7 @@ import {
 } from "./errors";
 import {
   asBoolean,
+  asIdString,
   asNumber,
   asString,
   extractRows,
@@ -366,8 +367,11 @@ export function parseResendValidationSnapshot(
 export function isResendValidationSendReady(
   snapshot: Pick<ResendValidationSnapshot, "domainAuthenticated" | "warnings">,
 ): boolean {
+  const domainsUnobservable = snapshot.warnings.some(
+    (warning) => warning.code === "RESTRICTED_API_KEY",
+  );
   return (
-    snapshot.domainAuthenticated &&
+    (snapshot.domainAuthenticated || domainsUnobservable) &&
     !getFirstBlockingDeliverabilityWarning(snapshot.warnings)
   );
 }
@@ -405,6 +409,7 @@ async function mapWithConcurrency<T, R>(
 async function listAllDomainPages(resend: Resend): Promise<{
   error: unknown;
   rows: JsonRecord[];
+  truncated: boolean;
 }> {
   const rows: JsonRecord[] = [];
   let after: string | undefined;
@@ -415,24 +420,24 @@ async function listAllDomainPages(resend: Resend): Promise<{
       : await resend.domains.list({ limit: 100 });
 
     if (response.error) {
-      return { error: response.error, rows };
+      return { error: response.error, rows, truncated: false };
     }
 
     const pageRows = extractRows(response.data);
     rows.push(...pageRows);
 
     if (!listHasMore(response.data)) {
-      return { error: null, rows };
+      return { error: null, rows, truncated: false };
     }
 
-    const lastId = asString(pageRows[pageRows.length - 1]?.id);
+    const lastId = asIdString(pageRows[pageRows.length - 1]?.id);
     if (!lastId) {
-      return { error: null, rows };
+      return { error: null, rows, truncated: true };
     }
     after = lastId;
   }
 
-  return { error: null, rows };
+  return { error: null, rows, truncated: true };
 }
 
 async function getDomainWithRetry(
@@ -475,7 +480,7 @@ async function enrichDomainRowsWithDetails(
     domainRows,
     RESEND_LIMITS.defaultRequestsPerSecond,
     async (domainRow) => {
-      const domainId = asString(domainRow.id);
+      const domainId = asIdString(domainRow.id);
       if (!domainId) {
         return domainRow;
       }
@@ -527,9 +532,12 @@ export async function validateResendApiKey(
 
   try {
     const listedDomains = await listAllDomainPages(resend);
+    const restrictedListing =
+      listedDomains.error != null &&
+      extractResendErrorDetails(listedDomains.error).name ===
+        "restricted_api_key";
     if (listedDomains.error) {
-      const details = extractResendErrorDetails(listedDomains.error);
-      if (details.name === "restricted_api_key") {
+      if (restrictedListing) {
         warnings.push({
           code: "RESTRICTED_API_KEY",
           message:
@@ -538,6 +546,7 @@ export async function validateResendApiKey(
           helpUrl: DELIVERABILITY_HELP_URLS.API_KEY,
         });
       } else {
+        const details = extractResendErrorDetails(listedDomains.error);
         const code = mapResendErrorCode(details.name, details.statusCode);
         return {
           valid: false,
@@ -547,7 +556,19 @@ export async function validateResendApiKey(
       }
     }
 
+    if (listedDomains.truncated) {
+      warnings.push({
+        code: "DOMAIN_LIST_INCOMPLETE",
+        message:
+          "Domain listing stopped before Resend reported completion. Domain status may be incomplete.",
+        severity: "warning",
+        helpUrl: DELIVERABILITY_HELP_URLS.DOMAIN_AUTHENTICATION,
+      });
+    }
+
     const listedRows = listedDomains.error ? [] : listedDomains.rows;
+    const skipDomainCompletenessWarnings =
+      restrictedListing || listedDomains.truncated;
     const { rows: domainRows, incomplete: domainDetailsIncomplete } =
       await enrichDomainRowsWithDetails(resend, listedRows);
     if (domainDetailsIncomplete) {
@@ -571,7 +592,11 @@ export async function validateResendApiKey(
     );
     const verifiedDomainNames = getVerifiedDomainNames(domainAuthentication);
 
-    if (!listedDomains.error && domainAuthentication.length === 0) {
+    if (
+      !skipDomainCompletenessWarnings &&
+      !listedDomains.error &&
+      domainAuthentication.length === 0
+    ) {
       warnings.push({
         code: "NO_DOMAINS",
         message:
@@ -579,7 +604,11 @@ export async function validateResendApiKey(
         severity: "warning",
         helpUrl: DELIVERABILITY_HELP_URLS.DOMAIN_AUTHENTICATION,
       });
-    } else if (!listedDomains.error && verifiedDomains.length === 0) {
+    } else if (
+      !skipDomainCompletenessWarnings &&
+      !listedDomains.error &&
+      verifiedDomains.length === 0
+    ) {
       warnings.push({
         code: "DOMAIN_NOT_VERIFIED",
         message:
@@ -589,12 +618,14 @@ export async function validateResendApiKey(
       });
     }
 
-    const senderDomainMismatchWarning = getSenderDomainMismatchWarning(
-      options.defaultFromEmail,
-      verifiedDomainNames,
-    );
-    if (senderDomainMismatchWarning) {
-      warnings.push(senderDomainMismatchWarning);
+    if (!skipDomainCompletenessWarnings) {
+      const senderDomainMismatchWarning = getSenderDomainMismatchWarning(
+        options.defaultFromEmail,
+        verifiedDomainNames,
+      );
+      if (senderDomainMismatchWarning) {
+        warnings.push(senderDomainMismatchWarning);
+      }
     }
 
     // Metadata scope lookup is optional. We do not infer permissions when this fails.

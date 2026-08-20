@@ -11,6 +11,16 @@ export function asString(value: unknown): string | null {
   return null;
 }
 
+export function asIdString(value: unknown): string | null {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+  return null;
+}
+
 export function asNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;

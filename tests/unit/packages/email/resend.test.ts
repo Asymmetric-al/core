@@ -13,7 +13,10 @@ import {
   validateResendApiKey,
   verifyResendWebhookSignature,
 } from "../../../../packages/email/resend";
-import { RETRY_CONFIG } from "../../../../packages/email/constants";
+import {
+  RESEND_LIMITS,
+  RETRY_CONFIG,
+} from "../../../../packages/email/constants";
 
 describe("@asym/email resend service", () => {
   beforeEach(() => {
@@ -637,6 +640,23 @@ describe("@asym/email resend service", () => {
     expect(requestBody.from).toBe('"From, Name" <from@example.com>');
   });
 
+  it("rejects display names that contain control characters before calling Resend", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+
+    const result = await sendEmail("re_test_key", {
+      to: { email: "recipient@example.com" },
+      from: { email: "from@example.com", name: "Tenant\nName" },
+      subject: "Hello",
+      html: "<p>Hello</p>",
+      idempotencyKey: "tenant-1/control-from",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.errors?.[0]?.code).toBe("validation_error");
+    expect(result.errors?.[0]?.message).toMatch(/control character/i);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it("trims idempotency keys before sending and rejects empty or oversized values", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     fetchSpy.mockResolvedValueOnce(
@@ -773,7 +793,9 @@ describe("@asym/email resend service", () => {
       throw new Error(`Unexpected fetch ${url}`);
     });
 
-    const result = await validateResendApiKey("re_test_key");
+    const result = await validateResendApiKey("re_test_key", {
+      defaultFromEmail: "from@example.com",
+    });
 
     expect(result.valid).toBe(true);
     expect(result.warnings).toEqual(
@@ -790,7 +812,15 @@ describe("@asym/email resend service", () => {
       ),
     ).toBe(false);
     expect(
+      result.warnings?.some(
+        (warning) => warning.code === "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED",
+      ),
+    ).toBe(false);
+    expect(
       fetchSpy.mock.calls.some(([url]) => String(url).includes("/api-keys")),
+    ).toBe(true);
+    expect(
+      isResendValidationSendReady(createResendValidationSnapshot(result)),
     ).toBe(true);
   });
 
@@ -881,6 +911,150 @@ describe("@asym/email resend service", () => {
         String(url).includes("/domains?limit=100&after=d_1"),
       ),
     ).toBe(true);
+  });
+
+  it("paginates domain lists when Resend returns numeric ids", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    fetchSpy.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.endsWith("/domains?limit=100")) {
+        return new Response(
+          JSON.stringify({
+            object: "list",
+            data: [{ id: 1, name: "one.com", status: "verified" }],
+            has_more: true,
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+      if (url.includes("/domains?limit=100&after=1")) {
+        return new Response(
+          JSON.stringify({
+            object: "list",
+            data: [{ id: 2, name: "two.com", status: "verified" }],
+            has_more: false,
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+      if (url.endsWith("/domains/1") || url.endsWith("/domains/2")) {
+        const id = url.endsWith("/domains/1") ? "1" : "2";
+        return new Response(
+          JSON.stringify({
+            id,
+            name: id === "1" ? "one.com" : "two.com",
+            status: "verified",
+            records: [],
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+      if (url.includes("/api-keys")) {
+        return new Response(JSON.stringify({ data: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      throw new Error(`Unexpected fetch ${url}`);
+    });
+
+    const result = await validateResendApiKey("re_test_key");
+
+    expect(result.valid).toBe(true);
+    expect(result.domainAuthentication?.map((domain) => domain.domain)).toEqual(
+      ["one.com", "two.com"],
+    );
+    expect(
+      fetchSpy.mock.calls.some(([url]) =>
+        String(url).includes("/domains?limit=100&after=1"),
+      ),
+    ).toBe(true);
+  });
+
+  it("warns when domain listing stops before Resend reports completion", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    fetchSpy.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes("/domains?") && !url.includes("/domains/d_")) {
+        const afterMatch = /[?&]after=d_(\d+)/.exec(url);
+        const page = afterMatch ? Number(afterMatch[1]) + 1 : 0;
+        return new Response(
+          JSON.stringify({
+            object: "list",
+            data: [
+              {
+                id: `d_${page}`,
+                name: `page${page}.com`,
+                status: "not_started",
+              },
+            ],
+            has_more: true,
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+      if (/\/domains\/d_\d+$/.test(url)) {
+        return new Response(
+          JSON.stringify({
+            id: url.split("/").at(-1),
+            name: "page.com",
+            status: "not_started",
+            records: [],
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+      if (url.includes("/api-keys")) {
+        return new Response(JSON.stringify({ data: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      throw new Error(`Unexpected fetch ${url}`);
+    });
+
+    const result = await validateResendApiKey("re_test_key", {
+      defaultFromEmail: "from@example.com",
+    });
+
+    const domainListCalls = fetchSpy.mock.calls.filter(([url]) =>
+      /\/domains\?/.test(String(url)),
+    );
+    expect(domainListCalls).toHaveLength(RESEND_LIMITS.maxDomainListPages);
+    expect(result.valid).toBe(true);
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "DOMAIN_LIST_INCOMPLETE" }),
+      ]),
+    );
+    expect(
+      result.warnings?.some((warning) => warning.code === "NO_DOMAINS"),
+    ).toBe(false);
+    expect(
+      result.warnings?.some(
+        (warning) => warning.code === "DOMAIN_NOT_VERIFIED",
+      ),
+    ).toBe(false);
+    expect(
+      result.warnings?.some(
+        (warning) => warning.code === "DEFAULT_FROM_EMAIL_DOMAIN_NOT_VERIFIED",
+      ),
+    ).toBe(false);
   });
 
   it("retries domain detail enrichment on 429 and warns when details stay incomplete", async () => {
