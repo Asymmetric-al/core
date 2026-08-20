@@ -2,6 +2,7 @@ import { RESEND_ERROR_CODES, RESEND_LIMITS, RETRY_CONFIG } from "../constants";
 import {
   calculateResendRetryDelayMs,
   extractResendErrorDetails,
+  extractRetryAfterFromThrown,
   extractRetryAfterSeconds,
   isRetryable,
   mapResendErrorCode,
@@ -16,11 +17,26 @@ import type {
   SendTestEmailOptions,
 } from "./types";
 
+const DISPLAY_NAME_SPECIAL_CHARS = /[()<>[\]:;@\\,."]/;
+
 function formatAddress(email: string, name?: string): string {
   if (!name) {
     return email;
   }
-  return `${name} <${email}>`;
+  if (!DISPLAY_NAME_SPECIAL_CHARS.test(name)) {
+    return `${name} <${email}>`;
+  }
+  const escaped = name.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+  return `"${escaped}" <${email}>`;
+}
+
+function escapeHtmlValue(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function stripHtml(html: string): string {
@@ -69,73 +85,100 @@ function buildTags(
   return normalized;
 }
 
+function validationFailure(
+  correlationId: string,
+  recipientCount: number,
+  message: string,
+): EmailSendResult {
+  return {
+    success: false,
+    correlationId,
+    recipientCount,
+    retryCount: 0,
+    errors: [
+      {
+        code: RESEND_ERROR_CODES.VALIDATION_ERROR,
+        message,
+      },
+    ],
+  };
+}
+
 export function validateSendEmailOptions(
   options: SendEmailOptions,
   recipientCount: number,
   correlationId: string,
-): EmailSendResult | null {
-  if (!options.idempotencyKey || options.idempotencyKey.trim().length === 0) {
+): { error: EmailSendResult | null; idempotencyKey: string } {
+  const idempotencyKey = (options.idempotencyKey ?? "").trim();
+
+  if (idempotencyKey.length === 0) {
     return {
-      success: false,
-      correlationId,
-      recipientCount,
-      retryCount: 0,
-      errors: [
-        {
-          code: RESEND_ERROR_CODES.VALIDATION_ERROR,
-          message:
-            "idempotencyKey is required for Resend sends to prevent duplicate email delivery.",
-        },
-      ],
+      idempotencyKey,
+      error: validationFailure(
+        correlationId,
+        recipientCount,
+        "idempotencyKey is required for Resend sends to prevent duplicate email delivery.",
+      ),
     };
   }
 
-  if (options.idempotencyKey.length > 256) {
+  if (idempotencyKey.length > 256) {
     return {
-      success: false,
-      correlationId,
-      recipientCount,
-      retryCount: 0,
-      errors: [
-        {
-          code: RESEND_ERROR_CODES.VALIDATION_ERROR,
-          message: "idempotencyKey must be 256 characters or fewer.",
-        },
-      ],
+      idempotencyKey,
+      error: validationFailure(
+        correlationId,
+        recipientCount,
+        "idempotencyKey must be 256 characters or fewer.",
+      ),
     };
   }
 
   if (recipientCount === 0) {
     return {
-      success: false,
-      correlationId,
-      recipientCount,
-      retryCount: 0,
-      errors: [
-        {
-          code: RESEND_ERROR_CODES.VALIDATION_ERROR,
-          message: "At least one recipient is required.",
-        },
-      ],
+      idempotencyKey,
+      error: validationFailure(
+        correlationId,
+        recipientCount,
+        "At least one recipient is required.",
+      ),
     };
   }
 
   if (recipientCount > RESEND_LIMITS.maxRecipientsPerEmail) {
     return {
-      success: false,
-      correlationId,
-      recipientCount,
-      retryCount: 0,
-      errors: [
-        {
-          code: RESEND_ERROR_CODES.VALIDATION_ERROR,
-          message: `Resend supports at most ${RESEND_LIMITS.maxRecipientsPerEmail} recipients per single email request.`,
-        },
-      ],
+      idempotencyKey,
+      error: validationFailure(
+        correlationId,
+        recipientCount,
+        `Resend supports at most ${RESEND_LIMITS.maxRecipientsPerEmail} recipients per single email request.`,
+      ),
     };
   }
 
-  return null;
+  return { error: null, idempotencyKey };
+}
+
+function sendFailure(
+  correlationId: string,
+  recipientCount: number,
+  retryCount: number,
+  details: ResendErrorDetails,
+): EmailSendResult {
+  const errorCode = mapResendErrorCode(details.name, details.statusCode);
+  return {
+    success: false,
+    correlationId,
+    recipientCount,
+    retryCount,
+    rateLimited: errorCode === RESEND_ERROR_CODES.RATE_LIMITED,
+    retryAfter: details.retryAfter,
+    errors: [
+      {
+        code: errorCode,
+        message: details.message,
+      },
+    ],
+  };
 }
 
 export async function sendEmail(
@@ -145,7 +188,7 @@ export async function sendEmail(
   const correlationId = crypto.randomUUID();
   const resend = createResendClientInstance(apiKey);
   const recipients = Array.isArray(options.to) ? options.to : [options.to];
-  const validationError = validateSendEmailOptions(
+  const { error: validationError, idempotencyKey } = validateSendEmailOptions(
     options,
     recipients.length,
     correlationId,
@@ -173,10 +216,14 @@ export async function sendEmail(
   let lastError: ResendErrorDetails | null = null;
 
   for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+    const abortSignal = AbortSignal.timeout(RESEND_LIMITS.requestTimeoutMs);
+    const sendOptions = {
+      idempotencyKey,
+      signal: abortSignal,
+    };
+
     try {
-      const response = await resend.emails.send(payload, {
-        idempotencyKey: options.idempotencyKey,
-      });
+      const response = await resend.emails.send(payload, sendOptions);
 
       if (!response.error) {
         return {
@@ -188,57 +235,38 @@ export async function sendEmail(
         };
       }
 
-      const details = extractResendErrorDetails(response.error);
-      details.retryAfter ??= extractRetryAfterSeconds(
-        (response as { headers?: unknown }).headers,
-      );
-      lastError = details;
-
-      if (attempt < RETRY_CONFIG.maxRetries && isRetryable(details)) {
-        await sleep(calculateResendRetryDelayMs(attempt, details.retryAfter));
-        continue;
+      if (abortSignal.aborted) {
+        lastError = { message: "Resend request timed out" };
+      } else {
+        const details = extractResendErrorDetails(response.error);
+        details.retryAfter ??= extractRetryAfterSeconds(
+          (response as { headers?: unknown }).headers,
+        );
+        lastError = details;
       }
-
-      const errorCode = mapResendErrorCode(details.name, details.statusCode);
-      return {
-        success: false,
-        correlationId,
-        recipientCount: recipients.length,
-        retryCount: attempt,
-        rateLimited: errorCode === RESEND_ERROR_CODES.RATE_LIMITED,
-        retryAfter: details.retryAfter,
-        errors: [
-          {
-            code: errorCode,
-            message: details.message,
-          },
-        ],
-      };
     } catch (error) {
-      const details = extractResendErrorDetails(error);
-      lastError = details;
-
-      if (attempt < RETRY_CONFIG.maxRetries && isRetryable(details)) {
-        await sleep(calculateResendRetryDelayMs(attempt, details.retryAfter));
-        continue;
+      if (abortSignal.aborted) {
+        lastError = {
+          message: "Resend request timed out",
+          retryAfter: extractRetryAfterFromThrown(error),
+        };
+      } else {
+        const details = extractResendErrorDetails(error);
+        details.retryAfter ??= extractRetryAfterFromThrown(error);
+        lastError = details;
       }
-
-      const errorCode = mapResendErrorCode(details.name, details.statusCode);
-      return {
-        success: false,
-        correlationId,
-        recipientCount: recipients.length,
-        retryCount: attempt,
-        rateLimited: errorCode === RESEND_ERROR_CODES.RATE_LIMITED,
-        retryAfter: details.retryAfter,
-        errors: [
-          {
-            code: errorCode,
-            message: details.message,
-          },
-        ],
-      };
     }
+
+    if (!lastError) {
+      break;
+    }
+
+    if (attempt < RETRY_CONFIG.maxRetries && isRetryable(lastError)) {
+      await sleep(calculateResendRetryDelayMs(attempt, lastError.retryAfter));
+      continue;
+    }
+
+    return sendFailure(correlationId, recipients.length, attempt, lastError);
   }
 
   return {
@@ -262,6 +290,10 @@ export async function sendTestEmail(
   fromName: string,
   options: SendTestEmailOptions = {},
 ): Promise<EmailSendResult> {
+  const safeFromName = escapeHtmlValue(fromName);
+  const safeFromEmail = escapeHtmlValue(fromEmail);
+  const safeToEmail = escapeHtmlValue(toEmail);
+
   return sendEmail(apiKey, {
     to: { email: toEmail },
     from: { email: fromEmail, name: fromName },
@@ -271,8 +303,8 @@ export async function sendTestEmail(
         <h1 style="margin: 0 0 12px;">Resend integration is active</h1>
         <p style="margin: 0 0 8px;">This is a test email from your integration settings.</p>
         <p style="margin: 0; color: #555;">
-          From: ${fromName} &lt;${fromEmail}&gt;<br/>
-          To: ${toEmail}
+          From: ${safeFromName} &lt;${safeFromEmail}&gt;<br/>
+          To: ${safeToEmail}
         </p>
       </div>
     `,

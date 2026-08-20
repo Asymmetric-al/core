@@ -18,7 +18,10 @@ export {
   parseResendValidationSnapshot,
   validateResendApiKey,
 } from "./resend/validate";
-export { verifyResendWebhookSignature } from "./resend/webhook";
+export {
+  parseResendWebhookEnvelope,
+  verifyResendWebhookSignature,
+} from "./resend/webhook";
 export type {
   ResendClient,
   ResendValidationOptions,

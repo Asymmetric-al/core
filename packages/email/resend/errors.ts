@@ -101,6 +101,21 @@ function getHeaderValue(headers: unknown, name: string): string | null {
   return null;
 }
 
+export function extractRetryAfterFromThrown(
+  error: unknown,
+): number | undefined {
+  if (error && typeof error === "object" && "headers" in error) {
+    const nested = extractRetryAfterSeconds(
+      (error as { headers?: unknown }).headers,
+    );
+    if (nested !== undefined) {
+      return nested;
+    }
+  }
+
+  return extractRetryAfterSeconds(error);
+}
+
 export function extractRetryAfterSeconds(headers: unknown): number | undefined {
   const retryAfter = getHeaderValue(headers, "retry-after");
   if (!retryAfter) {
@@ -139,7 +154,8 @@ export function isRetryable(details: ResendErrorDetails): boolean {
     message.includes("fetch failed") ||
     message.includes("network") ||
     message.includes("timed out") ||
-    message.includes("timeout")
+    message.includes("timeout") ||
+    message.includes("aborted")
   ) {
     return true;
   }

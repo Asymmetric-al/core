@@ -1,9 +1,31 @@
 import { RESEND_ERROR_CODES } from "../constants";
 import { extractResendErrorDetails } from "./errors";
+import { asString, isJsonRecord } from "./json";
 import { createResendClientInstance } from "./sdk";
 
 import type { ResendWebhookEnvelope } from "../types";
 import type { VerifyWebhookOptions } from "./types";
+
+export function parseResendWebhookEnvelope(
+  value: unknown,
+): ResendWebhookEnvelope | null {
+  if (!isJsonRecord(value)) {
+    return null;
+  }
+
+  const type = asString(value.type);
+  const createdAt = asString(value.created_at);
+  if (!type || !createdAt) {
+    return null;
+  }
+
+  const data = isJsonRecord(value.data) ? value.data : {};
+  return {
+    type,
+    created_at: createdAt,
+    data,
+  };
+}
 
 export function verifyResendWebhookSignature(options: VerifyWebhookOptions): {
   success: boolean;
@@ -37,11 +59,19 @@ export function verifyResendWebhookSignature(options: VerifyWebhookOptions): {
       signature: options.headers["svix-signature"] ?? "",
     };
 
-    const event = resend.webhooks.verify({
+    const verified = resend.webhooks.verify({
       payload: options.payload,
       headers: verificationHeaders,
       webhookSecret: options.secret,
-    }) as unknown as ResendWebhookEnvelope;
+    });
+    const event = parseResendWebhookEnvelope(verified);
+    if (!event) {
+      return {
+        success: false,
+        error: "Resend webhook payload is missing required envelope fields.",
+        errorCode: RESEND_ERROR_CODES.VALIDATION_ERROR,
+      };
+    }
 
     return {
       success: true,

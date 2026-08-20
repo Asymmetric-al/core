@@ -90,6 +90,8 @@ export const RESEND_LIMITS = {
   maxRecipientsPerEmail: 50,
   maxBatchEmails: 100,
   defaultRequestsPerSecond: 5,
+  requestTimeoutMs: 30_000,
+  maxDomainListPages: 50,
 } as const;
 
 export const RATE_LIMIT_CONFIG = {
