@@ -74,7 +74,7 @@ async function createLinkedCrmNote(input: {
     throw new Error(
       await parseJsonError(
         response,
-        `Failed to queue CRM note (${response.status})`,
+        `Failed to save CRM note (${response.status})`,
       ),
     );
   }
@@ -109,6 +109,9 @@ export function useCreateLinkedCrmNote(recordId: string | null) {
         }),
         queryClient.invalidateQueries({
           queryKey: CRM_RECORDS_QUERY_KEY,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["admin", "crm", "notes"],
         }),
       ]);
     },

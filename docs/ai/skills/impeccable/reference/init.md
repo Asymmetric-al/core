@@ -180,4 +180,4 @@ The full command menu is one bare `$impeccable` away; keep this list short and p
 
 If init was invoked as a blocker by another impeccable command (e.g. the user ran `$impeccable polish` with no PRODUCT.md), resume that original task now. Your own writes are the freshest source; no reload needed.
 
-Optionally STOP and use Codex's structured user-input/question tool when available; if unavailable, ask directly in chat to clarify what you cannot infer. Ask whether they'd like a brief summary of PRODUCT.md appended to AGENTS.md for easier agent reference. If yes, append a short **Design Context** pointer section there.
+Optionally STOP and use Codex's structured user-input/question tool when available; if unavailable, ask directly in chat to clarify what you cannot infer. In Core, keep product/design context in `PRODUCT.md`, `DESIGN.md`, or the applicable scoped rulebook; do not append it to root `AGENTS.md`.

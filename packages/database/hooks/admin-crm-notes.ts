@@ -124,7 +124,7 @@ async function createCrmNote(input: {
     throw new Error(
       await parseJsonError(
         response,
-        `Failed to queue CRM note (${response.status})`,
+        `Failed to save CRM note (${response.status})`,
       ),
     );
   }
@@ -164,14 +164,14 @@ export function useAdminCrmNotesGrid() {
   });
 
   return {
-    configured: notesQuery.data?.configured ?? false,
+    configured: notesQuery.data?.configured ?? true,
     createNote: createMutation.mutateAsync,
     createNoteError:
       createMutation.error instanceof Error ? createMutation.error : null,
     isCreatingNote: createMutation.isPending,
     isLoading: notesQuery.isPending,
     missing: notesQuery.data?.missing ?? [],
-    mode: notesQuery.data?.mode ?? "not_configured",
+    mode: notesQuery.data?.mode ?? "local",
     notes: (notesQuery.data?.rows ?? []) as CrmNoteRow[],
     onRefresh: notesQuery.refetch,
     onSearchChange: setSearch,

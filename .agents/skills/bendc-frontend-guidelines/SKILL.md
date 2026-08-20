@@ -32,13 +32,13 @@ Use this skill when the task benefits from **foundational HTML, CSS, and vanilla
 
 The full text of the upstream guide lives in **`references/readme-original.md`**. When that reference conflicts with the **Precedence** table below, **follow the table**.
 
-| Topic                                                                               | Authoritative in this repo                                                                                                                  |
-| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tailwind, Maia/Zinc tokens, `cn()`, no arbitrary hex in components                  | `docs/ai/rules/frontend.md`                                                                                                                 |
-| Motion timing, tokens, reduced motion, `transition-all` ban, route view transitions | `docs/ai/rules/frontend.md`, `docs/ai/skills/emil-design-engineering/SKILL.md`, `docs/ai/skills/anim/SKILL.md`                              |
-| General JavaScript / TypeScript code shape, control flow, helper extraction         | Root `AGENTS.md` code style — prefer explicit, straightforward code over upstream terseness, loop avoidance, recursion, or shorthand        |
-| TypeScript types, `strict`, equality (`===`), linted patterns                       | ESLint / TS config and existing code style — **do not** adopt upstream examples that rely on loose equality or patterns that fail lint here |
-| React component structure, Server Components, hooks                                 | Next.js docs and `docs/ai/skills/react-component-dev/SKILL.md`                                                                              |
+| Topic                                                                               | Authoritative in this repo                                                                                                                                                              |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tailwind, Maia/Zinc tokens, `cn()`, no arbitrary hex in components                  | `docs/ai/rules/frontend.md`                                                                                                                                                             |
+| Motion timing, tokens, reduced motion, `transition-all` ban, route view transitions | `docs/ai/rules/frontend.md`, `docs/ai/skills/emil-design-engineering/SKILL.md`, `docs/ai/skills/anim/SKILL.md`                                                                          |
+| General JavaScript / TypeScript code shape, control flow, helper extraction         | ESLint, TypeScript configuration, formatter output, and nearby source patterns — prefer explicit, straightforward code over upstream terseness, loop avoidance, recursion, or shorthand |
+| TypeScript types, `strict`, equality (`===`), linted patterns                       | ESLint / TS config and existing code style — **do not** adopt upstream examples that rely on loose equality or patterns that fail lint here                                             |
+| React component structure, Server Components, hooks                                 | Next.js docs and `docs/ai/skills/react-component-dev/SKILL.md`                                                                                                                          |
 
 Use the bendc guide as **a second opinion** on semantics, DOM clarity, CSS discipline, and readable JS. Do not copy upstream JavaScript advice about terseness, avoiding loops, recursion, composition, or shorthand unless it improves clarity under this repo's `AGENTS.md` conventions.
 

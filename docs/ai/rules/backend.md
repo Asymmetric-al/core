@@ -30,6 +30,7 @@ Use this before changing server actions, route handlers, database access, or mig
 
 ### Data Access Boundary
 
+- Asym Postgres owns application and CRM truth. Twenty CRM is retired; do not restore Twenty clients, credentials, routes, webhooks, synchronization, projections, or provider-backed CRM reads.
 - All business DB logic lives in `packages/api/src/*`; route handlers in `apps/*/app/api/` are thin re-exports only.
 - Full rule, approved exceptions, and examples live in `docs/guides/architecture/data-access-boundary.md`.
 - Primary enforcement is ESLint `no-restricted-imports` rules (ticket 2.2.2).

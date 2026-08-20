@@ -13,12 +13,15 @@
 - The agent needs to choose a canonical skill under `docs/ai/skills/`
 - The agent needs to restore ecosystem skills from `skills-lock.json`
 - The agent needs Core-specific notes for a vendor skill (Supabase, Resend CLI, Emil Kowalski, Matt Pocock, Inngest, shadcn, TDD)
-- Root `AGENTS.md` Skill Routing points here for the full catalog
+- Root `AGENTS.md` points here when discovered skill metadata is insufficient
+  or skill maintenance is requested
 
 ## Workflow
 
-1. Start from root `AGENTS.md` compact routing (OpenSpec, TDD, UI, Next.js, Supabase, TanStack).
-2. Open this catalog only when the compact map is not enough.
+1. Start from root `AGENTS.md` repository context, nearest nested instructions,
+   and the discovered skill descriptions exposed by Codex.
+2. Open this catalog only when descriptions are ambiguous or skill maintenance
+   is requested.
 3. Load the matching canonical `docs/ai/skills/<name>/SKILL.md`.
 4. For lockfile-managed ecosystem skills, restore with `npx skills experimental_install -y` rather than guessing copies.
 5. After editing canonical skills, run `bun run skills:sync` then `bun run skills:verify` (verify is non-mutating).
@@ -81,7 +84,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **Verify Next.js runtime behavior after edits (running dev server + browser + React tree):** `next-dev-loop` (first-party `vercel/next.js` skill; ecosystem install under `.agents/skills/`, mirrored to `.claude/skills/` and `.cursor/skills/`; requires `agent-browser` ≥0.27)
 - **Adopt Cache Components on existing routes (feature-by-feature):** `next-cache-components-adoption` (first-party `vercel/next.js` skill; ecosystem install)
-- **Grow a route's static shell / make navigations instant:** `next-cache-components-optimizer` (first-party `vercel/next.js` skill; ecosystem install) — see **Instant Navigation (Next.js 16.3)** in root `AGENTS.md`
+- **Grow a route's static shell / make navigations instant:** `next-cache-components-optimizer` (first-party `vercel/next.js` skill; ecosystem install) — see **Instant Navigation (Next.js 16.3)** in `docs/ai/rules/frontend.md`
 - The retired `vercel-labs/next-skills` knowledge skills (`next-best-practices`, `next-cache-components`, `next-upgrade`) and the stale community `nextjs` skill were removed in the 16.3 upgrade; the bundled `node_modules/next/dist/docs/` are the knowledge source now.
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
 - **Million React Doctor / performance & health audits (`millionco/react-doctor`):** `docs/ai/skills/react-doctor/SKILL.md`
@@ -124,6 +127,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
 - **Cursor Team Kit PR/CI/review workflows:** load the matching canonical skill under `docs/ai/skills/<skill-name>/SKILL.md` when explicitly requested or when its trigger matches: `check-compiler-errors`, `control-cli`, `control-ui`, `deslop`, `fix-ci`, `fix-merge-conflicts`, `get-pr-comments`, `loop-on-ci`, `make-pr-easy-to-review`, `new-branch-and-pr`, `pr-review-canvas`, `review-and-ship`, `run-smoke-tests`, `thermo-nuclear-code-quality-review`, `verify-this`, `weekly-review`, `what-did-i-get-done`, `workflow-from-chats`.
 - **Babysitter orchestration:** `docs/ai/skills/babysit/SKILL.md` when the user asks to babysit, orchestrate a run/process, or explicitly calls `/babysit`.
+- **OpenSpec workflows:** `docs/ai/skills/openspec-explore/SKILL.md` (Explore, Propose, Update, Apply, Verify, Sync, Archive). Use `bun run openspec --`. Do not enable New, Continue, Fast-forward, Bulk archive, Onboard, or Stores.
 - **Explicit deep unknown discovery before implementation:** `docs/ai/skills/grill-for-unknowns/SKILL.md` only when the user invokes `grill-for-unknowns` or specifically requests a map-vs-territory pass, blindspot/unknown-unknown discovery, unknown-known prototypes, or a subagent launch packet. It owns that session's interview loop; do not pair it redundantly with `grilling` or `grill-with-docs`. Generic "grill/stress-test this plan" requests continue to use `grilling`; normal repo-backed grilling plus domain persistence uses `grill-with-docs`; work too large for one context uses `wayfinder`.
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.

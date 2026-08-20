@@ -117,8 +117,9 @@ Tooling: `tooling/eslint-config` → `@asym/eslint-config`,
 **Declared boundary (policy).** `packages/api/src/*` is the single canonical
 business-data-access layer. App API route handlers under `apps/*/app/api/` must
 be thin re-exports and must not import `@asym/database/supabase/*`,
-`@supabase/ssr`, or `@supabase/supabase-js` directly. Twenty CRM raw clients stay
-under `packages/api/src/crm/client/*`. Enforced by ESLint `no-restricted-imports`
+`@supabase/ssr`, or `@supabase/supabase-js` directly. Twenty CRM is retired
+(ADR-0001); Twenty clients must not be restored or imported from app
+source. Enforced by ESLint `no-restricted-imports`
 plus `scripts/verify/data-boundary-check.mjs` (`data-access-boundary.md:9-25`;
 `verify:data-boundary` script present).
 

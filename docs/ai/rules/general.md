@@ -30,6 +30,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 - `bun run format:check`
 - `bun run skills:verify`
+- `bun run openspec:validate`
 - `bun run lint`
 - `bun run verify:workspace-contract`
 - `bun run verify:eslint`

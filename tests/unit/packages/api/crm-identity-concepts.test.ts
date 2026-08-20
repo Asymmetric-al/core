@@ -46,6 +46,13 @@ describe("CRM identity concepts", () => {
     );
   });
 
+  it("keeps CRM person identity owned by Asym Postgres", () => {
+    expect(getCrmIdentityConcept("crm_person").owner).toBe("asym");
+    expect(
+      CRM_IDENTITY_CONCEPTS.every((concept) => concept.owner !== "twenty"),
+    ).toBe(true);
+  });
+
   it("keeps Stripe and money execution records out of the CRM person identity", () => {
     expect(getCrmIdentityConcept("stripe_customer").notSameAs).toContain(
       "donor_profile",

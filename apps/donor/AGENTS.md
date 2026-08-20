@@ -13,7 +13,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 **Scope:** Donor-facing UI in `apps/donor`. Do not copy root `AGENTS.md`.
 
 - Default port **3000**. Start: `bun run dev:donor`. Cloud: `node scripts/run-with-ci-env.mjs -- bun run dev:donor` after `bun run setup:mission-control:cloud` (see `docs/guides/development/cursor-cloud.md`).
-- Instant Navigation is on (`cacheComponents` + `partialPrefetching`). Follow the compact Instant Navigation section in root `AGENTS.md`. Stream request-time data; do not set `instant = false` without a comment.
+- Instant Navigation is on (`cacheComponents` + `partialPrefetching`). Follow `docs/ai/rules/frontend.md` § Instant Navigation. Stream request-time data; do not set `instant = false` without a comment.
 - Read nearest `node_modules/next/dist/docs/` before Next.js API work. Use Next.js MCP against a running dev server for live errors and routes.
 - **UI/UX:** consume `@asym/ui`. Follow `packages/ui/AGENTS.md`. Do not define a local visual system, app-local shadcn primitives, or another style/preset/base.
 - Data: thin `app/api` re-exports only. Business DB logic lives in `packages/api`. Browser table data uses `@asym/database/hooks` when a collection exists (`docs/guides/architecture/data-access-boundary.md`).

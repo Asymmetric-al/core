@@ -225,20 +225,6 @@ export const env = createEnv({
     /** Server-only donor origin for CMS preview links (fallback after `NEXT_PUBLIC_DONOR_URL`). */
     DONOR_APP_URL: z.string().url().optional(),
     CMS_BASE_URL: z.string().url().optional(),
-    TWENTY_API_URL: z.string().url().optional(),
-    TWENTY_API_KEY: z.string().min(1).optional(),
-    TWENTY_WEBHOOK_SECRET: z.string().min(1).optional(),
-    TWENTY_WORKSPACE_ID: z.string().min(1).optional(),
-    TWENTY_RATE_LIMIT_RPM: z.coerce.number().int().positive().optional(),
-    CRM_SYNC_INBOUND_ENABLED: optionalBoolean,
-    CRM_SYNC_OUTBOUND_ENABLED: optionalBoolean,
-    CRM_SYNC_REPLAY_ENABLED: optionalBoolean,
-    CRM_SYNC_RECONCILIATION_ENABLED: optionalBoolean,
-    CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS: z.coerce
-      .number()
-      .int()
-      .positive()
-      .optional(),
     APP_VERSION: z.string().optional(),
     GIT_REF: z.string().optional(),
     GIT_SHA: z.string().optional(),
@@ -370,18 +356,6 @@ export const env = createEnv({
     PAYLOAD_DATABASE_POOL_MAX: process.env.PAYLOAD_DATABASE_POOL_MAX,
     DONOR_APP_URL: process.env.DONOR_APP_URL,
     CMS_BASE_URL: process.env.CMS_BASE_URL,
-    TWENTY_API_URL: process.env.TWENTY_API_URL,
-    TWENTY_API_KEY: process.env.TWENTY_API_KEY,
-    TWENTY_WEBHOOK_SECRET: process.env.TWENTY_WEBHOOK_SECRET,
-    TWENTY_WORKSPACE_ID: process.env.TWENTY_WORKSPACE_ID,
-    TWENTY_RATE_LIMIT_RPM: process.env.TWENTY_RATE_LIMIT_RPM,
-    CRM_SYNC_INBOUND_ENABLED: process.env.CRM_SYNC_INBOUND_ENABLED,
-    CRM_SYNC_OUTBOUND_ENABLED: process.env.CRM_SYNC_OUTBOUND_ENABLED,
-    CRM_SYNC_REPLAY_ENABLED: process.env.CRM_SYNC_REPLAY_ENABLED,
-    CRM_SYNC_RECONCILIATION_ENABLED:
-      process.env.CRM_SYNC_RECONCILIATION_ENABLED,
-    CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS:
-      process.env.CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS,
     APP_VERSION: process.env.APP_VERSION,
     GIT_REF: process.env.GIT_REF,
     GIT_SHA: process.env.GIT_SHA,

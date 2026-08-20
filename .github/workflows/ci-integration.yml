@@ -2,7 +2,10 @@ name: CI Integration
 
 on:
   pull_request:
-    branches: [develop, production]
+    branches:
+      - develop
+      - production
+      - "cursor/**"
   push:
     branches: [develop, production]
 
@@ -271,7 +274,8 @@ jobs:
       SKIP_ENV_VALIDATION: "1"
       E2E_AUTH_BYPASS: "true"
       # Required secrets for the datasource-bound bypass against the hosted demo project.
-      # Develop PRs switch to the example placeholder before app startup below.
+      # Non-production PRs (develop and stacked cursor/*) switch to the example
+      # placeholder before app startup below. Production PRs keep hosted secrets.
       #   E2E_AUTH_SECRET                 — HMAC signing key shared by producer + verifiers
       #   E2E_AUTH_ALLOWED_SUPABASE_REFS  — project ref of the demo Supabase project (never prod)
       E2E_AUTH_SECRET: ${{ secrets.E2E_AUTH_SECRET }}
@@ -309,8 +313,8 @@ jobs:
         run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
-      - name: Use placeholder Supabase for develop E2E
-        if: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
+      - name: Use placeholder Supabase for non-production E2E
+        if: ${{ (github.event_name == 'pull_request' && github.base_ref != 'production') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
         run: |
           echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co" >> "$GITHUB_ENV"
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key" >> "$GITHUB_ENV"

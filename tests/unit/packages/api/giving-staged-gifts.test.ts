@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
-  buildTwentyGiftSummaryPayload,
+  approveStagedGiftForFinance,
   canTransitionStagedGift,
+  rejectRetiredCrmPostingRetry,
   stageGiftFromStripeDonation,
   type StagedGiftRow,
 } from "../../../../packages/api/src/giving/staged-gifts";
@@ -39,21 +40,74 @@ describe("giving staged gift helpers", () => {
     expect(canTransitionStagedGift("voided", "ready_to_post")).toBe(false);
   });
 
-  it("builds a summary-only Twenty payload without moving payment truth to CRM", () => {
-    expect(buildTwentyGiftSummaryPayload(gift)).toEqual({
-      amountCents: 12345,
-      asymDonationId: "donation-1",
-      asymStagedGiftId: "staged-gift-1",
-      asymTenantId: "tenant-1",
-      currencyCode: "usd",
-      donorId: "donor-1",
-      fundId: "fund-1",
-      missionaryId: "missionary-1",
-      paymentStatus: "received",
-      receiptStatus: "pending",
-      stripeChargeId: "ch_1",
-      stripePaymentIntentId: "pi_1",
+  it("rejects retired CRM posting retries", () => {
+    expect(() => rejectRetiredCrmPostingRetry()).toThrow(
+      /Twenty CRM posting is retired/,
+    );
+  });
+
+  it("approves a staged gift for finance without inserting Twenty CRM links", async () => {
+    const insertCalls: Array<{ table: string; row: unknown }> = [];
+    const updateCalls: unknown[] = [];
+    const approvedRow = {
+      ...stagedGiftDbRow,
+      status: "ready_to_post",
+      crm_post_status: "not_required",
+      crm_outbound_job_id: null,
+    };
+
+    const supabaseAdmin = {
+      from: vi.fn((table: string) => {
+        const chain: Record<string, unknown> = {};
+        chain.select = vi.fn(() => chain);
+        chain.eq = vi.fn(() => chain);
+        chain.update = vi.fn((row: unknown) => {
+          updateCalls.push(row);
+          return chain;
+        });
+        chain.insert = vi.fn((row: unknown) => {
+          insertCalls.push({ table, row });
+          return Promise.resolve({ error: null });
+        });
+        chain.single = vi.fn(() =>
+          Promise.resolve({
+            data:
+              table === "staged_gifts"
+                ? updateCalls.length > 0
+                  ? approvedRow
+                  : stagedGiftDbRow
+                : null,
+            error: null,
+          }),
+        );
+        return chain;
+      }),
+    } as never;
+
+    const result = await approveStagedGiftForFinance({
+      supabaseAdmin,
+      stagedGiftId: "sg-abc",
+      tenantId: "tenant-abc",
+      actorProfileId: "profile-abc",
     });
+
+    expect(result.status).toBe("ready_to_post");
+    expect(result.crmPostStatus).toBe("not_required");
+    expect(result.crmOutboundJobId).toBeNull();
+    expect(updateCalls[0]).toMatchObject({
+      status: "ready_to_post",
+      crm_post_status: "not_required",
+      crm_outbound_job_id: null,
+    });
+    expect(insertCalls.map((call) => call.table)).toEqual([
+      "staged_gift_audit_events",
+    ]);
+    expect(insertCalls[0]?.row).toMatchObject({
+      action: "staged_gift_approved_for_finance",
+    });
+    expect(JSON.stringify(insertCalls)).not.toContain("donation_crm_links");
+    expect(JSON.stringify(insertCalls)).not.toContain('crm_provider":"twenty"');
+    expect(JSON.stringify(updateCalls)).not.toContain('crm_provider":"twenty"');
   });
 });
 

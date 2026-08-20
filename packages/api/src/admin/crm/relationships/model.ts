@@ -1,704 +1,639 @@
-import {
-  DEFAULT_TIMESTAMP,
-  coerceString,
-  findFirstString,
-  getNestedName,
-  isRecord,
-  timestampOrDefault,
-} from "../../../shared/json-coerce";
-
 import type { AdminCrmRelationshipsParams } from "./query";
 import type {
+  CrmRelationshipAuthorityScope,
   CrmRelationshipDomain,
+  CrmRelationshipRecordKind,
   CrmRelationshipReport,
   CrmRelationshipRow,
+  CrmRelationshipSortField,
 } from "@asym/database/types";
 
 type JsonRecord = Record<string, unknown>;
 
-const EMPTY_DOMAIN_COUNTS: Record<CrmRelationshipDomain, number> = {
-  activity: 0,
-  churches: 0,
-  households: 0,
-  organizations: 0,
-  people: 0,
-  pledges: 0,
-};
-
-const CRM_AUTHORITY_LABEL = "CRM relationship context";
-const FINANCE_AUTHORITY_LABEL = "Relationship commitment; Asym owns payments";
-const CARE_AUTHORITY_LABEL = "CRM activity; Asym owns care records";
-
-export const CRM_RELATIONSHIP_OBJECTS = [
+export const CRM_RELATIONSHIP_DOMAINS: CrmRelationshipDomain[] = [
   "people",
-  "companies",
-  "churches",
   "households",
-  "relationshipCommitments",
-  "ministryActivities",
-] as const;
+  "organizations",
+  "churches",
+  "pledges",
+  "activity",
+];
 
-interface NormalizeStats {
-  duplicateCompanyCandidates: number;
-  excludedCareActivityCount: number;
-}
+const CHURCH_NAME_PATTERN = /church|ministry/i;
+const CARE_SENSITIVE_PATTERN =
+  /care|private|counsel|pastoral|member[-_\s]?care|care[-_\s]?plan/;
+const CARE_SENSITIVE_ACTIVITY_TYPES = new Set([
+  "pastoral_note",
+  "care_plan_update",
+  "crisis_intervention",
+]);
 
-interface NormalizeResult {
-  rows: CrmRelationshipRow[];
-  stats: NormalizeStats;
-}
-
-function asNumber(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim()) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  return null;
-}
-
-function normalizeKey(value: string | null): string | null {
-  if (!value) {
-    return null;
-  }
-
-  const normalized = value
+export function normalizeKey(value: string): string {
+  return value
+    .trim()
     .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^a-z0-9]+/giu, "-")
     .replace(/^-+|-+$/g, "");
-
-  return normalized || null;
 }
 
-function timestampOrNull(value: string | null): string | null {
-  if (!value) {
-    return null;
-  }
-
-  const timestamp = new Date(value);
-  if (Number.isNaN(timestamp.getTime())) {
-    return null;
-  }
-
-  return timestamp.toISOString();
+function compareText(left: string, right: string): number {
+  return left.localeCompare(right);
 }
 
-function getArrayCandidate(value: unknown, objectName: string): unknown[] {
-  if (Array.isArray(value)) {
-    return value;
-  }
-
-  if (!isRecord(value)) {
-    return [];
-  }
-
-  const candidates = [
-    value.data,
-    value.records,
-    value.items,
-    value.results,
-    value[objectName],
-  ];
-
-  for (const candidate of candidates) {
-    if (Array.isArray(candidate)) {
-      return candidate;
+export function filterCrmRelationshipsForTenant(
+  rows: CrmRelationshipRow[],
+  tenantId: string,
+  search: string | null,
+): CrmRelationshipRow[] {
+  const normalizedSearch = search?.trim().toLowerCase() ?? "";
+  return rows.filter((row) => {
+    if (row.tenantId !== tenantId || !row.recordId) {
+      return false;
     }
+    if (!normalizedSearch) {
+      return true;
+    }
+    return [
+      row.displayName,
+      row.primaryContactName,
+      row.recordKind,
+      row.relationshipKind,
+      row.status,
+      row.sourceSystem,
+      row.secondaryLabel,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(normalizedSearch);
+  });
+}
 
-    if (isRecord(candidate)) {
-      const nested = getArrayCandidate(candidate, objectName);
-      if (nested.length > 0) {
-        return nested;
-      }
+export function sortCrmRelationships(
+  rows: CrmRelationshipRow[],
+  sort: AdminCrmRelationshipsParams["sort"],
+): CrmRelationshipRow[] {
+  const direction = sort.direction === "asc" ? 1 : -1;
+  return [...rows].sort((left, right) => {
+    const comparison = compareSortField(left, right, sort.field);
+    if (comparison !== 0) {
+      return comparison * direction;
+    }
+    return left.id.localeCompare(right.id);
+  });
+}
+
+function compareSortField(
+  left: CrmRelationshipRow,
+  right: CrmRelationshipRow,
+  field: CrmRelationshipSortField,
+): number {
+  switch (field) {
+    case "displayName":
+      return compareText(left.displayName, right.displayName);
+    case "domain":
+      return compareText(left.domain, right.domain);
+    case "status":
+      return compareText(left.status ?? "", right.status ?? "");
+    case "lastActivityAt":
+      return compareText(left.lastActivityAt ?? "", right.lastActivityAt ?? "");
+    case "commitmentAmountCents":
+      return (
+        (left.commitmentAmountCents ?? 0) - (right.commitmentAmountCents ?? 0)
+      );
+    case "createdAt":
+      return compareText(left.createdAt, right.createdAt);
+    case "updatedAt":
+      return compareText(left.updatedAt, right.updatedAt);
+    default: {
+      const exhaustive: never = field;
+      return exhaustive;
     }
   }
-
-  return [];
 }
 
-function getTenantId(record: JsonRecord) {
-  return findFirstString(record, [
-    "asymTenantId",
-    "tenantId",
-    "asym_tenant_id",
-  ]);
-}
-
-function getRecordId(record: JsonRecord) {
-  return findFirstString(record, ["id", "recordId"]);
-}
-
-function getCreatedAt(record: JsonRecord) {
-  return timestampOrDefault(
-    findFirstString(record, ["createdAt", "created_at"]),
-  );
-}
-
-function getUpdatedAt(record: JsonRecord, fallback: string) {
-  return timestampOrDefault(
-    findFirstString(record, ["updatedAt", "updated_at"]) ?? fallback,
-  );
-}
-
-function getDisplayName(
-  record: JsonRecord,
-  keys: readonly string[],
-): string | null {
-  return (
-    findFirstString(record, keys) ??
-    getNestedName(record.name) ??
-    getNestedName(record.person) ??
-    getNestedName(record.company)
-  );
-}
-
-function getMemberIds(record: JsonRecord): string[] {
-  const rawMemberIds = record.memberIds ?? record.personIds;
-  const ids = Array.isArray(rawMemberIds)
-    ? rawMemberIds
-    : Array.isArray(record.members)
-      ? record.members.map((member) =>
-          isRecord(member) ? getRecordId(member) : coerceString(member),
-        )
-      : [];
-
-  return Array.from(
-    new Set(ids.map((id) => coerceString(id)).filter(Boolean) as string[]),
-  ).sort((left, right) => left.localeCompare(right));
-}
-
-export function buildHouseholdMembershipKey(record: JsonRecord): string | null {
-  const memberIds = getMemberIds(record);
+export function buildHouseholdMembershipKey(record: JsonRecord): string {
+  const memberIds = readMembershipIds(record);
   if (memberIds.length > 0) {
     return `household-members:${memberIds.join("+")}`;
   }
 
   return normalizeKey(
-    getDisplayName(record, ["householdName", "displayName", "name", "title"]),
+    readText(record, ["name", "displayName", "label"]) || "household",
   );
 }
 
-function isCareSensitiveActivity(record: JsonRecord): boolean {
-  const value = [
-    findFirstString(record, ["activityKind", "type", "category", "source"]),
-    findFirstString(record, ["title", "name", "summary"]),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
+export function isCareSensitiveRelationship(
+  record: JsonRecord,
+  objectName = "",
+): boolean {
+  const activityType = objectName || readText(record, ["type"]);
+  if (CARE_SENSITIVE_ACTIVITY_TYPES.has(activityType)) {
+    return true;
+  }
 
-  return /care|private|counsel|pastoral|member[-_\s]?care|care[-_\s]?plan/.test(
-    value,
+  return CARE_SENSITIVE_PATTERN.test(
+    [
+      objectName,
+      readText(record, ["objectName"]),
+      readText(record, ["type"]),
+      readText(record, ["category"]),
+      readText(record, ["visibility"]),
+      readText(record, ["sensitivity"]),
+      readText(record, ["name"]),
+      readText(record, ["title"]),
+    ].join(" "),
   );
 }
 
-function baseRow(input: {
-  record: JsonRecord;
-  objectName: string;
+function isChurchName(value: string): boolean {
+  return CHURCH_NAME_PATTERN.test(value);
+}
+
+function donorDisplayName(donor: JsonRecord): string {
+  return (
+    readText(donor, ["name", "organization", "displayName", "label"]) || "Donor"
+  );
+}
+
+function donorType(donor: JsonRecord): string {
+  return readText(donor, ["type"]).toLowerCase();
+}
+
+function classifyDonor(
+  donor: JsonRecord,
+): "person" | "church" | "organization" {
+  const type = donorType(donor);
+  const name = donorDisplayName(donor);
+  if (type === "church" || isChurchName(name)) {
+    return "church";
+  }
+  if (
+    type === "organization" ||
+    type === "company" ||
+    type === "agency" ||
+    type === "org"
+  ) {
+    return "organization";
+  }
+  return "person";
+}
+
+function profileDisplayName(profile: JsonRecord): string {
+  const firstName = readText(profile, ["first_name", "firstName"]);
+  const lastName = readText(profile, ["last_name", "lastName"]);
+  const combined = `${firstName} ${lastName}`.trim();
+  return (
+    combined ||
+    readText(profile, ["display_name", "displayName", "full_name", "fullName"])
+  );
+}
+
+function asIso(value: unknown, fallback: string): string {
+  if (typeof value === "string" && value.trim()) {
+    return value;
+  }
+  return fallback;
+}
+
+function relationshipRow(input: {
+  tenantId: string;
+  recordKind: CrmRelationshipRecordKind;
+  recordId: string;
   domain: CrmRelationshipDomain;
   displayName: string;
-  secondaryLabel?: string | null;
-  relationshipKind?: string | null;
-  status?: string | null;
-  location?: string | null;
-  primaryContactName?: string | null;
-  memberCount?: number | null;
-  commitmentAmountCents?: number | null;
-  commitmentCurrency?: string | null;
-  commitmentFrequency?: string | null;
-  lastActivityAt?: string | null;
-  sourceSystem?: CrmRelationshipRow["sourceSystem"];
-  authorityScope?: CrmRelationshipRow["authorityScope"];
-  authorityLabel?: string;
-  dedupeKey?: string | null;
-}): CrmRelationshipRow[] {
-  const id = getRecordId(input.record);
-  const tenantId = getTenantId(input.record);
-  if (!id || !tenantId) {
-    return [];
-  }
-
-  const createdAt = getCreatedAt(input.record);
-
-  return [
-    {
-      authorityLabel: input.authorityLabel ?? CRM_AUTHORITY_LABEL,
-      authorityScope: input.authorityScope ?? "crm_relationship",
-      commitmentAmountCents: input.commitmentAmountCents ?? null,
-      commitmentCurrency: input.commitmentCurrency ?? null,
-      commitmentFrequency: input.commitmentFrequency ?? null,
-      createdAt,
-      dedupeKey: input.dedupeKey ?? null,
-      displayName: input.displayName,
-      domain: input.domain,
-      id: `${input.objectName}:${id}`,
-      lastActivityAt: input.lastActivityAt ?? null,
-      location: input.location ?? null,
-      memberCount: input.memberCount ?? null,
-      primaryContactName: input.primaryContactName ?? null,
-      relationshipKind: input.relationshipKind ?? null,
-      secondaryLabel: input.secondaryLabel ?? null,
-      sourceSystem: input.sourceSystem ?? "Twenty CRM",
-      status: input.status ?? null,
-      tenantId,
-      twentyObjectName: input.objectName,
-      twentyRecordId: id,
-      updatedAt: getUpdatedAt(input.record, createdAt),
-    },
-  ];
-}
-
-function normalizePerson(record: JsonRecord): CrmRelationshipRow[] {
-  const displayName =
-    getDisplayName(record, ["displayName", "fullName", "name", "title"]) ??
-    "Unnamed person";
-
-  return baseRow({
-    record,
-    objectName: "people",
-    domain: "people",
-    displayName,
-    secondaryLabel: findFirstString(record, [
-      "organizationName",
-      "companyName",
-      "primaryOrganization",
-    ]),
-    relationshipKind: "person",
-    status: findFirstString(record, ["relationshipStatus", "status"]),
-    location: findFirstString(record, ["location", "city", "address"]),
-    primaryContactName: findFirstString(record, [
-      "primaryEmail",
-      "email",
-      "primaryPhone",
-      "phone",
-    ]),
-    lastActivityAt: timestampOrNull(
-      findFirstString(record, ["lastActivityAt", "lastTouchAt"]),
-    ),
-    dedupeKey: normalizeKey(
-      findFirstString(record, ["primaryEmail", "email"]) ?? displayName,
-    ),
-  });
-}
-
-function normalizeCompany(record: JsonRecord): CrmRelationshipRow[] {
-  const displayName =
-    getDisplayName(record, ["displayName", "companyName", "name", "title"]) ??
-    "Unnamed organization";
-  const organizationKind =
-    findFirstString(record, ["organizationKind", "kind", "type"]) ??
-    "organization";
-  const churchLike = /church|ministry/i.test(organizationKind);
-  const domain: CrmRelationshipDomain = churchLike
-    ? "churches"
-    : "organizations";
-  const normalizedName = normalizeKey(displayName);
-
-  return baseRow({
-    record,
-    objectName: "companies",
-    domain,
-    displayName,
-    secondaryLabel: organizationKind,
-    relationshipKind: organizationKind,
-    status: findFirstString(record, ["relationshipStatus", "status"]),
-    location: findFirstString(record, ["location", "city", "address"]),
-    primaryContactName:
-      getNestedName(record.primaryContact) ??
-      findFirstString(record, ["primaryContactName"]),
-    lastActivityAt: timestampOrNull(
-      findFirstString(record, ["lastActivityAt", "lastTouchAt"]),
-    ),
-    dedupeKey: normalizedName
-      ? `${domain === "churches" ? "church" : "organization"}:${normalizedName}`
-      : null,
-  });
-}
-
-function normalizeChurch(record: JsonRecord): CrmRelationshipRow[] {
-  const displayName =
-    getDisplayName(record, ["churchName", "displayName", "name", "title"]) ??
-    "Unnamed church";
-  const normalizedName = normalizeKey(displayName);
-
-  return baseRow({
-    record,
-    objectName: "churches",
-    domain: "churches",
-    displayName,
-    secondaryLabel: "church",
-    relationshipKind: "church",
-    status: findFirstString(record, ["relationshipStatus", "status"]),
-    location: findFirstString(record, ["location", "city", "address"]),
-    primaryContactName:
-      getNestedName(record.primaryContact) ??
-      findFirstString(record, ["primaryContactName"]),
-    lastActivityAt: timestampOrNull(
-      findFirstString(record, ["lastActivityAt", "lastTouchAt"]),
-    ),
-    dedupeKey: normalizedName ? `church:${normalizedName}` : null,
-  });
-}
-
-function normalizeHousehold(record: JsonRecord): CrmRelationshipRow[] {
-  const displayName =
-    getDisplayName(record, ["householdName", "displayName", "name", "title"]) ??
-    "Unnamed household";
-  const memberIds = getMemberIds(record);
-
-  return baseRow({
-    record,
-    objectName: "households",
-    domain: "households",
-    displayName,
-    secondaryLabel:
-      memberIds.length > 0
-        ? `${memberIds.length} member${memberIds.length === 1 ? "" : "s"}`
-        : null,
-    relationshipKind: "household",
-    status: findFirstString(record, ["relationshipStatus", "status"]),
-    location: findFirstString(record, ["location", "city", "address"]),
-    primaryContactName:
-      getNestedName(record.primaryContact) ??
-      findFirstString(record, ["primaryContactName"]),
-    memberCount: memberIds.length || asNumber(record.memberCount),
-    lastActivityAt: timestampOrNull(
-      findFirstString(record, ["lastActivityAt", "lastTouchAt"]),
-    ),
-    dedupeKey: buildHouseholdMembershipKey(record),
-  });
-}
-
-function normalizeRelationshipCommitment(
-  record: JsonRecord,
-): CrmRelationshipRow[] {
-  const displayName =
-    (getDisplayName(record, [
-      "commitmentName",
-      "displayName",
-      "name",
-      "title",
-    ]) ??
-      [
-        findFirstString(record, ["donorName"]),
-        findFirstString(record, ["fundName", "designationName"]),
-      ]
-        .filter(Boolean)
-        .join(" to ")
-        .trim()) ||
-    "Relationship commitment";
-
-  return baseRow({
-    record,
-    objectName: "relationshipCommitments",
-    domain: "pledges",
-    displayName,
-    secondaryLabel: findFirstString(record, [
-      "fundName",
-      "designationName",
-      "missionaryName",
-    ]),
-    relationshipKind: "relationship commitment",
-    status: findFirstString(record, ["commitmentStatus", "status"]),
-    commitmentAmountCents: asNumber(
-      record.commitmentAmountCents ?? record.amountCents ?? record.amount,
-    ),
-    commitmentCurrency: findFirstString(record, ["currency"]),
-    commitmentFrequency: findFirstString(record, ["frequency"]),
-    lastActivityAt: timestampOrNull(
-      findFirstString(record, ["lastActivityAt", "updatedAt"]),
-    ),
-    sourceSystem: "Asym finance summary",
-    authorityScope: "finance_summary",
-    authorityLabel: FINANCE_AUTHORITY_LABEL,
-    dedupeKey:
-      normalizeKey(findFirstString(record, ["asymPledgeId"])) ??
-      normalizeKey(displayName),
-  });
-}
-
-function normalizeMinistryActivity(record: JsonRecord): CrmRelationshipRow[] {
-  if (isCareSensitiveActivity(record)) {
-    return [];
-  }
-
-  const displayName =
-    getDisplayName(record, ["title", "summary", "displayName", "name"]) ??
-    "Relationship activity";
-
-  return baseRow({
-    record,
-    objectName: "ministryActivities",
-    domain: "activity",
-    displayName,
-    secondaryLabel: findFirstString(record, ["activityKind", "type"]),
-    relationshipKind:
-      findFirstString(record, ["activityKind", "type"]) ?? "activity",
-    status: findFirstString(record, ["status"]),
-    primaryContactName:
-      getNestedName(record.person) ??
-      getNestedName(record.company) ??
-      findFirstString(record, ["personName", "organizationName"]),
-    lastActivityAt: timestampOrNull(
-      findFirstString(record, ["occurredAt", "activityAt", "createdAt"]),
-    ),
-    authorityScope: "care_excluded",
-    authorityLabel: CARE_AUTHORITY_LABEL,
-    dedupeKey:
-      normalizeKey(findFirstString(record, ["eventKey", "externalId"])) ??
-      normalizeKey(displayName),
-  });
-}
-
-export function normalizeTwentyRelationshipResponse(
-  objectName: string,
-  response: unknown,
-): CrmRelationshipRow[] {
-  return getArrayCandidate(response, objectName).flatMap((record) => {
-    if (!isRecord(record)) {
-      return [];
-    }
-
-    switch (objectName) {
-      case "people":
-        return normalizePerson(record);
-      case "companies":
-        return normalizeCompany(record);
-      case "churches":
-        return normalizeChurch(record);
-      case "households":
-        return normalizeHousehold(record);
-      case "relationshipCommitments":
-        return normalizeRelationshipCommitment(record);
-      case "ministryActivities":
-        return normalizeMinistryActivity(record);
-      default:
-        return [];
-    }
-  });
-}
-
-export function normalizeTwentyRelationshipResponseWithStats(
-  objectName: string,
-  response: unknown,
-): NormalizeResult {
-  const records = getArrayCandidate(response, objectName);
-  let excludedCareActivityCount = 0;
-  const rows = records.flatMap((record) => {
-    if (!isRecord(record)) {
-      return [];
-    }
-
-    if (
-      objectName === "ministryActivities" &&
-      isCareSensitiveActivity(record)
-    ) {
-      excludedCareActivityCount += 1;
-      return [];
-    }
-
-    return normalizeTwentyRelationshipResponse(objectName, [record]);
-  });
-
+  relationshipKind: string;
+  status: string | null;
+  lastActivityAt: string;
+  createdAt: string;
+  updatedAt: string;
+  primaryContactName: string | null;
+  secondaryLabel: string | null;
+  commitmentAmountCents: number | null;
+  commitmentCurrency: string | null;
+  commitmentFrequency: string | null;
+  sourceSystem: CrmRelationshipRow["sourceSystem"];
+  authorityScope: CrmRelationshipAuthorityScope;
+  location: string | null;
+  memberCount: number | null;
+  dedupeKey: string;
+}): CrmRelationshipRow {
   return {
-    rows,
-    stats: {
-      duplicateCompanyCandidates: 0,
-      excludedCareActivityCount,
-    },
+    authorityLabel:
+      input.authorityScope === "finance_summary"
+        ? "Asym finance summary"
+        : "Asym CRM",
+    authorityScope: input.authorityScope,
+    commitmentAmountCents: input.commitmentAmountCents,
+    commitmentCurrency: input.commitmentCurrency,
+    commitmentFrequency: input.commitmentFrequency,
+    createdAt: input.createdAt,
+    dedupeKey: input.dedupeKey,
+    displayName: input.displayName,
+    domain: input.domain,
+    id: `${input.recordKind}:${input.recordId}`,
+    lastActivityAt: input.lastActivityAt,
+    location: input.location,
+    memberCount: input.memberCount,
+    primaryContactName: input.primaryContactName,
+    recordId: input.recordId,
+    recordKind: input.recordKind,
+    relationshipKind: input.relationshipKind,
+    secondaryLabel: input.secondaryLabel,
+    sourceSystem: input.sourceSystem,
+    status: input.status,
+    tenantId: input.tenantId,
+    updatedAt: input.updatedAt,
   };
 }
 
-function rowPriority(row: CrmRelationshipRow): number {
-  if (row.twentyObjectName === "churches") return 0;
-  if (row.domain === "churches" && row.twentyObjectName === "companies") {
-    return 1;
-  }
-  return 2;
-}
-
-export function dedupeCrmRelationshipRows(
-  rows: readonly CrmRelationshipRow[],
-): NormalizeResult {
-  const byKey = new Map<string, CrmRelationshipRow>();
-  const keptWithoutKeys: CrmRelationshipRow[] = [];
-  let duplicateCompanyCandidates = 0;
-
-  for (const row of rows) {
-    if (!row.dedupeKey) {
-      keptWithoutKeys.push(row);
-      continue;
-    }
-
-    const existing = byKey.get(row.dedupeKey);
-    if (!existing) {
-      byKey.set(row.dedupeKey, row);
-      continue;
-    }
-
-    duplicateCompanyCandidates +=
-      row.twentyObjectName === "companies" ||
-      existing.twentyObjectName === "companies"
-        ? 1
-        : 0;
-
-    const currentPriority = rowPriority(row);
-    const existingPriority = rowPriority(existing);
-    if (
-      currentPriority < existingPriority ||
-      (currentPriority === existingPriority &&
-        new Date(row.updatedAt).getTime() >
-          new Date(existing.updatedAt).getTime())
-    ) {
-      byKey.set(row.dedupeKey, row);
-    }
-  }
-
-  return {
-    rows: [...byKey.values(), ...keptWithoutKeys],
-    stats: {
-      duplicateCompanyCandidates,
-      excludedCareActivityCount: 0,
-    },
-  };
-}
-
-export function filterCrmRelationshipsForTenant(
-  rows: readonly CrmRelationshipRow[],
-  tenantId: string,
-  search: string | null,
-  domains: readonly CrmRelationshipDomain[],
-): CrmRelationshipRow[] {
-  const normalizedSearch = search?.trim().toLowerCase() ?? "";
-  const domainSet = new Set(domains);
-
-  return rows.filter((row) => {
-    if (row.tenantId !== tenantId) {
-      return false;
-    }
-
-    if (domainSet.size > 0 && !domainSet.has(row.domain)) {
-      return false;
-    }
-
-    if (!normalizedSearch) {
-      return true;
-    }
-
-    return [
-      row.displayName,
-      row.secondaryLabel,
-      row.relationshipKind,
-      row.status,
-      row.location,
-      row.primaryContactName,
-      row.sourceSystem,
-      row.authorityLabel,
-    ]
-      .filter(Boolean)
-      .some((value) => value!.toLowerCase().includes(normalizedSearch));
-  });
-}
-
-function compareNullableText(left: string | null, right: string | null) {
-  return (left ?? "").localeCompare(right ?? "");
-}
-
-function compareNullableNumber(left: number | null, right: number | null) {
-  return (left ?? 0) - (right ?? 0);
-}
-
-function compareNullableTimestamp(left: string | null, right: string | null) {
-  return (
-    new Date(left ?? DEFAULT_TIMESTAMP).getTime() -
-    new Date(right ?? DEFAULT_TIMESTAMP).getTime()
+export function mapLocalCrmRelationshipRows(input: {
+  tenantId: string;
+  now: string;
+  donors: JsonRecord[];
+  missionaries: JsonRecord[];
+  profiles: JsonRecord[];
+  pledges: JsonRecord[];
+  activities: JsonRecord[];
+}): {
+  rows: CrmRelationshipRow[];
+  excludedCareActivityCount: number;
+} {
+  const profileById = new Map(
+    input.profiles.map((profile) => [readText(profile, ["id"]), profile]),
   );
-}
+  const donorById = new Map(
+    input.donors.map((donor) => [readText(donor, ["id"]), donor]),
+  );
+  const rows: CrmRelationshipRow[] = [];
+  let excludedCareActivityCount = 0;
 
-export function sortCrmRelationships(
-  rows: readonly CrmRelationshipRow[],
-  sort: AdminCrmRelationshipsParams["sort"],
-): CrmRelationshipRow[] {
-  const direction = sort.direction === "asc" ? 1 : -1;
+  for (const donor of input.donors) {
+    const recordId = readText(donor, ["id"]);
+    if (!recordId) {
+      continue;
+    }
+    const displayName = donorDisplayName(donor);
+    const createdAt = asIso(donor.created_at ?? donor.createdAt, input.now);
+    const updatedAt = asIso(
+      donor.updated_at ?? donor.updatedAt ?? createdAt,
+      input.now,
+    );
+    const status = readText(donor, ["status"]) || null;
+    const location = readText(donor, ["location"]) || null;
+    const classification = classifyDonor(donor);
+    const spouse = readText(donor, ["spouse"]);
 
-  return [...rows].sort((left, right) => {
-    let compared = 0;
-
-    if (sort.field === "displayName") {
-      compared = compareNullableText(left.displayName, right.displayName);
-    } else if (sort.field === "domain") {
-      compared = compareNullableText(left.domain, right.domain);
-    } else if (sort.field === "status") {
-      compared = compareNullableText(left.status, right.status);
-    } else if (sort.field === "lastActivityAt") {
-      compared = compareNullableTimestamp(
-        left.lastActivityAt,
-        right.lastActivityAt,
+    if (classification === "church") {
+      rows.push(
+        relationshipRow({
+          tenantId: input.tenantId,
+          recordKind: "church",
+          recordId,
+          domain: "churches",
+          displayName,
+          relationshipKind: "church",
+          status,
+          lastActivityAt: updatedAt,
+          createdAt,
+          updatedAt,
+          primaryContactName: spouse || null,
+          secondaryLabel: null,
+          commitmentAmountCents: null,
+          commitmentCurrency: null,
+          commitmentFrequency: null,
+          sourceSystem: "Asym CRM",
+          authorityScope: "crm_relationship",
+          location,
+          memberCount: null,
+          dedupeKey: `church:${normalizeKey(displayName)}`,
+        }),
       );
-    } else if (sort.field === "commitmentAmountCents") {
-      compared = compareNullableNumber(
-        left.commitmentAmountCents,
-        right.commitmentAmountCents,
+    } else if (classification === "organization") {
+      rows.push(
+        relationshipRow({
+          tenantId: input.tenantId,
+          recordKind: "organization",
+          recordId,
+          domain: "organizations",
+          displayName,
+          relationshipKind: "organization",
+          status,
+          lastActivityAt: updatedAt,
+          createdAt,
+          updatedAt,
+          primaryContactName: spouse || null,
+          secondaryLabel: null,
+          commitmentAmountCents: null,
+          commitmentCurrency: null,
+          commitmentFrequency: null,
+          sourceSystem: "Asym CRM",
+          authorityScope: "crm_relationship",
+          location,
+          memberCount: null,
+          dedupeKey: `organization:${normalizeKey(displayName)}`,
+        }),
       );
     } else {
-      compared = compareNullableTimestamp(left.updatedAt, right.updatedAt);
+      rows.push(
+        relationshipRow({
+          tenantId: input.tenantId,
+          recordKind: "person",
+          recordId,
+          domain: "people",
+          displayName,
+          relationshipKind: "person",
+          status,
+          lastActivityAt: updatedAt,
+          createdAt,
+          updatedAt,
+          primaryContactName: spouse || null,
+          secondaryLabel: spouse || null,
+          commitmentAmountCents: null,
+          commitmentCurrency: null,
+          commitmentFrequency: null,
+          sourceSystem: "Asym CRM",
+          authorityScope: "crm_relationship",
+          location,
+          memberCount: null,
+          dedupeKey: `person:${normalizeKey(displayName)}`,
+        }),
+      );
     }
 
-    if (compared !== 0) {
-      return compared * direction;
+    if (spouse) {
+      const householdName = `${displayName} Household`;
+      rows.push(
+        relationshipRow({
+          tenantId: input.tenantId,
+          recordKind: "household",
+          recordId,
+          domain: "households",
+          displayName: householdName,
+          relationshipKind: "household",
+          status,
+          lastActivityAt: updatedAt,
+          createdAt,
+          updatedAt,
+          primaryContactName: spouse,
+          secondaryLabel: spouse,
+          commitmentAmountCents: null,
+          commitmentCurrency: null,
+          commitmentFrequency: null,
+          sourceSystem: "Asym CRM",
+          authorityScope: "crm_relationship",
+          location,
+          memberCount: 2,
+          dedupeKey: `household:${buildHouseholdMembershipKey({
+            displayName: householdName,
+            name: householdName,
+          })}`,
+        }),
+      );
     }
+  }
 
-    return left.id.localeCompare(right.id);
-  });
+  for (const missionary of input.missionaries) {
+    const recordId = readText(missionary, ["id"]);
+    if (!recordId) {
+      continue;
+    }
+    const profile = profileById.get(
+      readText(missionary, ["profile_id", "profileId"]),
+    );
+    const displayName = profile
+      ? profileDisplayName(profile) || "Missionary"
+      : "Missionary";
+    const createdAt = asIso(
+      missionary.created_at ?? missionary.createdAt,
+      input.now,
+    );
+    const updatedAt = asIso(
+      missionary.updated_at ?? missionary.updatedAt ?? createdAt,
+      input.now,
+    );
+    rows.push(
+      relationshipRow({
+        tenantId: input.tenantId,
+        recordKind: "missionary",
+        recordId,
+        domain: "people",
+        displayName,
+        relationshipKind: "missionary",
+        status: readText(missionary, ["status"]) || null,
+        lastActivityAt: updatedAt,
+        createdAt,
+        updatedAt,
+        primaryContactName: null,
+        secondaryLabel: "Missionary",
+        commitmentAmountCents: null,
+        commitmentCurrency: null,
+        commitmentFrequency: null,
+        sourceSystem: "Asym CRM",
+        authorityScope: "crm_relationship",
+        location: readText(missionary, ["location"]) || null,
+        memberCount: null,
+        dedupeKey: `person:${normalizeKey(displayName)}`,
+      }),
+    );
+  }
+
+  for (const pledge of input.pledges) {
+    const recordId = readText(pledge, ["id"]);
+    if (!recordId) {
+      continue;
+    }
+    const amount = Number(pledge.amount ?? 0);
+    const frequency = readText(pledge, ["frequency"]) || null;
+    const currency = readText(pledge, ["currency"]) || "usd";
+    const donor = donorById.get(readText(pledge, ["donor_id", "donorId"]));
+    const primaryContactName = donor ? donorDisplayName(donor) : null;
+    const createdAt = asIso(pledge.created_at ?? pledge.createdAt, input.now);
+    const updatedAt = asIso(
+      pledge.start_date ?? pledge.startDate ?? createdAt,
+      input.now,
+    );
+    rows.push(
+      relationshipRow({
+        tenantId: input.tenantId,
+        recordKind: "commitment",
+        recordId,
+        domain: "pledges",
+        displayName: primaryContactName
+          ? `${primaryContactName} pledge`
+          : "Pledge",
+        relationshipKind: frequency || "pledge",
+        status: null,
+        lastActivityAt: updatedAt,
+        createdAt,
+        updatedAt,
+        primaryContactName,
+        secondaryLabel: frequency,
+        commitmentAmountCents: Number.isFinite(amount) ? amount : 0,
+        commitmentCurrency: currency,
+        commitmentFrequency: frequency,
+        sourceSystem: "Asym finance summary",
+        authorityScope: "finance_summary",
+        location: null,
+        memberCount: null,
+        dedupeKey: `commitment:${recordId}`,
+      }),
+    );
+  }
+
+  for (const activity of input.activities) {
+    const recordId = readText(activity, ["id"]);
+    if (!recordId) {
+      continue;
+    }
+    const activityType = readText(activity, ["type"]);
+    if (isCareSensitiveRelationship(activity, activityType)) {
+      excludedCareActivityCount += 1;
+      continue;
+    }
+    const createdAt = asIso(
+      activity.created_at ?? activity.createdAt,
+      input.now,
+    );
+    const updatedAt = asIso(
+      activity.occurred_at ?? activity.occurredAt ?? createdAt,
+      input.now,
+    );
+    const title = readText(activity, ["title"]) || activityType || "Activity";
+    rows.push(
+      relationshipRow({
+        tenantId: input.tenantId,
+        recordKind: "activity",
+        recordId,
+        domain: "activity",
+        displayName: title,
+        relationshipKind: activityType || "activity",
+        status: null,
+        lastActivityAt: updatedAt,
+        createdAt,
+        updatedAt,
+        primaryContactName: null,
+        secondaryLabel: readText(activity, ["description"]) || null,
+        commitmentAmountCents: null,
+        commitmentCurrency: null,
+        commitmentFrequency: null,
+        sourceSystem: "Asym CRM",
+        authorityScope: "crm_relationship",
+        location: null,
+        memberCount: null,
+        dedupeKey: `activity:${recordId}`,
+      }),
+    );
+  }
+
+  return { excludedCareActivityCount, rows };
+}
+
+export function dedupeCrmRelationshipRows(rows: CrmRelationshipRow[]): {
+  rows: CrmRelationshipRow[];
+  duplicateCompanyCandidates: number;
+  duplicatePersonCandidates: number;
+} {
+  return {
+    duplicateCompanyCandidates: countDuplicateCandidates(rows, [
+      "organization",
+      "church",
+    ]),
+    duplicatePersonCandidates: countDuplicateCandidates(rows, [
+      "person",
+      "missionary",
+    ]),
+    rows,
+  };
 }
 
 export function buildCrmRelationshipReport(
-  rows: readonly CrmRelationshipRow[],
-  stats?: Partial<NormalizeStats>,
+  rows: CrmRelationshipRow[],
+  stats: {
+    excludedCareActivityCount: number;
+  },
 ): CrmRelationshipReport {
-  const domainCounts = { ...EMPTY_DOMAIN_COUNTS };
-  let pledgeCommitmentTotalCents = 0;
-  let pledgeCommitmentCount = 0;
-  let householdCount = 0;
-  let recentActivityCount = 0;
-  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-
-  for (const row of rows) {
-    domainCounts[row.domain] += 1;
-
-    if (row.domain === "pledges") {
-      pledgeCommitmentCount += 1;
-      pledgeCommitmentTotalCents += row.commitmentAmountCents ?? 0;
-    } else if (row.domain === "households") {
-      householdCount += 1;
-    } else if (row.domain === "activity" && row.lastActivityAt) {
-      const lastActivityAt = new Date(row.lastActivityAt).getTime();
-      if (!Number.isNaN(lastActivityAt) && lastActivityAt >= thirtyDaysAgo) {
-        recentActivityCount += 1;
-      }
-    }
-  }
+  const domainCounts = CRM_RELATIONSHIP_DOMAINS.reduce(
+    (accumulator, domain) => {
+      accumulator[domain] = rows.filter((row) => row.domain === domain).length;
+      return accumulator;
+    },
+    {} as Record<CrmRelationshipDomain, number>,
+  );
+  const pledges = rows.filter((row) => row.domain === "pledges");
 
   return {
     domainCounts,
-    duplicateCompanyCandidates: stats?.duplicateCompanyCandidates ?? 0,
-    excludedCareActivityCount: stats?.excludedCareActivityCount ?? 0,
-    householdCount,
-    pledgeCommitmentCount,
-    pledgeCommitmentTotalCents,
-    recentActivityCount,
+    duplicateCompanyCandidates: countDuplicateCandidates(rows, [
+      "organization",
+      "church",
+    ]),
+    duplicatePersonCandidates: countDuplicateCandidates(rows, [
+      "person",
+      "missionary",
+    ]),
+    excludedCareActivityCount: stats.excludedCareActivityCount,
+    householdCount: domainCounts.households,
+    pledgeCommitmentCount: pledges.length,
+    pledgeCommitmentTotalCents: pledges.reduce(
+      (sum, row) => sum + (row.commitmentAmountCents ?? 0),
+      0,
+    ),
+    recentActivityCount: domainCounts.activity,
     sourceSystems: {
-      auth: "Supabase Auth and Asym memberships own identity and authorization.",
-      care: "Asym owns care plans and private care notes.",
-      crm: "Twenty CRM owns relationship context.",
-      finance:
-        "Asym owns payment execution, receipts, statements, refunds, and reconciliation.",
+      auth: "Mission Control session and tenant membership.",
+      care: "Member-care activity is local and excluded unless care-sensitive access is granted.",
+      crm: "Asym Postgres owns relationship context.",
+      finance: "Asym finance summary is a local read-only overlay.",
     },
     totalRows: rows.length,
   };
+}
+
+function countDuplicateCandidates(
+  rows: CrmRelationshipRow[],
+  kinds: CrmRelationshipRecordKind[],
+): number {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    if (!kinds.includes(row.recordKind)) {
+      continue;
+    }
+    const key =
+      row.dedupeKey ?? `${row.recordKind}:${normalizeKey(row.displayName)}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  let duplicates = 0;
+  for (const count of counts.values()) {
+    if (count > 1) {
+      duplicates += count - 1;
+    }
+  }
+  return duplicates;
+}
+
+function readMembershipIds(record: JsonRecord): string[] {
+  const raw =
+    record.memberIds ?? record.members ?? record.householdMembers ?? null;
+  const values = Array.isArray(raw)
+    ? raw.map((value) => String(value))
+    : typeof raw === "string"
+      ? raw.split(/[,\s]+/u)
+      : [];
+
+  return values
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .sort((left, right) => left.localeCompare(right));
+}
+
+function readText(record: JsonRecord, keys: string[]): string {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return "";
 }

@@ -24,6 +24,6 @@ Canonical copy in this repo: `docs/ai/skills/emil-design-engineering/` (mirrored
 ## Repo-specific notes to preserve after refresh
 
 - Keep this `references/upstream.md` file in place.
-- Keep `AGENTS.md` routing aligned so animation work, transitions, micro-interactions, and motion polish load `docs/ai/skills/emil-design-engineering/SKILL.md` first.
+- Keep `docs/ai/rules/agent-skill-routing.md` aligned so animation work, transitions, micro-interactions, and motion polish load `docs/ai/skills/emil-design-engineering/SKILL.md` first.
 - Keep `cursor.md` aligned with the same routing note because it is a real repo-managed Cursor helper layer.
 - Keep `motion` as a secondary companion skill for `motion/react` implementation details rather than replacing this skill as the default animation entrypoint.

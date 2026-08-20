@@ -13,10 +13,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 **Scope:** Admin / Mission Control UI in `apps/admin`. Do not copy root `AGENTS.md`.
 
 - Default port **3030**. Start: `bun run dev:admin`. Cloud Mission Control: `bun run setup:mission-control:cloud` then `bun run dev:mission-control` (see `docs/guides/development/cursor-cloud.md`).
-- Instant Navigation is on (`cacheComponents` + `partialPrefetching`). Follow the compact Instant Navigation section in root `AGENTS.md`. Stream request-time data; do not set `instant = false` without a comment.
+- Instant Navigation is on (`cacheComponents` + `partialPrefetching`). Follow `docs/ai/rules/frontend.md` § Instant Navigation. Stream request-time data; do not set `instant = false` without a comment.
 - Read nearest `node_modules/next/dist/docs/` before Next.js API work. Use Next.js MCP against a running dev server for live errors and routes.
 - **UI/UX:** consume `@asym/ui`. Follow `packages/ui/AGENTS.md`. Do not define a local visual system, app-local shadcn primitives, or another style/preset/base.
-- Data: thin `app/api` re-exports only. Business DB logic lives in `packages/api`. Browser table data uses `@asym/database/hooks` when a collection exists (`docs/guides/architecture/data-access-boundary.md`).
+- Data: thin `app/api` re-exports only. Business DB logic lives in `packages/api`. Browser table data uses `@asym/database/hooks` when a collection exists (`docs/guides/architecture/data-access-boundary.md`). Asym Postgres owns CRM truth; do not restore Twenty-backed CRM reads or labels.
 
 ## Triggers
 
@@ -34,3 +34,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - [ ] Port 3030 and admin-only scope respected
 - [ ] UI still uses exact `base-maia` via `packages/ui`
 - [ ] Data access stays on `packages/api` / `@asym/database/hooks`
+- [ ] CRM screens stay Asym-owned; Twenty is not reintroduced
