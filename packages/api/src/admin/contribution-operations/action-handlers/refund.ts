@@ -1,8 +1,8 @@
+import { ApiHttpError } from "../../../shared/http-errors";
 import {
   appendAuditEvent,
   assertCanExecuteDirectly,
   auditInput,
-  commandPayload,
   correctionInput,
   createCorrectionRecord,
   createPendingCorrectionRequest,
@@ -10,7 +10,7 @@ import {
   normalizedToken,
   providerIdempotencyKey,
   requireDependency,
-  requirePositiveSafeIntegerPayload,
+  requirePositiveSafeInteger,
   requiresCorrectionApproval,
   sanitizeProviderOutcome,
   sendCorrectionNotification,
@@ -25,8 +25,10 @@ import {
 export async function executeRefund<TContribution>(
   input: ExecuteContributionActionInput<TContribution>,
 ): Promise<ContributionActionResult<TContribution>> {
-  const payload = commandPayload(input);
-  const amount = requirePositiveSafeIntegerPayload(payload, "amount");
+  if (input.command.type !== "refund") {
+    throw new ApiHttpError(400, "Unsupported contribution action: refund");
+  }
+  const amount = requirePositiveSafeInteger(input.command.amount, "amount");
 
   if (requiresCorrectionApproval(input)) {
     return createPendingCorrectionRequest(input);
@@ -52,6 +54,16 @@ export async function executeRefund<TContribution>(
       idempotencyKey: providerIdempotencyKey(input),
     }),
   );
+  const pendingReferenceId =
+    providerOutcome.status === "pending"
+      ? normalizedToken(providerOutcome.referenceId)
+      : null;
+  if (providerOutcome.status === "pending" && !pendingReferenceId) {
+    throw new ApiHttpError(
+      502,
+      "Pending refund outcome returned no reference.",
+    );
+  }
   const correctionId = await createCorrectionRecord(
     input,
     correctionInput(input, {
@@ -61,21 +73,14 @@ export async function executeRefund<TContribution>(
       afterSummary: { refundAmount: amount },
     }),
   );
-  if (providerOutcome.status === "pending") {
-    const providerReferenceId = normalizedToken(providerOutcome.referenceId);
-    if (!providerReferenceId) {
-      throw new Error(
-        "Pending refund outcome is missing its provider reference.",
-      );
-    }
-
+  if (pendingReferenceId) {
     const linkAndReconcilePendingRefundAttempt = requireDependency(
       input.dependencies,
       "linkAndReconcilePendingRefundAttempt",
     );
     await linkAndReconcilePendingRefundAttempt({
       tenantId: input.tenantId,
-      providerReferenceId,
+      providerReferenceId: pendingReferenceId,
       correctionId,
     });
   }

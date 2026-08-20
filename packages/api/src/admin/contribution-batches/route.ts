@@ -341,6 +341,8 @@ export const POST_PROCESS_BATCH = withOperation(
         throw new ApiHttpError(400, "Missing batch id.");
       }
 
+      const contributionActionDependencies =
+        createContributionActionDependencies(supabaseAdmin);
       const batch = await processPersistedContributionBatch({
         supabaseAdmin,
         tenantId: auth.tenantId,
@@ -364,7 +366,7 @@ export const POST_PROCESS_BATCH = withOperation(
             actorCapabilities: actionInput.actorCapabilities,
             confirmationToken: actionInput.confirmationToken,
             reason: actionInput.reason,
-            dependencies: createContributionActionDependencies(supabaseAdmin),
+            dependencies: contributionActionDependencies,
           });
         },
         createFollowUpTask: async ({ contributionId, reason, actionType }) => {

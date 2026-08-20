@@ -13,10 +13,7 @@ import {
   correctionRequiresApproval,
   resolveCorrectionApprovalPolicy,
 } from "./approval-policy";
-import {
-  parseContributionCommand,
-  serializeContributionCommand,
-} from "./command";
+import { serializeContributionCommand, withCommandPayload } from "./command";
 import {
   APPROVE_CORRECTION_CAPABILITY,
   REQUEST_CORRECTION_CAPABILITY,
@@ -65,11 +62,7 @@ export function requireDependency<
   return dependency as NonNullable<ContributionActionDependencies[TKey]>;
 }
 
-export function requireStringPayload(
-  payload: Record<string, unknown> | undefined,
-  key: string,
-): string {
-  const value = payload?.[key];
+export function requireNonEmptyString(value: unknown, key: string): string {
   if (typeof value !== "string") {
     throw new ApiHttpError(400, `${key} is required.`);
   }
@@ -80,6 +73,13 @@ export function requireStringPayload(
   }
 
   return trimmedValue;
+}
+
+export function requireStringPayload(
+  payload: Record<string, unknown> | undefined,
+  key: string,
+): string {
+  return requireNonEmptyString(payload?.[key], key);
 }
 
 function normalizeOptionalStringValue(
@@ -171,19 +171,25 @@ export function normalizeActionInput<TContribution>(
       input.stagedGiftId,
       "stagedGiftId",
     ),
-    command: parseContributionCommand(commandActionType(input), payload),
+    command: withCommandPayload(input.command, payload),
   };
+}
+
+export function requirePositiveSafeInteger(
+  value: unknown,
+  key: string,
+): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) {
+    throw new ApiHttpError(400, `${key} must be a positive safe integer.`);
+  }
+  return value;
 }
 
 export function requirePositiveSafeIntegerPayload(
   payload: Record<string, unknown> | undefined,
   key: string,
 ): number {
-  const value = payload?.[key];
-  if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) {
-    throw new ApiHttpError(400, `${key} must be a positive safe integer.`);
-  }
-  return value;
+  return requirePositiveSafeInteger(payload?.[key], key);
 }
 
 export function assertReasonAndConfirmation(
@@ -637,10 +643,7 @@ export async function applyApprovedCorrectionRequest<TContribution>(
 
   return {
     ...input,
-    command: parseContributionCommand(
-      commandActionType(input),
-      approvedRequest.payload,
-    ),
+    command: withCommandPayload(input.command, approvedRequest.payload),
     reason: approvedRequest.reason ?? null,
   };
 }
@@ -718,23 +721,16 @@ function correctionRequestIdempotencyKey(
   }
 
   const requestContext = correctionRequestContext(input, extra);
-
-  if (normalizedToken(input.confirmationToken)) {
-    return [
-      "correction-request",
-      input.tenantId,
-      input.contributionId,
-      commandActionType(input),
-      `confirmation-${stableFingerprint(requestContext)}`,
-    ].join("/");
-  }
+  const fingerprintLabel = normalizedToken(input.confirmationToken)
+    ? "confirmation"
+    : "context";
 
   return [
     "correction-request",
     input.tenantId,
     input.contributionId,
     commandActionType(input),
-    `context-${stableFingerprint(requestContext)}`,
+    `${fingerprintLabel}-${stableFingerprint(requestContext)}`,
   ].join("/");
 }
 
@@ -747,7 +743,7 @@ export async function createPendingCorrectionRequest<TContribution>(
   const payload = await resolvePendingCorrectionPayload(input);
   const requestInput: ExecuteContributionActionInput<TContribution> = {
     ...input,
-    command: parseContributionCommand(commandActionType(input), payload),
+    command: withCommandPayload(input.command, payload),
   };
   const createCorrectionRequest = requireDependency(
     input.dependencies,

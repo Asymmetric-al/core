@@ -43,20 +43,20 @@ export interface DonorRelinkCommand extends ContributionCommandBase {
 
 export interface AmountCorrectionCommand extends ContributionCommandBase {
   type: "amount_correction";
-  amount?: unknown;
-  receiptDelivery?: unknown;
+  amount?: number;
+  receiptDelivery?: Record<string, unknown>;
 }
 
 export interface FundOrDesignationCorrectionCommand extends ContributionCommandBase {
   type: "designation_correction" | "fund_correction";
-  fundId?: unknown;
+  fundId?: string;
 }
 
 export interface AllocationCorrectionCommand extends ContributionCommandBase {
   type: "allocation_correction";
-  designationLines?: unknown;
-  fundId?: unknown;
-  missionaryId?: unknown;
+  designationLines?: unknown[];
+  fundId?: string;
+  missionaryId?: string;
 }
 
 export interface ReceiptOrStatementCorrectionCommand extends ContributionCommandBase {
@@ -65,7 +65,7 @@ export interface ReceiptOrStatementCorrectionCommand extends ContributionCommand
 
 export interface PaymentStateCorrectionCommand extends ContributionCommandBase {
   type: "payment_state_correction";
-  status?: unknown;
+  status?: string;
 }
 
 export interface StripeReplayCommand extends ContributionCommandBase {
@@ -103,6 +103,19 @@ function optionalNumberField(value: unknown): number | undefined {
   return typeof value === "number" ? value : undefined;
 }
 
+function optionalRecordField(
+  value: unknown,
+): Record<string, unknown> | undefined {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+  return value as Record<string, unknown>;
+}
+
+function optionalArrayField(value: unknown): unknown[] | undefined {
+  return Array.isArray(value) ? value : undefined;
+}
+
 function crmRetryScope(value: unknown): "parent" | "designation" | undefined {
   if (value === "parent" || value === "designation") {
     return value;
@@ -110,14 +123,31 @@ function crmRetryScope(value: unknown): "parent" | "designation" | undefined {
   return undefined;
 }
 
+function createNullPrototypeBag(): ContributionCommandExtras {
+  return Object.create(null) as ContributionCommandExtras;
+}
+
+function assignOwnProperty(
+  target: ContributionCommandExtras,
+  key: string,
+  value: unknown,
+): void {
+  Object.defineProperty(target, key, {
+    configurable: true,
+    enumerable: true,
+    writable: true,
+    value,
+  });
+}
+
 function extrasFromPayload(
   payload: Record<string, unknown>,
   representedKeys: ReadonlySet<string>,
 ): ContributionCommandExtras {
-  const extras: ContributionCommandExtras = {};
+  const extras = createNullPrototypeBag();
   for (const [key, value] of Object.entries(payload)) {
     if (!representedKeys.has(key)) {
-      extras[key] = value;
+      assignOwnProperty(extras, key, value);
     }
   }
   return extras;
@@ -212,9 +242,8 @@ export function parseContributionCommand(
       };
     }
     case "amount_correction": {
-      const amount = "amount" in bag ? bag.amount : undefined;
-      const receiptDelivery =
-        "receiptDelivery" in bag ? bag.receiptDelivery : undefined;
+      const amount = optionalNumberField(bag.amount);
+      const receiptDelivery = optionalRecordField(bag.receiptDelivery);
       return {
         type: actionType,
         amount,
@@ -230,7 +259,7 @@ export function parseContributionCommand(
     }
     case "designation_correction":
     case "fund_correction": {
-      const fundId = "fundId" in bag ? bag.fundId : undefined;
+      const fundId = optionalStringField(bag.fundId);
       return {
         type: actionType,
         fundId,
@@ -238,10 +267,9 @@ export function parseContributionCommand(
       };
     }
     case "allocation_correction": {
-      const designationLines =
-        "designationLines" in bag ? bag.designationLines : undefined;
-      const fundId = "fundId" in bag ? bag.fundId : undefined;
-      const missionaryId = "missionaryId" in bag ? bag.missionaryId : undefined;
+      const designationLines = optionalArrayField(bag.designationLines);
+      const fundId = optionalStringField(bag.fundId);
+      const missionaryId = optionalStringField(bag.missionaryId);
       return {
         type: actionType,
         designationLines,
@@ -264,7 +292,7 @@ export function parseContributionCommand(
         extras: extrasFromPayload(bag, new Set()),
       };
     case "payment_state_correction": {
-      const status = "status" in bag ? bag.status : undefined;
+      const status = optionalStringField(bag.status);
       return {
         type: actionType,
         status,
@@ -296,10 +324,13 @@ function overlayDefined(
   extras: ContributionCommandExtras,
   fields: Record<string, unknown>,
 ): Record<string, unknown> {
-  const payload: Record<string, unknown> = { ...extras };
+  const payload = createNullPrototypeBag();
+  for (const [key, value] of Object.entries(extras)) {
+    assignOwnProperty(payload, key, value);
+  }
   for (const [key, value] of Object.entries(fields)) {
     if (value !== undefined) {
-      payload[key] = value;
+      assignOwnProperty(payload, key, value);
     }
   }
   return payload;

@@ -1,12 +1,12 @@
+import { ApiHttpError } from "../../../shared/http-errors";
 import {
   appendAuditEvent,
   assertExpectedRevisionMatches,
   assertStagedGiftBelongsToContribution,
   auditInput,
-  commandPayload,
   loadCanonicalContribution,
   requireDependency,
-  requireStringPayload,
+  requireNonEmptyString,
 } from "../action-runtime";
 
 import type {
@@ -17,9 +17,15 @@ import type {
 export async function executeResendReceipt<TContribution>(
   input: ExecuteContributionActionInput<TContribution>,
 ): Promise<ContributionActionResult<TContribution>> {
-  const payload = commandPayload(input);
+  if (input.command.type !== "resend_receipt") {
+    throw new ApiHttpError(
+      400,
+      "Unsupported contribution action: resend_receipt",
+    );
+  }
   const stagedGiftId =
-    input.stagedGiftId ?? requireStringPayload(payload, "stagedGiftId");
+    input.stagedGiftId ??
+    requireNonEmptyString(input.command.stagedGiftId, "stagedGiftId");
   const canonicalContribution = await assertStagedGiftBelongsToContribution(
     input,
     stagedGiftId,

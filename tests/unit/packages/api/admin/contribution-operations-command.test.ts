@@ -99,16 +99,36 @@ describe("parseContributionCommand", () => {
     expect(unknownScope.scope).toBeUndefined();
   });
 
-  it("preserves untyped correction fields including non-string fund ids", () => {
+  it("parks a non-string fund id in extras instead of typing it as a fund id", () => {
     const payload = { fundId: 12, extraLine: true };
     const command = parseContributionCommand("fund_correction", payload);
 
     expect(command).toEqual({
       type: "fund_correction",
-      fundId: 12,
-      extras: { extraLine: true },
+      extras: { fundId: 12, extraLine: true },
     });
+    if (command.type !== "fund_correction") {
+      throw new Error("expected fund_correction command");
+    }
+    expect(command.fundId).toBeUndefined();
     expect(serializeContributionCommand(command)).toEqual(payload);
+  });
+
+  it("round-trips a JSON __proto__ extras key as an own property", () => {
+    const payload = JSON.parse(
+      '{"__proto__":{"marker":"keep"},"note":"ok"}',
+    ) as Record<string, unknown>;
+    const command = parseContributionCommand("metadata_update", payload);
+
+    expect(Object.getPrototypeOf(command.extras)).toBeNull();
+    expect(Object.hasOwn(command.extras, "__proto__")).toBe(true);
+    expect(command.extras.__proto__).toEqual({ marker: "keep" });
+
+    const serialized = serializeContributionCommand(command);
+    expect(Object.hasOwn(serialized, "__proto__")).toBe(true);
+    expect(JSON.parse(JSON.stringify(serialized))).toEqual(
+      JSON.parse(JSON.stringify(payload)),
+    );
   });
 });
 

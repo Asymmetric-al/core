@@ -1,15 +1,15 @@
+import { ApiHttpError } from "../../../shared/http-errors";
 import {
   appendAuditEvent,
   assertCanExecuteDirectly,
   auditInput,
-  commandPayload,
   correctionInput,
   createCorrectionRecord,
   createPendingCorrectionRequest,
   loadCanonicalContribution,
   providerIdempotencyKey,
   requireDependency,
-  requireStringPayload,
+  requireNonEmptyString,
   requiresCorrectionApproval,
   sendCorrectionNotification,
 } from "../action-runtime";
@@ -23,8 +23,13 @@ import type {
 export async function executeDonorRelink<TContribution>(
   input: ExecuteContributionActionInput<TContribution>,
 ): Promise<ContributionActionResult<TContribution>> {
-  const payload = commandPayload(input);
-  const donorId = requireStringPayload(payload, "donorId");
+  if (input.command.type !== "donor_relink") {
+    throw new ApiHttpError(
+      400,
+      "Unsupported contribution action: donor_relink",
+    );
+  }
+  const donorId = requireNonEmptyString(input.command.donorId, "donorId");
 
   if (requiresCorrectionApproval(input)) {
     return createPendingCorrectionRequest(input);

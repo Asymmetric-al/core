@@ -4,10 +4,9 @@ import {
   assertExpectedRevisionMatches,
   assertStagedGiftBelongsToContribution,
   auditInput,
-  commandPayload,
   loadCanonicalContribution,
   requireDependency,
-  requireStringPayload,
+  requireNonEmptyString,
 } from "../action-runtime";
 import {
   CRM_POSTING_UNAVAILABLE_NEXT_STEP,
@@ -22,18 +21,37 @@ import type {
 export async function executeCrmRetry<TContribution>(
   input: ExecuteContributionActionInput<TContribution>,
 ): Promise<ContributionActionResult<TContribution>> {
-  const payload = commandPayload(input);
+  if (
+    input.command.type !== "retry_staged_gift" &&
+    input.command.type !== "crm_repost"
+  ) {
+    throw new ApiHttpError(
+      400,
+      `Unsupported contribution action: ${input.command.type}`,
+    );
+  }
+
   const stagedGiftId =
-    input.stagedGiftId ?? requireStringPayload(payload, "stagedGiftId");
+    input.stagedGiftId ??
+    requireNonEmptyString(input.command.stagedGiftId, "stagedGiftId");
   const canonicalContribution = await assertStagedGiftBelongsToContribution(
     input,
     stagedGiftId,
   );
   assertExpectedRevisionMatches(input, canonicalContribution);
-  const retryScope = payload.scope === "designation" ? "designation" : "parent";
+
+  if ("scope" in input.command.extras && input.command.scope === undefined) {
+    throw new ApiHttpError(400, "scope must be parent or designation.");
+  }
+
+  const retryScope =
+    input.command.scope === "designation" ? "designation" : "parent";
 
   if (retryScope === "designation") {
-    const allocationId = requireStringPayload(payload, "allocationId");
+    const allocationId = requireNonEmptyString(
+      input.command.allocationId,
+      "allocationId",
+    );
     const retryDesignation = input.dependencies?.retryDesignationPost;
     if (!retryDesignation) {
       throw new ApiHttpError(
