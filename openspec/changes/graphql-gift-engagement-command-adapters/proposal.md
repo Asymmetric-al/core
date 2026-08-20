@@ -37,7 +37,7 @@ and GraphQL keep one write owner.
   engagement adapters
 - Depends on existing `begin_donation_saga` and atomic engagement RPCs; does
   not reopen the saga outbox shape
-- Related ADR: `docs/adr/0119-graphql-gift-engagement-command-adapters.md`
+- Related ADR: `docs/adr/0118-graphql-gift-engagement-command-adapters.md`
 
 ## Verification
 
