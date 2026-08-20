@@ -258,7 +258,12 @@ renders real-looking donor cards without any extra glue.
 
 ## Missing provider / backend pieces
 
-These are the explicit holes a later phase needs to fill:
+This list is historical Phase 2 planning, not a current-gap inventory.
+Live Donor Care Support Hub now has `support_*` tables, the admin adapter
+and `/api/admin/support/**` route tree, and inbound routing. Remaining
+product work is listed under Still Deferred in `release-notes.md`.
+
+These were the explicit holes a later phase needed to fill:
 
 1. **Real `support_*` Supabase tables** with RLS and indexes
    (`support_conversations`, `support_messages`, `support_message_attachments`,

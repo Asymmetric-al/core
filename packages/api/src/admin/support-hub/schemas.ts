@@ -175,8 +175,8 @@ export const saveBusinessHoursSchema = z.object({
         "sunday",
       ]),
       enabled: z.boolean(),
-      openTime: z.string().regex(/^\d{2}:\d{2}$/),
-      closeTime: z.string().regex(/^\d{2}:\d{2}$/),
+      openTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+      closeTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
     }),
   ),
   holidays: z.array(

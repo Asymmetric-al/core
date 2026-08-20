@@ -76,7 +76,7 @@ function toRepoRelative(filePath) {
   return path.relative(repoRoot, filePath).split(path.sep).join("/");
 }
 
-function collectTypeScriptFiles(directoryPath) {
+export function collectTypeScriptFiles(directoryPath) {
   const entries = readdirSync(directoryPath, { withFileTypes: true });
   const files = [];
 

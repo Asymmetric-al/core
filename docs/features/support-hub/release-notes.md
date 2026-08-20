@@ -99,5 +99,12 @@ Execute it only with a service-role connection.
 
 ## Verification
 
+Confirm collections stay route-backed and Give Hope seed stays out of the
+browser module:
+
+```bash
+bunx vitest run tests/unit/packages/database/support-hub-collections.test.ts tests/unit/packages/database/collection-registry.test.ts
+```
+
 Phase 8 evidence is recorded at
 `docs/ops/phase-evidence/2026-05-15_phase-08_mission-control-platform-ux-core-modules.md`.

@@ -18,6 +18,7 @@ import {
   fetchSupportSignatures,
   fetchSupportSlaPolicies,
   fetchSupportTeams,
+  supportMessagesCollection,
 } from "../../../../packages/database/collections/support-hub";
 
 const collectionsPath = fileURLToPath(
@@ -85,12 +86,28 @@ describe("Support Hub route-backed collections", () => {
 
   it("keeps the messages collection local-only instead of inventing a tenant-wide list", () => {
     const collectionsSource = readFileSync(collectionsPath, "utf8");
+    const messagesStart = collectionsSource.indexOf(
+      "export const supportMessagesCollection",
+    );
+    const labelsStart = collectionsSource.indexOf(
+      "export const supportLabelsCollection",
+    );
+    const messagesBlock = collectionsSource
+      .slice(messagesStart, labelsStart)
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\/\/.*$/gm, "");
 
-    expect(collectionsSource).toContain("localOnlyCollectionOptions");
-    expect(collectionsSource).toContain('id: "support_messages"');
+    expect(messagesStart).toBeGreaterThan(-1);
+    expect(labelsStart).toBeGreaterThan(messagesStart);
+    expect(messagesBlock).toContain("localOnlyCollectionOptions");
+    expect(messagesBlock).toContain('id: "support_messages"');
+    expect(messagesBlock).not.toContain("queryCollectionOptions");
+    expect(messagesBlock).not.toContain("startSync");
+    expect(messagesBlock).not.toContain("queryFn");
     expect(collectionsSource).toContain("startSync: false");
     expect(collectionsSource).not.toContain("fetchSupportMessages");
     expect(collectionsSource).not.toContain("/support/reports");
+    expect(supportMessagesCollection.id).toBe("support_messages");
   });
 
   it("lists inbox settings with list=true and unwraps settings as an array", async () => {
@@ -183,5 +200,108 @@ describe("Support Hub route-backed collections", () => {
     await expect(fetchSupportConversations()).rejects.toThrow(
       "Support Hub response was missing conversations",
     );
+  });
+
+  it("rejects a conversation row that is missing tenantId", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          conversations: [
+            {
+              id: "conv_missing_tenant",
+              inboxId: "inbox_1",
+              subject: "Receipt question",
+              status: "open",
+              priority: "normal",
+              channel: "email",
+              assignee: null,
+              team: null,
+              externalContactEmail: "donor@example.org",
+              externalContactName: "Donor",
+              contact: null,
+              labels: [],
+              unreadCount: 0,
+              messageCount: 1,
+              firstMessageAt: "2026-01-01T00:00:00.000Z",
+              lastMessageAt: "2026-01-01T00:00:00.000Z",
+              lastCustomerMessageAt: null,
+              lastMessageDirection: "inbound",
+              firstRespondedAt: null,
+              firstResponseDueAt: null,
+              nextResponseDueAt: null,
+              resolvedAt: null,
+              snoozedUntil: null,
+              escalatedAt: null,
+              boardOrder: 0,
+              slaPolicyId: null,
+              createdAt: "2026-01-01T00:00:00.000Z",
+              updatedAt: "2026-01-01T00:00:00.000Z",
+            },
+          ],
+        }),
+      ),
+    );
+
+    await expect(fetchSupportConversations()).rejects.toThrow();
+  });
+
+  it("rejects inbox settings with a negative auto-resolve window", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          settings: [
+            {
+              id: "settings_1",
+              tenantId: "tenant_1",
+              inboxId: "inbox_1",
+              defaultSignatureId: null,
+              defaultSlaPolicyId: null,
+              defaultBusinessHoursId: null,
+              roundRobinEnabled: false,
+              autoResolveAfterDays: -1,
+              showContactSidecar: true,
+              createdAt: "2026-01-01T00:00:00.000Z",
+              updatedAt: "2026-01-01T00:00:00.000Z",
+            },
+          ],
+        }),
+      ),
+    );
+
+    await expect(fetchSupportInboxSettings()).rejects.toThrow();
+  });
+
+  it("rejects business hours whose clock is not a 24-hour HH:mm value", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          businessHours: [
+            {
+              id: "hours_1",
+              tenantId: "tenant_1",
+              name: "Office",
+              timezone: "UTC",
+              weeklySchedule: [
+                {
+                  day: "monday",
+                  enabled: true,
+                  openTime: "99:99",
+                  closeTime: "17:00",
+                },
+              ],
+              holidays: [],
+              isDefault: true,
+              createdAt: "2026-01-01T00:00:00.000Z",
+              updatedAt: "2026-01-01T00:00:00.000Z",
+            },
+          ],
+        }),
+      ),
+    );
+
+    await expect(fetchSupportBusinessHours()).rejects.toThrow();
   });
 });
