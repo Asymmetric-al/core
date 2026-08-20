@@ -1,5 +1,6 @@
 "use client";
 
+import { supportClockTimeSchema } from "@asym/database/collections/support-hub.schema";
 import {
   SUPPORT_AUTOMATION_ACTION_KINDS,
   SUPPORT_AUTOMATION_CONDITION_KINDS,
@@ -13,7 +14,6 @@ import {
   supportInboxesCollection,
   supportLabelsCollection,
   supportMacrosCollection,
-  supportMessagesCollection,
   supportNotificationPreferencesCollection,
   supportSavedViewsCollection,
   supportSignaturesCollection,
@@ -34,9 +34,9 @@ import type { SupportReplyPayload } from "../models/editor-payload";
 /**
  * Single namespaced surface for everything the hooks layer consumes.
  * `supportStore.collections` is the TanStack DB read surface over the
- * adapter-backed `/api/admin/support/**` routes. The messages collection is
- * local-only identity; thread messages stay on `useSupportMessages`.
- * Privileged writes stay server-command owned in `use-support-mutations.ts`.
+ * adapter-backed `/api/admin/support/**` routes. Thread messages stay on
+ * `useSupportMessages`. Privileged writes stay server-command owned in
+ * `use-support-mutations.ts`.
  *
  * Adapter rule: do NOT call collection methods (insert/update/delete) from
  * outside the hooks module. Hooks own the optimistic flow + invalidation;
@@ -45,7 +45,6 @@ import type { SupportReplyPayload } from "../models/editor-payload";
 export const supportStore = {
   collections: {
     conversations: supportConversationsCollection,
-    messages: supportMessagesCollection,
     labels: supportLabelsCollection,
     macros: supportMacrosCollection,
     cannedResponses: supportCannedResponsesCollection,
@@ -202,8 +201,8 @@ export const supportStore = {
             "sunday",
           ]),
           enabled: z.boolean(),
-          openTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
-          closeTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+          openTime: supportClockTimeSchema,
+          closeTime: supportClockTimeSchema,
         }),
       ),
       holidays: z.array(
