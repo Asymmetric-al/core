@@ -1,5 +1,6 @@
 "use client";
 
+import { OPERATION_DEFINITIONS } from "@asym/api/admin/contribution-operations/catalog";
 import {
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY,
   ADMIN_CRM_RECORDS_QUERY_KEY,
@@ -13,8 +14,6 @@ import {
 } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-
-import { OPERATION_DEFINITIONS } from "@asym/api/admin/contribution-operations/catalog";
 
 import { ContributionDetailSheet } from "./contribution-detail-sheet";
 // Intentional module cycle with ./operation-shell: the shell reuses this

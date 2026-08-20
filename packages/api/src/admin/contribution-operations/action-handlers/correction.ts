@@ -24,11 +24,16 @@ import type {
 function receiptDeliveryProposalFromPayload(
   payload: Record<string, unknown>,
 ): Record<string, unknown> | null {
-  return payload.receiptDelivery &&
-    typeof payload.receiptDelivery === "object" &&
-    payload.receiptDelivery !== null
-    ? (payload.receiptDelivery as Record<string, unknown>)
-    : null;
+  const receiptDelivery = payload.receiptDelivery;
+  if (
+    receiptDelivery === null ||
+    typeof receiptDelivery !== "object" ||
+    Array.isArray(receiptDelivery)
+  ) {
+    return null;
+  }
+
+  return receiptDelivery as Record<string, unknown>;
 }
 
 export async function executeCorrection<TContribution>(

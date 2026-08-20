@@ -149,6 +149,29 @@ describe("serializeContributionCommand", () => {
     const command = parseContributionCommand("metadata_update");
     expect(serializeContributionCommand(command)).toEqual({});
   });
+
+  it("round-trips amount_correction receipt delivery and extras", () => {
+    const payload = {
+      amount: 2500,
+      receiptDelivery: { mode: "email" },
+      requestedReceiptDelivery: { mode: "none" },
+    };
+    const command = parseContributionCommand("amount_correction", payload);
+
+    expect(serializeContributionCommand(command)).toEqual(payload);
+  });
+
+  it("round-trips allocation_correction designation lines", () => {
+    const payload = {
+      designationLines: [{ fundId: "fund_1", amount: 1000 }],
+      fundId: "fund_1",
+      missionaryId: "missionary_1",
+      note: "split",
+    };
+    const command = parseContributionCommand("allocation_correction", payload);
+
+    expect(serializeContributionCommand(command)).toEqual(payload);
+  });
 });
 
 describe("withCommandPayload", () => {

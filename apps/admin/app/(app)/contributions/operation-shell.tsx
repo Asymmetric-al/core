@@ -3,12 +3,6 @@
 // Import values from pure submodules, not the package barrel: the barrel
 // re-exports server-only modules (Stripe refunds, Supabase access) that must
 // not be evaluated in this client component's bundle.
-import type {
-  OperationCategory,
-  OperationDefinition,
-  OperationFieldValues,
-  SupportedOperationActionType,
-} from "@asym/api/admin/contribution-operations/catalog";
 import {
   CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
   CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
@@ -68,6 +62,12 @@ import {
 // from the barrel does not evaluate its server-only modules in the client
 // bundle (matches contribution-detail-overlay.tsx).
 import type { CrmPostFailedScope } from "@asym/api/admin/contribution-operations";
+import type {
+  OperationCategory,
+  OperationDefinition,
+  OperationFieldValues,
+  SupportedOperationActionType,
+} from "@asym/api/admin/contribution-operations/catalog";
 import type {
   ContributionActionResult,
   ContributionActionType,
