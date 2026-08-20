@@ -227,11 +227,15 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
 
   const EmailStudioEditor = ReactModule.forwardRef(function EmailStudioEditor(
     {
+      initialDesign,
       onReady,
       onDesignUpdate,
+      templateId,
     }: {
+      initialDesign?: Record<string, unknown> | string | null;
       onReady?: () => void;
       onDesignUpdate?: (design: Record<string, unknown>) => void;
+      templateId?: string | null;
     },
     ref: React.Ref<typeof editorHandle>,
   ) {
@@ -243,6 +247,12 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
     return (
       <div data-testid="react-email-editor">
         React Email editor
+        <span data-testid="editor-template-id">{templateId ?? "draft"}</span>
+        <span data-testid="editor-design">
+          {initialDesign === undefined
+            ? "missing"
+            : JSON.stringify(initialDesign)}
+        </span>
         <button
           type="button"
           onClick={() => onDesignUpdate?.({ blocks: [{ id: "hero" }] })}
@@ -347,5 +357,108 @@ describe("EmailStudio page", () => {
     );
 
     expect(screen.getByText("Unsaved")).toBeTruthy();
+  });
+
+  it("remounts a loaded React Email template with its design JSON, not an empty editor", async () => {
+    const design = {
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "Hi" }] }],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          success: true,
+          templates: [
+            {
+              builder: "react_email",
+              builder_version: "1.5.3",
+              default_preheader: "Hello there",
+              default_subject: "Welcome back",
+              design_json: design,
+              html_content: "<p>Hi</p>",
+              id: "tmpl-react",
+              name: "React welcome",
+              text_content: "Hi",
+              version: 2,
+            },
+          ],
+        }),
+      })),
+    );
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /react welcome/i }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("editor-template-id").textContent).toBe(
+        "tmpl-react",
+      );
+    });
+    expect(screen.getByTestId("editor-design").textContent).toBe(
+      JSON.stringify(design),
+    );
+  });
+
+  it("keeps the exported design after the first save remounts the editor onto a template id", async () => {
+    const exportedDesign = {
+      type: "doc",
+      content: [{ type: "heading", attrs: { level: 1 } }],
+    };
+    editorHandle.exportEmail.mockResolvedValue({
+      builder: "react_email",
+      builderVersion: "1.5.3",
+      design: exportedDesign,
+      html: "<h1>Campaign</h1>",
+      text: "Campaign",
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo, init?: RequestInit) => {
+        const url = String(input);
+        if (url === "/api/email/templates" && init?.method === "POST") {
+          return {
+            ok: true,
+            json: async () => ({
+              success: true,
+              template: { id: "tmpl_saved", name: "Untitled Email" },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ success: true, templates: [] }),
+        };
+      }),
+    );
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save template/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("editor-template-id").textContent).toBe(
+        "tmpl_saved",
+      );
+    });
+    expect(screen.getByTestId("editor-design").textContent).toBe(
+      JSON.stringify(exportedDesign),
+    );
   });
 });

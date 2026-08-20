@@ -8,6 +8,7 @@ import {
 } from "@asym/database/query-keys";
 import {
   EMPTY_REACT_EMAIL_DESIGN,
+  isRecord,
   type EmailStudioEditorHandle,
   type EmailStudioExportOptions,
 } from "@asym/email/email-builder-types";
@@ -58,6 +59,10 @@ function coercePreviewText(value: string | null | undefined): string {
   return value ?? "";
 }
 
+function studioEditorDesign(value: unknown): Record<string, unknown> {
+  return isRecord(value) ? value : EMPTY_REACT_EMAIL_DESIGN;
+}
+
 function studioExportOptions(
   metadata: EmailMetadata,
   minifyHtml: boolean | undefined,
@@ -86,6 +91,9 @@ export default function EmailStudio() {
   const queryClient = useQueryClient();
   const editorRef = useRef<EmailStudioEditorHandle>(null);
   const [metadata, setMetadata] = useState<EmailMetadata>(DEFAULT_METADATA);
+  const [initialDesign, setInitialDesign] = useState<Record<string, unknown>>(
+    EMPTY_REACT_EMAIL_DESIGN,
+  );
   const [previewResult, setPreviewResult] = useState<PreviewResult | null>(
     null,
   );
@@ -192,6 +200,7 @@ export default function EmailStudio() {
       studioExportOptions(metadata, ui.studioConfig?.export.minifyHtml),
     );
     const saved = await persistEmailTemplate(metadata, exportResult);
+    setInitialDesign(studioEditorDesign(exportResult.design));
     setMetadata((current) => ({
       ...current,
       id: saved.id,
@@ -232,6 +241,7 @@ export default function EmailStudio() {
     setMetadata(DEFAULT_METADATA);
     setPreviewResult(null);
     setLegacyPreviewResult(null);
+    setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
     dispatch({ type: "set_unsaved_changes", unsaved: false });
     editorRef.current?.loadDesign(EMPTY_REACT_EMAIL_DESIGN);
     toast.success("New template created");
@@ -250,18 +260,18 @@ export default function EmailStudio() {
       if (template.builder !== "react_email") {
         setLegacyPreviewResult(preview);
         setPreviewResult(preview);
+        setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
         toast.info("Legacy template opened read-only", {
           description:
             "Legacy templates can't be edited in React Email. Showing a preview.",
         });
         return;
       }
+      const design = studioEditorDesign(template.design_json);
       setLegacyPreviewResult(null);
       setPreviewResult(null);
-      editorRef.current?.loadDesign(
-        (template.design_json as Record<string, unknown> | null) ??
-          EMPTY_REACT_EMAIL_DESIGN,
-      );
+      setInitialDesign(design);
+      editorRef.current?.loadDesign(design);
       dispatch({ type: "set_unsaved_changes", unsaved: false });
     },
     [],
@@ -397,6 +407,7 @@ export default function EmailStudio() {
         <EmailStudioEditor
           key={metadata.id ?? "draft"}
           ref={editorRef}
+          initialDesign={initialDesign}
           templateId={metadata.id}
           onReady={handleEditorReady}
           onDesignUpdate={() =>
