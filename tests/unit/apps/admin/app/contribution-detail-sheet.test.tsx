@@ -894,7 +894,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
     expect(view.getByText(/timed out while creating/i)).toBeTruthy();
   });
 
-  it("keeps the scalar Twenty field when no CRM post state is provided", () => {
+  it("keeps the scalar CRM post-status field when no CRM post state is provided", () => {
     const contribution = {
       ...boneyardContributionsFixture[0]!,
       crmPostStatus: "not_required" as const,
@@ -909,7 +909,8 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
     );
 
     expect(view.queryByText("Historical CRM posting")).toBeNull();
-    expect(view.getByText("Twenty")).toBeTruthy();
+    expect(view.queryByText("Twenty")).toBeNull();
+    expect(view.getByText("CRM post status")).toBeTruthy();
     expect(view.getByText("not required")).toBeTruthy();
   });
 

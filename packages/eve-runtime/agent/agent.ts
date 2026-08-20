@@ -28,6 +28,27 @@ const verificationModel = mockModel({
     if (specialistMatch) {
       return `Eve specialist verification passed: ${specialistMatch[1]}`;
     }
+    const twentyReintro =
+      lastUserMessage === "EVE_OPENSPEC_GUARDIAN_TWENTY_REINTRO";
+    if (twentyReintro && toolResults.length === 0) {
+      if (!tools.some((tool) => tool.name === "openspec-guarding")) {
+        return "Eve OpenSpec Guardian discovery failed.";
+      }
+      return {
+        toolCalls: [
+          {
+            name: "openspec-guarding",
+            input: {
+              message:
+                "Review a proposed Twenty CRM client restore against accepted OpenSpec and ADR-0001. Do not write, sync, or archive.",
+            },
+          },
+        ],
+      };
+    }
+    if (twentyReintro) {
+      return "ADR-0001: Twenty CRM is retired. Asym Postgres owns CRM truth. Escalate this conflict; runtime unchanged.";
+    }
     return `Eve runtime verification passed: ${lastUserMessage}`;
   },
 });

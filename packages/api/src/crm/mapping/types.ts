@@ -14,13 +14,6 @@ export interface CrmRelatedLinkReference {
   relationship: string;
 }
 
-export interface TwentyRecordDraft {
-  objectName: string;
-  source: CrmSourceReference;
-  relatedLinks: CrmRelatedLinkReference[];
-  fields: Record<string, unknown>;
-}
-
 export type DuplicateConfidence = "none" | "low" | "medium" | "high";
 export type DuplicateRecommendation =
   | "ignore"

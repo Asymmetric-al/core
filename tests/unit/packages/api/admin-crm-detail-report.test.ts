@@ -244,7 +244,6 @@ describe("Phase 5 CRM donor detail and reports", () => {
     expect(detail.reconciliation).toEqual({
       crmWriteMode: "disabled",
       platformPaymentTruth: true,
-      twentyIsPaymentTruth: false,
     });
   });
 
@@ -449,7 +448,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
     expect(serializeAdminCrmReportCsv(report)).toContain('"General Fund"');
   });
 
-  it("reports CRM sync failures from outbound jobs and donation links", async () => {
+  it("reports leftover CRM gift-link rows that still need reconciliation", async () => {
     const report = await buildAdminCrmReport({
       params: {
         filters: {
@@ -460,15 +459,6 @@ describe("Phase 5 CRM donor detail and reports", () => {
         slice: "sync-failures",
       },
       supabaseAdmin: createSupabaseFixture({
-        crm_outbound_jobs: [
-          {
-            id: "job-1",
-            last_error: "provider rejected payload",
-            status: "failed",
-            tenant_id: "tenant-1",
-            updated_at: "2026-05-10T00:00:00.000Z",
-          },
-        ],
         donation_crm_links: [
           {
             id: "link-1",
@@ -483,8 +473,8 @@ describe("Phase 5 CRM donor detail and reports", () => {
     });
 
     expect(report.rows.map((row) => row.metadata.source)).toEqual([
-      "crm_outbound_jobs",
       "donation_crm_links",
     ]);
+    expect(report.rows[0]?.label).toMatch(/leftover|reconciliation/i);
   });
 });

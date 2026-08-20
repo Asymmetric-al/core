@@ -1,9 +1,6 @@
-import { enqueueCrmOutboundJob } from "../crm/sync/outbound";
-import { createSupabaseCrmSyncStore } from "../crm/sync/store";
 import { ApiHttpError } from "../shared/http-errors";
 import { asString, isRecord } from "../shared/json-coerce";
 
-import type { CrmSyncRuntimeConfig } from "../crm/sync/types";
 import type { getAdminClient } from "@asym/database/supabase/admin";
 
 type SupabaseAdminClient = NonNullable<
@@ -89,14 +86,8 @@ export interface StagedGiftActionInput {
   note?: string | null;
 }
 
-export interface StagedGiftPostingInput extends StagedGiftActionInput {
-  crmConfig: CrmSyncRuntimeConfig;
-}
-
-export interface StagedGiftDesignationPostingInput extends StagedGiftPostingInput {
-  allocationId: string;
-  contributionId: string;
-}
+const RETIRED_CRM_POSTING_MESSAGE =
+  "Twenty CRM posting is retired. Staged gifts stay in Asym Postgres as finance records.";
 
 export interface ReconciliationFinding {
   id: string;
@@ -483,53 +474,23 @@ export async function markStagedGiftRefunded(input: {
   return toStagedGiftRow((data ?? {}) as JsonRecord);
 }
 
-export function buildTwentyGiftSummaryPayload(gift: StagedGiftRow): JsonRecord {
-  return {
-    asymTenantId: gift.tenantId,
-    asymDonationId: gift.donationId,
-    asymStagedGiftId: gift.id,
-    donorId: gift.donorId,
-    missionaryId: gift.missionaryId,
-    fundId: gift.fundId,
-    amountCents: gift.amount,
-    currencyCode: gift.currency,
-    stripePaymentIntentId: gift.stripePaymentIntentId,
-    stripeChargeId: gift.stripeChargeId,
-    receiptStatus: gift.receiptStatus,
-    paymentStatus: gift.status,
-  };
-}
-
-export async function queueStagedGiftPostingToTwenty(
-  input: StagedGiftPostingInput,
+export async function approveStagedGiftForFinance(
+  input: StagedGiftActionInput,
 ): Promise<StagedGiftRow> {
   const gift = await loadStagedGiftById(input);
   if (!canTransitionStagedGift(gift.status, "ready_to_post")) {
     throw new ApiHttpError(
       409,
-      `Cannot queue staged gift from ${gift.status} status.`,
+      `Cannot approve staged gift from ${gift.status} status.`,
     );
   }
-
-  const store = createSupabaseCrmSyncStore(input.supabaseAdmin);
-  const job = await enqueueCrmOutboundJob(store, input.crmConfig, {
-    tenantId: gift.tenantId,
-    domain: "gifts",
-    jobType: "upsert",
-    twentyObjectName: "giftSummaries",
-    sourceEntityType: "payment_record",
-    sourceEntityId: gift.id,
-    payload: buildTwentyGiftSummaryPayload(gift),
-  });
-  const crmPostStatus: StagedGiftCrmPostStatus =
-    job.status === "paused" ? "blocked" : "queued";
 
   const { data, error } = await input.supabaseAdmin
     .from("staged_gifts")
     .update({
       status: "ready_to_post",
-      crm_post_status: crmPostStatus,
-      crm_outbound_job_id: job.id,
+      crm_post_status: "not_required",
+      crm_outbound_job_id: null,
       reviewed_by_profile_id: input.actorProfileId,
       reviewed_at: new Date().toISOString(),
       last_error_code: null,
@@ -540,100 +501,25 @@ export async function queueStagedGiftPostingToTwenty(
     .select("*")
     .single();
 
-  requireNoError(error, "Failed to queue staged gift posting.");
-
-  const linked = await input.supabaseAdmin
-    .from("donation_crm_links")
-    .select("id")
-    .eq("tenant_id", gift.tenantId)
-    .eq("staged_gift_id", gift.id)
-    .eq("crm_provider", "twenty")
-    .eq("scope", "parent")
-    .maybeSingle();
-  requireNoError(linked.error, "Failed to read donation CRM link.");
-
-  if (isRecord(linked.data)) {
-    const { error: linkUpdateError } = await input.supabaseAdmin
-      .from("donation_crm_links")
-      .update({
-        donation_id: gift.donationId,
-        link_status: "queued",
-        metadata: { crmOutboundJobId: job.id },
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", linked.data.id);
-    requireNoError(linkUpdateError, "Failed to update donation CRM link.");
-  } else {
-    const { error: linkInsertError } = await input.supabaseAdmin
-      .from("donation_crm_links")
-      .insert({
-        tenant_id: gift.tenantId,
-        donation_id: gift.donationId,
-        staged_gift_id: gift.id,
-        scope: "parent",
-        crm_provider: "twenty",
-        twenty_object_name: "giftSummaries",
-        link_status: "queued",
-        metadata: { crmOutboundJobId: job.id },
-      });
-    requireNoError(linkInsertError, "Failed to create donation CRM link.");
-  }
+  requireNoError(error, "Failed to approve staged gift.");
 
   await appendGiftAuditEvent({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: gift.tenantId,
     stagedGiftId: gift.id,
     actorProfileId: input.actorProfileId,
-    action: "staged_gift_queued_for_twenty",
+    action: "staged_gift_approved_for_finance",
     note: input.note,
     details: {
-      crmOutboundJobId: job.id,
-      crmPostStatus,
+      crmPostStatus: "not_required",
     },
   });
 
   return toStagedGiftRow((data ?? {}) as JsonRecord);
 }
 
-export async function retryStagedGiftPostingToTwenty(
-  input: StagedGiftPostingInput,
-): Promise<StagedGiftRow> {
-  const gift = await loadStagedGiftById(input);
-  if (!["failed", "ready_to_post"].includes(gift.status)) {
-    throw new ApiHttpError(
-      409,
-      `Cannot retry staged gift from ${gift.status} status.`,
-    );
-  }
-
-  return queueStagedGiftPostingToTwenty(input);
-}
-
-export async function retryStagedGiftDesignationPostingToTwenty(
-  input: StagedGiftDesignationPostingInput,
-): Promise<never> {
-  const gift = await loadStagedGiftById(input);
-  if (gift.donationId !== input.contributionId) {
-    throw new ApiHttpError(404, "Staged gift not found for contribution.");
-  }
-
-  const allocation = await input.supabaseAdmin
-    .from("staged_gift_allocations")
-    .select("id")
-    .eq("tenant_id", input.tenantId)
-    .eq("staged_gift_id", input.stagedGiftId)
-    .eq("id", input.allocationId)
-    .maybeSingle();
-  requireNoError(allocation.error, "Failed to read staged gift allocation.");
-
-  if (!isRecord(allocation.data)) {
-    throw new ApiHttpError(404, "Designation allocation not found.");
-  }
-
-  throw new ApiHttpError(
-    501,
-    "The connected CRM adapter does not support posting designation child records yet. Retry the parent gift record instead, or resolve the line in the CRM directly.",
-  );
+export function rejectRetiredCrmPostingRetry(): never {
+  throw new ApiHttpError(410, RETIRED_CRM_POSTING_MESSAGE);
 }
 
 async function insertReconciliationRun(input: {
@@ -734,10 +620,10 @@ export async function runGivingReconciliation(input: {
       const crmPostStatus = asString(row.crm_post_status);
       return (
         status === "ready_to_post" &&
-        !["queued", "posted"].includes(crmPostStatus ?? "")
+        !["queued", "posted", "not_required"].includes(crmPostStatus ?? "")
       );
     })
-    .map((row) => toFinding(row, "ready_gift_not_queued_to_twenty"));
+    .map((row) => toFinding(row, "ready_gift_not_approved_for_finance"));
   const findings = {
     pendingReceipts: ((pendingReceipts.data ?? []) as JsonRecord[]).map((row) =>
       toFinding(row, "receipt_required_but_not_sent"),

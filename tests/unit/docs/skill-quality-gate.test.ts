@@ -107,7 +107,7 @@ describe("skill quality gate overlays", () => {
   });
 
   it("keeps curated skills routed, attributed, and identical across generated mirrors", () => {
-    const agents = readRepoFile("AGENTS.md");
+    const skillRouting = readRepoFile("docs/ai/rules/agent-skill-routing.md");
 
     for (const skillName of curatedSkillNames) {
       const canonicalPath = `docs/ai/skills/${skillName}`;
@@ -122,7 +122,7 @@ describe("skill quality gate overlays", () => {
       expect(canonicalProvenance, skillName).toContain("reviewed_commit:");
       expect(canonicalProvenance, skillName).toContain("license:");
       expect(canonicalProvenance, skillName).toContain("## Refresh workflow");
-      expect(agents, skillName).toContain(
+      expect(skillRouting, skillName).toContain(
         `docs/ai/skills/${skillName}/SKILL.md`,
       );
 

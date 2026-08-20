@@ -52,10 +52,10 @@ commit when the deployment exposes a non-`unknown` commit.
 
 ## Route Inventory
 
-> **Note (2026-07-06):** the Twenty CRM integration is retired
-> ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md));
-> the Twenty gateway and webhook routes below exist as dormant code and stay
-> listed until the scheduled cleanup ticket removes them.
+> **Note (2026-08-18):** Twenty CRM is retired
+> ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)).
+> Asym Postgres owns CRM truth. Twenty gateway, webhook, projection, sync, and
+> health routes are removed; do not restore them.
 
 | App        | Route family                                                   | Runtime policy                        | Reason                                        |
 | ---------- | -------------------------------------------------------------- | ------------------------------------- | --------------------------------------------- |
@@ -69,26 +69,20 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/contributions/replay`                              | Node.js (no `runtime` segment export) | Giving replay tooling, Stripe SDK             |
 | admin      | `/api/admin/contributions/staged-gifts`                        | Node.js (no `runtime` segment export) | Finance review queue, admin client            |
 | admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]`         | Node.js (no `runtime` segment export) | Finance review queue, admin client            |
-| admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]/approve` | Node.js (no `runtime` segment export) | Finance approval, CRM outbound queue          |
+| admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]/approve` | Node.js (no `runtime` segment export) | Finance approval; CRM posting retired         |
 | admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]/receipt` | Node.js (no `runtime` segment export) | Resend receipt sending, admin client          |
-| admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]/retry`   | Node.js (no `runtime` segment export) | Giving replay/CRM retry, admin client         |
+| admin      | `/api/admin/contributions/staged-gifts/[stagedGiftId]/retry`   | Node.js (no `runtime` segment export) | Retired CRM posting retry returns 410         |
 | admin      | `/api/admin/contributions/summary`                             | Node.js (no `runtime` segment export) | Admin client                                  |
-| admin      | `/api/admin/crm/gateway/development-health`                    | Node.js (no `runtime` segment export) | Development-only Twenty metadata health proof |
-| admin      | `/api/admin/crm/gateway/status`                                | Node.js (no `runtime` segment export) | Staff-only CRM gateway smoke route            |
 | admin      | `/api/admin/crm/notes`                                         | Node.js (no `runtime` segment export) | Staff-only native CRM notes                   |
-| admin      | `/api/admin/crm/projections`                                   | Node.js (no `runtime` segment export) | Staff-only CRM projection shadow mode         |
 | admin      | `/api/admin/crm/records`                                       | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/crm/records/[recordId]`                            | Node.js (no `runtime` segment export) | Staff-only donor CRM detail                   |
 | admin      | `/api/admin/crm/relationships`                                 | Node.js (no `runtime` segment export) | Staff-only native CRM relationships           |
 | admin      | `/api/admin/crm/reports`                                       | Node.js (no `runtime` segment export) | Staff-only CRM reporting                      |
 | admin      | `/api/admin/crm/reports/export`                                | Node.js (no `runtime` segment export) | Audited CRM CSV export                        |
-| admin      | `/api/admin/crm/sync/reconcile`                                | Node.js (no `runtime` segment export) | Staff-only CRM reconciliation                 |
-| admin      | `/api/admin/crm/sync/replay`                                   | Node.js (no `runtime` segment export) | Staff-only CRM replay                         |
 | admin      | `/api/admin/crm/table-preferences`                             | Node.js (no `runtime` segment export) | Staff-only CRM view preferences               |
 | admin      | `/api/admin/crm/table-preferences/tenant-default`              | Node.js (no `runtime` segment export) | Audited CRM tenant default preferences        |
 | admin      | `/api/admin/crm/table-preferences/views`                       | Node.js (no `runtime` segment export) | Personal CRM named views                      |
 | admin      | `/api/admin/crm/table-preferences/views/[viewId]`              | Node.js (no `runtime` segment export) | Personal CRM named view mutation              |
-| admin      | `/api/admin/crm/webhooks/twenty`                               | Node.js (no `runtime` segment export) | Twenty HMAC webhook, admin client             |
 | admin      | `/api/admin/eve/admin-memory`                                  | Node.js (no `runtime` segment export) | Owner-bound private Eve memory and history    |
 | admin      | `/api/admin/eve/approval-budget`                               | Node.js (no `runtime` segment export) | Audited trust-zone and hard-budget tracer     |
 | admin      | `/api/admin/eve/engineering-monitors`                          | Node.js (no `runtime` segment export) | Safe engineering monitor status and findings  |
@@ -181,7 +175,6 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/email/templates/test-send`                               | Node.js (no `runtime` segment export) | Email Studio draft test-send                  |
 | admin      | `/api/email/webhooks/resend`                                   | Node.js (no `runtime` segment export) | Resend webhook handling                       |
 | admin      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                   |
-| admin      | `/api/health/crm`                                              | Node.js (no `runtime` segment export) | Twenty CRM provider health reachability       |
 | admin      | `/api/health/db`                                               | Node.js (no `runtime` segment export) | Database health probe                         |
 | admin      | `/api/inngest`                                                 | Node.js (no `runtime` segment export) | Inngest workflow function serving             |
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                                  |

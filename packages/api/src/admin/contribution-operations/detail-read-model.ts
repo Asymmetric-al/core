@@ -232,7 +232,7 @@ export interface ContributionDetail {
   };
   stagedGift: ContributionDetailInput["stagedGift"];
   /**
-   * CRM/Twenty post state — workflow metadata, never payment truth
+   * Leftover CRM post state — workflow metadata, never payment truth
    * (ADR-CD-012). Parent gift status and child designation record status are
    * distinguished so retries can target the failed scope.
    */

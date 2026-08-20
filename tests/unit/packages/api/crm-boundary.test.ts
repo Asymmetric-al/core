@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -12,9 +12,46 @@ const bannedAppPatterns = [
   /TWENTY_WEBHOOK_SECRET/,
   /NEXT_PUBLIC_TWENTY_/,
 ];
+const retiredTwentyExports = [
+  "./admin/crm/gateway",
+  "./admin/crm/twenty-health",
+  "./admin/crm/projections",
+  "./admin/crm/webhooks/twenty",
+  "./admin/crm/sync/replay",
+  "./admin/crm/sync/reconcile",
+  "./health/crm",
+];
+const retiredTwentyPaths = [
+  "packages/api/src/crm/client/index.ts",
+  "packages/api/src/crm/gateway.ts",
+  "packages/api/src/crm/health.ts",
+  "packages/api/src/crm/webhooks/twenty.ts",
+  "packages/api/src/crm/schema/twenty-object-model.ts",
+  "packages/api/src/crm/projections/index.ts",
+  "packages/api/src/crm/sync/outbound.ts",
+  "packages/api/src/health/crm.ts",
+  "packages/api/src/admin/crm/gateway.ts",
+  "packages/api/src/admin/crm/twenty-health.ts",
+  "packages/api/src/admin/crm/projections/index.ts",
+  "packages/api/src/admin/crm/webhooks/twenty.ts",
+  "packages/api/src/admin/crm/sync/replay.ts",
+  "apps/admin/app/api/health/crm/route.ts",
+  "apps/admin/app/api/admin/crm/webhooks/twenty/route.ts",
+  "apps/admin/app/api/admin/crm/gateway/status/route.ts",
+  "apps/admin/app/api/admin/crm/gateway/development-health/route.ts",
+  "apps/admin/app/api/admin/crm/sync/replay/route.ts",
+  "apps/admin/app/api/admin/crm/sync/reconcile/route.ts",
+  "apps/admin/app/api/admin/crm/projections/route.ts",
+  "apps/admin/app/(app)/crm/projections/page.tsx",
+  "scripts/verify/twenty-crm-health.ts",
+];
 
 function readRepoFile(relativePath: string) {
   return readFileSync(path.join(repoRoot, relativePath), "utf8");
+}
+
+function repoExists(relativePath: string) {
+  return existsSync(path.join(repoRoot, relativePath));
 }
 
 function collectSourceFiles(directoryPath: string): string[] {
@@ -42,7 +79,7 @@ function collectSourceFiles(directoryPath: string): string[] {
 }
 
 describe("Twenty CRM package and app boundary", () => {
-  it("exports stable CRM contracts without exposing raw Twenty client subpaths", () => {
+  it("keeps Asym CRM notes and relationships exports without Twenty surfaces", () => {
     const packageJson = JSON.parse(
       readRepoFile("packages/api/package.json"),
     ) as {
@@ -50,30 +87,17 @@ describe("Twenty CRM package and app boundary", () => {
     };
 
     expect(packageJson.exports["./crm"]).toBe("./src/crm/index.ts");
-    expect(packageJson.exports["./admin/crm/gateway"]).toBe(
-      "./src/admin/crm/gateway.ts",
-    );
-    expect(packageJson.exports["./admin/crm/twenty-health"]).toBe(
-      "./src/admin/crm/twenty-health.ts",
-    );
     expect(packageJson.exports["./admin/crm/notes"]).toBe(
       "./src/admin/crm/notes/index.ts",
-    );
-    expect(packageJson.exports["./admin/crm/projections"]).toBe(
-      "./src/admin/crm/projections/index.ts",
     );
     expect(packageJson.exports["./admin/crm/relationships"]).toBe(
       "./src/admin/crm/relationships/index.ts",
     );
-    expect(packageJson.exports["./admin/crm/webhooks/twenty"]).toBe(
-      "./src/admin/crm/webhooks/twenty.ts",
-    );
-    expect(packageJson.exports["./admin/crm/sync/replay"]).toBe(
-      "./src/admin/crm/sync/replay.ts",
-    );
-    expect(packageJson.exports["./admin/crm/sync/reconcile"]).toBe(
-      "./src/admin/crm/sync/reconcile.ts",
-    );
+
+    for (const exportPath of retiredTwentyExports) {
+      expect(packageJson.exports[exportPath]).toBeUndefined();
+    }
+
     expect(
       Object.keys(packageJson.exports).filter((exportPath) =>
         exportPath.includes("crm/client"),
@@ -111,45 +135,30 @@ describe("Twenty CRM package and app boundary", () => {
     ).toBe('export { GET } from "@asym/api/admin/crm/relationships";');
   });
 
-  it("keeps the Mission Control projection shadow route as a thin API re-export", () => {
-    expect(
-      readRepoFile("apps/admin/app/api/admin/crm/projections/route.ts").trim(),
-    ).toBe('export { GET } from "@asym/api/admin/crm/projections";');
-  });
-
-  it("keeps CRM gateway, webhook, records, and sync routes as thin API re-exports", () => {
-    expect(
-      readRepoFile(
-        "apps/admin/app/api/admin/crm/gateway/status/route.ts",
-      ).trim(),
-    ).toBe('export { GET } from "@asym/api/admin/crm/gateway";');
-    expect(
-      readRepoFile(
-        "apps/admin/app/api/admin/crm/gateway/development-health/route.ts",
-      ).trim(),
-    ).toBe('export { GET } from "@asym/api/admin/crm/twenty-health";');
-    expect(
-      readRepoFile(
-        "apps/admin/app/api/admin/crm/webhooks/twenty/route.ts",
-      ).trim(),
-    ).toBe('export { POST } from "@asym/api/admin/crm/webhooks/twenty";');
+  it("keeps CRM records as a thin API re-export", () => {
     expect(
       readRepoFile("apps/admin/app/api/admin/crm/records/route.ts").trim(),
     ).toBe('export { GET } from "@asym/api/admin/crm";');
+  });
+
+  it("removes retired Twenty CRM runtime files and routes", () => {
     expect(
-      readRepoFile("apps/admin/app/api/admin/crm/sync/replay/route.ts").trim(),
-    ).toBe('export { POST } from "@asym/api/admin/crm/sync/replay";');
-    expect(
-      readRepoFile(
-        "apps/admin/app/api/admin/crm/sync/reconcile/route.ts",
-      ).trim(),
-    ).toBe('export { POST } from "@asym/api/admin/crm/sync/reconcile";');
+      retiredTwentyPaths.filter((relativePath) => repoExists(relativePath)),
+    ).toEqual([]);
+  });
+
+  it("does not re-export retired Twenty CRM surfaces from the CRM package barrel", () => {
+    const crmIndex = readRepoFile("packages/api/src/crm/index.ts");
+    expect(crmIndex).not.toContain("./gateway");
+    expect(crmIndex).not.toContain("./health");
+    expect(crmIndex).not.toContain("./webhooks");
+    expect(crmIndex).not.toContain("./projections");
+    expect(crmIndex).not.toContain("./sync");
+    expect(crmIndex).not.toContain("./client");
+    expect(crmIndex).not.toContain("twenty-object-model");
   });
 
   it("enforces the raw Twenty client import boundary in ESLint and the verifier", () => {
-    // The boundary pattern groups live in the shared restricted-imports
-    // module; the root config must compose the app set (which includes the
-    // raw Twenty client ban) rather than re-typing the patterns.
     expect(
       readRepoFile("tooling/eslint-config/restricted-imports.mjs"),
     ).toMatch(/@asym\/api\/crm\/client/);
@@ -159,6 +168,9 @@ describe("Twenty CRM package and app boundary", () => {
     );
     expect(readRepoFile("scripts/verify/data-boundary-check.mjs")).toMatch(
       /NEXT_PUBLIC_TWENTY_/,
+    );
+    expect(readRepoFile("scripts/verify/data-boundary-check.mjs")).toContain(
+      "collectRetiredTwentyRuntimeViolations",
     );
   });
 });
