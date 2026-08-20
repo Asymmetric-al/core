@@ -31,7 +31,7 @@
 
 - [x] 4.1 Record Gift Intake Begin Command, Ministry Update Reaction Command,
       and Ministry Update Comment Command in `CONTEXT.md`.
-- [x] 4.2 Add ADR-0118, this OpenSpec change, runbook, and data-access-boundary
+- [x] 4.2 Add ADR-0119, this OpenSpec change, runbook, and data-access-boundary
       updates.
 - [x] 4.3 Focused Vitest for command modules, GraphQL adapters, HTTP reaction
       handlers, and comments demo characterization.
