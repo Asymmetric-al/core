@@ -159,7 +159,7 @@ The result: a donor gives once and to many, seamlessly; a missionary's recurring
   substrate only. A fixed-total pledge and an automatic recurring commitment
   are distinct aggregates and are **never** auto-converted.
 - **Donor-portal depth** (designation-edit polish beyond the eligibility guard, statements, preference center, magic-link, wallet) — Phase 25 (D16).
-- **Public campaign pages, P2P/peer-to-peer fundraisers, and appeals** — Phases 22/36/27; Phase 13 reserves the `parent_campaign_id` self-FK and the by-id page reference, and moves all email/presentation fields _out_ of the campaign into their domains (D13).
+- **Public campaign pages, P2P/peer-to-peer fundraisers, and appeals** — Phases 22/36/27; Phase 13 reserves the `parent_campaign_id` self-FK while Phase 22 owns the typed immutable Page Subject Binding rather than a by-id CMS page reference, and moves all email/presentation fields _out_ of the campaign into their domains (D13).
 - **Accounting/GL export execution and reconciliation** — Phase 20; Phase 13
   exposes exact source-occurrence identity and eligibility but reserves no
   writable export-status axis (D7, D9).
@@ -1359,9 +1359,33 @@ A **giving campaign** is a **staff-defined, time-bounded fundraising EFFORT** wi
   - **Reparent / delete / archive:** reparent is governed / audited / effective-dated via the locked function and is **BLOCKED on closed/archived nodes** (closed-period totals are never retroactively rewritten — the most under-surfaced hazard); delete is `ON DELETE RESTRICT` (attributed or parent nodes are **archive-only**; an empty draft node is deleted only by walking the **full** subtree, not the repo's one-level-only footgun); archive is a per-node status + a view filter, **does not cascade**, a parent cannot archive while a child is non-terminal, and it never touches `source_codes.campaign_id` or posted lines.
 - **Rollup semantics — double-count-free (§Q owns the projection).** Each posted line attributes to **EXACTLY ONE** node (the frozen `source_code.campaign_id`). Two distinctly-named derived measures per node: **`amount_own`** (lines whose node = this node) and **`amount_in_hierarchy`** (the SUM over the **DISTINCT line set** where node ∈ {self} ∪ descendants — **a set-union filter, NEVER `parent.own + Σ(child)`**, which is the classic NPSP double-count bug this platform closes). No down-rollup (children never inherit ancestor gifts). Compensating entries attribute to the same node, so the subtree set-union nets partial refunds naturally. **ONE canonical rollup view/function feeds ALL surfaces** (public / staff / Phase-33) — ad-hoc SUMs are forbidden (mirrors the Phase-12 one-authority discipline). Single-currency-per-hierarchy (a child's currency = the parent's) OR per-currency buckets — never a mixed-currency scalar. **Reconciliation invariants** via `giving_reconciliation_runs`: `Σ(amount_own over tree) == root.amount_in_hierarchy`; `Σ(all posted lines) == campaign-total-over-all == fund-total-over-all`; plus an attribution match-rate. Drift fails loudly; the derived value wins over any snapshot.
 - **⚑ Restricted-fund PUBLIC DESCRIPTOR = alias / fund-code, NEVER the worker's real name (a Phase-13-owned ruling P10 explicitly deferred to us).** Rollups are computed **UNDER the viewer's effective access** via the P10 sole-entry publication projection; restricted lines are excluded **PER-NODE, BEFORE aggregation, at every level** (they never enter a parent total) + a **small-N inference guard** on public totals for mixed restricted+open nodes. Progress/public display routes through the P10 public projection — never a raw ledger sum.
-- **Many-funds staff UX (D13.1).** The campaign tree and the fund set are **TWO separate pickers** (staff never navigate funds _through_ the tree). A soft **"expected designations" intent list** (labeled _intent, NOT attribution_ — never a second source of truth) drives: the **source-code generation wizard** (one code per intended fund/channel, with consistent naming), a **coverage/reconciliation panel** ("intended 6 funds, received on 5, 1 at $0"), and the eventual Phase-22 donor fund picker. A per-campaign source-code inventory (live gift count/$ per code, prune zero-activity, deprecate-never-delete, `campaign_id` immutable once gifts exist) contains combinatorial sprawl. The **progress display is an explicit scope toggle** ("This campaign only" vs "Including N sub-campaigns") — **NEVER raw parent + child side-by-side** (the NPSP hand-addition footgun). New campaigns default **FLAT** (a parent is opt-in).
-- **Phase seams (BUILD vs RESERVE).** BUILD = the `giving_campaigns` object + `campaign_goals` + the campaign↔source_code link (consuming D14's reserved FK) + the derived progress projection + reporting facts (feeding Phase 33). RESERVE = the **Phase 22 public page** (a page record references a campaign **by id** — never presentation fields on the campaign; note for future callback: Phase 22 attaches the public page); **Phase 36 P2P/PCP** (a supporter fundraiser links via `parent_campaign_id` + a future `personal_campaign` flag — the self-FK is reserved; `creator_donor_id` retired); **Phase 27 appeal** (the appeal owns the linkage; the campaign carries no appeal fields); **Phase 17/32 email** (a comms send references a campaign ONLY via a source_code; all email fields — channel/audience_filter/scheduled_for/sent_at — LEAVE the campaign table into the comms domain); **Phase 33 reporting** (read-only over ledger truth, per-currency, P10-safe).
+- **Many-funds staff UX (D13.1).** The campaign tree and the fund set are **TWO separate pickers** (staff never navigate funds _through_ the tree). A soft **"expected designations" intent list** (labeled _intent, NOT attribution_ — never a second source of truth) drives: the **source-code generation wizard** (one code per intended fund/channel, with consistent naming), a **coverage/reconciliation panel** ("intended 6 funds, received on 5, 1 at $0"), and a reserved future public-choice seam. Phase 22 D7 deliberately does **not** consume that seam in its MVP: every released Public Ministry Page binds exactly one Designation, and Phase 13's list neither enumerates public choices nor authorizes checkout. A per-campaign source-code inventory (live gift count/$ per code, prune zero-activity, deprecate-never-delete, `campaign_id` immutable once gifts exist) contains combinatorial sprawl. The **progress display is an explicit scope toggle** ("This campaign only" vs "Including N sub-campaigns") — **NEVER raw parent + child side-by-side** (the NPSP hand-addition footgun). New campaigns default **FLAT** (a parent is opt-in). _(Clarified 2026-08-04 by Phase 22 D7.)_
+- **Phase seams (BUILD vs RESERVE).** BUILD = the `giving_campaigns` object + `campaign_goals` + the campaign↔source_code link (consuming D14's reserved FK) + the derived progress projection + reporting facts (feeding Phase 33). RESERVE = the **Phase 22 public page** (one immutable-versioned typed Page Subject Binding references the exact eligible Campaign or Designation; Payload stores only the opaque Page identity, never a raw `campaign_id` authority or campaign presentation fields, and D7's Giving binding remains independent); **Phase 36 P2P/PCP** (a supporter fundraiser links via `parent_campaign_id` + a future `personal_campaign` flag — the self-FK is reserved; `creator_donor_id` retired); **Phase 27 appeal** (the appeal owns the linkage; the campaign carries no appeal fields); **Phase 17/32 email** (a comms send references a campaign ONLY via a source_code; all email fields — channel/audience_filter/scheduled_for/sent_at — LEAVE the campaign table into the comms domain); **Phase 33 reporting** (read-only over ledger truth, per-currency, P10-safe).
 - **Six hard invariants (tested):** (1) the composite tenant-FK; (2) the depth cap 5; (3) the one locked reparent function with the cycle + depth guard; (4) the single-attribution set-union rollup via one canonical function; (5) `RESTRICT` deletes / archive-only for attributed nodes; (6) closed-node reparent immutability.
+
+#### Dated Phase 22 D17 typed Page-subject source amendment (2026-08-06)
+
+A Project/Campaign Page may bind its subject to one exact Giving Campaign or to
+one exact Designation that Phase 13 separately certifies as eligible to
+represent a public **Fund or designated purpose**, with Phase 10 separately
+supplying the safe public label/presentation. This says what the Page is
+about; it does not select D7's Page Giving Binding, D6 progress, D1
+contributors, or public identity. Even when subject and Giving both reference
+the same Designation, each is an independently versioned and re-proved
+relationship.
+
+A Campaign or Designation never becomes a CRM Ministry Project. No fund,
+campaign owner, intended-designation list, title, or legacy `fundId` may imply
+that classification or any Page permission. Source closure or retirement
+supplies cause-owned lifecycle evidence to Phase 22; it does not automatically
+retire a Page, redirect a route, change Giving, choose progress, or select a
+successor.
+
+Legacy `fundId` rows are migration input only. Each requires exact
+Tenant/Legal-Entity/source classification as a Designation subject or another
+certified kind; ambiguous, missing, duplicated, inactive, or cross-scope rows
+are quarantined and never fuzzy-matched or silently promoted to a Ministry
+Project.
 
 ### N. Historical recurring design — superseded by Phase 16
 
@@ -1853,7 +1877,10 @@ Reserved as seams (plumbed, not built) or owned by a named later phase — Phase
   product retry incidents, ACH recovery, derived health/attention reasons, and
   meaningful-transition candidate generation. Phase 13 records provider and
   ledger facts only; it does not mint a mutable `lapsed` state or a sequence.
-- **Public campaign pages** — Phase 22 (a page record references a campaign by id; no presentation fields on the campaign).
+- **Public campaign pages** — Phase 22 (one immutable-versioned typed Page
+  Subject Binding references an exact eligible Campaign or Designation; Payload
+  stores only the opaque Page identity, no raw `campaign_id` authority or
+  presentation fields on the campaign; D7's Giving binding remains separate).
 - **Peer-to-peer / personal-campaign fundraising** — Phase 36 (the `parent_campaign_id` self-FK + `personal_campaign` flag are reserved).
 - **Appeals** — Phase 27 (the appeal owns the linkage; the campaign carries no appeal fields).
 - **Full accounting / GL delivery** — Phase 20. Phase 13 supplies exact
@@ -1976,3 +2003,79 @@ redesignates, merges, reverses, or corrects a contribution. Party, spouse,
 household, teammate, leader, login, notification, or page state cannot select a
 financial target. Purpose succession remains Phase 13/D5 source-owned and
 append-only.
+
+## Dated Phase 22 D6 public-progress projection amendment (2026-08-03)
+
+Phase 13 remains the sole authority for corrected posted-effective gross
+Designation and campaign amounts, canonical typed distinct counts, campaign
+goals and hierarchy scope, and provisional-public eligibility. Its canonical
+effective fold is a source input, not a universal public metric: Phase 22 D6
+alone decides whether one page shows progress and binds exactly one compatible
+Public Progress Metric Contract. Missionary support may instead use a separately
+certified Phase 16 commitment projection and therefore does not universally
+derive from the Phase 13 money model.
+
+Phase 22 cannot query contribution rows anonymously, mix received money with
+commitments, include staged or unposted offline evidence, reinterpret gross as
+net support, substitute a Field Account or accounting value, or use a mutable
+counter. Phase 13 corrections advance a compatible disposable D6 projection
+under its exact source watermark; they do not rewrite the pinned public metric
+meaning. Public privacy filtering and small-cell suppression occur before
+aggregation, and a non-computable result is omitted rather than shown as zero or
+replaced by another metric.
+
+## Dated Phase 22 D8 public-route and purpose-succession amendment (2026-08-04)
+
+Phase 13 remains the sole authority for Designation identity and eligibility,
+new-Giving acceptance, contribution truth, and accepted source-purpose
+succession. A Phase 22 route or lifecycle event cannot close, replace, redirect,
+or re-designate any of those facts. A D8 Transition Notice Release retains D7's
+exact Page Giving Binding and renders its current Phase 13-owned state; if the
+binding remains eligible, D8 cannot invent an intentional no-Giving posture, and
+if it becomes ineligible D7's existing smallest-scope Giving containment applies.
+
+Accepted source-purpose succession may qualify a separately labelled link from
+a Transition Notice Release to another currently eligible public presentation.
+It never proves that the other page is the same presentation identity and can
+never authorize a cross-page `308`, inherited Designation, amount, cadence,
+source code, return path, contribution, or recurring action. An automatic
+permanent move is restricted to a new eligible Listed-public route for the same
+immutable Phase 22 Page; every different-page visit is a fresh deliberate donor
+navigation and Phase 13 revalidates any later Giving choice normally.
+
+## Dated Phase 22 D15 Give-selection boundary amendment (2026-08-06)
+
+A D15 **Give button selected** occurrence proves only that the visitor directly
+activated the current released page's Give CTA. It is not cart entry, Source
+Code attribution, conversion, contribution, recurring agreement, provider
+acceptance, settlement, or payment and cannot be joined through a visitor or
+session. Phase 13 remains independently authoritative for every money-path
+fact. Any Phase 13 aggregate displayed beside Public page activity keeps its
+own label, current authorization, and through-date; it does not create a D15
+conversion rate or advance D15 coverage.
+
+## Dated Phase 22 D21 public-surface cutover Giving amendment (2026-08-14)
+
+D21 preparation and cutover may reference only the exact current D7 Page Giving
+Binding and its Phase 13 Designation, source-code, issuer, currency, cadence,
+Settlement Account Binding, locale, Site, and environment facts. A legacy
+`fundId`, missionary ID, CTA URL, page title, route, profile row, campaign
+relationship, visual similarity, or general-fund convention is migration
+evidence only and cannot select, replace, or widen a Giving destination. Every
+adopted CTA receives one explicit owner-valid disposition. An ambiguous,
+missing, or ineligible adoption binding keeps the Page non-public rather than
+defaulting. Only a previously exact released binding that later becomes
+ineligible may leave independently safe Page content public with Giving
+unavailable.
+
+An existing browser tab, copied CTA, return path, or cart that crosses the D21
+reader-generation boundary must preserve and server-revalidate its exact
+original binding and Designation at cart entry and immediately before provider
+execution. If that exact lane is stale, retired, cross-scope, or no longer
+executable, the action fails safely with an accessible explanation and a fresh
+deliberate navigation path; it never follows a page redirect, compatible legacy
+renderer, newly current Page, or organization-fund fallback to a different
+Designation. D21 prepared, cut over, reachable, served, cached, or converged
+status proves no cart entry, contribution, recurring agreement, settlement,
+payment, or accounting outcome, and Phase 13 creates no duplicate contribution
+while reconciling repeated pre-/post-cutover requests.

@@ -422,10 +422,24 @@ traceability contract.
   not zero. Approved need, Phase 28 goal, recorded activity, Phase 16
   commitments, Finance-confirmed balance, reserve, compensation funding, and
   publication remain separate authorities.
+- Phase 22 D6 public support progress and D13 public discovery cannot consume,
+  infer, index, count, rank, filter, or summarize a Field Account balance,
+  support-credit amount, assessment, reserve, availability, runway, expense or
+  compensation capacity, accounting state, payability, payroll readiness, or
+  payment. D13 may reference only a current D6-safe public progress projection;
+  it cannot inspect Phase 21 truth to create one. A numerical coincidence
+  between those facts and a public metric confers no authority or linkage.
 - One finite Support Workspace Publication Profile chooses permitted modules,
   audience, compatible close requirements, notification defaults, and whether
   balances or statements are visible. Personal ordering/collapse affects only
   presentation.
+- Phase 21 may create one optional exact prospective same-scope binding from a
+  Phase 9-owned Ministry Assignment to a Support Assignment through a separately
+  finance-authorized command, so a Missionary Ministry Page and an authorized
+  Support Workspace can share operational context without sharing authority.
+  Phase 22 only consumes the result. The binding, Ministry Assignment
+  membership, Page subject, display, contributor status, Designation, or public
+  progress grants no support-data access and copies no Field Account fact.
 - Every close produces immutable integrity proof over exact scope and cursor.
   Incremental and bounded historical verification create deduplicated,
   cause-owned Integrity Cases with smallest-scope containment. There is no
@@ -514,6 +528,13 @@ traceability contract.
   Workspace Access, responsibility, claimant identity, approval, payee status,
   and notification preferences remain separate. Every person uses an own
   identity; spouse/team/leader relationships never grant access implicitly.
+- A CRM Ministry Assignment and its Participant Membership are also separate
+  from the Support Assignment and its Participant Membership. Each spouse or
+  teammate requires an independently current Phase 12 purpose-, projection-,
+  target-, field-, and history-bounded authorization plus the applicable D9
+  publication posture before seeing support activity or per-currency balances.
+  Binding succession never propagates people, grants, balances, history,
+  notifications, progress, or Giving destination.
 - Organization Support Cost Applications are absent unless enabled and apply
   only to their closed residual semantic families. Exact source-final
   occurrences, prospective source contracts, non-overlapping ownership,

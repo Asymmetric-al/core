@@ -3234,3 +3234,46 @@ specific disposition evidence. Phase 6/12 re-proves current recipient,
 authorization, classification, suppression, package scope, and safe state at
 release and protected-action open. Template choice or delivery creates no
 package, manifest, custody, retention, hold, transfer, or disposal truth.
+
+## Dated Phase 22 D11-D12 Ministry Update response content amendment (2026-08-06)
+
+Phase 17 may prepare Ministry Update or response-related content only from one
+separately admitted exact D11/D12 occurrence under an exact Live producer
+binding. It owns the governed semantic key,
+locale, sender, presentation, prepared-message identity, and protected-action
+copy—not Update release, supporter membership, response, moderation, recipient,
+consent, suppression, dispatch, delivery, Giving, or financial truth. There is
+no implicit message per Like, I prayed, comment, or moderation event; any tenant
+digest or bounded alert remains a separately certified Phase 17/6 contract.
+
+Safe copy distinguishes **A ministry update is available**, **A response needs
+review**, **Your comment is awaiting review**, and **Responses are closed**
+without claiming delivery, reading, prayer, relationship health, approval, or
+giving. Restricted-worker messages use generic body-free content, an opaque
+reference, and one authenticated deep link. They omit names, public paths,
+Update/comment text, response identities/counts, purpose labels, and financial
+facts from subjects, inbox previews, provider metadata, and public links.
+
+Prepared content and deep-link release re-prove the exact Tenant, Legal Entity,
+purpose, Update Revision, Supporter Release Projection, Engagement Space,
+Response Profile Version, current Phase 10 result, current recipient authority,
+locale, and governance epochs. Template readiness or provider delivery cannot
+reopen responses, disclose protected engagement, apply moderation, grant
+audience membership, or retry a Phase 22 command.
+
+## Dated Phase 22 D22 operations-content amendment (2026-08-14)
+
+Phase 17 may prepare Public Page operations content only from one exact,
+source-owner-authorized D22-eligible occurrence under an existing Live producer
+binding. Permitted copy states one safe action or wait class and one
+authenticated destination; it does not claim that a Page is healthy, fixed,
+published, safe, searchable, giving-ready, delivered, or resolved merely
+because a projection row, notification, or shared task changed state.
+
+Restricted-person content remains generic and non-enumerating and excludes
+names, Page titles and routes, locations, exact causes, impact counts, evidence,
+and public URLs from subjects, inbox previews, provider metadata, and
+unauthenticated links. Delivery, open, reply, dismissal, failure, or task
+completion cannot close or mutate the source-owned cause; only its owner-domain
+command and resulting immutable version may change what D22 subsequently
+projects.

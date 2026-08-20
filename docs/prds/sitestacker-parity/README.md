@@ -46,8 +46,10 @@ The parity effort inherits the platform's existing, binding boundaries. It does
 **not** restate them — one source of truth. The binding rules live in OpenSpec:
 
 - `openspec/specs/platform-boundaries/spec.md` — server-side boundary for
-  sensitive operations; CRM = operational truth, CMS = public/content truth;
-  role-scoped surface boundaries; tenant isolation; shared-logic convergence.
+  sensitive operations; CRM = operational truth, CMS = authored editorial
+  content and presentation truth; role-scoped surface boundaries; tenant
+  isolation; shared-logic convergence. More-specific domain contracts retain
+  operational release, safety, financial, and runtime authority.
 - `openspec/specs/platform-surfaces/spec.md` — Mission Control owns staff
   depth; donor portal = donor self-service; missionary workspace =
   support-raising/communication; public website = public content + giving.
@@ -740,6 +742,259 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   floor without remediation. The blast radius is planning-only: the Phase 21
   PRD, decision evidence, ADRs, OpenSpec change, and named cross-phase contract
   amendments; it grants no runtime authority.
+- [`phase-22-public-ministry-pages.md`](./phase-22-public-ministry-pages.md)
+  — the canonical implementation-ready Phase 22 PRD. Its active OpenSpec
+  contract is
+  [`add-public-ministry-pages`](../../../openspec/changes/add-public-ministry-pages/proposal.md).
+  These artifacts specify the approved behavior but do not claim that Phase 22
+  is implemented, deployed, or live. Parent specification issue
+  [#1281](https://github.com/Asymmetric-al/core/issues/1281) has 41 approved
+  native child issues, [#1282](https://github.com/Asymmetric-al/core/issues/1282)
+  through [#1322](https://github.com/Asymmetric-al/core/issues/1322), connected
+  by 117 native blocking relationships. P22-01/#1282 alone among the 41
+  implementation children is the current `ready-for-agent` frontier; issue
+  posture is planning metadata, not build or production proof.
+  Reproducible contract checks are
+  `bunx @fission-ai/openspec@1.7.0 validate add-public-ministry-pages --strict`,
+  `bunx @fission-ai/openspec@1.7.0 validate --all --strict`,
+  `bun run format:check`, and `bun run skills:verify`. PR
+  [#1323 Files changed](https://github.com/Asymmetric-al/core/pull/1323/files) is
+  the exact changed-path inventory. Its
+  [required checks](https://github.com/Asymmetric-al/core/pull/1323/checks) and
+  persistent Shadscan report are the final machine-check evidence once CI is
+  green. The assessed pre-commit `packages/ui` baseline is 29/100 against the
+  configured floor of 29, using
+  `bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive`; because this
+  planning publication changes no UI path, final CI must prove the same floor
+  without remediation. The blast radius is the Phase 22 PRD, decision/research
+  evidence, ADRs, active OpenSpec change, and named cross-phase contract
+  amendments; it grants no runtime authority.
+- [`phase-22-public-ministry-pages-decision-log.md`](./phase-22-public-ministry-pages-decision-log.md)
+  — the scope-frozen supporting Phase 22 grooming authority. The founder closed the
+  `/grill-with-docs` session at D1–D27 on 2026-08-14:
+  two typed page families with explicit contributors; Phase-10-ceiling-resolved
+  reach; family-certified presentation; tenant-chosen review or
+  publish-after-checks; simple staff judgment; optional source-authoritative
+  progress; one exact Designation per page for the MVP; source-qualified route
+  dispositions; and release-bound, Phase-29-compatible Public Ministry Media
+  Assets. D9 makes public media private-origin and opaque, discards source
+  filenames from durable/public surfaces, requires bounded full decode,
+  reconstruction, re-encode, independent output proof, contextual placement
+  semantics, immutable derivative and release pins, current D2/Phase 10 reproof,
+  and honest smallest-scope withdrawal. D10 closes Phase 5's old shareable-
+  preview-token reservation: Public Ministry Preview is authenticated,
+  currently page-authorized, exact-version, production-equivalent, private,
+  non-cacheable/non-indexable, and side-effect-dark. A copied URL or Draft Mode
+  cookie grants nothing; a named recipient uses one existing Phase 12
+  page-scoped `Preview only` grant, never a bearer or guest-preview system.
+  D11 establishes one canonical immutable Ministry Update Revision and exact
+  Audience Release Manifest with independently authoritative Public Page and
+  purpose-authorized Supporter projections. **My Feed** survives only as a
+  legacy alias. Publication, current supporter access, notification intent,
+  recipient/consent/suppression/cadence, provider delivery, engagement, and
+  Giving remain separate facts; `Publish & notify supporters` is one quiet UX
+  consequence review, not one collapsed authority or hidden email side effect.
+  D12 adds one prospective immutable tenant Supporter Response Profile Version:
+  **Responses off**, **Like + I prayed**, or **Like + I prayed + comments**,
+  initially off with acknowledgement-only recommended. Every response remains
+  inside one exact authenticated purpose-authorized Supporter Release
+  Projection-bound Engagement Space; current authority and safety are re-proved
+  on every operation, comments and moderation preserve append-only evidence,
+  public releases expose no protected response facts, and counts remain
+  rebuildable audience-local projections rather than Update truth.
+  D13 adds one exact-scope Public Ministry Discovery Profile with **Together**
+  by quiet default or tenant-selected **Separate by Page Family** presentation
+  over one complete D2/Phase-10-admitted Directory Projection, bounded server
+  query, and family-typed card contract. Separate Missionary and Project routes
+  never create separate membership, visibility, index, search, cache, or
+  inclusion authority; search exposes only admitted public fields and uses
+  locale-pinned deterministic ordering, bounded filters, generation-bound
+  keyset cursors/caches, complete shadow rebuilds, atomic activation, and
+  affected-positive-first removal.
+  D14 adds one immutable release-bound Public Search & Sharing Presentation
+  Manifest with distinct Search and Share results, stable opaque Site/locale
+  Ministry Update permalinks, code-owned coherent canonical/alternate/sitemap/
+  JSON-LD/social-card output, exact D9-certified card media, generated safe
+  defaults with bounded editorial input, native Share plus Copy-link fallbacks,
+  and honest separation of local search readiness from external crawl, index,
+  rank, cache, share, refresh, removal, and forgetting outcomes. Listed-public
+  is search eligible and shareable; Shared-by-link is shareable but `noindex`;
+  stricter truth emits no content-specific anonymous presentation.
+  D15 adds one prospective Site-scoped Public Ministry Measurement Profile,
+  persisted Off by default, with guided **Staff only** or **Staff + assigned
+  page contributors** visibility. It measures only four fixed first-party,
+  release-bound interactions through non-blocking post-render or explicit-action
+  intake; retains no durable visitor, session, request, replay, or financial
+  identity; expires private occurrences within 24 hours; keeps sealed daily
+  aggregates for one code-owned 24-month period with append-only corrections;
+  re-proves current Phase 12/D1 authority at every report read/export; and
+  exposes one suppression-safe, through-dated **Public page activity** report.
+  D15 never claims people, reach, completed shares, conversions, gifts,
+  attribution, settlement, or payment and cannot affect public or Giving
+  behavior.
+  D16 adds one tenant-off-by-default, source-bounded, suggestion-only Public
+  Page Writing Assistant through Phase 21 D10's existing purpose-routed AI
+  control plane. It works on one exact contributor-editable semantic draft
+  target, shows its sources, preserves the original, requires accessible review
+  and explicit CAS-guarded Use, and never submits, approves, releases, publishes,
+  or acquires Page, safety, locale, Giving, progress, or Ministry Update truth.
+  Its **Translate to English** action requires one certified source-language →
+  exact existing Phase 24 English BCP 47 locale pair, confirmation of ambiguous
+  detection, honest mixed-language handling, an original/English comparison,
+  and the always-visible **Check this translation** warning. Translation never
+  combines with rewriting or localization and never means fluent, verified,
+  bilingual-reviewed, official, or certified.
+  D17 makes every Project/Campaign Page subject one exact immutable-versioned
+  reference to an owner-certified CRM Ministry Project, Phase 13 Giving
+  Campaign, or separately public-subject-eligible Phase 13 Designation. The CRM
+  operational layer owns the minimal Ministry Project identity/lifecycle;
+  Phase 13 owns Campaign and Designation truth; Phase 22 owns only the Page
+  Subject Binding and release-pinned safe snapshot. Subject, Giving, progress,
+  contributors, reach/release, Page lifecycle, media, Updates, discovery, and
+  search/share remain separate. A different subject after first release means
+  a new Page identity and D8 succession, never an in-place history rewrite.
+  D18 adds one release-bound Public Ministry Runtime Composition Contract.
+  Phase 5 executes the runtime and cache mechanics; Phase 22 owns Public
+  Ministry semantics, current-serving admission, and adverse-first controlled-
+  surface convergence. No Asym-controlled response may bypass the current-
+  serving evaluation, and no cache, CMS publish state, provider result, or
+  deployment becomes a second public authority.
+  D19 makes one organization-owned, Tenant- and Legal-Entity-scoped Ministry
+  Assignment the Missionary Ministry Page's exact operational subject. Spouses,
+  teammates, leaders, and contributors retain separate Party, login,
+  participant-membership, display, contributor, Support Assignment, Phase 12
+  Support Workspace authorization, responsibility, and notification identities.
+  One optional prospective Phase-21-owned Support Binding may connect the
+  Ministry Assignment to an independently authoritative Support Assignment,
+  but membership, marriage, display, editing, notification, Designation, or the
+  binding itself grants no financial access or mutation. The quiet **People &
+  access** experience previews the exact Phase-12-authorized, D19-associated
+  support modules, fields, currencies, and history before applying explicit
+  local facts; every raw table
+  remains browser-inaccessible and all support reads pass through Phase 12's
+  current server-side policy decision point.
+  D20 concretizes D3 as two non-interchangeable immutable code-owned Page Family
+  Semantic Catalog Generations: one Missionary Ministry catalog and one
+  Project/Campaign catalog. A prospective D3 profile may offer an optional
+  editorial role as **Off**, **Available**, or **Expected**, set its bounded
+  certified-zone order, and make it staff-only or contributor-editable;
+  Expected is private completeness guidance, never public filler. Contributors
+  use one quiet **Basics**, **Story**, **Media**, **Support & giving**, and
+  **Updates** editor while managed identity, progress, Giving, media, and Update
+  facts remain source-labelled and independently authoritative. Every D2 release
+  pins the exact family catalog, renderer, profile, content, locale, brand, and
+  managed-reference generations. Unknown, wrong-family, unauthorized, stale,
+  or over-budget input blocks only the new candidate and preserves the last
+  certified release. D20 does not create a generic cross-family builder, tenant
+  schema, arbitrary layout/nesting, free CTA URL, custom code, or second
+  permission, workflow, release, or source-truth system.
+  D21 replaces the current mock, static, generic, and copied Public Ministry
+  surface through one complete-surface authority adoption for each exact Tenant
+  × Legal Entity × environment × Site × verified-host set × locale. Pages may
+  be prepared privately in additive, chunked, resumable batches, but public
+  authority changes once through one content-addressed complete Adoption
+  Coverage Manifest and one short current-reproved, idempotent CAS cutover.
+  Every discovered legacy item receives exactly one proved disposition; a
+  narrowly certified compatible-legacy D2 release may preserve safe editorial
+  presentation only and never raw Payload publication or managed identity,
+  Giving, progress, media, Update, route, discovery, or measurement truth. Staff
+  use one exception-first **Prepare public pages** flow and one literal **Start
+  using these prepared pages** action; missionaries continue ordinary Public
+  Pages work; donors see one coherent surface. After cutover the Phase 5/D18
+  gateway is the only reader and never falls back to mock data, the legacy
+  reader, an old cache namespace, or destructive rollback.
+  D22 adds one quiet, disposable, permission-filtered Public Page Operations
+  Projection with exactly **To review**, **Needs attention**, and **All pages**.
+  It derives versioned root causes and exact impacts from source-owned D1–D21
+  truth, groups one cause across affected Pages, and routes finite literal
+  actions back to the owning workflow for current reproof. The views are
+  navigation, not Page states; only owner proof removes current work. D22 adds
+  no Page-health score, mutable close state, second repair workflow, broad
+  relationship-derived access, or donor-facing diagnostic surface.
+  These decisions create no second review queue and grant no runtime or
+  production authorization. See the
+  [`research evidence`](./phase-22-public-ministry-pages-research-evidence.md),
+  [D9 ADR-0126](../../adr/0126-release-bound-public-ministry-media-assets.md),
+  [D10 ADR-0127](../../adr/0127-authenticated-exact-version-public-ministry-preview.md),
+  [D11 ADR-0128](../../adr/0128-canonical-ministry-update-audience-release-projections.md),
+  and
+  [D12 ADR-0129](../../adr/0129-bounded-supporter-response-profiles.md),
+  [D13 ADR-0130](../../adr/0130-scoped-public-ministry-discovery-with-tenant-chosen-topology.md),
+  and
+  [D14 ADR-0131](../../adr/0131-release-bound-public-search-and-sharing-presentation.md).
+  See also
+  [D15 ADR-0132](../../adr/0132-bounded-public-ministry-measurement-and-contributor-visibility.md).
+  See also
+  [D16 ADR-0133](../../adr/0133-source-bounded-public-page-writing-assistance.md).
+  See also
+  [D17 ADR-0134](../../adr/0134-exact-typed-public-page-subject-bindings.md).
+  See also
+  [D18 ADR-0135](../../adr/0135-release-bound-public-ministry-runtime-composition.md).
+  See also
+  [D19 ADR-0136](../../adr/0136-organization-owned-ministry-assignments-and-separated-support-access.md).
+  See also
+  [D20 ADR-0137](../../adr/0137-two-bounded-page-family-semantic-catalogs.md).
+  See also
+  [D21 research evidence §44](./phase-22-public-ministry-pages-research-evidence.md#44-ratified-d21-research--complete-public-ministry-surface-authority-cutover)
+  and
+  [D21 ADR-0138](../../adr/0138-complete-public-ministry-surface-authority-cutover.md).
+  See also
+  [D22 research evidence §45](./phase-22-public-ministry-pages-research-evidence.md#45-ratified-d22-research--quiet-derived-public-page-operations)
+  and
+  [D22 ADR-0139](../../adr/0139-derived-public-page-operations-with-cause-owned-actions.md).
+  D23 Public Pages setup/settings is ratified as the exact C-prime-R: one
+  scope-first disposable summary over source-owned versions, with one
+  owner-specific amendment at a time. See
+  [D23 research evidence §46](./phase-22-public-ministry-pages-research-evidence.md#46-ratified-d23-research--derived-public-page-setup-and-settings)
+  and [accepted ADR-0140](../../adr/0140-derived-public-page-setup-and-settings.md).
+  D24 adds one attribution-preserving Staff-authored Page Revision path inside
+  D1's sole working head and the unchanged D4/D5/D2 review-and-release lane.
+  Staff use the ordinary quiet editor under independent exact-scope authority;
+  active or submitted contributor work remains immutable and attributed; only
+  deliberate supersession requires a safe reason; and current-reproved CAS,
+  authoritative readback, and successor-only recovery prevent Payload-native
+  override, restore, merge, or last-write-wins behavior. See
+  [D24 research evidence §47](./phase-22-public-ministry-pages-research-evidence.md#47-ratified-d24-research--attribution-preserving-staff-authored-page-revisions)
+  and
+  [accepted ADR-0141](../../adr/0141-attribution-preserving-staff-authored-page-revisions.md).
+  D25 is ratified as the exact database-minimal hardened C-prime-R. It derives
+  each permitted action from
+  current D1–D24 owner truth, keeps one coalesced Payload recovery buffer beneath
+  the sole Page-and-locale head, protects immutable deliberate sources, and
+  creates no D25 table, status, queue, timer, or per-autosave event stream. See
+  [D25 research evidence §48](./phase-22-public-ministry-pages-research-evidence.md#48-ratified-d25-research--cause-gated-actionability-with-bounded-recoverable-editorial-work)
+  and
+  [accepted ADR-0142](../../adr/0142-derived-editorial-actionability-and-bounded-recovery.md).
+  D26 is ratified as the exact hardened A-prime-R. The actual currently
+  authorized submitter confirms one exact immutable candidate through the
+  existing **Submit for review** or **Publish changes** action; the candidate
+  stores one compact immutable Public Content Sharing Attestation and D2 or D11
+  pins it without another table or permission workflow. Missing granular Phase
+  10 affirmative records alone create no Phase 22 checklist, while direct
+  objections, `do_not_publish`, restricted-person rules, and stricter current
+  safety outcomes remain non-overridable. See
+  [D26 research evidence §49](./phase-22-public-ministry-pages-research-evidence.md#49-ratified-d26-research--one-calm-page-content-sharing-attestation)
+  and
+  [accepted ADR-0143](../../adr/0143-candidate-bound-public-content-sharing-attestation.md).
+  D27 ratifies one Site-scoped Page, exactly one
+  Missionary and one Project/Campaign presentation profile per Site, no Page or
+  locale layout exceptions, independently released Page × locale editorial
+  lineages, complete-cohort compatible family activation fenced against
+  concurrent D2 releases, and public exact-locale reads with fallback disabled.
+  D27 explicitly amends the current multi-decision presentation composition
+  rather than silently reinterpreting D3. See
+  [D27 research evidence §50](./phase-22-public-ministry-pages-research-evidence.md#50-ratified-d27-research--one-family-pattern-with-independent-locale-content)
+  and
+  [ADR-0144](../../adr/0144-site-family-presentation-with-independent-locale-releases.md).
+  D27 creates no runtime, schema, migration, issue, or production authority.
+  The completed
+  [formal closure audit §51](./phase-22-public-ministry-pages-research-evidence.md#51-formal-phase-22-closure-audit--d1d27-are-product-decision-complete)
+  found no unresolved Phase-22-owned founder choice, and Option A scope-freezes
+  D1–D27 without opening D28. The founder subsequently invoked `/to-spec`; the
+  canonical PRD and active OpenSpec change now carry implementation-ready
+  planning. The ratified decisions and specification grant no
+  migration, reader cutover, publication, production activation, issue
+  dispatch, or runtime authority.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

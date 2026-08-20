@@ -763,3 +763,75 @@ package-byte expiry or records-only-window deadline where applicable, and one
 authenticated next action. Delivery, open, reply, print, silence, or failure
 never proves download, external custody, verified transfer, retention, hold,
 disposal, completeness, or legal sufficiency.
+
+## Dated Phase 22 D11-D12 Ministry Update response communication amendment (2026-08-06)
+
+Phase 22 may emit typed, deduplicable occurrences for an exact Ministry Update
+release request, response, report, moderation disposition, response-scope
+closure, or source-authorized safety action. Those occurrences are eligible
+inputs only. Phase 6 alone owns communication intent, exact eligible-recipient
+resolution, current consent and suppression, cadence and digest batching,
+dispatch, provider outcome, and communication history. A release, Like, I
+prayed, comment, report, moderation action, or notification request is never
+itself proof that a message was sent, delivered, opened, or acted upon.
+
+The quiet default is no separate message for each acknowledgement. A tenant may
+use only a separately admitted bounded notification or digest contract with an
+exact Live Phase 17 producer binding and Phase 6 recipient-specific intent.
+Immediately before preparation/dispatch and again when a protected deep link is
+opened, Phase 6/12 re-proves current recipient authority, Tenant, Legal Entity,
+purpose, Update Revision, D11 Supporter Release Projection, D12 Engagement
+Space/Profile Version, Phase 10 safety, contact point, consent, suppression,
+cadence, and governance epochs. Revoked access or closed responses suppresses
+the affected new communication without changing the underlying Phase 22
+occurrence.
+
+Restricted-worker transport is generic and body-free: an opaque reference, a
+safe notification class, and one authenticated Asym action. Names, public-page
+paths, Update or comment text, response identities or counts, relationship
+labels, and financial facts stay out of subject lines, previews, provider
+metadata, and unauthenticated links. Delivery failure never retries a response
+command or changes its posted/moderated state.
+
+## Dated Phase 22 D19 Ministry Assignment notification amendment (2026-08-06)
+
+The D19 **Gets updates** choice writes only the separately authorized prospective
+notification-preference fact and any outbox intent. Ministry Assignment or
+Support Assignment membership, spouse/household/team relationship, Page
+subject, public display, Page contribution, Support Binding, Support Workspace
+grant, responsibility, and prior delivery do not subscribe a recipient or
+authorize message content.
+
+Phase 6 remains the sole communication-intent, recipient-resolution, consent,
+suppression, cadence, dispatch, provider-outcome, and history owner. Immediately
+before release it re-proves the exact recipient Principal, current Tenant
+Authorization Context, Tenant, Legal Entity, source event and purpose, Ministry
+Assignment and/or Support Assignment where applicable, exact current
+preference, Phase 12 projection/field eligibility, contact point, consent,
+suppression, and governance epochs. Access or preference revocation suppresses
+affected new messages before disclosure.
+
+D19 creates no new message-purpose key merely because several setup choices
+share one UI. It reuses only an already governed Phase 17/6 producer contract
+for a real owner-domain event. The payload remains minimum necessary and cannot
+contain supporter identity, balance, evidence, hidden membership, permission,
+or relationship detail unless that exact communication contract separately
+admits it. Delivery, open, reply, failure, or silence changes no Page, access,
+binding, financial, or membership fact.
+
+## Dated Phase 22 D22 operations-notification amendment (2026-08-14)
+
+D22 creates no routine message for healthy Pages or for every projected impact.
+Only a source owner may emit a notification-eligible occurrence for a first
+human-actionable cause, an owner-classified material worsening, a changed
+required action, or a newly actionable deadline. Phase 6 then remains the sole
+owner of recipient resolution, consent, suppression, cadence, dispatch,
+provider outcome, and history. Deterministic deduplication uses the exact cause
+identity and owner version so one cause affecting many Pages does not create a
+message storm.
+
+Restricted-person content is generic, body-free, and non-enumerating: an opaque
+reference, a safe action class, and one authenticated Asym destination. It
+omits person and Page names, routes, locations, reasons, impact counts, and
+protected evidence. Delivery, open, silence, failure, dismissal, or linked
+shared-task state cannot clear, resolve, or reopen the source-owned cause.

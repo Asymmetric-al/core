@@ -99,7 +99,7 @@ Everything **reuses and extends** what already exists or is groomed ahead of it 
 - **A5 — Restricted-tier data in a separate table with its own RLS; never masked columns.** _(G2.)_ The restricted identity attributes live in **`party_restricted`** (separate table, own RLS, non-exposed schema / Data-API-revoked) — not masked columns on shared tables (view `security_invoker` and column-grant footguns make masking fragile in exactly the highest-stakes data). **Standing rule:** a new restricted table is added **only when publication of that data endangers a person**; everything else is field policy. `member_care_private_notes` keeps its own room (classified `care`); Phase 29 restricted files reuse the _pattern_, not this table. _(ADR 5.)_
 - **A6 — RBAC + ABAC through the one resolver.** _(G1/G4.)_ Coarse roles gate surface/module access; **attribute predicates** — `security_level` ceiling, team/assignment relationship, an active identity-access grant — are added to the **Phase-3 subtract-only resolver** as a composing `security_scope` predicate (`effective = field_policies ∩ row_scope ∩ record_flags ∩ record_state ∩ security_scope`). One policy vocabulary; the resolver still only ever _subtracts_. **Cross-ref:** Phase-3's resolver (#493) must be built **predicate-extensible** so `security_scope` is additive, not a fork. _(NIST SP 800-162 ABAC.)_ _(ADR 6.)_
 - **A7 — "Security Clearance" is a capability; access is one grant object across three tempos.** _(G4/G5.)_ **Security Clearance** is a capability (`security_clearance`) admins **toggle onto any role** (member care, mobilization, regional leads); the admin role ships with it **on but removable**; it is **separate** from care-data access (a role may hold both, but granting one never grants the other; **Phase 10 defines and ships only the `security_clearance` capability** — the care-data-access capability itself is owned by member care / Phase 38; Phase 10 only guarantees the two stay separate flags); every flip is audited and a **breadth stat** ("N people hold Security Clearance") is always visible. Access to the locked room comes through **one `identity_access_grants` object** in three tempos: **(1) standing** = the role capability; **(2) requested** = any staff member requests access to one worker → any clearance-holder approves/denies → **fixed period or indefinite**; **(3) break-glass** = instant emergency access, mandatory free-text reason, 24h self-expiry, loud alert (Sentry + the Phase-6 seam), mandatory post-review. A grant's power is **checked live at read** (a JOIN over active tenant membership + active grant), so a departed staffer's grant is inert immediately (belt-and-suspenders revoke-on-departure). Grants are the **identity room only** (never care notes). Phase 12 owns the full grant-management product (bulk/regional grants, policies, delegation, audit reports) — the grant table's subject/scope are **named so Phase 12 extends them additively**. _(ADR 7.)_
-- **A8 — Consent, publishing preferences, and telemetry redaction.** _(G6-consent.)_ Per-person **consent & publishing preferences** (explicit consent to publish name/photo/story — Art. 9 explicit-consent quality; **hard do-not-publish** flags) wired into the **in-flight** consent gate (`packages/api/src/email/consent.ts` — PR #502, **not yet merged**; extend when it lands, never fork). The **Art. 9(2)(d)** "no disclosure outside the body without consent" invariant is product behavior; the platform's **own pipes count as "outside the body"** — the **locked-room fields** (a fixed allow-list: legal name, real country, precise location, real-photo refs) are **redacted from telemetry** (Sentry, logs, support tooling, demo seeds). This is a fixed allow-list at those boundaries, **not** a general PII-scrubbing engine. _(ADR 8.)_
+- **A8 — Consent, publishing preferences, and telemetry redaction.** _(G6-consent.)_ Per-person **consent & publishing preferences** (explicit consent to publish name/photo/story — Art. 9 explicit-consent quality; **hard do-not-publish** flags) wired into the **in-flight** consent gate (`packages/api/src/email/consent.ts` — PR #502, **not yet merged**; extend when it lands, never fork). The **Art. 9(2)(d)** "no disclosure outside the body without consent" invariant is product behavior; the platform's **own pipes count as "outside the body"** — the **locked-room fields** (a fixed allow-list: legal name, real country, precise location, real-photo refs) are **redacted from telemetry** (Sentry, logs, support tooling, demo seeds). This is a fixed allow-list at those boundaries, **not** a general PII-scrubbing engine. **Phase 22 D26 later qualifies only its ordinary Page and Ministry Update candidate input: absent granular rows do not create another editorial checklist, while every known direct objection, hard `do_not_publish`, restricted-person rule, and stricter safety result still wins.** _(ADR 8.)_
 - **A9 — Phase 10 builds the rails; Phase 38 builds the care product.** _(G-boundary.)_ In scope: the classification axes, `security_level` + tenant country-risk, dual identity + the sole-entry firewall, consent/publishing prefs, egress enforcement, read-audit + the identity-access/break-glass model, the separate-restricted-table pattern, telemetry redaction, the Settings→Security surface. **Reserved to Phase 38:** the member-care case product (sealed care-note UI, provider-type + limits-of-confidentiality, duty-to-warn, crisis-ops UI + emergency-contact trees, **the exposure report**, DSAR/erasure tooling, compliance-evidence surfaces). The member-care tables (`member_care_private_notes` + `member_care_activities`/`goals`/`requirements`) already ship — Phase 10 **classifies** them; Phase 38 builds the care product on them. _(ADR 9.)_
 - **A10 — Reclassification triggers a scrub of what we control + an honest-limitation notice.** _(G6.)_ Raising a worker's `security_level` fires a **retro-scrub trigger** that **reuses Phase-5's cache invalidation** for that party's public surfaces (the firewall is the forward backstop, so the next render is alias-clean regardless) and emits a **"purge-required" event**; the per-surface purge _executors_ (public pages, search index, sitemap) are built by the phases that own those surfaces (22/40) — Phase 10 does **not** build purge for surfaces that do not exist yet. The scrub completion carries a static **honest-limitation notice**: _"Forward exposure removed. Previously sent emails, issued receipts, and past exports are **not** retracted by this action."_ The queryable **exposure report** is **Phase 38** (its sources — communication events, receipt facts, export audit — are append-only, so zero rework to defer). Issued **receipts are immutable** (never rewritten; future renders use the alias/fund-code). **Downgrades (restricted → open) are human-only** — explicit consent + a clearance-holder action — and cancel any pending grants for that worker. _(ADR 10.)_
 
@@ -124,14 +124,20 @@ Everything **reuses and extends** what already exists or is groomed ahead of it 
 - **Phase 2 (inherited).** Tenant-scope only. **Phase 0 (inherited).** Built/Live/Confirmed evidence.
 - **Forward requirements this phase seeds:** Phase 22 publishing must consume the firewall **and** add a publish-time **"unreviewed security level"** gate (belt-and-suspenders for G3-B's residual small-tenant risk; publishing is already explicit + consented = fail-safe). Phase 7 receipt **facts** must embed no worker identity (verified at amendment time); the fund-name rule lands at Phase 13. Phase 40 inherits the restricted-tier search/AI exclusion.
 
-### D. Data model (all tenant-scoped, composite `(tenant_id, id)` keys, FORCE RLS)
+### D. Data model (tenant-owned relations use composite `(tenant_id, id)` keys and FORCE RLS)
+
+Every tenant-owned relation below has non-null tenant identity, composite keys,
+and FORCE RLS. An explicitly named platform-reference relation is the only
+non-tenant exception; it is private, read-only, and unavailable through the
+tenant Data API.
 
 **Net-new / extended:**
 
 - **`parties` / person subtype — extend:** `security_level` (TEXT+CHECK `standard|sensitive|restricted|high_risk`, `NOT NULL DEFAULT 'standard'`), `security_level_source` (TEXT+CHECK `manual|country_default`), `display_name` (the public alias — **reused** from Phase 9's write-through `display_name`, not a new column), a `security_country` reference used for the default. **CHECK/trigger:** `security_level ∈ {restricted, high_risk}` ⇒ `display_name` present and distinct from the legal name (A3). Legal name + real country + precise location move to `party_restricted`.
-- **`party_restricted` (separate table, own RLS, non-exposed schema)** — `party_id`, `legal_name`, `real_country`, `precise_location`, `real_photo_ref` (points into a **non-public storage bucket**, signed URLs only), publication notes. RLS: only the `security_clearance` capability / an active grant + the resolver's `security_scope`.
-- **`country_risk`** — **tenant-owned**, versioned: `country_code`, `default_security_level`, `source_ref` (free-form — e.g. "WWL 2026 tier N"; **source-agnostic** for future indices), `version`, `effective_at`, `tenant_id` (NULL = the opt-in platform seed a tenant imports; tenant rows override).
-- **`party_publishing_consent`** — per-person: `party_id`, `publish_name`/`publish_photo`/`publish_story` (bool + consent evidence), `do_not_publish` (hard flag), consent timestamps. Consumed by the firewall + the send seam.
+- **`party_restricted` (separate table, own RLS, non-exposed schema)** — `tenant_id`, `id`, `party_id`, `legal_name`, `real_country`, `precise_location`, `real_photo_ref` (points into a **non-public storage bucket**, signed URLs only), publication notes; unique `(tenant_id, party_id)` plus composite foreign key `(tenant_id, party_id) → parties(tenant_id, id)`. RLS: only the `security_clearance` capability / an active grant + the resolver's `security_scope`.
+- **`platform_country_risk_seed` (platform reference; not tenant-scoped)** — immutable `seed_version`, `country_code`, `default_security_level`, `source_ref`, and `effective_at`; primary key `(seed_version, country_code)`. It is not exposed through the tenant Data API and is readable only by the private import command.
+- **`country_risk` (tenant-owned, FORCE RLS)** — non-null `tenant_id`, `id`, `country_code`, `default_security_level`, `source_ref` (free-form — e.g. "WWL 2026 tier N"; **source-agnostic** for future indices), `version`, `effective_at`, and optional `imported_seed_version`; primary key `(tenant_id, id)` and unique `(tenant_id, country_code, version)`. The server derives the tenant, selects seed rows only by `(seed_version, country_code)`, and copies them into tenant-owned rows. Tenant resolution never depends on caller-supplied tenant identity, and tenant reads never join through another tenant's rows.
+- **`party_publishing_consent`** — per-person: `tenant_id`, `id`, `party_id`, `publish_name`/`publish_photo`/`publish_story` (bool + consent evidence), `do_not_publish` (hard flag), consent timestamps; unique `(tenant_id, party_id)` plus composite foreign key `(tenant_id, party_id) → parties(tenant_id, id)`. It has its own forced RLS and never relies on a caller-supplied `party_id` without same-tenant proof. Consumed by the firewall + the send seam. Under Phase 22 D26, absence of the three granular affirmative records alone does not create a Page/Update checklist or deny its whole-candidate path; any recorded objection, hard flag, restriction, or stricter current safety result remains subtractive and non-overridable.
 - **`sensitive_read_audit`** (extend Phase 3 audit posture) — append-only: `tenant_id`, `id`, `actor_profile_id`, `record_ref`, `action` (`view|export|print`), `reason`, `origin`, `at`. Itself classified (its own RLS tier).
 - **`identity_access_grants`** — the one grant object (replaces the earlier `break_glass_grants`): `tenant_id`, `id`, `actor_profile_id`, **`subject_type`** (`party` now; named so Phase 12 adds `role`/`region` additively), **`scope_ref`** (the worker), `grant_type` (`requested|break_glass`), `reason`, `granted_by_profile_id` (approver, or self for break-glass), `granted_at`, `expires_at` (**NULL = indefinite**), `reviewed_at`, `reviewed_by`, `state` (`requested|granted|denied|expired|revoked`). Effectiveness is a **read-time JOIN** with active membership; state transitions are **concurrency-guarded** (decide only when `state='requested'`).
 - **`field_policies` census rows** — the new restricted-tier fields + the new tables' fields registered with `sensitivity_category='security'` (or `care`) so the resolver, export governance, and telemetry redaction cover them by construction.
@@ -213,7 +219,7 @@ No production users → build the rails correct-from-start (`NOT NULL security_l
 
 **Acceptance criteria (Phase 10 is "done" when):**
 
-- [ ] `security_level` exists on the person party (fixed enum, `NOT NULL DEFAULT 'standard'`, `security_level_source` marker), defaults from a tenant-owned versioned `country_risk` table (opt-in importable seed + ratchet + person-override), and composes strictest-wins with Phase-3 field `sensitivity_category` through the one resolver with a single ordering source of truth.
+- [ ] `security_level` exists on the person party (fixed enum, `NOT NULL DEFAULT 'standard'`, `security_level_source` marker), defaults from a tenant-owned versioned `country_risk` table populated only through the private, exact-version `platform_country_risk_seed` import command (opt-in seed + ratchet + person-override), and composes strictest-wins with Phase-3 field `sensitivity_category` through the one resolver with a single ordering source of truth.
 - [ ] Dual identity ships: legal name (in `party_restricted`) vs public alias; a **data-layer constraint** forces a distinct alias at `restricted`/`high_risk` and rejects violating imports; classified photo/biography/region/country.
 - [ ] The publication firewall is a **single sole-entry function** enforced at every public/external egress (public reader, CMS, giving projection, receipt render, OG, sitemap, search, CSV, webhook, Support Hub, media EXIF), proven by the negative tier; a CI lint forbids any egress that bypasses the sole entry.
 - [ ] Restricted-tier data lives in `party_restricted` with its own RLS; the ABAC `security_scope` predicate is folded into the Phase-3 subtract-only resolver; cross-tenant + clearance isolation passes; export governance covers `party_restricted` (clearance-gated + audited).
@@ -232,7 +238,7 @@ Foundation tickets first (`status:todo`); the rest `status:blocked`. Hard-blocke
 
 - **Epic #628 — Phase 10: Sensitive-Data Classification & Restricted-Ministry Safety Foundation**
 - **T1 · #629** — Docs: this PRD, the 10 ADRs, CONTEXT.md glossary (security level, Security Clearance, publication firewall, dual identity, identity-access grant, break-glass, retro-scrub, country risk), OpenSpec delta. _(foundation, `status:todo`)_
-- **T2 · #630** — Classification model: `security_level` + `security_level_source` on the party + the single ordering rank + the **tenant-owned versioned `country_risk`** table + the **opt-in importable WWL seed + ratchet** + `resolveSecurityLevel`/`effectiveSensitivity` (strictest-wins); `field_policies` census rows; the "unreviewed security level" data-health signal. _(foundation, `status:todo`)_
+- **T2 · #630** — Classification model: `security_level` + `security_level_source` on the party + the single ordering rank + the **tenant-owned versioned `country_risk`** table + the private exact-version **opt-in importable `platform_country_risk_seed` + ratchet** + `resolveSecurityLevel`/`effectiveSensitivity` (strictest-wins); `field_policies` census rows; the "unreviewed security level" data-health signal. _(foundation, `status:todo`)_
 - **T3 · #631** — Dual identity: `party_restricted` separate table + legal-name/alias + the **data-layer alias-required constraint (+ import rejection)** + classified attributes + non-public photo bucket. _(EXIF scrub is owned by the firewall module → #633.)_
 - **T4 · #632** — The `security_scope` ABAC predicate folded into the Phase-3 subtract-only resolver (predicate-extensible; single ordering source).
 - **T5 · #633** — The **sole-entry** publication firewall function + the enumerated egress guards (public/CMS/giving/receipt/OG/sitemap/search/CSV/webhook/Support-Hub) + media EXIF + the sole-entry CI lint + the review-verdict contract.
@@ -568,3 +574,387 @@ Custody Transfer requires a separately certified Phase 31 lane with exact
 destination identity, manifest acceptance/readback, integrity, restrictions,
 holds, and revocation evidence. Neither event authorizes Phase 29 disposal or
 weakens Asym's duties for copies that remain in its custody.
+
+## Dated Phase 22 D8 public-route disposition safety amendment (2026-08-04)
+
+Phase 10 remains authoritative for current public identity, reach ceilings,
+existence concealment, and immediate affected-scope withdrawal. Phase 22 D8
+therefore gives every unknown and tombstoned Public Ministry Page address the
+same tenant-branded real `404` plus `noindex` response. The internal retirement,
+safety, or lifecycle reason is append-only evidence and never a public `410`,
+copy, timing, analytics, or log oracle. A restricted or Shared-by-link route
+generation retains its original nonredirectable class even if a later page
+release becomes Listed publicly.
+
+Only a Listed-public route for one immutable Page may issue a same-Page
+canonical `308`, and only after request-time reproof of the target's current D2
+release and Phase 10 safety. A different page, person, project, purpose, or
+general fund is never an automatic redirect. If a previously qualified target
+later narrows or becomes unprovable, the origin immediately returns the uniform
+privacy-safe `404`; a resolver or storage outage instead returns neutral
+`503` + `Retry-After` + `no-store` and cannot be misreported as nonexistence.
+
+Route claims, dispositions, source evidence, tombstones, and effect records are
+server-only operational facts with no anonymous/authenticated browser grants or
+Realtime publication. Public telemetry omits restricted paths, names, queries,
+source facts, and operational identifiers. Cache invalidation and external
+search/social removal improve convergence but never authorize serving or prove
+withdrawal complete.
+
+## Dated Phase 22 D9 public-media safety amendment (2026-08-05)
+
+Phase 10's strictest-applicable publication ceiling governs every D9 Upload
+Intent, private intake, Sanitized Media Master Version, derivative, placement,
+alt/decorative decision, caption, attribution, Page Release Manifest, delivery
+request, cache, log, and withdrawal. A restricted real photo cannot become an
+eligible public-media source merely because its pixels were re-encoded or its
+metadata was removed. Placement text is independently safety-resolved because
+alt text and captions can disclose identity or location even when the file is
+clean.
+
+Every raw intake stays private and non-authoritative. Public derivatives remove
+all source-derived filename and non-pixel metadata, including EXIF/GPS, IPTC,
+XMP, maker notes, comments, embedded thumbnails, auxiliary images, and device
+or path data; only certified non-identifying technical output metadata needed
+to decode the reconstructed image may remain. The original filename is not a
+public identity and cannot enter a public URL, serializer, header, metadata
+surface, log, analytic, export, or generated derivative. Any exceptional
+private retention is separately Phase-29-governed and cannot weaken this rule.
+
+A safety or consent narrowing denies new delivery through the D9 opaque
+resolver at the affected scope before asynchronous cache, CDN, search, social,
+or provider cleanup. Phase 22 preserves the immutable placement/release and
+withdrawal intent; Phase 29-compatible custody records copy-specific outcomes.
+The UI must state honestly that previously downloaded, cached, screenshotted,
+archived, or third-party copies cannot be recalled. Neither a successful purge
+request nor a provider response proves universal removal.
+
+## Dated Phase 22 D10 authenticated-preview safety amendment (2026-08-06)
+
+Public Ministry Preview is a protected public-equivalent egress even though its
+audience is authenticated. It renders only the current Phase 10 public-safe
+projection for the exact selected saved revision or immutable candidate. Raw
+blocked identity or content may appear only in a separately authorized
+editor/reviewer diagnostic surface; it must never be exposed by weakening the
+production-equivalent preview.
+
+Every preview HTML, RSC/data, media, refresh, and session-continuation request
+rechecks the current Phase 10 ceiling together with exact current Phase 12/D1
+authorization. A safety or consent narrowing denies the next affected read and
+D9 media resolution before asynchronous cleanup; prior authentication, a Draft
+Mode cookie, copied URL, cached result, or earlier successful request grants no
+continuing authority. Denied, revoked, missing, and wrong-scope targets use one
+non-enumerating **Preview unavailable** envelope, while protected diagnostics
+retain the cause for authorized staff.
+
+Asym can prevent future governed rendering and media delivery, but it cannot
+recall pixels already viewed, screenshotted, downloaded, cached, or otherwise
+copied. The preview UI and incident evidence must not claim otherwise.
+
+## Dated Phase 22 D11-D12 Ministry Update audience and response safety amendment (2026-08-06)
+
+Phase 10 resolves the current per-egress safety ceiling independently for every
+D11 Ministry Update Revision, Public Page Release Projection, authenticated
+Supporter Release Projection, and D12 Engagement Space. A deliberately authored
+public-safe variant never proves that the protected variant, supporter audience,
+response count, identity, acknowledgement, comment, reply, cursor, cache
+fragment, hydration payload, or realtime event is public-safe. Anonymous Public
+Releases are read-only and contain none of those protected response facts.
+
+Every protected content, media, pagination, count, list, react, unreact,
+comment, reply, edit, withdraw, report, moderate, export, stream, and
+notification-deep-link request re-proves the exact current Phase 10 result with
+the D11 audience contract and Phase 12 authority. A safety, consent, or identity
+narrowing denies the next affected read or positive write at the smallest scope
+without erasing append-only response or moderation evidence. Previously rendered
+or copied content is not represented as recalled.
+
+Public errors, logs, analytics, caches, traces, notification previews, and
+support diagnostics must not become existence, identity, relationship, or
+comment-body oracles. Authorized diagnostics retain the protected reason and
+exact affected scope; public and wrong-scope callers receive one
+non-enumerating result. Restricted-worker response notifications, if separately
+authorized by Phases 17/6, use generic body-free copy and a currently authorized
+deep link rather than names, page titles, update text, comment text, or response
+identity in the transport surface.
+
+## Dated Phase 22 D13 public-discovery safety amendment (2026-08-06)
+
+Only fields already admitted for the exact current D2 Page Release and current
+Phase 10 public ceiling may enter a D13 public card or search document. Legal or
+operational names, exact coordinates, protected aliases or relationships,
+internal identifiers, donor/support facts, raw CMS fields, source-language
+fallback, hidden facets or counts, autocomplete suggestions, query logs, cache
+keys, timing, accessibility text, and diagnostics cannot reveal an excluded
+person, page, place, or association. Safety filtering occurs before membership,
+indexing, search, count, sorting, pagination, cursor creation, and caching.
+
+A Phase 10 reclassification, consent withdrawal, or Publication Containment
+removes the affected positive projection row and every matching local cache
+before or atomically with a broader D13 rebuild. A failed build may preserve
+proved absence but cannot restore a stale positive from an older generation,
+mock, CMS row, Party row, `public.locations`, raw table, or Realtime event.
+Local denial and removal are authoritative for Asym serving; search-engine,
+social, CDN, archive, screenshot, and copied-link removal remain independently
+observed best-effort outcomes and are never represented as universal recall or
+de-indexing proof.
+
+## Dated Phase 22 D14 search-and-sharing egress amendment (2026-08-06)
+
+Every D14 surface is an independent public egress and must pass the current
+Phase 10 ceiling: visible HTML, initial head metadata, crawler directives,
+canonical and alternate URLs, JSON-LD, sitemap and IndexNow fields, Open Graph
+and compatible social-card fields, social-image pixels and contextual alt text,
+share payloads, public Update permalinks, cache keys, logs, traces, metrics,
+errors, diagnostics, and accessibility trees. A field that is safe in visible
+body copy is not automatically safe in metadata, structured data, a card image,
+or a provider submission.
+
+`Shared by link — public` is intentionally anonymous public egress, not a
+secret or access-control mechanism. It may receive a D14 Share Presentation but
+must remain `noindex` and absent from directory, navigation, sitemap, public-
+feed, and locale-discovery output. Draft, authenticated-preview, supporter-only,
+contained, withdrawn, retired, tombstoned, or otherwise non-public truth emits
+no content-specific anonymous metadata, card, asset, permalink projection, or
+existence hint.
+
+No D14 output may expose or derive a legal name, exact location, private Party
+or purpose relation, raw record ID, source filename, EXIF/IPTC/XMP or other
+source metadata, private storage/provider URL, draft or preview token,
+supporter identity, protected Update variant, engagement/comment fact, donation
+or Field Account detail, or unsafe cross-Site/cross-locale fallback. Only the
+exact released Phase 10-safe values and D9-certified same-origin derivatives
+may enter the manifest.
+
+When reach, safety, media, route, host, locale, placement, or complete coverage
+becomes adverse or unknown, the affected positive local metadata, sitemap,
+card, asset, and share output is denied before or atomically with broader
+rebuilding. Append-only recovery may restore only a newly proved safe manifest.
+Asym records external crawl/cache/removal observations honestly but never
+claims that local denial proves de-indexing, cache purge, recall, or forgetting.
+
+## Dated Phase 22 D15 measurement-safety amendment (2026-08-06)
+
+D15 durable measurement excludes raw IP and headers, user agent, URL/query,
+referrer, location, fingerprints, cookies/local storage, persistent visitor or
+session identifiers, supporter/donor/legal identity, free-form properties,
+replay frames, and cross-site/device links. Ephemeral request inspection for
+abuse or conservative machine classification remains data processing but never
+enters durable D15 facts. Phase 10 applies code-owned small-cell and
+differencing protection before any report or export and permits no restricted
+identity, route, region, or relationship inference.
+
+Production activation requires truthful notice and the applicable simple
+objection or stricter consent path, plus proved absence of session replay on
+public ministry and giving routes. Independently purposed operational telemetry
+must remain query/body/DOM-safe and cannot backfill D15. These safeguards do not
+claim universal jurisdictional compliance or make aggregate data automatically
+anonymous.
+
+## Dated Phase 22 D16 writing-assistance egress amendment (2026-08-06)
+
+Every D16 writing or English-translation invocation is a new external egress
+that must pass the current Phase 10 ceiling before a provider request is
+created, queued, billed, or sent. Tenant BYOK, contributor access, source-locale
+release, public-safe status in another context, provider detection, fluent
+output, and a prior successful invocation waive nothing. The minimum-data
+manifest may contain only the exact eligible narrative target, deliberately
+supplied answers, and individually selected admitted facts; hidden Page fields,
+whole Page/CMS records, other Pages, Party/relationship graphs, supporter/donor
+data, communications, receipts, expenses, finances, progress, Giving, secrets,
+and prohibited restricted/high-risk/care/security context remain excluded.
+
+Source prose and model output are untrusted data, never instructions or safety
+verdicts. Translation can omit, add, expose, or sharpen identity, relationship,
+location, doctrinal, cultural, or beneficiary details and therefore does not
+inherit the source's prior safety result. Any used D1 successor and eventual
+public candidate passes the ordinary current Phase 10 release proof again. A
+denied, ambiguous, unsupported, stale, or invalid invocation leaves manual
+authoring complete and emits no provider request or existence-revealing error.
+No raw prompt, prose, answer, suggestion, credential, or provider response may
+enter ordinary logs, traces, analytics, support tooling, or browser error
+reporting.
+
+## Dated Phase 22 D17 Page-subject safety amendment (2026-08-06)
+
+Every D17 subject choice, eligible-record result, staff consequence summary,
+preview, release snapshot, public render, metadata/card, directory/search result,
+log, diagnostic, export, and lifecycle message remains subject to the current
+Phase 10 purpose and audience ceiling. Raw source IDs, internal Ministry Project
+or Campaign labels, Designation/GL codes, exact restricted locations, unsafe
+source descriptions, internal statuses, team/relationship details, and
+restriction causes never become public because a source exists or staff can see
+it.
+
+Each release pins only the minimum privacy-safe subject snapshot needed to
+explain the approved presentation. Current safety is re-proved before release
+and public serving; an adverse change narrows or contains affected positive
+output without exposing which source fact failed. CMS content, `fundId`, source
+ownership, prior release, public-subject eligibility, or a valid D7 Giving
+Binding never waives Phase 10 or supplies a fallback public label.
+
+## Dated Phase 22 D18 current-admission and controlled-surface safety amendment (2026-08-06)
+
+Phase 10 remains the sole safety and containment authority. D18's disposable
+**current-serving evaluation** may compose the current D2 reach, Phase 10
+safety/containment, and D8 route heads, but it may not copy, reinterpret, widen,
+or outlive them. A known Phase 10 denial or narrowing first advances the exact
+local admission/containment boundary so new Asym-controlled requests cannot
+select stale positive bytes; only then may asynchronous invalidation, provider,
+search, media, or cleanup work proceed. An inability to resolve or re-prove the
+current authority returns the neutral, non-enumerating, non-shared unavailable
+outcome rather than stale content, a false zero, or a newly asserted not-found
+fact.
+
+The code-owned D18 coverage plan includes every applicable controlled HTML,
+RSC/prefetch, JSON, metadata/card, sitemap/robots, route/redirect/tombstone,
+directory/search, Ministry Update, original or transformed media, image-
+optimizer, header, resolver, and organization-controlled CDN variant. Its
+**Public Ministry Surface Convergence Operation** references the existing D8,
+D9, D13, and D14 effect owners and cannot replace their manifests or Phase 5's
+transport. Requested, accepted, observed, not-verifiable, and external outcomes
+remain distinct, and no public response, log, metric, or diagnostic may expose
+the protected person, source fact, containment reason, provider evidence, or
+residual.
+
+The earlier reclassification scrub and purge-required seam is therefore
+fulfilled for Public Ministry surfaces through D18 composition and the named
+effect owners, not through a second generic purge authority. Asym may state only
+that current requests through its controlled boundary are denied and report
+best-evidenced cleanup of surfaces it controls. Browser or router caches already
+received by a visitor, screenshots, downloads, copied links, search engines,
+social networks, archives, and other external copies cannot be recalled or
+truthfully marked forgotten; their existence never restores current admission.
+
+## Dated Phase 22 D19 Ministry Assignment safety amendment (2026-08-06)
+
+The existence, title, lifecycle, participant roster, relationships, Support
+Binding, access grants, supporter identities, support activity, and balances of
+a Ministry Assignment may all be sensitive. A Ministry Assignment Participant
+Membership, spouse/household/team relationship, D1 Display Participant or
+Contributor Assignment, Phase 21 Support Assignment Participant Membership,
+Designation, progress setting, notification preference, or prior visibility
+never establishes a public-safe field or an authenticated financial projection.
+
+Only the minimum D19 source snapshot admitted by the current Phase 10 purpose,
+audience, consent, identity, location, media, and field ceiling may cross into an
+immutable Missionary Ministry Page release. Raw assignment identity, roster,
+relationship, binding, grant, supporter, and finance rows remain absent from
+anonymous output, metadata, share cards, search, directories, logs, errors,
+analytics, caches, and Realtime. A restricted or newly adverse participant
+causes smallest-scope current containment and owner-directed release repair; it
+does not expose the reason, rename the source, or authorize a substitute person.
+
+Authenticated support modules independently re-prove the current Phase 12
+purpose-, projection-, target-, field-, history-floor-, and governance-epoch
+decision on every request. Public Page reach, public progress, Page editing, or
+the D19 Support Binding cannot widen that floor. Rebinding and participant
+changes preserve previous evidence and propagate no access, public identity,
+supporter visibility, balance, notification, or money movement.
+
+## Dated Phase 22 D21 complete-egress adoption safety amendment (2026-08-14)
+
+Phase 10 remains the sole public-safety and containment authority throughout
+D21 preparation, cutover, and serving. The D21 coverage plan and tenant manifest
+must account for every controlled public egress and predecessor reference that
+could reveal a person or ministry: HTML/RSC/API output; routes, aliases,
+redirects and tombstones; directory and search rows; canonical, sitemap, robots,
+metadata and social-card output; Ministry Updates; originals, derivatives,
+filenames and metadata; preview; cache and image-optimizer variants; logs,
+errors and analytics; Giving handoffs; and mock, fixture, import and legacy
+reader paths. A missing, ambiguous, unclassified, or digest-mismatched item is
+an explicit quarantine or non-public disposition, never safe, zero, omitted, or
+implicitly adopted.
+
+Every prepared candidate is re-proved against current Phase 10 purpose,
+audience, consent, identity, location, media, field ceiling, containment and
+revocation generations. The final D21 CAS rechecks their current owner heads and
+the immutable cohort/host digest; request-time D18 admission continues to apply
+afterward. Before cutover, any newly adverse fact still denies or removes its
+smallest affected positive behavior through the existing D2/D8/D18 path. D21
+cannot hold unsafe legacy content open merely to preserve a visually coherent
+old site, and authority uncertainty returns the existing neutral, non-
+enumerating, non-shared unavailable outcome.
+
+The ordinary staff current/prepared comparison contains only currently
+authorized public-safe projections. Raw unsafe predecessor values and protected
+causes require a separately authorized diagnostic purpose and never enter the
+missionary view, public response, diff, cache, URL, social presentation, or
+export by default. D21 and D18 can evidence denial and cleanup only on
+Asym-controlled surfaces; recipient-held copies, screenshots, downloads,
+search indexes, social caches, and archives remain honest external observations
+and never restore current authority.
+
+## Dated Phase 22 D22 operations-safety amendment (2026-08-14)
+
+D22 must apply the current Phase 10 purpose, audience, field ceiling,
+restricted-person posture, containment, and revocation result before it emits
+any cause, impact, label, count, grouping, search result, export, notification,
+task link, cache entry, or action. Filtering after aggregation is forbidden
+because even a zero, count, title, route, or cause label can reveal a protected
+person or Page.
+
+Ordinary operations copy for restricted or newly adverse subjects is neutral
+and non-enumerating. The exact cause, affected identity, protected evidence,
+and remediation detail require a separately authorized diagnostic purpose and
+must not leak through labels, disabled controls, URLs, errors, telemetry, or
+timing. Phase 10's smallest-scope adverse containment never waits for the D22
+workspace, a notification, staff acknowledgement, or a shared task; D22 only
+reflects the source-owned result afterward.
+
+## Dated Phase 22 D25 editorial-recovery safety amendment (2026-08-14)
+
+Preserved editorial bytes, prior authorship, a recovery buffer, an immutable
+candidate, elapsed time, and a prior ability to view or edit never establish a
+current safe disclosure or reuse right. Before D25 reveals that saved work
+exists, identifies an actor, renders source content or a comparison, or permits
+same-scope reuse, the server applies the current Phase 10 purpose, audience,
+field ceiling, restricted-person posture, containment, revocation, subject,
+locale, media, and semantic-target decision. Every deliberate successor then
+re-proves that decision; unsafe, removed, or incompatible text, fields, links,
+and media are never silently copied.
+
+Ordinary recovery and actionability responses are permission-filtered, neutral,
+and non-enumerating. If Payload or an owner proof is missing, stale,
+contradictory, or unavailable, unreleased work remains private, the last safe
+public release remains independently governed, and the response says only that
+Asym cannot currently confirm the action. Raw prose, full diffs, restricted
+identity, public identifiers, media, and per-keystroke events must not enter
+URLs, errors, logs, analytics, operational tables, outboxes, notifications, or
+cross-tenant aggregates. Sensitive durable browser storage is forbidden; an
+ephemeral losing-session copy grants no server authority and cannot create a
+second product head.
+
+Retention, a Payload version cap, cleanup eligibility, actor revocation, or
+recoverability never grants access or proves that content is safe to publish,
+retain, erase, or externally forgotten. Reference-safe cleanup and
+owner-authorized erasure preserve the minimum permitted non-content evidence
+and invoke the existing Phase 10/D2/D8/D18 containment or successor path when
+current public output is affected. Neither recovery nor cleanup may delay the
+smallest-scope removal of newly unsafe public output.
+
+## Dated Phase 22 D26 candidate-attestation safety amendment (2026-08-14)
+
+For Phase 22 Public Pages and independently released Ministry Updates only,
+the ordinary permission input is the exact candidate-bound **Public Content
+Sharing Attestation** ratified in D26. Missing granular `publish_name`,
+`publish_photo`, or `publish_story` records alone must not create another Page
+checklist, queue, prompt, staff investigation, or release failure. This narrow
+qualification does not delete, falsify, or reinterpret those records for any
+other purpose, tenant policy, jurisdiction, or separately required evidence.
+
+The attestation never overrides a known person's direct objection, hard
+`do_not_publish`, restricted-person rule, current publication-safety ceiling,
+or any stricter Phase 10 result. Phase 10 still applies before candidate
+submission and again inside the owning Page or Update release command; a later
+adverse result invokes the existing smallest-scope D9/D2/D11/D18 containment
+path. Media sanitization, staff approval, a prior release, or the attestation
+itself does not prove ownership, person consent, legal sufficiency, or safety.
+
+The actual statement evidence remains private and content-free outside the
+candidate reference. Public projections, caches, diagnostics, logs, analytics,
+search, social metadata, and public error behavior must reveal neither the
+attestation actor nor whether historical evidence was captured. Legacy absence
+is recorded honestly as **not captured** and never fabricated as confirmation;
+the last independently safe release need not be removed solely for that
+prospective evidence gap.

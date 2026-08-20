@@ -1155,3 +1155,110 @@ helper assignment, invoke a financial correction, or become a downstream
 disposition. Relationship change and Party merge preserve immutable actors and
 cause history and require explicit owner-domain succession; they never transfer
 recovery authority.
+
+## Dated Phase 22 D11-D12 Ministry Update engagement relationship boundary (2026-08-06)
+
+Phase 9 continues to own Party, household, supporter, purpose, relationship,
+timeline, and any separately governed relationship-health truth. A Phase 22
+Ministry Update, Release Projection, Engagement Space, Like, I prayed,
+comment/reply, report, or moderation occurrence is not a Phase 9 relationship
+edge or `crm_activity_event`. It cannot create supporter membership, infer a
+relationship, change household/coach/team structure, or automatically increase
+an engagement score or relationship-health projection.
+
+Phase 9/28 may provide an exact current purpose-authorized supporter input to
+D11's protected audience resolver. D11/D12 must re-prove that owner-domain fact
+on every protected operation and retain response evidence only inside its exact
+audience-local Engagement Space. A response may be offered to Phase 9 as a
+typed, separately admitted observation in a future contract, but it never
+becomes relationship truth merely because it occurred or was delivered.
+
+## Dated Phase 22 D13 public-discovery search boundary (2026-08-06)
+
+Phase 9 continues to own staff-only Party identity, legal-name and alias
+search, the Cmd-K permission-filtered `pg_trgm`/UNION surface, CRM facets, and
+relationship results. Phase 22 D13 owns only public discovery over its current
+source-complete Public Ministry Directory Projection. D13 never queries,
+reuses, widens, or treats the Phase 9 search index as public authority, and a
+Party's presence in CRM search never proves that a public page exists or is
+listed.
+
+D13 may consume only the D1 page identity reference and the exact current
+Phase 10-safe public card fields admitted by the current D2 Page Release. It
+must not expose or index a Party legal name, private alias, relationship,
+household, supporter status, staff note, task, generalized CRM location, or
+other Phase 9 field merely because that field is searchable to authorized
+staff. Party merge and relationship repair preserve their source-owned history
+and require D13 to rebuild from the resulting current owner-domain references;
+they do not mutate a released public card or silently transfer public-page
+membership.
+
+## Dated Phase 22 D17 Ministry Project source-ownership amendment (2026-08-06)
+
+Phase 9's CRM operational ownership layer owns the minimal **Ministry Project**
+identity and lifecycle contract consumed by Phase 22 D17: stable opaque
+identity, exact Tenant and Legal Entity, source-owned type/status, immutable
+version, optional dates, retirement/successor meaning, and audit provenance.
+That narrow source is not a Party, relationship edge, task board, project-
+management suite, accounting project, Phase 13 Giving Campaign or Designation,
+or Payload Project Page. Phase 22 owns only the exact typed Page Subject Binding
+and the privacy-safe source snapshot pinned into a release; it does not create
+or copy the operational project.
+
+The **Ongoing ministry or project** subject arm remains unavailable until the
+source schema, lifecycle and tombstone semantics, same-scope isolation, export
+shape, owner adapter, and production-shaped fixtures are certified. Phase 9
+must not grow task, budget, accounting, scheduling, or arbitrary project-
+management behavior merely to satisfy the public-page relationship.
+
+Party relationships, project leadership, team membership, displayed-person
+status, Campaign ownership, Designation management, and Ministry Project
+participation may be useful staff context but grant no contributor, preview,
+review, release, notification, financial, or workspace authority. Party merge,
+relationship change, source retirement, or project succession preserves every
+historical Page/source reference and enters explicit D8/lifecycle handling; it
+never repoints a released Page or infers a successor Page, Giving destination,
+progress source, or public identity.
+
+## Dated Phase 22 D19 Ministry Assignment source-ownership amendment (2026-08-06)
+
+Phase 9's CRM operational ownership layer also owns the stable **Ministry
+Assignment** identity and lifecycle used by Missionary Ministry Pages. A
+Ministry Assignment belongs to exactly one Tenant and Legal Entity, may have
+zero-to-many separately identified Party participants, and survives participant,
+spouse, household, team, leadership, login, employment, and public-page changes.
+It is distinct from a Party, household, relationship edge, Phase 9 Ministry
+Project, Phase 21 Support Assignment, Phase 13 Designation or Campaign, Public
+Ministry Page, and financial account.
+
+A **Ministry Assignment Participant Membership** is a prospective,
+effective-dated, append-only-corrected association for one Party and one exact
+half-open interval. Phase 9 owns that association only. It grants no D1 public
+display or Page contribution, Phase 12 capability, Phase 21 participation or
+Support Workspace access, responsibility, notification, supporter identity,
+financial ownership, or money movement.
+
+Phase 21's separately finance-authorized command owns and may maintain one
+optional prospective same-scope **Ministry Assignment Support Binding Version**
+to a Support Assignment. Phase 22 consumes that bridge but no Page,
+contributor, or CRM role may select it. The binding references both source-owned
+identities and never merges them. Adding, ending, correcting, or succeeding a
+Ministry Assignment membership or binding does not propagate participants,
+grants, balances, history, notifications, Giving destinations, or public
+progress.
+
+A Ministry Assignment is the people, service, and optional Support Workspace
+context for a Missionary Ministry Page. A Ministry Project is an initiative or
+program subject for D17's Project/Campaign Page. D19 adds no fourth D17 subject
+arm and never auto-links those source identities. Project Page collaborators
+still require D1 Contributor Assignments, while any project support viewer
+still requires Phase 21 participation where applicable, an exact Phase 12
+grant, and the D9 module publication posture.
+
+Every Missionary Ministry Page references one exact Ministry Assignment through
+D1's Page Subject Binding and pins only a Phase 10-approved public-safe snapshot
+into a release. Display Participants and Contributor Assignments remain explicit
+D1 facts. Party merge/split, spouse separation, departure, death/incapacity,
+team change, Ministry Assignment retirement, or binding succession preserves
+historical identity and requires explicit owner-domain dispositions; it never
+repoints a released Page or unions permissions.

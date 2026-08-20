@@ -54,3 +54,47 @@ headers, draft state) are read outside `use cache` and passed as arguments.
   argument is visible.
 - Draft Mode requests are dynamic by construction (the bypass cookie), so
   preview traffic can never populate or read the published cache.
+
+## Dated Phase 22 D18 clarification (2026-08-06)
+
+This ADR remains the Phase 5 cache-mechanism authority. Phase 22 D18 adds Public
+Ministry semantic ordering and controlled-surface coverage; it does not create a
+second cache implementation, publication head, or purge service.
+
+The original “roughly 300ms” and “about an hour” language describes the selected
+provider/mechanism expectation and bounded self-healing target. It is not proof
+that every HTML, RSC/prefetch, JSON, metadata, sitemap, route, media, image-
+optimizer, directory/search, browser, or CDN variant stopped serving, and a
+bounded `cacheLife` is not an adverse-safety control. Likewise, the earlier
+“triple-layered” consequence does not make a tag an isolation or authorization
+layer: exact cache-key arguments isolate, current admission authorizes, and tags
+only address invalidation.
+
+For Public Ministry responses, request-specific scope is resolved outside
+reusable content and one small disposable **current-serving evaluation** runs
+before identity-bearing cached content is selected. Complete shared Page or
+Ministry Update responses are prohibited unless the exact provider, product,
+environment, route, and variant is production-certified to execute that
+admission before every cache. Ordinary still-valid positive replacement may use
+bounded stale-while-revalidate; an owner-labelled adverse or unknown scope must
+deny or omit locally first and may use neither stale-while-revalidate nor stale-
+if-error.
+
+One append-only **Public Ministry Surface Convergence Operation** references A9
+transport and the existing Phase 22 effect owners for exact residual recovery.
+Release activation, expiration requested, provider accepted, controlled response
+observed, not verifiable, and external observation remain different facts.
+Recipient-held browser/router caches and external search, social, archive,
+download, screenshot, and copied-link artifacts are outside Asym's recall
+control. See [ADR-0135](./0135-release-bound-public-ministry-runtime-composition.md).
+
+## Dated Phase 22 D21 clarification (2026-08-14)
+
+The D21 Surface Authority Cutover atomically appends one D18 cause through the
+local transactional outbox, but cache invalidation, warming, provider
+acceptance, controlled-response observation, deployment rollback, or external
+index refresh cannot establish, reverse, or complete the reader-authority
+transition. The cutover advances one cohort authority head after comparing
+precomputed immutable digests and owner epochs; D18 then owns fenced residual
+controlled-surface convergence. An old deployment or cache namespace must honor
+the current head or fail closed and can never revive the legacy reader.
