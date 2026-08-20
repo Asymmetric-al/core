@@ -3,7 +3,7 @@
 ## Trigger
 
 Use this guide when adding or changing App Router API routes, business data
-access, server-only vendor integrations, or CRM/Twenty access paths.
+access, server-only vendor integrations, or CRM access paths.
 
 ## Rule
 
@@ -16,10 +16,11 @@ Supabase table reads when a collection exists. The browser Supabase client is
 reserved for approved low-level auth/session/storage helpers, not feature-local
 table reads.
 
-Twenty CRM follows the same boundary. App source must not import raw Twenty
-client wrappers from `packages/api/src/crm/client/*`, must not import
-`@asym/api/crm/client*`, and must never reference server-only Twenty secrets
-such as `TWENTY_API_KEY` or `TWENTY_WEBHOOK_SECRET`.
+Asym Postgres owns all CRM truth. Twenty CRM is retired. App source must not
+restore Twenty clients, credentials, routes, webhooks, synchronization, or
+projections. Do not import `@asym/api/crm/client*` or recreate
+`packages/api/src/crm/client/*`, and never reference `TWENTY_API_KEY`,
+`TWENTY_WEBHOOK_SECRET`, or any `NEXT_PUBLIC_TWENTY_*` value.
 
 ## Enforcement
 
@@ -27,7 +28,7 @@ such as `TWENTY_API_KEY` or `TWENTY_WEBHOOK_SECRET`.
 2. Secondary: `scripts/verify/data-boundary-check.mjs` runs in CI as a belt-and-suspenders guard.
 
 The CI script scans API route handlers for direct Supabase imports and app
-source for raw Twenty client imports or server-only Twenty credential usage.
+source for restored Twenty client imports or retired Twenty credential usage.
 Routes outside `app/api/` (for example `apps/donor/app/auth/callback/route.ts`,
 which now re-exports `GET` from `@asym/api/auth/callback`) are outside the API
 route Supabase scope but follow the same delegation pattern.
@@ -41,16 +42,14 @@ route Supabase scope but follow the same delegation pattern.
    the collection registry.
 5. Use `@asym/env` for server-only credentials inside packages, not raw
    `process.env` reads in app/runtime modules.
-6. Run `bun run verify:data-boundary` after changing routes, app data reads, or CRM/Twenty
+6. Run `bun run verify:data-boundary` after changing routes, app data reads, or CRM
    access paths.
 
 The Twenty CRM integration is retired
-([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md));
-Asym Postgres owns all CRM truth (see the
-[Phase 1 ownership matrix](../../prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md)).
-The Twenty client code is dormant pending a scheduled cleanup ticket, so the
-Twenty-specific rules above still guard real code; delete them from this guide
-only when that ticket removes the code.
+([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)).
+Asym Postgres owns all CRM truth. Remaining Twenty client code is not a valid
+product path; do not restore it. Remove it through the accepted retirement
+change rather than wrapping it as a generic provider adapter.
 
 ## Approved Exceptions
 
@@ -78,7 +77,7 @@ only when that ticket removes the code.
       single-table writes.
 - [ ] Payments, donations, receipts, webhooks, audit, role changes, reporting,
       RPC counters, and multi-table workflows remain server-command owned.
-- [ ] Raw Twenty clients stay under `packages/api/src/crm/client/*`.
+- [ ] No new Twenty client, credential, route, webhook, or sync path is added.
 - [ ] App source does not reference `TWENTY_API_KEY`,
       `TWENTY_WEBHOOK_SECRET`, or any `NEXT_PUBLIC_TWENTY_*` secret.
 - [ ] `bun run verify:data-boundary` passes.

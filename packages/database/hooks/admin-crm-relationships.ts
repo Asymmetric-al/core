@@ -184,11 +184,11 @@ export function useAdminCrmRelationshipsGrid() {
 
   return {
     clearDomains,
-    configured: relationshipsQuery.data?.configured ?? false,
+    configured: relationshipsQuery.data?.configured ?? true,
     domains,
     isLoading: relationshipsQuery.isPending,
     missing: relationshipsQuery.data?.missing ?? [],
-    mode: relationshipsQuery.data?.mode ?? "not_configured",
+    mode: relationshipsQuery.data?.mode ?? "local",
     onDomainToggle: toggleDomain,
     onRefresh: relationshipsQuery.refetch,
     onSearchChange: setSearch,

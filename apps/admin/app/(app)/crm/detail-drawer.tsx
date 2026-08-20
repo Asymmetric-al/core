@@ -128,7 +128,7 @@ export function DetailDrawer({
         visibility: "standard",
       });
       setNoteBody("");
-      toast.success("CRM note queued.");
+      toast.success("CRM note saved.");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to save note.",
