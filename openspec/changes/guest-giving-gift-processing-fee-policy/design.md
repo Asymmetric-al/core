@@ -86,4 +86,4 @@ is Guest Giving Gift intake only.
 
 - Unit tests at the Core **interface**, schema defaults, Gift intake `p_amount`,
   saga metadata merge, checkout adapter POST body, and cover-fees UI.
-- `bunx @fission-ai/openspec@latest validate --all --strict`.
+- `bun run openspec:validate`.

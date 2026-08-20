@@ -133,9 +133,8 @@ export const POST = withOperation(
       );
     }
 
-    let extraPaymentIntentMetadata:
-      | ReturnType<typeof toGiftProcessingFeeStripeMetadata>
-      | undefined = toGiftProcessingFeeStripeMetadata(feeQuote);
+    const extraPaymentIntentMetadata =
+      toGiftProcessingFeeStripeMetadata(feeQuote);
 
     if (beginResult?.replayed) {
       const { data: storedDonation, error: storedDonationError } =
@@ -163,7 +162,6 @@ export const POST = withOperation(
           "This idempotency key was already used for a different charged amount.",
         );
       }
-      extraPaymentIntentMetadata = undefined;
     }
 
     const sagaResult = await processDonationSagaOutboxEvent({

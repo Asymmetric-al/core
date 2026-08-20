@@ -98,7 +98,11 @@ export function quoteGuestGivingCheckoutFees(input: {
   paymentMethod: CheckoutPaymentMethod;
 }): GuestGivingCheckoutFeeQuote {
   const giftAmountCents = Math.round(input.giftAmount * 100);
-  if (!Number.isFinite(input.giftAmount) || giftAmountCents < 1) {
+  if (
+    !Number.isFinite(input.giftAmount) ||
+    !Number.isSafeInteger(giftAmountCents) ||
+    giftAmountCents < 1
+  ) {
     return {
       giftAmount: 0,
       coverAmount: 0,
@@ -139,7 +143,12 @@ export function buildDonateRequestBody(input: {
   missionaryId?: string | null;
   fundId?: string | null;
 }): DonateRequestBody {
-  if (!Number.isFinite(input.amount) || input.amount <= 0) {
+  const giftAmountCents = Math.round(input.amount * 100);
+  if (
+    !Number.isFinite(input.amount) ||
+    !Number.isSafeInteger(giftAmountCents) ||
+    giftAmountCents < 1
+  ) {
     throw new Error("Donation amount must be greater than 0");
   }
 

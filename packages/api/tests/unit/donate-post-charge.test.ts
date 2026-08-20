@@ -296,8 +296,13 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
   });
 
-  it("replays a matching Gift without attaching a new fee quote", async () => {
-    storedDonationAmount = 10000;
+  it("replays a matching Gift with the current fee metadata so PI params stay bound", async () => {
+    const expectedQuote = resolveGiftIntakeCharge({
+      amount: 100,
+      coverFees: false,
+      paymentMethod: "card",
+    });
+    storedDonationAmount = expectedQuote.chargedAmountCents;
     mockedGetAdminClient.mockReturnValue({
       client: {
         rpc: rpcMock,
@@ -322,8 +327,50 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     expect(response.status).toBe(200);
     expect(mockedProcessDonationSagaOutboxEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        extraPaymentIntentMetadata: undefined,
+        extraPaymentIntentMetadata:
+          toGiftProcessingFeeStripeMetadata(expectedQuote),
       }),
     );
+  });
+
+  it("keeps ACH payment_method extras on a matching charged-cents replay", async () => {
+    const expectedQuote = resolveGiftIntakeCharge({
+      amount: 100,
+      coverFees: true,
+      paymentMethod: "ach",
+    });
+    storedDonationAmount = expectedQuote.chargedAmountCents;
+    mockedGetAdminClient.mockReturnValue({
+      client: {
+        rpc: rpcMock,
+        from: createDonationsFromMock(storedDonationAmount),
+      } as never,
+      error: null,
+    });
+    rpcMock.mockResolvedValue({
+      data: { ...beginRpcResult, replayed: true },
+      error: null,
+    });
+
+    const response = await POST(
+      createDonateRequest({
+        amount: 100,
+        currency: "usd",
+        cover_fees: true,
+        payment_method: "ach",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(expectedQuote.chargedAmountCents).toBe(10081);
+    expect(mockedProcessDonationSagaOutboxEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        extraPaymentIntentMetadata:
+          toGiftProcessingFeeStripeMetadata(expectedQuote),
+      }),
+    );
+    expect(
+      toGiftProcessingFeeStripeMetadata(expectedQuote).payment_method,
+    ).toBe("ach");
   });
 });

@@ -65,6 +65,34 @@ describe("quoteGuestGivingCheckoutFees", () => {
       estimatedStripeFee: 0,
     });
   });
+
+  it("quotes zero for a sub-cent gift that would otherwise round away", () => {
+    expect(
+      quoteGuestGivingCheckoutFees({
+        giftAmount: 0.004,
+        coverFees: true,
+        paymentMethod: "card",
+      }),
+    ).toMatchObject({
+      giftAmount: 0,
+      coverAmount: 0,
+      chargedAmount: 0,
+    });
+  });
+
+  it("quotes zero for an amount whose cents are not a safe integer", () => {
+    expect(
+      quoteGuestGivingCheckoutFees({
+        giftAmount: Number.MAX_SAFE_INTEGER,
+        coverFees: false,
+        paymentMethod: "card",
+      }),
+    ).toMatchObject({
+      giftAmount: 0,
+      coverAmount: 0,
+      chargedAmount: 0,
+    });
+  });
 });
 
 describe("buildDonateRequestBody", () => {
@@ -161,6 +189,26 @@ describe("buildDonateRequestBody", () => {
         coverFees: false,
         paymentMethod: "card",
         fundId: "f_1",
+      }),
+    ).toThrow(/amount/i);
+  });
+
+  it("rejects a sub-cent gift before POST", () => {
+    expect(() =>
+      buildDonateRequestBody({
+        amount: 0.004,
+        coverFees: false,
+        paymentMethod: "card",
+      }),
+    ).toThrow(/amount/i);
+  });
+
+  it("rejects a gift whose cents are not a safe integer", () => {
+    expect(() =>
+      buildDonateRequestBody({
+        amount: Number.MAX_SAFE_INTEGER,
+        coverFees: false,
+        paymentMethod: "card",
       }),
     ).toThrow(/amount/i);
   });

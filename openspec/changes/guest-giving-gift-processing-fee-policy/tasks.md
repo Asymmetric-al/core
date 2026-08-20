@@ -27,8 +27,7 @@
 - [x] 4.1 Unit tests for Core quotes, schema defaults, saga metadata merge,
       adapter POST body, and checkout cover-fees / ACH quote without live bank
       POST.
-- [x] 4.2 `bunx @fission-ai/openspec@latest validate
-guest-giving-gift-processing-fee-policy --type change --strict` passes.
+- [x] 4.2 `bun run openspec -- validate guest-giving-gift-processing-fee-policy --type change --strict` passes.
       `--all --strict` currently fails on unrelated pre-existing
       `add-guest-giving-and-gift-anonymity` (receipts MODIFIED omits scenarios);
       that change is out of scope. Archive this change after deployment
