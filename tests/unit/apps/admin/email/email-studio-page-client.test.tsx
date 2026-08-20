@@ -956,6 +956,63 @@ describe("EmailStudio page", () => {
     });
   });
 
+  it("does not persist a default design from a leftover save dialog before nested ready", async () => {
+    const fetchMock = stubStudioFetch((url, method) => {
+      if (method === "GET" && url === "/api/email/templates") {
+        return mixedTemplatesResponse();
+      }
+      return null;
+    });
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    await screen.findByText("Save Email Template");
+
+    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /legacy welcome/i }),
+    );
+
+    editorReadyControl.defer = true;
+    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /react welcome/i }),
+    );
+
+    const leftoverConfirm = screen.queryByRole("button", {
+      name: /save template/i,
+    });
+    if (leftoverConfirm && !(leftoverConfirm as HTMLButtonElement).disabled) {
+      fireEvent.click(leftoverConfirm);
+    }
+
+    await waitFor(() => {
+      expect(screen.getByTestId("react-email-editor")).toBeTruthy();
+      expect(
+        (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(true);
+    });
+    expect(editorHandle.appliedDesign).toEqual({});
+    expect(editorHandle.exportEmail).not.toHaveBeenCalled();
+    expect(
+      fetchMock.mock.calls.filter(([url, init]) => {
+        const method = String((init as RequestInit | undefined)?.method);
+        const path = String(url);
+        return (
+          (method === "POST" && path === "/api/email/templates") ||
+          (method === "PATCH" && /^\/api\/email\/templates\/[^/]+$/.test(path))
+        );
+      }),
+    ).toEqual([]);
+  });
+
   it("persists the save-dialog draft name without remounting the editor", async () => {
     const fetchMock = stubStudioFetch();
 

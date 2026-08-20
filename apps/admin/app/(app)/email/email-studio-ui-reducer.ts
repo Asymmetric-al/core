@@ -24,7 +24,7 @@ export function emailStudioUiReducer(
     case "editor_ready":
       return { ...state, isEditorReady: true, studioConfig: action.config };
     case "editor_unmounted":
-      return { ...state, isEditorReady: false };
+      return { ...state, isEditorReady: false, showSaveDialog: false };
     case "set_saving":
       return { ...state, isSaving: action.saving };
     case "set_unsaved_changes":

@@ -226,7 +226,7 @@ export default function EmailStudio() {
   const persistCurrentTemplate = useCallback(
     async (metadataOverride?: EmailMetadata) => {
       const editor = editorRef.current;
-      if (!editor) {
+      if (!canEditCurrentTemplate || pendingDesignRef.current || !editor) {
         throw new Error("Email editor is not ready.");
       }
       const nextMetadata = metadataOverride ?? metadata;
@@ -243,7 +243,12 @@ export default function EmailStudio() {
       void invalidateAdminSurfaceQuery(queryClient, "emailTemplates");
       return saved;
     },
-    [metadata, queryClient, ui.studioConfig?.export.minifyHtml],
+    [
+      canEditCurrentTemplate,
+      metadata,
+      queryClient,
+      ui.studioConfig?.export.minifyHtml,
+    ],
   );
 
   const handleSaveClick = useCallback(() => {
@@ -262,7 +267,9 @@ export default function EmailStudio() {
       if (
         saveInFlightRef.current ||
         testSendInFlightRef.current ||
-        isLegacyReadOnly
+        isLegacyReadOnly ||
+        !canEditCurrentTemplate ||
+        pendingDesignRef.current
       ) {
         return;
       }
@@ -284,7 +291,7 @@ export default function EmailStudio() {
         dispatch({ type: "set_saving", saving: false });
       }
     },
-    [isLegacyReadOnly, persistCurrentTemplate],
+    [canEditCurrentTemplate, isLegacyReadOnly, persistCurrentTemplate],
   );
 
   const handleNewTemplate = useCallback(() => {
@@ -299,6 +306,8 @@ export default function EmailStudio() {
   const handleSelectTemplate = useCallback(
     (template: EmailTemplateListEntry) => {
       setShowTemplatePicker(false);
+      setShowTestSendDialog(false);
+      dispatch({ type: "set_show_save_dialog", open: false });
       const preview = previewFromTemplate(template);
       setMetadata({
         id: template.id,
@@ -333,7 +342,9 @@ export default function EmailStudio() {
     if (
       testSendInFlightRef.current ||
       saveInFlightRef.current ||
-      isLegacyReadOnly
+      isLegacyReadOnly ||
+      !canEditCurrentTemplate ||
+      pendingDesignRef.current
     ) {
       return;
     }
@@ -377,6 +388,7 @@ export default function EmailStudio() {
     metadata,
     testToEmail,
     ui.studioConfig?.export.minifyHtml,
+    canEditCurrentTemplate,
   ]);
 
   const handleCopyHtml = useCallback(async () => {

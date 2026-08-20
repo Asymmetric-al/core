@@ -29,9 +29,14 @@ describe("emailStudioUiReducer", () => {
       type: "editor_ready",
       config: STUDIO_CONFIG,
     });
-    const next = emailStudioUiReducer(ready, { type: "editor_unmounted" });
+    const saving = emailStudioUiReducer(ready, {
+      type: "set_show_save_dialog",
+      open: true,
+    });
+    const next = emailStudioUiReducer(saving, { type: "editor_unmounted" });
 
     expect(next.isEditorReady).toBe(false);
+    expect(next.showSaveDialog).toBe(false);
     expect(next.studioConfig).toBe(STUDIO_CONFIG);
   });
 

@@ -220,17 +220,24 @@ export const ReactEmailEditor = forwardRef<
     ],
   );
 
-  const handleReady = useCallback(() => {
-    const editor = editorRef.current?.editor;
-    const pending = pendingDesignRef.current;
-    if (editor && pending !== null) {
-      pendingDesignRef.current = null;
-      applyLoadedDesign(editor, pending);
-    }
+  const handleReady = useCallback(
+    (readyEditor?: EmailEditorRef) => {
+      const editor = readyEditor?.editor ?? editorRef.current?.editor;
+      if (!editor) {
+        return;
+      }
 
-    setIsReady(true);
-    onReady?.();
-  }, [onReady]);
+      const pending = pendingDesignRef.current;
+      if (pending !== null) {
+        pendingDesignRef.current = null;
+        applyLoadedDesign(editor, pending);
+      }
+
+      setIsReady(true);
+      onReady?.();
+    },
+    [onReady],
+  );
 
   const handleUpdate = useCallback(
     (editor: EmailEditorRef) => {
