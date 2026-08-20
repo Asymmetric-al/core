@@ -113,27 +113,31 @@ async function loadDonationSagaFeeExtras(
   supabaseAdmin: DonationSupabaseClient,
   outboxId: string,
 ): Promise<GiftProcessingFeeStripeMetadata | undefined> {
-  try {
-    const selected = supabaseAdmin
-      .from("donation_saga_outbox")
-      .select("fee_extras");
-    const filtered =
-      selected && typeof selected.eq === "function"
-        ? selected.eq("id", outboxId)
-        : selected;
-    const result =
-      filtered && typeof filtered.maybeSingle === "function"
-        ? await filtered.maybeSingle()
-        : await filtered;
-    const feeExtras =
-      result && typeof result === "object" && "data" in result
-        ? (result as { data?: { fee_extras?: unknown } | null }).data
-            ?.fee_extras
-        : undefined;
-    return parseGiftProcessingFeeStripeMetadata(feeExtras);
-  } catch {
-    return undefined;
+  const selected = supabaseAdmin
+    .from("donation_saga_outbox")
+    .select("fee_extras");
+  const filtered =
+    selected && typeof selected.eq === "function"
+      ? selected.eq("id", outboxId)
+      : selected;
+  const result =
+    filtered && typeof filtered.maybeSingle === "function"
+      ? await filtered.maybeSingle()
+      : await filtered;
+  const resultError =
+    result && typeof result === "object" && "error" in result
+      ? (result as { error?: { message?: string } | null }).error
+      : null;
+  if (resultError) {
+    throw new Error(
+      resultError.message ?? "Failed to load donation saga fee extras",
+    );
   }
+  const feeExtras =
+    result && typeof result === "object" && "data" in result
+      ? (result as { data?: { fee_extras?: unknown } | null }).data?.fee_extras
+      : undefined;
+  return parseGiftProcessingFeeStripeMetadata(feeExtras);
 }
 
 async function resolveDonationSagaFeeExtras(params: {

@@ -20,6 +20,15 @@ function createStripeMock() {
   } as unknown as Stripe;
 }
 
+function emptyOutboxFeeExtrasSelect() {
+  const maybeSingle = vi.fn().mockResolvedValue({
+    data: { fee_extras: {} },
+    error: null,
+  });
+  const selectEq = vi.fn().mockReturnValue({ maybeSingle });
+  return vi.fn().mockReturnValue({ eq: selectEq });
+}
+
 describe("donation saga helpers", () => {
   it("processes a claimed event to completion", async () => {
     const rpc = vi.fn().mockImplementation((fn: string) => {
@@ -44,8 +53,11 @@ describe("donation saga helpers", () => {
       }
       return Promise.resolve({ data: null, error: null });
     });
-    const from = vi.fn(() => {
-      throw new Error("from() should not be called in this path");
+    const from = vi.fn((table: string) => {
+      if (table !== "donation_saga_outbox") {
+        throw new Error(`Unexpected table lookup: ${table}`);
+      }
+      return { select: emptyOutboxFeeExtrasSelect() };
     });
     const supabaseAdmin = { rpc, from };
 
@@ -235,8 +247,11 @@ describe("donation saga helpers", () => {
       }
       return Promise.resolve({ data: null, error: null });
     });
-    const from = vi.fn(() => {
-      throw new Error("from() should not be called in this path");
+    const from = vi.fn((table: string) => {
+      if (table !== "donation_saga_outbox") {
+        throw new Error(`Unexpected table lookup: ${table}`);
+      }
+      return { select: emptyOutboxFeeExtrasSelect() };
     });
     const supabaseAdmin = { rpc, from };
 
@@ -333,6 +348,9 @@ describe("donation saga helpers", () => {
       }
       if (table === "profiles") {
         return { select: profileSelect };
+      }
+      if (table === "donation_saga_outbox") {
+        return { select: emptyOutboxFeeExtrasSelect() };
       }
       throw new Error(`Unexpected table lookup: ${table}`);
     });
@@ -498,6 +516,51 @@ describe("donation saga helpers", () => {
       }),
     );
     expect(create.mock.calls[0]?.[0].automatic_payment_methods).toBeUndefined();
+  });
+
+  it("fails closed when stored Gift fee extras cannot be loaded on recovery", async () => {
+    const rpc = vi.fn().mockImplementation((fn: string) => {
+      if (fn === "claim_donation_saga_event") {
+        return Promise.resolve({
+          data: {
+            claimed: true,
+            donation_id: "don-recover-fail",
+            donor_id: "donor-recover-fail",
+            tenant_id: "tenant-recover-fail",
+            amount: 10081,
+            currency: "usd",
+            attempt_count: 2,
+            idempotency_key: "idem-recover-fail",
+            stripe_customer_id: "cus_recover_fail",
+          },
+          error: null,
+        });
+      }
+      return Promise.resolve({ data: null, error: null });
+    });
+    const maybeSingle = vi
+      .fn()
+      .mockRejectedValue(new Error("fee extras lookup failed"));
+    const selectEq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq: selectEq });
+    const from = vi.fn((table: string) => {
+      if (table !== "donation_saga_outbox") {
+        throw new Error(`Unexpected table lookup: ${table}`);
+      }
+      return { select };
+    });
+    const stripe = createStripeMock();
+
+    await expect(
+      processDonationSagaOutboxEvent({
+        supabaseAdmin: { rpc, from } as never,
+        stripe,
+        outboxId: "out-recover-fail",
+        actorUserId: "actor-recover-fail",
+      }),
+    ).rejects.toThrow("fee extras lookup failed");
+
+    expect(stripe.paymentIntents.create).not.toHaveBeenCalled();
   });
 
   it("persists caller fee extras onto the outbox before claiming", async () => {
