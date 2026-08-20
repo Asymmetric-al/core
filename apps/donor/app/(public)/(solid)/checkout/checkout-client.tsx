@@ -13,6 +13,13 @@ import {
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldTitle,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Separator } from "@asym/ui/components/shadcn/separator";
@@ -600,24 +607,14 @@ function ConfigStep({
           </div>
         </fieldset>
 
-        <div
+        <Field
+          orientation="horizontal"
           className={cn(
-            "rounded-[2rem] p-8 border-2 flex gap-6 items-center cursor-pointer transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500",
+            "rounded-[2rem] p-8 border-2 gap-6 items-center transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500",
             coverFees
               ? "bg-zinc-900 border-zinc-900 text-white"
               : "bg-white border-zinc-100 text-zinc-950 hover:border-zinc-200",
           )}
-          onClick={() => onCoverFeesChange(!coverFees)}
-          role="checkbox"
-          aria-checked={coverFees}
-          aria-label="Cover processing fees"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onCoverFeesChange(!coverFees);
-            }
-          }}
         >
           <div
             className={cn(
@@ -633,31 +630,33 @@ function ConfigStep({
               aria-hidden="true"
             />
           </div>
-          <div className="flex-1">
-            <p className="font-semibold font-syne text-xl">
-              Cover Processing Fees
-            </p>
-            <p
-              className={cn(
-                "text-xs font-medium mt-1 leading-relaxed",
-                coverFees ? "text-white/80" : "text-zinc-400",
-              )}
-            >
-              Add <strong>{formatCurrency(calculatedFees)}</strong> to help
-              cover estimated processing costs.
-            </p>
-          </div>
-          <div
-            onClick={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
+          <FieldLabel
+            htmlFor="cover-processing-fees"
+            className="flex-1 cursor-pointer items-start"
           >
-            <Switch
-              checked={coverFees}
-              onCheckedChange={onCoverFeesChange}
-              className="data-checked:bg-white data-checked:opacity-100"
-            />
-          </div>
-        </div>
+            <FieldContent>
+              <FieldTitle className="font-semibold font-syne text-xl text-inherit">
+                Cover Processing Fees
+              </FieldTitle>
+              <FieldDescription
+                className={cn(
+                  "text-xs font-medium mt-1 leading-relaxed",
+                  coverFees ? "text-white/80" : "text-zinc-400",
+                )}
+              >
+                Add <strong>{formatCurrency(calculatedFees)}</strong> to help
+                cover estimated processing costs.
+              </FieldDescription>
+            </FieldContent>
+          </FieldLabel>
+          <Switch
+            id="cover-processing-fees"
+            role="switch"
+            aria-label="Cover processing fees"
+            checked={coverFees}
+            onCheckedChange={onCoverFeesChange}
+          />
+        </Field>
       </div>
 
       <Button

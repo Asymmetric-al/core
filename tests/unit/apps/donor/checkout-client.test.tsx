@@ -332,7 +332,7 @@ const confirmPayment = () => {
 
 const toggleCoverProcessingFees = () => {
   fireEvent.click(
-    screen.getByRole("checkbox", { name: "Cover processing fees" }),
+    screen.getByRole("switch", { name: /cover processing fees/i }),
   );
 };
 
