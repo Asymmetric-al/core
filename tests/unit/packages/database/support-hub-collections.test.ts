@@ -7,6 +7,7 @@ import {
   supportHubCollectionQueryKey,
   supportHubQueryKeys,
 } from "../../../../packages/database/query-keys";
+import { EMPTY_SUPPORT_CONTACT_REF } from "../../../../packages/database/collections/support-hub.schema";
 import {
   fetchSupportAgents,
   fetchSupportAutomationRules,
@@ -292,10 +293,14 @@ describe("Support Hub route-backed collections", () => {
             valid,
             conversationRow({ id: "conv_missing_tenant", tenantId: "" }),
             conversationRow({
+              id: "conv_partial_contact",
+              contact: { donorId: "donor-1" },
+            }),
+            conversationRow({
               id: "conv_adapter_shaped",
               subject: "",
               externalContactEmail: "a@b",
-              contact: { donorId: "donor-1" },
+              contact: { ...EMPTY_SUPPORT_CONTACT_REF, donorId: "donor-1" },
             }),
           ],
         }),

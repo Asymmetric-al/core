@@ -181,25 +181,15 @@ export const supportTeamSchema = z.object({
   initials: z.string().min(1),
 });
 
-const supportContactRefSchema = z
-  .object({
-    contactId: z.string().nullable().optional(),
-    donorId: z.string().nullable().optional(),
-    giftId: z.string().nullable().optional(),
-    contributionId: z.string().nullable().optional(),
-    missionaryId: z.string().nullable().optional(),
-    crmPersonId: z.string().nullable().optional(),
-    churchId: z.string().nullable().optional(),
-  })
-  .transform((value) => ({
-    contactId: value.contactId ?? null,
-    donorId: value.donorId ?? null,
-    giftId: value.giftId ?? null,
-    contributionId: value.contributionId ?? null,
-    missionaryId: value.missionaryId ?? null,
-    crmPersonId: value.crmPersonId ?? null,
-    churchId: value.churchId ?? null,
-  }));
+const supportContactRefSchema = z.object({
+  contactId: z.string().nullable(),
+  donorId: z.string().nullable(),
+  giftId: z.string().nullable(),
+  contributionId: z.string().nullable(),
+  missionaryId: z.string().nullable(),
+  crmPersonId: z.string().nullable(),
+  churchId: z.string().nullable(),
+});
 
 const supportParticipantSchema = z.object({
   id: z.string().min(1),

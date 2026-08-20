@@ -90,15 +90,25 @@ describe("supportConversationSchema adapter-legal rows", () => {
     expect(parsed.externalContactEmail).toBe("a@b");
   });
 
-  it("merges a partial contact onto EMPTY_SUPPORT_CONTACT_REF", () => {
+  it("reads a contact ref after EMPTY_SUPPORT_CONTACT_REF is merged", () => {
     const parsed = supportConversationSchema.parse(
-      conversationFixture({ contact: { donorId: "donor-1" } }),
+      conversationFixture({
+        contact: { ...EMPTY_SUPPORT_CONTACT_REF, donorId: "donor-1" },
+      }),
     );
 
     expect(parsed.contact).toEqual({
       ...EMPTY_SUPPORT_CONTACT_REF,
       donorId: "donor-1",
     });
+  });
+
+  it("drops a partial contact that has not been normalized yet", () => {
+    expect(
+      supportConversationSchema.safeParse(
+        conversationFixture({ contact: { donorId: "donor-1" } }),
+      ).success,
+    ).toBe(false);
   });
 
   it("rejects a non-ISO timestamp that Date.parse would accept", () => {
