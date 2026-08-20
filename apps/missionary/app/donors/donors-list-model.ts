@@ -1,3 +1,5 @@
+import { parseDisplayDate } from "./donors-page-dates";
+
 import type { Donor } from "./donor-types";
 
 export type SortOption = "name" | "last_gift" | "total_given" | "joined_date";
@@ -11,8 +13,16 @@ export interface DonorListFilters {
   sortAsc: boolean;
 }
 
-function makeDisplayDate(value: string): Date {
-  return new globalThis.Date(value);
+function matchesStatus(donor: Donor, statusFilter: string): boolean {
+  if (statusFilter === "All") {
+    return true;
+  }
+
+  if (statusFilter === "Needs Attention") {
+    return donor.status === "At Risk" || donor.status === "Lapsed";
+  }
+
+  return donor.status === statusFilter;
 }
 
 function includesSearchTerm(
@@ -58,10 +68,10 @@ function compareDonors(a: Donor, b: Donor, sortBy: SortOption): number {
       return (a.name || "").localeCompare(b.name || "");
     case "last_gift": {
       const dateA = a.last_gift_date
-        ? makeDisplayDate(a.last_gift_date).getTime()
+        ? parseDisplayDate(a.last_gift_date).getTime()
         : 0;
       const dateB = b.last_gift_date
-        ? makeDisplayDate(b.last_gift_date).getTime()
+        ? parseDisplayDate(b.last_gift_date).getTime()
         : 0;
       return dateA - dateB;
     }
@@ -69,12 +79,16 @@ function compareDonors(a: Donor, b: Donor, sortBy: SortOption): number {
       return (a.total_given || 0) - (b.total_given || 0);
     case "joined_date": {
       const joinA = a.joined_date
-        ? makeDisplayDate(a.joined_date).getTime()
+        ? parseDisplayDate(a.joined_date).getTime()
         : 0;
       const joinB = b.joined_date
-        ? makeDisplayDate(b.joined_date).getTime()
+        ? parseDisplayDate(b.joined_date).getTime()
         : 0;
       return joinA - joinB;
+    }
+    default: {
+      const exhaustive: never = sortBy;
+      throw new Error(`Unhandled donor sort: ${String(exhaustive)}`);
     }
   }
 }
@@ -88,12 +102,11 @@ export function filterAndSortDonors(
   return donors
     .filter((donor) => {
       const matchesSearch = matchesSearchTerm(donor, normalizedSearchTerm);
-      const matchesStatus =
-        filters.statusFilter === "All" || donor.status === filters.statusFilter;
+      const matchesDonorStatus = matchesStatus(donor, filters.statusFilter);
 
       return (
         matchesSearch &&
-        matchesStatus &&
+        matchesDonorStatus &&
         matchesTags(donor, filters.tagFilter) &&
         matchesPledge(donor, filters.pledgeFilter)
       );
