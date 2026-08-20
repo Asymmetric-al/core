@@ -9,7 +9,11 @@ const optionalIdentifier = z.preprocess((value) => {
 export const donatePostSchema = z.object({
   // Donor-entered gift in dollars. Gift intake recomputes charged cents.
   amount: z.coerce.number().finite().positive("Amount must be greater than 0"),
-  currency: z.string().trim().min(1).default("usd"),
+  currency: z.preprocess((value) => {
+    if (typeof value !== "string") return value;
+    const normalized = value.trim().toLowerCase();
+    return normalized.length > 0 ? normalized : undefined;
+  }, z.literal("usd").default("usd")),
   missionary_id: optionalIdentifier,
   fund_id: optionalIdentifier,
   cover_fees: z.boolean().default(false),

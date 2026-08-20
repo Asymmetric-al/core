@@ -75,6 +75,7 @@ export const POST = withOperation(
         amount,
         coverFees: cover_fees,
         paymentMethod: payment_method,
+        currency,
       });
     } catch (error) {
       if (error instanceof GiftProcessingFeePolicyError) {
@@ -132,12 +133,45 @@ export const POST = withOperation(
       );
     }
 
+    let extraPaymentIntentMetadata:
+      | ReturnType<typeof toGiftProcessingFeeStripeMetadata>
+      | undefined = toGiftProcessingFeeStripeMetadata(feeQuote);
+
+    if (beginResult?.replayed) {
+      const { data: storedDonation, error: storedDonationError } =
+        await supabaseAdmin
+          .from("donations")
+          .select("amount")
+          .eq("id", donationId)
+          .eq("tenant_id", ctx.tenantId)
+          .single();
+
+      const storedAmountCents = Number(storedDonation?.amount);
+      if (
+        storedDonationError ||
+        storedDonation == null ||
+        !Number.isSafeInteger(storedAmountCents)
+      ) {
+        throw new ApiHttpError(
+          500,
+          "Failed to load the existing donation for this idempotency key.",
+        );
+      }
+      if (storedAmountCents !== feeQuote.chargedAmountCents) {
+        throw new ApiHttpError(
+          409,
+          "This idempotency key was already used for a different charged amount.",
+        );
+      }
+      extraPaymentIntentMetadata = undefined;
+    }
+
     const sagaResult = await processDonationSagaOutboxEvent({
       supabaseAdmin,
       stripe,
       outboxId,
       actorUserId: ctx.userId,
-      extraPaymentIntentMetadata: toGiftProcessingFeeStripeMetadata(feeQuote),
+      extraPaymentIntentMetadata,
     });
 
     if (sagaResult.status !== "completed") {

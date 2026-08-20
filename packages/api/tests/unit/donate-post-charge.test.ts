@@ -99,11 +99,31 @@ function createDonateRequest(body: Record<string, unknown>): NextRequest {
   });
 }
 
+function createDonationsFromMock(storedAmount: number | null) {
+  return vi.fn((table: string) => {
+    expect(table).toBe("donations");
+    return {
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            single: async () =>
+              storedAmount == null
+                ? { data: null, error: { message: "Donation not found" } }
+                : { data: { amount: storedAmount }, error: null },
+          }),
+        }),
+      }),
+    };
+  });
+}
+
 describe("POST /api/donate Gift processing-fee policy", () => {
   const rpcMock = vi.fn();
+  let storedDonationAmount: number | null = null;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    storedDonationAmount = null;
     mockedCreateAuditLogger.mockReturnValue({
       log: vi.fn(),
       logDonation: vi.fn(),
@@ -112,7 +132,10 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     } as never);
     mockedGetAuthContext.mockResolvedValue(authenticatedDonor);
     mockedGetAdminClient.mockReturnValue({
-      client: { rpc: rpcMock } as never,
+      client: {
+        rpc: rpcMock,
+        from: createDonationsFromMock(storedDonationAmount),
+      } as never,
       error: null,
     });
     mockedResolveTenantStripe.mockResolvedValue({
@@ -221,6 +244,85 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     expect(rpcMock.mock.calls[0]?.[1]).toEqual(
       expect.objectContaining({
         p_amount: expectedQuote.chargedAmountCents,
+      }),
+    );
+    expect(mockedProcessDonationSagaOutboxEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        extraPaymentIntentMetadata:
+          toGiftProcessingFeeStripeMetadata(expectedQuote),
+      }),
+    );
+  });
+
+  it("rejects a non-USD cover-fees Gift instead of applying the US schedule", async () => {
+    const response = await POST(
+      createDonateRequest({
+        amount: 100,
+        currency: "eur",
+        cover_fees: true,
+        payment_method: "card",
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 409 when a replayed saga charged a different amount", async () => {
+    storedDonationAmount = 10000;
+    mockedGetAdminClient.mockReturnValue({
+      client: {
+        rpc: rpcMock,
+        from: createDonationsFromMock(storedDonationAmount),
+      } as never,
+      error: null,
+    });
+    rpcMock.mockResolvedValue({
+      data: { ...beginRpcResult, replayed: true },
+      error: null,
+    });
+
+    const response = await POST(
+      createDonateRequest({
+        amount: 100,
+        currency: "usd",
+        cover_fees: true,
+        payment_method: "card",
+      }),
+    );
+
+    expect(response.status).toBe(409);
+    expect(mockedProcessDonationSagaOutboxEvent).not.toHaveBeenCalled();
+  });
+
+  it("replays a matching Gift without attaching a new fee quote", async () => {
+    storedDonationAmount = 10000;
+    mockedGetAdminClient.mockReturnValue({
+      client: {
+        rpc: rpcMock,
+        from: createDonationsFromMock(storedDonationAmount),
+      } as never,
+      error: null,
+    });
+    rpcMock.mockResolvedValue({
+      data: { ...beginRpcResult, replayed: true },
+      error: null,
+    });
+
+    const response = await POST(
+      createDonateRequest({
+        amount: 100,
+        currency: "usd",
+        cover_fees: false,
+        payment_method: "card",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedProcessDonationSagaOutboxEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        extraPaymentIntentMetadata: undefined,
       }),
     );
   });

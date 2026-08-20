@@ -138,7 +138,6 @@ describe("donation saga helpers", () => {
         payment_method: "card",
         cover_amount_cents: "330",
         estimated_fee_cents: "320",
-        donation_id: "spoofed-donation",
       },
     });
 
@@ -146,6 +145,7 @@ describe("donation saga helpers", () => {
     expect(create.mock.calls[0]?.[0]).toEqual(
       expect.objectContaining({
         amount: 10330,
+        payment_method_types: ["card"],
         metadata: expect.objectContaining({
           gift_amount_cents: "10000",
           cover_fees: "true",
@@ -157,6 +157,7 @@ describe("donation saga helpers", () => {
         }),
       }),
     );
+    expect(create.mock.calls[0]?.[0].automatic_payment_methods).toBeUndefined();
     expect(create.mock.calls[0]?.[0].metadata.donation_id).toBe("don-fee");
   });
 

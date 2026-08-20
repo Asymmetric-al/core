@@ -32,6 +32,16 @@ export type GiftProcessingFeeQuote = {
   paymentMethod: GiftPaymentMethod;
 };
 
+export type GiftProcessingFeeStripeMetadata = {
+  gift_amount_cents: string;
+  cover_fees: string;
+  payment_method: GiftPaymentMethod;
+  cover_amount_cents: string;
+  estimated_fee_cents: string;
+};
+
+const USD_CURRENCY = "usd";
+
 type PercentPlusFixedSchedule = {
   kind: "percent_plus_fixed";
   percent: number;
@@ -77,9 +87,30 @@ function scheduleForPaymentMethod(
 }
 
 function assertPositiveIntegerCents(value: number): void {
-  if (!Number.isInteger(value) || value < 1) {
+  if (!Number.isSafeInteger(value) || value < 1) {
     throw new GiftProcessingFeePolicyError(
       "Gift amount must be a positive integer in cents.",
+    );
+  }
+}
+
+function assertSafeIntegerCents(value: number, message: string): void {
+  if (!Number.isSafeInteger(value) || value < 1) {
+    throw new GiftProcessingFeePolicyError(message);
+  }
+}
+
+function normalizeGiftCurrency(currency: string | undefined): string {
+  if (currency == null || currency.trim().length === 0) {
+    return USD_CURRENCY;
+  }
+  return currency.trim().toLowerCase();
+}
+
+export function assertUsdGiftCurrency(currency: string | undefined): void {
+  if (normalizeGiftCurrency(currency) !== USD_CURRENCY) {
+    throw new GiftProcessingFeePolicyError(
+      "Gift processing-fee policy currently supports USD only.",
     );
   }
 }
@@ -139,6 +170,10 @@ export function quoteGiftProcessingFee(input: {
     input.giftAmountCents,
     schedule,
   );
+  assertSafeIntegerCents(
+    coveredChargedCents,
+    "Covered gift charge overflowed a safe integer.",
+  );
   const coverAmountCents = coveredChargedCents - input.giftAmountCents;
   const chargedAmountCents = input.coverFees
     ? coveredChargedCents
@@ -161,12 +196,14 @@ export function resolveGiftIntakeCharge(input: {
   amount: number;
   coverFees: boolean;
   paymentMethod: GiftPaymentMethod;
+  currency?: string;
 }): GiftProcessingFeeQuote {
   if (!Number.isFinite(input.amount)) {
     throw new GiftProcessingFeePolicyError(
       "Gift amount must be a finite number.",
     );
   }
+  assertUsdGiftCurrency(input.currency);
 
   return quoteGiftProcessingFee({
     giftAmountCents: Math.round(input.amount * 100),
@@ -177,7 +214,7 @@ export function resolveGiftIntakeCharge(input: {
 
 export function toGiftProcessingFeeStripeMetadata(
   quote: GiftProcessingFeeQuote,
-): Record<string, string> {
+): GiftProcessingFeeStripeMetadata {
   const appliedCoverCents = quote.coverFees ? quote.coverAmountCents : 0;
 
   return {

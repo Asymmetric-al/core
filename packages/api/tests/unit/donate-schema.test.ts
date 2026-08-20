@@ -77,4 +77,28 @@ describe("donatePostSchema", () => {
 
     expect(result.success).toBe(false);
   });
+
+  it("rejects a non-USD currency", () => {
+    const result = donatePostSchema.safeParse({
+      ...validPayload,
+      currency: "eur",
+      cover_fees: true,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("normalizes USD to usd", () => {
+    const result = donatePostSchema.safeParse({
+      ...validPayload,
+      currency: "USD",
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+
+    expect(result.data.currency).toBe("usd");
+  });
 });

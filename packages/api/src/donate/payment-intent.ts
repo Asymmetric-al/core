@@ -1,4 +1,7 @@
+import type { GiftProcessingFeeStripeMetadata } from "./fee-policy";
 import type Stripe from "stripe";
+
+export type DonationPaymentIntentMethodType = "card" | "us_bank_account";
 
 /**
  * Server-side PaymentIntent leg of the donate flow (money path).
@@ -32,16 +35,17 @@ export const GIFT_PROCESSING_FEE_METADATA_KEYS = [
 ] as const;
 
 export function pickGiftProcessingFeeMetadata(
-  extra: Record<string, string> | undefined,
+  extra: GiftProcessingFeeStripeMetadata | Record<string, string> | undefined,
 ): Partial<DonationPaymentIntentMetadata> {
   if (!extra) {
     return {};
   }
 
   const picked: Partial<DonationPaymentIntentMetadata> = {};
+  const record = extra as Record<string, string>;
 
   for (const key of GIFT_PROCESSING_FEE_METADATA_KEYS) {
-    const value = extra[key];
+    const value = record[key];
     if (typeof value === "string" && value.length > 0) {
       picked[key] = value;
     }
@@ -57,7 +61,7 @@ export function mergeDonationPaymentIntentMetadata(input: {
   fundId: string;
   tenantId: string;
   actorUserId: string;
-  extra?: Record<string, string>;
+  extra?: GiftProcessingFeeStripeMetadata | Record<string, string>;
 }): DonationPaymentIntentMetadata {
   return {
     ...pickGiftProcessingFeeMetadata(input.extra),
@@ -78,6 +82,11 @@ export interface DonationPaymentIntentParams {
   /** Raw saga idempotency key; namespaced here so it can't collide with other calls. */
   idempotencyKey: string;
   customerId?: string;
+  /**
+   * Gift intake binds the PaymentIntent to the quoted method. Recovery and
+   * batch workers omit this and keep Stripe's automatic payment methods.
+   */
+  paymentMethodTypes?: ReadonlyArray<DonationPaymentIntentMethodType>;
 }
 
 export interface DonationPaymentIntentResult {
@@ -111,12 +120,19 @@ export async function createDonationPaymentIntent(
     );
   }
 
+  const paymentMethodTypes =
+    params.paymentMethodTypes && params.paymentMethodTypes.length > 0
+      ? [...params.paymentMethodTypes]
+      : undefined;
+
   const paymentIntent = await stripe.paymentIntents.create(
     {
       amount: params.amountCents,
       currency: params.currency.toLowerCase(),
       ...(params.customerId ? { customer: params.customerId } : {}),
-      automatic_payment_methods: { enabled: true },
+      ...(paymentMethodTypes
+        ? { payment_method_types: paymentMethodTypes }
+        : { automatic_payment_methods: { enabled: true } }),
       metadata: toStripeMetadata(params.metadata),
     },
     { idempotencyKey: `${params.idempotencyKey}:payment_intent` },

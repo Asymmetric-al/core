@@ -49,6 +49,7 @@ describe("createDonationPaymentIntent", () => {
     expect(body.currency).toBe("usd");
     expect(body.customer).toBe("cus_9");
     expect(body.automatic_payment_methods).toEqual({ enabled: true });
+    expect(body.payment_method_types).toBeUndefined();
     expect(body.metadata).toMatchObject({
       donation_id: "don-1",
       fund_id: "fund-1",
@@ -84,6 +85,28 @@ describe("createDonationPaymentIntent", () => {
     });
     const [body] = create.mock.calls[0]!;
     expect(body.metadata).toEqual({ donation_id: "don-1" });
+  });
+
+  it("binds Gift intake card and wallet quotes to card PaymentIntents", async () => {
+    const { stripe, create } = mockStripe();
+    await createDonationPaymentIntent(stripe, {
+      ...baseParams,
+      paymentMethodTypes: ["card"],
+    });
+    const [body] = create.mock.calls[0]!;
+    expect(body.payment_method_types).toEqual(["card"]);
+    expect(body.automatic_payment_methods).toBeUndefined();
+  });
+
+  it("binds Gift intake ACH quotes to us_bank_account PaymentIntents", async () => {
+    const { stripe, create } = mockStripe();
+    await createDonationPaymentIntent(stripe, {
+      ...baseParams,
+      paymentMethodTypes: ["us_bank_account"],
+    });
+    const [body] = create.mock.calls[0]!;
+    expect(body.payment_method_types).toEqual(["us_bank_account"]);
+    expect(body.automatic_payment_methods).toBeUndefined();
   });
 
   it("rejects a non-positive or non-integer amount before calling Stripe", async () => {

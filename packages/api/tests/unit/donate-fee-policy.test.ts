@@ -149,6 +149,26 @@ describe("quoteGiftProcessingFee — invalid input", () => {
     ).toThrow(GiftProcessingFeePolicyError);
   });
 
+  it("rejects an unsafe integer-cent gift amount", () => {
+    expect(() =>
+      quoteGiftProcessingFee({
+        giftAmountCents: Number.MAX_SAFE_INTEGER + 1,
+        coverFees: false,
+        paymentMethod: "card",
+      }),
+    ).toThrow(GiftProcessingFeePolicyError);
+  });
+
+  it("rejects a cover-fees gross-up that overflows a safe integer", () => {
+    expect(() =>
+      quoteGiftProcessingFee({
+        giftAmountCents: Number.MAX_SAFE_INTEGER,
+        coverFees: true,
+        paymentMethod: "card",
+      }),
+    ).toThrow(GiftProcessingFeePolicyError);
+  });
+
   it("rejects an unknown payment method at runtime", () => {
     expect(() =>
       quoteGiftProcessingFee({
@@ -180,6 +200,17 @@ describe("resolveGiftIntakeCharge", () => {
         paymentMethod: "card",
       }),
     ).toThrow(GiftProcessingFeePolicyError);
+  });
+
+  it("rejects currencies other than usd before applying the US schedule", () => {
+    expect(() =>
+      resolveGiftIntakeCharge({
+        amount: 100,
+        coverFees: true,
+        paymentMethod: "card",
+        currency: "eur",
+      }),
+    ).toThrow(/USD only/i);
   });
 });
 

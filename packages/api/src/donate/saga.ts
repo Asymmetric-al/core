@@ -3,8 +3,10 @@ import { randomUUID } from "node:crypto";
 import {
   createDonationPaymentIntent,
   mergeDonationPaymentIntentMetadata,
+  type DonationPaymentIntentMethodType,
 } from "./payment-intent";
 
+import type { GiftProcessingFeeStripeMetadata } from "./fee-policy";
 import type { getAdminClient } from "@asym/database/supabase/admin";
 import type Stripe from "stripe";
 
@@ -17,7 +19,7 @@ interface DonationSagaProcessParams {
   stripe: Stripe;
   outboxId: string;
   actorUserId: string;
-  extraPaymentIntentMetadata?: Record<string, string>;
+  extraPaymentIntentMetadata?: GiftProcessingFeeStripeMetadata;
 }
 
 interface DonationSagaProcessResult {
@@ -63,6 +65,25 @@ function getClientSecretFromGatewayResponse(value: unknown): string | null {
   }
   const maybeRecord = value as Record<string, unknown>;
   return stringOrNull(maybeRecord.clientSecret);
+}
+
+function paymentMethodTypesFromFeeMetadata(
+  extra: GiftProcessingFeeStripeMetadata | undefined,
+): ReadonlyArray<DonationPaymentIntentMethodType> | undefined {
+  const method = extra?.payment_method;
+  switch (method) {
+    case "card":
+    case "wallet":
+      return ["card"];
+    case "ach":
+      return ["us_bank_account"];
+    case undefined:
+      return undefined;
+    default: {
+      const exhaustive: never = method;
+      return exhaustive;
+    }
+  }
 }
 
 function getErrorCode(error: unknown): string {
@@ -182,7 +203,7 @@ async function processClaimedDonationSagaEvent(params: {
   lockId: string;
   outboxId: string;
   claim: DonationSagaClaimRow;
-  extraPaymentIntentMetadata?: Record<string, string>;
+  extraPaymentIntentMetadata?: GiftProcessingFeeStripeMetadata;
 }): Promise<DonationSagaProcessResult> {
   const donationId = stringOrNull(params.claim.donation_id);
   const donorId = stringOrNull(params.claim.donor_id);
@@ -213,6 +234,9 @@ async function processClaimedDonationSagaEvent(params: {
     currency,
     customerId: stripeCustomerId,
     idempotencyKey,
+    paymentMethodTypes: paymentMethodTypesFromFeeMetadata(
+      params.extraPaymentIntentMetadata,
+    ),
     metadata: mergeDonationPaymentIntentMetadata({
       donationId,
       donorId,

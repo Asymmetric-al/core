@@ -13,7 +13,7 @@
  * response alone.
  */
 
-import { quoteGiftProcessingFee } from "@asym/api/donate/fee-policy";
+import { resolveGiftIntakeCharge } from "@asym/api/donate/fee-policy";
 
 export type DonateRequestBody = {
   amount: number;
@@ -109,8 +109,8 @@ export function quoteGuestGivingCheckoutFees(input: {
     };
   }
 
-  const quote = quoteGiftProcessingFee({
-    giftAmountCents,
+  const quote = resolveGiftIntakeCharge({
+    amount: input.giftAmount,
     coverFees: input.coverFees,
     paymentMethod: input.paymentMethod,
   });
