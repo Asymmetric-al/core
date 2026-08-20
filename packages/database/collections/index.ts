@@ -70,7 +70,6 @@ export {
   supportInboxesCollection,
   supportLabelsCollection,
   supportMacrosCollection,
-  supportMessagesCollection,
   supportSavedViewsCollection,
   supportSlaPoliciesCollection,
   supportTeamsCollection,

@@ -1,11 +1,14 @@
 "use client";
 
-import { createCollection, localOnlyCollectionOptions } from "@tanstack/db";
+import { createCollection } from "@tanstack/db";
 import { queryCollectionOptions } from "@tanstack/query-db-collection";
-import { z } from "zod";
+import { type z } from "zod";
 
 import { getQueryClient } from "../providers/query-client";
-import { supportHubQueryKeys } from "../query-keys";
+import {
+  supportHubCollectionQueryKey,
+  supportHubQueryKeys,
+} from "../query-keys";
 import {
   supportAssigneeSchema,
   supportAutomationRuleSchema,
@@ -16,7 +19,6 @@ import {
   supportInboxSettingsSchema,
   supportLabelSchema,
   supportMacroSchema,
-  supportMessageSchema,
   supportNotificationPreferencesSchema,
   supportSavedViewSchema,
   supportSignatureSchema,
@@ -25,6 +27,8 @@ import {
 } from "./support-hub.schema";
 
 export * from "./support-hub.schema";
+
+const SUPPORT_HUB_REQUEST_TIMEOUT_MS = 15_000;
 
 const SUPPORT_HUB_FETCH_INIT = {
   cache: "no-store",
@@ -57,7 +61,10 @@ async function fetchSupportHubRows<T>(
   key: string,
   schema: z.ZodType<T>,
 ): Promise<T[]> {
-  const response = await fetch(path, SUPPORT_HUB_FETCH_INIT);
+  const response = await fetch(path, {
+    ...SUPPORT_HUB_FETCH_INIT,
+    signal: AbortSignal.timeout(SUPPORT_HUB_REQUEST_TIMEOUT_MS),
+  });
   const payload = await parseJsonResponse(response);
   const rows = payload[key];
 
@@ -65,7 +72,20 @@ async function fetchSupportHubRows<T>(
     throw new Error(`Support Hub response was missing ${key}`);
   }
 
-  return z.array(schema).parse(rows);
+  const kept: T[] = [];
+  for (const row of rows) {
+    const parsed = schema.safeParse(row);
+    if (parsed.success) {
+      kept.push(parsed.data);
+      continue;
+    }
+    console.warn("Support Hub dropped an invalid collection row", {
+      path,
+      key,
+      issues: parsed.error.issues,
+    });
+  }
+  return kept;
 }
 
 export async function fetchSupportConversations() {
@@ -183,7 +203,7 @@ export async function fetchSupportNotificationPreferences() {
 export const supportConversationsCollection = createCollection(
   queryCollectionOptions({
     id: "support_conversations",
-    queryKey: [...supportHubQueryKeys.conversations],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.conversations),
     queryClient: getQueryClient(),
     schema: supportConversationSchema,
     getKey: (item) => item.id,
@@ -192,27 +212,10 @@ export const supportConversationsCollection = createCollection(
   }),
 );
 
-/**
- * There is no tenant-wide messages list. Thread messages stay on
- * `useSupportMessages` + GET `/api/admin/support/conversations/:id/messages`.
- * This collection is a local-only identity so the store registry still has a
- * messages key without inventing a list-all route or N+1ing reports.
- */
-export const supportMessagesCollection = createCollection(
-  localOnlyCollectionOptions({
-    id: "support_messages",
-    getKey: (item) => item.id,
-    schema: supportMessageSchema,
-    // Query collections pass startSync: false. LocalOnlyCollectionConfig has
-    // no startSync option; this identity collection stays empty until a
-    // conversation-scoped writer fills it.
-  }),
-);
-
 export const supportLabelsCollection = createCollection(
   queryCollectionOptions({
     id: "support_labels",
-    queryKey: [...supportHubQueryKeys.labels],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.labels),
     queryClient: getQueryClient(),
     schema: supportLabelSchema,
     getKey: (item) => item.id,
@@ -224,7 +227,7 @@ export const supportLabelsCollection = createCollection(
 export const supportMacrosCollection = createCollection(
   queryCollectionOptions({
     id: "support_macros",
-    queryKey: [...supportHubQueryKeys.macros],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.macros),
     queryClient: getQueryClient(),
     schema: supportMacroSchema,
     getKey: (item) => item.id,
@@ -236,7 +239,7 @@ export const supportMacrosCollection = createCollection(
 export const supportCannedResponsesCollection = createCollection(
   queryCollectionOptions({
     id: "support_canned_responses",
-    queryKey: [...supportHubQueryKeys.cannedResponses],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.cannedResponses),
     queryClient: getQueryClient(),
     schema: supportCannedResponseSchema,
     getKey: (item) => item.id,
@@ -248,7 +251,7 @@ export const supportCannedResponsesCollection = createCollection(
 export const supportSavedViewsCollection = createCollection(
   queryCollectionOptions({
     id: "support_saved_views",
-    queryKey: [...supportHubQueryKeys.savedViews],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.savedViews),
     queryClient: getQueryClient(),
     schema: supportSavedViewSchema,
     getKey: (item) => item.id,
@@ -260,7 +263,7 @@ export const supportSavedViewsCollection = createCollection(
 export const supportInboxesCollection = createCollection(
   queryCollectionOptions({
     id: "support_inboxes",
-    queryKey: [...supportHubQueryKeys.inboxes],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.inboxes),
     queryClient: getQueryClient(),
     schema: supportInboxSchema,
     getKey: (item) => item.id,
@@ -272,7 +275,7 @@ export const supportInboxesCollection = createCollection(
 export const supportInboxSettingsCollection = createCollection(
   queryCollectionOptions({
     id: "support_inbox_settings",
-    queryKey: [...supportHubQueryKeys.inboxSettings],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.inboxSettings),
     queryClient: getQueryClient(),
     schema: supportInboxSettingsSchema,
     getKey: (item) => item.id,
@@ -284,7 +287,7 @@ export const supportInboxSettingsCollection = createCollection(
 export const supportTeamsCollection = createCollection(
   queryCollectionOptions({
     id: "support_teams",
-    queryKey: [...supportHubQueryKeys.teams],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.teams),
     queryClient: getQueryClient(),
     schema: supportTeamSchema,
     getKey: (item) => item.id,
@@ -296,7 +299,7 @@ export const supportTeamsCollection = createCollection(
 export const supportAgentsCollection = createCollection(
   queryCollectionOptions({
     id: "support_agents",
-    queryKey: [...supportHubQueryKeys.agents],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.agents),
     queryClient: getQueryClient(),
     schema: supportAssigneeSchema,
     getKey: (item) => item.id,
@@ -308,7 +311,7 @@ export const supportAgentsCollection = createCollection(
 export const supportBusinessHoursCollection = createCollection(
   queryCollectionOptions({
     id: "support_business_hours",
-    queryKey: [...supportHubQueryKeys.businessHours],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.businessHours),
     queryClient: getQueryClient(),
     schema: supportBusinessHoursSchema,
     getKey: (item) => item.id,
@@ -320,7 +323,7 @@ export const supportBusinessHoursCollection = createCollection(
 export const supportSlaPoliciesCollection = createCollection(
   queryCollectionOptions({
     id: "support_sla_policies",
-    queryKey: [...supportHubQueryKeys.slaPolicies],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.slaPolicies),
     queryClient: getQueryClient(),
     schema: supportSlaPolicySchema,
     getKey: (item) => item.id,
@@ -332,7 +335,7 @@ export const supportSlaPoliciesCollection = createCollection(
 export const supportSignaturesCollection = createCollection(
   queryCollectionOptions({
     id: "support_signatures",
-    queryKey: [...supportHubQueryKeys.signatures],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.signatures),
     queryClient: getQueryClient(),
     schema: supportSignatureSchema,
     getKey: (item) => item.id,
@@ -344,7 +347,7 @@ export const supportSignaturesCollection = createCollection(
 export const supportAutomationRulesCollection = createCollection(
   queryCollectionOptions({
     id: "support_automation_rules",
-    queryKey: [...supportHubQueryKeys.automationRules],
+    queryKey: supportHubCollectionQueryKey(supportHubQueryKeys.automationRules),
     queryClient: getQueryClient(),
     schema: supportAutomationRuleSchema,
     getKey: (item) => item.id,
@@ -356,7 +359,9 @@ export const supportAutomationRulesCollection = createCollection(
 export const supportNotificationPreferencesCollection = createCollection(
   queryCollectionOptions({
     id: "support_notification_preferences",
-    queryKey: [...supportHubQueryKeys.notificationPreferences],
+    queryKey: supportHubCollectionQueryKey(
+      supportHubQueryKeys.notificationPreferences,
+    ),
     queryClient: getQueryClient(),
     schema: supportNotificationPreferencesSchema,
     getKey: (item) => item.id,

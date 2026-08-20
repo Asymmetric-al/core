@@ -249,7 +249,7 @@ export const collectionRegistry = [
     rls: "not-applicable",
     mutationPolicy: "server-command",
     notes:
-      "Reads `/api/admin/support/**`. Privileged writes stay server-command owned. Tenant isolation lives on the route + adapter, not in the browser collection. `support_messages` is local-only identity; thread messages stay on the conversation messages route.",
+      "Reads `/api/admin/support/**`. Privileged writes stay server-command owned. Tenant isolation lives on the route + adapter, not in the browser collection. Thread messages stay on the conversation messages route; there is no tenant-wide messages collection.",
   },
   {
     name: "querySupabaseCollectionOnce",
