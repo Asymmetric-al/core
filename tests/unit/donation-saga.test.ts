@@ -416,6 +416,228 @@ describe("donation saga helpers", () => {
     });
   });
 
+  it("binds stored ACH fee extras on recovery when the caller omits extras", async () => {
+    const achExtras = {
+      gift_amount_cents: "10000",
+      cover_fees: "true",
+      payment_method: "ach" as const,
+      cover_amount_cents: "80",
+      estimated_fee_cents: "80",
+    };
+    const rpc = vi.fn().mockImplementation((fn: string) => {
+      if (fn === "claim_donation_saga_event") {
+        return Promise.resolve({
+          data: {
+            claimed: true,
+            donation_id: "don-recover",
+            donor_id: "donor-recover",
+            missionary_id: "miss-recover",
+            fund_id: "fund-recover",
+            tenant_id: "tenant-recover",
+            amount: 10080,
+            currency: "usd",
+            attempt_count: 2,
+            idempotency_key: "idem-recover",
+            stripe_customer_id: "cus_recover",
+          },
+          error: null,
+        });
+      }
+      if (fn === "complete_donation_saga_event") {
+        return Promise.resolve({ data: { completed: true }, error: null });
+      }
+      return Promise.resolve({ data: null, error: null });
+    });
+    const persistEq = vi.fn().mockResolvedValue({ data: null, error: null });
+    const persistUpdate = vi.fn().mockReturnValue({ eq: persistEq });
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { fee_extras: achExtras },
+      error: null,
+    });
+    const selectEq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq: selectEq });
+    const from = vi.fn((table: string) => {
+      if (table !== "donation_saga_outbox") {
+        throw new Error(`Unexpected table lookup: ${table}`);
+      }
+      return { update: persistUpdate, select };
+    });
+
+    const stripe = createStripeMock();
+    (
+      stripe.paymentIntents.create as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
+      id: "pi_recover",
+      client_secret: "secret_recover",
+      status: "requires_payment_method",
+    });
+
+    await processDonationSagaOutboxEvent({
+      supabaseAdmin: { rpc, from } as never,
+      stripe,
+      outboxId: "out-recover",
+      actorUserId: "actor-recover",
+    });
+
+    const create = stripe.paymentIntents.create as ReturnType<typeof vi.fn>;
+    expect(create.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({
+        amount: 10080,
+        payment_method_types: ["us_bank_account"],
+        metadata: expect.objectContaining({
+          payment_method: "ach",
+          gift_amount_cents: "10000",
+          cover_amount_cents: "80",
+          donation_id: "don-recover",
+        }),
+      }),
+    );
+    expect(create.mock.calls[0]?.[0].automatic_payment_methods).toBeUndefined();
+  });
+
+  it("persists caller fee extras onto the outbox before claiming", async () => {
+    const extras = {
+      gift_amount_cents: "10000",
+      cover_fees: "true",
+      payment_method: "card" as const,
+      cover_amount_cents: "330",
+      estimated_fee_cents: "320",
+    };
+    const rpc = vi.fn().mockImplementation((fn: string) => {
+      if (fn === "claim_donation_saga_event") {
+        return Promise.resolve({
+          data: {
+            claimed: true,
+            donation_id: "don-persist",
+            donor_id: "donor-persist",
+            tenant_id: "tenant-persist",
+            amount: 10330,
+            currency: "usd",
+            attempt_count: 1,
+            idempotency_key: "idem-persist",
+            stripe_customer_id: "cus_persist",
+          },
+          error: null,
+        });
+      }
+      if (fn === "complete_donation_saga_event") {
+        return Promise.resolve({ data: { completed: true }, error: null });
+      }
+      return Promise.resolve({ data: null, error: null });
+    });
+    const persistEq = vi.fn().mockResolvedValue({ data: null, error: null });
+    const persistUpdate = vi.fn().mockReturnValue({ eq: persistEq });
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { fee_extras: {} },
+      error: null,
+    });
+    const selectEq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq: selectEq });
+    const from = vi.fn((table: string) => {
+      if (table !== "donation_saga_outbox") {
+        throw new Error(`Unexpected table lookup: ${table}`);
+      }
+      return { update: persistUpdate, select };
+    });
+
+    const stripe = createStripeMock();
+    (
+      stripe.paymentIntents.create as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
+      id: "pi_persist",
+      client_secret: "secret_persist",
+      status: "requires_payment_method",
+    });
+
+    await processDonationSagaOutboxEvent({
+      supabaseAdmin: { rpc, from } as never,
+      stripe,
+      outboxId: "out-persist",
+      actorUserId: "actor-persist",
+      extraPaymentIntentMetadata: extras,
+    });
+
+    expect(persistUpdate).toHaveBeenCalledWith({ fee_extras: extras });
+    expect(persistEq).toHaveBeenCalledWith("id", "out-persist");
+    expect(rpc.mock.invocationCallOrder[0]).toBeGreaterThan(
+      persistUpdate.mock.invocationCallOrder[0],
+    );
+  });
+
+  it("binds stored ACH fee extras on due-batch processing", async () => {
+    const achExtras = {
+      gift_amount_cents: "5000",
+      cover_fees: "false",
+      payment_method: "ach" as const,
+      cover_amount_cents: "0",
+      estimated_fee_cents: "40",
+    };
+    const rpc = vi.fn().mockImplementation((fn: string) => {
+      if (fn === "claim_due_donation_saga_events") {
+        return Promise.resolve({
+          data: [
+            {
+              claimed: true,
+              outbox_id: "out-due",
+              donation_id: "don-due",
+              donor_id: "donor-due",
+              tenant_id: "tenant-due",
+              amount: 5000,
+              currency: "usd",
+              attempt_count: 1,
+              idempotency_key: "idem-due",
+              stripe_customer_id: "cus_due",
+            },
+          ],
+          error: null,
+        });
+      }
+      if (fn === "complete_donation_saga_event") {
+        return Promise.resolve({ data: { completed: true }, error: null });
+      }
+      return Promise.resolve({ data: null, error: null });
+    });
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { fee_extras: achExtras },
+      error: null,
+    });
+    const selectEq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq: selectEq });
+    const from = vi.fn((table: string) => {
+      if (table !== "donation_saga_outbox") {
+        throw new Error(`Unexpected table lookup: ${table}`);
+      }
+      return {
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+        select,
+      };
+    });
+
+    const stripe = createStripeMock();
+    (
+      stripe.paymentIntents.create as ReturnType<typeof vi.fn>
+    ).mockResolvedValue({
+      id: "pi_due",
+      client_secret: "secret_due",
+      status: "requires_payment_method",
+    });
+
+    await processDueDonationSagaOutboxEvents({
+      supabaseAdmin: { rpc, from } as never,
+      stripe,
+      actorUserId: "actor-due",
+      tenantId: "tenant-due",
+    });
+
+    const create = stripe.paymentIntents.create as ReturnType<typeof vi.fn>;
+    expect(create.mock.calls[0]?.[0].payment_method_types).toEqual([
+      "us_bank_account",
+    ]);
+    expect(create.mock.calls[0]?.[0].automatic_payment_methods).toBeUndefined();
+  });
+
   it("requires idempotency key header for donation requests", () => {
     expect(() => resolveRequiredIdempotencyKey(new Headers())).toThrow(
       "Missing required idempotency-key header",

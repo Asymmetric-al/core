@@ -83,8 +83,9 @@ export interface DonationPaymentIntentParams {
   idempotencyKey: string;
   customerId?: string;
   /**
-   * Gift intake binds the PaymentIntent to the quoted method. Recovery and
-   * batch workers omit this and keep Stripe's automatic payment methods.
+   * Bind the PaymentIntent to the quoted method. Gift intake passes this on
+   * first shot; recovery and batch workers load the same extras from the
+   * outbox so ACH cover-fee rows cannot be confirmed with a cheaper card.
    */
   paymentMethodTypes?: ReadonlyArray<DonationPaymentIntentMethodType>;
 }

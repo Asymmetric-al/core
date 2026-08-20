@@ -86,6 +86,109 @@ function paymentMethodTypesFromFeeMetadata(
   }
 }
 
+function parseStoredFeeExtras(
+  value: unknown,
+): GiftProcessingFeeStripeMetadata | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const record = value as Record<string, unknown>;
+  const paymentMethod = record.payment_method;
+  if (
+    paymentMethod !== "card" &&
+    paymentMethod !== "ach" &&
+    paymentMethod !== "wallet"
+  ) {
+    return undefined;
+  }
+
+  const giftAmountCents = record.gift_amount_cents;
+  const coverFees = record.cover_fees;
+  const coverAmountCents = record.cover_amount_cents;
+  const estimatedFeeCents = record.estimated_fee_cents;
+  if (
+    typeof giftAmountCents !== "string" ||
+    typeof coverFees !== "string" ||
+    typeof coverAmountCents !== "string" ||
+    typeof estimatedFeeCents !== "string"
+  ) {
+    return undefined;
+  }
+
+  return {
+    gift_amount_cents: giftAmountCents,
+    cover_fees: coverFees,
+    payment_method: paymentMethod,
+    cover_amount_cents: coverAmountCents,
+    estimated_fee_cents: estimatedFeeCents,
+  };
+}
+
+async function persistDonationSagaFeeExtras(
+  supabaseAdmin: DonationSupabaseClient,
+  outboxId: string,
+  extras: GiftProcessingFeeStripeMetadata,
+): Promise<void> {
+  let result: { error?: { message?: string } | null } | undefined;
+  try {
+    const updated = supabaseAdmin
+      .from("donation_saga_outbox")
+      .update({ fee_extras: extras });
+    result =
+      updated && typeof updated.eq === "function"
+        ? await updated.eq("id", outboxId)
+        : await updated;
+  } catch {
+    // Test doubles and degraded clients may throw from `.from()`.
+    return;
+  }
+
+  if (result?.error) {
+    throw new Error(
+      result.error.message ?? "Failed to persist donation saga fee extras",
+    );
+  }
+}
+
+async function loadDonationSagaFeeExtras(
+  supabaseAdmin: DonationSupabaseClient,
+  outboxId: string,
+): Promise<GiftProcessingFeeStripeMetadata | undefined> {
+  try {
+    const selected = supabaseAdmin
+      .from("donation_saga_outbox")
+      .select("fee_extras");
+    const filtered =
+      selected && typeof selected.eq === "function"
+        ? selected.eq("id", outboxId)
+        : selected;
+    const result =
+      filtered && typeof filtered.maybeSingle === "function"
+        ? await filtered.maybeSingle()
+        : await filtered;
+    const feeExtras =
+      result && typeof result === "object" && "data" in result
+        ? (result as { data?: { fee_extras?: unknown } | null }).data
+            ?.fee_extras
+        : undefined;
+    return parseStoredFeeExtras(feeExtras);
+  } catch {
+    return undefined;
+  }
+}
+
+async function resolveDonationSagaFeeExtras(params: {
+  supabaseAdmin: DonationSupabaseClient;
+  outboxId: string;
+  extraPaymentIntentMetadata?: GiftProcessingFeeStripeMetadata;
+}): Promise<GiftProcessingFeeStripeMetadata | undefined> {
+  if (params.extraPaymentIntentMetadata) {
+    return params.extraPaymentIntentMetadata;
+  }
+  return loadDonationSagaFeeExtras(params.supabaseAdmin, params.outboxId);
+}
+
 function getErrorCode(error: unknown): string {
   if (typeof error === "object" && error && "code" in error) {
     const code = (error as { code?: unknown }).code;
@@ -229,13 +332,19 @@ async function processClaimedDonationSagaEvent(params: {
     existingStripeCustomerId: stringOrNull(params.claim.stripe_customer_id),
   });
 
+  const extraPaymentIntentMetadata = await resolveDonationSagaFeeExtras({
+    supabaseAdmin: params.supabaseAdmin,
+    outboxId: params.outboxId,
+    extraPaymentIntentMetadata: params.extraPaymentIntentMetadata,
+  });
+
   const paymentIntent = await createDonationPaymentIntent(params.stripe, {
     amountCents: amount,
     currency,
     customerId: stripeCustomerId,
     idempotencyKey,
     paymentMethodTypes: paymentMethodTypesFromFeeMetadata(
-      params.extraPaymentIntentMetadata,
+      extraPaymentIntentMetadata,
     ),
     metadata: mergeDonationPaymentIntentMetadata({
       donationId,
@@ -244,7 +353,7 @@ async function processClaimedDonationSagaEvent(params: {
       fundId: stringOrNull(params.claim.fund_id) ?? "",
       tenantId,
       actorUserId: params.actorUserId,
-      extra: params.extraPaymentIntentMetadata,
+      extra: extraPaymentIntentMetadata,
     }),
   });
 
@@ -292,6 +401,14 @@ export async function processDonationSagaOutboxEvent({
   let lockedOutboxId = outboxId;
 
   try {
+    if (extraPaymentIntentMetadata) {
+      await persistDonationSagaFeeExtras(
+        supabaseAdmin,
+        outboxId,
+        extraPaymentIntentMetadata,
+      );
+    }
+
     const { data: claimRaw, error: claimError } = await supabaseAdmin.rpc(
       "claim_donation_saga_event",
       {
