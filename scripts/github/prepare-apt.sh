@@ -64,6 +64,10 @@ EOF
 # and sat on this step for 25+ minutes). Bound the fetch and retry once so a
 # bad mirror cannot occupy a runner for the 6-hour default job cap.
 APT_GET_TIMEOUT_SECONDS="${APT_GET_TIMEOUT_SECONDS:-180}"
+if ! [[ "$APT_GET_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]]; then
+  echo "APT_GET_TIMEOUT_SECONDS must be a positive integer, got: ${APT_GET_TIMEOUT_SECONDS}" >&2
+  exit 1
+fi
 
 bounded_apt_get() {
   sudo timeout --kill-after=10s "${APT_GET_TIMEOUT_SECONDS}s" apt-get "$@"

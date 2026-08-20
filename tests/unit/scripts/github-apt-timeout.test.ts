@@ -3,8 +3,10 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const TIMEOUT_FLAG = "timeout --kill-after=10s";
-const POSITIVE_TIMEOUT_PATTERN =
+const POSITIVE_INSTALL_TIMEOUT_PATTERN =
   '[[ "$APT_GET_INSTALL_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]]';
+const POSITIVE_UPDATE_TIMEOUT_PATTERN =
+  '[[ "$APT_GET_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]]';
 
 function readScript(relativePath: string): string {
   return readFileSync(relativePath, "utf8");
@@ -45,13 +47,28 @@ function expectPositiveInstallTimeoutValidatedBeforeRetry(script: string) {
   const defaultIndex = script.indexOf(
     'APT_GET_INSTALL_TIMEOUT_SECONDS="${APT_GET_INSTALL_TIMEOUT_SECONDS:-600}"',
   );
-  const validationIndex = script.indexOf(POSITIVE_TIMEOUT_PATTERN);
+  const validationIndex = script.indexOf(POSITIVE_INSTALL_TIMEOUT_PATTERN);
   const retryIndex = script.indexOf("if ! bounded_apt_install; then");
 
   expect(defaultIndex).toBeGreaterThanOrEqual(0);
   expect(validationIndex).toBeGreaterThan(defaultIndex);
   expect(retryIndex).toBeGreaterThan(validationIndex);
   expect(script).toContain("must be a positive integer");
+}
+
+function expectPositiveUpdateTimeoutValidatedBeforeRetry(script: string) {
+  const defaultIndex = script.indexOf(
+    'APT_GET_TIMEOUT_SECONDS="${APT_GET_TIMEOUT_SECONDS:-180}"',
+  );
+  const validationIndex = script.indexOf(POSITIVE_UPDATE_TIMEOUT_PATTERN);
+  const retryIndex = script.indexOf("if ! bounded_apt_get update; then");
+
+  expect(defaultIndex).toBeGreaterThanOrEqual(0);
+  expect(validationIndex).toBeGreaterThan(defaultIndex);
+  expect(retryIndex).toBeGreaterThan(validationIndex);
+  expect(script).toContain(
+    "APT_GET_TIMEOUT_SECONDS must be a positive integer",
+  );
 }
 
 describe("github apt install scripts bound hung metadata fetches", () => {
@@ -89,6 +106,12 @@ describe("github apt install scripts bound hung metadata fetches", () => {
     expect(postgres).toContain("APT_GET_INSTALL_TIMEOUT_SECONDS");
     expect(postgres).toContain(":-600");
     expect(postgres).toContain("retrying once");
+  });
+
+  it("rejects non-positive update timeouts before retrying apt-get update", () => {
+    expectPositiveUpdateTimeoutValidatedBeforeRetry(
+      readScript("scripts/github/prepare-apt.sh"),
+    );
   });
 
   it("rejects non-positive install timeouts before retrying apt-get install", () => {
