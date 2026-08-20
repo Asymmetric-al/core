@@ -1,4 +1,4 @@
-# ADR-0118: GraphQL Gift and engagement adapters share Core command modules
+# ADR-0120: GraphQL Gift and engagement adapters share Core command modules
 
 **Status:** Accepted
 
