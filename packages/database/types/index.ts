@@ -54,25 +54,12 @@ export type {
   AdminCrmRelationshipsListResponse,
   CrmRelationshipAuthorityScope,
   CrmRelationshipDomain,
+  CrmRelationshipRecordKind,
   CrmRelationshipReport,
   CrmRelationshipRow,
   CrmRelationshipSortDirection,
   CrmRelationshipSortField,
 } from "./crm-relationships";
-export type {
-  AdminCrmProjectionShadowResponse,
-  CrmProjectionContext,
-  CrmProjectionContract,
-  CrmProjectionDriftStatus,
-  CrmProjectionRoleScope,
-  CrmProjectionShadowCounts,
-  CrmProjectionShadowReport,
-  CrmProjectionShadowRow,
-  CrmProjectionSourceOwnership,
-  CrmProjectionState,
-  CrmProjectionSyncStatus,
-  CrmProjectionTargetSurface,
-} from "./crm-projections";
 export type {
   AdminCrmReportResponse,
   CrmReportFilters,

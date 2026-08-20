@@ -24,6 +24,10 @@ Use this when adding tests, modifying critical flows, or verifying changes.
   `docs/ai/skills/playwright-cli/SKILL.md` for ad hoc live inspection and
   evidence. It complements but never replaces committed `@playwright/test`
   specs or the package scripts below.
+- **Test-Driven Development:** Use `docs/ai/skills/tdd/SKILL.md` as the
+  default for substantive behavior-changing work. Documentation-only,
+  formatting-only, generated-mirror, and provenance updates use the strongest
+  relevant deterministic verification instead of an artificial RED test.
 - **Performance:** Playwright-based Web Vitals assertions.
 - **Instant navigation:** Use the `instant()` helper from `@next/playwright`
   (root devDependency) to assert what must render immediately after a link

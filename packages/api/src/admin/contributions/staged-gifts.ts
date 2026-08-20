@@ -1,13 +1,11 @@
-import { serverEnv } from "@asym/env";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { resolveCrmSyncRuntimeConfig } from "../../crm/sync/config";
 import { sendStagedGiftReceipt } from "../../giving/receipts";
 import {
+  approveStagedGiftForFinance,
   loadStagedGiftById,
-  queueStagedGiftPostingToTwenty,
-  retryStagedGiftPostingToTwenty,
+  rejectRetiredCrmPostingRetry,
 } from "../../giving/staged-gifts";
 import { revalidateAdminContributionsCache } from "../../shared/cache-tags";
 import {
@@ -231,13 +229,12 @@ export const POST_APPROVE = withOperation(
     try {
       const stagedGiftId = getStagedGiftIdFromPath(request);
       const body = actionSchema.parse(await ensureJsonBody(request));
-      const stagedGift = await queueStagedGiftPostingToTwenty({
+      const stagedGift = await approveStagedGiftForFinance({
         supabaseAdmin,
         stagedGiftId,
         tenantId: auth.tenantId,
         actorProfileId: auth.profileId,
         note: body.note,
-        crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
       });
 
       revalidateAdminContributionsCache(auth.tenantId);
@@ -255,22 +252,11 @@ export const POST_APPROVE = withOperation(
 );
 
 export const POST_RETRY = withOperation(
-  async ({ request, supabaseAdmin, auth, requestId }) => {
+  async ({ request, requestId }) => {
     try {
-      const stagedGiftId = getStagedGiftIdFromPath(request);
-      const body = actionSchema.parse(await ensureJsonBody(request));
-      const stagedGift = await retryStagedGiftPostingToTwenty({
-        supabaseAdmin,
-        stagedGiftId,
-        tenantId: auth.tenantId,
-        actorProfileId: auth.profileId,
-        note: body.note,
-        crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
-      });
-
-      revalidateAdminContributionsCache(auth.tenantId);
-
-      return NextResponse.json({ stagedGift, requestId });
+      getStagedGiftIdFromPath(request);
+      actionSchema.parse(await ensureJsonBody(request));
+      rejectRetiredCrmPostingRetry();
     } catch (error) {
       return toErrorResponse(error, "Failed to retry staged gift.", requestId);
     }

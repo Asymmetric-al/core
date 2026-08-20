@@ -51,28 +51,22 @@ const TABLE_ROUTES = [
   { path: "/crm", name: "CRM" },
   { path: "/crm/notes", name: "CRM Notes" },
   { path: "/crm/relationships", name: "CRM Relationships" },
-  { path: "/crm/projections", name: "CRM Projections" },
   { path: "/contributions", name: "Contributions" },
   { path: "/tasks", name: "Tasks" },
   { path: "/care", name: "Care" },
   { path: "/mobilize/locations", name: "Locations" },
 ] as const;
 
-const CRM_TWENTY_SURFACES = [
+const CRM_LOCAL_SURFACES = [
   {
     path: "/crm/notes",
     heading: "CRM Notes",
-    emptyState: /No CRM notes|CRM reads are not configured/i,
+    emptyState: /No CRM notes/i,
   },
   {
     path: "/crm/relationships",
     heading: "CRM Relationships",
-    emptyState: /No CRM relationships|CRM reads are not configured/i,
-  },
-  {
-    path: "/crm/projections",
-    heading: "CRM Projections",
-    emptyState: /No CRM projections|Projection names can be disabled/i,
+    emptyState: /No CRM relationships/i,
   },
 ] as const;
 
@@ -100,9 +94,9 @@ test.describe("Admin table pages smoke", () => {
     });
   }
 
-  test.describe("Twenty-backed CRM surfaces", () => {
-    for (const { emptyState, heading, path } of CRM_TWENTY_SURFACES) {
-      test(`${heading} (${path}) handles missing Twenty env without overlay`, async ({
+  test.describe("Local CRM notes and relationships", () => {
+    for (const { emptyState, heading, path } of CRM_LOCAL_SURFACES) {
+      test(`${heading} (${path}) loads local Asym Postgres data without overlay`, async ({
         page,
       }) => {
         await ensureAdminDemo(page);
@@ -117,8 +111,32 @@ test.describe("Admin table pages smoke", () => {
         await expect(page.getByText(emptyState).first()).toBeVisible({
           timeout: 120_000,
         });
+        await expect(page.getByText(/Asym Postgres/i).first()).toBeVisible();
+        await expect(page.getByText("Twenty CRM", { exact: true })).toHaveCount(
+          0,
+        );
+        await expect(
+          page.getByText("Twenty-backed", { exact: true }),
+        ).toHaveCount(0);
       });
     }
+
+    test("authorized staff can create a local CRM note that remains readable", async ({
+      page,
+    }) => {
+      await ensureAdminDemo(page);
+      await page.goto(adminPath("/crm/notes"));
+      await page.waitForLoadState("domcontentloaded");
+
+      const uniqueTitle = `Local CRM note ${Date.now()}`;
+      await page.getByLabel("Title").fill(uniqueTitle);
+      await page.getByLabel("Body").fill("Authoritative Asym Postgres note.");
+      await page.getByRole("button", { name: "Save note" }).click();
+
+      await expect(page.getByText("CRM note saved")).toBeVisible();
+      await expect(page.getByRole("cell", { name: uniqueTitle })).toBeVisible();
+      await expect(page.getByText("Queued for Twenty")).toHaveCount(0);
+    });
   });
 
   test.describe("CRM table interactions", () => {

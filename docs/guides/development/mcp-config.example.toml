@@ -42,7 +42,7 @@
 
 # Nia MCP: prefer the remote server in user/global MCP config so repo files do
 # not contain API keys. Use local pipx only if remote MCP is unavailable.
-# See docs/ai/nia.md and AGENTS.md#nia-mcp-usage-always-repo-scoped.
+# See docs/ai/nia.md.
 #
 # [mcp_servers.nia]
 # url = "<NIA_MCP_URL_FROM_DOCS>"

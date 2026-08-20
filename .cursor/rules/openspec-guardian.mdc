@@ -58,6 +58,9 @@ The main agent should keep working while both run.
 - Do not silently cross app, package, auth, tenant, role, money, CRM/CMS, publication, public/private, or data-access boundaries.
 - Do not ignore active OpenSpec changes.
 - Do not casually run `openspec update`.
+- The Guardian is permanently read-only: no file writes, no shell mutation, no OpenSpec sync or archive.
+- Distinguish intended behavior from current reality. Active changes do not prove shipped behavior.
+- Asym Postgres owns all CRM truth. Twenty CRM is retired. Escalate material source conflicts.
 - Do not let broad refactors sneak into a narrow prompt.
 - Do not mark a task done while prompt intent and OpenSpec intent disagree.
 ## Quick invocation template

@@ -82,7 +82,7 @@ describe("grill-for-unknowns skill", () => {
       "docs/ai/skills",
       "references/upstream.md",
     );
-    const agents = readRepoFile("AGENTS.md");
+    const skillRouting = readRepoFile("docs/ai/rules/agent-skill-routing.md");
     const askMatt = readRepoFile("docs/ai/skills/ask-matt/SKILL.md");
     const packageJson = JSON.parse(readRepoFile("package.json")) as {
       scripts: Record<string, string>;
@@ -103,8 +103,10 @@ describe("grill-for-unknowns skill", () => {
       computedHash:
         "8e5fa5e057cbd0833170ca7f31ecb569bcce689b8e2c8f14cf8f4072ac85c395",
     });
-    expect(agents).toContain("docs/ai/skills/grill-for-unknowns/SKILL.md");
-    expect(agents).toContain("do not pair it redundantly");
+    expect(skillRouting).toContain(
+      "docs/ai/skills/grill-for-unknowns/SKILL.md",
+    );
+    expect(skillRouting).toContain("do not pair it redundantly");
     expect(askMatt).toContain("/grill-for-unknowns");
     expect(packageJson.scripts["skills:refresh-grill-for-unknowns"]).toBe(
       "node scripts/refresh-upstream-skills.mjs --only=nicobailon/grill-for-unknowns",
