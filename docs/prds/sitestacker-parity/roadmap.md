@@ -2976,7 +2976,7 @@ site/locale context); and optional Phase 21 support projections.
   one non-overlapping disposition. A narrowly certified compatible-legacy D2
   release may preserve proved-safe editorial presentation only where D20 allows
   it; it is never raw Payload publication, a fallback reader, or managed truth.
-  The D10 production-shaped shadow has no public effects, staff review only
+  The D21 production-shaped shadow has no public effects, staff review only
   genuine exceptions and one complete visitor-consequence summary, and the one
   literal action is **Start using these prepared pages**. After cutover the
   Phase 5/D18 gateway is the sole reader, current admission prevents stale

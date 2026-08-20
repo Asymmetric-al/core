@@ -73,7 +73,7 @@ product authorization.
 
 Phase 21 owns receipt-extraction and expense-match suggestion semantics and
 acceptance. Phase 22 D16 consumes the same foundation for Public Page writing
-assistance but owns content acceptance and publication. Phase 40 later consumes
+assistance but owns content acceptance, not publication. Phase 40 later consumes
 rather than replaces the shared foundation for the generalized AI Operator
 Workbench.
 

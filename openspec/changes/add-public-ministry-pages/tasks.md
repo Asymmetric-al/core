@@ -139,7 +139,8 @@ out of scope.
       product head.
 - [ ] 3.2 Deliver one final-intent candidate flow whose existing `Submit for
 review` or `Publish changes` action atomically binds the exact revision,
-      digest, actor, complete scope, action, and code-owned D26 statement. Show
+      digest, actor, complete scope, action, complete dependency and
+      public-egress manifest, and code-owned D26 statement. Show
       exactly `By submitting, you confirm you’re allowed to share the words and
 images on this page publicly.` or `By publishing, you confirm you’re allowed to
 share the words and images on this page publicly.` beside the Page action. For a
@@ -187,7 +188,9 @@ share the words and images on this page publicly.` beside the Page action. For a
 - [ ] 4.1 Deliver the two small code-owned semantic block catalogs and one
       versioned Tenant, Legal Entity, environment, Site, and Page-Family
       presentation profile for Missionary and Project/Campaign layouts, including
-      bounded Ministry Update placement. A sibling-scope profile cannot be
+      bounded Ministry Update placement. Optional editorial sections are exactly
+      `Off`, `Available`, or `Expected`; `Expected` is private completeness
+      guidance, not a public empty section. A sibling-scope profile cannot be
       resolved or activated as fallback. Each
       family catalog contains exactly one required D7-managed Give semantic role and
       locked organization stewardship, disclosure, and help roles; compatible
@@ -254,7 +257,9 @@ publicly` action, which immediately invokes smallest-scope containment
       context and never as fallback or substitution.
 - [ ] 5.3 Deliver optional per-Page typed support progress that reads only
       certified source projections, omits missing/stale/incompatible facts, and
-      never invents zero, currency conversion, or payment truth. Only an actor with
+      never invents zero, currency conversion, or payment truth. Phase 21 Field
+      Account, availability, and payment facts never become public-progress
+      inputs or fallbacks. Only an actor with
       the exact current tenant staff/D6 progress-settings capability may select
       `Hidden` or one certified metric; contributors, represented subjects, display
       participants, and relationship-derived actors receive no such authority.
@@ -266,7 +271,9 @@ publicly` action, which immediately invokes smallest-scope containment
 - [ ] 5.4 Deliver a source-qualified route and lifecycle case in which cause
       opens work but never chooses the outcome: continue, a through-dated
       transition-notice release, same-Page Listed-only permanent redirect, or
-      privacy-safe 404. A transition notice retains D7's exact binding and renders
+      privacy-safe 404. A method-preserving `308` is issued only for
+      navigation-safe `GET`/`HEAD`; other methods are rejected. A transition
+      notice retains D7's exact binding and renders
       the independently current Phase 13 Giving state; D8 never manufactures an
       intentional no-Giving posture or infers a replacement fund. Prove every
       permanent redirect is one hop, has a currently eligible destination, and
@@ -284,7 +291,10 @@ publicly` action, which immediately invokes smallest-scope containment
       animation, video, audio, and documents; enforces byte, pixel, dimension,
       channel, frame, decode-time, memory, and output ceilings before a sandboxed,
       complete, bounded one-frame decode, controlled sRGB reconstruction, and
-      re-encode; expires bounded raw intake and discards source names; and proves
+      re-encode; independently reparses each encoded derivative to prove type,
+      dimensions, digest, frame count, and absence of EXIF/GPS/IPTC/XMP, embedded
+      thumbnails, auxiliary images, and source-name data; expires bounded raw
+      intake and discards source names; and proves
       with adversarial fixtures that every limit fails without unbounded worker use
       or a public object. Public derivatives remain metadata-free, opaque, release-
       bound, and accessible while originals remain unservable.
@@ -522,7 +532,9 @@ publishing`, `Page appearance and discovery`, `Optional features`, and
 - [ ] 8.6 Deliver action-specific D25 recovery only for unreleased D1 working
       content and D4/D5 candidates. Derive currently permitted View submission,
       Request changes, Reject, Withdraw, Edit page, Review saved changes, or Use as
-      starting point actions from current owner facts; name the exact owner cause
+      starting point actions from current owner facts. Withdraw is an append-only,
+      release-neutral, immutable D1/D4/D5 occurrence; it does not delete the
+      candidate or evidence and does not unpublish. Name the exact owner cause
       instead of a generic `stale` status, treat age as display-only, preserve
       referenced evidence, and add no D25 task/status/retention database. Before
       constructing a successor, revalidate every current D3/D20 semantic target,

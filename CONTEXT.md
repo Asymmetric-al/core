@@ -222,7 +222,7 @@ _Avoid_: cached page truth, whole-page freshness status, publication cache
 A disposable, exact-scope determination of whether the current request may serve
 the current release, return a privacy-safe absence, follow an authorized
 same-page redirect, or remain temporarily unavailable. It is derived from D2,
-Phase 10, and D8 authority and never replaces them.
+D27-governed D3 activation, Phase 10, and D8 authority and never replaces them.
 _Avoid_: cache authorization, CDN publication state, stale safety check
 
 **Controlled Public Surface** (Phase 22 D18):

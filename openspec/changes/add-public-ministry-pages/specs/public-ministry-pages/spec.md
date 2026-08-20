@@ -169,7 +169,8 @@ Profile lineage with at most one current head for each exact Tenant × Legal
 Entity × environment × Site × Page Family × publication-path scope. The current
 version SHALL select either `Review before publishing` or `Publish after checks`.
 Private autosave SHALL remain outside release state;
-a final intent SHALL bind one exact candidate revision and SHALL run the same
+a final intent SHALL freeze one exact candidate revision together with its
+complete dependency and public-egress manifest, and SHALL run the same
 safety, permission, dependency, and CAS checks in either mode. A missing, stale,
 incompatible, ambiguous, or unauthorized exact-scope profile SHALL use the
 disclosed `Review before publishing` fallback and SHALL NOT consult or inherit a
@@ -258,10 +259,11 @@ goal, currency, period, formula, or scope SHALL create an ordinary D4/D5
 candidate and D2 successor Page release and SHALL NOT mutate the profile beneath
 an existing release. Tenant or family defaults MAY seed private drafts but SHALL
 NOT remain in live resolution. Only source-owned numeric facts and watermarks MAY
-refresh a compatible released projection without editorial republishing. Phase
-21 and the owning financial phases SHALL remain authoritative; Phase 22 SHALL
-render only an approved public projection with exact currency, definition,
-through-date, coverage, and freshness.
+refresh a compatible released projection without editorial republishing. The
+owning financial phases SHALL remain authoritative; Phase 21 Field Account,
+availability, and payment facts SHALL NOT become public-progress inputs or
+fallbacks. Phase 22 SHALL render only an approved public projection with exact
+currency, definition, through-date, coverage, and freshness.
 
 #### Scenario: A missionary Page hides progress
 
@@ -350,13 +352,15 @@ and Giving truth. Source facts MAY open a disposition case but SHALL NOT choose
 its result. Supported outcomes SHALL be current serve, bounded notice, same-Page
 successor redirect, or not found. Permanent redirects SHALL be limited to
 eligible Listed Pages and SHALL NOT redirect a departed subject's gifts to
-another fund by inference.
+another fund by inference. A method-preserving `308` SHALL be issued only for
+navigation-safe `GET`/`HEAD`; other methods SHALL be rejected.
 
 #### Scenario: An eligible Listed Page changes path
 
 - **WHEN** an authorized Listed successor route is released for the same Page
   and locale while both origin and target remain Listed
-- **THEN** the old route returns one bounded permanent redirect to it
+- **THEN** the old route returns one bounded method-preserving `308` for
+  `GET`/`HEAD` and rejects other methods
 - **AND** the redirect chain remains single-hop and cycle-free
 
 #### Scenario: A Listed Page becomes Shared by link
@@ -985,9 +989,11 @@ The platform SHALL maintain exactly two small code-owned semantic block
 catalogs, one for Missionary Pages and one for Project/Campaign Pages. Each entry
 SHALL define stable semantic identity, compatible content shape, public behavior,
 accessibility contract, and migration compatibility. D3 profile versions SHALL
-select bounded roles, order, visibility, and editability from those catalogs;
-managed operational fields SHALL remain read-only and arbitrary tenant block
-types or embedded code SHALL be unavailable.
+select bounded roles, order, and editability from those catalogs. Optional
+editorial sections SHALL be exactly `Off`, `Available`, or `Expected`;
+`Expected` is private completeness guidance and SHALL NOT fabricate a public
+empty section. Managed operational fields SHALL remain read-only and arbitrary
+tenant block types or embedded code SHALL be unavailable.
 
 The Missionary launch catalog SHALL contain managed public identity; optional
 Introduction, Our ministry story, Ministry focus, and How you can pray; D9
@@ -1308,6 +1314,9 @@ through current authorization and CAS; cleanup SHALL delete only content proven
 unreferenced. A dependency MAY block Approve/Release while independently
 authorized View submission, Request changes, terminal Reject, Withdraw, or D24
 Edit remains available; a candidate SHALL NOT gain a generic `stale` state.
+Withdraw SHALL be an append-only, release-neutral, immutable D1/D4/D5
+occurrence; it SHALL NOT delete the candidate or its evidence and SHALL NOT
+unpublish a live release.
 The recovery buffer SHALL use a trailing two-second dirty-aware debounce, a
 15-second maximum wait, explicit `Save draft`, safe navigation/editor-handoff
 flush, digest no-op suppression, one in-flight write per exact generation, and

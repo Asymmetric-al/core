@@ -55,7 +55,7 @@ Adopt the complete Phase 22 D21 C-prime-R ruling:
 > migration mode.**
 >
 > **Exact candidates may be machine-prepared, but staff review only genuine
-> exceptions and the complete visitor consequences. The production-shaped D10
+> exceptions and the complete visitor consequences. The production-shaped D21
 > shadow proves every included and excluded route, current/new presentation,
 > subject, Giving destination, progress posture, Ministry Updates, media,
 > directory/search membership, metadata, sitemap, social presentation, redirect
