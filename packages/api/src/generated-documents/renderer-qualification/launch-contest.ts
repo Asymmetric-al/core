@@ -1,0 +1,943 @@
+import {
+  PHASE_18_RENDERER_ADAPTER_CONTRACT,
+  PHASE_18_RENDERER_ADAPTER_CONTRACT_DIGEST,
+} from "./adapter-contract";
+
+import type {
+  AssistiveTechnologyStackLock,
+  BudgetMetricDefinition,
+  EvidenceRules,
+  HeldBackCaseId,
+  OpenCaseId,
+  OperationalSuites,
+  QualificationCaseManifest,
+  QualificationGate,
+  RendererQualificationCharterInput,
+  ScoreDimension,
+  ScoringRules,
+  ValidationToolArtifactPins,
+  ValidationToolProtocolDefinition,
+} from "./types";
+
+/**
+ * The exact Phase 18 contest content from the approved renderer qualification
+ * protocol. Launch tables live here; the focused adapter-contract module owns
+ * the candidate-neutral request/result seam and its domain-separated digest.
+ * Only environment-specific provenance (adapter commits/digests, containers,
+ * fonts, validator bytes/configuration, assistive-technology stacks) and the
+ * custodian's held-back seals arrive as freeze-time input, because they
+ * describe real artifacts the harness cannot invent.
+ */
+
+export const PHASE_18_REMEDIATION_PERMITTED_CHANGES =
+  "adapter/translation fixes against the same frozen semantic requirements; no fixture-ID-specific branches; no manual edits to generated PDFs";
+
+export const OPEN_CASE_DEFINITIONS: Record<
+  OpenCaseId,
+  {
+    title: string;
+    output_profile: QualificationCaseManifest["output_profile"];
+    bounds: string;
+    protected_facts: readonly string[];
+    layout_assertions: readonly string[];
+    failure_behavior?: string;
+  }
+> = {
+  O01: {
+    title:
+      "U.S. single cash acknowledgment; one page; short Latin identity/address",
+    output_profile: "accessible-archive-v1",
+    bounds: "One page; one synthetic donor identity; one cash gift",
+    protected_facts: [
+      "issuer legal name",
+      "legal donor name",
+      "gift date",
+      "gift amount",
+      "required goods/services statement",
+    ],
+    layout_assertions: ["single page", "protected block order preserved"],
+  },
+  O02: {
+    title:
+      "U.S. quid-pro-quo acknowledgment; itemized advantages and deductible amount",
+    output_profile: "accessible-archive-v1",
+    bounds: "Itemized advantage list; source-owned arithmetic",
+    protected_facts: [
+      "gross payment",
+      "goods/services description",
+      "good-faith value",
+      "deductible amount",
+      "required disclosure",
+    ],
+    layout_assertions: ["every protected disclosure survives"],
+  },
+  O03: {
+    title: "U.S. QCD acknowledgment; custodian and donor roles are distinct",
+    output_profile: "accessible-archive-v1",
+    bounds: "Two distinct synthetic roles; QCD wording",
+    protected_facts: [
+      "QCD protected wording",
+      "custodian role label",
+      "donor role label",
+    ],
+    layout_assertions: ["role labels remain distinct and exact"],
+  },
+  O04: {
+    title:
+      "U.S. annual acknowledgment; 250 contributions, refunds and corrections; at least 20 pages",
+    output_profile: "accessible-archive-v1",
+    bounds: "250 synthetic items incl. refunds/corrections; >= 20 pages",
+    protected_facts: [
+      "per-item dates",
+      "per-item amounts",
+      "correction labels",
+      "totals",
+    ],
+    layout_assertions: [
+      "repeated headers",
+      "page counters",
+      "complete item list",
+    ],
+  },
+  O05: {
+    title: "Canadian individual cash receipt in English",
+    output_profile: "accessible-archive-v1",
+    bounds: "One synthetic CRA receipt; English",
+    protected_facts: [
+      "issuer name",
+      "serial",
+      "issue date",
+      "donor name",
+      "eligible amount",
+      "signer name",
+      "CRA fields",
+    ],
+    layout_assertions: ["official and signer blocks present"],
+  },
+  O06: {
+    title: "Canadian individual cash receipt in French",
+    output_profile: "accessible-archive-v1",
+    bounds: "One synthetic CRA receipt; French with accents",
+    protected_facts: ["French protected fields", "accented text"],
+    layout_assertions: ["French language metadata correct"],
+  },
+  O07: {
+    title:
+      "Canadian cumulative receipt; 24 gifts and one replacement reference",
+    output_profile: "accessible-archive-v1",
+    bounds: "24 synthetic gifts; one predecessor citation",
+    protected_facts: [
+      "contribution list",
+      "total",
+      "serial",
+      "predecessor reference",
+    ],
+    layout_assertions: ["complete gift list"],
+  },
+  O08: {
+    title: "Canadian advantage/split receipt with multiple advantages",
+    output_profile: "accessible-archive-v1",
+    bounds: "Multiple synthetic advantages",
+    protected_facts: [
+      "gift amount",
+      "advantage FMV",
+      "eligible amount",
+      "required explanations",
+    ],
+    layout_assertions: ["advantage itemization complete"],
+  },
+  O09: {
+    title:
+      "Canadian non-cash receipt with long property description and appraiser facts",
+    output_profile: "accessible-archive-v1",
+    bounds: "Long synthetic property description",
+    protected_facts: ["property description", "appraiser facts", "value facts"],
+    layout_assertions: ["specialist evidence readable, tagged, unclipped"],
+  },
+  O10: {
+    title: "Informational giving summary; 1,500 rows; minimum 100 final pages",
+    output_profile: "accessible-v1",
+    bounds: "1,500 synthetic rows; >= 100 pages",
+    protected_facts: ["every row", "every total"],
+    layout_assertions: [
+      "headers, breaks and page counters truthful",
+      "no dropped row",
+    ],
+  },
+  O11: {
+    title: "Tribute notification with bounded donor anonymity",
+    output_profile: "accessible-v1",
+    bounds: "Synthetic honoree and notify party; donor identity forbidden",
+    protected_facts: ["honoree name", "notify party name"],
+    layout_assertions: [
+      "forbidden donor identity absent from text, tags, metadata and filename",
+    ],
+  },
+  O12: {
+    title: "Pledge statement with paid, pending and remaining values",
+    output_profile: "accessible-v1",
+    bounds: "Synthetic commitment plan with three value axes",
+    protected_facts: ["paid value", "pending value", "remaining value"],
+    layout_assertions: ["money and status axes distinct"],
+  },
+  O13: {
+    title:
+      "One-page custom business document with logo, headings, list and semantic table",
+    output_profile: "accessible-v1",
+    bounds: "One synthetic tenant-designed page",
+    protected_facts: [],
+    layout_assertions: ["semantics preserved under tenant design freedom"],
+  },
+  O14: {
+    title:
+      "Two-column custom document with explicit linearization, image alt text and footer",
+    output_profile: "accessible-v1",
+    bounds: "Two visual columns with declared reading order",
+    protected_facts: [],
+    layout_assertions: ["visual columns and canonical reading order agree"],
+  },
+  O15: {
+    title:
+      "Long names, addresses, URLs, identifiers and unbreakable tokens on Letter and A4",
+    output_profile: "both",
+    bounds: "Synthetic overflow-stress strings; two page sizes",
+    protected_facts: [],
+    layout_assertions: [
+      "overflow repairs or fails visibly",
+      "no clipping or overlap",
+    ],
+  },
+  O16: {
+    title:
+      "500-row table with keep/break hints, row spans, footnotes and end totals",
+    output_profile: "both",
+    bounds: "500 synthetic rows; explicit break hints",
+    protected_facts: ["end totals"],
+    layout_assertions: [
+      "headers/cells, page breaks, totals and reading order correct",
+    ],
+  },
+  O17: {
+    title:
+      "Safe PNG/JPEG/SVG assets plus blocked remote, file, data-exfiltration and script attempts",
+    output_profile: "both",
+    bounds: "Pinned safe assets; hostile references included",
+    protected_facts: [],
+    layout_assertions: ["only pinned safe assets render"],
+    failure_behavior:
+      "every forbidden fetch/execution is denied and logged safely",
+  },
+  O18: {
+    title:
+      "Missing glyph, corrupt font, oversized image and malformed semantic input",
+    output_profile: "both",
+    bounds: "Deliberately broken synthetic inputs",
+    protected_facts: [],
+    layout_assertions: [],
+    failure_behavior:
+      "fails closed with a typed actionable cause and emits no canonical artifact",
+  },
+};
+
+export const HELD_BACK_CASE_DEFINITIONS: Record<
+  HeldBackCaseId,
+  {
+    title: string;
+    output_profile: QualificationCaseManifest["output_profile"];
+    bounds: string;
+  }
+> = {
+  H01: {
+    title:
+      "U.S. single acknowledgment with maximum bounded identity/address and mixed Unicode",
+    output_profile: "accessible-archive-v1",
+    bounds: "Maximum bounded identity fields; mixed Unicode",
+  },
+  H02: {
+    title:
+      "U.S. annual acknowledgment with 2,000 rows, corrections and boundary totals; minimum 100 pages",
+    output_profile: "accessible-archive-v1",
+    bounds: "2,000 synthetic rows; >= 100 pages",
+  },
+  H03: {
+    title:
+      "French Canadian cumulative receipt with leap-day/date and long registration/signature content",
+    output_profile: "accessible-archive-v1",
+    bounds: "French locale; leap-day dates; long registration strings",
+  },
+  H04: {
+    title:
+      "Canadian formal replacement with new serial and canceled predecessor citation",
+    output_profile: "accessible-archive-v1",
+    bounds: "Replacement pair with two identities",
+  },
+  H05: {
+    title:
+      "Canadian non-cash gift with advantage and specialist-review evidence",
+    output_profile: "accessible-archive-v1",
+    bounds: "Specialist pathway fixture",
+  },
+  H06: {
+    title:
+      "English/French/Arabic/Hebrew/Japanese mixed-direction names, prose, tables and URLs",
+    output_profile: "both",
+    bounds: "Mixed-direction multilingual content",
+  },
+  H07: {
+    title:
+      "Nested headings, lists, repeated table headers, links, decorative/informative images and two columns",
+    output_profile: "both",
+    bounds: "Deep tag-structure fixture",
+  },
+  H08: {
+    title:
+      "Decompression-bomb image, hostile SVG, remote redirect, localhost/private-IP URL and host-file reference",
+    output_profile: "both",
+    bounds: "Hostile-input fixture; sandbox limits documented",
+  },
+  H09: {
+    title:
+      "Same frozen input rendered ten times with fixed clock and identifiers",
+    output_profile: "both",
+    bounds: "Determinism fixture; fixed clock",
+  },
+  H10: {
+    title:
+      "Maximum admitted page size/content followed by one-over-limit variants",
+    output_profile: "both",
+    bounds: "Boundary-limit fixture",
+  },
+  H11: {
+    title:
+      "Restricted-worker aliases and forbidden identity seeded across content, metadata, tags, bookmarks and filename inputs",
+    output_profile: "both",
+    bounds: "Publication-safety fixture; forbidden identity markers documented",
+  },
+  H12: {
+    title:
+      "Deliberate malformed facts/schema, missing required protected block and incompatible publication/profile",
+    output_profile: "both",
+    bounds: "Admission-boundary fixture",
+  },
+};
+
+export const PHASE_18_QUALIFICATION_GATES: readonly QualificationGate[] = [
+  {
+    gate_id: "G01",
+    title: "Protected truth",
+    pass_rule:
+      "Every expected protected string/value/role appears exactly where required; zero missing, duplicated, substituted, clipped, overlapped, reordered or renderer-computed legal/money/identity fact across all success fixtures.",
+  },
+  {
+    gate_id: "G02",
+    title: "Pagination and completeness",
+    pass_rule:
+      "Every expected row, header, footer, total, footnote, page counter and break invariant is present exactly once where specified; every 100-plus-page case completes with zero dropped output and every over-limit case fails before canonicalization.",
+  },
+  {
+    gate_id: "G03",
+    title: "Final profile conformance",
+    pass_rule:
+      "Every final accessible-v1 artifact passes the frozen PDF/UA-1 machine and manual protocol; every accessible-archive-v1 artifact additionally passes frozen PDF/A-2a validation with zero unresolved required-profile failures.",
+  },
+  {
+    gate_id: "G04",
+    title: "Human accessibility",
+    pass_rule:
+      "Both independent reviewers pass tag structure, reading order, headings, tables, language/direction, links, alternatives, keyboard access, text extraction, 200/400% inspection and the frozen assistive-technology tasks. A machine-only pass fails.",
+  },
+  {
+    gate_id: "G05",
+    title: "International text and fonts",
+    pass_rule:
+      "English, French, RTL and CJK fixtures extract/search/read in logical order; all required fonts are legally embeddable and embedded; missing glyphs, fonts or Unicode mappings fail closed rather than silently substitute.",
+  },
+  {
+    gate_id: "G06",
+    title: "Isolation and hostile input",
+    pass_rule:
+      "No arbitrary network, DNS, localhost/private-address, cloud-metadata, ambient host-file, credential or tenant-code access succeeds. Hostile/malformed inputs remain within frozen CPU/memory/deadline/output bounds, disclose no secret/PII and produce typed evidence.",
+  },
+  {
+    gate_id: "G07",
+    title: "Pinning and final-byte integrity",
+    pass_rule:
+      "The evidence records every executable/input pin. All required byte-changing steps precede validation. SHA-256 and length of staged, uploaded and read-back bytes match; a mismatch cannot promote. Repeat renders meet the frozen semantic/visual stability rule, and any nonsemantic byte variance is fully explained.",
+  },
+  {
+    gate_id: "G08",
+    title: "Idempotency and recovery",
+    pass_rule:
+      "Refresh, replay, redelivery, concurrency and every failure-matrix case converge to one Generation Request and zero or one canonical Artifact; stale fences cannot finalize; ambiguous outcomes reconcile before retry; no orphan/staged object becomes accessible.",
+  },
+  {
+    gate_id: "G09",
+    title: "Load, fairness and cost",
+    pass_rule:
+      "Every operational suite completes within every predeclared absolute budget, without tenant starvation, queue collapse, unbounded retry, provider-quota violation or hidden manual repair. Raw tail latency and per-shape cost evidence are complete.",
+  },
+  {
+    gate_id: "G10",
+    title: "Managed/self-hosted operations",
+    pass_rule:
+      "The exact deployment has an approved security/privacy/procurement or self-hosted operating record, declared residency/retention/support access, bounded credentials, incident/backup/rollback runbooks, capacity ownership and no provider URL/archive authority. Unknown evidence fails.",
+  },
+  {
+    gate_id: "G11",
+    title: "Staff product experience",
+    pass_rule:
+      "Representative staff can use Layout preview, Generate exact proof and grouped Content/Layout/Accessibility/Archive findings without renderer/profile vocabulary; every blocking finding has one cause owner and direct repair path; the preview is never represented as official proof.",
+  },
+  {
+    gate_id: "G12",
+    title: "Supply chain and licensing",
+    pass_rule:
+      "Renderer/compiler, adapters, packages, containers, fonts, assets and validators have retained provenance, checksums, SBOM/license review and a named update owner; no prohibited or unresolved production license/security condition remains.",
+  },
+];
+
+const ANCHORS: readonly [string, string, string, string, string, string] = [
+  "0 — unusable",
+  "1 — severe permanent burden",
+  "2 — material gaps",
+  "3 — meets the contract",
+  "4 — clearly exceeds it with low burden",
+  "5 — exceptional and repeatedly proved",
+];
+
+export const PHASE_18_SCORE_DIMENSIONS: readonly ScoreDimension[] = [
+  {
+    dimension_id: "fidelity_editor_simplicity",
+    title: "Preview/final fidelity and editor simplicity",
+    weight: 20,
+    anchors: ANCHORS,
+    evidence_basis:
+      "Semantic-source translation burden, preview predictability, repair clarity and ongoing authoring complexity",
+  },
+  {
+    dimension_id: "accessibility_archival_quality",
+    title: "Accessibility and archival quality",
+    weight: 20,
+    anchors: ANCHORS,
+    evidence_basis:
+      "Quality/stability of tag, table, language, profile and validator outcomes beyond minimum pass",
+  },
+  {
+    dimension_id: "long_document_throughput",
+    title: "Long-document correctness and throughput",
+    weight: 20,
+    anchors: ANCHORS,
+    evidence_basis:
+      "Tail latency, throughput, memory, page behavior and operational headroom on long/mixed workloads",
+  },
+  {
+    dimension_id: "isolation_failure_clarity",
+    title: "Isolation and failure clarity",
+    weight: 15,
+    anchors: ANCHORS,
+    evidence_basis:
+      "Sandbox strength, typed/diagnosable failures, ambiguous-outcome handling and recovery burden",
+  },
+  {
+    dimension_id: "international_text",
+    title: "International text",
+    weight: 10,
+    anchors: ANCHORS,
+    evidence_basis:
+      "Quality and maintainability across French, RTL, CJK, fonts, extraction and bidi behavior",
+  },
+  {
+    dimension_id: "total_operational_cost",
+    title: "Total operational cost",
+    weight: 10,
+    anchors: ANCHORS,
+    evidence_basis:
+      "Measured cost at launch/year-end shapes, staffing, procurement, support, upgrades and capacity",
+  },
+  {
+    dimension_id: "provider_portability",
+    title: "Provider portability",
+    weight: 5,
+    anchors: ANCHORS,
+    evidence_basis:
+      "Narrowness of adapter, retained source/evidence, exit cost and absence of provider-owned product truth",
+  },
+];
+
+export const PHASE_18_SCORING_RULES: ScoringRules = {
+  reviewer_count: 2,
+  reviewer_method: "independent",
+  score_above_three_requires_written_beyond_gate_evidence: true,
+  scoring_eligibility: "both_finalists_pass_every_hard_gate",
+  reviewer_total_aggregation: "mean",
+  min_uncertainty_band_points: 2,
+  uncertainty_band_formula:
+    "max_minimum_or_half_absolute_reviewer_total_difference",
+  material_lead_points: 5,
+  material_lead_rule:
+    "mean_difference_at_least_threshold_and_strict_uncertainty_band_separation",
+  tie_break_order: [
+    "fewer new production execution/dependency surfaces and less translation from the canonical Asym semantic source",
+    "lower measured operational, security, procurement, support and upgrade burden at the frozen launch/year-end workload",
+    "greater measured capacity headroom without weakening isolation, accessibility, archival or recovery proof",
+  ],
+  selection_order: [
+    "neither_finalist_passes_every_hard_gate:no_winner",
+    "exactly_one_finalist_passes_every_hard_gate:select_exact_passing_frozen_pipeline",
+    "both_finalists_pass_and_one_has_material_lead:select_exact_material_leader",
+    "both_finalists_pass_without_material_lead:compare_frozen_tie_break_evidence_in_order",
+    "all_tie_break_steps_equivalent_or_uncertain:no_winner",
+  ],
+  tie_break_resolution_rule:
+    "first_documented_material_advantage_else_no_winner",
+  candidate_preference: "none",
+};
+
+export const PHASE_18_OPERATIONAL_SUITES: OperationalSuites = {
+  repeatability: {
+    case_ids: ["O01", "O04", "O10", "H02", "H06", "H09"],
+    cold_runs_per_case: 10,
+    warm_runs_per_case: 10,
+  },
+  mixed_batch: {
+    total_items: 1000,
+    tenants: 20,
+    short_items: 700,
+    medium_items: 200,
+    long_items: 80,
+    poison_items: 20,
+    successful_item_policy: "remain_successful",
+    ambiguous_item_policy: "do_not_rerun",
+    retry_eligibility: "eligible_failures_only",
+    retry_pin_policy: "reuse_exact_pins",
+  },
+  fairness: {
+    heavy_tenant_items: 500,
+    heavy_item_shape: "long_100_plus_pages",
+    light_tenants: 19,
+    light_items_each: 10,
+    light_item_shape: "short_one_page",
+    claim_bound_multiplier: 2,
+    permitted_safety_throttle:
+      "explicitly recorded provider/queue safety throttle; any claim-bound miss must cite it",
+  },
+  concurrency_staircase: {
+    steps: [1, 5, 10, 25, 50],
+    safety_ceiling_concurrent_attempts: 50,
+  },
+  failure_matrix: {
+    injections: [
+      "timeout",
+      "process_termination",
+      "ambiguous_provider_result",
+      "worker_redelivery",
+      "object_upload_failure",
+      "read_back_mismatch",
+      "validator_crash",
+      "finalization_race",
+    ],
+    // The protocol's numbered attempt sequence; an injection must follow each.
+    durable_boundaries: [
+      "inputs frozen (publication, Facts Package, purpose, locale, assets, fonts, candidate pipeline, metadata clock, output profile)",
+      "candidate bytes rendered",
+      "required byte-changing finalization applied",
+      "read-only machine and product validators run against the final bytes",
+      "manual visual, print, extraction and assistive-technology review completed",
+      "SHA-256 and byte length calculated",
+      "uploaded privately, read back, and SHA-256/length compared",
+      "artifact promoted in a test environment",
+    ],
+  },
+  outage_recovery: {
+    outage_window_minutes: 30,
+    proof:
+      "bounded queue/backpressure and truthful status during the outage; same exact pipeline restored; no cross-engine output or duplicate effect",
+  },
+};
+
+export const PHASE_18_EVIDENCE_RULES: EvidenceRules = {
+  package_schema_version: "1",
+  decision_record_format: "phase-18-protocol-decision-record/v1",
+  redaction_policy:
+    "synthetic data and PII-safe diagnostics only; neutral candidate IDs during visual and accessibility review",
+  retention_owner: "phase-18-evidence-owner",
+  retention_days: 2_555,
+  validator_warning_policy: {
+    retain_all_warnings: true,
+    adjudicate_warnings_individually: true,
+    rule_override_requires_charter_reset_and_rerun: true,
+    profile_declaration_is_not_a_pass: true,
+  },
+};
+
+/**
+ * The protocol owns the metric, unit, and measurement basis. Numeric limits
+ * are freeze-time evidence supplied and approved by product and operations.
+ */
+export const PHASE_18_BUDGET_DEFINITIONS: readonly BudgetMetricDefinition[] = [
+  {
+    metric: "short_item_latency_p50_ms",
+    unit: "ms",
+    basis:
+      "short workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "short_item_latency_p95_ms",
+    unit: "ms",
+    basis:
+      "short workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "short_item_latency_p99_ms",
+    unit: "ms",
+    basis:
+      "short workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "medium_item_latency_p50_ms",
+    unit: "ms",
+    basis:
+      "medium 20-page workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "medium_item_latency_p95_ms",
+    unit: "ms",
+    basis:
+      "medium 20-page workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "medium_item_latency_p99_ms",
+    unit: "ms",
+    basis:
+      "medium 20-page workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "long_item_latency_p50_ms",
+    unit: "ms",
+    basis:
+      "long 100-plus-page workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "long_item_latency_p95_ms",
+    unit: "ms",
+    basis:
+      "long 100-plus-page workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "long_item_latency_p99_ms",
+    unit: "ms",
+    basis:
+      "long 100-plus-page workload shape across the frozen qualification population, including cold starts",
+  },
+  {
+    metric: "batch_completion_minutes",
+    unit: "minutes",
+    basis: "1,000-item mixed batch across 20 tenants",
+  },
+  {
+    metric: "throughput_items_per_minute",
+    unit: "items/minute sustained minimum",
+    basis: "mixed batch steady state",
+  },
+  {
+    metric: "max_attempt_deadline_ms",
+    unit: "ms",
+    basis:
+      "absolute per-attempt execution deadline; an attempt exceeding it is a typed timeout, not a slow success",
+  },
+  {
+    metric: "max_queue_age_seconds",
+    unit: "seconds",
+    basis: "interactive item under mixed load",
+  },
+  {
+    metric: "max_resident_memory_mb",
+    unit: "MB",
+    basis: "single worker at the largest admitted case",
+  },
+  {
+    metric: "max_hostile_input_cpu_time_ms",
+    unit: "CPU ms",
+    basis:
+      "CPU time summed across all cores for one hostile or malformed attempt at maximum admitted bounds",
+  },
+  {
+    metric: "max_artifact_bytes",
+    unit: "bytes",
+    basis: "largest admitted document",
+  },
+  {
+    metric: "min_capacity_headroom_percent",
+    unit: "percent",
+    basis: "launch workload versus measured ceiling",
+  },
+  {
+    metric: "max_error_rate_percent",
+    unit: "percent",
+    basis: "non-poison items in operational suites",
+  },
+  {
+    metric: "max_retry_rate_percent",
+    unit: "percent",
+    basis: "operational suites",
+  },
+  {
+    metric: "max_provider_requests_per_hour",
+    unit: "requests/hour",
+    basis: "managed-provider quota ceiling",
+  },
+  {
+    metric: "short_item_cost_usd_per_thousand_documents",
+    unit: "USD per 1,000 documents",
+    basis: "short workload shape, all-in provider and runtime cost",
+  },
+  {
+    metric: "medium_item_cost_usd_per_thousand_documents",
+    unit: "USD per 1,000 documents",
+    basis: "medium workload shape, all-in provider and runtime cost",
+  },
+  {
+    metric: "long_item_cost_usd_per_thousand_documents",
+    unit: "USD per 1,000 documents",
+    basis: "long workload shape, all-in provider and runtime cost",
+  },
+  {
+    metric: "max_cost_usd_per_thousand_documents",
+    unit: "USD per 1,000 documents",
+    basis: "mixed launch shape, all-in provider and runtime cost",
+  },
+  {
+    metric: "recovery_time_objective_minutes",
+    unit: "minutes",
+    basis: "provider/runtime outage recovery",
+  },
+];
+
+export const PHASE_18_VALIDATION_TOOLS: readonly ValidationToolProtocolDefinition[] =
+  [
+    {
+      name: "veraPDF",
+      version: "1.26.5",
+      category: "pdf_a_machine",
+      ruleset: "PDF/A-2a",
+    },
+    {
+      name: "PAC",
+      version: "2024.1",
+      category: "pdf_ua_machine",
+      ruleset: "PDF/UA-1 Matterhorn",
+    },
+    {
+      name: "asym-product-validator",
+      version: "1",
+      category: "product_validator",
+      ruleset:
+        "PDF syntax, required metadata, prohibited JavaScript/actions/attachments, embedded font inventory, Unicode mappings, tagged-structure expectations, allowed links, page/size limits, restricted-identity leakage",
+    },
+    {
+      name: "pdftotext-structure-extraction",
+      version: "24.02",
+      category: "text_structure_extraction",
+      ruleset: "protected values, row counts, totals, logical order comparison",
+    },
+    {
+      name: "visual-raster-diff",
+      version: "1",
+      category: "visual_diff",
+      ruleset:
+        "documented tolerances; repeatability only, never a substitute for semantic review",
+    },
+    {
+      name: "phase-18-assistive-technology-manual-protocol",
+      version: "1.0.0",
+      category: "assistive_technology",
+      ruleset:
+        "the primary Adobe Acrobat/Reader with NVDA stack and one independent secondary viewer/assistive-technology stack are both content-addressed in assistive_technology_stacks; both execute the pinned manual task protocol",
+    },
+  ];
+
+/**
+ * Protocol "Stop conditions": stop the contest or keep production dark when any
+ * of these holds. Frozen with the charter so none can be reinterpreted after
+ * results are inspected.
+ */
+export const PHASE_18_STOP_CONDITIONS: readonly string[] = [
+  "a frozen charter field is missing, changes without reset, or was created after results were inspected",
+  "held-back expectations or fixture identities leak to candidate implementers before sealing",
+  "a candidate receives extra tuning/remediation opportunity",
+  "either finalist is represented by a nondeployable proxy",
+  "a hard gate fails or required evidence is unknown",
+  "a validator/profile/license/security/procurement claim cannot be independently verified",
+  "a managed provider cannot meet required privacy, retention, residency, support-access or outage evidence",
+  "the load/cost/fairness budget is blank or missed",
+  "reviewer independence or evidence integrity is compromised",
+  "the deterministic rule yields no material winner",
+  "activation would require a tenant selector, silent fallback, second renderer runtime, manual PDF repair or historical rerender",
+];
+
+export const PHASE_18_REQUALIFICATION_TRIGGERS: readonly string[] = [
+  "renderer family, engine version, build, managed pipeline, endpoint/region, deployment mode or provider account behavior changes",
+  "source compiler, candidate adapter, finalizer, signing/seal step, container/OS/runtime or sandbox policy changes",
+  "font binary/license, locale/bidi data, asset sanitizer or semantic block/layout compiler behavior changes",
+  "PDF/UA, PDF/A, product validator, extraction or visual-review tool/version/ruleset changes",
+  "output-profile definition, metadata policy, required legal/protected block or purpose contract behavior changes",
+  "provider DPA, subprocessors, retention, support access, residency, quota, pricing or material service terms change",
+  "launch/max workload, page/content/resource bounds, fairness policy or cost budget changes",
+  "a new document purpose exercises an unqualified semantic/layout/accessibility capability",
+  "a material rendering, privacy, security, accessibility, archival, integrity, data-loss or duplicate-effect incident occurs",
+  "a relevant critical/high vulnerability, supply-chain compromise or revoked font/dependency license appears",
+];
+
+export interface Phase18ContestFreezeInput {
+  charter_id: string;
+  charter_version: string;
+  frozen_at: string;
+  roles: RendererQualificationCharterInput["roles"];
+  approvals: RendererQualificationCharterInput["approvals"];
+  /** Owner-supplied numeric thresholds for every protocol-defined metric. */
+  budgets: RendererQualificationCharterInput["budgets"];
+  candidates: RendererQualificationCharterInput["candidates"];
+  /** Content-addressed fixture digests for every corpus case. */
+  fixtures: Readonly<
+    Record<
+      HeldBackCaseId | OpenCaseId,
+      { facts_digest: string; document_digest: string }
+    >
+  >;
+  /** Custodian-supplied proof that the bound corpus was synthetically generated. */
+  synthetic_corpus_proof: RendererQualificationCharterInput["synthetic_corpus_proof"];
+  /** Custodian-sealed expected-result digests for every held-back case. */
+  sealed_expectations: Readonly<Record<HeldBackCaseId, string>>;
+  held_back_seal: RendererQualificationCharterInput["held_back_seal"];
+  /** Real validator artifacts are freeze-time evidence; the harness cannot invent them. */
+  validator_artifact_pins: Readonly<Record<string, ValidationToolArtifactPins>>;
+  /** Exact primary and independently selected secondary manual review stacks. */
+  assistive_technology_stacks: readonly [
+    AssistiveTechnologyStackLock,
+    AssistiveTechnologyStackLock,
+  ];
+  max_remediation_hours_per_cycle?: number;
+}
+
+function deepFreezeProtocol<T>(value: T): T {
+  if (typeof value !== "object" || value === null) return value;
+  for (const child of Object.values(value as Record<string, unknown>)) {
+    deepFreezeProtocol(child);
+  }
+  return Object.freeze(value);
+}
+
+// Protocol tables are the validation baseline. Freeze them at module load so
+// in-place mutation cannot rewrite the approved contest definitions.
+deepFreezeProtocol(OPEN_CASE_DEFINITIONS);
+deepFreezeProtocol(HELD_BACK_CASE_DEFINITIONS);
+deepFreezeProtocol(PHASE_18_QUALIFICATION_GATES);
+deepFreezeProtocol(PHASE_18_SCORE_DIMENSIONS);
+deepFreezeProtocol(PHASE_18_SCORING_RULES);
+deepFreezeProtocol(PHASE_18_OPERATIONAL_SUITES);
+deepFreezeProtocol(PHASE_18_EVIDENCE_RULES);
+deepFreezeProtocol(PHASE_18_BUDGET_DEFINITIONS);
+deepFreezeProtocol(PHASE_18_VALIDATION_TOOLS);
+deepFreezeProtocol(PHASE_18_REQUALIFICATION_TRIGGERS);
+deepFreezeProtocol(PHASE_18_STOP_CONDITIONS);
+
+/**
+ * Assemble the complete Phase 18 charter input from the protocol-fixed content
+ * plus the freeze-time provenance. `freezeRendererQualificationCharter` still
+ * validates the result; this builder cannot bypass any freeze rule.
+ */
+export function buildPhase18RendererContestInput(
+  input: Phase18ContestFreezeInput,
+): RendererQualificationCharterInput {
+  const open_corpus: QualificationCaseManifest[] = (
+    Object.entries(OPEN_CASE_DEFINITIONS) as Array<
+      [OpenCaseId, (typeof OPEN_CASE_DEFINITIONS)[OpenCaseId]]
+    >
+  ).map(([case_id, definition]) => ({
+    case_id,
+    visibility: "open",
+    title: definition.title,
+    output_profile: definition.output_profile,
+    synthetic: true,
+    fixture: {
+      // Blank defaults let freeze validation report typed corpus issues
+      // instead of throwing when a required fixture record is omitted.
+      facts_digest: input.fixtures[case_id]?.facts_digest ?? "",
+      document_digest: input.fixtures[case_id]?.document_digest ?? "",
+      bounds: definition.bounds,
+    },
+    expected: {
+      protected_facts: definition.protected_facts,
+      layout_assertions: definition.layout_assertions,
+      ...(definition.failure_behavior
+        ? { failure_behavior: definition.failure_behavior }
+        : {}),
+    },
+  }));
+
+  const held_back_corpus: QualificationCaseManifest[] = (
+    Object.entries(HELD_BACK_CASE_DEFINITIONS) as Array<
+      [HeldBackCaseId, (typeof HELD_BACK_CASE_DEFINITIONS)[HeldBackCaseId]]
+    >
+  ).map(([case_id, definition]) => ({
+    case_id,
+    visibility: "held_back",
+    title: definition.title,
+    output_profile: definition.output_profile,
+    synthetic: true,
+    fixture: {
+      facts_digest: input.fixtures[case_id]?.facts_digest ?? "",
+      document_digest: input.fixtures[case_id]?.document_digest ?? "",
+      bounds: definition.bounds,
+    },
+    sealed_expectation_digest: input.sealed_expectations[case_id] ?? "",
+  }));
+
+  const validators = PHASE_18_VALIDATION_TOOLS.map((tool) => {
+    const artifactPins = input.validator_artifact_pins?.[tool.name];
+    return {
+      ...tool,
+      executable_digest: artifactPins?.executable_digest ?? "",
+      configuration_digest: artifactPins?.configuration_digest ?? "",
+      ...(tool.category === "assistive_technology" &&
+      input.assistive_technology_stacks
+        ? {
+            assistive_technology_stacks: input.assistive_technology_stacks,
+          }
+        : {}),
+    };
+  });
+
+  // Clone so callers cannot mutate shared protocol objects that validation
+  // also uses as its fixed baseline.
+  return structuredClone({
+    charter_id: input.charter_id,
+    charter_version: input.charter_version,
+    frozen_at: input.frozen_at,
+    roles: input.roles,
+    approvals: input.approvals,
+    candidates: input.candidates,
+    open_corpus,
+    held_back_corpus,
+    synthetic_corpus_proof: input.synthetic_corpus_proof,
+    held_back_seal: input.held_back_seal,
+    adapter_contract: PHASE_18_RENDERER_ADAPTER_CONTRACT,
+    adapter_contract_digest: PHASE_18_RENDERER_ADAPTER_CONTRACT_DIGEST,
+    operational_suites: PHASE_18_OPERATIONAL_SUITES,
+    gates: PHASE_18_QUALIFICATION_GATES,
+    score_dimensions: PHASE_18_SCORE_DIMENSIONS,
+    scoring_rules: PHASE_18_SCORING_RULES,
+    budgets: input.budgets ?? [],
+    validators,
+    remediation_policy: {
+      initial_attempts: 1,
+      max_cycles: 2,
+      max_hours_per_cycle: input.max_remediation_hours_per_cycle ?? 40,
+      permitted_changes: PHASE_18_REMEDIATION_PERMITTED_CHANGES,
+    },
+    evidence_rules: PHASE_18_EVIDENCE_RULES,
+    requalification_triggers: PHASE_18_REQUALIFICATION_TRIGGERS,
+    stop_conditions: PHASE_18_STOP_CONDITIONS,
+    unknown_evidence_rule: "fails_affected_gate",
+  });
+}
