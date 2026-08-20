@@ -1,5 +1,4 @@
 import { postIdParamSchema } from "../schemas/posts";
-import { CACHE_TAGS, revalidateTags } from "../shared/cache-tags";
 import { ApiHttpError } from "../shared/http-errors";
 
 import type { createClient } from "@asym/database/supabase/server";
@@ -52,11 +51,4 @@ export async function resolveReactionRouteContext(
     userId: user.id,
     tenantId: profile.tenant_id,
   };
-}
-
-export function revalidatePostReactionTags({
-  postId,
-  tenantId,
-}: Pick<ReactionRouteContext, "postId" | "tenantId">) {
-  revalidateTags([CACHE_TAGS.tenantPosts(tenantId), CACHE_TAGS.post(postId)]);
 }

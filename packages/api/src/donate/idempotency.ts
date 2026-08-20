@@ -1,10 +1,15 @@
 import { ApiHttpError } from "../shared/http-errors";
 
-export function resolveRequiredIdempotencyKey(headers: Headers): string {
+export function parseRequiredIdempotencyKey(headers: Headers): string | null {
   const headerValue =
     headers.get("idempotency-key") ?? headers.get("x-idempotency-key");
   const idempotencyKey = headerValue?.trim() ?? "";
-  if (idempotencyKey.length > 0) {
+  return idempotencyKey.length > 0 ? idempotencyKey : null;
+}
+
+export function resolveRequiredIdempotencyKey(headers: Headers): string {
+  const idempotencyKey = parseRequiredIdempotencyKey(headers);
+  if (idempotencyKey) {
     return idempotencyKey;
   }
 

@@ -19,6 +19,7 @@ env:
 jobs:
   migrate:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
       PAYLOAD_DATABASE_URI: postgresql://postgres:postgres@localhost:5432/asymmetrical_test

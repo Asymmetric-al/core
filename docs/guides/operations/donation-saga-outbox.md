@@ -8,14 +8,14 @@ The goal is to keep all database mutations transactional while coordinating cros
 
 ## Flow Summary
 
-1. Donation entry points validate input and start the DB transaction via `begin_donation_saga`.
+1. Donation entry points validate input and start the DB transaction through the Gift Intake Begin Command (`beginGiftIntake` in `@asym/api`). That command calls `begin_donation_saga`. HTTP donate, HTTP donations, and GraphQL `createDonation` MUST NOT call the RPC directly.
 2. `begin_donation_saga` atomically:
    - creates/reuses donor
    - inserts a donation row (`status=processing`)
    - inserts transactional audit log (`donation_initiated`)
    - enqueues one row in `donation_saga_outbox`
 3. `POST /api/donate` and `POST /api/donations` attempt immediate processing via `processDonationSagaOutboxEvent`.
-4. GraphQL `createDonation` currently enqueues saga work and returns the donation; side-effect processing is handled by the outbox worker.
+4. GraphQL `createDonation` uses the same Gift Intake Begin Command and stays enqueue-only: it returns the donation without processing the outbox. Stripe side effects run through the outbox worker.
 5. If immediate processing does not finish, outbox processing continues through `POST /api/donate/outbox`.
 
 ## Outbox State Model
@@ -165,3 +165,13 @@ order by updated_at desc;
 - Never expose Stripe secret keys to client code.
 - Keep RLS assumptions unchanged for app reads; admin client remains server-only.
 - Do not manually delete outbox rows unless the linked donation lifecycle is fully reconciled.
+
+## Verification
+
+Confirm GraphQL Gift begin stays enqueue-only while HTTP donate and donations still process the outbox:
+
+```sh
+bunx vitest run tests/unit/graphql-gift-engagement-adapters.test.ts packages/api/tests/unit/begin-gift-intake.test.ts
+```
+
+Those tests lock `packages/graphql/handler.ts` to `amountCents: args.input.amount` with no `processDonationSagaOutboxEvent`, and they lock HTTP donate/donations to keep `processDonationSagaOutboxEvent` after `beginGiftIntake`. Donations must not convert dollars with `Math.round(amount * 100)`.

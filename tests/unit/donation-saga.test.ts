@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { resolveRequiredIdempotencyKey } from "../../packages/api/src/donate/idempotency";
+import {
+  parseRequiredIdempotencyKey,
+  resolveRequiredIdempotencyKey,
+} from "../../packages/api/src/donate/idempotency";
+import { ApiHttpError } from "../../packages/api/src/shared/api-http-error";
 import {
   processDonationSagaOutboxEvent,
   processDueDonationSagaOutboxEvents,
@@ -344,10 +348,37 @@ describe("donation saga helpers", () => {
     });
   });
 
-  it("requires idempotency key header for donation requests", () => {
+  it("parses required idempotency keys without choosing HTTP or GraphQL errors", () => {
+    expect(parseRequiredIdempotencyKey(new Headers())).toBeNull();
+    expect(
+      parseRequiredIdempotencyKey(new Headers({ "idempotency-key": "   " })),
+    ).toBeNull();
+    expect(
+      parseRequiredIdempotencyKey(
+        new Headers({ "idempotency-key": " idem-primary " }),
+      ),
+    ).toBe("idem-primary");
+    expect(
+      parseRequiredIdempotencyKey(
+        new Headers({ "x-idempotency-key": " idem-legacy " }),
+      ),
+    ).toBe("idem-legacy");
+  });
+
+  it("maps missing idempotency keys to HTTP 400 at the donate adapter", () => {
     expect(() => resolveRequiredIdempotencyKey(new Headers())).toThrow(
-      "Missing required idempotency-key header",
+      ApiHttpError,
     );
+    try {
+      resolveRequiredIdempotencyKey(new Headers());
+      throw new Error("expected missing idempotency key to throw");
+    } catch (error) {
+      expect(error).toBeInstanceOf(ApiHttpError);
+      expect((error as ApiHttpError).status).toBe(400);
+      expect((error as ApiHttpError).message).toBe(
+        "Missing required idempotency-key header",
+      );
+    }
 
     const legacyHeader = new Headers({
       "x-idempotency-key": " idem-legacy ",

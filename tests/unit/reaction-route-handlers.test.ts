@@ -346,4 +346,22 @@ describe("donor reaction route handlers", () => {
       expect(revalidateTagMock).not.toHaveBeenCalled();
     },
   );
+
+  it("returns the adapter-owned like failure copy for a non-P0002 RPC error", async () => {
+    const requestClient = mockRequestClient();
+    const adminRpc = mockAdminRpc({
+      data: null,
+      error: { code: "XX000", message: "database exploded" },
+    });
+
+    const response = await invoke(likePost);
+
+    await expect(response.json()).resolves.toEqual({
+      error: "Failed to register like",
+    });
+    expect(response.status).toBe(500);
+    expect(adminRpc).toHaveBeenCalledOnce();
+    expect(requestClient.requestRpc).not.toHaveBeenCalled();
+    expect(revalidateTagMock).not.toHaveBeenCalled();
+  });
 });

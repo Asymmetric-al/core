@@ -47,6 +47,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     env:
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}

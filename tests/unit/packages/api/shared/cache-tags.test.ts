@@ -8,6 +8,7 @@ import { revalidateTag } from "next/cache";
 
 import {
   ADMIN_CACHE_TAGS,
+  CACHE_TAGS,
   MEMBER_CARE_CACHE_TAGS,
   READ_CACHE_TAGS,
   revalidateAdminContributionsCache,
@@ -44,6 +45,12 @@ describe("shared/cache-tags constant values", () => {
   // These strings are a cross-module contract: cached reads `cacheTag` them
   // and mutations `revalidateTag` them. A silent rename here breaks
   // invalidation, so the exact values are locked.
+  it("locks the Ministry Update post tag strings", () => {
+    expect(CACHE_TAGS.posts).toBe("posts");
+    expect(CACHE_TAGS.tenantPosts("t1")).toBe("posts:tenant:t1");
+    expect(CACHE_TAGS.post("p1")).toBe("post:p1");
+  });
+
   it("locks the admin CRM tag strings", () => {
     expect(ADMIN_CACHE_TAGS.crm.base).toBe("admin:crm");
     expect(ADMIN_CACHE_TAGS.crm.tenant("t1")).toBe("admin:crm:tenant:t1");
