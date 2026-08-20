@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
 import React from "react";
+import { getQueryClient, QueryProvider } from "@asym/database/providers";
 import {
   cleanup,
   fireEvent,
@@ -41,6 +42,11 @@ vi.mock("sonner", () => ({
 }));
 
 vi.mock("@asym/ui/lib/utils", () => ({
+  cn: (...classes: Array<string | false | null | undefined>) =>
+    classes.filter(Boolean).join(" "),
+}));
+
+vi.mock("@/lib/utils", () => ({
   cn: (...classes: Array<string | false | null | undefined>) =>
     classes.filter(Boolean).join(" "),
 }));
@@ -105,9 +111,13 @@ vi.mock("@asym/ui/components/shadcn/dropdown-menu", () => ({
   DropdownMenuShortcut: ({ children }: { children: React.ReactNode }) => (
     <span>{children}</span>
   ),
-  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
+  DropdownMenuTrigger: ({
+    children,
+    render,
+  }: {
+    children?: React.ReactNode;
+    render?: React.ReactNode;
+  }) => <>{render ?? children}</>,
 }));
 
 vi.mock("@asym/ui/components/shadcn/input", () => ({
@@ -164,9 +174,13 @@ vi.mock("@asym/ui/components/shadcn/tooltip", () => ({
   TooltipContent: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
-  TooltipTrigger: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
+  TooltipTrigger: ({
+    children,
+    render,
+  }: {
+    children?: React.ReactNode;
+    render?: React.ReactNode;
+  }) => <>{render ?? children}</>,
 }));
 
 vi.mock("@asym/ui/components/studio/EmailStudioMergeTagMenu", () => ({
@@ -214,8 +228,10 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
   const EmailStudioEditor = ReactModule.forwardRef(function EmailStudioEditor(
     {
       onReady,
+      onDesignUpdate,
     }: {
       onReady?: () => void;
+      onDesignUpdate?: (design: Record<string, unknown>) => void;
     },
     ref: React.Ref<typeof editorHandle>,
   ) {
@@ -224,7 +240,17 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
       onReady?.();
     }, [onReady]);
 
-    return <div data-testid="react-email-editor">React Email editor</div>;
+    return (
+      <div data-testid="react-email-editor">
+        React Email editor
+        <button
+          type="button"
+          onClick={() => onDesignUpdate?.({ blocks: [{ id: "hero" }] })}
+        >
+          Simulate design update
+        </button>
+      </div>
+    );
   });
 
   return { EmailStudioEditor };
@@ -232,6 +258,7 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
 
 describe("EmailStudio page", () => {
   beforeEach(() => {
+    getQueryClient().clear();
     editorHandle.exportEmail.mockClear();
     editorHandle.loadDesign.mockClear();
 
@@ -263,11 +290,16 @@ describe("EmailStudio page", () => {
 
   afterEach(() => {
     cleanup();
+    getQueryClient().clear();
     vi.unstubAllGlobals();
   });
 
   it("keeps legacy templates in read-only mode after preview closes", async () => {
-    render(<EmailStudio />);
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
 
     await screen.findByTestId("react-email-editor");
 
@@ -298,5 +330,22 @@ describe("EmailStudio page", () => {
       expect(screen.queryByText("Save Email Template")).toBeNull();
     });
     expect(editorHandle.exportEmail).not.toHaveBeenCalled();
+  });
+
+  it("marks the current draft unsaved when the editor reports a design update", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    expect(screen.queryByText("Unsaved")).toBeNull();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /simulate design update/i }),
+    );
+
+    expect(screen.getByText("Unsaved")).toBeTruthy();
   });
 });
