@@ -18,6 +18,45 @@ The goal is to keep all database mutations transactional while coordinating cros
 4. GraphQL `createDonation` currently enqueues saga work and returns the donation; side-effect processing is handled by the outbox worker.
 5. If immediate processing does not finish, outbox processing continues through `POST /api/donate/outbox`.
 
+## Guest Giving charged amount
+
+Guest Giving `POST /api/donate` treats `amount` as the donor-entered gift in
+dollars. Gift processing-fee policy recomputes charged cents from `cover_fees`
+and `payment_method` before `begin_donation_saga`. `p_amount` is still charged
+cents.
+
+First-shot processing from that POST may attach quote extras to PaymentIntent
+metadata (`gift_amount_cents`, `cover_fees`, `payment_method`,
+`cover_amount_cents`, `estimated_fee_cents`) without overriding `donation_id`.
+
+Recovery and batch workers (`processDueDonationSagaOutboxEvents`, admin
+replay) may create a first-shot PaymentIntent without those extras. That is
+acceptable: charged cents already live in `p_amount`. Do not treat missing fee
+metadata on a recovered intent as a failed donation.
+
+Gift intake is USD-only. Non-USD `currency` values fail validation before
+`begin_donation_saga`. First-shot Gift intake binds the PaymentIntent to the
+quoted method (`card`/`wallet` → `payment_method_types: ["card"]`, `ach` →
+`["us_bank_account"]`). Recovery and batch workers without extras keep
+`automatic_payment_methods`.
+
+On idempotent replay (`begin_donation_saga.replayed`), Gift intake loads the
+stored `donations.amount` and:
+
+- returns `409` when it does not match the recomputed charged cents
+- processes the existing outbox without attaching a new fee-quote extra
+
+Verification:
+
+1. POST the same idempotency key with a different charged amount → `409`.
+2. POST the same key with matching charged cents → `200` and no new fee extras.
+3. POST `currency=eur` → `400` before `begin_donation_saga`.
+4. First-shot card Gift PaymentIntents use `payment_method_types: ["card"]`
+   and omit `automatic_payment_methods`.
+
+Staff `POST /api/donations` does not run Gift processing-fee policy. That path
+already sends charged cents as `p_amount`.
+
 ## Outbox State Model
 
 `donation_saga_outbox.status` values:

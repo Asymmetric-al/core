@@ -13,6 +13,13 @@ import {
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldTitle,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Separator } from "@asym/ui/components/shadcn/separator";
@@ -53,6 +60,7 @@ import {
   isDonationInitialized,
   isStripeFinalCheckoutSuccess,
   normalizeCheckoutFrequency,
+  quoteGuestGivingCheckoutFees,
   resolveCheckoutIdempotencyKey,
   resolveCheckoutMode,
   type CheckoutMode,
@@ -140,8 +148,6 @@ type PaymentSuccessSnapshot = Readonly<{
 }>;
 
 const PRESET_AMOUNTS = [50, 100, 250, 500];
-const STRIPE_FEE_PERCENT = 0.029;
-const STRIPE_FEE_FIXED = 0.3;
 const PAYMENT_PROCESSING_MESSAGE =
   "Your contribution is still processing — we'll email your receipt once it's confirmed.";
 const CHECKOUT_CONFIGURATION_ERROR =
@@ -298,7 +304,7 @@ function SummaryCard({
       <div className="p-8 space-y-6">
         <div className="space-y-4">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-zinc-500 font-medium">Base Amount</span>
+            <span className="text-zinc-500 font-medium">Your gift</span>
             <span className="font-semibold text-zinc-950 font-syne">
               {formatCurrency(amount)}
             </span>
@@ -307,8 +313,8 @@ function SummaryCard({
           {coverFees && (
             <div className="flex justify-between items-center text-sm animate-in fade-in slide-in-from-top-2">
               <span className="text-zinc-500 font-medium flex items-center gap-2">
-                <Zap className="size-3.5 text-zinc-900 fill-zinc-900" />{" "}
-                Processing Fee
+                <Zap className="size-3.5 text-zinc-900 fill-zinc-900" /> Cover
+                processing fees
               </span>
               <span className="font-semibold text-zinc-900 font-syne">
                 {formatCurrency(fees)}
@@ -601,18 +607,14 @@ function ConfigStep({
           </div>
         </fieldset>
 
-        <div
+        <Field
+          orientation="horizontal"
           className={cn(
-            "rounded-[2rem] p-8 border-2 flex gap-6 items-center cursor-pointer transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500",
+            "rounded-[2rem] p-8 border-2 gap-6 items-center transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500",
             coverFees
               ? "bg-zinc-900 border-zinc-900 text-white"
               : "bg-white border-zinc-100 text-zinc-950 hover:border-zinc-200",
           )}
-          onClick={() => onCoverFeesChange(!coverFees)}
-          role="checkbox"
-          aria-checked={coverFees}
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && onCoverFeesChange(!coverFees)}
         >
           <div
             className={cn(
@@ -628,26 +630,33 @@ function ConfigStep({
               aria-hidden="true"
             />
           </div>
-          <div className="flex-1">
-            <p className="font-semibold font-syne text-xl">
-              Cover Processing Fees
-            </p>
-            <p
-              className={cn(
-                "text-xs font-medium mt-1 leading-relaxed",
-                coverFees ? "text-white/80" : "text-zinc-400",
-              )}
-            >
-              Add <strong>{formatCurrency(calculatedFees)}</strong> so 100% of
-              your gift reaches the field.
-            </p>
-          </div>
+          <FieldLabel
+            htmlFor="cover-processing-fees"
+            className="flex-1 cursor-pointer items-start"
+          >
+            <FieldContent>
+              <FieldTitle className="font-semibold font-syne text-xl text-inherit">
+                Cover Processing Fees
+              </FieldTitle>
+              <FieldDescription
+                className={cn(
+                  "text-xs font-medium mt-1 leading-relaxed",
+                  coverFees ? "text-white/80" : "text-zinc-400",
+                )}
+              >
+                Add <strong>{formatCurrency(calculatedFees)}</strong> to help
+                cover estimated processing costs.
+              </FieldDescription>
+            </FieldContent>
+          </FieldLabel>
           <Switch
+            id="cover-processing-fees"
+            role="switch"
+            aria-label="Cover processing fees"
             checked={coverFees}
             onCheckedChange={onCoverFeesChange}
-            className="data-checked:bg-white data-checked:opacity-100"
           />
-        </div>
+        </Field>
       </div>
 
       <Button
@@ -1222,12 +1231,17 @@ function CheckoutContent({
   const setPostalCode = (value: string) =>
     setCheckoutState((prev) => ({ ...prev, postalCode: value }));
 
-  const calculatedFees = useMemo(() => {
-    const gross = (amount + STRIPE_FEE_FIXED) / (1 - STRIPE_FEE_PERCENT);
-    return gross - amount;
-  }, [amount]);
-
-  const total = coverFees ? amount + calculatedFees : amount;
+  const feeQuote = useMemo(
+    () =>
+      quoteGuestGivingCheckoutFees({
+        giftAmount: amount,
+        coverFees,
+        paymentMethod,
+      }),
+    [amount, coverFees, paymentMethod],
+  );
+  const calculatedFees = feeQuote.coverAmount;
+  const total = feeQuote.chargedAmount;
   const mountedPublishableKey = stripeOverride
     ? normalizePublishableKey(stripeOverride.publishableKey)
     : runtimeConfig.status === "ready"
@@ -1240,7 +1254,7 @@ function CheckoutContent({
   const currentRequestFingerprint = useMemo(
     () =>
       buildCheckoutRequestFingerprint({
-        amount: total,
+        amount,
         coverFees,
         currency: "usd",
         donorEmail: donorInfo.email,
@@ -1255,6 +1269,7 @@ function CheckoutContent({
         startDate,
       }),
     [
+      amount,
       coverFees,
       donorInfo.email,
       donorInfo.firstName,
@@ -1263,11 +1278,10 @@ function CheckoutContent({
       frequency,
       fundId,
       hasEndDate,
+      missionaryId,
       paymentMethod,
       postalCode,
       startDate,
-      total,
-      missionaryId,
     ],
   );
   const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
@@ -1603,8 +1617,10 @@ function CheckoutContent({
 
     try {
       const body = buildDonateRequestBody({
-        amount: total,
+        amount,
         currency: "usd",
+        coverFees,
+        paymentMethod,
         missionaryId,
         fundId,
       });
