@@ -12,6 +12,7 @@ import {
 } from "@asym/email/email-builder-types";
 import { EmailStudioEditor } from "@asym/ui/components/studio/EmailStudioEditor";
 import { EmailStudioPreviewDialog } from "@asym/ui/components/studio/EmailStudioPreview";
+import { cn } from "@asym/ui/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useCallback,
@@ -44,8 +45,6 @@ import type {
   PreviewDevice,
   PreviewResult,
 } from "./email-studio-types";
-
-import { cn } from "@/lib/utils";
 
 const DEFAULT_METADATA: EmailMetadata = {
   id: null,
@@ -130,7 +129,7 @@ export default function EmailStudio() {
         return;
       }
       try {
-        const exported = await editor.exportEmail({ pretty: true });
+        const exported = await editor.exportEmail();
         setPreviewResult({
           html: exported.html,
           text: exported.text,
@@ -162,7 +161,7 @@ export default function EmailStudio() {
       return;
     }
     try {
-      const exported = await editor.exportEmail({ pretty: true });
+      const exported = await editor.exportEmail();
       dispatch({ type: "open_export_dialog", html: exported.html });
     } catch (error) {
       toast.error("Export failed", {
@@ -177,7 +176,7 @@ export default function EmailStudio() {
     if (!editor) {
       throw new Error("Email editor is not ready.");
     }
-    const exportResult = await editor.exportEmail({ pretty: true });
+    const exportResult = await editor.exportEmail();
     const saved = await persistEmailTemplate(metadata, exportResult);
     setMetadata((current) => ({ ...current, id: saved.id }));
     dispatch({ type: "set_unsaved_changes", unsaved: false });
@@ -257,7 +256,7 @@ export default function EmailStudio() {
     }
     setIsSendingTest(true);
     try {
-      const exportResult = await editor.exportEmail({ pretty: true });
+      const exportResult = await editor.exportEmail();
       const result = await sendTemplateTestEmail(
         testToEmail,
         metadata,
@@ -363,7 +362,7 @@ export default function EmailStudio() {
           void handleExportHtml();
         }}
         onTestSend={() => setShowTestSendDialog(true)}
-        onInsertMergeTag={(key) => editorRef.current?.insertMergeTag(key)}
+        onInsertMergeTag={(key) => editorRef.current?.insertMergeTag?.(key)}
         onSaveClick={handleSaveClick}
         onNewTemplate={handleNewTemplate}
         onLoadTemplate={() => setShowTemplatePicker(true)}
