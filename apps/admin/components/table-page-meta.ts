@@ -29,12 +29,6 @@ export const CRM_RELATIONSHIPS_PAGE_META: TablePageMeta = {
   density: "default",
 };
 
-export const CRM_PROJECTIONS_PAGE_META: TablePageMeta = {
-  title: "CRM Projections",
-  description: "Shadow-mode projection health across Asym surfaces.",
-  density: "default",
-};
-
 export const CONTRIBUTIONS_PAGE_META: TablePageMeta = {
   title: "Contributions",
   description: "Track and manage all donations and contributions.",

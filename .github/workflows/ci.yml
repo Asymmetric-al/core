@@ -3,7 +3,10 @@ name: CI
 on:
   workflow_dispatch:
   pull_request:
-    branches: [develop, production]
+    branches:
+      - develop
+      - production
+      - "cursor/**"
   push:
     branches: [develop, production]
 
@@ -40,6 +43,7 @@ jobs:
       - run: bun ci --no-cache --backend=copyfile
       - run: bun run format:check
       - run: bun run skills:verify
+      - run: bun run openspec:validate
 
   lint:
     runs-on: ubuntu-latest

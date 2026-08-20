@@ -141,7 +141,6 @@ export interface CrmDonorDetailResponse {
   };
   reconciliation: {
     crmWriteMode: "disabled" | "enabled";
-    twentyIsPaymentTruth: false;
     platformPaymentTruth: true;
   };
 }

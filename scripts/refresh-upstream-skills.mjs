@@ -103,6 +103,16 @@ const upstreamSources = [
   ...emilKowalskiSources,
 ];
 
+const openspecSkillNames = [
+  "openspec-explore",
+  "openspec-propose",
+  "openspec-update-change",
+  "openspec-apply-change",
+  "openspec-verify-change",
+  "openspec-sync-specs",
+  "openspec-archive-change",
+];
+
 const cursorTeamKitSkillNames = [
   "check-compiler-errors",
   "control-cli",
@@ -182,6 +192,30 @@ const githubUpstreamGroups = [
         },
       ],
     },
+  },
+  {
+    name: "OpenSpec",
+    repo: "https://github.com/Fission-AI/OpenSpec.git",
+    source: "Fission-AI/OpenSpec",
+    sourceUrl: "https://github.com/Fission-AI/OpenSpec",
+    ref: "v1.9.0",
+    sourceRoot: "skills",
+    skillNames: openspecSkillNames,
+    lockSkillPath(skillName) {
+      return `skills/${skillName}/SKILL.md`;
+    },
+    upstreamPath(skillName) {
+      return `skills/${skillName}/`;
+    },
+    sourceUrlForSkill(skillName) {
+      return `https://github.com/Fission-AI/OpenSpec/tree/v1.9.0/skills/${skillName}`;
+    },
+    skillExtraCopies: Object.fromEntries(
+      openspecSkillNames.map((skillName) => [
+        skillName,
+        [{ from: "LICENSE", to: "references/LICENSE.md" }],
+      ]),
+    ),
   },
 ];
 
@@ -908,19 +942,31 @@ async function restoreCoreOverlay(targetRoot, overlay) {
   }
 
   const headingMatch = /^# .+$/m.exec(content);
-  if (!headingMatch || headingMatch.index === undefined) {
-    throw new Error(
-      `Unable to locate skill heading for Core overlay: ${path.relative(repoRoot, skillPath)}`,
+  if (headingMatch && headingMatch.index !== undefined) {
+    const headingEnd = headingMatch.index + headingMatch[0].length;
+    const before = content.slice(0, headingEnd).trimEnd();
+    const after = content.slice(headingEnd).trimStart();
+    await writeFile(
+      skillPath,
+      `${before}\n\n${overlay.trim()}\n\n${after}`,
+      "utf8",
     );
+    return;
   }
 
-  const headingEnd = headingMatch.index + headingMatch[0].length;
-  const before = content.slice(0, headingEnd).trimEnd();
-  const after = content.slice(headingEnd).trimStart();
-  await writeFile(
-    skillPath,
-    `${before}\n\n${overlay.trim()}\n\n${after}`,
-    "utf8",
+  const frontmatterMatch = /^---\n[\s\S]*?\n---\n/.exec(content);
+  if (frontmatterMatch && frontmatterMatch.index === 0) {
+    const after = content.slice(frontmatterMatch[0].length).replace(/^\n*/, "");
+    await writeFile(
+      skillPath,
+      `${frontmatterMatch[0]}\n${overlay.trim()}\n\n${after}`,
+      "utf8",
+    );
+    return;
+  }
+
+  throw new Error(
+    `Unable to locate skill heading or frontmatter for Core overlay: ${path.relative(repoRoot, skillPath)}`,
   );
 }
 
@@ -1620,7 +1666,9 @@ async function prepareGithubSkillRefresh({
       targetRoot: staging,
       extraCopies: group.skillExtraCopies?.[skillName] ?? [],
     });
+    const preservedCoreOverlay = await readCoreOverlay(to);
     await formatSkillTarget(staging);
+    await restoreCoreOverlay(staging, preservedCoreOverlay);
     await applyPostRefreshReplacements(skillName, staging);
 
     const hash = await sha256File(path.join(staging, "SKILL.md"));

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import {
+  access,
   cp,
   mkdir,
   readFile,
@@ -15,16 +16,16 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "..");
 
-const sourceRoot = path.join(repoRoot, "docs", "ai", "skills");
+let repoRoot = path.resolve(__dirname, "..");
+let sourceRoot = path.join(repoRoot, "docs", "ai", "skills");
 
 // Canonical skill targets. `docs/ai/skills/*` is overlaid into each target.
 // The manifest records canonical file ownership so removed canonical files can
 // be pruned without deleting extra runtime assets installed by an ecosystem
 // package. `.claude/skills` is included so Claude Code discovers project skills
 // the same way Cursor and the .agents runtime do.
-const targetRoots = [
+let targetRoots = [
   path.join(repoRoot, ".agents", "skills"),
   path.join(repoRoot, ".cursor", "skills"),
   path.join(repoRoot, ".claude", "skills"),
@@ -34,7 +35,7 @@ const targetRoots = [
 // installs). `.agents/skills` is the mirror source, so it is intentionally not
 // listed here. Each skill directory is replaced atomically so removed ecosystem
 // files cannot remain stale in Cursor or Claude Code.
-const skillMirrorRoots = [
+let skillMirrorRoots = [
   path.join(repoRoot, ".cursor", "skills"),
   path.join(repoRoot, ".claude", "skills"),
 ];
@@ -42,7 +43,7 @@ const skillMirrorRoots = [
 // Whole-directory mirrors for Claude Code. The source is the Cursor copy
 // (already format-checked), and the target is fully replaced on each sync so
 // deletions propagate and no stale files linger.
-const treeMirrors = [
+let treeMirrors = [
   {
     label: "commands",
     sourceRoot: path.join(repoRoot, ".cursor", "commands"),
@@ -54,6 +55,78 @@ const treeMirrors = [
     targetRoot: path.join(repoRoot, ".claude", "agents"),
   },
 ];
+
+function configureRepoRoot(root) {
+  repoRoot = path.resolve(root);
+  sourceRoot = path.join(repoRoot, "docs", "ai", "skills");
+  targetRoots = [
+    path.join(repoRoot, ".agents", "skills"),
+    path.join(repoRoot, ".cursor", "skills"),
+    path.join(repoRoot, ".claude", "skills"),
+  ];
+  skillMirrorRoots = [
+    path.join(repoRoot, ".cursor", "skills"),
+    path.join(repoRoot, ".claude", "skills"),
+  ];
+  treeMirrors = [
+    {
+      label: "commands",
+      sourceRoot: path.join(repoRoot, ".cursor", "commands"),
+      targetRoot: path.join(repoRoot, ".claude", "commands"),
+    },
+    {
+      label: "agents",
+      sourceRoot: path.join(repoRoot, ".cursor", "agents"),
+      targetRoot: path.join(repoRoot, ".claude", "agents"),
+    },
+  ];
+}
+
+function printSyncHelp() {
+  console.log(`Usage: node scripts/sync-agent-skills.mjs [--repo-root <path>]
+
+Options:
+  --repo-root <path>  Repository root to sync (default: parent of this script)
+  --help, -h          Show this help
+
+Synchronizes canonical skills under docs/ai/skills/ into .agents/skills,
+.cursor/skills, and .claude/skills, and mirrors Cursor commands/agents into
+.claude/.`);
+}
+
+function parseSyncArgs(argv) {
+  let parsedRoot = null;
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+
+    if (argument === "--help" || argument === "-h") {
+      return { help: true, repoRoot: parsedRoot };
+    }
+
+    if (argument === "--repo-root") {
+      const value = argv[index + 1];
+      if (!value || value.startsWith("-")) {
+        throw new Error("Unknown argument: --repo-root requires a path");
+      }
+      parsedRoot = value;
+      index += 1;
+      continue;
+    }
+
+    if (argument.startsWith("--repo-root=")) {
+      parsedRoot = argument.slice("--repo-root=".length);
+      if (!parsedRoot) {
+        throw new Error("Unknown argument: --repo-root requires a path");
+      }
+      continue;
+    }
+
+    throw new Error(`Unknown argument: ${argument}`);
+  }
+
+  return { help: false, repoRoot: parsedRoot };
+}
 
 const CANONICAL_MANIFEST_FILENAME = ".repo-canonical-skills.json";
 const CANONICAL_MANIFEST_VERSION = 2;
@@ -166,6 +239,36 @@ function getTemporarySiblingPath(targetDir, label) {
  * reliable without masking real permission failures.
  */
 const TRANSIENT_RENAME_CODES = new Set(["EPERM", "EACCES", "EBUSY"]);
+const WINDOWS_RM_RETRY_CODES = new Set([
+  "EPERM",
+  "EACCES",
+  "EBUSY",
+  "ENOTEMPTY",
+]);
+
+async function pathExists(targetPath) {
+  try {
+    await access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function renameOnce(fromPath, toPath) {
+  // Overlayfs can reject same-directory rename of lower-layer entries with EXDEV.
+  // Tests set CORE_SKILLS_SIMULATE_RENAME_EXDEV=1 to exercise the copy+rm fallback.
+  if (
+    process.env.CORE_SKILLS_SIMULATE_RENAME_EXDEV === "1" &&
+    (await pathExists(fromPath))
+  ) {
+    const error = new Error("EXDEV: simulated cross-device rename");
+    error.code = "EXDEV";
+    throw error;
+  }
+
+  await rename(fromPath, toPath);
+}
 
 async function renameWithRetry(fromPath, toPath) {
   const maxAttempts = 6;
@@ -173,7 +276,7 @@ async function renameWithRetry(fromPath, toPath) {
 
   for (let attempt = 1; ; attempt += 1) {
     try {
-      await rename(fromPath, toPath);
+      await renameOnce(fromPath, toPath);
       return;
     } catch (error) {
       const isTransient = TRANSIENT_RENAME_CODES.has(getErrorCode(error));
@@ -186,12 +289,55 @@ async function renameWithRetry(fromPath, toPath) {
   }
 }
 
+async function rmWithRetry(targetPath) {
+  const maxAttempts = 6;
+  let delayMs = 50;
+
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await rm(targetPath, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      const isTransient = WINDOWS_RM_RETRY_CODES.has(getErrorCode(error));
+      if (!isTransient || attempt >= maxAttempts) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      delayMs = Math.min(delayMs * 2, 800);
+    }
+  }
+}
+
+async function moveDirectory(fromPath, toPath) {
+  try {
+    await renameWithRetry(fromPath, toPath);
+  } catch (error) {
+    const destExists = await pathExists(toPath);
+    const code = getErrorCode(error);
+    const isCrossDevice =
+      code === "EXDEV" ||
+      (destExists && (code === "EEXIST" || code === "ENOTEMPTY"));
+
+    if (!isCrossDevice) {
+      throw error;
+    }
+
+    // `fs.cp` into an existing dest merges leftover files. Replace must
+    // remove the dest first so extras from the previous tree cannot survive.
+    if (destExists) {
+      await rmWithRetry(toPath);
+    }
+    await cp(fromPath, toPath, { recursive: true, force: true });
+    await rmWithRetry(fromPath);
+  }
+}
+
 async function swapStagedDirectory(stagingDir, targetDir) {
   const backupDir = getTemporarySiblingPath(targetDir, "backup");
   let hasBackup = false;
 
   try {
-    await renameWithRetry(targetDir, backupDir);
+    await moveDirectory(targetDir, backupDir);
     hasBackup = true;
   } catch (error) {
     if (getErrorCode(error) !== "ENOENT") {
@@ -200,17 +346,24 @@ async function swapStagedDirectory(stagingDir, targetDir) {
   }
 
   try {
-    await renameWithRetry(stagingDir, targetDir);
+    await moveDirectory(stagingDir, targetDir);
   } catch (error) {
     if (hasBackup) {
-      await renameWithRetry(backupDir, targetDir);
+      try {
+        await moveDirectory(backupDir, targetDir);
+      } catch (restoreError) {
+        throw new AggregateError(
+          [error, restoreError],
+          `Failed to restore ${targetDir} from backup ${backupDir} after swap error`,
+        );
+      }
     }
     throw error;
   }
 
   if (hasBackup) {
     try {
-      await rm(backupDir, { recursive: true, force: true });
+      await rmWithRetry(backupDir);
     } catch (cleanupError) {
       console.warn(
         `warning: failed to remove backup directory ${backupDir}`,
@@ -622,6 +775,15 @@ async function listAgentSkillsForMirror() {
 }
 
 async function main() {
+  const options = parseSyncArgs(process.argv.slice(2));
+  if (options.help) {
+    printSyncHelp();
+    return;
+  }
+  if (options.repoRoot) {
+    configureRepoRoot(options.repoRoot);
+  }
+
   const canonicalSkills = await listCanonicalSkillsForSync();
   const canonicalSkillFiles = await buildCanonicalSkillFiles(canonicalSkills);
   const previousManifests = new Map();

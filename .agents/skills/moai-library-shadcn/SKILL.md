@@ -1,7 +1,43 @@
 ---
 name: moai-library-shadcn
-description: "Build consistent, accessible UI with shadcn/ui components, Tailwind tokens, and composable primitives. Use whenever selecting, installing, composing, or customizing shadcn/ui in this repo, including registry items, themes, and component wrappers. Prefer the base-ui skill when the UI is intentionally built only with Base UI primitives."
+description: "Build UI with Core's shadcn/Base UI system. Use for selecting, installing, composing, or customizing shadcn/ui, registry items, themes, and wrappers. Always preserve exact style `base-maia`, Zinc-oriented semantic CSS-variable tokens, and Base UI primitives. Do not use to switch styles, run `shadcn init`, or introduce Radix/React Aria. Pair with `packages/ui/AGENTS.md`."
 ---
+
+## This repository (Asymmetric-al/core)
+
+These repo-owned sections are intentionally kept on top of the vendored
+shadcn skill. If upstream refreshes replace this file, reconcile this overlay
+before running `bun run skills:sync`.
+
+### Triggers
+
+- Use for selecting, installing, composing, or customizing shadcn/ui, registry
+  items, themes, and wrappers in this repo.
+- Use together with `packages/ui/AGENTS.md` and `docs/ai/rules/frontend.md`.
+- Do not use to switch styles, run `shadcn init` / `shadcn create`, or introduce
+  Radix or React Aria. Never run `shadcn init`. Do not switch Core to
+  `base-nova`, `base-luma`, `base-mira`, `base-rhea`, `base-sera`,
+  `base-vega`, `base-lyra`, a Radix-based style, or a React Aria-based style.
+
+### Workflow
+
+1. Read `packages/ui/components.json` and confirm `style: "base-maia"`,
+   `tailwind.baseColor: "zinc"`, `tailwind.cssVariables: true`.
+2. Run `bunx shadcn@latest info --json` from `packages/ui` (never from an app).
+3. Search existing `@asym/ui` components before adding anything new.
+4. For registry or generated components, inspect CLI output, adapt to Maia, and
+   review the full diff. Never `--overwrite` without reviewing customizations.
+5. Use Base UI `render` (not Radix `asChild`). Prefer semantic tokens over
+   literal `zinc-*` or hardcoded colors.
+6. Verify with existing shadcn guardrails and browser evidence when visible.
+
+### Checklist
+
+- [ ] Exact `base-maia` / Zinc / CSS variables remain unchanged
+- [ ] Shared ownership stays in `packages/ui`
+- [ ] Registry output adapted to Core tokens, radii, and primitives
+- [ ] No `shadcn init`, preset-switch, Radix, or React Aria
+- [ ] Overlay reconciled before `bun run skills:sync`
 
 # shadcn/ui Design System - Skill
 
@@ -10,7 +46,7 @@ description: "Build consistent, accessible UI with shadcn/ui components, Tailwin
 Use this skill whenever selecting, installing, composing, or customizing shadcn/ui in this repo.
 
 **Applies when:** Working with shadcn/ui components, Tailwind tokens/themes, registry items, or component wrappers.
-**Do not use when:** The UI is intentionally built only with Base UI primitives (use `base-ui` first).
+**Do not use when:** Switching shadcn styles, running `shadcn init` / `shadcn create`, or introducing Radix / React Aria. Core UI is always Base UI + exact `base-maia`; pair this skill with `packages/ui/AGENTS.md`. Use `base-ui` for primitive API details after this skill.
 
 ## Rules
 
