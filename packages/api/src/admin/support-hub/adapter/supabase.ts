@@ -1,3 +1,4 @@
+import { EMPTY_SUPPORT_CONTACT_REF } from "@asym/database/collections/support-hub.schema";
 import { getAdminClient } from "@asym/database/supabase/admin";
 
 import {
@@ -48,7 +49,7 @@ import type {
   SupportSignature,
   SupportSlaPolicy,
   SupportTeam,
-} from "@asym/database/hooks";
+} from "@asym/database/collections/support-hub.schema";
 
 type JsonRecord = Record<string, unknown>;
 type SupabaseRow = JsonRecord;
@@ -430,6 +431,20 @@ async function conversationLabelsById(): Promise<Map<string, SupportLabel[]>> {
   return byConversation;
 }
 
+function normalizeConversationSubject(value: unknown): string {
+  const subject =
+    typeof value === "string" ? value.trim() : String(value ?? "").trim();
+  return subject.length > 0 ? subject : "(no subject)";
+}
+
+function toContactRef(value: unknown): SupportConversation["contact"] {
+  if (value === null || value === undefined) return null;
+  return {
+    ...EMPTY_SUPPORT_CONTACT_REF,
+    ...asJsonRecord(value),
+  };
+}
+
 function toConversation(
   row: SupabaseRow,
   snapshot: TenantSnapshot,
@@ -439,7 +454,7 @@ function toConversation(
     id: String(row.id),
     tenantId: String(row.tenant_id),
     inboxId: String(row.inbox_id),
-    subject: String(row.subject),
+    subject: normalizeConversationSubject(row.subject),
     status: String(row.status) as SupportConversation["status"],
     priority: String(row.priority) as SupportConversation["priority"],
     channel: "email",
@@ -451,10 +466,7 @@ function toConversation(
       : null,
     externalContactEmail: String(row.external_contact_email),
     externalContactName: asString(row.external_contact_name),
-    contact:
-      row.contact_ref === null || row.contact_ref === undefined
-        ? null
-        : (asJsonRecord(row.contact_ref) as SupportConversation["contact"]),
+    contact: toContactRef(row.contact_ref),
     labels,
     unreadCount: asNumber(row.unread_count),
     messageCount: asNumber(row.message_count),

@@ -43,6 +43,9 @@ const { getAdminClientMock, fromMock, eqMock, upsertMock } = vi.hoisted(() => {
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
 }));
+vi.mock("../../../../../../packages/database/supabase/admin", () => ({
+  getAdminClient: getAdminClientMock,
+}));
 
 import { supabaseSupportHubAdapter } from "../../../../../../packages/api/src/admin/support-hub/adapter/supabase";
 import { runWithSupportHubTenant } from "../../../../../../packages/api/src/admin/support-hub/request-context";
