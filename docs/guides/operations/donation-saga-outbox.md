@@ -165,3 +165,13 @@ order by updated_at desc;
 - Never expose Stripe secret keys to client code.
 - Keep RLS assumptions unchanged for app reads; admin client remains server-only.
 - Do not manually delete outbox rows unless the linked donation lifecycle is fully reconciled.
+
+## Verification
+
+Confirm GraphQL Gift begin stays enqueue-only while HTTP donate and donations still process the outbox:
+
+```sh
+bunx vitest run tests/unit/graphql-gift-engagement-adapters.test.ts packages/api/tests/unit/begin-gift-intake.test.ts
+```
+
+Those tests lock `packages/graphql/handler.ts` to `amountCents: args.input.amount` with no `processDonationSagaOutboxEvent`, and they lock HTTP donate/donations to keep `processDonationSagaOutboxEvent` after `beginGiftIntake`. Donations must not convert dollars with `Math.round(amount * 100)`.
