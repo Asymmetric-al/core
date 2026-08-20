@@ -36,5 +36,5 @@
 - [x] 4.3 Focused Vitest for command modules, GraphQL adapters, HTTP reaction
       handlers, and comments demo characterization.
 - [x] 4.4 `bunx turbo run lint typecheck --filter=@asym/api --filter=@asym/graphql`
-- [x] 4.5 `bunx @fission-ai/openspec@latest validate --change graphql-gift-engagement-command-adapters --strict`
+- [x] 4.5 `bun run openspec -- validate graphql-gift-engagement-command-adapters --type change --strict`
       (do not repair unrelated existing OpenSpec failures).
