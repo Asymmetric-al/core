@@ -22,45 +22,54 @@ This keeps durable project context, intended behavior, and active change scope v
 ## Workflow
 
 1. **Read durable context first.**
-   - Open `openspec/project.md`.
+   - Open `openspec/config.yaml` for injected planning context.
+   - Open `openspec/project.md` for the detailed index.
    - Read the relevant specs under `openspec/specs/**`.
    - Read any active change under `openspec/changes/**` that already covers the
      task.
+   - Distinguish intended behavior (active change, specs, ADRs) from current
+     reality (code, tests, runtime).
 
 2. **Create or update a change before major behavior work.**
-   - If the task changes durable behavior and no suitable change exists, create
-     or update a change folder under `openspec/changes/<change-id>/`.
+   - Use an explicit change ID.
+   - Prefer Explore when requirements are unclear and Propose when intent is
+     clear (`docs/ai/skills/openspec-explore/SKILL.md`).
    - Keep proposal, spec delta, design, and tasks aligned with the intended
      change.
+   - Do not invent a custom schema or enable Stores.
 
-3. **Use OpenSpec CLI for inspection and validation when relevant.**
-   - Use `bunx @fission-ai/openspec@latest <command>` as the repo-safe default.
-   - If `openspec` is already installed on `PATH`, that is equivalent.
-   - If Bun is unavailable, use `npx -y @fission-ai/openspec@latest <command>`.
-   - `bunx @fission-ai/openspec@latest list`
-   - `bunx @fission-ai/openspec@latest show <item>`
-   - `bunx @fission-ai/openspec@latest view`
-   - `bunx @fission-ai/openspec@latest validate <item>` or `bunx @fission-ai/openspec@latest validate --all`
-   - `bunx @fission-ai/openspec@latest archive <change> --yes` after implementation is complete and the specs are ready to merge forward
+3. **Use the locally pinned OpenSpec CLI.**
+   - Always: `bun run openspec -- <command>`
+   - `bun run openspec -- list`
+   - `bun run openspec -- show <item>`
+   - `bun run openspec -- validate <item> --strict`
+   - `bun run openspec:validate` for all current specs and active changes
+   - `bun run openspec:audit-archive` for archived changes
+   - Archive only after implementation has merged and become accepted
+     repository reality: `bun run openspec -- archive <change> --yes`
 
 4. **Keep repo-owned instruction files hand-maintained.**
-   - Do not run `openspec update` casually in this repo.
-   - This repository intentionally owns `AGENTS.md`, Cursor rule and command
-     files, and Copilot instruction files by hand.
-   - If regeneration is ever needed, review every generated diff manually before
-     accepting it.
+   - Do not run `openspec update` against this live customized repository.
+   - This repository owns `AGENTS.md`, Cursor rule and command files, and
+     Copilot instruction files.
+   - Canonical OpenSpec skills are imported under `docs/ai/skills/openspec-*`
+     and mirrored by `bun run skills:sync`.
 
 5. **Reflect durable workflow changes in both layers.**
    - Update OpenSpec when project behavior or workflow meaning changes.
    - Update the checked-in instruction files that agents read every day.
+   - Run OpenSpec Verify before claiming the change is complete.
+   - Product-runtime Eve may review OpenSpec read-only. It has no write, sync,
+     or archive authority.
 
 ---
 
 ## Checklist
 
-- [ ] Read `openspec/project.md`
+- [ ] Read `openspec/config.yaml` and `openspec/project.md`
 - [ ] Read the relevant spec files in `openspec/specs/**`
 - [ ] Read or created the matching change under `openspec/changes/**`
-- [ ] Validated the change with the OpenSpec CLI when appropriate
-- [ ] Avoided casual `openspec update`
-- [ ] Left durable context behind for the next agent or reviewer
+- [ ] Used `bun run openspec --` with an explicit change ID for mutations
+- [ ] Validated with `bun run openspec -- validate <change-id> --strict`
+- [ ] Avoided `openspec update` and any moving latest npm dist-tag for OpenSpec
+- [ ] Left the change active until implementation is accepted repository reality

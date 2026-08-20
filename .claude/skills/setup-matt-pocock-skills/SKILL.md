@@ -92,6 +92,14 @@ Let them edit before writing.
 
 ### 4. Write
 
+**Core repository override:** Do not add or expand an `## Agent skills` catalog
+in root `AGENTS.md`. Core uses progressive skill discovery plus
+`docs/ai/rules/agent-skill-routing.md`. Store issue-tracker and domain setup in
+the `docs/agents/` files below; update the routing rule only when a durable Core
+route is genuinely missing. Preserve `CLAUDE.md` as the exact `@AGENTS.md`
+adapter. In this repository, skip the generic instruction-file selection and
+`## Agent skills` block below; do not edit either root instruction file.
+
 **Pick the file to edit:**
 
 - If `CLAUDE.md` exists, edit it.

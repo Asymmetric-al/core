@@ -143,7 +143,7 @@ export default function CrmRelationshipsPageClient() {
 
         <div className="flex flex-wrap gap-2">
           <Badge variant="outline" className="rounded-md">
-            {mode === "twenty" ? "CRM live" : "Queue only"}
+            {mode === "local" ? "Asym Postgres" : "CRM"}
           </Badge>
           <Badge variant="outline" className="rounded-md">
             {report?.sourceSystems.finance ??
@@ -196,7 +196,8 @@ export default function CrmRelationshipsPageClient() {
           <Alert className="rounded-lg border-amber-200 bg-amber-50 text-amber-900">
             <ShieldAlert className="size-4" />
             <div className="text-sm">
-              CRM reads are not configured in this environment.
+              CRM relationships are not available in this environment.
+              Relationships remain owned by Asym Postgres.
             </div>
           </Alert>
         ) : null}

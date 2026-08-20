@@ -68,5 +68,5 @@
       RLS/service-only writes, immutable facts, unique occurrence/executor/
       idempotency grains, CAS races, and cross-tenant or cross-entity poison
       rejection.
-- [ ] 3.4 `bunx @fission-ai/openspec@latest validate --all --strict` passes;
+- [ ] 3.4 `bun run openspec -- validate --all --strict` passes;
       archive after deployment verification.

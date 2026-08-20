@@ -65,11 +65,11 @@ export default function CrmNotesPageClient() {
       });
       setBody("");
       setTitle("");
-      toast.success("CRM note queued", {
-        description: "It will sync through the CRM queue.",
+      toast.success("CRM note saved", {
+        description: "The note is immediately readable for this tenant.",
       });
     } catch (error) {
-      toast.error("CRM note was not queued", {
+      toast.error("CRM note was not saved", {
         description:
           error instanceof Error ? error.message : "Unexpected CRM error.",
       });
@@ -113,7 +113,7 @@ export default function CrmNotesPageClient() {
                     : "border-amber-200 bg-amber-50 text-amber-700",
                 )}
               >
-                {mode === "twenty" ? "CRM live" : "Queue only"}
+                {mode === "local" ? "Asym Postgres" : "CRM"}
               </Badge>
               {rollback ? (
                 <Badge
@@ -140,8 +140,8 @@ export default function CrmNotesPageClient() {
             <Alert className="rounded-lg border-amber-200 bg-amber-50 text-amber-900">
               <ShieldAlert className="size-4" />
               <div className="text-sm">
-                CRM reads are not configured in this environment. New notes can
-                still be queued.
+                CRM notes are not available in this environment. Notes remain
+                owned by Asym Postgres.
               </div>
             </Alert>
           ) : null}
@@ -171,7 +171,7 @@ export default function CrmNotesPageClient() {
                 <p className="mt-1 max-w-sm text-sm text-muted-foreground">
                   {tableError
                     ? tableError.message
-                    : "No Twenty notes match the current tenant and search."}
+                    : "No CRM notes match the current tenant and search."}
                 </p>
               </div>
             }
@@ -234,7 +234,7 @@ export default function CrmNotesPageClient() {
             <div className="space-y-1">
               <h2 className="text-base font-semibold">New note</h2>
               <p className="text-xs text-muted-foreground">
-                Queued with staff context for CRM sync.
+                Saved immediately in Asym Postgres for this tenant.
               </p>
             </div>
             <div className="space-y-2">
@@ -262,7 +262,7 @@ export default function CrmNotesPageClient() {
               disabled={!canSubmit || isCreatingNote}
             >
               <Send className="size-4" />
-              {isCreatingNote ? "Queueing..." : "Queue note"}
+              {isCreatingNote ? "Saving..." : "Save note"}
             </Button>
           </form>
         </aside>

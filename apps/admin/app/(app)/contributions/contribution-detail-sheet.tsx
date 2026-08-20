@@ -650,7 +650,7 @@ export function ContributionDetailSheet({
           )}
 
           {contribution.crmPostStatus && !crmPostStateHasSignal && (
-            <DetailField label="Twenty">
+            <DetailField label="CRM post status">
               {contribution.crmPostStatus.replace(/_/g, " ")}
             </DetailField>
           )}

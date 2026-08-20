@@ -42,33 +42,9 @@ local-only (`vercel dev`) and is intentionally not protected.
 
 Cloudinary server/client keys are conditionally required only when Cloudinary is enabled in protected deployments.
 
-Twenty CRM variables are server-only and optional during the non-production
-gateway/sync phases:
-
-- `TWENTY_API_URL` (Phase 4 Twenty Cloud shape:
-  `https://api.twenty.com/rest`; custom/self-hosted values must still point at
-  a `/rest` API base)
-- `TWENTY_API_KEY`
-- `TWENTY_WEBHOOK_SECRET`
-- `TWENTY_WORKSPACE_ID` (optional metadata in the current repo client)
-- `TWENTY_RATE_LIMIT_RPM` (defaults in callers to `100` when unset)
-- `CRM_SYNC_INBOUND_ENABLED` (defaults off)
-- `CRM_SYNC_OUTBOUND_ENABLED` (defaults off)
-- `CRM_SYNC_REPLAY_ENABLED` (defaults off)
-- `CRM_SYNC_RECONCILIATION_ENABLED` (defaults off)
-- `CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS` (defaults to `300`)
-
-Do not add `NEXT_PUBLIC_TWENTY_*` variables. Browser and app source must use
-Asym API contracts, not raw Twenty credentials.
-
-For development-only CRM health proof, run `bun run verify:twenty-crm-health` from
-a server runtime or shell where the server-only Twenty variables are present.
-The script prints sanitized configuration state, object inventory, and
-`giftSummaries` field gaps without printing credential values.
-The admin app also exposes a development-only
-`/api/admin/crm/gateway/development-health` adapter for protected Vercel proof
-deployments. It returns 404 for production target envs and only reports
-sanitized metadata-read status.
+Asym Postgres owns CRM truth. Do not add `TWENTY_*`, `CRM_SYNC_*`, or
+`NEXT_PUBLIC_TWENTY_*` variables. Mission Control CRM reads and writes go
+through `@asym/api` against tenant-owned Postgres tables.
 
 `DOCRAPTOR_API_KEY` is optional and server-only. DocRaptor examples authenticate with the API key as `user_credentials` or Basic Auth username, so keep it out of `NEXT_PUBLIC_*` variables.
 

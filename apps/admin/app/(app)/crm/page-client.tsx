@@ -33,7 +33,6 @@ import {
   Receipt,
   Trash2,
   StickyNote,
-  GitCompareArrows,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -327,16 +326,6 @@ export default function MissionControlCRM() {
             >
               <StickyNote className="h-4 w-4" />
               Notes
-            </Link>
-            <Link
-              href="/crm/projections"
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "h-11 gap-2",
-              )}
-            >
-              <GitCompareArrows className="h-4 w-4" />
-              Projections
             </Link>
           </div>
         }

@@ -18,6 +18,12 @@ repository development skill library to runtime Eve. Do not describe unmerged
 or research-only Eve behavior as current fact. Future Eve UI remains subject
 to `packages/ui/AGENTS.md` and exact `base-maia`.
 
+The OpenSpec Guardian is permanently read-only: no file writes, no shell
+mutation, no OpenSpec sync or archive. Product-runtime Eve may understand
+OpenSpec authority and review it; this upgrade grants no Eve mutation,
+sync, or archive authority. Future Eve authoring requires a separate
+accepted change.
+
 ## Triggers
 
 - Editing files under `packages/eve-runtime/**`

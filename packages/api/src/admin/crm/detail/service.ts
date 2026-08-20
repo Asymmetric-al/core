@@ -504,9 +504,8 @@ export async function getAdminCrmDonorDetail(input: {
           : "staff",
     },
     reconciliation: {
-      crmWriteMode: input.crmWritesEnabled ? "enabled" : "disabled",
+      crmWriteMode: input.crmWritesEnabled === false ? "disabled" : "enabled",
       platformPaymentTruth: true,
-      twentyIsPaymentTruth: false,
     },
     support: buildSupportSummary({
       donor,
