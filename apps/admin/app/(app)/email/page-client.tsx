@@ -303,8 +303,11 @@ export default function EmailStudio() {
         preheader: coercePreviewText(template.default_preheader),
       });
       if (template.builder !== "react_email") {
+        pendingDesignRef.current = null;
         setLegacyPreviewResult(preview);
         setPreviewResult(preview);
+        dispatch({ type: "editor_unmounted" });
+        dispatch({ type: "set_unsaved_changes", unsaved: false });
         toast.info("Legacy template opened read-only", {
           description:
             "Legacy templates can't be edited in React Email. Showing a preview.",

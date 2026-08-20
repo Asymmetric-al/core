@@ -24,6 +24,17 @@ describe("emailStudioUiReducer", () => {
     expect(next).not.toHaveProperty("previewText");
   });
 
+  it("clears editor readiness without dropping studio config", () => {
+    const ready = emailStudioUiReducer(INITIAL_EMAIL_STUDIO_UI_STATE, {
+      type: "editor_ready",
+      config: STUDIO_CONFIG,
+    });
+    const next = emailStudioUiReducer(ready, { type: "editor_unmounted" });
+
+    expect(next.isEditorReady).toBe(false);
+    expect(next.studioConfig).toBe(STUDIO_CONFIG);
+  });
+
   it("opens the export dialog with exported HTML and never stores preview HTML", () => {
     const next = emailStudioUiReducer(INITIAL_EMAIL_STUDIO_UI_STATE, {
       type: "open_export_dialog",

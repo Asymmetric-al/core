@@ -35,6 +35,10 @@ const editorHandle = vi.hoisted(() => ({
 }));
 
 const editorMount = vi.hoisted(() => ({ count: 0 }));
+const editorReadyControl = vi.hoisted(() => ({
+  defer: false,
+  fireReady: null as null | (() => void),
+}));
 
 vi.mock("sonner", () => ({
   toast: {
@@ -366,6 +370,12 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
     ReactModule.useImperativeHandle(ref, () => editorHandle, []);
     ReactModule.useEffect(() => {
       editorMount.count += 1;
+      if (editorReadyControl.defer) {
+        editorReadyControl.fireReady = () => onReady?.();
+        return () => {
+          editorReadyControl.fireReady = null;
+        };
+      }
       onReady?.();
     }, [onReady]);
 
@@ -403,6 +413,27 @@ const legacyTemplatesResponse = {
     },
   ],
 };
+
+const reactWelcomeTemplate = {
+  builder: "react_email",
+  builder_version: "1.5.3",
+  default_preheader: "Welcome preheader",
+  default_subject: "Welcome subject",
+  design_json: { body: { rows: [] } },
+  html_content: "<p>welcome</p>",
+  id: "react-welcome",
+  name: "React welcome",
+  text_content: "welcome",
+  updated_at: "2026-02-01T00:00:00.000Z",
+  version: 1,
+};
+
+function mixedTemplatesResponse() {
+  return {
+    success: true,
+    templates: [...legacyTemplatesResponse.templates, reactWelcomeTemplate],
+  };
+}
 
 function jsonOk(body: unknown) {
   return {
@@ -459,6 +490,8 @@ describe("EmailStudio page", () => {
     editorHandle.undo.mockClear();
     editorHandle.redo.mockClear();
     editorMount.count = 0;
+    editorReadyControl.defer = false;
+    editorReadyControl.fireReady = null;
     vi.mocked(toast.success).mockClear();
     stubStudioFetch();
   });
@@ -774,6 +807,84 @@ describe("EmailStudio page", () => {
     });
 
     expect(screen.getByText("Unsaved")).toBeTruthy();
+  });
+
+  it("clears the unsaved badge when a dirty draft loads a legacy template", async () => {
+    stubStudioFetch((url, method) => {
+      if (method === "GET" && url === "/api/email/templates") {
+        return mixedTemplatesResponse();
+      }
+      return null;
+    });
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    fireEvent.change(screen.getByPlaceholderText("Untitled Email"), {
+      target: { value: "April campaign" },
+    });
+    expect(screen.getByText("Unsaved")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /legacy welcome/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /close preview/i }));
+
+    expect(screen.queryByText("Unsaved")).toBeNull();
+    expect(
+      (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+  });
+
+  it("keeps Save disabled after switching from legacy to React Email until the editor is ready", async () => {
+    stubStudioFetch((url, method) => {
+      if (method === "GET" && url === "/api/email/templates") {
+        return mixedTemplatesResponse();
+      }
+      return null;
+    });
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /legacy welcome/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /close preview/i }));
+
+    editorReadyControl.defer = true;
+    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /react welcome/i }),
+    );
+
+    await screen.findByTestId("react-email-editor");
+    expect(
+      (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+
+    fireEvent.keyDown(window, { key: "s", metaKey: true });
+    expect(screen.queryByText("Save Email Template")).toBeNull();
+
+    editorReadyControl.fireReady?.();
+    await waitFor(() => {
+      expect(
+        (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(false);
+    });
   });
 
   it("persists the save-dialog draft name without remounting the editor", async () => {
