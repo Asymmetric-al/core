@@ -9,21 +9,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { Save } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import type { EmailMetadata } from "./email-studio-types";
-import type { Dispatch, SetStateAction } from "react";
 
 export interface EmailStudioSaveDialogProps {
   isSaving: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   metadata: EmailMetadata;
-  setMetadata: Dispatch<SetStateAction<EmailMetadata>>;
-  onConfirmSave: () => void;
+  onConfirmSave: (next: EmailMetadata) => void;
 }
 
 export function EmailStudioSaveDialog({
@@ -31,9 +36,16 @@ export function EmailStudioSaveDialog({
   open,
   onOpenChange,
   metadata,
-  setMetadata,
   onConfirmSave,
 }: EmailStudioSaveDialogProps) {
+  const [draft, setDraft] = useState<EmailMetadata>(metadata);
+
+  useEffect(() => {
+    if (open) {
+      setDraft(metadata);
+    }
+  }, [open, metadata]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
@@ -44,68 +56,72 @@ export function EmailStudioSaveDialog({
             will be used as defaults when sending.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="template-name">
+        <FieldGroup className="py-4">
+          <Field>
+            <FieldLabel htmlFor="template-name">
               Template Name <span className="text-destructive">*</span>
-            </Label>
+            </FieldLabel>
             <Input
               id="template-name"
               placeholder="e.g., Monthly Newsletter"
-              value={metadata.name}
+              value={draft.name}
               onChange={(event) =>
-                setMetadata((current) => ({
+                setDraft((current) => ({
                   ...current,
                   name: event.target.value,
                 }))
               }
             />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="template-subject">Email Subject</Label>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="template-subject">Email Subject</FieldLabel>
             <Input
               id="template-subject"
               placeholder="e.g., Exciting Updates from Our Ministry"
-              value={metadata.subject}
+              value={draft.subject}
               onChange={(event) =>
-                setMetadata((current) => ({
+                setDraft((current) => ({
                   ...current,
                   subject: event.target.value,
                 }))
               }
             />
-            <p className="text-xs text-muted-foreground">
+            <FieldDescription>
               The subject line that recipients will see
-            </p>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="template-preheader">Preheader Text</Label>
+            </FieldDescription>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="template-preheader">Preheader Text</FieldLabel>
             <Textarea
               id="template-preheader"
               placeholder="Preview text that appears after the subject in inbox..."
-              value={metadata.preheader}
+              value={draft.preheader}
               onChange={(event) =>
-                setMetadata((current) => ({
+                setDraft((current) => ({
                   ...current,
                   preheader: event.target.value,
                 }))
               }
               rows={2}
             />
-            <p className="text-xs text-muted-foreground">
+            <FieldDescription>
               Shown in inbox previews. Keep it under 90 characters.
-            </p>
-          </div>
-        </div>
+            </FieldDescription>
+          </Field>
+        </FieldGroup>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isSaving}
+          >
             Cancel
           </Button>
           <Button
-            onClick={onConfirmSave}
-            disabled={!metadata.name.trim() || isSaving}
+            onClick={() => onConfirmSave(draft)}
+            disabled={!draft.name.trim() || isSaving}
           >
-            <Save className="h-4 w-4" />
+            {isSaving ? <Spinner /> : <Save />}
             Save Template
           </Button>
         </DialogFooter>

@@ -7,6 +7,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@asym/ui/components/shadcn/item";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { ChevronRight, FolderOpen } from "lucide-react";
 
 import type { EmailTemplateListEntry } from "./email-studio-types";
@@ -36,36 +52,49 @@ export function EmailStudioTemplatePickerDialog({
           </DialogDescription>
         </DialogHeader>
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading templates…</p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Spinner />
+            Loading templates…
+          </div>
         ) : templates.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No saved templates yet.
-          </p>
+          <Empty className="border-0 py-8">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <FolderOpen />
+              </EmptyMedia>
+              <EmptyTitle>No saved templates yet</EmptyTitle>
+              <EmptyDescription>
+                Save a React Email template from the studio to open it here.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
-          <div className="max-h-[360px] overflow-y-auto">
+          <ItemGroup className="max-h-[360px] overflow-y-auto">
             {templates.map((template) => (
-              <button
+              <Item
                 key={template.id}
-                type="button"
-                className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-muted"
-                onClick={() => onSelect(template)}
+                render={
+                  <button type="button" onClick={() => onSelect(template)} />
+                }
+                size="sm"
+                className="w-full"
               >
-                <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">
-                    {template.name}
-                  </span>
-                  <span className="block text-xs text-muted-foreground">
+                <ItemMedia variant="icon">
+                  <FolderOpen />
+                </ItemMedia>
+                <ItemContent className="min-w-0">
+                  <ItemTitle className="truncate">{template.name}</ItemTitle>
+                  <ItemDescription>
                     {template.builder === "react_email"
                       ? "React Email"
                       : "Legacy (read-only)"}{" "}
                     · v{template.version}
-                  </span>
-                </span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-              </button>
+                  </ItemDescription>
+                </ItemContent>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+              </Item>
             ))}
-          </div>
+          </ItemGroup>
         )}
       </DialogContent>
     </Dialog>

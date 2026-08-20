@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import React from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { EmailStudioPreviewDialog } from "../../../../../packages/ui/components/studio/EmailStudioPreview";
@@ -45,5 +45,49 @@ describe("@asym/ui EmailStudioPreviewDialog", () => {
     );
 
     expect(screen.getByText("Unknown merge tag: made_up_tag")).toBeTruthy();
+  });
+
+  it("honors initialDevice and resets the viewport when the dialog reopens", () => {
+    const { rerender } = render(
+      <EmailStudioPreviewDialog
+        open
+        onOpenChange={() => {}}
+        subject="May update"
+        html="<h1>Hello</h1>"
+        text="Hello"
+        initialDevice="mobile"
+      />,
+    );
+
+    const iframe = screen.getByTitle("Email preview") as HTMLIFrameElement;
+    expect(iframe.className).toContain("w-[390px]");
+
+    fireEvent.click(screen.getByRole("button", { name: /desktop preview/i }));
+    expect(iframe.className).toContain("max-w-[760px]");
+
+    rerender(
+      <EmailStudioPreviewDialog
+        open={false}
+        onOpenChange={() => {}}
+        subject="May update"
+        html="<h1>Hello</h1>"
+        text="Hello"
+        initialDevice="desktop"
+      />,
+    );
+    rerender(
+      <EmailStudioPreviewDialog
+        open
+        onOpenChange={() => {}}
+        subject="May update"
+        html="<h1>Hello</h1>"
+        text="Hello"
+        initialDevice="desktop"
+      />,
+    );
+
+    const reopened = screen.getByTitle("Email preview") as HTMLIFrameElement;
+    expect(reopened.className).toContain("max-w-[760px]");
+    expect(reopened.className).not.toContain("w-[390px]");
   });
 });

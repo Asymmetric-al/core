@@ -10,6 +10,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { toast } from "sonner";
 
 import EmailStudio from "../../../../../apps/admin/app/(app)/email/page-client";
 
@@ -32,6 +33,8 @@ const editorHandle = vi.hoisted(() => ({
   saveDesign: vi.fn(async () => ({})),
   undo: vi.fn(),
 }));
+
+const editorMount = vi.hoisted(() => ({ count: 0 }));
 
 vi.mock("sonner", () => ({
   toast: {
@@ -87,11 +90,38 @@ vi.mock("@asym/ui/components/shadcn/dialog", () => ({
   ),
 }));
 
+vi.mock("@asym/ui/components/shadcn/alert", () => ({
+  Alert: ({
+    children,
+    role,
+    ...props
+  }: React.HTMLAttributes<HTMLDivElement> & { role?: string }) => (
+    <div role={role ?? "alert"} {...props}>
+      {children}
+    </div>
+  ),
+  AlertDescription: ({ children }: { children: React.ReactNode }) => (
+    <p>{children}</p>
+  ),
+  AlertTitle: ({ children }: { children: React.ReactNode }) => (
+    <h3>{children}</h3>
+  ),
+}));
+
+vi.mock("@asym/ui/components/shadcn/badge", () => ({
+  Badge: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
+}));
+
 vi.mock("@asym/ui/components/shadcn/dropdown-menu", () => ({
   DropdownMenu: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
   DropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DropdownMenuGroup: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
   DropdownMenuItem: ({
@@ -118,6 +148,75 @@ vi.mock("@asym/ui/components/shadcn/dropdown-menu", () => ({
     children?: React.ReactNode;
     render?: React.ReactNode;
   }) => <>{render ?? children}</>,
+}));
+
+vi.mock("@asym/ui/components/shadcn/empty", () => ({
+  Empty: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  EmptyDescription: ({ children }: { children: React.ReactNode }) => (
+    <p>{children}</p>
+  ),
+  EmptyHeader: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  EmptyMedia: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  EmptyTitle: ({ children }: { children: React.ReactNode }) => (
+    <h3>{children}</h3>
+  ),
+}));
+
+vi.mock("@asym/ui/components/shadcn/field", () => ({
+  Field: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  FieldDescription: ({ children }: { children: React.ReactNode }) => (
+    <p>{children}</p>
+  ),
+  FieldGroup: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  FieldLabel: ({
+    children,
+    htmlFor,
+    className,
+  }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
+    <label htmlFor={htmlFor} className={className}>
+      {children}
+    </label>
+  ),
+}));
+
+vi.mock("@asym/ui/components/shadcn/item", () => ({
+  Item: ({
+    children,
+    render,
+  }: {
+    children?: React.ReactNode;
+    render?: React.ReactElement;
+  }) =>
+    React.isValidElement(render) ? (
+      React.cloneElement(render, undefined, children)
+    ) : (
+      <div>{children}</div>
+    ),
+  ItemContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ItemDescription: ({ children }: { children: React.ReactNode }) => (
+    <p>{children}</p>
+  ),
+  ItemGroup: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ItemMedia: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ItemTitle: ({ children }: { children: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
+}));
+
+vi.mock("@asym/ui/components/shadcn/spinner", () => ({
+  Spinner: () => <span role="status">Loading</span>,
 }));
 
 vi.mock("@asym/ui/components/shadcn/input", () => ({
@@ -150,21 +249,50 @@ vi.mock("@asym/ui/components/shadcn/textarea", () => ({
 }));
 
 vi.mock("@asym/ui/components/shadcn/toggle-group", () => ({
-  ToggleGroup: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
+  ToggleGroup: ({
+    children,
+    disabled,
+    onValueChange,
+    "aria-label": ariaLabel,
+  }: {
+    children: React.ReactNode;
+    disabled?: boolean;
+    onValueChange?: (value: string[]) => void;
+    "aria-label"?: string;
+  }) => (
+    <div aria-label={ariaLabel} data-disabled={disabled}>
+      {React.Children.map(children, (child) => {
+        if (!React.isValidElement(child)) {
+          return child;
+        }
+        return child;
+      })}
+      <button
+        type="button"
+        hidden
+        data-testid="toggle-group-change"
+        onClick={() => onValueChange?.(["desktop"])}
+      />
+    </div>
   ),
   ToggleGroupItem: ({
     children,
-    onClick,
     value,
+    disabled,
+    "aria-label": ariaLabel,
   }: {
     children: React.ReactNode;
-    onClick?: () => void;
     value: string;
+    disabled?: boolean;
+    "aria-label"?: string;
   }) => (
-    <button type="button" onClick={onClick}>
+    <button
+      type="button"
+      aria-label={ariaLabel}
+      disabled={disabled}
+      value={value}
+    >
       {children}
-      {value}
     </button>
   ),
 }));
@@ -237,6 +365,7 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
   ) {
     ReactModule.useImperativeHandle(ref, () => editorHandle, []);
     ReactModule.useEffect(() => {
+      editorMount.count += 1;
       onReady?.();
     }, [onReady]);
 
@@ -256,36 +385,82 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
   return { EmailStudioEditor };
 });
 
+const legacyTemplatesResponse = {
+  success: true,
+  templates: [
+    {
+      builder: "unlayer",
+      builder_version: "legacy",
+      default_preheader: "Legacy preheader",
+      default_subject: "Legacy subject",
+      design_json: { legacy: true },
+      html_content: "<p>Legacy body</p>",
+      id: "legacy-template",
+      name: "Legacy welcome",
+      text_content: "Legacy body",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      version: 3,
+    },
+  ],
+};
+
+function jsonOk(body: unknown) {
+  return {
+    ok: true,
+    json: async () => body,
+  };
+}
+
+function stubStudioFetch(
+  overrides?: (
+    url: string,
+    method: string,
+    init?: RequestInit,
+  ) => unknown | null,
+) {
+  const fetchMock = vi.fn(
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = (init?.method ?? "GET").toUpperCase();
+      const override = overrides?.(url, method, init);
+      if (override != null) {
+        if (typeof (override as { then?: unknown }).then === "function") {
+          return override as Promise<unknown>;
+        }
+        return jsonOk(override);
+      }
+      if (method === "GET" && url === "/api/email/templates") {
+        return jsonOk(legacyTemplatesResponse);
+      }
+      if (method === "POST" && url === "/api/email/templates") {
+        const body = JSON.parse(String(init?.body ?? "{}")) as {
+          name?: string;
+        };
+        return jsonOk({
+          success: true,
+          template: { id: "tmpl_new", name: body.name ?? "Untitled Email" },
+        });
+      }
+      if (method === "POST" && url === "/api/email/templates/test-send") {
+        return jsonOk({ success: true, messageId: "msg_1" });
+      }
+      throw new Error(`Unexpected fetch ${method} ${url}`);
+    },
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
 describe("EmailStudio page", () => {
   beforeEach(() => {
     getQueryClient().clear();
     editorHandle.exportEmail.mockClear();
     editorHandle.loadDesign.mockClear();
-
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => ({
-        ok: true,
-        json: async () => ({
-          success: true,
-          templates: [
-            {
-              builder: "unlayer",
-              builder_version: "legacy",
-              default_preheader: "Legacy preheader",
-              default_subject: "Legacy subject",
-              design_json: { legacy: true },
-              html_content: "<p>Legacy body</p>",
-              id: "legacy-template",
-              name: "Legacy welcome",
-              text_content: "Legacy body",
-              updated_at: "2026-01-01T00:00:00.000Z",
-              version: 3,
-            },
-          ],
-        }),
-      })),
-    );
+    editorHandle.undo.mockClear();
+    editorHandle.redo.mockClear();
+    editorMount.count = 0;
+    vi.mocked(toast.success).mockClear();
+    stubStudioFetch();
   });
 
   afterEach(() => {
@@ -330,6 +505,140 @@ describe("EmailStudio page", () => {
       expect(screen.queryByText("Save Email Template")).toBeNull();
     });
     expect(editorHandle.exportEmail).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("react-email-editor")).toBeNull();
+  });
+
+  it("loads a react_email design into the existing editor without remounting", async () => {
+    const reactDesign = { body: { rows: [{ cells: [1], columns: [{}] }] } };
+    stubStudioFetch((url, method) => {
+      if (method === "GET" && url === "/api/email/templates") {
+        return {
+          success: true,
+          templates: [
+            ...legacyTemplatesResponse.templates,
+            {
+              builder: "react_email",
+              builder_version: "1.5.3",
+              default_preheader: "Welcome preheader",
+              default_subject: "Welcome subject",
+              design_json: reactDesign,
+              html_content: "<p>welcome</p>",
+              id: "react-welcome",
+              name: "React welcome",
+              text_content: "welcome",
+              updated_at: "2026-02-01T00:00:00.000Z",
+              version: 1,
+            },
+          ],
+        };
+      }
+      return null;
+    });
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    const mountsBeforeLoad = editorMount.count;
+
+    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /react welcome/i }),
+    );
+
+    await waitFor(() => {
+      expect(editorHandle.loadDesign).toHaveBeenCalledWith(reactDesign);
+    });
+    expect(editorMount.count).toBe(mountsBeforeLoad);
+    expect(screen.getByTestId("react-email-editor")).toBeTruthy();
+  });
+
+  it("sends one persist request when Save Template is clicked twice", async () => {
+    let resolvePersist: ((value: unknown) => void) | undefined;
+    const persistPromise = new Promise((resolve) => {
+      resolvePersist = resolve;
+    });
+    const fetchMock = stubStudioFetch((url, method) => {
+      if (method === "POST" && url === "/api/email/templates") {
+        return persistPromise;
+      }
+      return null;
+    });
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    await screen.findByText("Save Email Template");
+    fireEvent.change(screen.getByPlaceholderText("e.g., Monthly Newsletter"), {
+      target: { value: "April campaign" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save template/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save template/i }));
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.filter(
+          ([requestUrl, init]) =>
+            String(requestUrl) === "/api/email/templates" &&
+            String((init as RequestInit | undefined)?.method) === "POST",
+        ),
+      ).toHaveLength(1);
+    });
+
+    resolvePersist?.(
+      jsonOk({
+        success: true,
+        template: { id: "tmpl_new", name: "April campaign" },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText("Save Email Template")).toBeNull();
+    });
+  });
+
+  it("does not intercept native undo when the template name input is focused", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    const nameInput = screen.getByPlaceholderText("Untitled Email");
+    nameInput.focus();
+    fireEvent.keyDown(nameInput, { key: "z", metaKey: true });
+
+    expect(editorHandle.undo).not.toHaveBeenCalled();
+  });
+
+  it("exposes accessible names on icon-only toolbar controls", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+
+    expect(screen.getByRole("button", { name: /^undo$/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^redo$/i })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /desktop preview/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /mobile preview/i }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^more$/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^fullscreen$/i })).toBeTruthy();
   });
 
   it("marks the current draft unsaved when the editor reports a design update", async () => {
@@ -347,5 +656,99 @@ describe("EmailStudio page", () => {
     );
 
     expect(screen.getByText("Unsaved")).toBeTruthy();
+  });
+
+  it("marks the draft unsaved when the header template name changes", async () => {
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    expect(screen.queryByText("Unsaved")).toBeNull();
+
+    fireEvent.change(screen.getByPlaceholderText("Untitled Email"), {
+      target: { value: "April campaign" },
+    });
+
+    expect(screen.getByText("Unsaved")).toBeTruthy();
+  });
+
+  it("persists the save-dialog draft name without remounting the editor", async () => {
+    const fetchMock = stubStudioFetch();
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    const mountsBeforeSave = editorMount.count;
+
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    fireEvent.change(screen.getByPlaceholderText("e.g., Monthly Newsletter"), {
+      target: { value: "April campaign" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save template/i }));
+
+    await waitFor(() => {
+      const persistCall = fetchMock.mock.calls.find(
+        ([url, init]) =>
+          String(url) === "/api/email/templates" &&
+          String((init as RequestInit | undefined)?.method) === "POST",
+      );
+      expect(persistCall).toBeTruthy();
+      const body = JSON.parse(
+        String((persistCall?.[1] as RequestInit | undefined)?.body),
+      ) as { name?: string };
+      expect(body.name).toBe("April campaign");
+    });
+
+    expect(editorMount.count).toBe(mountsBeforeSave);
+    await waitFor(() => {
+      expect(screen.queryByText("Unsaved")).toBeNull();
+    });
+  });
+
+  it("submits the test-send form and falls back when messageId is absent", async () => {
+    stubStudioFetch((_url, method) => {
+      if (method === "POST" && _url === "/api/email/templates/test-send") {
+        return { success: true };
+      }
+      return null;
+    });
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: /send test email/i }));
+
+    const recipient = screen.getByLabelText(/recipient/i);
+    fireEvent.change(recipient, { target: { value: "qa@example.com" } });
+    fireEvent.submit(recipient.closest("form")!);
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        "Test email sent",
+        expect.objectContaining({
+          description: "Test email queued for qa@example.com.",
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText(/recipient/i)).toBeNull();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /send test email/i }));
+    expect(
+      (screen.getByLabelText(/recipient/i) as HTMLInputElement).value,
+    ).toBe("");
   });
 });

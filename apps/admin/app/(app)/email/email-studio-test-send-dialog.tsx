@@ -9,8 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
+import { Field, FieldLabel } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
-import { Label } from "@asym/ui/components/shadcn/label";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { Send } from "lucide-react";
 
 export interface EmailStudioTestSendDialogProps {
@@ -33,39 +34,48 @@ export function EmailStudioTestSendDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
-        <DialogHeader>
-          <DialogTitle>Send test email</DialogTitle>
-          <DialogDescription>
-            Sends the current editor export to a real inbox using the tenant
-            Resend connection.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-2 py-2">
-          <Label htmlFor="test-to-email">Recipient</Label>
-          <Input
-            id="test-to-email"
-            type="email"
-            placeholder="you@example.com"
-            value={toEmail}
-            onChange={(event) => onToEmailChange(event.target.value)}
-          />
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={onSend}
-            disabled={isSending || toEmail.trim().length === 0}
-          >
-            {isSending ? (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-            Send
-          </Button>
-        </DialogFooter>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSend();
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Send test email</DialogTitle>
+            <DialogDescription>
+              Sends the current editor export to a real inbox using the tenant
+              Resend connection.
+            </DialogDescription>
+          </DialogHeader>
+          <Field className="py-2">
+            <FieldLabel htmlFor="test-to-email">Recipient</FieldLabel>
+            <Input
+              id="test-to-email"
+              type="email"
+              required
+              placeholder="you@example.com"
+              value={toEmail}
+              onChange={(event) => onToEmailChange(event.target.value)}
+            />
+          </Field>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSending || toEmail.trim().length === 0}
+            >
+              {isSending ? <Spinner /> : <Send />}
+              Send
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
