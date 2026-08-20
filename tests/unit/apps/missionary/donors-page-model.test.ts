@@ -4,7 +4,10 @@ import {
   applyDonorsStatFilter,
   createDefaultDonorsFilters,
   createDonorsPageSummary,
+  createTagEditorDraft,
   formatDonorAddress,
+  getDonorCallHref,
+  getDonorEmailHref,
   getGivingHistoryRows,
   hasDonorsActiveFilters,
   removeTagSelection,
@@ -169,6 +172,13 @@ describe("donors page model helpers", () => {
       pledgeFilter: "All",
       selectedDonorId: null,
     });
+    expect(applyDonorsStatFilter("needsAttention")).toEqual({
+      searchTerm: "",
+      statusFilter: "Needs Attention",
+      tagFilter: [],
+      pledgeFilter: "All",
+      selectedDonorId: null,
+    });
   });
 
   it("formats addresses while preserving existing country suppression", () => {
@@ -224,5 +234,50 @@ describe("donors page model helpers", () => {
     expect(removed).toEqual(["monthly-partner"]);
     expect(removeTagSelection(added, "monthly-partner")).toEqual(["family"]);
     expect(currentTags).toEqual(["family"]);
+  });
+
+  it("copies committed tags into a tag editor draft so aborted toggles cannot alias stored tags", () => {
+    const committed = ["family"];
+    const draft = createTagEditorDraft(committed);
+
+    expect(draft).toEqual(["family"]);
+    expect(draft).not.toBe(committed);
+
+    const toggled = toggleTagSelection(draft, "monthly-partner");
+    expect(toggled).toEqual(["family", "monthly-partner"]);
+    expect(committed).toEqual(["family"]);
+    expect(createTagEditorDraft(committed)).toEqual(["family"]);
+    expect(createTagEditorDraft(undefined)).toEqual([]);
+  });
+
+  it("builds tel and mailto hrefs only when a phone or email is present", () => {
+    expect(
+      getDonorCallHref(
+        createDonor({
+          phone: "555-0100",
+          mobile: "555-0199",
+        }),
+      ),
+    ).toBe("tel:555-0100");
+    expect(
+      getDonorCallHref(
+        createDonor({
+          phone: "",
+          mobile: "555-0199",
+        }),
+      ),
+    ).toBe("tel:555-0199");
+    expect(
+      getDonorCallHref(
+        createDonor({
+          phone: "  ",
+          mobile: undefined,
+        }),
+      ),
+    ).toBeNull();
+    expect(getDonorEmailHref("ada@example.com")).toBe("mailto:ada@example.com");
+    expect(getDonorEmailHref("")).toBeNull();
+    expect(getDonorEmailHref("   ")).toBeNull();
+    expect(getDonorEmailHref(undefined)).toBeNull();
   });
 });

@@ -17,6 +17,7 @@ import {
   applyDonorsStatFilter,
   createDefaultDonorsFilters,
   createDonorsPageSummary,
+  createTagEditorDraft,
   formatDonorAddress,
   hasDonorsActiveFilters,
   removeTagSelection,
@@ -227,12 +228,14 @@ function useDonorsPageView(): DonorsPageViewModel {
   }, []);
 
   const openTagEditor = React.useCallback(() => {
+    setSelectedTags(createTagEditorDraft(selectedDonor?.tags));
     setIsTagDialogOpen(true);
-  }, []);
+  }, [selectedDonor]);
 
   const closeTagEditor = React.useCallback(() => {
+    setSelectedTags(createTagEditorDraft(selectedDonor?.tags));
     setIsTagDialogOpen(false);
-  }, []);
+  }, [selectedDonor]);
 
   const handleAddNote = React.useCallback(async () => {
     if (!selectedDonor || !noteInput.trim()) return;

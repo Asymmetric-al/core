@@ -22,8 +22,10 @@ export function DonorsPageHeader() {
           variant="outline"
           size="sm"
           className="h-9 px-4 text-xs font-medium"
+          disabled
+          title="Export is not available yet"
         >
-          <Download className="mr-2 size-4" />
+          <Download data-icon="inline-start" />
           Export
         </Button>
       </motion.div>
@@ -36,7 +38,7 @@ export function DonorsPageHeader() {
               size="sm"
               className="h-9 px-4 text-xs font-medium hover-scale-subtle"
             >
-              <Plus className="mr-2 size-4" />
+              <Plus data-icon="inline-start" />
               Add Partner
             </Button>
           }

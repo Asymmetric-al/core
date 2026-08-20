@@ -33,5 +33,8 @@ describe("missionary donors page view-model contract", () => {
     expect(source).not.toContain("DataTableResponsive");
     expect(source).not.toContain("createDonorColumns");
     expect(source).not.toContain("createGivingHistoryColumns");
+    expect(source).not.toContain("@asym/ui/components/shadcn/data-table");
+    expect(source).not.toContain("@tanstack/react-table");
+    expect(source).not.toContain("./donors-page-columns");
   });
 });

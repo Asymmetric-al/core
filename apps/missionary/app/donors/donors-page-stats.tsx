@@ -81,7 +81,12 @@ function StatCard({
 
   if (onClick) {
     return (
-      <button onClick={onClick} className="text-left w-full">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={Boolean(isActive)}
+        className="text-left w-full"
+      >
         {content}
       </button>
     );
@@ -152,8 +157,8 @@ export function DonorsPageStats() {
         icon={AlertCircle}
         iconBg="bg-amber-50 border-amber-100"
         iconColor="text-amber-600"
-        onClick={() => applyStatFilter("atRisk")}
-        isActive={statusFilter === "At Risk"}
+        onClick={() => applyStatFilter("needsAttention")}
+        isActive={statusFilter === "Needs Attention"}
         delay={0.15}
       />
     </div>

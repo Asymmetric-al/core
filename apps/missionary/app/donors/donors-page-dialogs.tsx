@@ -10,6 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@asym/ui/components/shadcn/field";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { cn } from "@asym/ui/lib/utils";
 import { Check, Loader2 } from "lucide-react";
@@ -52,20 +57,24 @@ export function DonorsPageActivityDialogs() {
               Add to {selectedDonor?.name}&apos;s timeline.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <Textarea
-              value={noteComposer.noteInput}
-              onChange={(e) => noteComposer.setNoteInput(e.target.value)}
-              placeholder={
-                noteComposer.activityType === "call"
-                  ? "What did you discuss?"
-                  : noteComposer.activityType === "meeting"
-                    ? "Meeting notes..."
-                    : "Type your note here..."
-              }
-              className="min-h-[150px] resize-none rounded-xl border-zinc-200"
-            />
-          </div>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="activity-note">Activity note</FieldLabel>
+              <Textarea
+                id="activity-note"
+                value={noteComposer.noteInput}
+                onChange={(e) => noteComposer.setNoteInput(e.target.value)}
+                placeholder={
+                  noteComposer.activityType === "call"
+                    ? "What did you discuss?"
+                    : noteComposer.activityType === "meeting"
+                      ? "Meeting notes..."
+                      : "Type your note here..."
+                }
+                className="min-h-[150px] resize-none rounded-xl border-zinc-200"
+              />
+            </Field>
+          </FieldGroup>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
@@ -120,6 +129,8 @@ export function DonorsPageActivityDialogs() {
               {AVAILABLE_TAGS.map((tag, i) => (
                 <motion.button
                   key={tag.id}
+                  type="button"
+                  aria-pressed={tagEditor.selectedTags.includes(tag.id)}
                   variants={fadeInUp}
                   transition={{ delay: i * 0.02 }}
                   whileHover={{ scale: 1.02 }}

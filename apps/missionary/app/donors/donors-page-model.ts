@@ -16,7 +16,12 @@ export type DonorsPageSummary = {
   totalGiven: number;
 };
 
-export type DonorsStatFilterType = "atRisk" | "activePledge" | "lapsed" | "new";
+export type DonorsStatFilterType =
+  | "atRisk"
+  | "needsAttention"
+  | "activePledge"
+  | "lapsed"
+  | "new";
 
 export type DonorsStatFilterState = DonorsPageFilterState & {
   selectedDonorId: null;
@@ -70,6 +75,16 @@ export function applyDonorsStatFilter(
         statusFilter: "New",
         selectedDonorId: null,
       };
+    case "needsAttention":
+      return {
+        ...nextFilters,
+        statusFilter: "Needs Attention",
+        selectedDonorId: null,
+      };
+    default: {
+      const exhaustive: never = filterType;
+      throw new Error(`Unhandled donors stat filter: ${String(exhaustive)}`);
+    }
   }
 }
 
@@ -83,6 +98,32 @@ export function toggleTagSelection(tags: string[], tagId: string): string[] {
 
 export function removeTagSelection(tags: string[], tagId: string): string[] {
   return tags.filter((tag) => tag !== tagId);
+}
+
+export function createTagEditorDraft(committedTags?: string[]): string[] {
+  return [...(committedTags ?? [])];
+}
+
+export function getDonorCallHref(
+  donor: Pick<Donor, "phone" | "mobile">,
+): string | null {
+  const number = donor.phone?.trim() || donor.mobile?.trim();
+  if (!number) {
+    return null;
+  }
+
+  return `tel:${number}`;
+}
+
+export function getDonorEmailHref(
+  email: string | null | undefined,
+): string | null {
+  const value = email?.trim();
+  if (!value) {
+    return null;
+  }
+
+  return `mailto:${value}`;
 }
 
 export function createDonorsPageSummary(donors: Donor[]): DonorsPageSummary {

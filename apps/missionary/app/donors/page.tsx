@@ -8,4 +8,5 @@ export const metadata: Metadata = {
 };
 
 // Instant Navigation: this route has no server data reads. Partner rows load
-// through the client missionary donor query under RLS.
+// through GET /api/missionary/donors, which uses supabaseAdmin and redacts
+// identifiers before they reach the client.
