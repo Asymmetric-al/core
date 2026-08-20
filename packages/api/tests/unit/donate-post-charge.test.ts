@@ -183,6 +183,7 @@ describe("POST /api/donate Gift processing-fee policy", () => {
       p_idempotency_key: "guest-giving-fee-policy-test",
       p_ip_address: null,
       p_user_agent: null,
+      p_fee_extras: toGiftProcessingFeeStripeMetadata(expectedQuote),
     });
     expect(mockedProcessDonationSagaOutboxEvent).toHaveBeenCalledWith({
       supabaseAdmin: expect.anything(),
@@ -244,6 +245,7 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     expect(rpcMock.mock.calls[0]?.[1]).toEqual(
       expect.objectContaining({
         p_amount: expectedQuote.chargedAmountCents,
+        p_fee_extras: toGiftProcessingFeeStripeMetadata(expectedQuote),
       }),
     );
     expect(mockedProcessDonationSagaOutboxEvent).toHaveBeenCalledWith(
@@ -252,6 +254,9 @@ describe("POST /api/donate Gift processing-fee policy", () => {
           toGiftProcessingFeeStripeMetadata(expectedQuote),
       }),
     );
+    expect(
+      toGiftProcessingFeeStripeMetadata(expectedQuote).payment_method,
+    ).toBe("ach");
   });
 
   it("rejects a non-USD cover-fees Gift instead of applying the US schedule", async () => {

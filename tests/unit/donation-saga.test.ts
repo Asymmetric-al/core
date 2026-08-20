@@ -114,8 +114,13 @@ describe("donation saga helpers", () => {
       }
       return Promise.resolve({ data: null, error: null });
     });
-    const from = vi.fn(() => {
-      throw new Error("from() should not be called in this path");
+    const persistEq = vi.fn().mockResolvedValue({ data: null, error: null });
+    const persistUpdate = vi.fn().mockReturnValue({ eq: persistEq });
+    const from = vi.fn((table: string) => {
+      if (table !== "donation_saga_outbox") {
+        throw new Error(`Unexpected table lookup: ${table}`);
+      }
+      return { update: persistUpdate };
     });
 
     const stripe = createStripeMock();
@@ -562,6 +567,34 @@ describe("donation saga helpers", () => {
     expect(rpc.mock.invocationCallOrder[0]).toBeGreaterThan(
       persistUpdate.mock.invocationCallOrder[0],
     );
+  });
+
+  it("fails closed when Gift fee extras cannot be persisted before claim", async () => {
+    const extras = {
+      gift_amount_cents: "10000",
+      cover_fees: "true",
+      payment_method: "ach" as const,
+      cover_amount_cents: "80",
+      estimated_fee_cents: "80",
+    };
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const from = vi.fn(() => {
+      throw new Error("from() unavailable");
+    });
+    const stripe = createStripeMock();
+
+    await expect(
+      processDonationSagaOutboxEvent({
+        supabaseAdmin: { rpc, from } as never,
+        stripe,
+        outboxId: "out-persist-fail",
+        actorUserId: "actor-persist-fail",
+        extraPaymentIntentMetadata: extras,
+      }),
+    ).rejects.toThrow("from() unavailable");
+
+    expect(rpc).not.toHaveBeenCalled();
+    expect(stripe.paymentIntents.create).not.toHaveBeenCalled();
   });
 
   it("binds stored ACH fee extras on due-batch processing", async () => {

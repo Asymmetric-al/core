@@ -85,6 +85,8 @@ export const POST = withOperation(
     }
     const amountInCents = feeQuote.chargedAmountCents;
     const idempotencyKey = resolveRequiredIdempotencyKey(request.headers);
+    const extraPaymentIntentMetadata =
+      toGiftProcessingFeeStripeMetadata(feeQuote);
 
     const { data: beginRaw, error: beginError } = await supabaseAdmin.rpc(
       "begin_donation_saga",
@@ -99,6 +101,7 @@ export const POST = withOperation(
         p_idempotency_key: idempotencyKey,
         p_ip_address: request.headers.get("x-forwarded-for"),
         p_user_agent: request.headers.get("user-agent"),
+        p_fee_extras: extraPaymentIntentMetadata,
       },
     );
 
@@ -132,9 +135,6 @@ export const POST = withOperation(
         { status: 500 },
       );
     }
-
-    const extraPaymentIntentMetadata =
-      toGiftProcessingFeeStripeMetadata(feeQuote);
 
     if (beginResult?.replayed) {
       const { data: storedDonation, error: storedDonationError } =

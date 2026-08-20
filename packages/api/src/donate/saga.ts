@@ -130,19 +130,13 @@ async function persistDonationSagaFeeExtras(
   outboxId: string,
   extras: GiftProcessingFeeStripeMetadata,
 ): Promise<void> {
-  let result: { error?: { message?: string } | null } | undefined;
-  try {
-    const updated = supabaseAdmin
-      .from("donation_saga_outbox")
-      .update({ fee_extras: extras });
-    result =
-      updated && typeof updated.eq === "function"
-        ? await updated.eq("id", outboxId)
-        : await updated;
-  } catch {
-    // Test doubles and degraded clients may throw from `.from()`.
-    return;
-  }
+  const updated = supabaseAdmin
+    .from("donation_saga_outbox")
+    .update({ fee_extras: extras });
+  const result =
+    updated && typeof updated.eq === "function"
+      ? await updated.eq("id", outboxId)
+      : await updated;
 
   if (result?.error) {
     throw new Error(
