@@ -1,17 +1,10 @@
-import { beginGiftIntake } from "@asym/api/donate/begin-gift-intake";
-
-type GraphQLGiftIntakeRpcClient = {
-  rpc: (
-    fn: string,
-    args: Record<string, unknown>,
-  ) => Promise<{
-    data: unknown;
-    error: { code?: string; message: string } | null;
-  }>;
-};
+import {
+  beginGiftIntake,
+  type GiftIntakeRpcInvoker,
+} from "@asym/api/donate/begin-gift-intake";
 
 export type BeginGraphQLGiftIntakeInput = {
-  supabaseAdmin: GraphQLGiftIntakeRpcClient;
+  rpc: GiftIntakeRpcInvoker;
   tenantId: string;
   profileId: string;
   actorUserId: string;
@@ -27,10 +20,7 @@ export async function beginGraphQLGiftIntake(
   input: BeginGraphQLGiftIntakeInput,
 ) {
   const result = await beginGiftIntake({
-    rpc: async (fn, rpcArgs) => {
-      const response = await input.supabaseAdmin.rpc(fn, rpcArgs);
-      return { data: response.data, error: response.error };
-    },
+    rpc: input.rpc,
     tenantId: input.tenantId,
     profileId: input.profileId,
     actorUserId: input.actorUserId,

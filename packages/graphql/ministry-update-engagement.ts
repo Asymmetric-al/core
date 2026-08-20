@@ -1,18 +1,12 @@
-import { addMinistryUpdateComment } from "@asym/api/posts/ministry-update-comment";
+import {
+  addMinistryUpdateComment,
+  type MinistryUpdateCommentRpcInvoker,
+} from "@asym/api/posts/ministry-update-comment";
 import {
   applyMinistryUpdateReaction,
   type MinistryUpdateReactionKind,
+  type MinistryUpdateReactionRpcInvoker,
 } from "@asym/api/posts/ministry-update-reaction";
-
-type GraphQLEngagementRpcClient = {
-  rpc: (
-    fn: string,
-    args: Record<string, unknown>,
-  ) => Promise<{
-    data: unknown;
-    error: { code?: string; message: string } | null;
-  }>;
-};
 
 export type GraphQLMinistryUpdateReactionKind = Exclude<
   MinistryUpdateReactionKind,
@@ -20,7 +14,7 @@ export type GraphQLMinistryUpdateReactionKind = Exclude<
 >;
 
 export type ApplyGraphQLMinistryUpdateReactionInput = {
-  supabaseAdmin: GraphQLEngagementRpcClient;
+  rpc: MinistryUpdateReactionRpcInvoker;
   kind: GraphQLMinistryUpdateReactionKind;
   postId: string;
   userId: string;
@@ -28,7 +22,7 @@ export type ApplyGraphQLMinistryUpdateReactionInput = {
 };
 
 export type AddGraphQLMinistryUpdateCommentInput = {
-  supabaseAdmin: GraphQLEngagementRpcClient;
+  rpc: MinistryUpdateCommentRpcInvoker;
   postId: string;
   userId: string;
   tenantId: string;
@@ -39,10 +33,7 @@ export async function applyGraphQLMinistryUpdateReaction(
   input: ApplyGraphQLMinistryUpdateReactionInput,
 ): Promise<true> {
   const result = await applyMinistryUpdateReaction({
-    rpc: async (name, rpcArgs) => {
-      const response = await input.supabaseAdmin.rpc(name, rpcArgs);
-      return { data: response.data, error: response.error };
-    },
+    rpc: input.rpc,
     kind: input.kind,
     postId: input.postId,
     userId: input.userId,
@@ -60,10 +51,7 @@ export async function addGraphQLMinistryUpdateComment(
   input: AddGraphQLMinistryUpdateCommentInput,
 ): Promise<string> {
   const result = await addMinistryUpdateComment({
-    rpc: async (fn, rpcArgs) => {
-      const response = await input.supabaseAdmin.rpc(fn, rpcArgs);
-      return { data: response.data, error: response.error };
-    },
+    rpc: input.rpc,
     postId: input.postId,
     userId: input.userId,
     tenantId: input.tenantId,

@@ -1,3 +1,5 @@
+import { parseRequiredIdempotencyKey } from "@asym/api/donate/idempotency";
+import { CACHE_TAGS, revalidateTags } from "@asym/api/shared/cache-tags";
 import {
   getAuthContext,
   requireAuth,
@@ -11,7 +13,6 @@ import {
   toUserPostInteractionSets,
 } from "@asym/database/supabase/post-interactions";
 import { createSchema, createYoga } from "graphql-yoga";
-import { revalidateTag } from "next/cache";
 
 import { beginGraphQLGiftIntake } from "./gift-intake";
 import {
@@ -28,30 +29,16 @@ interface GraphQLContext {
 }
 
 function revalidatePostTags(postId: string, tenantId: string) {
-  revalidateTag(`posts:tenant:${tenantId}`, "max");
-  revalidateTag(`post:${postId}`, "max");
+  revalidateTags([CACHE_TAGS.tenantPosts(tenantId), CACHE_TAGS.post(postId)]);
 }
 
-function yogaRpcClient(supabaseAdmin: SupabaseClient) {
+function yogaRpc(supabaseAdmin: SupabaseClient) {
   // Generated Supabase RPC overloads are not assignable to the structural
   // command client; narrow the wrap here instead of leaking `any` into adapters.
-  return {
-    rpc: async (fn: string, rpcArgs: Record<string, unknown>) => {
-      const response = await supabaseAdmin.rpc(fn as never, rpcArgs as never);
-      return { data: response.data, error: response.error };
-    },
+  return async (fn: string, rpcArgs: Record<string, unknown>) => {
+    const response = await supabaseAdmin.rpc(fn as never, rpcArgs as never);
+    return { data: response.data, error: response.error };
   };
-}
-
-function resolveRequiredIdempotencyKeyFromHeaders(headers: Headers): string {
-  const headerValue =
-    headers.get("idempotency-key") ?? headers.get("x-idempotency-key");
-  const idempotencyKey = headerValue?.trim() ?? "";
-  if (idempotencyKey.length > 0) {
-    return idempotencyKey;
-  }
-
-  throw new Error("Missing required idempotency-key header");
 }
 
 const typeDefs = /* GraphQL */ `
@@ -589,7 +576,7 @@ const resolvers = {
       const auth = ctx.auth as AuthenticatedContext;
 
       return applyGraphQLMinistryUpdateReaction({
-        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        rpc: yogaRpc(ctx.supabaseAdmin),
         kind: "like",
         postId: args.postId,
         userId: auth.userId,
@@ -606,7 +593,7 @@ const resolvers = {
       const auth = ctx.auth as AuthenticatedContext;
 
       return applyGraphQLMinistryUpdateReaction({
-        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        rpc: yogaRpc(ctx.supabaseAdmin),
         kind: "unlike",
         postId: args.postId,
         userId: auth.userId,
@@ -623,7 +610,7 @@ const resolvers = {
       const auth = ctx.auth as AuthenticatedContext;
 
       return applyGraphQLMinistryUpdateReaction({
-        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        rpc: yogaRpc(ctx.supabaseAdmin),
         kind: "pray",
         postId: args.postId,
         userId: auth.userId,
@@ -640,7 +627,7 @@ const resolvers = {
       const auth = ctx.auth as AuthenticatedContext;
 
       return applyGraphQLMinistryUpdateReaction({
-        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        rpc: yogaRpc(ctx.supabaseAdmin),
         kind: "unpray",
         postId: args.postId,
         userId: auth.userId,
@@ -657,7 +644,7 @@ const resolvers = {
       const auth = ctx.auth as AuthenticatedContext;
 
       const commentId = await addGraphQLMinistryUpdateComment({
-        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        rpc: yogaRpc(ctx.supabaseAdmin),
         postId: args.postId,
         userId: auth.userId,
         tenantId: auth.tenantId,
@@ -686,12 +673,13 @@ const resolvers = {
     ) => {
       requireRole(ctx.auth, ["donor", "admin", "staff", "super_admin"]);
       const auth = ctx.auth as AuthenticatedContext;
-      const idempotencyKey = resolveRequiredIdempotencyKeyFromHeaders(
-        ctx.request.headers,
-      );
+      const idempotencyKey = parseRequiredIdempotencyKey(ctx.request.headers);
+      if (!idempotencyKey) {
+        throw new Error("Missing required idempotency-key header");
+      }
 
       const begin = await beginGraphQLGiftIntake({
-        supabaseAdmin: yogaRpcClient(ctx.supabaseAdmin),
+        rpc: yogaRpc(ctx.supabaseAdmin),
         tenantId: auth.tenantId,
         profileId: auth.profileId,
         actorUserId: auth.userId,

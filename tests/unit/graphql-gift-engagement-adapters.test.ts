@@ -34,7 +34,7 @@ describe("GraphQL Gift intake adapter", () => {
     });
 
     const result = await beginGraphQLGiftIntake({
-      supabaseAdmin: { rpc },
+      rpc,
       tenantId: "tenant-1",
       profileId: "profile-1",
       actorUserId: "user-1",
@@ -73,7 +73,7 @@ describe("GraphQL Gift intake adapter", () => {
 
     await expect(
       beginGraphQLGiftIntake({
-        supabaseAdmin: { rpc },
+        rpc,
         tenantId: "tenant-1",
         profileId: "profile-1",
         actorUserId: "user-1",
@@ -95,7 +95,7 @@ describe("GraphQL Gift intake adapter", () => {
 
     await expect(
       beginGraphQLGiftIntake({
-        supabaseAdmin: { rpc },
+        rpc,
         tenantId: "tenant-1",
         profileId: "profile-1",
         actorUserId: "user-1",
@@ -123,7 +123,7 @@ describe("GraphQL Ministry Update engagement adapter", () => {
 
     await expect(
       applyGraphQLMinistryUpdateReaction({
-        supabaseAdmin: { rpc },
+        rpc,
         kind: "like",
         postId: "post-1",
         userId: "user-1",
@@ -143,7 +143,7 @@ describe("GraphQL Ministry Update engagement adapter", () => {
 
     await expect(
       applyGraphQLMinistryUpdateReaction({
-        supabaseAdmin: { rpc },
+        rpc,
         kind: "like",
         postId: "post-1",
         userId: "user-1",
@@ -160,7 +160,7 @@ describe("GraphQL Ministry Update engagement adapter", () => {
 
     await expect(
       applyGraphQLMinistryUpdateReaction({
-        supabaseAdmin: { rpc },
+        rpc,
         kind: "pray",
         postId: "missing",
         userId: "user-1",
@@ -177,7 +177,7 @@ describe("GraphQL Ministry Update engagement adapter", () => {
 
     await expect(
       addGraphQLMinistryUpdateComment({
-        supabaseAdmin: { rpc },
+        rpc,
         postId: "post-1",
         userId: "user-1",
         tenantId: "tenant-1",
@@ -230,6 +230,57 @@ describe("GraphQL Gift and engagement source guards", () => {
     expect(donate).toContain("Math.round(amount * 100)");
     expect(donations).toContain("processDonationSagaOutboxEvent");
     expect(donations).not.toContain("Math.round(amount * 100)");
+  });
+
+  it("revalidates Ministry Update tags through the public CACHE_TAGS seam", () => {
+    const handler = readRepoFile("packages/graphql/handler.ts");
+    const apiPackage = JSON.parse(
+      readRepoFile("packages/api/package.json"),
+    ) as { exports: Record<string, string> };
+
+    expect(apiPackage.exports["./shared/cache-tags"]).toBe(
+      "./src/shared/cache-tags.ts",
+    );
+    expect(handler).toContain('from "@asym/api/shared/cache-tags"');
+    expect(handler).toContain("CACHE_TAGS.tenantPosts");
+    expect(handler).toContain("CACHE_TAGS.post");
+    expect(handler).toContain("revalidateTags");
+    expect(handler).not.toContain("posts:tenant:");
+    expect(handler).not.toContain('from "next/cache"');
+  });
+
+  it("shares donate idempotency parse and maps missing keys to GraphQL Error", () => {
+    const handler = readRepoFile("packages/graphql/handler.ts");
+    const apiPackage = JSON.parse(
+      readRepoFile("packages/api/package.json"),
+    ) as { exports: Record<string, string> };
+
+    expect(apiPackage.exports["./donate/idempotency"]).toBe(
+      "./src/donate/idempotency.ts",
+    );
+    expect(handler).toContain("parseRequiredIdempotencyKey");
+    expect(handler).not.toContain("resolveRequiredIdempotencyKeyFromHeaders");
+    expect(handler).toContain(
+      'throw new Error("Missing required idempotency-key header")',
+    );
+  });
+
+  it("passes Yoga rpc through to Gift Intake without a second envelope wrap", () => {
+    const giftIntake = readRepoFile("packages/graphql/gift-intake.ts");
+    expect(giftIntake).toContain("GiftIntakeRpcInvoker");
+    expect(giftIntake).toContain("rpc: input.rpc");
+    expect(giftIntake).not.toContain("GraphQLGiftIntakeRpcClient");
+    expect(giftIntake).not.toContain("input.supabaseAdmin.rpc");
+  });
+
+  it("passes Yoga rpc through to engagement commands without a second envelope wrap", () => {
+    const engagement = readRepoFile(
+      "packages/graphql/ministry-update-engagement.ts",
+    );
+    expect(engagement).toContain("MinistryUpdateReactionRpcInvoker");
+    expect(engagement).toContain("MinistryUpdateCommentRpcInvoker");
+    expect(engagement).not.toContain("GraphQLEngagementRpcClient");
+    expect(engagement).not.toContain("input.supabaseAdmin.rpc");
   });
 
   it("moves HTTP reaction adapters onto the shared command", () => {
