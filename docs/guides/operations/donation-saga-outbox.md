@@ -34,6 +34,26 @@ replay) may create a first-shot PaymentIntent without those extras. That is
 acceptable: charged cents already live in `p_amount`. Do not treat missing fee
 metadata on a recovered intent as a failed donation.
 
+Gift intake is USD-only. Non-USD `currency` values fail validation before
+`begin_donation_saga`. First-shot Gift intake binds the PaymentIntent to the
+quoted method (`card`/`wallet` → `payment_method_types: ["card"]`, `ach` →
+`["us_bank_account"]`). Recovery and batch workers without extras keep
+`automatic_payment_methods`.
+
+On idempotent replay (`begin_donation_saga.replayed`), Gift intake loads the
+stored `donations.amount` and:
+
+- returns `409` when it does not match the recomputed charged cents
+- processes the existing outbox without attaching a new fee-quote extra
+
+Verification:
+
+1. POST the same idempotency key with a different charged amount → `409`.
+2. POST the same key with matching charged cents → `200` and no new fee extras.
+3. POST `currency=eur` → `400` before `begin_donation_saga`.
+4. First-shot card Gift PaymentIntents use `payment_method_types: ["card"]`
+   and omit `automatic_payment_methods`.
+
 Staff `POST /api/donations` does not run Gift processing-fee policy. That path
 already sends charged cents as `p_amount`.
 
