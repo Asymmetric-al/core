@@ -247,12 +247,19 @@ export default function EmailStudio() {
       toast.error("Legacy templates are read-only in Email Studio");
       return;
     }
+    if (saveInFlightRef.current || testSendInFlightRef.current) {
+      return;
+    }
     dispatch({ type: "set_show_save_dialog", open: true });
   }, [isLegacyReadOnly]);
 
   const handleConfirmSave = useCallback(
     async (next: EmailMetadata) => {
-      if (saveInFlightRef.current || isLegacyReadOnly) {
+      if (
+        saveInFlightRef.current ||
+        testSendInFlightRef.current ||
+        isLegacyReadOnly
+      ) {
         return;
       }
       saveInFlightRef.current = true;
@@ -316,7 +323,11 @@ export default function EmailStudio() {
   );
 
   const handleConfirmTestSend = useCallback(async () => {
-    if (testSendInFlightRef.current || isLegacyReadOnly) {
+    if (
+      testSendInFlightRef.current ||
+      saveInFlightRef.current ||
+      isLegacyReadOnly
+    ) {
       return;
     }
     const editor = editorRef.current;
@@ -391,7 +402,11 @@ export default function EmailStudio() {
     const isMod = event.metaKey || event.ctrlKey;
     if (isMod && event.key.toLowerCase() === "s") {
       event.preventDefault();
-      if (canEditCurrentTemplate && !ui.isSaving) {
+      if (
+        canEditCurrentTemplate &&
+        !saveInFlightRef.current &&
+        !testSendInFlightRef.current
+      ) {
         dispatch({ type: "set_show_save_dialog", open: true });
       }
       return;
@@ -450,6 +465,7 @@ export default function EmailStudio() {
         isEditorReady={canEditCurrentTemplate}
         canPreview={canPreview}
         isSaving={ui.isSaving}
+        isSendingTest={isSendingTest}
         hasUnsavedChanges={ui.hasUnsavedChanges}
         isFullscreen={ui.isFullscreen}
         previewDevice={ui.previewDevice}
@@ -459,7 +475,12 @@ export default function EmailStudio() {
         onExportHtml={() => {
           void handleExportHtml();
         }}
-        onTestSend={() => setShowTestSendDialog(true)}
+        onTestSend={() => {
+          if (saveInFlightRef.current || testSendInFlightRef.current) {
+            return;
+          }
+          setShowTestSendDialog(true);
+        }}
         onInsertMergeTag={(key) => editorRef.current?.insertMergeTag?.(key)}
         onSaveClick={handleSaveClick}
         onNewTemplate={handleNewTemplate}

@@ -605,6 +605,107 @@ describe("EmailStudio page", () => {
     });
   });
 
+  it("does not open save from the keyboard shortcut while a test send is in flight", async () => {
+    let resolveTestSend: ((value: unknown) => void) | undefined;
+    const testSendPromise = new Promise((resolve) => {
+      resolveTestSend = resolve;
+    });
+    stubStudioFetch((url, method) => {
+      if (method === "POST" && url === "/api/email/templates/test-send") {
+        return testSendPromise;
+      }
+      return null;
+    });
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: /send test email/i }));
+    const recipient = screen.getByLabelText(/recipient/i);
+    fireEvent.change(recipient, { target: { value: "qa@example.com" } });
+    fireEvent.submit(recipient.closest("form")!);
+
+    await waitFor(() => {
+      expect(
+        (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(true);
+    });
+
+    fireEvent.keyDown(recipient, { key: "s", metaKey: true });
+    expect(screen.queryByText("Save Email Template")).toBeNull();
+
+    resolveTestSend?.(
+      jsonOk({
+        success: true,
+        messageId: "msg_1",
+      }),
+    );
+    await waitFor(() => {
+      expect(screen.queryByLabelText(/recipient/i)).toBeNull();
+    });
+  });
+
+  it("does not start a test send while a save is in flight", async () => {
+    let resolvePersist: ((value: unknown) => void) | undefined;
+    const persistPromise = new Promise((resolve) => {
+      resolvePersist = resolve;
+    });
+    const fetchMock = stubStudioFetch((url, method) => {
+      if (method === "POST" && url === "/api/email/templates") {
+        return persistPromise;
+      }
+      return null;
+    });
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    fireEvent.change(screen.getByPlaceholderText("e.g., Monthly Newsletter"), {
+      target: { value: "April campaign" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save template/i }));
+
+    await waitFor(() => {
+      expect(
+        (
+          screen.getByRole("button", {
+            name: /send test email/i,
+          }) as HTMLButtonElement
+        ).disabled,
+      ).toBe(true);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /send test email/i }));
+    expect(screen.queryByLabelText(/recipient/i)).toBeNull();
+    expect(
+      fetchMock.mock.calls.filter(
+        ([requestUrl, init]) =>
+          String(requestUrl) === "/api/email/templates/test-send" &&
+          String((init as RequestInit | undefined)?.method) === "POST",
+      ),
+    ).toHaveLength(0);
+
+    resolvePersist?.(
+      jsonOk({
+        success: true,
+        template: { id: "tmpl_new", name: "April campaign" },
+      }),
+    );
+    await waitFor(() => {
+      expect(screen.queryByText("Save Email Template")).toBeNull();
+    });
+  });
+
   it("does not intercept native undo when the template name input is focused", async () => {
     render(
       <QueryProvider>

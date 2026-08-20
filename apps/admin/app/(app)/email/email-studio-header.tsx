@@ -47,6 +47,7 @@ type EmailStudioHeaderProps = {
   isEditorReady: boolean;
   canPreview: boolean;
   isSaving: boolean;
+  isSendingTest: boolean;
   hasUnsavedChanges: boolean;
   isFullscreen: boolean;
   previewDevice: PreviewDevice;
@@ -68,6 +69,7 @@ export function EmailStudioHeader({
   isEditorReady,
   canPreview,
   isSaving,
+  isSendingTest,
   hasUnsavedChanges,
   isFullscreen,
   previewDevice,
@@ -183,7 +185,7 @@ export function EmailStudioHeader({
         variant="outline"
         size="sm"
         onClick={onSaveClick}
-        disabled={!isEditorReady || isSaving}
+        disabled={!isEditorReady || isSaving || isSendingTest}
       >
         {isSaving ? <Spinner /> : <Save />}
         Save
@@ -214,7 +216,10 @@ export function EmailStudioHeader({
               <Download />
               Export as HTML
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onTestSend} disabled={!isEditorReady}>
+            <DropdownMenuItem
+              onClick={onTestSend}
+              disabled={!isEditorReady || isSaving || isSendingTest}
+            >
               <Send />
               Send Test Email
             </DropdownMenuItem>
