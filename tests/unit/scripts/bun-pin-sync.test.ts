@@ -41,6 +41,10 @@ function countMatches(source: string, pattern: RegExp): number {
   return source.match(pattern)?.length ?? 0;
 }
 
+function isGitHubWorkflowFile(name: string): boolean {
+  return name.endsWith(".yml") || name.endsWith(".yaml");
+}
+
 function writePinFixture(options: {
   packageManager: string;
   bunVersion?: string | null;
@@ -86,9 +90,8 @@ describe("Bun toolchain pin sync", () => {
   });
 
   it("keeps every first-party GitHub Actions BUN_VERSION on the same pin", () => {
-    const workflowFiles = readdirSync(WORKFLOW_DIR).filter((name) =>
-      name.endsWith(".yml"),
-    );
+    const workflowFiles =
+      readdirSync(WORKFLOW_DIR).filter(isGitHubWorkflowFile);
     const bunPins: string[] = [];
 
     for (const fileName of workflowFiles) {
@@ -104,9 +107,8 @@ describe("Bun toolchain pin sync", () => {
   });
 
   it("pins every oven-sh/setup-bun step to env.BUN_VERSION", () => {
-    const workflowFiles = readdirSync(WORKFLOW_DIR).filter((name) =>
-      name.endsWith(".yml"),
-    );
+    const workflowFiles =
+      readdirSync(WORKFLOW_DIR).filter(isGitHubWorkflowFile);
     let scannedWorkflows = 0;
 
     for (const fileName of workflowFiles) {
@@ -134,6 +136,9 @@ describe("Bun toolchain pin sync", () => {
     }
 
     expect(scannedWorkflows).toBeGreaterThan(0);
+    expect(isGitHubWorkflowFile("ci.yml")).toBe(true);
+    expect(isGitHubWorkflowFile("ci.yaml")).toBe(true);
+    expect(isGitHubWorkflowFile("README.md")).toBe(false);
   });
 
   it("keeps first-party Vercel apps on the Node Functions runtime", () => {
