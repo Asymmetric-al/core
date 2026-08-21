@@ -6,6 +6,7 @@ import {
   readFileSync,
   readdirSync,
   symlinkSync,
+  unlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -28,11 +29,6 @@ const VERIFIED_STABLE_BUN = "1.4.0";
 const PINNED_TURBO = "2.10.0";
 
 const WORKFLOW_DIR = path.join(repoRoot, ".github", "workflows");
-const FIRST_PARTY_SETUP_BUN_WORKFLOWS = [
-  "ci.yml",
-  "ci-integration.yml",
-  "qa-smoke-preview-deploy.yml",
-] as const;
 
 function readPackageJson(): {
   packageManager?: string;
@@ -108,22 +104,36 @@ describe("Bun toolchain pin sync", () => {
   });
 
   it("pins every oven-sh/setup-bun step to env.BUN_VERSION", () => {
-    for (const fileName of FIRST_PARTY_SETUP_BUN_WORKFLOWS) {
+    const workflowFiles = readdirSync(WORKFLOW_DIR).filter((name) =>
+      name.endsWith(".yml"),
+    );
+    let scannedWorkflows = 0;
+
+    for (const fileName of workflowFiles) {
       const workflow = readFileSync(path.join(WORKFLOW_DIR, fileName), "utf8");
       const setupBunCount = countMatches(
         workflow,
         /uses:\s*oven-sh\/setup-bun@/g,
       );
+      if (setupBunCount === 0) {
+        continue;
+      }
+
+      scannedWorkflows += 1;
       const envPinnedCount = countMatches(
         workflow,
         /bun-version:\s*\$\{\{\s*env\.BUN_VERSION\s*\}\}/g,
       );
 
-      expect(setupBunCount, fileName).toBeGreaterThan(0);
       expect(envPinnedCount, `${fileName} env.BUN_VERSION pins`).toBe(
         setupBunCount,
       );
+      expect(workflow, `${fileName} BUN_VERSION env`).toMatch(
+        /^\s*BUN_VERSION:\s*"/m,
+      );
     }
+
+    expect(scannedWorkflows).toBeGreaterThan(0);
   });
 
   it("keeps first-party Vercel apps on the Node Functions runtime", () => {
@@ -253,13 +263,17 @@ describe("bun-version.mjs CLI", () => {
       );
       symlinkSync(verifierSourcePath, linkPath);
 
-      const result = spawnVerifier(linkPath);
+      try {
+        const result = spawnVerifier(linkPath);
 
-      expect(result.status).toBe(0);
-      expect(result.stdout).toContain(
-        `Bun version OK: bun@${VERIFIED_STABLE_BUN}`,
-      );
-      expect(result.stdout).not.toBe("");
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain(
+          `Bun version OK: bun@${VERIFIED_STABLE_BUN}`,
+        );
+        expect(result.stdout).not.toBe("");
+      } finally {
+        unlinkSync(linkPath);
+      }
     },
   );
 
