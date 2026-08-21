@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -251,14 +251,18 @@ describe("bun.lock lockfileVersion ceiling", () => {
 
   it("findBunLockDrift returns the version ceiling before workspace drift", async () => {
     const dir = mkdtempSync(path.join(tmpdir(), "bun-lock-v2-"));
-    writeFileSync(
-      path.join(dir, "bun.lock"),
-      '{ "lockfileVersion": 2, "workspaces": {} }\n',
-    );
+    try {
+      writeFileSync(
+        path.join(dir, "bun.lock"),
+        '{ "lockfileVersion": 2, "workspaces": {} }\n',
+      );
 
-    await expect(findBunLockDrift(dir)).resolves.toEqual(
-      collectUnsupportedLockfileVersion(2),
-    );
+      await expect(findBunLockDrift(dir)).resolves.toEqual(
+        collectUnsupportedLockfileVersion(2),
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("does not tell operators to run bun install when lockfileVersion is unsupported", () => {
