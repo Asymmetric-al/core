@@ -39,7 +39,32 @@ export const DEPENDENCY_FIELDS = [
 export const ROOT_WORKSPACE_KEY = "";
 
 const MANIFEST_SUFFIX = "/package.json";
-const REMEDIATION = "Run `bun install` and commit the updated bun.lock.";
+
+export const WORKSPACE_DRIFT_REMEDIATION =
+  "Run `bun install` and commit the updated bun.lock.";
+
+export const LOCKFILE_VERSION_REMEDIATION =
+  "Keep or restore lockfileVersion 0 or 1. Do not run `bun install` to rewrite bun.lock on Bun 1.4+.";
+
+export function isLockfileVersionViolation(violation) {
+  return violation.startsWith("bun.lock lockfileVersion ");
+}
+
+export function formatBunLockDriftFailure(violations) {
+  if (violations.some((violation) => isLockfileVersionViolation(violation))) {
+    return [
+      "bun.lock lockfileVersion is not supported:",
+      ...violations.map((violation) => `- ${violation}`),
+      LOCKFILE_VERSION_REMEDIATION,
+    ].join("\n");
+  }
+
+  return [
+    "bun.lock is out of sync with workspace package.json files:",
+    ...violations.map((violation) => `- ${violation}`),
+    WORKSPACE_DRIFT_REMEDIATION,
+  ].join("\n");
+}
 
 export function collectUnsupportedLockfileVersion(lockfileVersion) {
   if (
@@ -290,11 +315,7 @@ async function main() {
     return;
   }
 
-  console.error("bun.lock is out of sync with workspace package.json files:");
-  for (const violation of violations) {
-    console.error(`- ${violation}`);
-  }
-  console.error(REMEDIATION);
+  console.error(formatBunLockDriftFailure(violations));
 
   process.exit(1);
 }

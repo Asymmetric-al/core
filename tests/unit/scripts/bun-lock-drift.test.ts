@@ -1,11 +1,18 @@
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
   collectBunLockDriftViolations,
   collectUnsupportedLockfileVersion,
   findBunLockDrift,
+  formatBunLockDriftFailure,
+  LOCKFILE_VERSION_REMEDIATION,
   parseBunLock,
   stripTrailingCommas,
+  WORKSPACE_DRIFT_REMEDIATION,
 } from "../../../scripts/verify/bun-lock-drift.mjs";
 
 type Manifest = Record<string, unknown>;
@@ -241,10 +248,51 @@ describe("bun.lock lockfileVersion ceiling", () => {
       'lockfileVersion "1"',
     );
   });
+
+  it("findBunLockDrift returns the version ceiling before workspace drift", async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "bun-lock-v2-"));
+    writeFileSync(
+      path.join(dir, "bun.lock"),
+      '{ "lockfileVersion": 2, "workspaces": {} }\n',
+    );
+
+    await expect(findBunLockDrift(dir)).resolves.toEqual(
+      collectUnsupportedLockfileVersion(2),
+    );
+  });
+
+  it("does not tell operators to run bun install when lockfileVersion is unsupported", () => {
+    const message = formatBunLockDriftFailure(
+      collectUnsupportedLockfileVersion(2),
+    );
+
+    expect(message).toContain("lockfileVersion 2");
+    expect(message).toContain(LOCKFILE_VERSION_REMEDIATION);
+    expect(message).not.toContain(WORKSPACE_DRIFT_REMEDIATION);
+    expect(message).not.toMatch(/Run `bun install`/);
+  });
+
+  it("still remediates workspace-manifest drift with bun install", () => {
+    const message = formatBunLockDriftFailure([
+      'package.json: dependencies "left-pad" is missing from bun.lock workspaces[""]',
+    ]);
+
+    expect(message).toContain("out of sync with workspace package.json");
+    expect(message).toContain(WORKSPACE_DRIFT_REMEDIATION);
+  });
 });
 
 describe("live repository state", () => {
   it("keeps bun.lock in sync with every workspace package.json", async () => {
     await expect(findBunLockDrift()).resolves.toEqual([]);
+  });
+
+  it("keeps the committed bun.lock on lockfileVersion 1", () => {
+    const lock = parseBunLock(
+      readFileSync(path.join(process.cwd(), "bun.lock"), "utf8"),
+    );
+
+    expect(lock.lockfileVersion).toBe(1);
+    expect(lock.configVersion).toBe(1);
   });
 });
