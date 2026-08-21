@@ -51,7 +51,7 @@ bunx --no-install turbo prune @asym/donor --docker
 
 - **Lockfile drift:** a frozen-lockfile install does **not** notice when a `package.json` dependency is missing from `bun.lock`'s `workspaces` map — commit `ea9a7673` added a root dependency without the regenerated lockfile and CI stayed green, while every contributor's next plain `bun install` silently rewrote `bun.lock`. `bun run verify:bun-lock-drift` compares the two files directly and is the check that catches this; it is a pure file read, so it needs no install and no network.
 - **Turbo cache keys** in `ci.yml` include `bun-${{ env.BUN_VERSION }}` so cache restores do not cross Bun upgrades.
-- **Local parity:** match the pin (`bun run verify:bun-version`); reproducible install from a clean tree is `bun ci`. GitHub Actions uses `bun ci --no-cache --backend=copyfile` so Linux runners use Bun's portable install backend for vendored `file:` tarballs.
+- **Local parity:** match the pin (`bun run verify:bun-version`). That command also fails if a first-party `.github/workflows/*.{yml,yaml}` `BUN_VERSION` or `oven-sh/setup-bun` pin disagrees with `packageManager`. Reproducible install from a clean tree is `bun ci`. GitHub Actions uses `bun ci --no-cache --backend=copyfile` so Linux runners use Bun's portable install backend for vendored `file:` tarballs.
 
 ## Local CI parity (pre-push)
 

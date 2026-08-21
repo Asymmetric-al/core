@@ -5,6 +5,7 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  rmSync,
   symlinkSync,
   unlinkSync,
   writeFileSync,
@@ -14,7 +15,11 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { readExpectedVersion } from "../../../scripts/verify/bun-version.mjs";
+import {
+  collectGitHubWorkflowBunPinDrift,
+  isGitHubWorkflowFile,
+  readExpectedVersion,
+} from "../../../scripts/verify/bun-version.mjs";
 
 const repoRoot = process.cwd();
 const verifierSourcePath = path.join(
@@ -39,10 +44,6 @@ function readPackageJson(): {
 
 function countMatches(source: string, pattern: RegExp): number {
   return source.match(pattern)?.length ?? 0;
-}
-
-function isGitHubWorkflowFile(name: string): boolean {
-  return name.endsWith(".yml") || name.endsWith(".yaml");
 }
 
 function writePinFixture(options: {
@@ -74,6 +75,32 @@ function writeIsolatedVerifier(options: {
   return { repoRoot: isolatedRoot, scriptPath };
 }
 
+function writeIsolatedWorkflow(
+  repoRoot: string,
+  bunVersion: string,
+  fileName = "ci.yml",
+) {
+  const workflowDir = path.join(repoRoot, ".github", "workflows");
+  mkdirSync(workflowDir, { recursive: true });
+  writeFileSync(
+    path.join(workflowDir, fileName),
+    [
+      "name: ci",
+      "on: push",
+      "env:",
+      `  BUN_VERSION: "${bunVersion}"`,
+      "jobs:",
+      "  check:",
+      "    runs-on: ubuntu-latest",
+      "    steps:",
+      "      - uses: oven-sh/setup-bun@v2",
+      "        with:",
+      "          bun-version: ${{ env.BUN_VERSION }}",
+      "",
+    ].join("\n"),
+  );
+}
+
 function spawnVerifier(scriptPath: string, env?: NodeJS.ProcessEnv) {
   return spawnSync(process.execPath, [scriptPath], {
     encoding: "utf8",
@@ -99,11 +126,13 @@ describe("Bun toolchain pin sync", () => {
       const matches = [...workflow.matchAll(/^\s*BUN_VERSION:\s*"([^"]+)"/gm)];
       for (const match of matches) {
         bunPins.push(`${fileName}:${match[1]}`);
-        expect(match[1], fileName).toBe(VERIFIED_STABLE_BUN);
       }
     }
 
     expect(bunPins.length).toBeGreaterThan(0);
+    expect(
+      collectGitHubWorkflowBunPinDrift(repoRoot, VERIFIED_STABLE_BUN),
+    ).toEqual([]);
   });
 
   it("pins every oven-sh/setup-bun step to env.BUN_VERSION", () => {
@@ -122,20 +151,12 @@ describe("Bun toolchain pin sync", () => {
       }
 
       scannedWorkflows += 1;
-      const envPinnedCount = countMatches(
-        workflow,
-        /bun-version:\s*\$\{\{\s*env\.BUN_VERSION\s*\}\}/g,
-      );
-
-      expect(envPinnedCount, `${fileName} env.BUN_VERSION pins`).toBe(
-        setupBunCount,
-      );
-      expect(workflow, `${fileName} BUN_VERSION env`).toMatch(
-        /^\s*BUN_VERSION:\s*"/m,
-      );
     }
 
     expect(scannedWorkflows).toBeGreaterThan(0);
+    expect(
+      collectGitHubWorkflowBunPinDrift(repoRoot, VERIFIED_STABLE_BUN),
+    ).toEqual([]);
     expect(isGitHubWorkflowFile("ci.yml")).toBe(true);
     expect(isGitHubWorkflowFile("ci.yaml")).toBe(true);
     expect(isGitHubWorkflowFile("README.md")).toBe(false);
@@ -247,6 +268,34 @@ describe("bun-version.mjs pin contract", () => {
       /\.bun-version \(1\.3\.14\) does not match packageManager bun@1\.4\.0/,
     );
   });
+
+  it("reports a mismatched GitHub workflow BUN_VERSION before the process check", () => {
+    const root = writePinFixture({
+      packageManager: "bun@1.4.0",
+      bunVersion: "1.4.0",
+    });
+    try {
+      writeIsolatedWorkflow(root, "9.9.9", "ci.yaml");
+
+      expect(collectGitHubWorkflowBunPinDrift(root, "1.4.0")).toEqual([
+        "ci.yaml BUN_VERSION is 9.9.9, expected 1.4.0",
+      ]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("does not require workflow files when the fixture has none", () => {
+    const root = writePinFixture({
+      packageManager: "bun@1.4.0",
+      bunVersion: "1.4.0",
+    });
+    try {
+      expect(collectGitHubWorkflowBunPinDrift(root, "1.4.0")).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("bun-version.mjs CLI", () => {
@@ -304,5 +353,23 @@ describe("bun-version.mjs CLI", () => {
 
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("error: Bun version mismatch.");
+  });
+
+  it("exits 2 when an isolated workflow BUN_VERSION disagrees with the package pin", () => {
+    const { repoRoot, scriptPath } = writeIsolatedVerifier({
+      packageManager: "bun@1.4.0",
+      bunVersion: "1.4.0",
+    });
+    try {
+      writeIsolatedWorkflow(repoRoot, "9.9.9");
+
+      const result = spawnVerifier(scriptPath);
+
+      expect(result.status).toBe(2);
+      expect(result.stderr).toContain("9.9.9");
+      expect(result.stderr).toMatch(/workflow|BUN_VERSION/i);
+    } finally {
+      rmSync(repoRoot, { recursive: true, force: true });
+    }
   });
 });

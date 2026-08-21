@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -90,6 +90,62 @@ export function readExpectedVersion(root = defaultRepoRoot) {
   return expected;
 }
 
+export function isGitHubWorkflowFile(name) {
+  return name.endsWith(".yml") || name.endsWith(".yaml");
+}
+
+export function collectGitHubWorkflowBunPinDrift(root, expected) {
+  const workflowDir = path.join(root, ".github", "workflows");
+
+  if (!existsSync(workflowDir)) {
+    return [];
+  }
+
+  const errors = [];
+
+  for (const fileName of readdirSync(workflowDir).filter(
+    isGitHubWorkflowFile,
+  )) {
+    const workflow = readFileSync(path.join(workflowDir, fileName), "utf8");
+    const bunVersions = [
+      ...workflow.matchAll(/^\s*BUN_VERSION:\s*"([^"]+)"/gm),
+    ].map((match) => match[1]);
+
+    for (const version of bunVersions) {
+      if (version !== expected) {
+        errors.push(
+          `${fileName} BUN_VERSION is ${version}, expected ${expected}`,
+        );
+      }
+    }
+
+    const setupBunCount = (workflow.match(/uses:\s*oven-sh\/setup-bun@/g) ?? [])
+      .length;
+
+    if (setupBunCount === 0) {
+      continue;
+    }
+
+    const envPinnedCount = (
+      workflow.match(/bun-version:\s*\$\{\{\s*env\.BUN_VERSION\s*\}\}/g) ?? []
+    ).length;
+
+    if (envPinnedCount !== setupBunCount) {
+      errors.push(
+        `${fileName} has ${setupBunCount} oven-sh/setup-bun steps but ${envPinnedCount} bun-version: \${{ env.BUN_VERSION }} pins`,
+      );
+    }
+
+    if (bunVersions.length === 0) {
+      errors.push(
+        `${fileName} uses oven-sh/setup-bun but has no BUN_VERSION env pin`,
+      );
+    }
+  }
+
+  return errors;
+}
+
 function readInstalledVersion() {
   for (const candidate of candidateBunPaths()) {
     const result = spawnSync(candidate, ["--version"], {
@@ -113,6 +169,18 @@ export function main(root = defaultRepoRoot) {
     expected = readExpectedVersion(root);
   } catch (error) {
     console.error(`error: ${error.message}`);
+    process.exit(2);
+  }
+
+  const workflowDrift = collectGitHubWorkflowBunPinDrift(root, expected);
+
+  if (workflowDrift.length > 0) {
+    console.error(
+      "error: GitHub Actions Bun pin does not match packageManager.",
+    );
+    for (const line of workflowDrift) {
+      console.error(`  ${line}`);
+    }
     process.exit(2);
   }
 
