@@ -41,6 +41,21 @@ export const ROOT_WORKSPACE_KEY = "";
 const MANIFEST_SUFFIX = "/package.json";
 const REMEDIATION = "Run `bun install` and commit the updated bun.lock.";
 
+export function collectUnsupportedLockfileVersion(lockfileVersion) {
+  if (
+    typeof lockfileVersion === "number" &&
+    Number.isInteger(lockfileVersion) &&
+    lockfileVersion >= 0 &&
+    lockfileVersion <= 1
+  ) {
+    return [];
+  }
+
+  return [
+    `bun.lock lockfileVersion ${JSON.stringify(lockfileVersion)} is not supported. Keep lockfileVersion 0 or 1 until installed turbo prune can parse a rewritten lock.`,
+  ];
+}
+
 /**
  * `bun.lock` is JSONC-ish: it is JSON apart from trailing commas before `}`
  * and `]`. Strip those so `JSON.parse` accepts it, skipping over string
@@ -254,6 +269,13 @@ export async function readWorkspaceManifests(repoRoot = defaultRepoRoot) {
 export async function findBunLockDrift(repoRoot = defaultRepoRoot) {
   const lockText = await readFile(path.join(repoRoot, "bun.lock"), "utf8");
   const lock = parseBunLock(lockText);
+  const versionViolations = collectUnsupportedLockfileVersion(
+    lock.lockfileVersion,
+  );
+
+  if (versionViolations.length > 0) {
+    return versionViolations;
+  }
 
   return collectBunLockDriftViolations({
     lockWorkspaces: lock.workspaces ?? {},

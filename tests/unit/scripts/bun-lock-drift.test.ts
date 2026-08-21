@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   collectBunLockDriftViolations,
+  collectUnsupportedLockfileVersion,
   findBunLockDrift,
   parseBunLock,
   stripTrailingCommas,
@@ -217,6 +218,28 @@ describe("bun.lock workspace-manifest drift", () => {
       'bun.lock workspaces["packages/gone"] has no matching package.json on disk',
       'packages/new/package.json declares a workspace that bun.lock workspaces["packages/new"] does not record',
     ]);
+  });
+});
+
+describe("bun.lock lockfileVersion ceiling", () => {
+  it("accepts lockfileVersion 0 and 1", () => {
+    expect(collectUnsupportedLockfileVersion(0)).toEqual([]);
+    expect(collectUnsupportedLockfileVersion(1)).toEqual([]);
+  });
+
+  it("fails closed on lockfileVersion 2 or 3", () => {
+    expect(collectUnsupportedLockfileVersion(2)).toEqual([
+      "bun.lock lockfileVersion 2 is not supported. Keep lockfileVersion 0 or 1 until installed turbo prune can parse a rewritten lock.",
+    ]);
+    expect(collectUnsupportedLockfileVersion(3)[0]).toContain(
+      "lockfileVersion 3",
+    );
+  });
+
+  it("fails closed on a non-integer lockfileVersion", () => {
+    expect(collectUnsupportedLockfileVersion("1")[0]).toContain(
+      'lockfileVersion "1"',
+    );
   });
 });
 
