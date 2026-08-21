@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,6 +11,15 @@ const defaultRepoRoot = path.resolve(
   "../..",
 );
 const scriptPath = fileURLToPath(import.meta.url);
+const STABLE_BUN_VERSION = /^\d+\.\d+\.\d+$/;
+
+function resolveExistingPath(filePath) {
+  try {
+    return realpathSync(filePath);
+  } catch {
+    return path.resolve(filePath);
+  }
+}
 
 function candidateBunPaths() {
   const candidates = process.env.BUN_BINARY ? [process.env.BUN_BINARY] : [];
@@ -54,11 +63,11 @@ export function readExpectedVersion(root = defaultRepoRoot) {
     );
   }
 
-  const expected = match[1].replace(/^v/, "");
+  const expected = match[1].replace(/^v/i, "");
 
-  if (/canary/i.test(expected)) {
+  if (!STABLE_BUN_VERSION.test(expected)) {
     throw new Error(
-      `packageManager must pin stable Bun, not canary: ${packageManager}`,
+      `packageManager must pin a stable bun@x.y.z release, got: ${packageManager}`,
     );
   }
 
@@ -70,7 +79,7 @@ export function readExpectedVersion(root = defaultRepoRoot) {
 
   const bunVersionFile = readFileSync(bunVersionPath, "utf8")
     .trim()
-    .replace(/^v/, "");
+    .replace(/^v/i, "");
 
   if (bunVersionFile !== expected) {
     throw new Error(
@@ -130,7 +139,8 @@ export function main(root = defaultRepoRoot) {
 }
 
 const isDirectRun =
-  process.argv[1] && path.resolve(process.argv[1]) === scriptPath;
+  Boolean(process.argv[1]) &&
+  resolveExistingPath(process.argv[1]) === resolveExistingPath(scriptPath);
 
 if (isDirectRun) {
   main();

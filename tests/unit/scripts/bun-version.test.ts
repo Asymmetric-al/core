@@ -5,8 +5,6 @@ import { spawnSync } from "node:child_process";
 
 import { describe, expect, it } from "vitest";
 
-import { readExpectedVersion } from "../../../scripts/verify/bun-version.mjs";
-
 const repoRoot = process.cwd();
 const scriptPath = path.join(repoRoot, "scripts", "verify", "bun-version.sh");
 const expectedPackageManager = (
@@ -143,59 +141,6 @@ describe("bun version guard", () => {
   );
 });
 
-function writePinFixture(options: {
-  packageManager: string;
-  bunVersion?: string | null;
-}): string {
-  const dir = mkdtempSync(path.join(tmpdir(), "bun-version-mjs-"));
-  writeFileSync(
-    path.join(dir, "package.json"),
-    `${JSON.stringify({ packageManager: options.packageManager }, null, 2)}\n`,
-  );
-
-  if (options.bunVersion !== null && options.bunVersion !== undefined) {
-    writeFileSync(path.join(dir, ".bun-version"), `${options.bunVersion}\n`);
-  }
-
-  return dir;
-}
-
-describe("bun-version.mjs pin contract", () => {
-  it("accepts a matching stable pin", () => {
-    const root = writePinFixture({
-      packageManager: "bun@1.4.0",
-      bunVersion: "1.4.0",
-    });
-
-    expect(readExpectedVersion(root)).toBe("1.4.0");
-  });
-
-  it("rejects a canary packageManager pin", () => {
-    const root = writePinFixture({
-      packageManager: "bun@1.4.0-canary.20260820.1",
-      bunVersion: "1.4.0-canary.20260820.1",
-    });
-
-    expect(() => readExpectedVersion(root)).toThrow(/stable Bun, not canary/);
-  });
-
-  it("rejects a missing .bun-version file", () => {
-    const root = writePinFixture({
-      packageManager: "bun@1.4.0",
-      bunVersion: null,
-    });
-
-    expect(() => readExpectedVersion(root)).toThrow(/missing \.bun-version/);
-  });
-
-  it("rejects a .bun-version that does not match packageManager", () => {
-    const root = writePinFixture({
-      packageManager: "bun@1.4.0",
-      bunVersion: "1.3.14",
-    });
-
-    expect(() => readExpectedVersion(root)).toThrow(
-      /\.bun-version \(1\.3\.14\) does not match packageManager bun@1\.4\.0/,
-    );
-  });
-});
+// Pin-contract and CLI/symlink coverage lives in bun-pin-sync.test.ts so
+// Windows `scripts/verify/unit-tests.mjs` still runs it. This file stays
+// bash-spawn only because that runner excludes it on Windows.
