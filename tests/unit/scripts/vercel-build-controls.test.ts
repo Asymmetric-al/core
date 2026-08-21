@@ -117,22 +117,44 @@ describe("Vercel build controls verifier", () => {
     }
   });
 
-  it("rejects bun --bun in Vercel install/build commands", () => {
-    const checks = validateLocalVercelConfig({
-      project: adminProject,
-      config: {
-        ...localConfig,
-        buildCommand: "cd ../.. && bun run --bun build:admin",
+  it("rejects bun --bun in Vercel install, build, and ignore commands", () => {
+    const cases = [
+      {
+        override: {
+          installCommand: "bun --bun install --cwd ../.. --frozen-lockfile",
+        },
+        detail: "bun --bun install --cwd ../.. --frozen-lockfile",
       },
-    });
-
-    expect(checks).toContainEqual(
-      expect.objectContaining({
-        ok: false,
-        label: "admin vercel.json commands stay off bun --bun",
+      {
+        override: { buildCommand: "cd ../.. && bun run --bun build:admin" },
         detail: "cd ../.. && bun run --bun build:admin",
-      }),
-    );
+      },
+      {
+        override: {
+          ignoreCommand:
+            "bun --bun ../../scripts/vercel/should-ignore-build.mjs admin",
+        },
+        detail: "bun --bun ../../scripts/vercel/should-ignore-build.mjs admin",
+      },
+    ] as const;
+
+    for (const { override, detail } of cases) {
+      const checks = validateLocalVercelConfig({
+        project: adminProject,
+        config: {
+          ...localConfig,
+          ...override,
+        },
+      });
+
+      expect(checks).toContainEqual(
+        expect.objectContaining({
+          ok: false,
+          label: "admin vercel.json commands stay off bun --bun",
+          detail,
+        }),
+      );
+    }
   });
 
   it("validates the ignored-build decision matrix", () => {
