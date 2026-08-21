@@ -1,16 +1,25 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const repoRoot = path.resolve(
+const defaultRepoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
-const packageJsonPath = path.join(repoRoot, "package.json");
+const scriptPath = fileURLToPath(import.meta.url);
+const STABLE_BUN_VERSION = /^\d+\.\d+\.\d+$/;
+
+function resolveExistingPath(filePath) {
+  try {
+    return realpathSync(filePath);
+  } catch {
+    return path.resolve(filePath);
+  }
+}
 
 function candidateBunPaths() {
   const candidates = process.env.BUN_BINARY ? [process.env.BUN_BINARY] : [];
@@ -32,7 +41,9 @@ function candidateBunPaths() {
   return [...new Set(candidates)];
 }
 
-function readExpectedVersion() {
+export function readExpectedVersion(root = defaultRepoRoot) {
+  const packageJsonPath = path.join(root, "package.json");
+
   if (!existsSync(packageJsonPath)) {
     throw new Error(`missing root package.json at ${packageJsonPath}`);
   }
@@ -52,7 +63,87 @@ function readExpectedVersion() {
     );
   }
 
-  return match[1].replace(/^v/, "");
+  const expected = match[1].replace(/^v/i, "");
+
+  if (!STABLE_BUN_VERSION.test(expected)) {
+    throw new Error(
+      `packageManager must pin a stable bun@x.y.z release, got: ${packageManager}`,
+    );
+  }
+
+  const bunVersionPath = path.join(root, ".bun-version");
+
+  if (!existsSync(bunVersionPath)) {
+    throw new Error("missing .bun-version; it must match packageManager");
+  }
+
+  const bunVersionFile = readFileSync(bunVersionPath, "utf8")
+    .trim()
+    .replace(/^v/i, "");
+
+  if (bunVersionFile !== expected) {
+    throw new Error(
+      `.bun-version (${bunVersionFile}) does not match packageManager bun@${expected}`,
+    );
+  }
+
+  return expected;
+}
+
+export function isGitHubWorkflowFile(name) {
+  return name.endsWith(".yml") || name.endsWith(".yaml");
+}
+
+export function collectGitHubWorkflowBunPinDrift(root, expected) {
+  const workflowDir = path.join(root, ".github", "workflows");
+
+  if (!existsSync(workflowDir)) {
+    return [];
+  }
+
+  const errors = [];
+
+  for (const fileName of readdirSync(workflowDir).filter(
+    isGitHubWorkflowFile,
+  )) {
+    const workflow = readFileSync(path.join(workflowDir, fileName), "utf8");
+    const bunVersions = [
+      ...workflow.matchAll(/^\s*BUN_VERSION:\s*"([^"]+)"/gm),
+    ].map((match) => match[1]);
+
+    for (const version of bunVersions) {
+      if (version !== expected) {
+        errors.push(
+          `${fileName} BUN_VERSION is ${version}, expected ${expected}`,
+        );
+      }
+    }
+
+    const setupBunCount = (workflow.match(/uses:\s*oven-sh\/setup-bun@/g) ?? [])
+      .length;
+
+    if (setupBunCount === 0) {
+      continue;
+    }
+
+    const envPinnedCount = (
+      workflow.match(/bun-version:\s*\$\{\{\s*env\.BUN_VERSION\s*\}\}/g) ?? []
+    ).length;
+
+    if (envPinnedCount !== setupBunCount) {
+      errors.push(
+        `${fileName} has ${setupBunCount} oven-sh/setup-bun steps but ${envPinnedCount} bun-version: \${{ env.BUN_VERSION }} pins`,
+      );
+    }
+
+    if (bunVersions.length === 0) {
+      errors.push(
+        `${fileName} uses oven-sh/setup-bun but has no BUN_VERSION env pin`,
+      );
+    }
+  }
+
+  return errors;
 }
 
 function readInstalledVersion() {
@@ -71,13 +162,25 @@ function readInstalledVersion() {
   return null;
 }
 
-function main() {
+export function main(root = defaultRepoRoot) {
   let expected;
 
   try {
-    expected = readExpectedVersion();
+    expected = readExpectedVersion(root);
   } catch (error) {
     console.error(`error: ${error.message}`);
+    process.exit(2);
+  }
+
+  const workflowDrift = collectGitHubWorkflowBunPinDrift(root, expected);
+
+  if (workflowDrift.length > 0) {
+    console.error(
+      "error: GitHub Actions Bun pin does not match packageManager.",
+    );
+    for (const line of workflowDrift) {
+      console.error(`  ${line}`);
+    }
     process.exit(2);
   }
 
@@ -103,4 +206,10 @@ function main() {
   console.log(`Bun version OK: bun@${installed}`);
 }
 
-main();
+const isDirectRun =
+  Boolean(process.argv[1]) &&
+  resolveExistingPath(process.argv[1]) === resolveExistingPath(scriptPath);
+
+if (isDirectRun) {
+  main();
+}

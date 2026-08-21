@@ -25,6 +25,15 @@ describe("resolvePreviewSmokeScope", () => {
     expect(scope.scope).toBe("all");
   });
 
+  it("targets all surfaces when the Bun pin file changes", () => {
+    const scope = resolvePreviewSmokeScope([".bun-version"]);
+
+    expect(scope.admin).toBe(true);
+    expect(scope.donor).toBe(true);
+    expect(scope.missionary).toBe(true);
+    expect(scope.scope).toBe("all");
+  });
+
   it("targets all surfaces for smoke test and Playwright config changes", () => {
     const smokeSpec = resolvePreviewSmokeScope([
       "tests/e2e/support-hub.smoke.spec.ts",

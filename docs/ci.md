@@ -34,12 +34,24 @@ Required checks:
 
 ### Bun toolchain
 
-- **Pinned version:** root `package.json` `packageManager` (currently `bun@1.3.14`).
-- **GitHub Actions:** both workflows set `env.BUN_VERSION` to that exact version; every `oven-sh/setup-bun@v2` step uses `bun-version: ${{ env.BUN_VERSION }}`.
+- **Pinned version:** root `package.json` `packageManager` and `.bun-version` (currently `bun@1.4.0`, stable only — never canary).
+- **Runtime vs package manager:** Bun is the install/script runner. Next.js apps still execute on Node.js (Vercel project `nodeVersion` is `24.x`). Do not pass `bun --bun`, and do not set `bunVersion` in `apps/*/vercel.json`.
+- **Vercel Functions Bun 1.4 is a separate runtime:** [Vercel's Bun 1.4 changelog](https://vercel.com/changelog/bun-1-4-is-now-available-in-vercel-functions) documents opting **Functions and Middleware** onto Bun via `"bunVersion": "1.4.x"`. That is not how you pin the package manager. `"1.x"` still selects Bun 1.3.14 on Functions. Next.js on the Bun runtime also requires `bun run --bun next dev|build` ([runtime docs](https://vercel.com/docs/functions/runtimes/bun)). Core stays on the Node path (`next dev` / `next build` / `next start`) because Payload, Stripe, Supabase SSR, and eve-runtime are validated there; Vercel treats the Bun Functions runtime as an explicit breaking-change opt-in.
+- **Vercel install vs GitHub install:** App `installCommand` is `bun install --cwd ../.. --frozen-lockfile` (workspace root, frozen lockfile). That matches [Vercel package-manager detection](https://vercel.com/docs/package-managers) for `bun.lock` (`bun install`, not `bun ci`, and not `bun install --save-text-lockfile`). GitHub Actions keeps `bun ci --no-cache --backend=copyfile` for the portable file-copy backend. [Pinning a Bun version for Vercel _builds_](https://vercel.com/kb/guide/how-to-pin-a-specific-bun-version-for-vercel-builds) is `bunx bun@1.4.0 install`; Corepack does **not** pin Bun (it is for pnpm/Yarn). Do not change the install command unless a deploy proves the build-image Bun cannot read this `lockfileVersion` 1 file.
+- **GitHub Actions:** `ci.yml`, `ci-integration.yml`, and `qa-smoke-preview-deploy.yml` set `env.BUN_VERSION` to that exact version; every first-party `oven-sh/setup-bun@v2` step uses `bun-version: ${{ env.BUN_VERSION }}`.
 - **Install in CI:** `bun ci --no-cache --backend=copyfile` (frozen lockfile install with Bun's portable file-copy backend). Do not use `bun install --frozen-lockfile` in workflows unless a future Bun release documents a regression.
+- **Lockfile format:** `bun.lock` remains `"lockfileVersion": 1` with `"configVersion": 1` (isolated linker). Bun 1.4 writes lockfileVersion 2 for _new_ lockfiles, but does not bump an existing v1 file on re-save ([oven-sh/bun#31602](https://github.com/oven-sh/bun/pull/31602)). Do not regenerate `bun.lock` just to pick up v2, and do not run `bun install --save-text-lockfile` — that rewrite can retarget nested resolutions without a manifest change. Installed Turborepo `2.10.0` parses bun lockfile versions 0 and 1 only. `bun run verify:bun-lock-drift` fails closed on any `lockfileVersion` other than `0` or `1` and tells operators to keep or restore that ceiling — not to run `bun install`, which on Bun 1.4 can rewrite a v1 lock to v2. If a future install rewrites `bun.lock` to lockfileVersion 2 or 3, copy the tree (do not rewrite the committed lock in place) and require both of these to pass on the installed turbo before accepting that lock:
+
+```sh
+bunx --no-install turbo prune @asym/donor --docker
+(cd out/json && bun install --frozen-lockfile)
+```
+
+`verify:bun-lock-drift` still rejects versions above 1 and does not replace this parser check.
+
 - **Lockfile drift:** a frozen-lockfile install does **not** notice when a `package.json` dependency is missing from `bun.lock`'s `workspaces` map — commit `ea9a7673` added a root dependency without the regenerated lockfile and CI stayed green, while every contributor's next plain `bun install` silently rewrote `bun.lock`. `bun run verify:bun-lock-drift` compares the two files directly and is the check that catches this; it is a pure file read, so it needs no install and no network.
 - **Turbo cache keys** in `ci.yml` include `bun-${{ env.BUN_VERSION }}` so cache restores do not cross Bun upgrades.
-- **Local parity:** match the pin (`bun run verify:bun-version`); reproducible install from a clean tree is `bun ci`. GitHub Actions uses `bun ci --no-cache --backend=copyfile` so Linux runners use Bun's portable install backend for vendored `file:` tarballs.
+- **Local parity:** match the pin (`bun run verify:bun-version`). That command also fails if a first-party `.github/workflows/*.{yml,yaml}` `BUN_VERSION` or `oven-sh/setup-bun` pin disagrees with `packageManager`. Reproducible install from a clean tree is `bun ci`. GitHub Actions uses `bun ci --no-cache --backend=copyfile` so Linux runners use Bun's portable install backend for vendored `file:` tarballs.
 
 ## Local CI parity (pre-push)
 

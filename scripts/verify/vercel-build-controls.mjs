@@ -187,9 +187,18 @@ function buildMatrix(changedFiles) {
   );
 }
 
+function commandUsesBunRuntimeFlag(command) {
+  return typeof command === "string" && /(?:^|\s)--bun(?:\s|$)/.test(command);
+}
+
 export function validateLocalVercelConfig({ project, config }) {
   const checks = [];
   const branchGate = config?.git?.deploymentEnabled;
+  const bunRuntimeCommands = [
+    config?.installCommand,
+    config?.buildCommand,
+    config?.ignoreCommand,
+  ].filter((command) => commandUsesBunRuntimeFlag(command));
 
   requireCheck(
     checks,
@@ -208,6 +217,20 @@ export function validateLocalVercelConfig({ project, config }) {
     config?.ignoreCommand === project.ignoreCommand,
     `${project.key} vercel.json ignoreCommand`,
     config?.ignoreCommand ?? "<missing>",
+  );
+  requireCheck(
+    checks,
+    !Object.hasOwn(config ?? {}, "bunVersion"),
+    `${project.key} vercel.json omits bunVersion (Node Functions runtime)`,
+    Object.hasOwn(config ?? {}, "bunVersion")
+      ? String(config.bunVersion)
+      : "<omitted>",
+  );
+  requireCheck(
+    checks,
+    bunRuntimeCommands.length === 0,
+    `${project.key} vercel.json commands stay off bun --bun`,
+    bunRuntimeCommands[0] ?? "<none>",
   );
   requireCheck(
     checks,

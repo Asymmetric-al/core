@@ -108,7 +108,10 @@ behavior, or prebuilt deployment flow; those controls are adjacent deployment
 discipline settings and remain outside this phase.
 
 Each Vercel app also owns its install, build, and ignored-build commands in
-`apps/*/vercel.json`:
+`apps/*/vercel.json`. Those files must **omit** `bunVersion`: that key selects
+the [Bun Functions runtime](https://vercel.com/docs/functions/runtimes/bun)
+(`"1.4.x"` or `"1.x"`), not the package manager. These projects stay on the
+Next.js + Node 24.x Functions runtime.
 
 | Vercel project | `installCommand`                            | `buildCommand`                         | `ignoreCommand`                                                |
 | -------------- | ------------------------------------------- | -------------------------------------- | -------------------------------------------------------------- |
