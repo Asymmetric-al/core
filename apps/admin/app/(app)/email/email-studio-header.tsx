@@ -1,14 +1,22 @@
 "use client";
 
+import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import { Field, FieldLabel } from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { Spinner } from "@asym/ui/components/shadcn/spinner";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import {
   Tooltip,
   TooltipContent,
@@ -27,7 +35,6 @@ import {
   MoreVertical,
   Maximize2,
   Minimize2,
-  Loader2,
   FileText,
   Plus,
 } from "lucide-react";
@@ -38,7 +45,9 @@ type EmailStudioHeaderProps = {
   metadata: EmailMetadata;
   onMetadataChange: (next: EmailMetadata) => void;
   isEditorReady: boolean;
+  canPreview: boolean;
   isSaving: boolean;
+  isSendingTest: boolean;
   hasUnsavedChanges: boolean;
   isFullscreen: boolean;
   previewDevice: PreviewDevice;
@@ -58,7 +67,9 @@ export function EmailStudioHeader({
   metadata,
   onMetadataChange,
   isEditorReady,
+  canPreview,
   isSaving,
+  isSendingTest,
   hasUnsavedChanges,
   isFullscreen,
   previewDevice,
@@ -74,20 +85,24 @@ export function EmailStudioHeader({
   onToggleFullscreen,
 }: EmailStudioHeaderProps) {
   return (
-    <header className="flex items-center gap-3 border-b bg-card px-4 py-2">
+    <header className="flex flex-wrap items-center gap-3 border-b bg-card px-4 py-2">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
-        <Input
-          value={metadata.name}
-          onChange={(event) =>
-            onMetadataChange({ ...metadata, name: event.target.value })
-          }
-          className="h-8 max-w-xs border-transparent bg-transparent px-2 font-medium hover:border-input focus:border-input"
-          placeholder="Untitled Email"
-        />
-        {hasUnsavedChanges ? (
-          <span className="text-xs text-muted-foreground">Unsaved</span>
-        ) : null}
+        <FileText className="size-5 shrink-0 text-muted-foreground" />
+        <Field className="max-w-xs gap-1.5">
+          <FieldLabel className="sr-only" htmlFor="email-studio-template-name">
+            Template name
+          </FieldLabel>
+          <Input
+            id="email-studio-template-name"
+            value={metadata.name}
+            onChange={(event) =>
+              onMetadataChange({ ...metadata, name: event.target.value })
+            }
+            className="h-8 border-transparent bg-transparent px-2 font-medium hover:border-input focus:border-input"
+            placeholder="Untitled Email"
+          />
+        </Field>
+        {hasUnsavedChanges ? <Badge variant="secondary">Unsaved</Badge> : null}
       </div>
 
       <div className="flex items-center gap-1">
@@ -99,8 +114,9 @@ export function EmailStudioHeader({
                 size="icon-sm"
                 onClick={onUndo}
                 disabled={!isEditorReady}
+                aria-label="Undo"
               >
-                <Undo2 className="h-4 w-4" />
+                <Undo2 />
               </Button>
             }
           />
@@ -114,8 +130,9 @@ export function EmailStudioHeader({
                 size="icon-sm"
                 onClick={onRedo}
                 disabled={!isEditorReady}
+                aria-label="Redo"
               >
-                <Redo2 className="h-4 w-4" />
+                <Redo2 />
               </Button>
             }
           />
@@ -123,18 +140,25 @@ export function EmailStudioHeader({
         </Tooltip>
       </div>
 
-      <div className="flex items-center gap-1 rounded-md border p-0.5">
+      <ToggleGroup
+        value={[previewDevice]}
+        onValueChange={(groupValue) => {
+          const next = groupValue[0];
+          if (next === "desktop" || next === "mobile") {
+            onPreview(next);
+          }
+        }}
+        disabled={!canPreview}
+        variant="outline"
+        size="sm"
+        aria-label="Preview device"
+      >
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button
-                variant={previewDevice === "desktop" ? "secondary" : "ghost"}
-                size="icon-sm"
-                onClick={() => onPreview("desktop")}
-                disabled={!isEditorReady}
-              >
-                <Monitor className="h-4 w-4" />
-              </Button>
+              <ToggleGroupItem value="desktop" aria-label="Desktop preview">
+                <Monitor />
+              </ToggleGroupItem>
             }
           />
           <TooltipContent>Desktop preview</TooltipContent>
@@ -142,19 +166,14 @@ export function EmailStudioHeader({
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button
-                variant={previewDevice === "mobile" ? "secondary" : "ghost"}
-                size="icon-sm"
-                onClick={() => onPreview("mobile")}
-                disabled={!isEditorReady}
-              >
-                <Smartphone className="h-4 w-4" />
-              </Button>
+              <ToggleGroupItem value="mobile" aria-label="Mobile preview">
+                <Smartphone />
+              </ToggleGroupItem>
             }
           />
           <TooltipContent>Mobile preview</TooltipContent>
         </Tooltip>
-      </div>
+      </ToggleGroup>
 
       <EmailStudioMergeTagMenu
         disabled={!isEditorReady}
@@ -166,12 +185,12 @@ export function EmailStudioHeader({
         variant="outline"
         size="sm"
         onClick={onSaveClick}
-        disabled={!isEditorReady || isSaving}
+        disabled={!isEditorReady || isSaving || isSendingTest}
       >
         {isSaving ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Spinner data-icon="inline-start" />
         ) : (
-          <Save className="h-4 w-4" />
+          <Save data-icon="inline-start" />
         )}
         Save
       </Button>
@@ -179,41 +198,59 @@ export function EmailStudioHeader({
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button variant="ghost" size="icon-sm">
-              <MoreVertical className="h-4 w-4" />
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="More email template actions"
+            >
+              <MoreVertical />
             </Button>
           }
         />
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onNewTemplate}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Template
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={onLoadTemplate}>
-            <FileText className="mr-2 h-4 w-4" />
-            Load Template
-          </DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              onClick={onNewTemplate}
+              disabled={isSaving || isSendingTest}
+            >
+              <Plus />
+              New Template
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={onLoadTemplate}
+              disabled={isSaving || isSendingTest}
+            >
+              <FileText />
+              Load Template
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onExportHtml} disabled={!isEditorReady}>
-            <Download className="mr-2 h-4 w-4" />
-            Export as HTML
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={onTestSend} disabled={!isEditorReady}>
-            <Send className="mr-2 h-4 w-4" />
-            Send Test Email
-          </DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={onExportHtml} disabled={!isEditorReady}>
+              <Download />
+              Export as HTML
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={onTestSend}
+              disabled={!isEditorReady || isSaving || isSendingTest}
+            >
+              <Send />
+              Send Test Email
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <Tooltip>
         <TooltipTrigger
           render={
-            <Button variant="ghost" size="icon-sm" onClick={onToggleFullscreen}>
-              {isFullscreen ? (
-                <Minimize2 className="h-4 w-4" />
-              ) : (
-                <Maximize2 className="h-4 w-4" />
-              )}
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={onToggleFullscreen}
+              aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            >
+              {isFullscreen ? <Minimize2 /> : <Maximize2 />}
             </Button>
           }
         />

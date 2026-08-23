@@ -47,6 +47,7 @@ export type EmailStudioUiState = {
 
 export type EmailStudioUiAction =
   | { type: "editor_ready"; config: EmailStudioFullConfig }
+  | { type: "editor_unmounted" }
   | { type: "set_saving"; saving: boolean }
   | { type: "set_unsaved_changes"; unsaved: boolean }
   | { type: "set_preview_device"; device: PreviewDevice }
