@@ -3,7 +3,7 @@
 import { validateMergeTags } from "@asym/email/merge-tag-render";
 import { DEFAULT_MERGE_TAG_REGISTRY } from "@asym/email/merge-tags";
 import { AlertTriangle, Code2, Monitor, Smartphone, Type } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Dialog,
@@ -27,6 +27,7 @@ export interface EmailStudioPreviewDialogProps {
   text: string;
   subject?: string;
   preheader?: string;
+  initialDevice?: "desktop" | "mobile";
 }
 
 export function EmailStudioPreviewDialog({
@@ -36,8 +37,15 @@ export function EmailStudioPreviewDialog({
   text,
   subject,
   preheader,
+  initialDevice = "desktop",
 }: EmailStudioPreviewDialogProps) {
-  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [device, setDevice] = useState<"desktop" | "mobile">(initialDevice);
+
+  useEffect(() => {
+    if (open) {
+      setDevice(initialDevice);
+    }
+  }, [open, initialDevice]);
   const validation = useMemo(
     () =>
       validateMergeTags([subject, preheader, html, text].join("\n"), {
