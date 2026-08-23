@@ -98,7 +98,7 @@ export function EmailStudioHeader({
             onChange={(event) =>
               onMetadataChange({ ...metadata, name: event.target.value })
             }
-            className="h-8 border-transparent bg-transparent px-2 font-medium hover:border-input focus:border-input"
+            className="h-8 max-w-xs px-2"
             placeholder="Untitled Email"
           />
         </Field>
