@@ -145,7 +145,7 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **20** | `accounting-exports`         | [Accounting Exports & Reconciliation](./phase-20-accounting-exports-reconciliation.md)                                            | **2, 3, 4, 7, 12, 13, 14, 15**                        | 16                                                    | Mission Control Accounting                                      | `PRD exists` (implementation-ready 2026-07-27; not implemented)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | **21** | `field-accounts`             | [Missionary Field Accounts & Support Balances](./phase-21-field-accounts.md)                                                      | **1**, 3, 4, 6, **9, 10, 12**, 13, **15**, 17, 18, 20 | 16                                                    | Mission Control Finance/Admin, Missionary Workspace projection  | `PRD exists` (implementation-ready 2026-08-02; spec #1108; epic #1109 + lane epics #1110–#1120 + P21-01–P21-101 published and dependency-governed; not implemented; D1-D28 scope-frozen; D17/D27 activation requires certified Phase 29 opening-source private-byte custody and Phase 30 import-session staging; selected private-byte-bearing D10/D14/D18/D22/D24/D25/D28 and D26 package/lifecycle slices require their exact owner seams, while metadata/manual/feed paths remain separate; D28 requires Phase 29/30 only for its selected private-byte/bulk lane and otherwise weakens no owning-phase prerequisite) |
 | **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3                                       | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **23** | `web-studio-cms`             | CMS / Site Planner Dynamic Content Parity                                                                                         | 5, 3, 2                                               | 22                                                    | Web Studio, Payload, Public Website                             | `future (needs PRD)` — deps allow an early start after Phase 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **23** | `web-studio-cms`             | [CMS / Site Planner Dynamic Content Parity](./phase-23-web-studio-cms.md)                                                         | 5, 3, 2                                               | 22                                                    | Web Studio, Payload, Public Website                             | `PRD exists` (implementation-ready 2026-08-24; spec [#1339](https://github.com/Asymmetric-al/core/issues/1339); [OpenSpec](../../../openspec/changes/add-web-studio-cms/proposal.md); D1–D36 scope-frozen; not implemented)                                                                                                                                                                                                                                                                                                                                                                                              |
 | **24** | `multi-site-management`      | Full Multi-Site, Language & Currency Management                                                                                   | 2, 5, 13, 20, 23                                      | 17                                                    | Tenant settings, Web Studio, Contributions settings             | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **25** | `donor-portal-depth`         | Donor Dashboard Depth                                                                                                             | 4, 3, 13, 7, 6                                        | 17, 19                                                | Donor Portal                                                    | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17                                        | —                                                     | Support Hub, communication services, `packages/api`             | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -2716,59 +2716,72 @@ message.
 
 ### Phase 23 — CMS / Site Planner Dynamic Content Parity (`web-studio-cms`)
 
-**What this phase is (plain language).** Grow Web Studio into the ministry
-publishing product SiteStacker's Site Planner represents: a page tree,
-menus, dynamic content lists, redirects, scheduled publishing windows, and
-site search — a friendly two-pane "content vs site plan" experience for
-non-technical ministry staff, **without ever exposing raw Payload admin**.
+**Status.** `PRD exists` — implementation-ready planning, not implemented.
+Phase 23 D1–D36 were founder-ratified and formally closed on 2026-08-24. The
+[Phase 23 PRD](./phase-23-web-studio-cms.md), active
+[`add-web-studio-cms` OpenSpec change](../../../openspec/changes/add-web-studio-cms/proposal.md),
+and parent specification issue
+[#1339](https://github.com/Asymmetric-al/core/issues/1339) carry the approved
+implementation contract. The
+[decision log](./phase-23-web-studio-cms-decision-log.md) and ADR-0145 through
+ADR-0180 preserve its founder authority.
 
-**Why it sits here.** Only hard-needs Phases 5/3/2 — it can start early when
-content-lane capacity exists (its number reflects priority, not
-dependency). Phase 10 and Phase 22 gate only the public operational blocks
-that consume their safety and publication contracts, not the CMS foundation.
+**What this phase is (plain language).** Grow Web Studio into the tenant-safe
+ministry publishing product: Page-local content and explicit reuse, staged
+hierarchical paths, curated navigation, one coherent Site Plan release,
+recoverable editing and scheduling, dynamic lists and search, a Content
+Library, exact-locale editorial lineages, whole-Site Preview, forms, public
+media, portability, content health, and production qualification. Staff use an
+Asym-owned ministry UX; Payload remains the content engine behind those
+authority boundaries.
+
+**Why it sits here.** Its hard dependencies remain Phases 2, 3, and 5. Phase 10
+and Phase 22 qualify only the public operational sources that consume their
+safety and publication contracts; they do not gate the ordinary CMS
+foundation. Later owner phases may supply certified integrations without
+becoming hidden prerequisites for the Phase 23 core.
 
 **What it covers.**
 
-- **Page tree** (drag-drop sitemap over the Payload nested-docs plugin —
-  parent/breadcrumb/URL cascade is plugin-provided; the tree UI is the Web
-  Studio build), per-site slug uniqueness, auto-redirect on slug change.
-- **Menu management** with item-level visibility conditions and versioned
-  draft/preview (the Phase 5 nav draft-leak fix must hold through the menu
-  editor).
-- **Redirects UI + runtime enforcement** (the Payload redirects plugin only
-  _stores_ them — the public app must enforce, with loop/collision
-  validation and cache-tag invalidation).
-- **Visibility windows**: scheduled publish **and unpublish** via Payload
-  `schedulePublish` — which silently never fires without a deployed jobs
-  runner; wire the runner (Inngest vs Payload jobs — one scheduler, decided
-  at grooming) _before_ the UI ships, with a bounded-staleness backstop.
-- **Dynamic content lists**: missionary/project/opportunity/article list
-  blocks bound to operational records through the published-only,
-  tenant-scoped choke point (SiteStacker's dynamic content types are the
-  parity bar). Missionary, project, and opportunity blocks remain unavailable
-  until the Phase 10 public projection and Phase 22 publication workflow are
-  active; Payload never queries or copies raw operational rows.
-- **Adopt Payload core, don't rebuild**: Folders, Query Presets, Trash,
-  autosave, version history, Live Preview; SEO/search/form-builder plugins.
-- **Localization flags enabled now** on content collections (retrofitting
-  `localized: true` later forces a storage-shape migration — cheap insurance
-  under the fresh-build posture), even while the UI ships English-only.
+- **One coherent Site release (D1–D10):** deterministic Page-local composition,
+  explicit reusable sections, staged hierarchical Public Paths, automatic
+  same-Page route continuity, curated Link-or-Group navigation, bounded
+  semantic Page families and starters, tenant-distinct certified presentation
+  packages, and complete-cohort activation through one sealed Site Plan.
+- **Bounded editorial operations (D11–D13):** one versioned Rich Text Profile
+  with typed video embeds, recoverable autosave with one active editor, and
+  exact-revision publish or unpublish appointments executed through the D1
+  activation authority.
+- **Discoverable and recoverable content (D14–D25):** one versioned Dynamic
+  Source Catalog, three Page-local curation strategies, link-native public
+  windows, one derived public-search projection, authority-free Content Library
+  folders, controlled topics and saved views, reference-aware Trash,
+  explicit-start exact-locale lineages with no silent fallback, independent
+  Copy to Site drafts, one exact public audience with app-owned authenticated
+  surfaces, and immutable whole-Site Preview candidates.
+- **Governed inputs, custody, operations, and production admission (D26–D35):**
+  purpose-bounded forms and domain-owned routes; a Tenant-wide public-media
+  catalog over immutable byte-and-rendition custody; release-bound search and
+  sharing profiles; governed exports and staged imports; Supabase Auth as the
+  sole human authority with governed engine diagnostics; quiet, exception-first
+  Content Health; advisory accessibility assistance with source-owned release
+  invariants; a provider-neutral capacity profile qualified for Vercel; a
+  release-bound Payload v4 major-line commitment; and a census-gated,
+  one-authority pre-production cutover.
 
-**Boundaries & guardrails.** Payload remains the content engine; Web Studio
-is the ministry UX; public runtime stays separate from the donor portal.
-Vendor risk is real (Payload acquired by Figma; its Visual Editor is
-enterprise-tier "coming soon") — the Phase 5 Asym boundary contains it;
-nothing on this roadmap may depend on Payload enterprise features. Judge
-parity on staff outcomes, not wrapper-nesting nostalgia — model
-SiteStacker's inherited-content/wrapper cascade as per-site layout defaults.
-CMS configuration cannot bypass a source domain's publication or safety
-contract.
+**Boundaries & guardrails.** The D1 Site Plan compiler and atomic activation
+fence own every public generation change. The single `PublishedContentReader`
+remains the public observation seam. Supabase Auth remains authoritative for
+human identity and access. Payload, Inngest, Vercel, Supabase Storage, search,
+email, and other providers are qualified engines or adapters, never parallel
+product authorities. No CMS configuration, plugin default, preview, autosave,
+schedule, import, health signal, or diagnostic may bypass tenant isolation,
+source-domain safety, exact-revision publication, or release invariants.
 
-**Open questions for grooming.** Audience-conditional public content
-(beyond date windows) vs the tenant-keyed cache — needs an explicit
-personalization/cache rule before conditions ship; per-locale publish status
-(Payload `localizeStatus` is beta); content import/export as staff-facing vs
-ops-only.
+**Remaining founder questions.** None. D36 formally closed Phase 23. Provider
+qualification, migration census, capacity evidence, accessibility evidence,
+test matrices, and rollout proof are implementation evidence requirements, not
+new product decisions.
 
 ---
 
@@ -4177,9 +4190,10 @@ not omissions). Grooming for the named phase must check its items off.
   child-sponsorship-adjacent features (child sponsorship is out of scope);
   missionary–donor correspondence is covered by 6/17/26/28. Recorded here
   so the omission is a decision.
-- **Visibility conditions on public content** (23): date windows ship;
-  audience-conditional content is a Phase 23 grooming decision (cache
-  interplay).
+- **Public-content audiences and time windows** (23): Phase 23 D13 owns
+  exact-revision publish and unpublish appointments through D1; D24 fixes one
+  exact public audience. Authenticated or segmented experiences remain
+  app-owned surfaces, not CMS visibility conditions.
 - **Platform-adjacent (outside this program):** tenant provisioning/
   self-signup, the platform's own SaaS billing, plan gating.
 
