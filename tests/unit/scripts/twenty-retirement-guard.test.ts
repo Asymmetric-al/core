@@ -35,6 +35,33 @@ describe("Twenty CRM retirement guard", () => {
     expect(violations).toEqual([]);
   });
 
+  it.each([
+    "packages/eve-runtime/.eve/dev-runtime/snapshots/run/source/packages/env/src/schema.ts",
+    "packages/eve-runtime/.nitro/server/chunks/runtime.mjs",
+    "packages/eve-runtime/.output/server/_chunks/admin.mjs",
+  ])(
+    "does not treat ignored generated runtime output as live source: %s",
+    (relativePath) => {
+      const violations = collectRetiredTwentyRuntimeViolationsFromSource(
+        relativePath,
+        "TWENTY_API_KEY and CRM_SYNC_OUTBOUND_ENABLED are archived output only.",
+      );
+
+      expect(violations).toEqual([]);
+    },
+  );
+
+  it("still scans same-named directories outside ignored Eve output", () => {
+    const violations = collectRetiredTwentyRuntimeViolationsFromSource(
+      "packages/example/.output/runtime.ts",
+      "TWENTY_API_KEY is a prohibited live runtime marker.",
+    );
+
+    expect(violations).toEqual([
+      "packages/example/.output/runtime.ts: retired Twenty runtime reference (TWENTY_API_KEY)",
+    ]);
+  });
+
   it("passes a clean current runtime tree", () => {
     expect(collectRetiredTwentyRuntimeViolations()).toEqual([]);
   });

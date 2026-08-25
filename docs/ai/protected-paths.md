@@ -1,7 +1,10 @@
 # Protected Paths
 
-Repo-visible protection rules for `Asymmetric-al/core`, anchored to snapshot
-`0ebb0cc3494608f630f556c0a6c3a9ffcbbe59e7` (run `20260713T064439Z-0ebb0cc3`).
+Living repo-visible protection map for `Asymmetric-al/core`. The original
+2026-07-13 snapshot remains preserved in `docs/ai/repo-groundtruth.md` and Git
+history. This file tracks the current checked-out repository controls. Dated
+live GitHub branch-protection evidence lives in `docs/ci.md` and must be
+reverified before platform-sensitive decisions.
 
 Protection is reported in four distinct kinds so they are not conflated:
 
@@ -14,9 +17,9 @@ Protection is reported in four distinct kinds so they are not conflated:
 
 ## Ownership
 
-| Path pattern    | Protection                              | Controlling evidence                                     | Kind                                         | Notes                                                                                           |
-| --------------- | --------------------------------------- | -------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `*` (all paths) | Default code owner `@II-ricky-bobby-II` | `.github/CODEOWNERS`, root `CODEOWNERS` (labeled mirror) | Documented; platform enforcement **Unknown** | Whether GitHub _requires_ code-owner review is a branch-protection setting not observable here. |
+| Path pattern    | Protection                                              | Controlling evidence                                     | Kind                          | Notes                                                                                                           |
+| --------------- | ------------------------------------------------------- | -------------------------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `*` (all paths) | Default code owners `@II-ricky-bobby-II` and `@cobmojo` | `.github/CODEOWNERS`, root `CODEOWNERS` (labeled mirror) | Documented + platform routing | CODEOWNERS routes review; the live `develop` rule did not require code-owner review when checked on 2026-08-25. |
 
 ## Generated / mirrored files (do not hand-edit)
 
@@ -44,13 +47,14 @@ excluded in `data-boundary-check.mjs`.
 
 ## Branch / push guards
 
-| Path / target               | Protection                                                                                                                                                                                          | Controlling evidence                                                                                          | Kind                                          |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Local pushes (any)          | Blocked when Git identity is `Codex <codex@example.com>` or resolves to `abiatarprado`; only `Blake <blake@risencode.org>` / `Blake <116130409+II-ricky-bobby-II@users.noreply.github.com>` allowed | `docs/ci.md:120-124`; `verify:git-attribution` = `scripts/verify/git-attribution.mjs` (via `.husky/pre-push`) | Documented + Repository-enforced (local hook) |
-| Direct push to `production` | Blocked unless via `bun run release:production` (or explicit `ASYM_PRODUCTION_PUSH_BYPASS_REASON`)                                                                                                  | `docs/ci.md:127-141`; `.husky/pre-push`                                                                       | Documented + Repository-enforced (local hook) |
-| `develop` branch merges     | Required checks `ci-gate`, `integration-gate`, `e2e-smoke-gate` (declared)                                                                                                                          | `docs/ci.md` §Branch protection                                                                               | Documented; platform enforcement **Unknown**  |
-| `production` branch merges  | Required checks `release-source-gate`, `ci-gate`, `integration-gate`, `e2e-gate`; source must be `develop`                                                                                          | `docs/ci.md` §Branch protection; `release-source.yml`                                                         | Documented; platform enforcement **Unknown**  |
-| `main` branch               | Retired/protected historical branch; Vercel deploys disabled                                                                                                                                        | `docs/ci.md`; `apps/*/vercel.json` (`main: false`)                                                            | Documented (repo config for Vercel gating)    |
+| Path / target               | Protection                                                                                                                                                                            | Controlling evidence                                                                                                            | Kind                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Local canonical pushes      | Require a registered operator and registered non-platform committers; validate every outgoing commit while preserving attributable external authors                                   | `docs/ops/git-attribution.md`; `scripts/git/trusted-identities.mjs`; `scripts/verify/git-attribution.mjs`; pre-push coordinator | Documented + Repository-enforced (local hook) |
+| Pull-request attribution    | Validates the complete event `base..head` graph; same-repo unsigned registered claims require the matching immutable actor, while forks or actor mismatches require a matching signer | `.github/workflows/ci.yml`; `docs/ops/git-attribution.md`; `verify:git-attribution --ci`                                        | Documented + Repository-enforced (`ci-gate`)  |
+| Protected integration       | Rejects non-fast-forwards; verifies the first-parent GitHub-signed integration spine, exact merged-PR provenance on `develop`, and reachability from `develop` on `production`        | Same as above; live branch settings in `docs/ci.md#branch-protection`                                                           | Repository + platform enforced                |
+| Direct push to `production` | Blocked unless via `bun run release:production` (or explicit `ASYM_PRODUCTION_PUSH_BYPASS_REASON`)                                                                                    | `docs/ci.md`; `.husky/pre-push`                                                                                                 | Documented + Repository-enforced (local hook) |
+| `develop` / `production`    | Exact required contexts and branch settings are recorded only in the dated live inventory                                                                                             | `docs/ci.md#branch-protection`                                                                                                  | Platform-enforced                             |
+| `main` branch               | No branch exists; legacy `main: false` deployment settings are deny-only compatibility configuration                                                                                  | `docs/ci.md`; `apps/*/vercel.json`                                                                                              | Documented                                    |
 
 ## OpenSpec
 
@@ -58,11 +62,10 @@ excluded in `data-boundary-check.mjs`.
 | ------------------------------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
 | `openspec/specs/**`, `openspec/changes/**` | Product-intent source of truth; changes governed by OpenSpec process | root `AGENTS.md` source-of-truth order; `openspec/` present | Documented | Use a validated active change for durable contract edits; archive completed changes after shipping. |
 
-## Unresolved access limitations
+## Platform evidence limits
 
-- GitHub branch-protection settings, required status checks, and required
-  reviewers/code-owner enforcement are **not** observable from this environment.
-  All branch-level entries above are Documented intent; platform enforcement is
-  Unknown. Resolving this requires GitHub repo-settings/admin API access.
+- GitHub branch protection was verified through the admin API on 2026-08-25;
+  `docs/ci.md#branch-protection` owns the exact dated inventory. Reverify it
+  before a platform-sensitive decision.
 - Vercel project protection (deployment approvals, protected env scopes) is not
   observable here; only repo-side `vercel.json` gating is confirmed.

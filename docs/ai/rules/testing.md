@@ -73,27 +73,17 @@ See `docs/qa/pr-preview-smoke.md` and
 
 ## Branch protection (required)
 
-- **Required PR checks on `production`:** `ci-gate`, `integration-gate`, and
-  `e2e-gate`.
-- **Required PR checks on `develop`:** `ci-gate` and `integration-gate`.
-- **Non-blocking informational checks:** raw `CI Integration / test-e2e` on
-  `develop` must **not** be required; use the gate jobs as branch protection
-  requirements. `e2e-gate` is production-only and is required for `production`.
-  `e2e-smoke-gate` is a workflow gate job (not a branch-protection check) that
-  enforces the bounded `test-e2e-smoke` Playwright suite on `develop` through
-  `integration-gate`.
-- **Repo admins:** Settings → Branches → Branch protection rules → Require status checks to pass:
-  - Require the checks above.
-  - Disable force pushes on `production` and `develop`.
-  - Keep owner emergency bypass available only for urgent production repair
-    after local `bun run ci:preflight`.
-
-See `docs/ci.md` for the full CI gate reference (what each check does, how to debug locally, and how to configure branch protection in GitHub).
+GitHub's live branch rules determine required contexts. See
+`docs/ci.md#branch-protection` for the dated inventory; workflow job existence
+alone does not prove that GitHub requires a context. The deployment-discipline
+verifier enforces repository-declared policy, not live platform configuration.
+Disable force pushes and deletion on `develop` and `production`; attribution is
+an additional `ci-gate` step, not branch authorization.
 
 ## Production E2E scope
 
-- The `e2e-smoke-gate` workflow job on `develop` (blocking through the
-  required `integration-gate`) runs `bun run test:e2e:smoke`
+- The required `e2e-smoke-gate` workflow job on `develop` runs
+  `bun run test:e2e:smoke`
   (demo auth preflight paths, usability smoke, donate, upload-crop, and Support
   Hub smoke). It blocks merges without running the full broad Playwright
   inventory.
@@ -223,9 +213,9 @@ npx playwright show-report
 - `tests/unit/packages/api/email/resend-snapshot-contract.test.ts` guards the
   Resend snapshot helpers used by `packages/api` email connect flows.
 - `tests/unit/scripts/deployment-discipline.test.ts` and
-  `scripts/verify/deployment-discipline.mjs` enforce `ci-gate` +
-  `integration-gate` on `develop` and `ci-gate` + `integration-gate` +
-  `e2e-gate` on `production` as the branch-protection contexts.
+  `scripts/verify/deployment-discipline.mjs` enforce the repository-declared
+  desired context policy. They do not prove live GitHub configuration;
+  `docs/ci.md#branch-protection` records the current drift.
 - `tests/unit/unit-test-harness.test.ts` and `tests/setup/unit-env.ts` keep unit
   tests off live secrets (`SUPABASE_SERVICE_ROLE_KEY` cleared globally).
 - TanStack DB browser data changes should add or update focused unit coverage

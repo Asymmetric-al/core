@@ -391,8 +391,8 @@ import {
 ### Run tests before committing
 
 ```bash
-# From repo root - PR-readiness (matches blocking CI)
-bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
+# From repo root - canonical PR/push readiness
+bun run ci:preflight
 
 # Optional (non-blocking in CI, but recommended for flow changes)
 bun run test:e2e

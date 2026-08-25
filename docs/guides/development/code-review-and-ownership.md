@@ -2,12 +2,15 @@
 
 This document defines who owns code review decisions and what contributors should expect before merging.
 
-## Default Owner
+## Default Owners
 
-- Repository default code owner: `@II-ricky-bobby-II`
+- Repository default code owners: `@II-ricky-bobby-II` and `@cobmojo`
 - Source of truth: `/.github/CODEOWNERS` (also mirrored in `/CODEOWNERS`)
 
-GitHub uses CODEOWNERS to automatically request reviews on pull requests that touch owned paths.
+GitHub uses CODEOWNERS to route reviews on pull requests that touch owned paths.
+Ownership is not authorization: listing an owner does not grant a repository
+role, satisfy any independent-approval rule by itself, or bypass checks, branch
+protection, conversation resolution, or the production release guard.
 
 ## Review Expectations
 
@@ -18,19 +21,10 @@ GitHub uses CODEOWNERS to automatically request reviews on pull requests that to
 
 ## Required Gates by Branch
 
-The repo uses gate jobs as merge controls. Gate jobs are summary checks that fail when any prerequisite check fails.
-
-- `production` requires:
-  - `ci-gate`
-  - `integration-gate`
-  - `e2e-gate`
-- `develop` requires:
-  - `ci-gate`
-  - `integration-gate`
-  - (`e2e-smoke-gate` is a workflow gate job enforced through
-    `integration-gate`, not a separate branch-protection check)
-- `main` is retired/protected historical history and is not an active PR or
-  deploy target.
+GitHub's live branch rules determine the required contexts. See
+`docs/ci.md#branch-protection` for the dated inventory; workflow job existence
+alone does not prove that GitHub requires that context. The canonical repository
+has no `main` branch; do not create or target one.
 
 ## What Each Gate Covers
 
@@ -53,18 +47,19 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
   - portable `@cms` coverage; local-seed-only `@cms-local` proof stays in
     `bun run test:e2e:cms:local`
   - On `develop`, the full `test-e2e` job remains informational (non-blocking);
-    bounded smoke is enforced through `e2e-smoke-gate`, which `integration-gate`
+    bounded smoke has its own `e2e-smoke-gate`, which `integration-gate` also
     depends on
 
 ## Contributor PR Checklist
 
-- Run local baseline checks before opening/updating PR:
-  - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+- Confirm the normal PR base is `develop`. Internal developers push a canonical
+  feature branch; external contributors push a fork branch.
+- Run `bun run ci:preflight` before opening or updating a PR.
 - If your change affects user flows, also run:
   - `bun run test:e2e:production-gate`
   - `bun run test:e2e` for broader local coverage when the change needs it
-- Confirm branch target is correct: `develop` for development validation, `production`
-  only for an intentional production release, and never `main`.
+- Confirm branch target is correct: `develop` for development validation and
+  `production` only for an intentional production release.
 
 ## Changing Ownership
 
@@ -72,4 +67,5 @@ To change owners:
 
 1. Update `/.github/CODEOWNERS` (and keep `/CODEOWNERS` in sync).
 2. Open a PR describing why ownership changed.
-3. Ask current owner/maintainer to approve.
+3. Ask an applicable current owner/maintainer to review. GitHub's live branch
+   rules determine whether that review is sufficient to merge.
