@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import { describe, expect, it, vi } from "vitest";
 
@@ -394,7 +395,11 @@ describe("pre-push coordinator", () => {
   });
 
   it("routes the hook through the single stdin-owning coordinator", () => {
-    expect(readFileSync(".husky/pre-push", "utf8").trim()).toBe(
+    const hookPath = fileURLToPath(
+      new URL("../../../.husky/pre-push", import.meta.url),
+    );
+
+    expect(readFileSync(hookPath, "utf8").trim()).toBe(
       'node scripts/git/pre-push.mjs "$@"',
     );
   });

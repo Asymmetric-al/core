@@ -78,7 +78,8 @@ GitHub's live branch rules determine required contexts. See
 alone does not prove that GitHub requires a context. The deployment-discipline
 verifier enforces repository-declared policy, not live platform configuration.
 Disable force pushes and deletion on `develop` and `production`; attribution is
-an additional `ci-gate` step, not branch authorization.
+an additional step in `format`, which gates `ci-gate`; it is not branch
+authorization.
 
 ## Production E2E scope
 

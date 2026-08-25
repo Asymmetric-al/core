@@ -20,6 +20,7 @@ import {
 import { parsePrePushUpdates } from "../git/pre-push-guard.mjs";
 
 const CANONICAL_REPOSITORY = "Asymmetric-al/core";
+const GITHUB_API_TIMEOUT_MS = 60_000;
 const ZERO_SHA = "0".repeat(40);
 const FULL_SHA_PATTERN = /^[0-9a-f]{40}$/i;
 
@@ -630,6 +631,7 @@ function run(command, args, options = {}) {
     cwd: options.cwd,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
+    timeout: options.timeoutMs,
   });
 
   if (result.error) {
@@ -647,6 +649,10 @@ function run(command, args, options = {}) {
     stderr: result.stderr.trimEnd(),
     status: result.status,
   };
+}
+
+function runGitHubApi(args) {
+  return run("gh", ["api", ...args], { timeoutMs: GITHUB_API_TIMEOUT_MS });
 }
 
 function mustRunGit(args) {
@@ -698,7 +704,7 @@ function readCommitMetadata(sha) {
 }
 
 function readGitHubCommit({ repoSlug, sha }) {
-  const result = run("gh", ["api", `repos/${repoSlug}/commits/${sha}`]);
+  const result = runGitHubApi([`repos/${repoSlug}/commits/${sha}`]);
 
   if (!result.ok) {
     throw new Error(
@@ -827,8 +833,7 @@ export function parseGitHubSignaturePayload(payload, sha) {
 
 function readGitHubSignature({ repoSlug, sha }) {
   const { owner, name } = parseRepositorySlug(repoSlug);
-  const result = run("gh", [
-    "api",
+  const result = runGitHubApi([
     "graphql",
     "-f",
     `query=${GITHUB_COMMIT_SIGNATURE_QUERY}`,
@@ -860,7 +865,7 @@ function readGitHubSignature({ repoSlug, sha }) {
 }
 
 function readAssociatedPullRequests({ repoSlug, sha }) {
-  const result = run("gh", ["api", `repos/${repoSlug}/commits/${sha}/pulls`]);
+  const result = runGitHubApi([`repos/${repoSlug}/commits/${sha}/pulls`]);
 
   if (!result.ok) {
     throw new Error(
@@ -890,10 +895,7 @@ function readGitHubComparison({ base, head, repoSlug }) {
     throw new Error(`GitHub comparison head is invalid: ${head}`);
   }
 
-  const result = run("gh", [
-    "api",
-    `repos/${repoSlug}/compare/${base}...${head}`,
-  ]);
+  const result = runGitHubApi([`repos/${repoSlug}/compare/${base}...${head}`]);
 
   if (!result.ok) {
     throw new Error(
@@ -947,7 +949,7 @@ function readGitHubUser(login) {
     throw new Error(`GitHub login is invalid: ${login}`);
   }
 
-  const result = run("gh", ["api", `users/${encodeURIComponent(login)}`]);
+  const result = runGitHubApi([`users/${encodeURIComponent(login)}`]);
 
   if (!result.ok) {
     throw new Error(

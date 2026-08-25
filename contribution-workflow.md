@@ -94,8 +94,9 @@ original, attributable author while an internal developer is recorded as the
 committer. Do not rewrite an external author's identity to make a check pass.
 
 The pre-push hook validates the outgoing commit set and runs
-`bun run ci:preflight`. Required remote attribution verification runs inside
-`ci-gate`. Pull requests validate the full event `base..head` graph. In a
+`bun run ci:preflight`. Required remote attribution verification runs in the
+`format` job, which blocks `ci-gate` through `needs`. Pull requests validate the
+full event `base..head` graph. In a
 same-repository PR, the matching authenticated event actor or immutable PR
 author may present an unsigned registered tuple; a fork or presenter mismatch
 requires its matching signer.
