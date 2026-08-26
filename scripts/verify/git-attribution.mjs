@@ -1045,35 +1045,80 @@ function collectLocalCommitShas({ remoteName, remoteQueryTarget }) {
   );
 }
 
-function isReachableFromTrustedRemoteBranch(sha, remoteName) {
-  for (const branch of ["develop", "production"]) {
-    const remoteRef = `refs/remotes/${remoteName}/${branch}`;
-    const refResult = run("git", [
-      "show-ref",
-      "--verify",
-      "--quiet",
-      remoteRef,
-    ]);
+function collectTrustedRemoteNames(remoteName, { runCommand }) {
+  const remoteNames = new Set();
 
-    if (!refResult.ok) {
+  if (remoteName) {
+    remoteNames.add(remoteName);
+  }
+
+  const remotesResult = runCommand("git", ["remote"]);
+
+  if (!remotesResult.ok) {
+    return remoteNames;
+  }
+
+  for (const candidate of remotesResult.stdout.split(/\r?\n/)) {
+    const candidateName = candidate.trim();
+
+    if (!candidateName || remoteNames.has(candidateName)) {
       continue;
     }
 
-    const status = runGitStatus([
-      "merge-base",
-      "--is-ancestor",
-      sha,
-      remoteRef,
+    const remoteUrlResult = runCommand("git", [
+      "remote",
+      "get-url",
+      candidateName,
     ]);
 
-    if (status === 0) {
-      return true;
+    if (
+      remoteUrlResult.ok &&
+      isCanonicalRepositorySlug(parseGitHubRepoSlug(remoteUrlResult.stdout))
+    ) {
+      remoteNames.add(candidateName);
     }
+  }
 
-    if (status !== 1) {
-      throw new Error(
-        `git could not compare ${sha} with trusted remote branch ${remoteRef}`,
-      );
+  return remoteNames;
+}
+
+export function isReachableFromTrustedRemoteBranch(
+  sha,
+  remoteName,
+  { runCommand = run, runGitStatus: readGitStatus = runGitStatus } = {},
+) {
+  const remoteNames = collectTrustedRemoteNames(remoteName, { runCommand });
+
+  for (const trustedRemoteName of remoteNames) {
+    for (const branch of ["develop", "production"]) {
+      const remoteRef = `refs/remotes/${trustedRemoteName}/${branch}`;
+      const refResult = runCommand("git", [
+        "show-ref",
+        "--verify",
+        "--quiet",
+        remoteRef,
+      ]);
+
+      if (!refResult.ok) {
+        continue;
+      }
+
+      const status = readGitStatus([
+        "merge-base",
+        "--is-ancestor",
+        sha,
+        remoteRef,
+      ]);
+
+      if (status === 0) {
+        return true;
+      }
+
+      if (status !== 1) {
+        throw new Error(
+          `git could not compare ${sha} with trusted remote branch ${remoteRef}`,
+        );
+      }
     }
   }
 

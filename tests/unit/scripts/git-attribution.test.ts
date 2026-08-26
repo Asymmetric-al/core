@@ -15,6 +15,7 @@ import {
   parseGitIdentity,
   parseLatestCommitLog,
   resolveTriggeringActor,
+  isReachableFromTrustedRemoteBranch,
   validateDevelopMergeProvenance,
   validateGitHubActorAttribution,
   validateProductionPromotion,
@@ -894,6 +895,61 @@ describe("git attribution verifier", () => {
         },
       ),
     ).not.toEqual([]);
+  });
+
+  it("trusts platform commits inherited from the canonical upstream remote", () => {
+    const platformSha = "4".repeat(40);
+    const runCommand = vi.fn((command: string, args: string[]) => {
+      expect(command).toBe("git");
+
+      if (args[0] === "remote" && args.length === 1) {
+        return {
+          ok: true,
+          stdout: "origin\nupstream",
+          stderr: "",
+          status: 0,
+        };
+      }
+
+      if (args[0] === "remote" && args[1] === "get-url") {
+        return {
+          ok: true,
+          stdout:
+            args[2] === "upstream"
+              ? "git@github.com:Asymmetric-al/core.git"
+              : "git@github.com:external/core.git",
+          stderr: "",
+          status: 0,
+        };
+      }
+
+      if (args[0] === "show-ref") {
+        return {
+          ok: args[3] === "refs/remotes/upstream/develop",
+          stdout: "",
+          stderr: "",
+          status: args[3] === "refs/remotes/upstream/develop" ? 0 : 1,
+        };
+      }
+
+      throw new Error(`unexpected git command: ${args.join(" ")}`);
+    });
+    const runGitStatus = vi.fn((args: string[]) =>
+      args[3] === "refs/remotes/upstream/develop" ? 0 : 1,
+    );
+
+    expect(
+      isReachableFromTrustedRemoteBranch(platformSha, "origin", {
+        runCommand,
+        runGitStatus,
+      }),
+    ).toBe(true);
+    expect(runGitStatus).toHaveBeenCalledWith([
+      "merge-base",
+      "--is-ancestor",
+      platformSha,
+      "refs/remotes/upstream/develop",
+    ]);
   });
 
   it("parses git identities and latest commit log output", () => {
