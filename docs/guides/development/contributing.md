@@ -49,10 +49,46 @@ If you use Nia for repo search, follow the canonical policy in [`docs/ai/nia.md`
 
 ## Development Workflow
 
+Normal work branches from and opens a pull request to `develop`.
+
+- **Internal team developers** use the canonical repository as `origin`, update
+  `origin/develop`, create a feature branch, and push that branch to `origin`.
+- **External contributors** use their fork as `origin`, add the canonical repo as
+  `upstream`, and create a feature branch from `upstream/develop` before opening
+  a fork pull request.
+
+```bash
+# Internal
+git fetch origin
+git switch develop
+git pull --ff-only origin develop
+git switch -c feature/AL-123-short-title
+
+# External (after adding the canonical repo as upstream)
+git fetch upstream
+git switch -c feature/AL-123-short-title upstream/develop
+```
+
+The repository attribution policy preserves attributable external authors; it
+does not grant canonical push authority. CODEOWNERS also routes reviews rather
+than granting GitHub permissions. Organization membership, repository roles,
+branch protection, required checks, and review remain platform controls.
+External contributors should use their own truthful tuple; a fork that claims a
+registered internal tuple requires that account's verified commit signature.
+
+### Windows/WSL authentication and GitHub CLI
+
+Internal developers configure their exact registered tuple; external
+contributors use their own truthful GitHub-associated identity. Follow the
+secure Windows Git Credential Manager bridge and authenticated Windows GitHub
+CLI commands in `docs/ops/git-attribution.md`. Keep source and Git writes in
+WSL, never copy credentials into repository files or shell history, and
+remember that no repository change grants GitHub permissions.
+
 ### Before You Code
 
-1. **Pull latest production truth**: `git checkout production && git pull origin production`
-2. **Create a feature branch**: `git checkout -b al-123-short-title` (include the `AL-###` key)
+1. **Pull the latest development base** using the internal or external command above.
+2. **Create a feature branch** that includes the `AL-###` key.
 3. **Understand the area**: Read relevant code and check `docs/guides/architecture/overview.md`
 
 ### While Coding
@@ -67,8 +103,8 @@ If you use Nia for repo search, follow the canonical policy in [`docs/ai/nia.md`
 # Fix formatting (only when needed)
 bun run format
 
-# PR-readiness (matches blocking CI)
-bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
+# Canonical PR/push-readiness gate
+bun run ci:preflight
 
 # React/Next.js cleanup audit, when relevant
 bun run react-doctor:first-party -- --full --offline --fail-on none
@@ -79,30 +115,12 @@ bun run test:e2e
 
 ### PR Checks (Required)
 
-This repo uses gate jobs as required checks. Gate jobs summarize multiple underlying jobs.
-
-- **`production` required:** `ci-gate`, `integration-gate`, `e2e-gate`
-- **`develop` required:** `ci-gate`, `integration-gate` (bounded E2E smoke is
-  enforced through `integration-gate`, which depends on the `e2e-smoke-gate`
-  workflow job)
-- **`main`:** retired/protected historical branch; do not open active PRs to it.
+GitHub's live branch rules determine the required contexts. See
+`docs/ci.md#branch-protection` for the dated inventory; workflow job existence
+alone does not prove that GitHub requires that context. The canonical repository
+has no `main` branch; do not create or target one.
 
 For ownership and full review policy, see `docs/guides/development/code-review-and-ownership.md`.
-
-### Local Verification (Before PR)
-
-```bash
-# PR-readiness (matches blocking CI)
-bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
-
-# React/Next.js cleanup audit, when relevant
-bun run react-doctor:first-party -- --full --offline --fail-on none
-
-# Optional (non-blocking in CI, but recommended for flow changes)
-bun run test:e2e
-```
-
----
 
 ## Code Standards
 

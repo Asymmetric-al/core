@@ -13,8 +13,8 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 - **Issue key format:** `AL-###`
 - **Production branch:** `production` is the protected Vercel Production Branch. Use
   `bun run release:production`; do not push directly to `production`.
-- **Legacy branch:** `main` may still exist for compatibility, but it is not the
-  production branch for this repo.
+- **Legacy branch:** the canonical repository has no `main` branch; do not
+  create or target one. Deny-only deployment configuration may still mention it.
 - **Tech stack (reference):** Next.js 16.3.0-preview.9 (App Router), React 19, TypeScript 5.9.x (see root `package.json` for exact version), Tailwind CSS 4, Supabase client libraries, package manager `bun`.
 - **TypeScript roadmap prep:** `docs/guides/typescript-6-readiness.md` and `docs/ai/rules/typescript-future-proofing.md` (not a substitute for the version upgrade task).
 
@@ -26,18 +26,13 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 **Rule:** Exactly one label from each category. Do not mix multiple labels from the same category.
 
-### CI gates (must pass before merge)
+### CI gate
 
-- `bun run format:check`
-- `bun run skills:verify`
-- `bun run openspec:validate`
-- `bun run lint`
-- `bun run verify:workspace-contract`
-- `bun run verify:eslint`
-- `bun run typecheck`
-- `bun run build`
-- `bun run test:unit`
-- **Formatting:** Fix with `bun run format`, then verify with `bun run format:check`.
+- Canonical PR/push readiness: `bun run ci:preflight`.
+- `docs/ci.md` owns the exact stage order and dated live GitHub required-context
+  inventory.
+- Run focused commands while iterating. Fix formatting with `bun run format`,
+  then prove the final result with `bun run ci:preflight`.
 
 ### File hygiene
 
@@ -66,14 +61,13 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 ### PR checklist
 
 - [ ] Branch is not a direct production push to `production`
-- [ ] CI gates pass (`format:check`, `lint`, `typecheck`, `build`, `test:unit`)
-- [ ] Formatting fixed with `bun run format` and verified with `bun run format:check`
+- [ ] `bun run ci:preflight` passes
 - [ ] Changes are minimal and scoped
 
 ## Minimal examples
 
 - Branch name: `feature/AL-123-add-metrics-card`
-- CI command: `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+- CI command: `bun run ci:preflight`
 
 ## Common mistakes / pitfalls
 

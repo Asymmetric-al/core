@@ -5,8 +5,8 @@ Branch. As of 2026-05-16, all three live Vercel projects (`admin`, `donor`, and
 `missionary`) use `production` as the Production Branch. The normal production path is
 `bun run release:production`; see [Production Release Guide](./production-release.md).
 If a release also affects development validation, run the same checks against
-`develop` before production. `main` is retired/protected historical history and
-is not a deploy target.
+`develop` before production. The canonical repository has no `main` branch; do
+not create or target one.
 
 ## 1. Pre-deploy
 
@@ -15,8 +15,8 @@ is not a deploy target.
       `bun run verify:deployment-discipline`
 - [ ] Monorepo build-control verifier passes:
       `bun run verify:vercel-build-controls`
-- [ ] GitHub branch protection requires `ci-gate`, `integration-gate`, and
-      `e2e-gate` on `production`; `ci-gate` and `integration-gate` on `develop`
+- [ ] GitHub branch protection matches the dated live inventory and any known
+      drift is resolved: `docs/ci.md#branch-protection`
 - [ ] Migrations reviewed (additive-only, or expand-then-contract followed)
 - [ ] Migrations tested on development first
 - [ ] Vercel project Production Branch matches the intended release branch for all 3 projects
