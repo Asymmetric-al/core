@@ -120,7 +120,7 @@ implementation task.
 
 ## Workflow
 
-1. Identify if the change is Server or Client and apply `skills/nextjs-app-router/SKILL.md` when relevant.
+1. Identify if the change is Server or Client and apply `skills/nextjs-app-router/SKILL.md` when relevant. For page composition, feature-folder UI layout, colocated Suspense skeletons, or leaf-client UX, also load `skills/nextjs-app-architecture/SKILL.md`. Keep business queries and privileged mutations in `packages/api`.
 2. For Tiptap / rich text editor work, apply `skills/tiptap/SKILL.md`.
 3. Reuse shared primitives from `@asym/ui` before creating new UI.
 4. Keep Tailwind usage token-based and consistent with Maia/Zinc.
