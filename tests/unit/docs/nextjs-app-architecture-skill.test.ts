@@ -88,16 +88,45 @@ describe("nextjs-app-architecture skill", () => {
       "Existing `apps/*/features/` directories are UI composition",
     );
     expect(skill).toContain("**Core remaps**");
-    expect(skill).toContain("**Invariant 7 and workflow steps 3–4:**");
+    expect(skill).toContain("**Feature-owned means UI composition only.**");
     expect(skill).toContain(
-      "Do **not** create `features/<domain>/<domain>-queries.ts`",
+      "Do **not** create `features/<domain>/<domain>-queries.ts` or `features/<domain>/<domain>-actions.ts` at all.",
     );
+    expect(skill).not.toContain("for business or privileged data");
+    expect(skill).toContain("CORE: skip file creation");
     expect(skill).toContain(
       "Do not regenerate or expand the managed root `AGENTS.md`.",
     );
     expect(skill).toContain(
       "Do not create or refresh root `AGENTS.md` from `preview.nextjs.org`.",
     );
+
+    const invariant7 = skill.slice(
+      skill.indexOf("7. **Queries live in `<domain>-queries.ts`**"),
+    );
+    expect(invariant7).toMatch(/CORE: skip file creation/);
+
+    const step3 = skill.slice(
+      skill.indexOf(
+        "3. **Write the query and, when a client cache shares its data",
+      ),
+    );
+    expect(step3).toMatch(/CORE: skip file creation/);
+
+    const step4 = skill.slice(
+      skill.indexOf("4. **Write the action** (if there's a mutation)"),
+    );
+    expect(step4).toMatch(/CORE: skip file creation/);
+
+    const architectureTarget = skill.slice(
+      skill.indexOf("Queries and actions live in the feature folder."),
+    );
+    expect(architectureTarget).toMatch(/CORE: skip file creation/);
+
+    const verifyQueries = skill.slice(
+      skill.indexOf("Every `*-queries.ts` starts with `import 'server-only'`"),
+    );
+    expect(verifyQueries).toMatch(/CORE: skip file creation/);
 
     const queriesActions = readSkillFile(
       "docs/ai/skills",
@@ -113,11 +142,12 @@ describe("nextjs-app-architecture skill", () => {
       "do not copy `db.*` into `features/<domain>/*-queries.ts`",
     );
     expect(queriesActions).toContain(
-      "Privileged reads and writes stay in `packages/api`",
+      "must not be copied into `apps/*/features/`",
     );
     expect(featureFolders).toContain("> **Core:**");
+    expect(featureFolders).toContain("UI composition only");
     expect(featureFolders).toContain(
-      "Do not add `*-queries.ts` or `*-actions.ts` as a new data layer",
+      "Do not add `*-queries.ts` or `*-actions.ts` at all",
     );
     expect(provenance).toContain("f2902b8538b25610da694394ecf88e69adf5f96a");
     expect(provenance).toContain(

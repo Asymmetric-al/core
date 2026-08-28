@@ -1,6 +1,6 @@
 # Queries and actions
 
-> **Core:** Vendor next-beats placement. In this repo, do not copy `db.*` into `features/<domain>/*-queries.ts` or `*-actions.ts`. Privileged reads and writes stay in `packages/api`. Feature components import those APIs, or `@asym/database/hooks` for approved browser tables.
+> **Core:** Vendor next-beats placement. In this repo, do not copy `db.*` into `features/<domain>/*-queries.ts` or `*-actions.ts`. Privileged reads and writes stay in `packages/api`. Feature components import those APIs, or `@asym/database/hooks` for approved browser tables. The vendor procedure below is placement-only and must not be copied into `apps/*/features/`.
 
 The data layer. Every feature has both: queries to read, actions to write.
 
