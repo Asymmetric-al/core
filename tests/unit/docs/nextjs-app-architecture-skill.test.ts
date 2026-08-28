@@ -71,7 +71,10 @@ describe("nextjs-app-architecture skill", () => {
 
   it("keeps the Core overlay, provenance, and data-access boundary", () => {
     const skill = readSkillFile("docs/ai/skills", "SKILL.md");
-    const provenance = readSkillFile("docs/ai/skills", "references/upstream.md");
+    const provenance = readSkillFile(
+      "docs/ai/skills",
+      "references/upstream.md",
+    );
 
     expect(skill).toContain("\nname: nextjs-app-architecture\n");
     expect(skill).toContain('version: "1.3.9"');
@@ -81,12 +84,16 @@ describe("nextjs-app-architecture skill", () => {
     expect(skill).toContain("Do not add Zustand");
     expect(skill).toContain('Do not "enable Cache Components."');
     expect(skill).toContain("not `preview.nextjs.org`");
-    expect(skill).toContain("Existing `apps/*/features/` directories are UI composition");
+    expect(skill).toContain(
+      "Existing `apps/*/features/` directories are UI composition",
+    );
     expect(provenance).toContain("f2902b8538b25610da694394ecf88e69adf5f96a");
     expect(provenance).toContain(
       "94f700fb57aef401e135ddbb0d13a2986d6416820ee4e1b2bf1fd8e17fae0d66",
     );
-    expect(provenance).toContain("not** updated by `bun run skills:refresh-upstream`");
+    expect(provenance).toContain(
+      "not** updated by `bun run skills:refresh-upstream`",
+    );
     expect(provenance).toContain(
       "npx skills add aurorascharff/nextjs-app-architecture-skill -y",
     );
@@ -113,10 +120,14 @@ describe("nextjs-app-architecture skill", () => {
       "docs/ai/skills/nextjs-app-architecture/SKILL.md",
     );
     expect(frontend).toContain("skills/nextjs-app-architecture/SKILL.md");
-    expect(frontend).toContain("Keep business queries and privileged mutations in `packages/api`.");
-    expect(agents).not.toContain("docs/ai/skills/nextjs-app-architecture/SKILL.md");
+    expect(frontend).toContain(
+      "Keep business queries and privileged mutations in `packages/api`.",
+    );
+    expect(agents).not.toContain(
+      "docs/ai/skills/nextjs-app-architecture/SKILL.md",
+    );
     expect(qualityGate).toContain(
-      'const fullyManagedCanonicalSkills = new Set([',
+      "const fullyManagedCanonicalSkills = new Set([",
     );
     expect(qualityGate).not.toMatch(
       /fullyManagedCanonicalSkills = new Set\(\[[^\]]*nextjs-app-architecture/,
