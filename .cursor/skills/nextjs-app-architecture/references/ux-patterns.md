@@ -4,13 +4,13 @@ Interaction decisions on top of the architecture: which feedback mechanism to re
 
 ## Choose the feedback mechanism
 
-| Situation | Reach for | Key rule |
-| --------- | --------- | -------- |
-| Mutation unlikely to fail (favorite, vote, follow) | [`useOptimistic`](https://react.dev/reference/react/useOptimistic) | Update immediately, roll back on throw. Set it inside a transition; inside `<form action>` React opens the transition for you. Use a reducer for counters. |
-| No optimistic fit (filters, sort, navigation) | [`useTransition`](https://react.dev/reference/react/useTransition) + `data-pending` | Put `data-pending` on the pending node; let ancestors react with CSS (`has-data-pending:` for a direct parent, `group-has-data-pending:` further up) so it bubbles without prop drilling. |
-| Form field validation ("fix this field") | [`useActionState`](https://react.dev/reference/react/useActionState) | Action returns `{ error }`; render inline with `aria-invalid` + `role="alert"`. |
-| Submit disable + spinner | [`useFormStatus`](https://react.dev/reference/react-dom/hooks/useFormStatus) | Call it from a child of `<form>`, not the form component itself. |
-| One-shot result with no visible change | toast | See below. |
+| Situation                                          | Reach for                                                                           | Key rule                                                                                                                                                                                  |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mutation unlikely to fail (favorite, vote, follow) | [`useOptimistic`](https://react.dev/reference/react/useOptimistic)                  | Update immediately, roll back on throw. Set it inside a transition; inside `<form action>` React opens the transition for you. Use a reducer for counters.                                |
+| No optimistic fit (filters, sort, navigation)      | [`useTransition`](https://react.dev/reference/react/useTransition) + `data-pending` | Put `data-pending` on the pending node; let ancestors react with CSS (`has-data-pending:` for a direct parent, `group-has-data-pending:` further up) so it bubbles without prop drilling. |
+| Form field validation ("fix this field")           | [`useActionState`](https://react.dev/reference/react/useActionState)                | Action returns `{ error }`; render inline with `aria-invalid` + `role="alert"`.                                                                                                           |
+| Submit disable + spinner                           | [`useFormStatus`](https://react.dev/reference/react-dom/hooks/useFormStatus)        | Call it from a child of `<form>`, not the form component itself.                                                                                                                          |
+| One-shot result with no visible change             | toast                                                                               | See below.                                                                                                                                                                                |
 
 ### Name the signal when a subtree has more than one pending source
 
@@ -29,10 +29,10 @@ For create/update/delete flows where the changed item is visible, prefer one fea
 
 ```tsx
 type OptimisticListAction<TItem> =
-  | { type: 'create'; item: TItem }
-  | { type: 'update'; item: TItem }
-  | { type: 'delete'; id: string }
-  | { type: 'rollback'; id: string };
+  | { type: "create"; item: TItem }
+  | { type: "update"; item: TItem }
+  | { type: "delete"; id: string }
+  | { type: "rollback"; id: string };
 
 const [items, dispatchOptimisticItem] = useOptimistic(
   initialItems,
@@ -61,7 +61,7 @@ Use a success page/state instead of a toast when the completed action changes th
 
 ## View transitions: portaled / floating UI
 
-Portaled elements (toasts, dialogs, popovers, dropdowns, tooltips) flicker during route transitions unless excluded. Apply `viewTransitionName: 'none'` to the portal root. When the portal also needs stacking control (z-index) or has translucent layers (backdrop-blur), give it a *named* transition and neutralize it in CSS instead — `::view-transition-group(name) { animation: none; z-index: … }` can do things `'none'` can't. See the [React View Transitions skill](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-view-transitions).
+Portaled elements (toasts, dialogs, popovers, dropdowns, tooltips) flicker during route transitions unless excluded. Apply `viewTransitionName: 'none'` to the portal root. When the portal also needs stacking control (z-index) or has translucent layers (backdrop-blur), give it a _named_ transition and neutralize it in CSS instead — `::view-transition-group(name) { animation: none; z-index: … }` can do things `'none'` can't. See the [React View Transitions skill](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-view-transitions).
 
 ## Destructive actions (delete / leave / unsubscribe)
 
@@ -72,14 +72,14 @@ Gate behind a confirmation dialog, and mind two edge cases:
 
 ## The action-prop pattern
 
-A reusable design component (`<ToggleGroup>`, `<BottomNav>`, `<SubmitButton>`) can take an action-style prop and own the async coordination (optimistic update, pending, dimming) so consumers pass a plain callback. Convention: an `action` / `*Action` prop signals "triggers a mutation this component coordinates," versus a plain `onChange` / `onClick` — renaming between them is a contract change. Not every such prop is transition-wrapped: a destructive `confirmAction` is awaited *without* a transition (see above). Transition-wrapping is the default for optimistic/navigation actions, not a rule tied to the name.
+A reusable design component (`<ToggleGroup>`, `<BottomNav>`, `<SubmitButton>`) can take an action-style prop and own the async coordination (optimistic update, pending, dimming) so consumers pass a plain callback. Convention: an `action` / `*Action` prop signals "triggers a mutation this component coordinates," versus a plain `onChange` / `onClick` — renaming between them is a contract change. Not every such prop is transition-wrapped: a destructive `confirmAction` is awaited _without_ a transition (see above). Transition-wrapping is the default for optimistic/navigation actions, not a rule tied to the name.
 
 ## URL-based pagination
 
 Drive the page number through `searchParams`, render each page as its own `<Suspense>` boundary so pages stream independently, and add "load more" with `<Link scroll={false}>`. See [linking and navigating](https://preview.nextjs.org/docs/app/getting-started/linking-and-navigating).
 
 ```tsx
-import { Suspense } from 'react';
+import { Suspense } from "react";
 
 export function Feed({ page = 1 }: { page?: number }) {
   return (

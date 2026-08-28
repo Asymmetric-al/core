@@ -1,6 +1,6 @@
 # Cache Components
 
-Decisions for when [`cacheComponents: true`](https://preview.nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents) is set in `next.config.ts`. This file is about *which reads to cache, which directive to use, and how to invalidate* — for the mechanics of each directive, follow the doc links.
+Decisions for when [`cacheComponents: true`](https://preview.nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents) is set in `next.config.ts`. This file is about _which reads to cache, which directive to use, and how to invalidate_ — for the mechanics of each directive, follow the doc links.
 
 ## When this reference applies
 
@@ -34,18 +34,18 @@ Dynamic reads are the exception: use them for values that must be recomputed for
 
 ## Decide what to cache
 
-| Data | Directive | Notes |
-| ---- | --------- | ----- |
-| Cacheable across users (public listings, computed pages) | [`'use cache'`](https://preview.nextjs.org/docs/app/api-reference/directives/use-cache) | Add [`cacheTag`](https://preview.nextjs.org/docs/app/api-reference/functions/cacheTag) (a global + a scoped tag) and a [`cacheLife`](https://preview.nextjs.org/docs/app/api-reference/config/next-config-js/cacheLife) profile. |
-| Per-user / reads cookies, headers, session | [`'use cache: private'`](https://preview.nextjs.org/docs/app/api-reference/directives/use-cache-private) | Cached in the browser only, doesn't persist across reloads; never stored on the server. |
-| Remote service, safe across users, worth durable storage | [`'use cache: remote'`](https://preview.nextjs.org/docs/app/api-reference/directives/use-cache-remote) | Protects against rate-limited third-party APIs. |
-| Genuinely dynamic per request | none | Must be justified. Read inside `<Suspense>`; mutations use `refresh()` because no tag exists. |
+| Data                                                     | Directive                                                                                                | Notes                                                                                                                                                                                                                            |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cacheable across users (public listings, computed pages) | [`'use cache'`](https://preview.nextjs.org/docs/app/api-reference/directives/use-cache)                  | Add [`cacheTag`](https://preview.nextjs.org/docs/app/api-reference/functions/cacheTag) (a global + a scoped tag) and a [`cacheLife`](https://preview.nextjs.org/docs/app/api-reference/config/next-config-js/cacheLife) profile. |
+| Per-user / reads cookies, headers, session               | [`'use cache: private'`](https://preview.nextjs.org/docs/app/api-reference/directives/use-cache-private) | Cached in the browser only, doesn't persist across reloads; never stored on the server.                                                                                                                                          |
+| Remote service, safe across users, worth durable storage | [`'use cache: remote'`](https://preview.nextjs.org/docs/app/api-reference/directives/use-cache-remote)   | Protects against rate-limited third-party APIs.                                                                                                                                                                                  |
+| Genuinely dynamic per request                            | none                                                                                                     | Must be justified. Read inside `<Suspense>`; mutations use `refresh()` because no tag exists.                                                                                                                                    |
 
 Cache the **query** when its result should be reused across requests. Cache the **component** when rendering is expensive and props are stable (a nav, a trending sidebar). Don't `'use cache'` a component that already calls a `'use cache'` query — double-caching, no benefit.
 
 ## Keep a synchronous value out of the shell
 
-You usually don't need this. A query that reads `cookies()`/`headers()` or awaits a DB/`fetch` inside `<Suspense>` already stays out of the shell on its own. Only a *synchronous* request-time read (`new Date()`, `Math.random()`, a sync sqlite read) needs help: `await` [`io()`](https://preview.nextjs.org/docs/app/api-reference/functions/io) before it, with the caller inside `<Suspense>`.
+You usually don't need this. A query that reads `cookies()`/`headers()` or awaits a DB/`fetch` inside `<Suspense>` already stays out of the shell on its own. Only a _synchronous_ request-time read (`new Date()`, `Math.random()`, a sync sqlite read) needs help: `await` [`io()`](https://preview.nextjs.org/docs/app/api-reference/functions/io) before it, with the caller inside `<Suspense>`.
 
 Prefer `io()` over [`connection()`](https://preview.nextjs.org/docs/app/api-reference/functions/connection): both exclude what follows from the shell, but `connection()` blocks prefetches while `io()` stays prefetchable. Reach for `connection()` only when rendering must wait for a real user request.
 

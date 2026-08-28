@@ -21,6 +21,12 @@ This skill is for page composition, Suspense placement, leaf client boundaries, 
 - All apps already run `cacheComponents: true` and `partialPrefetching: true`. Do not "enable Cache Components." Follow Instant Navigation (Stream / Cache / explicit Block) in `docs/ai/rules/frontend.md`.
 - Get API mechanics from the installed Next.js docs, not `preview.nextjs.org` or remembered APIs.
 - Do not add Zustand. Use the installed TanStack Query / TanStack DB patterns from `docs/ai/rules/frontend.md`.
+- Do not regenerate or expand the managed root `AGENTS.md`.
+
+**Core remaps** — follow the numbered workflow, but replace these upstream lines:
+
+- **Invariant 7 and workflow steps 3–4:** "Feature-owned" means the feature component owns _when_ it reads and _which_ `@asym/api` function or `@asym/database` hook it calls. Do **not** create `features/<domain>/<domain>-queries.ts` or `features/<domain>/<domain>-actions.ts` for business or privileged data. Those reads and mutations stay in `packages/api`.
+- **Prerequisite:** Prefer the project's installed Next.js docs (`apps/<app>/node_modules/next/dist/docs/` or `.next-docs/`). Do not create or refresh root `AGENTS.md` from `preview.nextjs.org`.
 
 Refresh: `references/upstream.md`.
 

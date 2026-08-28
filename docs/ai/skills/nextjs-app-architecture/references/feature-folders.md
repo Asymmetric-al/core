@@ -1,5 +1,7 @@
 # Feature folders
 
+> **Core:** Existing `apps/*/features/` folders are UI composition. Do not add `*-queries.ts` or `*-actions.ts` as a new data layer. Business and privileged queries stay in `packages/api`.
+
 How to organize code under `features/` and `app/`.
 
 ## Folder layout

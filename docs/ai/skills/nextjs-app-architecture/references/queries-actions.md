@@ -1,5 +1,7 @@
 # Queries and actions
 
+> **Core:** Vendor next-beats placement. In this repo, do not copy `db.*` into `features/<domain>/*-queries.ts` or `*-actions.ts`. Privileged reads and writes stay in `packages/api`. Feature components import those APIs, or `@asym/database/hooks` for approved browser tables.
+
 The data layer. Every feature has both: queries to read, actions to write.
 
 This page covers the universal data layer that applies to every Next.js App Router app. When `cacheComponents: true` is enabled, follow `references/cache-components.md`: reusable reads are cached/tagged/lifetimed, and mutations update matching tags.
@@ -15,7 +17,7 @@ Create `features/<domain>/<domain>-queries.ts`. Mark it `import 'server-only'` â
 Resource queries own `notFound()` when a requested record is absent. Route pages only compose the feature and pass route values down; they do not perform data lookups or decide resource existence.
 
 ```ts
-import 'server-only';
+import "server-only";
 
 export async function getFeed(userId: string) {
   return db.post.findMany({ where: { userId } });
@@ -30,9 +32,13 @@ Take normalized primitives, not the params object:
 
 ```ts
 // features/book/book-queries.ts
-export async function getBooksPage(page: number = 1, search: string = '', year: number = MAX_YEAR) {
-  'use cache';
-  cacheLife('hours');
+export async function getBooksPage(
+  page: number = 1,
+  search: string = "",
+  year: number = MAX_YEAR,
+) {
+  "use cache";
+  cacheLife("hours");
   // ...
 }
 ```
@@ -43,7 +49,7 @@ Normalize and clamp in the feature's own helper, **before** the call, not inside
 
 Use [`cache()`](https://react.dev/reference/react/cache) from React only for **request-level deduplication** when the same dynamic query is called multiple times with the same arguments in one render. Highest-value cases: a session/user lookup used by many queries, or a shared expensive read used by metadata + page sections. Don't wrap every query "just in case" â€” it adds indirection and can hide when data is intentionally dynamic.
 
-`cache()` dedups within a request; `'use cache'` + `cacheTag` (Cache Components) shares results *across* requests. Don't add React `cache()` to a function only because it already uses `'use cache'`; that is double-caching unless you have a separate, proven same-request duplication problem. See `references/cache-components.md`.
+`cache()` dedups within a request; `'use cache'` + `cacheTag` (Cache Components) shares results _across_ requests. Don't add React `cache()` to a function only because it already uses `'use cache'`; that is double-caching unless you have a separate, proven same-request duplication problem. See `references/cache-components.md`.
 
 ## Actions
 
@@ -56,13 +62,13 @@ Create `features/<domain>/<domain>-actions.ts`. Mark with `'use server'` at the 
 5. Return a result (`{ ok }` or `{ error }`).
 
 ```tsx
-'use server';
+"use server";
 
-import { refresh } from 'next/cache';
+import { refresh } from "next/cache";
 
 export async function createPost(formData: FormData) {
   const user = await verifyUser();
-  const parsed = schema.safeParse({ body: formData.get('body') });
+  const parsed = schema.safeParse({ body: formData.get("body") });
   if (!parsed.success) {
     return { ok: false as const, error: parsed.error.issues[0].message };
   }
@@ -85,8 +91,8 @@ Client components import server actions directly. **Don't** pass an action as a 
 
 ```tsx
 // Right
-'use client';
-import { likePost } from '@/features/post/post-actions';
+"use client";
+import { likePost } from "@/features/post/post-actions";
 
 export function LikeButton({ postId }: { postId: string }) {
   return <button onClick={() => likePost(postId)}>Like</button>;
@@ -113,7 +119,9 @@ For one-off buttons, `onClick={() => action(args)}` is fine. Wrap in [`startTran
 Return a discriminated union from actions that can fail:
 
 ```tsx
-export type ActionResult<T = void> = { ok: true; data?: T } | { ok: false; error: string };
+export type ActionResult<T = void> =
+  | { ok: true; data?: T }
+  | { ok: false; error: string };
 ```
 
 Toast on `ok: false` from the client. Skip success toasts when an optimistic UI already shows the result.
@@ -126,7 +134,10 @@ If your DB rows have shapes you don't want to leak to components (extra columns,
 
 ```ts
 export async function getPost(id: string) {
-  const row = await db.post.findUnique({ where: { id }, include: { author: true } });
+  const row = await db.post.findUnique({
+    where: { id },
+    include: { author: true },
+  });
   if (!row) notFound();
   return toPost(row);
 }

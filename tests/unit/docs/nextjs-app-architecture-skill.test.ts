@@ -87,6 +87,38 @@ describe("nextjs-app-architecture skill", () => {
     expect(skill).toContain(
       "Existing `apps/*/features/` directories are UI composition",
     );
+    expect(skill).toContain("**Core remaps**");
+    expect(skill).toContain("**Invariant 7 and workflow steps 3–4:**");
+    expect(skill).toContain(
+      "Do **not** create `features/<domain>/<domain>-queries.ts`",
+    );
+    expect(skill).toContain(
+      "Do not regenerate or expand the managed root `AGENTS.md`.",
+    );
+    expect(skill).toContain(
+      "Do not create or refresh root `AGENTS.md` from `preview.nextjs.org`.",
+    );
+
+    const queriesActions = readSkillFile(
+      "docs/ai/skills",
+      "references/queries-actions.md",
+    );
+    const featureFolders = readSkillFile(
+      "docs/ai/skills",
+      "references/feature-folders.md",
+    );
+
+    expect(queriesActions).toContain("> **Core:**");
+    expect(queriesActions).toContain(
+      "do not copy `db.*` into `features/<domain>/*-queries.ts`",
+    );
+    expect(queriesActions).toContain(
+      "Privileged reads and writes stay in `packages/api`",
+    );
+    expect(featureFolders).toContain("> **Core:**");
+    expect(featureFolders).toContain(
+      "Do not add `*-queries.ts` or `*-actions.ts` as a new data layer",
+    );
     expect(provenance).toContain("f2902b8538b25610da694394ecf88e69adf5f96a");
     expect(provenance).toContain(
       "94f700fb57aef401e135ddbb0d13a2986d6416820ee4e1b2bf1fd8e17fae0d66",

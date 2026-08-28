@@ -24,7 +24,7 @@ The skill packages next-beats-style RSC composition for Next.js 16 App Router: s
 
 1. `npx skills add aurorascharff/nextjs-app-architecture-skill -y` updates `.agents/skills/nextjs-app-architecture/` and `skills-lock.json`. On Claude Code it may also create a project-level `.claude/skills/nextjs-app-architecture` symlink — delete it; this repo routes Claude Code through `docs/ai/skills/` + `AGENTS.md`, not `.claude/skills/`.
 2. Copy the skill tree (`SKILL.md` + `references/*`, excluding this file) into `docs/ai/skills/nextjs-app-architecture/` if the canonical copy needs updating.
-3. Preserve this `references/upstream.md` file and the **This repository** section in `SKILL.md`.
+3. Preserve this `references/upstream.md` file, the **This repository** section and **Core remaps** in `SKILL.md`, and the **Core** notes at the top of `references/queries-actions.md` and `references/feature-folders.md`.
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 
 This skill is **not** updated by `bun run skills:refresh-upstream` today.

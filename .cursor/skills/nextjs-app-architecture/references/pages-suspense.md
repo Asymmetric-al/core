@@ -16,20 +16,25 @@ Pages in `app/` import feature components and place `<Suspense>` boundaries. The
 Type page and layout functions with the auto-generated `PageProps<'/route'>` / `LayoutProps<'/route'>` helpers — no import, regenerated on `next dev` / `next build` / `next typegen`. See [route type helpers](https://preview.nextjs.org/docs/app/api-reference/config/typescript#route-type-helpers).
 
 ```tsx
-export default function PostPage({ params }: PageProps<'/post/[id]'>) { /* ... */ }
+export default function PostPage({ params }: PageProps<"/post/[id]">) {
+  /* ... */
+}
 ```
 
-Don't hand-write `{ params: Promise<{ id: string }> }` — the generated types stay in sync with the route (catch-all, optional segments). Route handlers use `RouteContext<'/api/...'>`. `typedRoutes: true` is a *separate* feature (statically-typed `href`s), not the source of these helpers.
+Don't hand-write `{ params: Promise<{ id: string }> }` — the generated types stay in sync with the route (catch-all, optional segments). Route handlers use `RouteContext<'/api/...'>`. `typedRoutes: true` is a _separate_ feature (statically-typed `href`s), not the source of these helpers.
 
 ## Keep pages synchronous
 
 Use `params.then()` instead of `await params`. Content above the `.then()` pre-renders into the static shell; content inside it suspends.
 
 ```tsx
-import { Suspense } from 'react';
-import { PostDetail, PostDetailSkeleton } from '@/features/post/components/post-detail';
+import { Suspense } from "react";
+import {
+  PostDetail,
+  PostDetailSkeleton,
+} from "@/features/post/components/post-detail";
 
-export default function PostPage({ params }: PageProps<'/post/[id]'>) {
+export default function PostPage({ params }: PageProps<"/post/[id]">) {
   return (
     <div>
       <h1>Post</h1>
@@ -55,15 +60,18 @@ Use an implicit-return arrow function when the callback just renders JSX — e.g
 
 ```tsx
 // searchParams only
-export default function SearchPage({ searchParams }: PageProps<'/search'>) {
-  return searchParams.then(sp => {
-    const q = typeof sp.q === 'string' ? sp.q : '';
+export default function SearchPage({ searchParams }: PageProps<"/search">) {
+  return searchParams.then((sp) => {
+    const q = typeof sp.q === "string" ? sp.q : "";
     return q ? <SearchResults query={q} /> : <EmptyState />;
   });
 }
 
 // Both params and searchParams
-export default function ProfilePage({ params, searchParams }: PageProps<'/u/[handle]'>) {
+export default function ProfilePage({
+  params,
+  searchParams,
+}: PageProps<"/u/[handle]">) {
   return Promise.all([params, searchParams]).then(([{ handle }, sp]) => (
     <ProfileFeed handle={handle} tab={parseTab(sp.tab)} />
   ));
@@ -159,7 +167,7 @@ export default function LoginPage() {
 
 async function LoginRedirect() {
   await connection();
-  await redirectIfAuthenticated('/dashboard');
+  await redirectIfAuthenticated("/dashboard");
   return <LoginForm />;
 }
 ```
@@ -187,7 +195,7 @@ Avoid components whose only job is to group boundary content, like `HomeLists` o
     </>
   }
 >
-  {searchParams.then(sp => (
+  {searchParams.then((sp) => (
     <>
       <Featured filter={sp.filter} />
       <Recent filter={sp.filter} />
@@ -231,7 +239,7 @@ Pair component-level boundaries with route-segment [`error.tsx`](https://preview
 Layouts compose feature components the same way pages do. Use `<Suspense>` for slots that fetch data (auth badge, sidebar):
 
 ```tsx
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html>
       <body>
