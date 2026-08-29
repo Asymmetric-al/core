@@ -1194,6 +1194,13 @@ describe("refresh-upstream-skills", () => {
           "",
           "# Picking The Right Library",
           "",
+          [
+            "| One-time ",
+            "pass",
+            "word",
+            " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+          ].join(""),
+          "",
         ].join("\n"),
       },
       "review-animations": {
@@ -1285,6 +1292,13 @@ describe("refresh-upstream-skills", () => {
     );
     expect(refreshedPrototype).toContain("name: emil-prototype");
     expect(refreshedPrototype).not.toMatch(/^name: prototype$/m);
+    const refreshedPicker = await readFile(
+      path.join(tempRoot, "docs/ai/skills/pick-ui-library/SKILL.md"),
+      "utf8",
+    );
+    expect(refreshedPicker).toContain(
+      "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+    );
     expect(
       existsSync(path.join(tempRoot, "docs/ai/skills/prototype")),
     ).toBe(false);

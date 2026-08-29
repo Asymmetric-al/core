@@ -23,9 +23,7 @@ location as `path/to/file.tsx:123` and include the current code verbatim:
 
 ```css
 /* src/components/dropdown.css:14 — current */
-.dropdown {
-  transition: all 400ms ease-in;
-}
+.dropdown { transition: all 400ms ease-in; }
 ```
 
 ## Target

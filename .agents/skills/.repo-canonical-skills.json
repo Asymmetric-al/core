@@ -3,9 +3,12 @@
   "canonicalSkills": [
     "accessibility-review",
     "anim",
+    "animate",
+    "animate-expo",
     "animation-vocabulary",
     "apple-design",
     "ask-matt",
+    "ask-sonner",
     "babysit",
     "base-ui",
     "bendc-frontend-guidelines",
@@ -24,6 +27,7 @@
     "domain-modeling",
     "emil-design-eng",
     "emil-design-engineering",
+    "emil-prototype",
     "eve",
     "find-animation-opportunities",
     "find-skills",
@@ -70,6 +74,7 @@
     "openspec-verify-change",
     "payloadcms-cms-migration",
     "payloadcms-payload",
+    "pick-ui-library",
     "playwright-best-practices",
     "playwright-cli",
     "pr-review-canvas",
@@ -106,7 +111,8 @@
     "wayfinder",
     "weekly-review",
     "what-did-i-get-done",
-    "workflow-from-chats"
+    "workflow-from-chats",
+    "write-swift"
   ],
   "canonicalSkillFiles": {
     "accessibility-review": [
@@ -115,6 +121,18 @@
     ],
     "anim": [
       "SKILL.md"
+    ],
+    "animate": [
+      "RECIPES.md",
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "animate-expo": [
+      "RECIPES.md",
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
     ],
     "animation-vocabulary": [
       "SKILL.md",
@@ -128,6 +146,12 @@
     ],
     "ask-matt": [
       "SKILL.md",
+      "references/upstream.md"
+    ],
+    "ask-sonner": [
+      "API.md",
+      "SKILL.md",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "babysit": [
@@ -215,6 +239,12 @@
       "references/upstream.md",
       "touch-accessibility.md",
       "ui-polish.md"
+    ],
+    "emil-prototype": [
+      "PICKER.md",
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
     ],
     "eve": [
       "SKILL.md",
@@ -535,6 +565,11 @@
       "reference/QUERIES.md",
       "references/upstream.md"
     ],
+    "pick-ui-library": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "playwright-best-practices": [
       "SKILL.md",
       "references/upstream.md"
@@ -838,6 +873,11 @@
     ],
     "workflow-from-chats": [
       "SKILL.md",
+      "references/upstream.md"
+    ],
+    "write-swift": [
+      "SKILL.md",
+      "references/LICENSE.md",
       "references/upstream.md"
     ]
   }

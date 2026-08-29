@@ -683,6 +683,18 @@ const POST_REFRESH_REPLACEMENTS = [
     required: true,
   },
   {
+    skillName: "pick-ui-library",
+    relativePath: "SKILL.md",
+    search: [
+      "| One-time ",
+      "pass",
+      "word",
+      " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+    ].join(""),
+    replace:
+      "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+  },
+  {
     skillName: "improve-animations",
     relativePath: "PLAN-TEMPLATE.md",
     search:

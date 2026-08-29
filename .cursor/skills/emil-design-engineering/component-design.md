@@ -78,7 +78,7 @@ Too much customization: API becomes confusing, maintenance nightmare.
 1. **Variants** - Predefined options (primary, secondary, destructive)
 2. **Size** - Predefined sizes (sm, md, lg)
 3. **className** - Escape hatch for one-off customizations
-4. **render** - Render as different element (Base UI pattern; this repo is Base UI only)
+4. **asChild** - Render as different element (Radix pattern)
 
 ## Props API Design
 
@@ -181,38 +181,42 @@ function Card({ children, header, footer }) {
 }
 
 // Usage
-<Card header={<h2>Title</h2>} footer={<Button>Save</Button>}>
+<Card
+  header={<h2>Title</h2>}
+  footer={<Button>Save</Button>}
+>
   Main content
-</Card>;
+</Card>
 ```
 
-## The `render` Pattern
+## The `asChild` Pattern
 
-Allow rendering as a different element while preserving behavior. This repo
-uses Base UI's `render` prop (there is no `asChild` here).
-
-For link-style buttons, prefer styling the link with `buttonVariants`
-instead of rendering `Button` as a link:
-
-```jsx
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
-
-<Link href="/page" className={cn(buttonVariants({ variant: "outline" }))}>
-  Click me
-</Link>;
-```
-
-When you must keep button behavior on a non-link element, use `render` on
-`Button` (not on links):
+Allow rendering as a different element while preserving behavior:
 
 ```jsx
 // Render as button (default)
 <Button>Click me</Button>
 
-// Render as custom element with button semantics
-<Button render={<span role="presentation" />} nativeButton={false}>
-  Click me
+// Render as link
+<Button asChild>
+  <a href="/page">Click me</a>
 </Button>
+
+// Render as Next.js Link
+<Button asChild>
+  <Link href="/page">Click me</Link>
+</Button>
+```
+
+Implementation using Radix Slot:
+
+```jsx
+import { Slot } from "@radix-ui/react-slot";
+
+function Button({ asChild, ...props }) {
+  const Comp = asChild ? Slot : "button";
+  return <Comp {...props} />;
+}
 ```
 
 ## Forwarding Refs
@@ -248,7 +252,7 @@ function Button({ variant, size, className, ...props }) {
 // Now these work:
 <Button data-testid="submit" aria-label="Submit form">
   Submit
-</Button>;
+</Button>
 ```
 
 ## Default Props
@@ -305,7 +309,11 @@ Wrap complex components in error boundaries:
 
 ```jsx
 function ComponentWithErrorBoundary({ children }) {
-  return <ErrorBoundary fallback={<ErrorFallback />}>{children}</ErrorBoundary>;
+  return (
+    <ErrorBoundary fallback={<ErrorFallback />}>
+      {children}
+    </ErrorBoundary>
+  );
 }
 ```
 

@@ -3,16 +3,16 @@ source_name: emilkowalski/skills (find-animation-opportunities)
 source_url: https://github.com/emilkowalski/skills
 source_type: github
 upstream_path: skills/find-animation-opportunities/SKILL.md
-reviewed_commit: 6bf24434f7730ad169077756cf9c7cd7bd675fc6
+reviewed_commit: 86cf9f7d91c6de0215cbb2e36fccfe6c8127a841
 license: MIT
-last_reviewed: 2026-07-15
+last_reviewed: 2026-08-29
 ---
 
 # Upstream: find-animation-opportunities
 
 - **Copyright:** 2026 Emil Kowalski
 - **License:** MIT; see the upstream
-  [`LICENSE`](https://github.com/emilkowalski/skills/blob/6bf24434f7730ad169077756cf9c7cd7bd675fc6/LICENSE).
+  [`LICENSE`](https://github.com/emilkowalski/skills/blob/86cf9f7d91c6de0215cbb2e36fccfe6c8127a841/LICENSE).
 - **Announcement source:**
   https://x.com/emilkowalski/status/2077404975555031509
 
@@ -37,4 +37,5 @@ motion and writes implementation plans.
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 
 This Core-authored adapter is not lockfile-managed and is not updated by
-`bun run skills:refresh-emilkowalski` today.
+`bun run skills:refresh-emilkowalski` today. Do not let `npx skills add
+emilkowalski/skills -y` overwrite it.

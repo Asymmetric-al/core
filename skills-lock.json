@@ -13,23 +13,41 @@
       "skillPath": "skills/agent-email-inbox/SKILL.md",
       "computedHash": "6280018b559b3a932bf0f610146978ca3416e2b2bf21f62c45dbad4d3ccd1282"
     },
+    "animate": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/animate/SKILL.md",
+      "computedHash": "f6317335da2662e92270dc0a6128bea95d7216cd751f86628e3ac6b72804e805"
+    },
+    "animate-expo": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/animate-expo/SKILL.md",
+      "computedHash": "2121fc72ffa476492c1b91ccf96c7b26aade9d1a332dc5834ba3526e1102b00d"
+    },
     "animation-vocabulary": {
       "source": "emilkowalski/skills",
       "sourceType": "github",
       "skillPath": "skills/animation-vocabulary/SKILL.md",
-      "computedHash": "280c6688ef2568ad92f40c4dc638f0cc5cde0f49bdd6debd097410aa9945f44f"
+      "computedHash": "d718b48fe3c7898804d588f050a2e266d82c9f5ef51da256c8cb8b5951527757"
     },
     "apple-design": {
       "source": "emilkowalski/skills",
       "sourceType": "github",
       "skillPath": "skills/apple-design/SKILL.md",
-      "computedHash": "0d19303902efa64eace10e6b183eb29ef3220d424c1a7fd1eafc52adde216932"
+      "computedHash": "11840b24a11d7f94f39c6aaab074750ae4e4de4ef54ee4b1dd97e16ebd485e61"
     },
     "ask-matt": {
       "source": "mattpocock/skills",
       "sourceType": "github",
       "skillPath": "skills/engineering/ask-matt/SKILL.md",
       "computedHash": "36bdc2237661cbbe109823c6650223cc127bc7534f64edd88059152fa7300711"
+    },
+    "ask-sonner": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/ask-sonner/SKILL.md",
+      "computedHash": "be1b04511aadb4d7d81aa8cd2b55c260a626aae534983bc8ae3fbe26bbf48632"
     },
     "babysit": {
       "source": "a5c-ai/babysitter-cursor",
@@ -142,7 +160,13 @@
       "source": "emilkowalski/skills",
       "sourceType": "github",
       "skillPath": "skills/emil-design-eng/SKILL.md",
-      "computedHash": "ac3fc5b4e206488ffc408a2806f829bb2e5eaf518fded09be34790685c2b3a0d"
+      "computedHash": "e71de849347050c2c573c1cf24d742d5a13459557ecffa6e562f08006f46b5b7"
+    },
+    "emil-prototype": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/prototype/SKILL.md",
+      "computedHash": "2ad8401c4deaddb54947fb65247f790e7b3d8784e35312bcbedbfb1d59cd89ce"
     },
     "eve": {
       "source": "vercel/eve",
@@ -235,7 +259,7 @@
       "source": "emilkowalski/skills",
       "sourceType": "github",
       "skillPath": "skills/improve-animations/SKILL.md",
-      "computedHash": "ff9991a8d6dabb24411daaf6de570e3b6826323459d514d90d7f6371bbdbdbe1"
+      "computedHash": "68f17bbc4671593d2f43dba26a679243e2153ba5f26965fb7d59df52842534ff"
     },
     "improve-codebase-architecture": {
       "source": "mattpocock/skills",
@@ -367,6 +391,12 @@
       "skillPath": "skills/payload/SKILL.md",
       "computedHash": "4a17a9529d4533545edb8191159c9134120774acdd042172877291a25929e7a1"
     },
+    "pick-ui-library": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pick-ui-library/SKILL.md",
+      "computedHash": "4b889bd6c08358499ac4a7202b8af71ffbd3485d2468f7b09d0613bbe7b24bf4"
+    },
     "playwright-best-practices": {
       "source": "currents-dev/playwright-best-practices-skill",
       "sourceType": "github",
@@ -445,7 +475,7 @@
       "source": "emilkowalski/skills",
       "sourceType": "github",
       "skillPath": "skills/review-animations/SKILL.md",
-      "computedHash": "26bec85a9bfe7cfbfd500ff1ffebc7819ac0cef75cf068c4a97b5af865ccccf7"
+      "computedHash": "61cf8ac0c4c8e1f63385298c546b16c65ca9aec34abddcd04e821c16712d671d"
     },
     "run-smoke-tests": {
       "source": "cursor/plugins",
@@ -659,6 +689,12 @@
       "skillPath": "cursor-team-kit/skills/workflow-from-chats/SKILL.md",
       "computedHash": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16",
       "treeHash": "fb9c92d1037bd1cb6267a303b4d93d13112b0c6595add146330d149b8a539571"
+    },
+    "write-swift": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/write-swift/SKILL.md",
+      "computedHash": "2579cb2684245f75a261cbb13aa4a12f7f9441dabdfe3bc2e72dc2f04ec5e9fd"
     },
     "writing-beats": {
       "source": "mattpocock/skills",
