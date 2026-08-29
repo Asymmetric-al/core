@@ -977,6 +977,53 @@ describe("refresh-upstream-skills", () => {
     ).toThrow(/non-empty source group/);
   });
 
+  it("falls back to copy-then-remove when overlayfs rejects refresh renames with EXDEV", async () => {
+    const tempRoot = await createTempRepo("refresh-exdev");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n",
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "preserve me\n",
+    );
+
+    runNodeScript(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+      ["--only=animations.dev"],
+      {
+        HOME: tempRoot,
+        CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
+      },
+    );
+
+    await expect(
+      readFile(path.join(canonicalRoot, "SKILL.md"), "utf8"),
+    ).resolves.toContain("# Fresh paid skill");
+    await expect(
+      readFile(path.join(canonicalRoot, "references/upstream.md"), "utf8"),
+    ).resolves.toBe("preserve me\n");
+  });
+
   it("fails a focused Emil Kowalski refresh before mutation when a source is missing", async () => {
     const tempRoot = await createTempRepo("refresh-emil-missing-source");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
@@ -1029,7 +1076,26 @@ describe("refresh-upstream-skills", () => {
     const tempRoot = await createTempRepo("refresh-emil-idempotent");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
 
+    const minimalEmilSkill = (skillName: string, extraLines: string[] = []) =>
+      [
+        "---",
+        `name: ${skillName}`,
+        "description: fixture",
+        "---",
+        "",
+        ...extraLines,
+      ].join("\n");
+
     const fixtures = {
+      animate: {
+        "SKILL.md": minimalEmilSkill("animate", ["# Building Animations", ""]),
+      },
+      "animate-expo": {
+        "SKILL.md": minimalEmilSkill("animate-expo", [
+          "# Building Animations in Expo",
+          "",
+        ]),
+      },
       "animation-vocabulary": {
         "SKILL.md": rawAnimationVocabularySkill,
       },
@@ -1045,6 +1111,12 @@ describe("refresh-upstream-skills", () => {
           "",
         ].join("\n"),
       },
+      "ask-sonner": {
+        "SKILL.md": minimalEmilSkill("ask-sonner", [
+          "# Working With Sonner",
+          "",
+        ]),
+      },
       "emil-design-eng": {
         "SKILL.md": [
           "---",
@@ -1054,10 +1126,21 @@ describe("refresh-upstream-skills", () => {
           "",
           "# Emil design engineering",
           "",
-          'import { useSpring } from "motion/react";',
+          "import { useSpring } from 'framer-motion';",
           "`transform-origin: var(--transform-origin)`",
-          "/* Base UI (this repo) */",
-          "Use Base UI's `var(--transform-origin)`",
+          "Set to trigger location or use Base UI's `var(--transform-origin)` (modals are exempt — keep centered)",
+          "",
+        ].join("\n"),
+      },
+      "emil-prototype": {
+        "SKILL.md": [
+          "---",
+          "name: prototype",
+          "description: Build multiple genuinely different versions of a UI piece.",
+          "disable-model-invocation: true",
+          "---",
+          "",
+          "# Prototyping Variants",
           "",
         ].join("\n"),
       },
@@ -1071,8 +1154,7 @@ describe("refresh-upstream-skills", () => {
           "",
           "Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances, durations > 300ms on UI elements, tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).",
           "",
-          "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */",
-          "  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+          "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
           "",
         ].join("\n"),
         "PLAN-TEMPLATE.md": [
@@ -1086,9 +1168,7 @@ describe("refresh-upstream-skills", () => {
           "## Problem",
           "",
           "\u200B```css",
-          "  transition:",
-          "    transform var(--duration-standard) var(--ease-out-soft),",
-          "    opacity var(--duration-standard) var(--ease-out-soft);",
+          "  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);",
           "  transform-origin: var(--transform-origin);",
           "\u200B```",
           "",
@@ -1112,9 +1192,27 @@ describe("refresh-upstream-skills", () => {
         ].join("\n"),
         "SKILL.md": "# Improve animations\n",
       },
+      "pick-ui-library": {
+        "SKILL.md": [
+          "---",
+          "name: pick-ui-library",
+          "description: Pick a library.",
+          "disable-model-invocation: true",
+          "---",
+          "",
+          "# Picking The Right Library",
+          "",
+          [
+            "| One-time ",
+            "pass",
+            "word",
+            " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+          ].join(""),
+          "",
+        ].join("\n"),
+      },
       "review-animations": {
-        "SKILL.md":
-          "# Review animations\n`var(--radix-popover-content-transform-origin)`\n",
+        "SKILL.md": "# Review animations\n`var(--transform-origin)`\n",
         "STANDARDS.md": [
           "# Standards",
           "",
@@ -1122,10 +1220,12 @@ describe("refresh-upstream-skills", () => {
           "",
           "**Rule: UI animations stay under 300ms.** A 180ms dropdown feels more responsive than a 400ms one. Faster spinners make load feel faster (same actual time). Instant tooltips after the first (skip delay + animation) make a toolbar feel faster.",
           "",
-          "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */",
-          "  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+          "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
           "",
         ].join("\n"),
+      },
+      "write-swift": {
+        "SKILL.md": minimalEmilSkill("write-swift", ["# Write Swift", ""]),
       },
     } as const;
 
@@ -1145,13 +1245,19 @@ describe("refresh-upstream-skills", () => {
     );
 
     const idempotentPaths = [
+      "animate/SKILL.md",
+      "animate-expo/SKILL.md",
       "animation-vocabulary/SKILL.md",
       "apple-design/SKILL.md",
+      "ask-sonner/SKILL.md",
       "emil-design-eng/SKILL.md",
+      "emil-prototype/SKILL.md",
       "improve-animations/AUDIT.md",
       "improve-animations/PLAN-TEMPLATE.md",
+      "pick-ui-library/SKILL.md",
       "review-animations/SKILL.md",
       "review-animations/STANDARDS.md",
+      "write-swift/SKILL.md",
     ];
     for (const relativePath of idempotentPaths) {
       await cp(
@@ -1187,6 +1293,28 @@ describe("refresh-upstream-skills", () => {
     const companionSuffix =
       "Use as a craft companion after Core's frontend, emil-design-engineering, and anim guidance.";
     expect(refreshedContent.split(companionSuffix)).toHaveLength(2);
+    expect(refreshedContent).toContain(
+      'import { useSpring } from "motion/react";',
+    );
+    const refreshedPrototype = await readFile(
+      path.join(tempRoot, "docs/ai/skills/emil-prototype/SKILL.md"),
+      "utf8",
+    );
+    expect(refreshedPrototype).toContain("name: emil-prototype");
+    expect(refreshedPrototype).not.toMatch(/^name: prototype$/m);
+    const refreshedPicker = await readFile(
+      path.join(tempRoot, "docs/ai/skills/pick-ui-library/SKILL.md"),
+      "utf8",
+    );
+    expect(refreshedPicker).toContain(
+      "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+    );
+    expect(existsSync(path.join(tempRoot, "docs/ai/skills/prototype"))).toBe(
+      false,
+    );
+    expect(existsSync(path.join(tempRoot, ".agents/skills/prototype"))).toBe(
+      false,
+    );
     await expect(
       readFile(
         path.join(tempRoot, "docs/ai/skills/improve-animations/AUDIT.md"),
@@ -1221,14 +1349,11 @@ describe("refresh-upstream-skills", () => {
     expect(refreshedPlanTemplate).toContain(
       "The trigger still applies in the current checkout",
     );
-    await expect(
-      readFile(
-        path.join(tempRoot, "docs/ai/skills/animation-vocabulary/SKILL.md"),
-        "utf8",
-      ),
-    ).resolves.toSatisfy(
-      (content) => content.match(/^```text$/gm)?.length === 4,
+    const refreshedVocabulary = await readFile(
+      path.join(tempRoot, "docs/ai/skills/animation-vocabulary/SKILL.md"),
+      "utf8",
     );
+    expect(refreshedVocabulary.match(/^```text$/gm)).toHaveLength(4);
     await expect(
       readFile(
         path.join(tempRoot, "docs/ai/skills/apple-design/SKILL.md"),

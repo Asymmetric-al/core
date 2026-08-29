@@ -2,7 +2,7 @@
 source_name: animations.dev (Emil's Design Engineering skill)
 source_url: https://animations.dev
 installer_command: curl -s "https://animations.dev/api/activate-design-engineering?email=<maintainer-email>" | bash
-last_reviewed: 2026-04-16
+last_reviewed: 2026-08-29
 ---
 
 # Upstream: animations.dev Design Engineering skill

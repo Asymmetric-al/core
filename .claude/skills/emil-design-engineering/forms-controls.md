@@ -23,9 +23,10 @@ Clicking the input label should focus the input field. Always associate labels w
 
 Use appropriate `type` attributes:
 
+<!-- prettier-ignore -->
 ```html
-<input type="email" /> // pragma: allowlist secret <input type="password" /> //
-pragma: allowlist secret
+<input type="email" /> // pragma: allowlist secret
+<input type="password" /> // pragma: allowlist secret
 <input type="tel" />
 <input type="url" />
 <input type="number" />
