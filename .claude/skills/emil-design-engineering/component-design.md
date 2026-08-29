@@ -181,12 +181,9 @@ function Card({ children, header, footer }) {
 }
 
 // Usage
-<Card
-  header={<h2>Title</h2>}
-  footer={<Button>Save</Button>}
->
+<Card header={<h2>Title</h2>} footer={<Button>Save</Button>}>
   Main content
-</Card>
+</Card>;
 ```
 
 ## The `asChild` Pattern
@@ -252,7 +249,7 @@ function Button({ variant, size, className, ...props }) {
 // Now these work:
 <Button data-testid="submit" aria-label="Submit form">
   Submit
-</Button>
+</Button>;
 ```
 
 ## Default Props
@@ -309,11 +306,7 @@ Wrap complex components in error boundaries:
 
 ```jsx
 function ComponentWithErrorBoundary({ children }) {
-  return (
-    <ErrorBoundary fallback={<ErrorFallback />}>
-      {children}
-    </ErrorBoundary>
-  );
+  return <ErrorBoundary fallback={<ErrorFallback />}>{children}</ErrorBoundary>;
 }
 ```
 

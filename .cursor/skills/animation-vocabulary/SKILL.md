@@ -49,10 +49,10 @@ If several terms could fit, list the best match first, then 1–2 alternates wit
 
 ## Instructions
 
-1. **Read for intent, not keywords.** Users describe what they *see* or *feel* ("springy", "slides off", "draws itself in"), not the technical name. Map the sensation to the glossary below.
+1. **Read for intent, not keywords.** Users describe what they _see_ or _feel_ ("springy", "slides off", "draws itself in"), not the technical name. Map the sensation to the glossary below.
 2. **Quote the glossary verbatim.** Its descriptions are authoritative — use them as-is, don't paraphrase.
-3. **Disambiguate close terms.** When two compete (*Clip-path* vs *Mask*, *Pop in* vs *Bounce*, *Shared element transition* vs *Layout animation*), contrast them so the user can pick.
-4. **When nothing matches exactly,** name the closest term and say plainly it's an approximation, or describe the effect in the glossary's vocabulary (e.g. "that's a *stagger* of *scale-in* entrances").
+3. **Disambiguate close terms.** When two compete (_Clip-path_ vs _Mask_, _Pop in_ vs _Bounce_, _Shared element transition_ vs _Layout animation_), contrast them so the user can pick.
+4. **When nothing matches exactly,** name the closest term and say plainly it's an approximation, or describe the effect in the glossary's vocabulary (e.g. "that's a _stagger_ of _scale-in_ entrances").
 5. **Stay within this glossary.** If a term genuinely isn't here, say so rather than inventing one — though you may explain the concept using these words.
 6. **Keep it tight.** A naming question wants a name, not an essay. Lead with the term; expand only if asked.
 
@@ -61,6 +61,7 @@ If several terms could fit, list the best match first, then 1–2 alternates wit
 **Example 1 — feel-based**
 User: "What's it called when a popover seems to grow out of the button you clicked instead of from its middle?"
 Output:
+
 ```text
 **Origin-aware animation** — An element animates out of its trigger, like a popover growing from the button that opened it instead of from its own center which is the default in CSS.
 ```
@@ -68,6 +69,7 @@ Output:
 **Example 2 — disambiguation**
 User: "The thing where one image turns into another image."
 Output:
+
 ```text
 **Morph** — One shape smoothly turns into another shape, e.g. Dynamic Island.
 
@@ -79,6 +81,7 @@ Close alternates:
 **Example 3 — physics feel**
 User: "That iOS scroll where it resists and snaps back when you pull too far."
 Output:
+
 ```text
 **Rubber-banding** — Resistance and snap-back when you drag past a boundary (the iOS overscroll feel).
 ```
@@ -88,6 +91,7 @@ Output:
 _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in sync when either changes._
 
 ### Entrances & Exits — how elements appear and disappear
+
 - **Fade in / Fade out** — Element appears or disappears by changing opacity.
 - **Slide in** — Element enters by sliding in from off-screen (left, right, top, or bottom).
 - **Scale in** — Element grows from smaller to full size as it appears, often paired with a fade.
@@ -96,6 +100,7 @@ _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in 
 - **Enter / Exit** — The animation an element plays when it's added to or removed from the screen.
 
 ### Sequencing & Timing — coordinating multiple elements or moments
+
 - **Keyframes** — Defined points in an animation (0%, 50%, 100%) that the browser fills the gaps between.
 - **Interpolation / Tween** — Generating all the in-between frames between a start and end value, so motion is continuous.
 - **Stagger** — Animate several items one after another with a small delay between each, creating a cascade.
@@ -106,6 +111,7 @@ _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in 
 - **Stepped animation** — An animation that is divided into discrete steps, like a countdown timer.
 
 ### Movement & Transforms — changing an element's position, size, or angle
+
 - **Translate** — Move an element along the X or Y axis.
 - **Scale** — Make an element bigger or smaller.
 - **Rotate** — Spin an element around a point.
@@ -116,6 +122,7 @@ _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in 
 - **Origin-aware animation** — An element animates out of its trigger, like a popover growing from the button that opened it instead of from its own center which is the default in CSS.
 
 ### Transitions Between States — connecting one state, view, or element to another
+
 - **Crossfade** — One element fades out as another fades in, in the same spot.
 - **Continuity transition** — A change that keeps the user oriented by visually connecting before and after. For example, making the same rectangle bigger and smaller.
 - **Morph** — One shape smoothly turns into another shape, e.g. Dynamic Island.
@@ -125,6 +132,7 @@ _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in 
 - **Direction-aware transition** — Content slides one way going forward and the opposite way going back, so navigation has a sense of direction.
 
 ### Scroll — motion tied to scrolling or navigating between views
+
 - **Scroll reveal** — Elements fade or slide into place as they enter the viewport.
 - **Scroll-driven animation** — An animation whose progress is tied directly to scroll position.
 - **Parallax** — Background and foreground move at different speeds while scrolling, creating depth.
@@ -132,6 +140,7 @@ _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in 
 - **View transition** — The browser morphs between two states or pages, connecting shared elements.
 
 ### Feedback & Interaction — responding to the user's actions
+
 - **Hover effect** — Visual change when the cursor moves over an element.
 - **Press / Tap feedback** — A subtle scale-down when an element is clicked, so it feels physical.
 - **Hold to confirm** — A progress effect that fills up while the user holds a button.
@@ -143,6 +152,7 @@ _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in 
 - **Ripple** — A circle expanding from the point of a tap, confirming the press.
 
 ### Easing — how speed changes over an animation
+
 - **Easing** — The rate at which an animation speeds up or slows down.
 - **Ease-out** — Starts fast, ends slow. The default for most UI and anything responding to the user.
 - **Ease-in** — Starts slow, ends fast. Usually avoided; can feel sluggish.
@@ -152,6 +162,7 @@ _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in 
 - **Asymmetric easing** — A curve that accelerates and decelerates at different rates. Feels more alive than a symmetric one.
 
 ### Spring Animations — physics-based motion as an alternative to fixed-duration easing
+
 - **Spring** — Motion driven by physics (tension, mass, damping) rather than a set duration.
 - **Stiffness / Tension** — How strongly the spring pulls toward its target. Higher feels snappier.
 - **Damping** — How quickly a spring settles. Lower damping means more bounce and oscillation.
@@ -163,6 +174,7 @@ _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in 
 - **Interruptible animation** — An animation that can be smoothly redirected mid-flight instead of finishing first.
 
 ### Looping & Ambient Motion — animations that run on their own
+
 - **Marquee** — Text or content that scrolls continuously in a loop.
 - **Loop** — An animation that repeats, a set number of times or infinitely.
 - **Alternate (yoyo)** — A loop that plays forward then reverses each iteration, instead of jumping back to the start.
@@ -172,6 +184,7 @@ _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in 
 - **Idle animation** — Subtle motion that plays while an element is just sitting there, waiting to be interacted with.
 
 ### Polish & Effects — the small touches that separate good from great
+
 - **Blur** — A blur filter used to soften an element or mask tiny imperfections.
 - **Clip-path** — Clipping an element to a shape, used for reveals, masks, and before/after sliders.
 - **Mask** — Hiding or revealing parts of an element using a shape or gradient — like clip-path, but with soft, fadeable edges.
@@ -184,6 +197,7 @@ _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in 
 - **Typewriter** — Text appearing one character at a time, as if being typed.
 
 ### Performance — what keeps motion smooth instead of stuttering
+
 - **Frame rate (FPS)** — Frames drawn per second. 60fps is the baseline for smooth motion; 120fps on newer displays.
 - **Jank** — Visible stutter when the browser drops frames because it can't keep up with the animation.
 - **Dropped frame** — A frame the browser missed its deadline to draw, causing a tiny hitch in motion.
@@ -192,6 +206,7 @@ _A curated snapshot mirroring the project's `/vocabulary` page; keep the two in 
 - **Layout thrashing** — Animating properties like width, height, top, or left that force the browser to recalculate layout every frame, causing jank.
 
 ### Principles to Know — concepts that guide when and how to animate
+
 - **Purposeful animation** — Motion should serve a function — orient, give feedback, show relationships — not just decorate.
 - **Anticipation** — A small wind-up in the opposite direction before a move, hinting at what's about to happen.
 - **Follow-through** — Parts of an element keep moving and settle slightly after the main motion stops, adding weight.

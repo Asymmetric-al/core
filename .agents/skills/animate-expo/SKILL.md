@@ -31,7 +31,6 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
-
 A construction skill for React Native. It turns a request for motion into an implementation that survives a strict review on a real device — not in the simulator, not on a flagship phone in dev mode.
 
 Mobile changes three things about animation, and everything in this skill follows from them:
@@ -61,12 +60,12 @@ Two failure modes, and the first is worse:
 
 ### 1. Should this animate at all?
 
-| Frequency | Decision |
-| --- | --- |
+| Frequency                                                                          | Decision                                                  |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | 100+ times/day — tab switches, keyboard open/close, scrolling, toggles in settings | **No animation.** Platform default or nothing. Stop here. |
-| Tens of times/day — press feedback, list navigation, row selection | Near-imperceptible only: under 150ms, or nothing |
-| Occasional — sheets, modals, toasts, onboarding steps | Standard animation |
-| Rare / first-time — success states, empty-state illustrations, celebration | The delight budget lives here |
+| Tens of times/day — press feedback, list navigation, row selection                 | Near-imperceptible only: under 150ms, or nothing          |
+| Occasional — sheets, modals, toasts, onboarding steps                              | Standard animation                                        |
+| Rare / first-time — success states, empty-state illustrations, celebration         | The delight budget lives here                             |
 
 **Tab switches never slide.** Tabs are peers, not a hierarchy — sliding implies depth that isn't there, and the user pays for it dozens of times a session. `animation: 'none'`.
 
@@ -82,39 +81,39 @@ Can't name it? Don't build it.
 
 Walk down; stop at the first that fits.
 
-| Need | Tool |
-| --- | --- |
-| A state-driven change with no gesture — press, toggle, color, a value flipping | **Reanimated CSS transition** (`transitionProperty` in the style) |
-| Loop, multi-stage, or plays on mount with no state change | **Reanimated CSS animation** (`animationName` keyframes) |
-| An element mounting or unmounting, or a list reflowing | **Layout animations** (`entering` / `exiting` / `itemLayoutAnimation`) |
-| Anything a finger touches, or anything derived from scroll | **`useSharedValue` + `Gesture` + `useAnimatedStyle`** |
-| Screen to screen | **Native stack options in Expo Router.** Never hand-roll this |
-| A bottom sheet that is its own screen | **`presentation: 'formSheet'`** — it's a real UISheetPresentationController, free and correct |
-| Tab bar | **`NativeTabs`** (from `expo-router/unstable-native-tabs`) — the platform's real tab bar, its behaviors and transitions included |
-| Context menu, press-and-hold preview | **`Link.Menu` / `Link.Preview`** (Expo Router, iOS-only) — native menus and peek, never rebuilt in JS |
-| Header that collapses into a large title | **`headerLargeTitleEnabled`** on the native stack (iOS-only; `headerLargeTitle` is deprecated) — not a scroll worklet |
-| Pull to refresh | **`RefreshControl`** — hand-roll only when it's a signature interaction (see the threshold recipe) |
-| UI that tracks the keyboard | **`react-native-keyboard-controller`** — the keyboard's real position, frame by frame, on the UI thread |
-| Vector illustration, celebration, empty state | **Lottie** — for illustration only, never for UI state |
-| A huge animated scene, freeform drawing | **`@shopify/react-native-skia`** — a canvas, for when the view hierarchy itself is the bottleneck |
+| Need                                                                           | Tool                                                                                                                             |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| A state-driven change with no gesture — press, toggle, color, a value flipping | **Reanimated CSS transition** (`transitionProperty` in the style)                                                                |
+| Loop, multi-stage, or plays on mount with no state change                      | **Reanimated CSS animation** (`animationName` keyframes)                                                                         |
+| An element mounting or unmounting, or a list reflowing                         | **Layout animations** (`entering` / `exiting` / `itemLayoutAnimation`)                                                           |
+| Anything a finger touches, or anything derived from scroll                     | **`useSharedValue` + `Gesture` + `useAnimatedStyle`**                                                                            |
+| Screen to screen                                                               | **Native stack options in Expo Router.** Never hand-roll this                                                                    |
+| A bottom sheet that is its own screen                                          | **`presentation: 'formSheet'`** — it's a real UISheetPresentationController, free and correct                                    |
+| Tab bar                                                                        | **`NativeTabs`** (from `expo-router/unstable-native-tabs`) — the platform's real tab bar, its behaviors and transitions included |
+| Context menu, press-and-hold preview                                           | **`Link.Menu` / `Link.Preview`** (Expo Router, iOS-only) — native menus and peek, never rebuilt in JS                            |
+| Header that collapses into a large title                                       | **`headerLargeTitleEnabled`** on the native stack (iOS-only; `headerLargeTitle` is deprecated) — not a scroll worklet            |
+| Pull to refresh                                                                | **`RefreshControl`** — hand-roll only when it's a signature interaction (see the threshold recipe)                               |
+| UI that tracks the keyboard                                                    | **`react-native-keyboard-controller`** — the keyboard's real position, frame by frame, on the UI thread                          |
+| Vector illustration, celebration, empty state                                  | **Lottie** — for illustration only, never for UI state                                                                           |
+| A huge animated scene, freeform drawing                                        | **`@shopify/react-native-skia`** — a canvas, for when the view hierarchy itself is the bottleneck                                |
 
 Reach for a shared value only when the value is continuous or interruptible. A press scale is a CSS transition; a drag is a shared value. Using a worklet for a two-state toggle is the mobile equivalent of installing a motion library for a fade.
 
 **Dependencies.** Install with `npx expo install <package>` — it resolves the version that matches the project's SDK, which plain `npm install` won't:
 
-| Need | Package |
-| --- | --- |
-| Animation | `react-native-reanimated` + `react-native-worklets` |
-| Gestures | `react-native-gesture-handler` |
-| Navigation, sheets, native tabs, menus | `expo-router` |
-| Haptics | `expo-haptics` |
-| Keyboard-following UI | `react-native-keyboard-controller` (needs `KeyboardProvider` at the root — see the keyboard recipe) |
-| Illustration, celebration | `lottie-react-native` |
-| Very large animated scenes, custom drawing | `@shopify/react-native-skia` |
+| Need                                       | Package                                                                                             |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Animation                                  | `react-native-reanimated` + `react-native-worklets`                                                 |
+| Gestures                                   | `react-native-gesture-handler`                                                                      |
+| Navigation, sheets, native tabs, menus     | `expo-router`                                                                                       |
+| Haptics                                    | `expo-haptics`                                                                                      |
+| Keyboard-following UI                      | `react-native-keyboard-controller` (needs `KeyboardProvider` at the root — see the keyboard recipe) |
+| Illustration, celebration                  | `lottie-react-native`                                                                               |
+| Very large animated scenes, custom drawing | `@shopify/react-native-skia`                                                                        |
 
 ### 4. Pick the properties
 
-- **`transform` and `opacity` are free.** Everything else is a layout pass. `width`, `height`, `margin`, `padding`, `flex`, `top`, `left`, `gap` re-run Yoga on every frame for that node *and its siblings*.
+- **`transform` and `opacity` are free.** Everything else is a layout pass. `width`, `height`, `margin`, `padding`, `flex`, `top`, `left`, `gap` re-run Yoga on every frame for that node _and its siblings_.
 - **The one exception: an absolutely positioned element with no children** — a tab pill, a progress bar fill. It's out of flow, so nothing else re-lays-out, and animating `width` keeps the corner radius that `scaleX` would smear.
 - **Never `scale(0)`.** Start from `scale(0.9–0.97)` + `opacity: 0`. Nothing in the real world appears from nothing.
 - **`transform` is an array and order matters** — `[{ translateY }, { scale }]` scales after moving; reversed, the translate gets scaled too. Keep translate first unless you want the multiplication.
@@ -128,42 +127,42 @@ Reach for a shared value only when the value is continuous or interruptible. A p
 
 Reanimated's spring takes Apple's two designer parameters directly — use this form, not mass/stiffness/damping:
 
-| Interaction | Config |
-| --- | --- |
-| Default settle, no overshoot | `{ duration: 400, dampingRatio: 1 }` |
+| Interaction                         | Config                                           |
+| ----------------------------------- | ------------------------------------------------ |
+| Default settle, no overshoot        | `{ duration: 400, dampingRatio: 1 }`             |
 | Reposition / snap back after a drag | `{ duration: 400, dampingRatio: 0.8, velocity }` |
-| Sheet, drawer | `{ duration: 300, dampingRatio: 0.8, velocity }` |
-| Must not pass a hard edge | add `overshootClamping: true` |
+| Sheet, drawer                       | `{ duration: 300, dampingRatio: 0.8, velocity }` |
+| Must not pass a hard edge           | add `overshootClamping: true`                    |
 
 **Bounce only when the gesture carried momentum.** Overshoot on a menu that faded in feels wrong; overshoot on a card you flicked feels right.
 
 **Easing**, for everything without a finger on it:
 
-| Situation | Easing |
-| --- | --- |
-| Entering or exiting | `ease-out` |
-| Moving / morphing on screen | `ease-in-out` |
-| Constant motion (progress, marquee) | `linear` |
-| Default | `ease-out` |
+| Situation                           | Easing        |
+| ----------------------------------- | ------------- |
+| Entering or exiting                 | `ease-out`    |
+| Moving / morphing on screen         | `ease-in-out` |
+| Constant motion (progress, marquee) | `linear`      |
+| Default                             | `ease-out`    |
 
 **Never `ease-in` on UI.** It starts slow, delaying the exact moment the user is watching. Reanimated's built-ins are as weak as CSS's — use these:
 
 ```js
-import { Easing } from 'react-native-reanimated';
+import { Easing } from "react-native-reanimated";
 
-const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);      // strong ease-out for UI
-const EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1);  // on-screen movement
-const EASE_SHEET = Easing.bezier(0.32, 0.72, 0, 1);    // iOS sheet curve
+const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1); // strong ease-out for UI
+const EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1); // on-screen movement
+const EASE_SHEET = Easing.bezier(0.32, 0.72, 0, 1); // iOS sheet curve
 ```
 
 **Duration:**
 
-| Element | Duration |
-| --- | --- |
-| Press feedback | 100–150ms |
-| Toggle, chip, small state change | 150–200ms |
-| Sheet, modal, drawer | spring, ~300ms perceived |
-| Screen transition | the platform default — don't override it |
+| Element                          | Duration                                 |
+| -------------------------------- | ---------------------------------------- |
+| Press feedback                   | 100–150ms                                |
+| Toggle, chip, small state change | 150–200ms                                |
+| Sheet, modal, drawer             | spring, ~300ms perceived                 |
+| Screen transition                | the platform default — don't override it |
 
 Mobile UI animations stay under 300ms, same as web. The platform's own transitions are longer (iOS push is 350ms); match the platform for navigation, beat it everywhere else.
 
@@ -191,12 +190,12 @@ Every hover affordance from the web has to be redesigned, not ported.
 
 Mobile has a sense the web doesn't. Use it sparingly and it becomes the thing that makes the app feel expensive; use it everywhere and users turn it off.
 
-| Moment | Call |
-| --- | --- |
-| A value ticks past a step — picker, slider detent, segmented control | `Haptics.selectionAsync()` |
-| Something snaps home, a sheet detent catches, a drag commits | `Haptics.impactAsync(ImpactFeedbackStyle.Light)` |
-| A heavy object lands, a destructive action fires | `Haptics.impactAsync(ImpactFeedbackStyle.Medium)` |
-| Operation succeeded or failed | `Haptics.notificationAsync(NotificationFeedbackType.Success / Error)` |
+| Moment                                                               | Call                                                                  |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| A value ticks past a step — picker, slider detent, segmented control | `Haptics.selectionAsync()`                                            |
+| Something snaps home, a sheet detent catches, a drag commits         | `Haptics.impactAsync(ImpactFeedbackStyle.Light)`                      |
+| A heavy object lands, a destructive action fires                     | `Haptics.impactAsync(ImpactFeedbackStyle.Medium)`                     |
+| Operation succeeded or failed                                        | `Haptics.notificationAsync(NotificationFeedbackType.Success / Error)` |
 
 Three rules, and they're absolute:
 
@@ -209,13 +208,21 @@ From a worklet, haptics must be scheduled back to the RN runtime: `scheduleOnRN(
 ### 9. Reduced motion and accessibility
 
 ```jsx
-import { useReducedMotion, ReduceMotion, withSpring } from 'react-native-reanimated';
+import {
+  useReducedMotion,
+  ReduceMotion,
+  withSpring,
+} from "react-native-reanimated";
 
 const reduced = useReducedMotion();
 const y = useSharedValue(reduced ? 0 : SHEET_HEIGHT);
 
 // or let each animation decide
-withSpring(0, { duration: 300, dampingRatio: 0.8, reduceMotion: ReduceMotion.System });
+withSpring(0, {
+  duration: 300,
+  dampingRatio: 0.8,
+  reduceMotion: ReduceMotion.System,
+});
 ```
 
 Reduced motion means **fewer and gentler**, not zero: keep opacity and color changes that explain a state change, drop translation, scale, parallax and overshoot. Screen transitions become `animation: 'fade'`.
@@ -236,7 +243,11 @@ Check these first when "the animation just doesn't run":
 On ProMotion iPhones, third-party animations are capped at 60fps unless `CADisableMinimumFrameDurationOnPhone` is set. Recent Expo SDKs set it by default — confirm it's there, and add it if not:
 
 ```json
-{ "expo": { "ios": { "infoPlist": { "CADisableMinimumFrameDurationOnPhone": true } } } }
+{
+  "expo": {
+    "ios": { "infoPlist": { "CADisableMinimumFrameDurationOnPhone": true } }
+  }
+}
 ```
 
 Then the frame budget is 8ms, not 16. This is also why a UI-thread animation matters more on mobile than it does on web.
@@ -247,25 +258,25 @@ For ready-to-build implementations — press feedback, drag-to-dismiss sheet, sw
 
 ## Never Ship
 
-| Never | Instead |
-| --- | --- |
-| `PanResponder` | `Gesture.Pan()` from gesture-handler |
-| `setState` in a gesture or scroll handler | shared value + `useAnimatedStyle` |
-| `runOnJS` (deprecated in Reanimated 4) | `scheduleOnRN` from `react-native-worklets` |
-| `scheduleOnRN` per frame | `onEnd`, or `useAnimatedReaction` at a threshold |
-| Reading or writing a shared value during render | `.get()` / `.set()` in worklets, handlers, effects |
-| Core `Animated` for anything a finger touches | Reanimated |
+| Never                                                    | Instead                                                       |
+| -------------------------------------------------------- | ------------------------------------------------------------- |
+| `PanResponder`                                           | `Gesture.Pan()` from gesture-handler                          |
+| `setState` in a gesture or scroll handler                | shared value + `useAnimatedStyle`                             |
+| `runOnJS` (deprecated in Reanimated 4)                   | `scheduleOnRN` from `react-native-worklets`                   |
+| `scheduleOnRN` per frame                                 | `onEnd`, or `useAnimatedReaction` at a threshold              |
+| Reading or writing a shared value during render          | `.get()` / `.set()` in worklets, handlers, effects            |
+| Core `Animated` for anything a finger touches            | Reanimated                                                    |
 | Animating `height` / `width` / `margin` / `flex` / `top` | `transform` + `opacity` (absolute, childless elements exempt) |
-| Animating `BlurView` intensity or Android `elevation` | crossfade a static layer |
-| `entering` on a virtualized list row | animate the container, or `itemLayoutAnimation` |
-| A screen transition rebuilt in JS | native stack `animation` |
-| Sliding between tabs | `animation: 'none'` |
-| `Easing.in(...)` on a UI element | `Easing.bezier(0.23, 1, 0.32, 1)` |
-| `scale(0)` entrance | `scale(0.95)` + `opacity: 0` |
-| Distance-only dismissal threshold | velocity **or** distance — a flick is enough |
-| Hard stop at a boundary | rubber-band resistance |
-| A haptic per frame, or as the only feedback | one per commit, always paired with a visual |
-| Judging feel in Expo Go or the simulator | release build, slowest supported device |
+| Animating `BlurView` intensity or Android `elevation`    | crossfade a static layer                                      |
+| `entering` on a virtualized list row                     | animate the container, or `itemLayoutAnimation`               |
+| A screen transition rebuilt in JS                        | native stack `animation`                                      |
+| Sliding between tabs                                     | `animation: 'none'`                                           |
+| `Easing.in(...)` on a UI element                         | `Easing.bezier(0.23, 1, 0.32, 1)`                             |
+| `scale(0)` entrance                                      | `scale(0.95)` + `opacity: 0`                                  |
+| Distance-only dismissal threshold                        | velocity **or** distance — a flick is enough                  |
+| Hard stop at a boundary                                  | rubber-band resistance                                        |
+| A haptic per frame, or as the only feedback              | one per commit, always paired with a visual                   |
+| Judging feel in Expo Go or the simulator                 | release build, slowest supported device                       |
 
 ## Output
 

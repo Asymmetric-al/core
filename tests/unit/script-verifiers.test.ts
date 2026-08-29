@@ -1077,9 +1077,14 @@ describe("refresh-upstream-skills", () => {
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
 
     const minimalEmilSkill = (skillName: string, extraLines: string[] = []) =>
-      ["---", `name: ${skillName}`, "description: fixture", "---", "", ...extraLines].join(
-        "\n",
-      );
+      [
+        "---",
+        `name: ${skillName}`,
+        "description: fixture",
+        "---",
+        "",
+        ...extraLines,
+      ].join("\n");
 
     const fixtures = {
       animate: {
@@ -1107,7 +1112,10 @@ describe("refresh-upstream-skills", () => {
         ].join("\n"),
       },
       "ask-sonner": {
-        "SKILL.md": minimalEmilSkill("ask-sonner", ["# Working With Sonner", ""]),
+        "SKILL.md": minimalEmilSkill("ask-sonner", [
+          "# Working With Sonner",
+          "",
+        ]),
       },
       "emil-design-eng": {
         "SKILL.md": [
@@ -1285,7 +1293,9 @@ describe("refresh-upstream-skills", () => {
     const companionSuffix =
       "Use as a craft companion after Core's frontend, emil-design-engineering, and anim guidance.";
     expect(refreshedContent.split(companionSuffix)).toHaveLength(2);
-    expect(refreshedContent).toContain('import { useSpring } from "motion/react";');
+    expect(refreshedContent).toContain(
+      'import { useSpring } from "motion/react";',
+    );
     const refreshedPrototype = await readFile(
       path.join(tempRoot, "docs/ai/skills/emil-prototype/SKILL.md"),
       "utf8",
@@ -1299,12 +1309,12 @@ describe("refresh-upstream-skills", () => {
     expect(refreshedPicker).toContain(
       "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
     );
-    expect(
-      existsSync(path.join(tempRoot, "docs/ai/skills/prototype")),
-    ).toBe(false);
-    expect(
-      existsSync(path.join(tempRoot, ".agents/skills/prototype")),
-    ).toBe(false);
+    expect(existsSync(path.join(tempRoot, "docs/ai/skills/prototype"))).toBe(
+      false,
+    );
+    expect(existsSync(path.join(tempRoot, ".agents/skills/prototype"))).toBe(
+      false,
+    );
     await expect(
       readFile(
         path.join(tempRoot, "docs/ai/skills/improve-animations/AUDIT.md"),

@@ -11,6 +11,7 @@ Marketing pages can use more elaborate animations than product UI, but still wit
 **No scroll animations:** Don't add scroll animations like fade-ups, fade-ins, translate-Y on scroll.
 
 **No disconnected motion:** Don't add animations or interactions that feel disconnected from user movement:
+
 - Scroll hijacking
 - Parallax that doesn't map 1:1 to scroll
 - Auto-advancing carousels
@@ -21,11 +22,11 @@ Disable intro animations if they've been seen during the current session:
 
 ```jsx
 useEffect(() => {
-  const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
+  const hasSeenIntro = sessionStorage.getItem("hasSeenIntro");
   if (hasSeenIntro) {
     setSkipIntro(true);
   } else {
-    sessionStorage.setItem('hasSeenIntro', 'true');
+    sessionStorage.setItem("hasSeenIntro", "true");
   }
 }, []);
 ```
@@ -39,10 +40,10 @@ Use `sessionStorage` (not `localStorage`) so animations play again on new sessio
 Preload fonts to prevent layout shift:
 
 ```jsx
-import { preload } from 'react-dom';
+import { preload } from "react-dom";
 
 // In your app initialization
-preload('/fonts/inter-var.woff2', { as: 'font', type: 'font/woff2' });
+preload("/fonts/inter-var.woff2", { as: "font", type: "font/woff2" });
 ```
 
 ### Image Preloading
@@ -85,14 +86,14 @@ Ensure header submenu content on marketing pages is visible even when it shows o
 
 Ensure buttons have different CTAs based on whether a user is logged in:
 
-| State | CTA |
-| --- | --- |
-| Logged out | "Get Started" or "Sign Up" |
-| Logged in | "Go to Dashboard" or "Open App" |
+| State      | CTA                             |
+| ---------- | ------------------------------- |
+| Logged out | "Get Started" or "Sign Up"      |
+| Logged in  | "Go to Dashboard" or "Open App" |
 
 ```jsx
-<Button href={isLoggedIn ? '/dashboard' : '/signup'}>
-  {isLoggedIn ? 'Go to Dashboard' : 'Get Started'}
+<Button href={isLoggedIn ? "/dashboard" : "/signup"}>
+  {isLoggedIn ? "Go to Dashboard" : "Get Started"}
 </Button>
 ```
 
@@ -103,15 +104,13 @@ Ensure buttons have different CTAs based on whether a user is logged in:
 Provide a copy-to-clipboard button on all docs code snippets:
 
 ```jsx
-<CodeBlock
-  code={snippet}
-  copyButton={true}
-/>
+<CodeBlock code={snippet} copyButton={true} />
 ```
 
 ### Markdown Export
 
 Ensure all docs pages are copyable as markdown files:
+
 - Have a "Copy as Markdown" button
 - Support `.md` extension in URLs (e.g., `/docs/getting-started.md` returns markdown)
 
@@ -135,7 +134,8 @@ Ensure RSS feed exists for blog and changelog:
 Use `text-wrap: balance` on headings:
 
 ```css
-article h1, article h2 {
+article h1,
+article h2 {
   text-wrap: balance;
 }
 ```
@@ -143,6 +143,7 @@ article h1, article h2 {
 ## Illustrations
 
 Illustrations built in code should have:
+
 - Proper `aria-label` attribute for accessibility
 - Disabled text selection
 - Disabled pointer events (if decorative)
@@ -153,8 +154,8 @@ Illustrations built in code should have:
   aria-label="Illustration showing data flow"
   className="illustration"
   style={{
-    userSelect: 'none',
-    pointerEvents: 'none',
+    userSelect: "none",
+    pointerEvents: "none",
   }}
 />
 ```

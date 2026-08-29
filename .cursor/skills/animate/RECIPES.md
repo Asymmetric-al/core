@@ -144,7 +144,9 @@ Add drag and it becomes a gesture problem — see **Drag to dismiss** below.
 - If `@starting-style` isn't available, fall back to the mount flag:
 
 ```jsx
-useEffect(() => { setMounted(true); }, []);
+useEffect(() => {
+  setMounted(true);
+}, []);
 // <div data-mounted={mounted}>
 ```
 
@@ -178,9 +180,15 @@ For a list or grid the user sees occasionally — not for a list they scroll pas
   animation: fadeIn 300ms var(--ease-out) forwards;
 }
 
-.item:nth-child(2) { animation-delay: 50ms; }
-.item:nth-child(3) { animation-delay: 100ms; }
-.item:nth-child(4) { animation-delay: 150ms; }
+.item:nth-child(2) {
+  animation-delay: 50ms;
+}
+.item:nth-child(3) {
+  animation-delay: 100ms;
+}
+.item:nth-child(4) {
+  animation-delay: 150ms;
+}
 
 @keyframes fadeIn {
   to {
@@ -206,7 +214,7 @@ For destructive actions where a plain click is too easy to fire by accident.
 
 .button:active .overlay {
   clip-path: inset(0 0 0 0);
-  transition: clip-path 2s linear;             /* press: slow and deliberate */
+  transition: clip-path 2s linear; /* press: slow and deliberate */
 }
 
 .button:active {
@@ -316,8 +324,12 @@ When the motion needs JS control but not a dependency, WAAPI gives you CSS-grade
 
 ```js
 element.animate(
-  [{ clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0 0)' }],
-  { duration: 1000, fill: 'forwards', easing: 'cubic-bezier(0.77, 0, 0.175, 1)' }
+  [{ clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0 0)" }],
+  {
+    duration: 1000,
+    fill: "forwards",
+    easing: "cubic-bezier(0.77, 0, 0.175, 1)",
+  },
 );
 ```
 

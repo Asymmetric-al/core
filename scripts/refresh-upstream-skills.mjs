@@ -649,6 +649,13 @@ const POST_REFRESH_REPLACEMENTS = [
   {
     skillName: "emil-design-engineering",
     relativePath: "forms-controls.md",
+    search: "Use appropriate `type` attributes:\n\n```html\n",
+    replace:
+      "Use appropriate `type` attributes:\n\n<!-- prettier-ignore -->\n```html\n",
+  },
+  {
+    skillName: "emil-design-engineering",
+    relativePath: "forms-controls.md",
     search: "### 1Password Integration", // pragma: allowlist secret
     replace: "### 1Password Integration // pragma: allowlist secret", // pragma: allowlist secret
   },
