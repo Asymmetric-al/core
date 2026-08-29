@@ -17,7 +17,7 @@ See [animations.md](animations.md) for detailed animation performance guidelines
 Virtualize large lists. Don't render hundreds of DOM nodes when only a few are visible:
 
 ```jsx
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 function VirtualList({ items }) {
   const parentRef = useRef(null);
@@ -29,13 +29,13 @@ function VirtualList({ items }) {
   });
 
   return (
-    <div ref={parentRef} style={{ height: "400px", overflow: "auto" }}>
+    <div ref={parentRef} style={{ height: '400px', overflow: 'auto' }}>
       <div style={{ height: virtualizer.getTotalSize() }}>
         {virtualizer.getVirtualItems().map((virtualItem) => (
           <div
             key={virtualItem.key}
             style={{
-              position: "absolute",
+              position: 'absolute',
               top: virtualItem.start,
               height: virtualItem.size,
             }}
@@ -63,9 +63,7 @@ Never use `transition: all`. It causes accidental animations and performance iss
 
 /* Good - specify exact properties */
 .button {
-  transition:
-    background-color 200ms ease,
-    transform 200ms ease;
+  transition: background-color 200ms ease, transform 200ms ease;
 }
 ```
 
@@ -76,15 +74,15 @@ Switching themes should not trigger transitions. Disable transitions during them
 ```js
 function setTheme(theme) {
   // Disable transitions
-  document.documentElement.classList.add("no-transitions");
+  document.documentElement.classList.add('no-transitions');
 
   // Apply theme
-  document.documentElement.setAttribute("data-theme", theme);
+  document.documentElement.setAttribute('data-theme', theme);
 
   // Re-enable transitions after paint
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      document.documentElement.classList.remove("no-transitions");
+      document.documentElement.classList.remove('no-transitions');
     });
   });
 }
@@ -113,12 +111,12 @@ Dynamic elements should cause no layout shift:
 Preload fonts to prevent layout shift:
 
 ```jsx
-import { preload } from "react-dom";
+import { preload } from 'react-dom';
 
-preload("/fonts/inter-var.woff2", {
-  as: "font",
-  type: "font/woff2",
-  crossOrigin: "anonymous",
+preload('/fonts/inter-var.woff2', {
+  as: 'font',
+  type: 'font/woff2',
+  crossOrigin: 'anonymous',
 });
 ```
 
