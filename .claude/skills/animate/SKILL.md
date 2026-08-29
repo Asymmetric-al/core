@@ -36,7 +36,6 @@ before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
-
 A construction skill. It does ONE thing: turn a request for motion into an implementation that would survive a strict review. It does not audit a codebase (that's `improve-animations`), critique a diff (that's `review-animations`), hunt for places that could animate (that's `find-animation-opportunities`), or build for React Native (that's `animate-expo`).
 
 ## Operating Posture
@@ -62,12 +61,12 @@ Never present motion options as a menu. Make the call, state the reasoning in on
 
 ### 1. Should this animate at all?
 
-| Frequency | Decision |
-| --- | --- |
-| 100+ times/day (keyboard shortcuts, command palette toggle) | **No animation. Ever.** Stop here. |
-| Tens of times/day (hover effects, list navigation) | Near-imperceptible only — fast and subtle, or nothing |
-| Occasional (modals, drawers, toasts) | Standard animation |
-| Rare / first-time (onboarding, success, celebration) | The delight budget lives here |
+| Frequency                                                   | Decision                                              |
+| ----------------------------------------------------------- | ----------------------------------------------------- |
+| 100+ times/day (keyboard shortcuts, command palette toggle) | **No animation. Ever.** Stop here.                    |
+| Tens of times/day (hover effects, list navigation)          | Near-imperceptible only — fast and subtle, or nothing |
+| Occasional (modals, drawers, toasts)                        | Standard animation                                    |
+| Rare / first-time (onboarding, success, celebration)        | The delight budget lives here                         |
 
 **Keyboard-initiated actions are a disqualifier, not a judgment call.** Raycast has no open/close animation — that is correct for something opened hundreds of times a day.
 
@@ -82,7 +81,7 @@ Name it in one of these words before continuing:
 - **State indication** — making a state change legible
 - **Preventing a jarring change** — bridging content that would otherwise teleport
 - **Explanation** — demonstrating how something works (marketing/onboarding only)
-- **Delight** — allowed *only* at the rare/first-time tier
+- **Delight** — allowed _only_ at the rare/first-time tier
 
 Can't name it? Don't build it. "It looks cool" on a frequently-seen element is a reason to stop.
 
@@ -92,17 +91,17 @@ Also check **function**: data the user is reading or acting on should not move f
 
 Walk down; stop at the first that fits.
 
-| Need | Tool |
-| --- | --- |
-| Hover, press, color, a state toggle you control with a class or attribute | **CSS transition** |
-| Entry animation on mount, no JS state | **CSS `@starting-style`** |
+| Need                                                                      | Tool                                         |
+| ------------------------------------------------------------------------- | -------------------------------------------- |
+| Hover, press, color, a state toggle you control with a class or attribute | **CSS transition**                           |
+| Entry animation on mount, no JS state                                     | **CSS `@starting-style`**                    |
 | Predetermined motion that must stay smooth while the page is busy loading | **CSS animation** (runs off the main thread) |
-| Programmatic control with CSS performance, no library | **WAAPI** (`element.animate()`) |
-| Springs, layout animations, exit animations, gesture-driven values | **Motion** (`motion.dev`) |
+| Programmatic control with CSS performance, no library                     | **WAAPI** (`element.animate()`)              |
+| Springs, layout animations, exit animations, gesture-driven values        | **Motion** (`motion.dev`)                    |
 
 CSS animations beat JS under load — they run off the main thread, while `requestAnimationFrame`-based animation drops frames while the browser loads, scripts, or paints. Use CSS for predetermined motion, JS for dynamic and interruptible motion.
 
-If the task needs a *component* rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.
+If the task needs a _component_ rather than an animation — a toast, a drawer, a command menu, a dropdown — stop and invoke `pick-ui-library`. Hand-rolling those is how you end up with a `<div>` dropdown and no focus management.
 
 ### 4. Pick the properties
 
@@ -123,35 +122,45 @@ If the task needs a *component* rather than an animation — a toast, a drawer, 
 
 **Easing**, in decision order:
 
-| Situation | Easing |
-| --- | --- |
-| Entering or exiting | `ease-out` |
-| Moving / morphing on screen | `ease-in-out` |
-| Hover / color change | `ease` |
-| Constant motion (marquee, progress) | `linear` |
-| Default | `ease-out` |
+| Situation                           | Easing        |
+| ----------------------------------- | ------------- |
+| Entering or exiting                 | `ease-out`    |
+| Moving / morphing on screen         | `ease-in-out` |
+| Hover / color change                | `ease`        |
+| Constant motion (marquee, progress) | `linear`      |
+| Default                             | `ease-out`    |
 
-**Never `ease-in` on UI.** It starts slow, delaying the exact moment the user is watching. `ease-out` at 200ms *feels* faster than `ease-in` at 200ms.
+**Never `ease-in` on UI.** It starts slow, delaying the exact moment the user is watching. `ease-out` at 200ms _feels_ faster than `ease-in` at 200ms.
 
 Built-in CSS easings are too weak. Use these:
 
 ```css
---ease-out: cubic-bezier(0.23, 1, 0.32, 1);        /* strong ease-out for UI */
---ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);    /* strong ease-in-out for on-screen movement */
---ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);     /* iOS-like drawer curve (Ionic) */
+--ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI */
+--ease-in-out: cubic-bezier(
+  0.77,
+  0,
+  0.175,
+  1
+); /* strong ease-in-out for on-screen movement */
+--ease-drawer: cubic-bezier(
+  0.32,
+  0.72,
+  0,
+  1
+); /* iOS-like drawer curve (Ionic) */
 ```
 
 Need a curve that isn't here? Take it from [easing.dev](https://easing.dev/) or [easings.co](https://easings.co/). Don't hand-roll one.
 
 **Duration:**
 
-| Element | Duration |
-| --- | --- |
-| Button press feedback | 100–160ms |
-| Tooltips, small popovers | 125–200ms |
-| Dropdowns, selects | 150–250ms |
-| Modals, drawers | 200–500ms |
-| Marketing / explanatory | Can be longer |
+| Element                  | Duration      |
+| ------------------------ | ------------- |
+| Button press feedback    | 100–160ms     |
+| Tooltips, small popovers | 125–200ms     |
+| Dropdowns, selects       | 150–250ms     |
+| Modals, drawers          | 200–500ms     |
+| Marketing / explanatory  | Can be longer |
 
 **UI animations stay under 300ms.** A 180ms dropdown feels more responsive than a 400ms one.
 
@@ -177,17 +186,21 @@ Ships with the animation, every time.
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  .element { animation: fade 0.2s ease; } /* keep opacity/color, drop transform-based motion */
+  .element {
+    animation: fade 0.2s ease;
+  } /* keep opacity/color, drop transform-based motion */
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .element:hover { transform: scale(1.05); } /* touch fires false hovers on tap */
+  .element:hover {
+    transform: scale(1.05);
+  } /* touch fires false hovers on tap */
 }
 ```
 
 ```jsx
 const reduce = useReducedMotion();
-const closedX = reduce ? 0 : '-100%';
+const closedX = reduce ? 0 : "-100%";
 ```
 
 Reduced motion means **fewer and gentler** animations, not zero — keep transitions that aid comprehension, remove movement and position changes.
@@ -200,21 +213,21 @@ For ready-to-build implementations of the common cases — button press, dropdow
 
 Self-check before you finish. Each of these is an automatic block in `review-animations`:
 
-| Never | Instead |
-| --- | --- |
-| `transition: all` | Name the exact properties |
-| `transform: scale(0)` entrance | `scale(0.95)` + `opacity: 0` |
-| `ease-in` on a UI element | `ease-out` or a strong custom curve |
-| Built-in `ease-out` on a deliberate animation | `cubic-bezier(0.23, 1, 0.32, 1)` |
-| Animation on a keyboard shortcut or 100+/day action | No animation |
-| UI duration over 300ms with no reason | 150–250ms |
-| `transform-origin: center` on a trigger-anchored popover | `var(--transform-origin)` (modals exempt) |
-| Keyframes on toasts, toggles, rapidly-triggered elements | CSS transitions |
-| Animating `width`/`height`/`margin`/`padding`/`top`/`left` | `transform` / `opacity` |
-| Motion `x`/`y`/`scale` props under load | Full `transform` string |
-| Ungated `:hover` motion | `@media (hover: hover) and (pointer: fine)` |
-| Missing `prefers-reduced-motion` | Gentler variant, not zero |
-| Everything entering at once | 30–80ms stagger |
+| Never                                                      | Instead                                     |
+| ---------------------------------------------------------- | ------------------------------------------- |
+| `transition: all`                                          | Name the exact properties                   |
+| `transform: scale(0)` entrance                             | `scale(0.95)` + `opacity: 0`                |
+| `ease-in` on a UI element                                  | `ease-out` or a strong custom curve         |
+| Built-in `ease-out` on a deliberate animation              | `cubic-bezier(0.23, 1, 0.32, 1)`            |
+| Animation on a keyboard shortcut or 100+/day action        | No animation                                |
+| UI duration over 300ms with no reason                      | 150–250ms                                   |
+| `transform-origin: center` on a trigger-anchored popover   | `var(--transform-origin)` (modals exempt)   |
+| Keyframes on toasts, toggles, rapidly-triggered elements   | CSS transitions                             |
+| Animating `width`/`height`/`margin`/`padding`/`top`/`left` | `transform` / `opacity`                     |
+| Motion `x`/`y`/`scale` props under load                    | Full `transform` string                     |
+| Ungated `:hover` motion                                    | `@media (hover: hover) and (pointer: fine)` |
+| Missing `prefers-reduced-motion`                           | Gentler variant, not zero                   |
+| Everything entering at once                                | 30–80ms stagger                             |
 
 ## Output
 

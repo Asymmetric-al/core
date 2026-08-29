@@ -52,6 +52,7 @@ transition: background-color 150ms ease;
 ### linear (Avoid in UI)
 
 Only use for:
+
 - Constant-speed animations (marquees, tickers)
 - Time visualization (hold-to-delete progress indicators)
 
@@ -67,20 +68,25 @@ Elements that animate together must use the same easing and duration. Modal + ov
 
 ```css
 /* Both use the same timing */
-.modal { transition: transform 200ms ease-out; }
-.overlay { transition: opacity 200ms ease-out; }
+.modal {
+  transition: transform 200ms ease-out;
+}
+.overlay {
+  transition: opacity 200ms ease-out;
+}
 ```
 
 ## Duration Guidelines
 
-| Element Type | Duration |
-| --- | --- |
-| Micro-interactions | 100-150ms |
+| Element Type                      | Duration  |
+| --------------------------------- | --------- |
+| Micro-interactions                | 100-150ms |
 | Standard UI (tooltips, dropdowns) | 150-250ms |
-| Modals, drawers | 200-300ms |
-| Page transitions | 300-400ms |
+| Modals, drawers                   | 200-300ms |
+| Page transitions                  | 300-400ms |
 
 **Rules:**
+
 - UI animations should stay under 300ms
 - Larger elements animate slower than smaller ones
 - Exit animations can be faster than entrances
@@ -99,18 +105,21 @@ Determine how often users will see the animation:
 ## When to Animate
 
 **Do animate:**
+
 - Enter/exit transitions for spatial consistency
 - State changes that benefit from visual continuity
 - Responses to user actions (feedback)
 - Rarely-used interactions where delight adds value
 
 **Don't animate:**
+
 - Keyboard-initiated actions
 - Hover effects on frequently-used elements
 - Anything users interact with 100+ times daily
 - When speed matters more than smoothness
 
 **Marketing vs. Product:**
+
 - Marketing: More elaborate, longer durations allowed
 - Product: Fast, purposeful, never frivolous
 
@@ -158,6 +167,7 @@ Springs maintain velocity when interrupted—CSS animations restart from zero. T
 Only animate `transform` and `opacity`. These skip layout and paint stages, running entirely on the GPU.
 
 **Avoid animating:**
+
 - `padding`, `margin`, `height`, `width` (trigger layout)
 - `blur` filters above 20px (expensive, especially Safari)
 - CSS variables in deep component trees
@@ -172,6 +182,7 @@ Only animate `transform` and `opacity`. These skip layout and paint stages, runn
 ```
 
 **React-specific:**
+
 - Animate outside React's render cycle when possible
 - Use refs to update styles directly instead of state
 - Re-renders on every frame = dropped frames
@@ -237,17 +248,17 @@ function Component() {
 
 ## Practical Tips
 
-| Scenario | Solution |
-| --- | --- |
-| Make buttons feel responsive | Add `transform: scale(0.97)` on `:active` |
-| Element appears from nowhere | Start from `scale(0.95)`, not `scale(0)` |
-| Shaky/jittery animations | Add `will-change: transform` |
-| Hover causes flicker | Animate child element, not parent |
-| Popover scales from wrong point | Set `transform-origin` to trigger location |
-| Sequential tooltips feel slow | Skip delay/animation after first tooltip |
-| Small buttons hard to tap | Use 44px minimum hit area (pseudo-element) |
-| Something still feels off | Add subtle blur (under 20px) to mask it |
-| Hover triggers on mobile | Use `@media (hover: hover) and (pointer: fine)` |
+| Scenario                        | Solution                                        |
+| ------------------------------- | ----------------------------------------------- |
+| Make buttons feel responsive    | Add `transform: scale(0.97)` on `:active`       |
+| Element appears from nowhere    | Start from `scale(0.95)`, not `scale(0)`        |
+| Shaky/jittery animations        | Add `will-change: transform`                    |
+| Hover causes flicker            | Animate child element, not parent               |
+| Popover scales from wrong point | Set `transform-origin` to trigger location      |
+| Sequential tooltips feel slow   | Skip delay/animation after first tooltip        |
+| Small buttons hard to tap       | Use 44px minimum hit area (pseudo-element)      |
+| Something still feels off       | Add subtle blur (under 20px) to mask it         |
+| Hover triggers on mobile        | Use `@media (hover: hover) and (pointer: fine)` |
 
 ## Theme Transitions
 

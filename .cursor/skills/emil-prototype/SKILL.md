@@ -35,7 +35,6 @@ refreshes before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
-
 A divergence skill. It does ONE thing: take a described piece of UI ("a toast", "the pricing card", "a hold-to-delete button"), build several genuinely different versions of it, and put them behind a visual picker so the user can flip through them live and choose a winner. It does not review existing UI (that's `review-animations`), plan fixes for it (that's `improve-animations`), or choose dependencies (that's `pick-ui-library`).
 
 ## Operating Posture
@@ -47,7 +46,7 @@ Divergence is not an excuse to drop the craft bar. Every variant individually me
 ## Hard Rules
 
 1. **Never touch production code during exploration.** Everything lives in an isolated prototype surface (see Phase 4). Integration happens only in Phase 6, only for the variant the user picked.
-2. **Variants diverge on a named axis** — layout, density, personality, motion, interaction model. Before building, you must be able to state each variant's axis in a phrase. Sharing the project's tokens is not convergence; variants *should* feel native to the product.
+2. **Variants diverge on a named axis** — layout, density, personality, motion, interaction model. Before building, you must be able to state each variant's axis in a phrase. Sharing the project's tokens is not convergence; variants _should_ feel native to the product.
 3. **Every variant fully works.** Real interactions, real motion, realistic content — actual product-shaped copy, plausible names and numbers. No lorem ipsum, no dead buttons, no "imagine this part".
 4. **The picker is chrome, not a contestant.** Its exact markup, styles, and behavior are specified in [PICKER.md](PICKER.md) — copy them verbatim. Its look is not a design decision and never adapts to the project.
 5. **Clean up after the choice.** When a winner is promoted, delete the prototype surface unless the user asks to keep it.
@@ -92,10 +91,10 @@ Run the harness. Confirm every variant renders, every interaction responds, and 
 
 Then present the set and **stop — the choice belongs to the user**:
 
-| # | Variant | Axis | When it's the right choice | Its cost |
-| --- | --- | --- | --- | --- |
-| 1 | Quiet | Minimal motion, borders over shadows | The product is a daily-use tool | Least memorable |
-| 2 | Editorial | Large type, generous whitespace | The moment deserves weight | Eats vertical space |
+| #   | Variant   | Axis                                 | When it's the right choice      | Its cost            |
+| --- | --------- | ------------------------------------ | ------------------------------- | ------------------- |
+| 1   | Quiet     | Minimal motion, borders over shadows | The product is a daily-use tool | Least memorable     |
+| 2   | Editorial | Large type, generous whitespace      | The moment deserves weight      | Eats vertical space |
 
 Close with where the picker is running (URL or file path) and the keys to flip.
 
@@ -103,17 +102,17 @@ Close with where the picker is running (URL or file path) and the keys to flip.
 
 ### Phase 6 — Promote on selection
 
-When the user picks: integrate that variant where it belongs, following the project's existing conventions (file layout, naming, token usage), then delete the prototype surface per Hard Rule 5. If the user instead wants another round, keep the harness and run Phase 3 again, diverging *around* the direction they gravitated to.
+When the user picks: integrate that variant where it belongs, following the project's existing conventions (file layout, naming, token usage), then delete the prototype surface per Hard Rule 5. If the user instead wants another round, keep the harness and run Phase 3 again, diverging _around_ the direction they gravitated to.
 
 ## Invocation Variants
 
-| Invocation | Behavior |
-| --- | --- |
-| `<description>` | Full workflow: scope → recon → 3 variants → picker → wait for choice |
-| `<description> x5` | Same, with that many variants (capped at 5) |
-| `riff <variant>` | New round: keep the harness, generate a fresh set diverging around the named variant's direction |
-| `keep <variant>` | Promote that variant into the codebase and delete the prototype surface |
-| `keep <variant>, leave the picker` | Promote, but keep the prototype surface around |
+| Invocation                         | Behavior                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `<description>`                    | Full workflow: scope → recon → 3 variants → picker → wait for choice                             |
+| `<description> x5`                 | Same, with that many variants (capped at 5)                                                      |
+| `riff <variant>`                   | New round: keep the harness, generate a fresh set diverging around the named variant's direction |
+| `keep <variant>`                   | Promote that variant into the codebase and delete the prototype surface                          |
+| `keep <variant>, leave the picker` | Promote, but keep the prototype surface around                                                   |
 
 ## Tone
 
