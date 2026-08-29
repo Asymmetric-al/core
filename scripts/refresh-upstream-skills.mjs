@@ -45,11 +45,17 @@ const GRILL_REVIEWED_VERSION = "0.1.1";
 const MATT_POCOCK_LINEAGE_COMMIT = "391a2701dd948f94f56a39f7533f8eea9a859c87";
 
 const emilKowalskiSkillNames = [
+  "animate",
+  "animate-expo",
   "animation-vocabulary",
   "apple-design",
+  "ask-sonner",
   "emil-design-eng",
+  "emil-prototype",
   "improve-animations",
+  "pick-ui-library",
   "review-animations",
+  "write-swift",
 ];
 
 const emilKowalskiSources = emilKowalskiSkillNames.map((skillName) => ({
@@ -670,39 +676,17 @@ const POST_REFRESH_REPLACEMENTS = [
     required: true,
   },
   {
-    skillName: "emil-design-eng",
+    skillName: "emil-prototype",
     relativePath: "SKILL.md",
-    search: "`transform-origin: var(--radix-popover-content-transform-origin)`",
-    replace: "`transform-origin: var(--transform-origin)`",
-    required: true,
-  },
-  {
-    skillName: "emil-design-eng",
-    relativePath: "SKILL.md",
-    search:
-      "/* Radix UI */\n.popover {\n  transform-origin: var(--radix-popover-content-transform-origin);\n}\n\n/* Base UI */",
-    replace: "/* Base UI (this repo) */",
-    required: true,
-  },
-  {
-    skillName: "emil-design-eng",
-    relativePath: "SKILL.md",
-    search: "Set to trigger location or use Radix/Base UI CSS variable",
-    replace: "Use Base UI's `var(--transform-origin)`",
-    required: true,
-  },
-  {
-    skillName: "review-animations",
-    relativePath: "SKILL.md",
-    search: "`var(--radix-popover-content-transform-origin)`",
-    replace: "`var(--transform-origin)`",
+    search: "name: prototype\n",
+    replace: "name: emil-prototype\n",
     required: true,
   },
   {
     skillName: "improve-animations",
     relativePath: "PLAN-TEMPLATE.md",
     search:
-      "  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);\n  transform-origin: var(--radix-dropdown-menu-content-transform-origin);",
+      "  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);\n  transform-origin: var(--transform-origin);",
     replace:
       "  transition:\n    transform var(--duration-standard) var(--ease-out-soft),\n    opacity var(--duration-standard) var(--ease-out-soft);\n  transform-origin: var(--transform-origin);",
     required: true,
@@ -781,7 +765,7 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "improve-animations",
     relativePath: "AUDIT.md",
     search:
-      "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */\n  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+      "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
     replace:
       "  .popover {\n    transform-origin: var(--transform-origin);\n  } /* Base UI */",
     required: true,
@@ -807,7 +791,7 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "review-animations",
     relativePath: "STANDARDS.md",
     search:
-      "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */\n  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+      "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
     replace:
       "  .popover {\n    transform-origin: var(--transform-origin);\n  } /* Base UI */",
     required: true,
