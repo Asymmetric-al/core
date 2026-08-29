@@ -977,6 +977,53 @@ describe("refresh-upstream-skills", () => {
     ).toThrow(/non-empty source group/);
   });
 
+  it("falls back to copy-then-remove when overlayfs rejects refresh renames with EXDEV", async () => {
+    const tempRoot = await createTempRepo("refresh-exdev");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n",
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "preserve me\n",
+    );
+
+    runNodeScript(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+      ["--only=animations.dev"],
+      {
+        HOME: tempRoot,
+        CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
+      },
+    );
+
+    await expect(
+      readFile(path.join(canonicalRoot, "SKILL.md"), "utf8"),
+    ).resolves.toContain("# Fresh paid skill");
+    await expect(
+      readFile(path.join(canonicalRoot, "references/upstream.md"), "utf8"),
+    ).resolves.toBe("preserve me\n");
+  });
+
   it("fails a focused Emil Kowalski refresh before mutation when a source is missing", async () => {
     const tempRoot = await createTempRepo("refresh-emil-missing-source");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");

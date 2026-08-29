@@ -1827,6 +1827,55 @@ function getTemporarySiblingPath(targetPath, label) {
   return path.join(parentDir, `.${targetName}.${label}-${uniqueSuffix}`);
 }
 
+async function pathExists(targetPath) {
+  try {
+    await access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function renameOnce(fromPath, toPath) {
+  // Overlayfs can reject same-directory rename of lower-layer skill directories
+  // with EXDEV. Tests set CORE_SKILLS_SIMULATE_RENAME_EXDEV=1 to exercise the
+  // copy+rm fallback.
+  if (
+    process.env.CORE_SKILLS_SIMULATE_RENAME_EXDEV === "1" &&
+    (await pathExists(fromPath))
+  ) {
+    const error = new Error("EXDEV: simulated cross-device rename");
+    error.code = "EXDEV";
+    throw error;
+  }
+
+  await rename(fromPath, toPath);
+}
+
+async function moveDirectory(fromPath, toPath) {
+  try {
+    await renameOnce(fromPath, toPath);
+  } catch (error) {
+    const destExists = await pathExists(toPath);
+    const code = getErrorCode(error);
+    const isCrossDevice =
+      code === "EXDEV" ||
+      (destExists && (code === "EEXIST" || code === "ENOTEMPTY"));
+
+    if (!isCrossDevice) {
+      throw error;
+    }
+
+    // `fs.cp` into an existing dest merges leftover files. Replace must
+    // remove the dest first so extras from the previous tree cannot survive.
+    if (destExists) {
+      await rm(toPath, { recursive: true, force: true });
+    }
+    await cp(fromPath, toPath, { recursive: true, force: true });
+    await rm(fromPath, { recursive: true, force: true });
+  }
+}
+
 async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   const to = path.join(canonicalRoot, skillName);
   const staging = getTemporarySiblingPath(to, "refresh-staging");
@@ -1897,7 +1946,7 @@ async function swapPreparedRefresh(preparedRefresh) {
   let hasBackup = false;
 
   try {
-    await rename(to, backup);
+    await moveDirectory(to, backup);
     hasBackup = true;
   } catch (error) {
     if (getErrorCode(error) !== "ENOENT") {
@@ -1906,10 +1955,17 @@ async function swapPreparedRefresh(preparedRefresh) {
   }
 
   try {
-    await rename(staging, to);
+    await moveDirectory(staging, to);
   } catch (error) {
     if (hasBackup) {
-      await rename(backup, to);
+      try {
+        await moveDirectory(backup, to);
+      } catch (restoreError) {
+        throw new AggregateError(
+          [error, restoreError],
+          `Failed to restore ${to} from backup ${backup} after refresh swap error`,
+        );
+      }
     }
     throw error;
   }
@@ -1921,7 +1977,7 @@ async function rollbackSwappedRefresh(swappedRefresh) {
   const { to, backup, hasBackup } = swappedRefresh;
   await rm(to, { recursive: true, force: true });
   if (hasBackup) {
-    await rename(backup, to);
+    await moveDirectory(backup, to);
   }
 }
 
