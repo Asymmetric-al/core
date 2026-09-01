@@ -33,28 +33,28 @@ encoding conversion); byte and line counts are independent cross-checks.
 
 ### Durable Ratification Register
 
-| Decision | Ratified   | Selected outcome                                                                                                                                                     |
-| -------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1       | 2026-07-17 | A-prime-R — tenant-sovereign configuration inside a non-delegable platform safety kernel                                                                             |
-| D2       | 2026-07-17 | C-prime — whole-message inheritance with copy-on-customize and atomic publications                                                                                   |
-| D3       | 2026-07-17 | C-prime-R — tenant-controlled fallback through two platform-defined safe presets                                                                                     |
-| D4       | 2026-07-17 | C-prime-R — one governed structured document and server-authoritative publication                                                                                    |
-| D5       | 2026-07-17 | C-prime-R — contract-owned adaptive content with recipient identity and Resend-only batching                                                                         |
-| D6       | 2026-07-17 | C-prime-R — producer-owned protected actions with a scanner-safe Asym handoff; assurance wording and transport amended to scanner-resistant by ratified Phase 18 D13 |
-| D7       | 2026-07-17 | B-prime-R — tenant-configurable, contract-bounded Delivery Plans                                                                                                     |
-| D8       | 2026-07-17 | C-prime-R — proportional contract-driven in-product notifications                                                                                                    |
-| D9       | 2026-07-17 | C-prime-R — compliance-ready, transport-dark SMS reservation                                                                                                         |
-| D10      | 2026-07-17 | A-prime-R — tenant-owned proof-gated send-only Resend BYOK                                                                                                           |
-| D11      | 2026-07-18 | C-prime-R — proportional contract-driven independent publication review                                                                                              |
-| D12      | 2026-07-18 | B-prime-R — tenant-open locales with contract-scoped readiness proof                                                                                                 |
-| D13      | 2026-07-18 | C-prime-R — inherited Brand Kit and bounded layout roles with broad safe freedom                                                                                     |
-| D14      | 2026-07-18 | C-prime-R — body-free history plus one expiring support-safe Recent sent copy                                                                                        |
-| D15      | 2026-07-18 | C-prime-R — phase-separated whole-message recovery with proof-gated resume                                                                                           |
-| D16      | 2026-07-18 | C-prime-R — complete governed catalog with generation-safe activation                                                                                                |
-| D17      | 2026-07-18 | C-prime-R — contract-owned reply purposes and bounded tenant destinations                                                                                            |
-| D18      | 2026-07-18 | A-prime-R — tenant-authored messages around a minimum source-owned truth core                                                                                        |
-| D19      | 2026-07-18 | C-prime-R — versioned tenant portability and destination-owned transfer                                                                                              |
-| D20      | 2026-07-19 | C-prime-R — one Default plus bounded versioned Sender Profiles                                                                                                       |
+| Decision | Ratified   | Selected outcome                                                                                                                                                                                                    |
+| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1       | 2026-07-17 | A-prime-R — tenant-sovereign configuration inside a non-delegable platform safety kernel                                                                                                                            |
+| D2       | 2026-07-17 | C-prime — whole-message inheritance with copy-on-customize and atomic publications                                                                                                                                  |
+| D3       | 2026-07-17 | C-prime-R — tenant-controlled fallback through two platform-defined safe presets                                                                                                                                    |
+| D4       | 2026-07-17 | C-prime-R — one governed structured document and server-authoritative publication                                                                                                                                   |
+| D5       | 2026-07-17 | C-prime-R — contract-owned adaptive content with recipient identity and Resend-only batching                                                                                                                        |
+| D6       | 2026-07-17 | C-prime-R — producer-owned protected actions with a scanner-resistant code-owned handoff; transport amended by Phase 18 D13 and Tenant-scoped origin amended to the frozen Tenant Donor Portal Host by Phase 24 D57 |
+| D7       | 2026-07-17 | B-prime-R — tenant-configurable, contract-bounded Delivery Plans                                                                                                                                                    |
+| D8       | 2026-07-17 | C-prime-R — proportional contract-driven in-product notifications                                                                                                                                                   |
+| D9       | 2026-07-17 | C-prime-R — compliance-ready, transport-dark SMS reservation                                                                                                                                                        |
+| D10      | 2026-07-17 | A-prime-R — tenant-owned proof-gated send-only Resend BYOK                                                                                                                                                          |
+| D11      | 2026-07-18 | C-prime-R — proportional contract-driven independent publication review                                                                                                                                             |
+| D12      | 2026-07-18 | B-prime-R — tenant-open locales with contract-scoped readiness proof                                                                                                                                                |
+| D13      | 2026-07-18 | C-prime-R — inherited Brand Kit and bounded layout roles with broad safe freedom                                                                                                                                    |
+| D14      | 2026-07-18 | C-prime-R — body-free history plus one expiring support-safe Recent sent copy                                                                                                                                       |
+| D15      | 2026-07-18 | C-prime-R — phase-separated whole-message recovery with proof-gated resume                                                                                                                                          |
+| D16      | 2026-07-18 | C-prime-R — complete governed catalog with generation-safe activation                                                                                                                                               |
+| D17      | 2026-07-18 | C-prime-R — contract-owned reply purposes and bounded tenant destinations                                                                                                                                           |
+| D18      | 2026-07-18 | A-prime-R — tenant-authored messages around a minimum source-owned truth core                                                                                                                                       |
+| D19      | 2026-07-18 | C-prime-R — versioned tenant portability and destination-owned transfer                                                                                                                                             |
+| D20      | 2026-07-19 | C-prime-R — one Default plus bounded versioned Sender Profiles                                                                                                                                                      |
 
 The immutable clause ids and coverage sentences below are the durable detailed
 record. A future change to a ratified outcome requires a dated amendment to this

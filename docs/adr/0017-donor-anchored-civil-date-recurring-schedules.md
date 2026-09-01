@@ -56,6 +56,19 @@ No end date is the automatic checkout default and creates no extra question.
 An optional, visually secondary end-date control sets an inclusive final
 eligible gift date after concise, non-guilt-based explanation.
 
+**Phase 24 D65 amendment (2026-08-30).** When an unaccepted editable gift line
+changes between one-time and an exact recurring cadence, or between two exact
+recurring cadences, every source cadence anchor, start, end, final-date answer,
+occurrence preview, and schedule-derived acknowledgement clears. The target
+schedule is computed afresh by this kernel under the current Tenant policy and
+giving time zone: ordinary cadences use the current civil-date default, twice
+monthly uses today when the current civil date is the 1st or 15th and otherwise
+the next 1st/15th slot, and no end date remains the default.
+Source dates are never copied or position-mapped. The donor must review the new
+per-occurrence amount and **Today / Next / Then** consequences before
+acceptance. Accepted schedule changes remain append-only effective epochs and
+are outside D65.
+
 ## Consequences
 
 - Checkout and every management surface must preview the first gift, continuing
@@ -69,3 +82,6 @@ eligible gift date after concise, non-guilt-based explanation.
 - No arbitrary tenant-authored cadence DSL, automatic billing-date
   normalization, daily recurrence, weekend sliding, or settlement-driven anchor
   is introduced.
+- Property and journey tests cover all 72 ordered transitions among one-time
+  and the eight recurring cadences, including short-month, leap-year, DST, and
+  twice-monthly boundaries.

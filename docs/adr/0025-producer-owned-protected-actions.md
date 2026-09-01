@@ -1,7 +1,8 @@
 # ADR-0025: Producer-owned protected actions
 
 **Status:** Accepted (founder ruling, Phase 17 grill session — D6; shared
-transport amended by ratified Phase 18 D13 on 2026-07-20)
+transport amended by ratified Phase 18 D13 on 2026-07-20 and Phase 24 D57 on
+2026-08-30)
 
 > Full record: `docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md`
 > (ratified decision D6).
@@ -31,12 +32,15 @@ descriptor from the producer and renders it through the contract-approved
 protected-action node. A template cannot create, inspect, rewrite, duplicate,
 relabel, track, or widen an action.
 
-Every protected action uses the same fixed scanner-resistant Asym doorway. The
-producer contract may require an authenticated portal session, reauthentication,
-step-up, producer OTP, or explicit confirmation after the verifier POST, but
-those are assurance requirements behind one transport—not alternate link or
-token systems. The producer still owns the resulting operation and every
-business precondition/postcondition.
+Every Tenant-scoped protected action uses one fixed scanner-resistant,
+code-owned doorway on the exact Tenant Donor Portal Host frozen when the action
+is issued. The origin comes only from the current authoritative host binding;
+request headers, Tenant content, Site context, and return input never select it.
+The producer contract may require an authenticated portal session,
+reauthentication, step-up, producer OTP, or explicit confirmation after the
+verifier POST, but those are assurance requirements behind one transport—not
+alternate link or token systems. The producer still owns the resulting
+operation and every business precondition/postcondition.
 
 `GET`, `HEAD`, previews, link expansion, and scanner traffic MUST have no
 business effect. Sensitive credentials and destinations MUST NOT enter template
@@ -45,9 +49,10 @@ or the recent sent-copy projection. A newly issued credential creates a new
 communication/prepared-message identity; an old prepared message is never
 mutated to carry it.
 
-The protected handoff is a no-store, no-referrer, third-party-free Asym flow.
-The fixed code-owned Asym URL carries only a random **non-secret selector** in
-the HTTP URL and an independent 256-bit verifier in the URL fragment. The server
+The protected handoff is a no-store, no-referrer, third-party-free,
+Tenant-brand-native flow. The fixed code-owned URL on the frozen Tenant Donor
+Portal Host carries only a random **non-secret selector** in the HTTP URL and an
+independent 256-bit verifier in the URL fragment. The server
 stores only a versioned HMAC/digest of that verifier. The fragment is not sent
 in an HTTP request and MUST NOT enter a path, query, redirect, provider tracking
 URL, communication history, log, trace, analytics event, support tool, recent
@@ -98,7 +103,7 @@ worker handling. Every response also sets `Referrer-Policy: no-referrer` and a
 strict first-party CSP. The landing page's narrow pinned script exception is the
 only script allowance; it does not weaken the producer-owned authorization or
 deliberate-action boundary. Terminal results are privacy-safe and
-non-enumerating. Asym guarantees that the verifier leaves browser-visible
+non-enumerating. Core guarantees that the verifier leaves browser-visible
 history after the minimal script runs and never enters product-controlled URLs,
 forms after submission, referrers, logs, or telemetry; it does not claim to
 erase mail-client, extension, screenshot, clipboard, or other records outside
@@ -116,6 +121,14 @@ frozen semantic identity; it never creates a second email. The authoritative
 Asym invitation is consumed only by one idempotent producer command that
 re-proves the exact tenant, invitee, origin, expiry, revision, and fresh Supabase
 proof.
+
+Phase 24 D57 prohibits a donor-visible platform-origin fallback for Tenant
+actions. If the frozen Tenant host is no longer currently proved, Core stops
+new issuance and returns only privacy-safe unavailability when that host still
+reaches Core; it never moves the action to `asymmetric.al`, another Tenant, a
+Site host, or a provider URL. A successor action may use a newly proved Tenant
+host only through fresh issuance. Internal control-plane endpoints and audit
+tools remain outside the Tenant-facing doorway.
 
 ## Consequences
 

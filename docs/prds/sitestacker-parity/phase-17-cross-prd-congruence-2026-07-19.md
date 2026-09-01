@@ -173,14 +173,17 @@ built.”
 - **Old statement:** the branded hook resolves tenant from request/redirect
   context and injects an action link
   (`phase-04-identity-account-claiming-foundation.md:136-140`, `:169-170`).
-- **New winner:** producer-owned credential/action; scanner-resistant fixed Asym
-  handoff with a non-secret HTTP selector plus independent fragment-held
-  verifier; fresh provider proof only after a deliberate same-origin recipient
-  POST. Ratified Phase 18 D13 amends this shared transport for every protected
-  action rather than creating a document-only token system.
+- **New winner:** producer-owned credential/action; scanner-resistant fixed
+  code-owned handoff with a non-secret HTTP selector plus independent fragment-
+  held verifier; fresh provider proof only after a deliberate same-origin
+  recipient POST. Ratified Phase 18 D13 amends this shared transport for every
+  protected action rather than creating a document-only token system. Phase 24
+  D57 further fixes each Tenant-scoped issuance to the current verified Tenant
+  Donor Portal Host and permits no donor-visible platform-origin fallback.
 - **Compatibility boundary:** Phase 4 retains issuance, expiry, revocation,
   redemption and completion. `redirectTo` may carry only the inert selector and
-  fixed trusted Asym route; the independent verifier remains in the fragment.
+  exact frozen Tenant Donor Portal Host route; the independent verifier remains
+  in the fragment.
   Neither can choose authority, tenant, recipient, template or sender, and there
   is no full-secret path/query fallback.
 

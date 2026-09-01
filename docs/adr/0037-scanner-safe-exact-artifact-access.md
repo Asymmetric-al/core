@@ -1,6 +1,7 @@
 # ADR-0037: Scanner-resistant exact-artifact access
 
-**Status:** Accepted (founder ruling, Phase 18 grill session — D13)
+**Status:** Accepted (founder ruling, Phase 18 grill session — D13; Tenant-
+scoped origin amended by Phase 24 D57 on 2026-08-30)
 
 > Full record:
 > `docs/prds/sitestacker-parity/phase-18-receipt-pdf-template-system.md`
@@ -33,9 +34,10 @@ evidence, jurisdictional delivery determination, and records evidence as
 separate authorities. An expired grant never expires the document, and issuing a
 new grant never rerenders, renumbers, replaces, or redelivers it by itself.
 
-For every protected action, the fixed trusted Asym URL carries a non-secret
-selector in the HTTP URL and an independent 256-bit verifier in the URL
-fragment. The server stores only a versioned HMAC/digest of the verifier. The
+For every Tenant-scoped protected action, the fixed trusted code-owned URL on
+the Tenant Donor Portal Host frozen at issuance carries a non-secret selector
+in the HTTP URL and an independent 256-bit verifier in the URL fragment. The
+server stores only a versioned HMAC/digest of the verifier. The
 fragment is never sent in an HTTP request, stored in communication history, or
 exposed to platform logs, analytics, referrers, provider URLs, or support tools.
 
@@ -66,7 +68,8 @@ immediately.
 
 Every portal, guest, staff, print, full-file, and range request reauthorizes the
 object and streams the same digest/length/read-back-proven immutable PDF through
-an Asym-owned boundary. Every protected landing, redirect, error, session,
+a Core-operated boundary on that frozen Tenant host. Every protected landing,
+redirect, error, session,
 full-file, and range response sets exactly:
 
 - `Cache-Control: private, no-store, no-transform, max-age=0`

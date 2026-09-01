@@ -146,7 +146,7 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **21** | `field-accounts`             | [Missionary Field Accounts & Support Balances](./phase-21-field-accounts.md)                                                      | **1**, 3, 4, 6, **9, 10, 12**, 13, **15**, 17, 18, 20 | 16                                                    | Mission Control Finance/Admin, Missionary Workspace projection  | `PRD exists` (implementation-ready 2026-08-02; spec #1108; epic #1109 + lane epics #1110–#1120 + P21-01–P21-101 published and dependency-governed; not implemented; D1-D28 scope-frozen; D17/D27 activation requires certified Phase 29 opening-source private-byte custody and Phase 30 import-session staging; selected private-byte-bearing D10/D14/D18/D22/D24/D25/D28 and D26 package/lifecycle slices require their exact owner seams, while metadata/manual/feed paths remain separate; D28 requires Phase 29/30 only for its selected private-byte/bulk lane and otherwise weakens no owning-phase prerequisite) |
 | **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3                                       | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **23** | `web-studio-cms`             | CMS / Site Planner Dynamic Content Parity                                                                                         | 5, 3, 2                                               | 22                                                    | Web Studio, Payload, Public Website                             | `future (needs PRD)` — deps allow an early start after Phase 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **24** | `multi-site-management`      | Full Multi-Site, Language & Currency Management                                                                                   | 2, 5, 13, 20, 23                                      | 17                                                    | Tenant settings, Web Studio, Contributions settings             | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **24** | `multi-site-management`      | [Full Multi-Site, Language & Currency Management](./phase-24-multi-site-management.md)                                            | 2, 5, 13, 20, 23                                      | 17                                                    | Tenant settings, Web Studio, Contributions settings             | `PRD exists` (implementation-ready 2026-09-01; spec [#1431](https://github.com/Asymmetric-al/core/issues/1431); [OpenSpec](../../../openspec/changes/add-multi-site-management/proposal.md); tickets [#1432–#1557](https://github.com/Asymmetric-al/core/issues/1432) published and dependency-governed; P24-01/#1432 sole ready frontier; 125 successors blocked; D1–D18 and D57–D84 scope-frozen; D19–D55 preserved cross-phase evidence; D56 deferred; not implemented)                                                                                                                                               |
 | **25** | `donor-portal-depth`         | Donor Dashboard Depth                                                                                                             | 4, 3, 13, 7, 6                                        | 17, 19                                                | Donor Portal                                                    | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17                                        | —                                                     | Support Hub, communication services, `packages/api`             | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **27** | `donor-development`          | Donor Development & Portfolio Management _(beyond-parity differentiator)_                                                         | **9**, 3, 6, 13                                       | consumes 14, 16; 26; enhanced by 33, 34               | Mission Control CRM (Development)                               | `future (needs PRD)` (was v1 Phase 33)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -2764,21 +2764,33 @@ SiteStacker's inherited-content/wrapper cascade as per-site layout defaults.
 CMS configuration cannot bypass a source domain's publication or safety
 contract.
 
+**Phase 24 D59 integration.** Phase 24 owns the ordinary self-service Site-
+brand management experience and complete bounded Site Brand Versions; it does
+not create another renderer or serving head. If Phase 23's separately governed
+Presentation Package/Public Site Generation contracts are accepted, Phase 24
+consumes their qualified presentation choices and release authority. Staff-
+supplied code remains prohibited, and any certified package lane must be
+explicitly reconciled with the repository's governing Base Maia/Base UI
+contract before implementation.
+
 **Open questions for grooming.** Audience-conditional public content
 (beyond date windows) vs the tenant-keyed cache — needs an explicit
-personalization/cache rule before conditions ship; per-locale publish status
-(Payload `localizeStatus` is beta); content import/export as staff-facing vs
-ops-only.
+personalization/cache rule before conditions ship; content import/export as
+staff-facing vs ops-only. Phase 24 D66 resolves public Site Locale publication:
+Payload localized status is experimental/default-off editor convenience and can
+never be Core's readiness or serving authority.
 
 ---
 
 ### Phase 24 — Full Multi-Site, Language & Currency Management (`multi-site-management`)
 
-**What this phase is (plain language).** Phase 2 built the primitives (site,
-locale, currency, entry method, source code); this phase builds the **staff
-management product** on top: run a second branded site, add a domain and
-watch it verify, enable a locale and see translation status, configure
-currencies — all self-service in Mission Control/Web Studio.
+**What this phase is (plain language).** Phase 2 built the Site, locale, and
+currency primitives; it also records entry method and source code as
+independent giving-attribution context, but Phase 24 does not manage those
+axes. This phase builds the **staff management product** on the Site/locale/
+currency primitives: run a second branded site, add a domain and watch it
+verify, enable a locale and see translation status, and configure currencies —
+all self-service in Mission Control/Web Studio.
 
 **Why it sits here.** After Phase 23 (site management UX lives in the
 Studio shell) and Phase 2/5 (primitives + runtime).
@@ -2787,19 +2799,26 @@ Studio shell) and Phase 2/5 (primitives + runtime).
 
 - **Site management**: create/configure branded sites (SiteStacker's Site
   Channel mental model: per-site domains, templates, language, content
-  sharing), per-site branding and defaults, and one shared tenant checkout
-  policy. Every financial route is prospectively bound to one exact Legal
-  Entity, Designation, SettlementAccountBinding, environment, and currency
-  lane; a Site supplies presentation and entry context but never defines
-  financial ownership.
-- **Domain lifecycle**: wildcard tenant subdomains by default; custom
-  domains added/verified via the Vercel Domains API with **async
-  verification status UX** (the API is rate-limited — 50/hr/team — so bulk
-  onboarding must queue), automatic SSL, fail-closed unknown-host behavior
+  sharing), complete bounded Site Brand Versions and defaults, and one shared
+  Tenant-wide checkout flow/product structure with Site-scoped brand, currency,
+  and suggested-amount facets. Every financial route is prospectively bound to
+  one exact Legal Entity, Designation, SettlementAccountBinding, environment,
+  and currency lane; a Site supplies presentation and entry context but never
+  defines financial ownership.
+- **Domain lifecycle**: private provider/platform preview hosts during setup;
+  publicly activated Sites use exact Tenant-controlled custom domains added/
+  verified via the Vercel Domains API with **async
+  verification status UX**. Provider domain APIs are rate-limited, so Core
+  coalesces and queues checks, honors current response limit/reset headers and
+  `429` backoff, and presents plan/endpoint limits as source-labelled evidence
+  rather than product constants. Automatic SSL and fail-closed unknown-host behavior
   (Phase 5).
-- **Localization management**: enabled locales per site/tenant, translation
-  status visibility, fallback-chain configuration, per-locale system-message
-  overrides (with Phase 17).
+- **Localization management**: stable Site Locales per Site, exact translation
+  status visibility, private preparation/production-faithful preview, and
+  proof-gated explicit public release. Exact public locale routes never use a
+  Site-wide cross-language content fallback; independently current equivalents
+  may be linked explicitly. Phase 17 separately owns its permitted whole-
+  message fallback and per-locale overrides.
 - **Currency management**: per-site default plus enabled donor presentment
   currencies, donor-facing conversion disclosure, and clear separation of
   presentment from settlement. The ordinary path lets Stripe convert activity
@@ -2822,11 +2841,668 @@ prospectively, but cannot convert, merge, or rewrite Phase 21 Field Account
 currency, Activation Version, Support Currency Allocation Manifest, or any
 frozen Phase 20 Accounting Release.
 
-**Open questions for grooming.** Whether the donor portal lives on tenant
-domains or a platform domain; brand-theming depth per site. Phase 24 only
-surfaces Phase 17-owned sender-domain, outbound-identity, and readiness status
-per site/locale; it does not own Resend credentials, sender profiles, or
-delivery configuration.
+**Phase 24 D57 resolution.** The authenticated Donor Portal launches only on
+one current verified Tenant-controlled HTTPS host per Tenant and environment.
+It is Tenant-wide rather than Site-owned; all donor-facing identity and portal
+surfaces are Tenant-brand-native and provide no visible Asym co-branding or
+`asymmetric.al` fallback. Host and branding never establish authorization, and
+required legal, merchant, processor, payment, security, and accessibility facts
+remain truthful.
+
+**Phase 24 D58 resolution.** That one portal uses one current Tenant Donor
+Account Brand across sign-in, claim, recovery, errors, navigation, settings,
+and cross-Site history. The Default Site and entry Site never reskin the
+account; a verified same-Tenant Site may appear only as secondary attribution
+or a validated return action. Customization stays inside the shared accessible
+product structure, brand never authorizes or replaces legal/financial truth,
+and no failed asset or incomplete draft may fall back to Asym, GiveHope,
+another Tenant, or a Site brand.
+
+**Phase 24 D59 resolution.** Each Site has complete immutable Site Brand
+Versions for its public website and public-giving presentation. Ordinary staff
+controls are expressive but bounded to approved identity assets, dedicated
+semantic brand roles, compatible typography, and finite purpose-named choices;
+they contain no runtime code or unrestricted styling. Starting from an exact
+compatible Tenant Donor Account Brand projection creates an independent draft,
+never live inheritance or Site authority for the account brand. The applicable
+public-Site release authority pins one exact qualified version; drafts and
+failures have no public effect, and D59 creates no second renderer, theme store,
+serving head, or approval workflow. Navigation,
+content, media, account, message, legal, payment, and authorization owners keep
+their facts.
+
+**Phase 24 D60 resolution.** Each applicable Site setup/readiness view shows one
+quiet, read-only **Messages** summary derived by Phase 17 for the exact current
+Site capabilities and Site Locales. It preserves exact Ready, compatible-
+fallback, and attention outcomes; shows an explicit unavailable state rather
+than stale green; groups exceptions; and offers one authorization-safe action
+into System Messages. Phase 17 remains the only configuration, readiness,
+provider-evidence, repair, and audit owner. The Site surface copies no settings,
+provider enums, scores, polling, or mutation controls and creates no readiness
+authority. Core website activation remains independent; only an exact
+capability owner may declare and re-prove its own message dependency.
+
+**Phase 24 D61 resolution.** A Site with several enabled donor presentment
+currencies uses one provider-neutral, country-level suggestion only for an
+empty giving intent. The exact current donor-visible set is the intersection of
+Site policy and payments-owned qualification for the complete Tenant, Site,
+Legal Entity, Settlement Account Binding, connected account/environment,
+cart/route, cadence, amount, and payment-method context. Donor choice wins for
+that intent; one cart remains one currency; the accepted contribution and any
+recurring agreement freeze it. Locale, browser language, URL, profile, cookie,
+Site default, provider global support, or location never authorizes currency or
+changes a nonempty cart. Missing/ambiguous location uses the qualified Site
+default; if it is unavailable, the donor explicitly chooses another qualified
+currency or Giving fails closed when none exist. D61 adds no GPS prompt,
+third-party geocoder, profile preference, country rules, currency URL, FX
+engine, Stripe Adaptive Pricing/Checkout Sessions dependency, retained
+settlement lane, or accounting setup.
+
+The donor sees one labelled ISO-code-plus-localized-name control before amounts
+when multiple currencies qualify, or static currency text when one qualifies,
+with the code repeated through authorization, confirmation, receipt, and
+history. Staff manage only default plus enabled intent, current availability,
+prospective impact, and one owner action in the Site workspace; payments owns
+qualification and Phase 20 keeps settlement/accounting consequences separate.
+No non-USD cohort may activate until the exponent-aware money seam, exact
+connected-account binding, structural single-currency cart, currency-bearing
+idempotency, fee/preset/payment-method correctness, and every downstream money
+projection pass production-shaped proof.
+
+**Phase 24 D62 resolution.** Adding a presentment currency is one compact step
+inside the Site **Currencies** card. Selection automatically runs a read-only,
+Payments-owned qualification for each current live Site route/giving-mode
+cohort; there is no separate wizard, checklist, provider matrix, test charge,
+or provider-setting mutation. Staff see one truthful result—ready for the named
+modes, payment setup needed, unavailable for the Site, or temporarily unable to
+check—and one cause-owned next action. One explicit save changes the complete
+Site policy only when at least one route qualifies, the Site-policy revision and
+exact qualification fingerprints still match, and a new default covers every
+current entry that relies on it.
+
+Qualification binds the exact Tenant, live environment, Site financial route,
+Legal Entity, Settlement Account Binding, connected account/charge topology,
+currency, gift mode, admissible rail, canonical money implementation, pinned
+provider contract/configuration, source generation, and expiry. It proves a
+stable offering envelope, not a donor payment: checkout must still re-prove the
+actual cart, amount, cadence, method, limits, binding/account, and currency
+before any provider object. Sandbox success, Stripe's global currency list, a
+past gift, or Site intent never proves live readiness. Unknown, stale, drifted,
+or contradictory evidence removes only the affected currency/mode from new
+donor availability while preserving selected Site intent and all carts,
+accepted gifts, recurring agreements, provider evidence, receipts, refunds,
+ledger, settlement, and accounting history. Ordinary CAD-presentment to
+USD-settlement adds no foreign bank/accounting prerequisite or FX engine.
+
+**Phase 24 D63 resolution.** A donor may deliberately change a still-editable
+cart from CAD to another currently qualified currency without losing its
+purpose. A pristine cart changes immediately. Once any entered/prefilled amount,
+fee choice, derived total, payment selection/input, authorization, client
+secret, provider session, or other currency-dependent state exists, Core leaves
+the complete CAD cart untouched and first uses one accessible consequence-
+specific confirmation. The target is re-proved for every current cross-Tenant/
+Site line, Legal Entity/payment group, cadence, route, account/environment, and
+qualification before commit; any stale/incompatible/concurrent result writes
+nothing.
+
+One server-owned successor revision preserves only revalidated currency-
+independent designation/order, cadence, attribution, contact, tribute,
+anonymity, comments, consent, and form intent. All amounts, presets, allocations,
+fee-cover meaning, totals/amount-derived claims, payment/method/mandate/
+authorization state, browser payment state, old client-secret meaning, and
+attempt identity clear by default. No FX lookup, rounding, or digit carryover
+occurs. The donor sees **Change currency to USD?**, initially focuses **Keep
+CAD**, and after success sees a persistent **Currency changed to USD. Enter your
+gift amounts in USD** instruction with focus at the first amount. Provider-
+attempt, confirming/authenticating/processing/capture-pending, successful, and
+outcome-unknown states are immutable or reconciled before a separately
+identified successor; accepted gifts and recurring agreements never change
+currency. Draft amount absence is valid only while editable—review, acceptance,
+provider creation, recurring authorization, and every money projection require
+checked target-currency amounts.
+
+**Phase 24 D64 resolution.** Suggested gift amounts are reviewed native Site
+fundraising presentation, not FX, Stripe pricing, or money truth. Operational
+Postgres owns one immutable versioned Site Suggested Amount Set for each exact
+Tenant, Site, ISO presentment currency, and one-time or exact enabled recurring
+cadence. A set contains zero to six unique positive exponent-correct amounts in
+ascending order and selects none automatically. Ordinary open giving always
+offers a custom amount.
+Missing or intentionally empty sets therefore produce a clean custom-only flow
+only while the exact context remains qualified, not a donor-facing setup error.
+
+The Site workspace shows compact per-currency summaries and one in-context
+frequency-tab editor with the shared donor preview. One authorized expected-
+revision save is the review and applies prospectively to new pristine views;
+there is no matrix, wizard, CMS publication, separate approval, mandatory
+reason, Stripe/provider call, FX source, AI personalization, or live inheritance.
+Core never copies monetary digits across currencies or frequencies. Phase 13
+owns and revalidates the donor-selected Money; changing a set never rewrites a
+selected cart amount, accepted gift, recurring agreement, receipt, refund,
+ledger, or accounting history. D61/D62 still determine currency availability,
+Phase 16 still owns cadence policy, and D63 loads a target set without silently
+selecting new money after a confirmed currency clear. Amount-dependent impact
+claims remain outside D64's numeric contract.
+
+Deliberate currency/cadence disablement retires the corresponding set from
+public use without deleting history; a later re-enable must explicitly reaffirm
+former values through a successor before presets return. A transient D62
+qualification pause preserves reviewed Site policy and resumes only under D62's
+same exact proof, never through a custom-input bypass.
+
+**Phase 24 D65 resolution.** A Donor Gift-Schedule Transition changes one
+unaccepted editable cart line between one-time and any exact enabled Phase 16
+cadence, or between two exact cadences. It preserves the same revalidated
+destination/purpose and every unrelated line, but clears the affected amount,
+source schedule details, amount/schedule-derived claims and the smallest
+complete dependent fee, payment, authorization, group/cohort and execution-plan
+state. It never carries digits, maps D64 preset position, substitutes another
+destination, edits an accepted gift/agreement, or performs provider proration.
+
+Pristine unanswered changes are immediate. Any material donor, fee, payment,
+authorization or provider state keeps the complete source cart authoritative
+until one accessible consequence-specific confirmation and either an
+authenticated owner-scoped CAS transaction or a server-revalidated idempotent
+guest successor result proves the exact target context. A guest cart remains
+client-only and replaces local state only after success/readback; Core stores no
+guest cart or permanent donor history. Failure or stale/incompatible proof
+changes nothing. Success makes the target amount explicitly unanswered, shows
+its D64 set unselected, derives a fresh Phase 16 schedule with no copied source
+dates, preserves sibling intent even when shared execution projections must
+rebuild, and prevents every predecessor secret or provider attempt from
+submitting. D65 adds no staff setting, capability, workflow, provider
+subscription editor, or generic transition engine.
+
+**Phase 24 D66 resolution.** The original Option 1 wording is rejected and
+replaced because its `/fr-ca/...` examples, Site-wide ordinary-content fallback,
+and universal Giving/account/message gate contradicted D14-D16, D57-D60, and the
+fixed `/lang/{exact-locale}` contract. The permanent direction remains private
+preparation plus explicit proof-gated publication.
+
+Site Platform must maintain one small, code-owned, versioned **Site Locale
+Publication Contract**. Version 1 has exactly five core-website families:
+trusted route/Site/host/locale/release identity; exact-locale homepage/frame/
+Brand/Navigation/language control and invoked support/privacy/legal links;
+known-Site not-found/error/unavailable/recovery; complete exact-locale
+presentation of every applicable member of those presentation families plus
+direction/script/font/bidi/responsive/accessibility correctness; and canonical/
+reciprocal-alternate/sitemap/robots/serializer/generation/cache closure. New
+universal website dependencies must classify themselves in the same change or
+CI fails. Tenants cannot add, remove, waive, score, or percentage-weight rows.
+Each source owner retains its truth; the contract only composes exact current
+evidence.
+
+Staff may add, author, and production-preview a Site Locale privately. The
+first default locale participates in the Site's one D6 **Go live** action; an
+additional locale on a live Site receives one explicit **Publish French
+(Canada)** action after a fresh Preview. When untranslated ordinary content
+exists, the confirmation shows a numeric unavailable total only from a complete
+safe aggregate; otherwise it says **Some** and never exposes hidden items. Every
+generated label uses the complete Site Locale display label. A ready action creates one immutable
+Site Locale Public Release through D66's minimal Public Site Generation
+contract. This does not accept the broader unmerged Phase 23 Presentation
+Package proposal; an accepted compatible generation owner is consumed rather
+than duplicated. Publication uses current authorization, expected heads, semantic idempotency, short-
+transaction CAS, business receipt, audit, and outbox—or changes nothing. The UI
+shows **Publishing** until the exact public URL, language menu, canonical/
+alternate metadata, and sitemap acknowledge the same generation. Search-engine
+indexing is not part of convergence. A pre-commit failure keeps the first locale
+private or preserves the prior head; after commit the new head is sole authority
+and failed readback remains honestly **Publishing** with fail-safe serving.
+Favorable publication commits the human-authorized head before enabling the
+generation-bound admission projection; every withdrawal, suspension, or safety
+revocation persists and acknowledges the adverse admission fence before its
+head transition. Unknown fence outcomes reconcile before continuing.
+After fence success, head failure/conflict/unknown keeps admission adverse and
+the same durable command in **Needs attention** for forward reconciliation;
+only an explicit reauthorized all-source safety proof may restore admission.
+
+Ordinary missing stories do not block publication. Missing items remain absent
+from French Navigation, site search, sitemap, and `hreflang`; only a source-
+owned typed same-resource relation may place an explicit **Read this story in
+English** link to its current authorized, non-source-revoked URL. D67
+translation freshness remains a separate editorial fact. Exact French URLs never
+substitute another Site Locale as field/resource/Page fallback; deliberately
+authored multilingual passages remain valid with truthful `lang`/`dir`. D67
+owns the serving policy for an already-published item that later becomes out of date.
+Giving/address, Tenant account, Messages, receipts, currencies, payments, and
+default-locale activation remain separately owned and nonblocking. Publication
+does not enable or configure them. Publishing French does not make it the D16
+default, and withdrawal never redirects to another locale or releases route/
+history.
+
+Phase 2's `default_locale`/`allowed_locales[]` become one-way migration
+projections, not dual owners. Relational writers remain off until one cutover
+fences every legacy array mutation; rollback never re-enables array writes.
+Phase 24 normalizes stable same-scope Site Locale identity as A1a's bounded
+repeated-facet exception; the sole Public Site Generation head remains serving
+truth, with no `is_ready`/`is_public` Boolean or checklist table. Site data is
+isolated one deployment environment per Supabase project/database; a future
+shared database must add environment to Site and every dependent key/FK in one
+migration. Operational tables require full-scope keys/FKs, restrictive
+deletion, explicit grants, FORCE RLS, matching structural `USING`/`WITH CHECK`,
+and command-only writes. Direct DML is revoked from browser and secret/service-
+role paths; Phase 12 PDP/PEP owns capabilities while RLS remains coarse Tenant/
+structural isolation. Fresh human `sites.publish_locales` authority governs
+first activation and whole-locale lifecycle/contract transitions. Later
+resource publications follow the Tenant's source-owned manual, automatic, or
+scheduled publication policy and add no second locale approval; an NHI may
+mechanically process only a command already authorized by that applicable
+policy. Payload owns exact-
+locale drafts/publications and is queried with fallback disabled; its role's
+RLS bypass, experimental localized status, and internal version are contained
+behind access hooks and the published-reader boundary.
+
+Vercel publication is runtime/data driven: no Domain API call, deployment,
+`generateStaticParams` inventory, Proxy database/content lookup, or language-
+negotiation cache variant. Keys bind Tenant/environment/Site/host/stable locale/
+generation/resource/renderer; scoped tags invalidate only. Private, unknown,
+withdrawn, preview, and adverse results are `no-store`; generation-bound,
+adverse-first Edge Config (or an equivalent non-React seam) performs pre-stream
+admission but never sole authorization, and runtime/head/existence rechecks
+produce real non-success status before streaming.
+The admission adapter reuses one bounded A6 lookup and stores only compact
+host/Site/locale/generation/status coordinates; it must prove current provider
+size/read/write/cost limits, remains partitionable/replaceable, and denies on
+exhaustion rather than scanning Postgres in Proxy or broadly allowing.
+The current static English metadata/root layout, unprefixed catch-all, host-only
+CMS cache, broad locale tag, and 24-hour sitemap cache are migration blockers,
+not accepted runtime behavior. See ADR-0187.
+
+**Phase 24 D67 resolution.** Every target revision has immutable **Translated**,
+**Independently authored**, or **Legacy · source unclassified** provenance. Only
+Translated pins exactly one explicit same-scope, distinct-locale Translation
+Basis and source-owner translation-input identity containing a compatible
+canonicalization profile/version plus digest. Independent has no freshness
+comparison; a currently public Independent target reports **Current** (no
+translation follow-up) with **Independently authored** detail. Legacy is **Could
+not be checked**. A current authoritative source publication with different
+semantic input derives staff-only **Out of date**; an unproved profile
+transition is **Could not be checked**, never compared by bare digest;
+drafts, autosaves, future/rejected candidates, timestamps, cache age, tasks, and
+unrelated source changes do not. Ordinary drift leaves the reviewed target route,
+content, Navigation, search, sitemap, reciprocal alternatives, and authorized
+language links public. Provenance and lineage are explicit, never inferred.
+
+Only a registered safety-governed source successor asks its authoritative owner
+whether prior translation-dependent public use may continue or must be revoked.
+That one source-owned, unselected consequence choice stays in the existing source
+publication review and creates no generic risk tier, approval workflow, reason,
+task, timer, notification, or translation-quality decision. An adverse result
+uses D66's server-derived smallest complete closure and fence-first transition;
+a resource successor omits only the complete affected resource closure, while a
+universal-frame dependency may deny the locale. The compact generation fence may
+temporarily deny the containing locale but never stores per-Page truth, selects a
+fallback, or becomes a favorable head. See ADR-0188.
+Every safety-governed unpublish/retire/tombstone/delete must likewise resolve
+prior public use or complete adverse fencing, and referenced evidence cannot be
+hard-deleted.
+
+**Phase 24 D68 resolution.** The promised **fallback-chain configuration** is
+renamed **Suggested translation sources** and narrowed to one optional partial
+same-Site order for staff authoring. It ranks currently eligible sources in
+explicit, unselected **Copy from…** and **Compare with…** choosers; every omitted
+eligible source remains available. The order grants no access, establishes no
+locale equivalence or Translation Basis, changes no provenance/freshness, and
+has no public route, alternative, publication, generation, search, SEO, cache,
+Vercel, message, Giving, currency, receipt, or payment effect. `sites.manage_locales`
+owns one expected-revision save; source/target commands reauthorize and pin the
+actual revision. Empty/unavailable preference leaves the ordinary chooser
+usable. See ADR-0189.
+
+**Phase 24 D69 resolution.** For each exact D68-eligible source locale, **Copy
+from…** may offer at most two distinct, unselected logical heads: **Latest saved
+draft**, the exact current server-acknowledged D12 Working Revision when
+ADR-0191-qualified, and **Current published version**, the exact source revision
+selected by D1's current authorized public generation when it also qualifies.
+Each exact head qualifies before enabled-candidate deduplication; equal compatible
+copy inputs collapse to the public row only when the public head qualifies, so an
+unknown public head never hides a qualified private one. Provider latest/history/status, unsaved or
+outcome-unknown work, schedules, and arbitrary versions are excluded.
+
+Selecting a private head freezes/reuses an immutable retention-protected Copy
+Source Checkpoint. One trusted resource command reauthorizes exact source/target
+scope and atomically creates checkpoint if needed, one private target, Translated
+provenance, D67 Basis, audit, and receipt—or none. It copies only the finite
+source manifest, never overwrites, and creates no policy, workflow, task,
+notification, version browser, public resolver, Vercel, Giving, currency,
+Stripe, or message behavior. A target whose Basis is supported only by private
+source evidence cannot first publish as Translated until D1's current
+authoritative source publication pins that same exact source revision and
+compatible copy identity, or D67 records a reviewed successor Basis against the
+actual current publication. Compatible readers must retain the derived blocker
+and D67 remediation after the private writer is disabled. See ADR-0190.
+
+**Phase 24 D70 resolution.** Private-draft Copy requires exact-revision,
+purpose-specific **Copy Qualification**, not publication readiness. After D12's
+side-effect-dark acknowledgement, source owners asynchronously create or reuse at most one durable immutable content-free
+completed revision result for an exact revision/digest and versioned source-
+contract digest covering the supported schema/profile/manifest/canonicalizer/
+qualifier/block/node/package versions and limits,
+without delaying Save; a retained-reader-qualified legacy D1 current publication
+may receive the same source-owned evidence. Missing/in-progress/failed work is
+retryable unknown, and Check again idempotently requests the same identity through
+source-owned durable work—not a revision attempt history or readiness workflow.
+Pending work coalesces to current private/public heads and revisions referenced by
+a retained D69 Copy Source Checkpoint/Basis;
+superseded unretained autosaves do not build an unbounded queue.
+The picker combines it with batched live authorization/
+lifecycle/safety/reference facts, and the selected command reloads the exact body
+and reruns lossless proof. Unknown, corrupt, over-limit, unclassified, silently
+omitted, fallback-derived, unauthorized, cross-scope, ambiguous, or zero-effect
+input cannot create a Translated target. Public source heads pass the same proof.
+
+Source-owned Details to finish, Suggestions, Technical issues, and unavailable
+checks remain truthful, visible, and non-gating when Copy qualification succeeds.
+They never transfer to the independently validated target or become public truth.
+D70 adds no Ready-for-translation state, workflow, capability, setting, issue
+ledger, generic validator, external scanner, eager candidate-body scan, public
+runtime, Vercel, Giving, currency, Stripe, or message behavior. D1/D66 retain
+publication authority. See ADR-0191.
+
+**Phase 24 D71 resolution.** For one exact authorized viewer, target, Copy
+action, and D69 private/public head, the server derives one nonpersisted **Copy
+Source Disposition**: qualified, proved unavailable, qualification unknown, or
+not disclosable. Only qualified heads enter the unselected **Source version**
+RadioGroup. Immediately afterward, one neutral **Unavailable source versions**
+section renders authorized unavailable/unknown heads as ordinary semantic list
+content with exact locale/head identity, bounded content-free reason, and at
+most one independently authorized cause-owned action. It exposes no disabled
+radio, selectable row, count, raw error, provider detail, live static row, or
+nondisclosable-head distinction.
+
+Candidate and status members derive from one authorization/head snapshot and
+cursor; paging retains locale groups that contain only authorized status heads.
+Check again and source handoff reauthorize the displayed exact current D12/D1
+lane head and never silently substitute its successor. Zero qualified heads omit
+the RadioGroup/disabled Create control and make **Start {target locale} blank
+draft** the direct primary Sheet-footer action. D71 persists nothing, creates no
+second resolver, query, workflow, retry store, poller, schema/RLS change,
+Vercel/Stripe call, or public behavior, and must meet D69's p95 300 ms budget at
+the Site Locale owner's maximum supported status-heavy catalog. See ADR-0192.
+
+**Phase 24 D72 resolution.** Every publicly activated, nonretired Site retains
+exactly one current **Primary Site Domain**, including while D7 suspends
+serving. It alone may serve favorable website content and supplies the origin
+for new canonical/internal/alternate/sitemap/social/feed/share/public-generation
+output. Private pre-activation Sites may have no public role; retired Sites keep
+history without favorable roles. No live Tenant website uses an Asym, Vercel,
+or other platform-branded public fallback.
+
+A Site may have zero or more explicit **Redirect Site Domains**. They never
+serve duplicate website content or become another origin. The staff-facing
+state is **Redirects website visits**: Core's trusted host/router projection
+may send only route-owner-qualified `GET`/`HEAD` navigation one hop to the exact
+final current-primary destination. It composes D16 root directly, prevents
+source-fragment inheritance, and uses only owner-allowlisted query context.
+Giving/checkout, protected/auth/callback/API/control, and every other source-
+owned route run first and retain D9–D15/their owner's exact behavior. Vercel
+whole-domain redirects, serving aliases, arbitrary forwarding, fallback homes,
+chains, and implicit apex/`www` activation are prohibited.
+
+Operational Domain authority—not CMS `primaryDomain`, proposed
+`primary_domain`/`alias_domains[]`, DNS, TLS, or provider state—owns canonical
+hostname identity, platform-wide current uniqueness, complete Site scope,
+role/lifecycle, immutable public history, CAS heads, receipts, and provider-
+evidence references. The logical model is relational with one-primary
+cardinality, restrictive grants/RLS/privileged parity, provider work outside
+transactions, adverse-first fencing, and one bounded admission lookup under
+Phase 5's 15 ms launch p99 budget after capacity proof. The compact **Site →
+Domains** workspace separates public role from setup/serving health, shows safe
+IDN identity and bounded route-owner exceptions, suggests but never selects
+`www`, and exposes one authorized next action. **Not used for website** applies
+when the website role is absent but an independently owned public route may
+remain; **Not public** requires complete owner proof of no favorable Core route.
+See ADR-0193.
+
+**Phase 24 D73 resolution.** Every exact replacement of an existing Primary
+Site Domain requires one initially unselected former-primary website choice:
+**Redirect eligible website visits — recommended** or **Stop website use on the
+old domain**. There is no implicit apex/`www` exception: current or historical
+redirect/cache behavior must prove promotion and inverse mapping loop-safe.
+The choice changes no Giving, checkout, auth, callback, API, protected, or other
+source-owned route; the owner supplies its direct/unavailable/successor/block
+outcome. Known messages, documents, QR codes, analytics/search properties, and
+external placements are advisory and explicitly incomplete—Core builds no URL
+crawler or universal placement graph.
+
+One focused Base Maia review shows Current/New, origin and existing Redirect
+effects, authorized owner outcomes, incomplete advisory evidence, the
+RadioGroup, and **Make {new host} primary**. Stop means no Site website role,
+not erasure or provider detachment. Primary replacement privately compiles the
+exact D1/D66 current public-locale origin successors and advances the Domain/
+public-head cohort in one expected-head command with receipt/audit/outbox.
+Stable equivalent website routes may use owner-approved `308`; the mutable root
+uses D16 `307`; every redirect is one-hop, `no-store`, `no-referrer`, and
+route-aware. Vercel remains evidence/transport and receives no whole-domain
+redirect, force, detach, DNS change, or rollback authority. Later provider
+disconnection remains the separate D74 operation. See ADR-0194.
+
+**Phase 24 D74 resolution.** One exact Tenant-controlled custom hostname may
+disconnect from one Site through Tenant self-service only after a complete
+current finite owner manifest proves no positive hosting dependency. Historical
+facts and D9–D15 reservations survive and do not falsely block. The eligible row
+says **Not public · Connected for hosting** and offers **Disconnect from this
+Site**; one compact confirmation warns that registration, DNS, renewal, email,
+and history remain unchanged and DNS still pointing to Vercel may produce an
+external error. The commit action is **Disconnect domain**.
+
+One reauthorized CAS transaction records the durable operation and establishes
+a monotonic Disconnecting barrier. Every public admission cohort must
+acknowledge the adverse host generation before a sealed worker removes exact
+Core-controlled provider routing outside the transaction. Only authenticated
+current absence permits a second transaction to end the current Site-binding
+interval and platform-wide occupancy claim. Ambiguity retains the fence/claim
+and shows **Disconnection needs attention**. `sites.disconnect_domains` is the
+separately protected human effect included in the standard Domain Manager
+bundle. D74 never cascades across hosts/Sites, deletes provider-account/domain
+ownership, changes DNS/registration/email, transfers or force-moves a domain, or
+authorizes future reuse. See ADR-0195.
+
+**Phase 24 D75 resolution.** After D74 final release, every Tenant may use the
+ordinary Site → Domains **Add domain** flow. An unproved verification attempt is
+private, nonexclusive, provider-dark, and reserves nothing. **Verify domain
+control** shows one Core-issued, seven-day, server-generated 256-bit exact-host
+TXT challenge with Type/Name/Value copy actions, absolute expiry/last-checked
+times, bounded automatic checks, one **Check again**, and leave/resume. It proves
+current technical DNS control—not legal ownership or public readiness.
+
+Immediately after trusted server DNS observation, one reauthorized short
+transaction consumes the one-use challenge, proves D74 final/no current claim,
+acquires the sole platform-wide hostname claim, creates a new private binding
+generation, and records receipt/audit/provider outbox—or changes nothing. Two
+valid claimants have one constraint-enforced winner; foreign/history outcomes
+remain non-enumerating. Old bindings are never retargeted. No former positive
+content/brand/locale/role/route/permission/provider/integration/donor/auth/cache/
+client state follows; D9–D15 adverse reservations remain and run first.
+
+Only after claim may Vercel hosting prepare without force/move. Core proof,
+provider verification/assignment, TLS, DNS routing, Site readiness, and public
+role remain separate; success is **Domain verified · Not public**. D75 reuses
+`sites.manage_domains`, adds no reconnect/approval capability, and does not
+solve a current live same-Tenant move or contested current claim. See ADR-0196.
+
+**Phase 24 D76 resolution.** A still-connected hostname moves between two Sites
+in the same Tenant through one prepared self-service successor, not D74→D75,
+mutable reassignment, routine DNS reproof, support or provider control. Current
+`sites.manage_domains` on both Sites prepares; `sites.activate_domains` on both
+commits. Destination Primary/Redirect/Not-public is initially unselected; an
+active source Primary needs a different eligible replacement; D6/D73 and all
+critical D9–D15/security owners retain their exact authority.
+
+The hostname remains globally occupied by the same Tenant. One command first
+establishes/read-backs an adverse Moving generation, then appends a new target
+binding and atomically advances the private host plus both Sites' Domain/public
+heads. A bounded neutral gap is honest; two favorable/mixed Sites or a literal
+zero-downtime promise are not. Launch performs no Vercel/DNS/TLS/registrar
+mutation because all Sites share the donor project. The full-page Base Maia
+review has two entry points, explicit consequences, durable progress/receipt,
+and no content, Giving/auth, Stripe, email or provider-project migration. See
+ADR-0197.
+
+**Phase 24 D77 resolution.** Before that D76 barrier, one immutable **Domain Move
+Route Review** reuses the existing small, versioned, code-owned D72–D76 critical
+owner-family inventory and compares complete source/destination effective-host
+route manifests. This is future contract reuse—current `develop` has neither the
+registry nor authoritative manifests—and D77 adds no adapter framework. Missing,
+unknown, stale, contradictory or blocking critical evidence stops the move.
+
+One pure canonical comparison classifies source-only, target-only, exact
+collision, current owner-qualified successor, redirect/history conflict, and
+unknown outcomes. Source-only ordinary addresses automatically compile durable
+real-not-found effects into the target binding generation; later destination
+Pages cannot silently reuse them. Exact different-Page collisions remain
+blocked until their owner publishes an accepted successor or the destination
+changes path. The D76 page shows one compact **Existing web addresses** section:
+only blockers open, qualified/not-found counts stay collapsed, and known
+external placements are explicitly incomplete advice. Phase 5 remains the sole
+runtime router; D77 creates no redirect console, crawler, workflow, pattern DSL,
+query carry, money effect or Vercel/project rule. See ADR-0198.
+
+**Phase 24 D78 resolution.** One exact D77 collision between different Site-
+owned ordinary General Pages may be resolved only by an **Ordinary Page
+Successor Qualification** issued through the existing Page route owner. Core
+proves same Tenant/environment, exact locale, `general_page`, public audience,
+exact Publication Reach, compatible safety, current public releases/routes/
+generations, and protected-
+owner exclusion. One authorized human then compares both exact public releases
+and explicitly answers whether the target gives a visitor the same public
+subject, substantive purpose, and intended task. The fixed-pair choice begins
+unselected: use the named target for this address or keep the address
+unavailable.
+
+The relation is immutable, directional, path-specific, non-symmetric,
+non-transitive, and bound to exact reviewed evidence. It stores a stable Page
+identity, not a URL; copy provenance, slug/title/content/template/search/
+analytics/AI never proves it. Pages remain independent and no purpose taxonomy,
+redirect console, workflow, Page editor, provider rule, or money effect is
+created. D76 alone may activate it. Same-path direct service requires a target
+Primary; redirect-only roles or different paths compile one direct final clean-
+`GET`/`HEAD` result to the Primary without source context carry. Before D76
+activation, later target revisions require the same exact fixed-pair proof. See
+ADR-0199.
+
+**Phase 24 D79 resolution.** After D76 activation, a D78 relation pins one
+sparse, opaque **Page Purpose Continuity Version** for the stable target General
+Page and exact locale. It is a Page-owner same-subject/substantive-purpose/
+visitor-task assertion, not tenant-authored purpose prose, taxonomy, Page family,
+body/diff/hash/score/AI, or copied audience/Reach/safety/route state.
+
+Only a candidate affected effective Page release whose exact meaning-bearing
+Page/localized/Reusable Section/shared/global/reference dependency digest
+changed adds one initially unselected choice to the existing D1 Publish review:
+**This update keeps what this Page is for** universally preserves the current
+version for every reviewed current relation; **This update changes what this
+Page is for** requires a fresh independent private Page under D80. D80 leaves
+the source version/relations unchanged and the target inherits none.
+Draft/autosave/preview and delivery-only D1
+rebuilds with the exact effective digest unchanged do nothing; Pages that never
+had D78 predecessors have no D79 state/UX and terminal history remains inert.
+
+One calm main-column **Historical addresses** panel shows truthful server-
+derived status, an exact count only with aggregate authority, and permission-
+safe detail. The Page owner makes one universal Page-level choice over every
+reviewed current relation; each D78 relation remains independent and fresh
+renewal still uses the exact fixed pair and both-Page authority. Restore/copy cannot revive or inherit
+authority. Phase 5 consumes only D1's compiled direct/redirect/not-found effect;
+there is no runtime purpose lookup, new workflow/capability, provider/money
+mutation, or donor interstitial. An advanced-purpose candidate cannot publish
+through the source identity.
+See ADR-0200.
+
+**Phase 24 D80-D84 resolution.** A D79 material-purpose candidate always continues
+as a new Page; Core has no direct-only in-place exception or route-history
+override. One contextual **Move saved changes to new Page draft** action uses the exact
+acknowledged Page-owned candidate and D23's finite transfer compiler to create a
+fresh same-Tenant/environment/Site/locale `general_page`, exact locale lineage,
+Page-local identities, D12 Working Revision, and staff-reviewed D2 parent/path
+claim. It is a private handoff, not Publish or generic duplicate.
+
+The source public release, current/historical routes, continuity/D78,
+Navigation, schedule, search/cache, and donor result remain unchanged; target
+inherits none and has no public route before later ordinary D1. Reusable
+Sections materialize; nonseparable shared-owner change blocks; no owner,
+provider, operational, or money authority copies. The inline old/new review
+uses title, Parent Page/Top level, and web address, with explicit target/source
+outcomes. The same transaction records independently resource-scoped protected
+Editorial/Placement checkpoint pins, appends clean source successors only for
+changed Page-owned axes from exact D1 public pins, fences every old lease in the
+sealed source pair, and leaves separately managed content unchanged. Safely
+transferable content reaches the target; every repairable omission is listed and
+the exact original remains in protected source History. D80-D81 adds no
+workflow, purpose classifier, public resolver, larger critical-owner inventory,
+or Vercel/DNS/TLS/Stripe mutation. See ADR-0201 and ADR-0202.
+
+ADR-0203/D82 permits one narrow D2 exception to the ordinary occupied-path
+rule. A sealed source **Draft-only Path Claim** may be atomically superseded by
+a fresh target Placement and claimant-ownership occurrence/version for the
+exact same canonical key only after
+complete positive proof that no equivalent, under any claimant, has ever been
+activated or admitted to a public/protected route effect and has no platform-
+reserved, specialized source-owned, scheduled, safety, migration, or Trash
+owner other than the exact current private source candidate claim. Private source Revision History is
+preserved but is not current route authority; unknown history fails closed.
+The D2-owned D82 disposition inside the D80-D84 transaction and semantic receipt
+owns the succession with the exact source claimant before and exact target
+claimant after, no visible gap or dual owner, exact replay, and no public/Vercel/
+money effect. Later D2/Trash lifecycle
+may supersede, protect, or release the target claim but never returns it
+automatically to the source.
+
+The existing Parent Page/Web address group shows source provenance, the full
+tenant-branded URL, and private/not-live meaning; editing returns to ordinary
+D2. No checkbox, modal, suffix, reservation service, transfer API, resolver,
+redirect, or saga is added.
+
+ADR-0204/D83 permits one completely qualified source-owned descendant closure
+when cleaning the source ancestor changes derived private paths and their
+corresponding breadcrumbs.
+D2 server-derives and seals the exact same-scope closure; preserves every child
+identity, direct parent, authored segment, sibling order, every existing
+immutable History row, Editorial content, Navigation, permission, schedule,
+reference, and public fact; may append only the qualified cause-labelled
+derived-output successor required by accepted D2 storage; and changes only
+exact private derived outputs/claim dispositions. High fan-out reuses D2's
+bounded/resumable sealed plan/impact artifact and one D33-admitted atomic
+business transition without a private closure head. Staff see an always-visible permission-safe affected address count,
+plain live-site/Navigation non-change, and proportional mappings under the one
+existing handoff action. Every stale, inaccessible, protected, independently
+incompatible, or over-capacity closure uses its exact ordinary D2 owner action.
+If that action cleans/releases the source root claim, D82 adoption ends and the
+target address becomes an unreserved ordinary suggestion that may lose fresh
+validation. No recursive child resave, authoritative partial batch, subtree transfer, literal-link rewrite,
+workflow, route engine, or public-delivery/Vercel/money effect is added. See ADR-0204.
+
+ADR-0205/D84 gives the fresh target one initial D2 sibling position without
+transferring a source/provider rank or adding another question in the qualified
+common path. The visible Parent Page or **Top level** choice resolves through
+trusted D2 Site/root state, never null/caller inference. A position is
+preserved only when immutable D2 placement-command provenance proves a tagged
+start/between/end/only boundary. Under lock, D2 determines the sealed D81/D82/
+D83 effects and their post-clean/pre-target final cohort, then validates that
+boundary or resolves a positively recorded append-last default against the
+same baseline. Missing/unknown provenance and stale explicit boundaries use
+ordinary D2 review; neither silently appends. No immutable prior revision is
+mutated; only sealed predecessor effects may advance affected heads, and D84
+adds no collateral pre-existing Page parent/order write while preserving final-
+cohort relative order. One read-only consequence row distinguishes reviewed
+First/Last/Only/Between from default Last/Only, uses “at top level” when
+applicable, safely separates structural calculation from detail disclosure,
+and states that Navigation/live website do not change. Boundary IDs obey the
+handoff privacy/retention/tombstone contract. Provider ranks, raw Payload
+`orderable`, imports, current adjacency, and drag telemetry are never intent or
+authority. The qualified same-database Payload adapter may persist the command;
+D84 adds no native reorder authority, capability, workflow, selector, public/
+D4/Vercel/external-provider/donor/money effect. See ADR-0205.
+
+The three original Phase 24 grooming questions—Donor Portal host, brand depth,
+and outbound-message readiness presentation—are resolved by D57-D60. D84 closes
+the D78-D84 ordinary-Page continuity/material-purpose branch. Before another
+founder question is added, the phase requires a complete decision-to-spec
+coverage audit and consolidated OpenSpec/PRD synthesis; implementation details
+or already-separated owner facts are not new grooming decisions. The former
+D56 access-profile withdrawal-authority question remains explicitly deferred
+to its Phase 12/17 activation boundary.
 
 ---
 
@@ -3702,6 +4378,524 @@ Phase 10 classification. A workflow may request a permitted Phase 21 command
 through the domain service and observe its result; it cannot write Field
 Account entries, approve expense truth, generate an Accounting Release, or
 mutate provider-delivery state directly.
+
+**Phase 24 D31–D43 Tasks Hub and authorization compatibility.** When a Phase 34 workflow action
+appears in the shared Tasks Hub, the workflow run/stage/task record remains its
+authoritative source. A control such as **Complete interview review** must be
+the exact Phase 34 source command with current role, evidence, consequence, and
+expected-head checks; only its successful source receipt closes the projected
+task. A generic Tasks Hub checkbox, task status, notification read, timer, or
+Inngest run cannot advance a workflow. A separately defined human follow-up
+may use task-owned completion only when it is not the workflow source action or
+stage-transition truth.
+
+Any future Phase 34 responsibility change shown in Tasks Hub must likewise be
+the exact source-owned D33-style command: resolve only currently eligible
+destinations, re-prove actor/target/scopes/heads at commit, append an immutable
+successor generation/receipt, preserve continuing engagement, and distinguish
+named handoff from no-successor return/Needs assignment. Tasks Hub cannot edit
+a generic assignee, and Website eligibility/routes are not copied into
+Mobilize. A broader workflow delegation, queue, acceptance, availability, or
+bulk-transfer product requires its own Phase 34 decision and evidence.
+
+If a future Mobilize source-return genuinely needs actor-selected recovery
+context, it may reuse D34's source-owned envelope only after its own evidence-
+backed decision defines the exact trigger, closed vocabulary, recovery use,
+visibility, retention, authorization, and non-effects. Tasks Hub never copies
+or interprets the Website v1 codes, and Mobilize never inherits them from a
+task title, policy kind, source link, or module name. Inngest receives only the
+source-transition identifier and remains projection/reconciliation execution,
+not context or routing authority.
+
+D35 contributes only reusable mechanics: an authoritative source-owned
+ownerless-work lane, a versioned bounded responsibility-intent route, complete/
+zero/indeterminate recipient resolution, one shared task identity with personal
+assignment/engagement, source receipts, identifier-only outbox, and monotonic
+reconciliation. Phase 34 and Mobilize inherit no Website policy mode, member,
+Site behavior, label, D34 code, action capability, eligibility predicate, or
+default audience. A future source must separately prove its ownerless-work
+state, lane, recovery action, audience, visibility, retention, channels, and
+policy. Inngest remains optional execution and never becomes workflow,
+responsibility, authorization, lane, or idempotency truth.
+
+D36 contributes reusable prospective-cutover and explicit-current-adoption
+mechanics only: a separately authorized permission-safe impact, immutable
+product-owned application/cohort/result ledger, per-source-occurrence atomic
+differential routing, continuing engagement, durable replay, and resumable
+status. Phase 34 does not inherit D36’s Website cohort, policy, members, task
+role, result copy, no-Site-override decision, or current-work capability. A
+future Phase 34 source must define whether policy changes are prospective,
+whether existing work may be adopted, the exact cohort/authority/privacy
+boundary, and truthful correction/rollback behavior. Inngest may page accepted
+identifier-only members but never defines or authorizes the adoption.
+
+D37 fixes the Website-specific D36 cohort as the complete compatible
+pre-cutover Tenant set proved from authoritative source occurrence heads and a
+closed code-owned producer/version catalog. Preparation has no effect; unknown
+completeness blocks confirmation; an atomic normalized seal precedes member
+claims; and actor visibility, Sites, filters, tasks, recipient qualification,
+and client selection never define membership. One separate Tenant-wide
+application capability authorizes only the operation and exact complete
+aggregate item/assignment impact required for consent, not source detail or
+recipient authority. Phase 34 and Mobilize inherit none of D37's Website
+catalog, cohort, capability, cutover, aggregate disclosure, or UI semantics.
+Each future source must make its own evidence-backed cohort/privacy/action
+decision; optional Inngest remains identifier-only execution.
+
+D38 makes the D37 action one zero-by-default, `explicit_only` Phase 12
+capability. Grant administration is separate from possession and requires a
+current same-Tenant `permissions.manage_grants` decision within live scope and
+ceiling. Owner/Admin/staff/Web Studio/policy/Site/source/coordinator/task/
+support state never implies it; grants bind the Active Tenant Assignment; and
+current EffectiveAccess owns deduplicated holder/provenance truth. Zero holders
+leaves prospective policy and Needs assignment complete and creates no task,
+notification, reminder, or fallback.
+
+Revocation, expiry, assignment end, suspension, or applicable delegation end
+makes the affected source inert and fences later uncommitted D37 effects only
+when final post-change EffectiveAccess no longer contains D38, without
+rewriting committed source/task history.
+The Phase 12 People & access/My Access product owns grant/revoke UX; Website,
+Tasks Hub, Phase 34, Mobilize, and Inngest own no grant roster or authorization
+shortcut and inherit no D38 atom automatically.
+
+D39 permits both a typed direct assignment-capability grant for a specific
+active staff assignment and a governed flat **Access group** grant for a stable
+job function through the one Phase 12 EffectiveAccess/provenance/epoch model.
+Both are optional, additive, deduplicated sources; every human edge binds an
+exact same-Tenant Active Tenant Assignment, and group assignment is one
+relationship rather than per-member fanout. No Website group, seeded holder,
+Team/task/coordinator/Mobilize mapping, external/dynamic/nested membership, or
+Inngest authority is introduced.
+
+A group carrying D38 is protected authorization state. Group capability
+changes require `permissions.manage_grants` within a live assignable-capability
+ceiling; member add/activation separately requires exact scoped
+`permissions.manage_membership` with a live ceiling covering the complete group
+bundle and revision. Ordinary Team ownership and self-membership cannot create
+authority. Any Phase 34 or Mobilize use of groups must make its own domain
+decision and may reuse only this central authorization primitive—not Website's
+D38 capability, group, membership, or UX semantics.
+
+D40 permits one deliberately reviewed **separate direct grant** while an exact
+staff assignment already receives D38 through current group paths. The person-
+access surface shows every current source first and states that present ability
+is unchanged while future survival changes. It requires a fresh minimized
+reason, explicit unpreselected independent duration, current grant authority/
+ceiling and self/SoD/quorum checks, and a complete current group-source-set
+proof.
+
+The command reuses D39's typed direct relation. It records immutable overlap-
+creation provenance in audit/receipt evidence, advances the Tenant epoch once,
+and creates no backup table, new permission kind, source priority, automatic
+handoff/cleanup, notification, task, or Inngest authority. Relevant source
+change before commit conflicts; later group loss leaves the independent direct
+source current. Final EffectiveAccess loss alone fences D37. Phase 34 and
+Mobilize inherit none of this Website capability or creation UX.
+
+D41 keeps current source truth distinct from historical origin after the final
+group path ends. Current People & access and My Access presentation says
+**Direct grant** or **Granted directly to you** with the direct source's own end
+condition. Authorized expanded **Why this person has access** / **Why you have
+access** provenance retains
+**Added for continuity**, the immutable event-time overlap evidence, and later
+source history according to D42's viewer/purpose policy. Ending or
+returning a group path changes the current source list through Phase 12's
+existing epoch but never converts, reissues, retags, or renews the direct grant;
+if optional history is unavailable, canonical current access remains truthful.
+Operational search/export classifies the source as direct, and no current
+continuity badge, shadow state, conversion worker, task, notification,
+recertification timer, staff score, or Inngest authority is introduced.
+
+D42 admits four server-derived Phase 12 history projections only:
+`access.self_explanation`, `access.membership_change_review`,
+`access.grant_governance`, and `access.security_audit`. The holder receives the
+safe **Added for continuity · [date]** explanation; membership review receives
+only the surviving direct source/end; exact grant governance receives only
+floor-permitted minimized evidence; and full typed authorization evidence
+requires current `permissions.audit.read`. Bulk audit export additionally
+requires `permissions.audit.export`. A withheld event-time source label renders
+**Protected access group**; protected reason/actor values are omitted. One
+request uses one purpose and exact Active Tenant Assignment, never a multi-hat
+or role union. Raw/browser, support/service, task/notification, ordinary
+Website/reporting, analytics, AI, cache, and current-access export paths receive
+no continuity fields. D42 changes no grant, task, workflow, or current-access
+truth; D43 alone decides the holder's safe correction action.
+
+D43 gives the exact current subject of one D40 continuity-created direct source
+one quiet **Ask for an access review** action. The current source/end remains
+first; an inline Base Maia/Base UI form asks only **Why should this access be
+reviewed?**, requires trimmed 1–500-code-point protected plain text, warns
+against private personal/ministry/donor/care/security/location detail, and says
+submission does not change access. A committed result persists as **Review
+requested. Your access has not changed.** The subject may withdraw while
+pending. Current access and request history remain separate: a subject-only
+**My access requests** section retains safe outcomes after a removed or expired
+source disappears from current access.
+
+D43 reuses one typed Phase 12 `permission_change_request` kind,
+`holder_direct_grant_review`, contract version 1. It creates no Website-local
+request table or generic workflow. One exact Tenant/assignment/direct source has
+at most one `pending_review` episode; terminal states are `withdrawn`,
+`resolved_kept`, `resolved_removed`, or `no_longer_applicable`. Same-Tenant
+composite keys, immutable event/receipt history, state constraints, semantic
+idempotency, current-head compare-and-swap, forced RLS, hardened command
+boundaries, and privileged-path parity prevent retargeting, duplicate terminal
+outcomes, and caller-controlled attribution. Protected request/decision text is
+never copied to tasks, notifications, email, logs, search, analytics, AI,
+Realtime, or ordinary export.
+
+The permission-filtered Phase 12 **Access requests** source lane displays D43
+as **Review current access**; periodic **Access reviews** remains the separate
+recertification-campaign area. Actionable lane rows, personal-recipient
+eligibility, and both decisions require current exact-scope
+`permissions.manage_grants` authority within the live ceiling plus existing
+Phase 12 floor/self/SoD/quorum/last-authority controls. D42 audit/review-read
+authority, role names, the original grantor, a task, notification, support, or
+deep link grants nothing.
+
+Review reloads current sources and the D37/post-removal consequence. **Keep
+direct access** requires a fresh holder-safe explanation and changes no grant or
+epoch. **Remove direct access** asks for no duplicate prose and invokes the one
+locked Phase 12 grant-state command; exact source end, request outcome, audit,
+receipt, one epoch advance, and identifier-only projection intent commit
+atomically. Other sources remain independent, and the holder is told whether
+access survives another way. If the source ends first, the request becomes
+non-actionable and converges to `no_longer_applicable`, shown as **Direct access
+ended before review**.
+
+Each pending D43 request is one ADR-0183 source-work occurrence. Phase 12 owns
+request status/actionability/decision/closure; Tasks Hub may later present one
+shared task identity with recipient engagement only after D44, and every generic
+task mutation rejects. The **Access requests** lane and holder history work with
+no personal route or Tasks Hub. Optional Inngest execution is identifier-only,
+post-commit, fire-time-reauthorized projection/reconciliation; it owns no human
+wait, request, reviewer, access, decision, idempotency, or completion. D44 alone
+decides optional personal routing among already-authorized grant managers.
+
+D44 keeps that source lane complete and adds one optional Tenant route for D43
+personal responsibility. A Tenant deliberately chooses **Use the shared Access
+requests lane only** or one to three unique, unordered, co-equal current Active
+Tenant Assignments as **Access request coordinators**. A new selection must
+currently qualify for D43 grant-decision work in at least one live Tenant scope;
+every exact request then independently narrows that configured set. Selection
+grants no permission or decision authority; every request re-proves current
+`permissions.manage_grants`, ceiling, floor, scope, assignment, and
+requester exclusion. Complete zero or indeterminate resolution routes nobody
+and never broadcasts or guesses a fallback.
+
+The compact policy summary lives in **People & access → Access requests**, with
+one responsive Base Maia Sheet, a progressive server-filtered picker, and a
+fresh aggregate consequence review before save. A confirmed immutable policy
+revision applies to all current and future pending requests. Continuing
+recipients preserve engagement, newly admitted recipients receive fresh
+personal responsibility, removed recipients end as **Coordinator responsibility
+changed**, and an unchanged effective set creates no churn. D44 changes no
+request, grant, duration, or authorization epoch.
+
+Tasks Hub is not the only attention path. The same current Phase 12 recipient
+generation drives one source-backed task assignment and one independent
+ADR-0027/Phase 17 staff Notification Center projection. Newly opened requests
+use `holder_access_review_requested_v1`. When a route or eligibility change
+admits a coordinator to existing pending work, individual tasks still
+materialize but the bell receives only one safe aggregate
+`access_request_responsibility_updated_v1` item per recipient and source-owned
+responsibility-application generation. That generation pins the route revision,
+current eligibility/authorization basis, admission cause, and sealed child set.
+Both deep-link to fresh People & access authorization and copy no
+protected request, reason, grant, capability, or group detail. Task engagement,
+notification engagement, channel delivery, and D43 closure remain independent.
+D45 adds one optional immediate email sibling for each exact contract; the
+published Tenant Delivery Plan defaults Off. One
+`profile.access_governance_attention@1` family selection governs both D44
+`staff_email` slots atomically; mixed per-key On/Off is invalid while each key
+keeps separate semantics and rendering. The exact coordinator's
+self-managed `preference.access_request_responsibility_email@1` uses the
+canonical Phase 17 tuple of Tenant, Active Tenant Assignment, Party, registered
+role/surface, contract family, and email channel and is `inherit | disabled`:
+absence/`inherit` follows deliberate Tenant On, `disabled` narrows
+it, and neither can broaden Tenant Off. Email requires all
+current source, recipient, authorization, contactability/suppression,
+locale/publication, sender/reply, Tenant Resend, and dispatch proof. Failure or
+absence sends nothing and leaves source, task, and required in-product attention
+unchanged. Widening is future-only; current narrowing suppresses any not-yet-
+submitted optional email, while accepted mail is non-retractable. The generic email has one authenticated
+People & access link and no protected source/grant detail, inline decision,
+secret URL, attachment, or tracking. New work is at most one email per admitted
+recipient generation; a current-work route application is at most one grouped
+email per recipient/application generation, never one per child request.
+
+Tenant delivery configuration stays in the Phase 17 System Messages Delivery
+Plan; the D44 coordinator card shows only a quiet delivery summary/link. A
+coordinator manages only their own preference under **Settings →
+Notifications**, with required in-product shown as always on, email truthfully
+shown as following the current organization setting unless the recipient turns
+it off, explicit **Save changes**, persistent future-only status, and truthful
+Tenant-disabled/unready states. Tenant administrators cannot inspect, edit, or
+override another person's opt-out. Unavailable future channels are not placeholder switches.
+Push, Slack, Teams, Google Chat, SMS, reminders, digests, and escalation each
+require an independent source/channel contract and proof; there is no generic
+channel array or rule DSL. D46 records no automatic reminder while D43 has no
+source-owned due instant, expiry, risk transition, SLA, or other ratified
+temporal requirement. D47 permits a bounded candidate to become evidence-
+qualified and a separately activated, Tenant-default-Off profile to become a
+Phase 12 source policy for at most
+one courtesy occurrence without Due/Overdue, SLA, escalation, no-response, or
+access meaning; it activates no policy or reminder now.
+Accordingly this phase adds no reminder key, row, field, timer, schedule,
+Inngest sleep, Tenant setting, or placeholder UI; elapsed age is not an implied
+deadline or urgency signal. A future reminder remains compatible only through a
+separately ratified Phase 12 temporal occurrence with exact time/calendar,
+semantic identity, cancellation/supersession, recipient, authorization,
+durable-idempotency, late-usefulness, and recovery rules. Optional Inngest may execute
+identifier-only claims/reconciliation but never owns the route, recipient,
+preference, task, notification, request, provider identity, authorization,
+idempotency, reminder time, cancellation, or outcome.
+
+If later activated after clock and channel decisions, the cadence policy stays
+separate from the D44 coordinator policy and Phase 17 Delivery Plan. It uses
+only code-owned bounded choices and never creates a second Tasks Hub task.
+D48 now fixes first application: the first successful non-Off policy boundary
+and genuine D43 request creation share one Phase 12 source order, and only a
+creation ordered after that boundary may atomically retain cadence admission.
+Existing requests never enter through age, timestamp comparison, current policy
+join, task/notification state, migration, replay, restore, or Apply-current.
+Ordinary absence/Off is expected exclusion; an asserted-active proof failure
+safely records no admission without blocking the valid D43 request. Exact
+committed replay preserves the original result.
+
+D49 now binds each one possible source occurrence atomically to the complete
+exact then-current D44 responsibility generation for that request. Each sealed
+member carries the exact D44 recipient-generation identity plus Active Tenant
+Assignment; a concurrent route change yields the complete old or new set, and
+the same ordering works when the optional D44 row is absent. Proved zero is a
+terminal empty cohort. Indeterminate leaves the same occurrence unreleased with
+append-only attempt evidence and may retry to one terminal result; it never
+releases a partial set or fallback. After sealing, only a gap-free D44
+continuation may retain a member and every source/channel effect may only narrow
+its relevant subset—later additions, restored eligibility, remove-then-readd,
+and recreated assignments cannot join. No reminder task is created.
+
+D50 now selects one immutable request-anchored elapsed eligibility instant. A
+fresh trusted database source-created instant is captured exactly once after
+D48's serialized policy winner is proved and becomes authoritative only with
+the successful D43 source transaction. The exact admitted duration identity/
+revision and bounded whole elapsed seconds derive one finite absolute UTC not-
+before instant. A later approved “day” is exactly 86,400 seconds; civil/
+working-day arithmetic, PostgreSQL day/month interval fields, Tenant/session
+zones, DST, weekends, holidays, D44 changes, tasks, providers, and executors do
+not move it. Early workers do nothing; late workers attempt the same occurrence
+subject to later cancellation/usefulness, and D49 seals the then-current cohort
+at the actual successful seal commit. Source-created, eligible, seal,
+presentation, submission, and delivery times remain distinct; not-before is no
+Due/Overdue state or send promise. No D50 runtime/schema/UI/OpenSpec artifact is
+added.
+
+Phase 24 D51 now makes cadence Off an immediate source-fenced narrowing. A
+successful Active-to-Off publication advances a separate monotonic cancellation
+epoch in one O(1) Phase 12 commit. D48 admissions pin the epoch; non-Off edits do
+not advance it, and re-enable retains it, so old D50 timing remains stable while
+fenced work never resumes or catches up. D49 seal and every registered
+irreversible descendant admission re-prove the epoch. Off-first prevents the
+boundary; boundary-first preserves truthful history. For local presentation the
+boundary is atomic queryable release, not read. For the currently governed
+email step it is Phase 6's provider-submission attempt fence before external
+I/O, not provider acceptance; after Off, existing ambiguous/provider evidence
+may reconcile but no further provider call or false recall is permitted. Each
+future channel must separately register and prove its own product-owned
+boundary and finality semantics.
+
+Off creates no request/task/access mutation, cancellation task/notification,
+unread reset, current-work census/count, or synchronous fanout. The later
+complete Base Maia editor uses a local draft and one inline consequence review
+with **Turn off courtesy reminders** and **Cancel**, not an autosaving switch,
+nested dialog, typed phrase, protected impact list, or provider-status UI. D51
+adds no runtime/schema/UI/OpenSpec artifact.
+
+Phase 24 D52 now makes late usefulness one finite source-owned admission
+interval rather than a scheduler/provider retry rule. Every later activated
+complete timing profile pairs positive finite whole-second wait and
+usefulness values; D48/D50 pin them and derive immutable finite UTC
+`not_before` and `useful_until` in the successful D43 source transaction. D49
+seal and each still-unreleased member/channel irreversible admission require a
+fresh trusted primary-database claim inside the half-open interval
+`not_before <= claim_instant < useful_until`, the matching D51 epoch, and every
+current source, member, authorization, privacy, and channel gate. Equality at
+the upper bound expires the work.
+
+Expiry closes unresolved work without release, replacement, or catch-up. D49
+indeterminate remains historical indeterminate rather than guessed zero; a
+sealed cohort remains history while every unreleased descendant expires
+independently. A local item released in time follows ADR-0027 and D43
+actionability rather than disappearing at `useful_until`. Email still
+**Prepared definitely unsubmitted** is suppressed; a pre-expiry **Submission
+may have begun** attempt's one admitted initial provider call may start, finish,
+or reconcile later only as the immediate bounded continuation of the same pre-
+I/O critical section with its envelope already prepared; a stalled/restarted
+process makes no call or retry. Expiry allows no new attempt, follow-up call,
+replacement, rekey, resend, or recall claim. Provider TTL
+may only narrow delivery. Inngest may wake/reconcile identifiers but owns no
+clock, source transition, idempotency, or terminal result.
+
+The future editor adds no separate grace-period control, expiry countdown,
+Due/Overdue or missed badge, task date, catch-up action, provider/worker status,
+or cancellation notification. Each visible cadence card is one complete timing
+profile and says **If Asym cannot create the reminder soon enough, it skips it
+instead of sending it late.** D52 changes no request, task, access, read state,
+or historical effect and adds no runtime/schema/UI/OpenSpec artifact. D53 and
+D47's representative-evidence gate must admit exact complete timing pairs
+before activation.
+
+Phase 24 D53 keeps cadence **Off by normative absence** until each exact
+complete `(wait_for_seconds, useful_for_seconds)` pair passes D47's
+preregistered representative-evidence gate. A passing result creates only an
+evidence-qualified proposal for founder/product ratification; it creates no
+runtime profile, key, row, flag, policy, plan, step, worker, setting,
+placeholder, or evidence workflow. Evidence stays privacy-minimized and
+version-controlled outside product runtime. Each exact pair qualifies under an
+immutable `research_candidate_id` and preregistered protocol version, while
+compatible current baseline evidence may be reused. Material timing or
+semantic/interaction changes require new qualification; meaning-preserving
+editorial, accessibility, and localization corrections do not.
+
+Only a separate full activation package that closes D46–D55 source semantics,
+stable content and every proposed channel, authorization/RLS/privacy,
+retention, accessibility/localization, concurrency/idempotency, load,
+migration/mixed-version, disable/repair, OpenSpec, manifest, tests, and release
+proof may add an immutable code-owned activated profile identity and
+exact whole-second pair. Tenant policy references an activated identity only;
+trusted server code resolves timing. Tenant rows, callers, imports, support
+tools, workers, providers, and experiments cannot author or mutate values.
+Temporary rollout/kill controls may narrow only after activation and require an
+owner and removal criteria; they cannot become product truth.
+
+Ordinary profile retirement blocks new policy selection/reselection only; a
+Tenant's current selected head continues prospective D43 source admission until
+deliberate change. D55 now makes urgent safety withdrawal one irreversible exact-
+profile platform disposition that preserves selected heads while effective
+cadence becomes Off. D56 must still ratify its authority/evidence-review rule
+before first activation.
+
+Before activation, users see no cadence UI, empty state, disabled option, beta
+badge, or teaser. After activation, the D44/D47-governed future route-addressable
+**People & access → Access requests → Settings** surface shows one quiet vertical **Courtesy reminders** radio fieldset with
+only the Tenant's current effective Off choice—whether represented by absence
+or an explicit later policy revision—and fully activated complete profiles. A retired profile is
+absent from new choices and new selection APIs but remains truthfully visible in
+a separate read-only **Current setting** summary outside the selectable radio
+choices wherever a Tenant's policy head still references it. One choice represents the full pair. Concise helper text explains that one
+courtesy reminder may be created only while a request is still waiting, sets
+no due date or access change, and is skipped if too late. An available,
+collapsed-by-default **How timing works** disclosure contains the D48–D52 detail
+and renders the selected pair in plain language: **Eligible after [wait]; if it
+cannot be created within the next [usefulness], it is skipped.** It never shows
+internal field names. The governed explicit
+Save/Cancel, prospective-change warning, expected-head conflict handling,
+durable receipt, persistent success, and lost-response recovery apply. No
+autosave, modal-only warning, arbitrary duration, second usefulness control,
+countdown, evidence score, or provider state appears.
+
+Later decisions must still define external channels, remaining content,
+withdrawal authority/evidence review, and activation/rollback;
+exact bounded values remain deliberately unselected until candidate research
+qualifies a pair under D47/D53. Future UX belongs in the D44/D47-governed People & access
+→ Access requests governance area. First enable, non-Off interval edits,
+and re-enable use **Applies only to access review requests created after you
+save. Requests already waiting aren't included. This doesn't set a due date or
+change access.** Selecting Off instead uses D51's current-and-future inline
+consequence review and **Turn off courtesy reminders** action. Its recipient
+summary is **Recipients** / **Access request
+coordinators responsible when the reminder occurs.** Later changes may stop
+delivery but never redirect that occurrence; if nobody qualifies, the request
+stays in Access requests. It performs no current-request census, recipient
+picker, or roster preview and exposes no channel matrix,
+custom calendar, recurrence builder, backlog action, or phantom control before
+activation. The future timing summary is **After the request has been waiting
+for [selected interval]**; the required available **How timing works** disclosure explains that
+timing starts at new request creation, runs continuously including weekends,
+is not restarted by time-zone or coordinator changes, and exposes the selected
+complete wait/usefulness effect in plain language. Ordinary staff see no
+countdown, promised send time, worker status, or internal clock terminology.
+
+Phase 24 D54 selects one distinct required in-product reminder item per exact
+still-qualified D49 sealed member after full activation. It means only that the
+same current access review is still waiting at the admitted courtesy point; it
+is not a resend, deadline, escalation, awareness claim, decision, access change,
+or task mutation. The activation generation assigns/registers its stable key and
+reminder-specific source-end rule; D54 names/reserves neither and adds no current
+artifact.
+
+An eligible matching `holder_access_review_requested_v1` child and the reminder
+use one deterministic, rebuildable **Access-review attention group** for the
+same Tenant, exact D43 episode, recipient, role/surface/privacy boundary, and
+uninterrupted D44 responsibility lineage. The multi-request
+`access_request_responsibility_updated_v1` aggregate never joins. When no
+eligible initial child exists, the reminder is a complete one-child group and no
+history is fabricated or backfilled. Each child keeps its own occurrence,
+applicability, engagement, and history. Only the new child receives fresh unread
+state; the group owns no engagement/source/task/access truth and contributes at
+most one derived badge count.
+
+Future release is one atomic D43/D48/D49/D51/D52/current authorization/privacy/
+uniqueness/group-attachment decision. D43 resolution ends applicable children
+under their own rules; D51 Off after release ends only reminder active/unread
+contribution, and D52 bounds first release rather than history. The future item
+uses ordinary **Attention**, the Phase 17 source-actionable presentation policy,
+safe **Access review is still waiting** copy, and one reauthorized People &
+access action. It contains no person, reason, capability, grant/provenance,
+authority, decision, location, ministry, or member-care detail and creates no
+second task.
+
+The Notification Center reuses Phase 17 and Base Maia/Base UI, with visually and
+programmatically equivalent grouping/order, semantic list/heading/disclosure
+structure, independent unread states, quiet arrival, and keyboard, screen-
+reader, forced-color, reflow/zoom, localization/RTL/CJK, mobile, and low-
+bandwidth proof. It does not copy the hardcoded demo bell, add a generic thread/
+conversation/grouping DSL, rely on avatars/color/proximity, or show inline
+Keep/Remove, task controls, urgency, due/overdue, sounds, focus theft, or toast-
+only history.
+
+D45's initial-email family plan is not inherited. Local reminder presentation
+is required; every external reminder channel remains absent/not-applicable until
+separately admitted. D54 changes no runtime, key, manifest/census count, profile,
+plan, step, schema/RLS, OpenSpec, route, worker, telemetry, or UI now. Current
+counts remain 20 Target Live candidates and 20 Reserved keys.
+
+Phase 24 D55 preserves Tenant intent while making one unsafe timing-profile
+revision terminally non-executable. One append-only, irreversible, exact-profile
+platform safety withdrawal makes every Tenant reference effectively Off without
+editing a Tenant head, publishing mass Off successors, selecting a fallback, or
+performing a Tenant census/fanout. It is distinct from ordinary retirement,
+D51 Tenant Off, provider pause, and temporary rollout/kill flags. It cannot be
+cleared; recovery requires a separately evidenced/activated successor and each
+Tenant's deliberate Save, with no historical catch-up.
+
+Every selection, D43 admission, D49 seal, local release, and external
+irreversible-effect boundary atomically checks current product-owned withdrawal
+state. Missing/unknown/stale/mixed-version state fails closed only for reminder
+effects while requests, initial attention, and tasks remain usable. Fence-first
+blocks admission/release; a selection/admission that won first stays truthful but
+all not-yet-irreversible descendants close safety-withdrawn/no-release. A released
+local reminder loses active/unread contribution without changing its initial
+sibling or source work. Definitely unsubmitted external work suppresses; an
+already admitted **Submission may have begun** call only completes/reconciles
+under its frozen identity and never retries, rekeys, falls back, or claims recall.
+
+The future settings editor separates selected from effective truth. A withdrawn
+selected profile appears outside choices as **Selected: [profile label]**,
+**Status: Unavailable for safety**, **Effective: Off**, and **Courtesy reminders
+are off. Existing access requests, tasks, and access are unchanged. This setting
+will not restart.** A secondary **Choose a new setting** action opens the
+ordinary choices with no replacement preselected. Cancel preserves the head;
+explicit Save chooses Off or another activated profile. There is no disabled
+radio, automatic substitute, internal jargon, incident detail, task,
+notification, email, banner, modal, toast, or mass Tenant alert. Safe status is
+accessible, localized, mobile/reflow-complete, and distinct from D42-restricted
+actor/evidence detail.
+
+D55 adds no runtime, key, profile, withdrawal row, manifest/census entry,
+plan/step, schema/RLS, OpenSpec, UI, flag, worker, telemetry, or automatic
+trigger. Current counts remain 20 Target Live candidates and 20 Reserved keys.
 
 D25 ships complete without Phase 34. A later workflow may subscribe to an exact
 D25 occurrence, mirror a follow-up task, and invoke only an already permitted

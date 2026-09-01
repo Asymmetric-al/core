@@ -100,6 +100,75 @@ All audiences consume the same append-only facts through different role-safe pro
 ### Hard dependencies
 
 1. **Phase 2 — locale, currency, and calendar foundation.** Reuse civil-date and currency conventions, but add one tenant-owned IANA **giving timezone**. It is not tax timezone, site locale, browser timezone, or processor settlement zone. Missing/invalid configuration fails closed for new recurring authorization; it never silently uses the server zone.
+   **Phase 24 D62 clarification (2026-08-30):** a presentment currency may say
+   **Ready for recurring gifts** during Site setup only when the Phase 16 owner
+   supplies current qualification for the exact live binding/account, charge
+   topology, currency, recurring product/adapter, authorization and cadence
+   family, admissible rail, and Core/provider-contract generation. The setup
+   check creates no subscription, SetupIntent, PaymentIntent, Customer, mandate,
+   occurrence, or test charge. Accepted recurring authorization and every later
+   execution still re-prove their complete current facts under Phase 16. A
+   donor-specific failure never globally disables a currency; deterministic
+   capability/control drift removes only that currency/cohort from new
+   authorization and sends existing agreements through Phase 16 recovery.
+   **Phase 24 D63 clarification (2026-08-30):** before recurring authorization
+   is accepted, a donor-confirmed Donor Currency Transition may preserve the
+   selected giving mode, cadence, anchor, end terms, destinations, and other
+   non-money intent only after Phase 16 and Payments re-prove that complete
+   target-currency cohort. It clears every amount, fee-cover decision, mandate,
+   future-use acceptance, selected payment method, provider session/attempt,
+   initial-occurrence preview, and amount-derived schedule disclosure. If the
+   target does not support the exact cadence or a payment operation is active/
+   indeterminate, currency change is unavailable and the original intent stays
+   intact; Core never silently changes monthly to one-time. Once authorization
+   is accepted, currency is immutable for the group, cohorts, occurrences, and
+   history. Changing currency then means a separately authorized new agreement,
+   never D63 or an in-place revision.
+   **Phase 24 D64 clarification (2026-08-30):** D64 may define one optional
+   Site Suggested Amount Set for an exact Phase 16-enabled recurring
+   `cadence_code` and ISO currency, but it cannot create, enable, feature,
+   rename, or grandfather a cadence and cannot replace Tenant cadence policy.
+   A recurring set's amounts are per occurrence. When the exact currency and
+   cadence remain qualified, a missing or reviewed-empty set falls back only to
+   a currency-labelled custom amount; one-time or another cadence's digits never
+   substitute. A disabled, paused, drifted, or unqualified currency/cadence is
+   not offered and cannot be bypassed through custom input. Selecting a
+   suggestion remains draft cart intent and every recurring authorization re-
+   proves amount, cadence, route, rail, schedule, and current terms. Later
+   preset changes never alter an accepted commitment, term version, occurrence,
+   installment, retry, receipt, or history. D65 separately owns what happens
+   when a donor changes frequency after interacting with an amount; D64 performs
+   no silent carryover or ordinal mapping. Deliberately disabling a cadence
+   retires its set from new-gift projection without deleting history. Re-enable
+   may show former values for staff review, but requires an authorized successor
+   under the new Tenant cadence-policy revision before those presets return;
+   custom-only remains safe while the exact currency/cadence is otherwise
+   qualified. A transient qualification pause does not itself retire the
+   reviewed set.
+   **Phase 24 D65 clarification (2026-08-30):** before recurring authorization
+   is accepted, one Donor Gift-Schedule Transition may change one editable line
+   between one-time and an exact enabled cadence, or between two exact enabled
+   cadences. The target is re-proved under the current cadence policy,
+   destination, Site/currency qualification, route, giving timezone and
+   schedule kernel before loss. The line's amount, amount provenance, source
+   anchor/start/end/final date, occurrence/leg preview, schedule-dependent
+   disclosures, fee/authorization/payment/mandate meaning, and all affected
+   group/cohort execution projections clear. Purpose and unrelated line intent
+   survive only when revalidated for the target.
+
+   The target cadence receives a fresh kernel result—current civil-date default
+   for ordinary cadences; today when it is the 1st or 15th, otherwise the next
+   1st/15th slot, for twice monthly; and no end by default—never copied source
+   dates. Its D64 amount set appears
+   unselected and the amount remains unanswered until the donor chooses an
+   amount per occurrence. Final review repeats per-occurrence amount, first
+   charge and continuing dates/count; twice monthly also shows both slots and
+   the combined monthly face amount. Changing a draft line creates no recurring
+   group, term version, schedule epoch, cohort, leg, occurrence, mandate, or
+   provider subscription. After acceptance, every change uses Phase 16's
+   separately authorized, effective-dated, append-only supersession path; D65
+   never mutates an active plan or invokes provider proration.
+
 2. **Phase 3 — permission and role-safe projection.** Register every Phase 16 record/action/export. New fields fail closed. Privacy and anonymity are applied before display and aggregation.
 3. **Phases 4 and 9 — identity and Party.** Reuse Party identity, claiming, and governed dedupe/merge. A merge may repair a canonical Party ID but never transfers the promise. A true owner change supersedes the old commitment.
 4. **Phase 5 — public handoff.** Abandonment creates no donor-facing agreement. Once the processor accepts the exact recurring authorization and returns a durable initial-payment state, persist the agreement/occurrence/attempt even if ACH remains processing; never call it received.

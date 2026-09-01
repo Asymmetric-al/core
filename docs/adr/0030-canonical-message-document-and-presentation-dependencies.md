@@ -40,6 +40,20 @@ Layout, protected semantics, and hashes. Existing publications are never
 recompiled in place; migrations create reviewable new drafts and preserve
 incompatible legacy content read-only with last-known-good artifacts.
 
+Phase 24 D58 keeps this message Brand Kit separate from the Tenant Donor
+Account Brand that owns current authenticated web presentation. The two may
+reuse approved identity assets only through an explicit versioned source or
+projection contract; neither is a live fallback or write authority for the
+other, and a Site-specific message override cannot reskin account
+authentication. This boundary prevents duplicate theme ownership without
+making email publication infrastructure a runtime dependency of the portal.
+
+Phase 24 D59 applies the same ownership rule to public Site Brand Versions. A
+Site-scoped email Brand Kit may be initialized from an exact compatible Site
+Brand Version or reuse approved immutable assets through an explicit reference,
+but neither live-reads or mutates the other. Public Site releases and message
+publications retain separate renderers, histories, and authority.
+
 ## Consequences
 
 - One visual editor and an equivalent accessible outline edit the same document.

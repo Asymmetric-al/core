@@ -1254,23 +1254,279 @@ The donor-facing anchor of SiteStacker parity: a single **giving cart** that let
 
 - **The cart is an ordered list of designation lines.** Each line carries:
   `designation_ref` (`missionary_id` XOR `fund_id`; general → null),
-  `amount_minor` (min $1/line, D2 integer minor units), `gift_mode`
+  `amount_minor` (nullable only on a mutable draft; otherwise positive D2
+  integer minor units and at least the exact current currency/route minimum),
+  `gift_mode`
   (`one_time|recurring`), and—only for recurring mode—the Phase 16 cadence,
   continuing anchor, giving-zone context, and optional final eligible date. It
   also carries the Phase 5 attribution axes (`site_id`, `source_code_id`,
   `currency`, `locale`, `entry_method='public_checkout'`) and a stable opaque
   `line_id` that survives guest→login merge. Monthly is featured when enabled;
   every submitted cadence is server-validated against the closed, versioned
-  tenant allowlist. The cart header carries `cover_fees`, the server-recomputed
-  fee amount (§M), and one `cartKey` idempotency key. Mixed one-time + recurring
+  tenant allowlist. The cart header carries `cover_fees` (nullable/unanswered
+  only on an editable draft), the server-recomputed fee amount (§M), and one
+  `cartKey` idempotency key. Mixed one-time + recurring
   lines live in one cart and one review, but the review truthfully discloses
   initial and continuing charge count, amount, and dates. Caps: 50 lines,
-  min $1/line; only lines with the same destination and identical complete
-  intent fingerprint dedupe.
+  the 50-line cap applies to draft purpose-only lines too. Review/acceptance
+  requires the current currency/route minimum per line; only lines with the same
+  destination and identical complete intent fingerprint dedupe.
+- **Phase 24 D61 — one provider-neutral Donor Presentment Currency selection.**
+  A coarse country may suggest one currency only while the giving intent is
+  empty and mutable. Resolution order is: an explicit choice already recorded
+  on that intent; one current eligible local suggestion; the current qualified
+  Site default; otherwise an explicit donor selection from remaining qualified
+  currencies. No qualified choices means Giving is unavailable without taking
+  down the public Site. Locale, URL, profile, cookie, another Site, browser
+  language, payment-method currency, or later location never changes a
+  nonempty cart.
+
+  Currency belongs authoritatively to the cart/gift-intent aggregate, not
+  independently to each line. Every line and resulting compatible payment
+  group must match it through structural database integrity, not UI convention.
+  The server intersects Site policy with the exact current Tenant, environment,
+  Legal Entity, Settlement Account Binding, connected account/charge topology,
+  cart destinations, cadence, amount limits, currency representation, and
+  payment-rail capability before acceptance and provider creation. The client
+  expresses intent only. A donor-selected but newly unqualified currency
+  preserves the cart and blocks submission with one explicit recovery choice;
+  it never silently converts, substitutes, deletes, or redesignates.
+
+  Currency is part of cart revision, accepted-command semantic fingerprint,
+  outbox identity, and provider-operation idempotency. Reusing one key with a
+  materially different currency conflicts; an existing provider attempt is
+  never mutated or reused for another currency. A later currency change after
+  amount/cart state exists follows D63's confirmed successor-revision contract;
+  it is never an in-place money edit. Existing accepted gifts, recurring
+  agreements and occurrences, receipts, refunds, provider events, and
+  accounting evidence retain their frozen currency regardless of later Site,
+  location, or provider-policy change.
+
+- **Phase 24 D62 — setup qualification is not acceptance authority.** Adding a
+  currency in **Site → Currencies** automatically performs one side-effect-free
+  Payments preflight for each currently offered gift-mode cohort. The setup
+  evaluator binds its immutable generation to the exact Tenant, live
+  environment, Site financial route, Legal Entity, effective Settlement
+  Account Binding/version, connected account, charge topology, ISO currency,
+  giving mode/cadence family, admissible rail, Core money ruleset, pinned
+  provider-contract/configuration evidence, observation time, and expiry. It
+  may inspect current declarative account/capability/requirement/payment-method
+  configuration evidence, but it creates no PaymentIntent, SetupIntent,
+  Customer, subscription, charge, refund, or provider mutation. Test mode does
+  not prove live readiness.
+
+  Setup proves only that Core knows no current stable blocker to offering the
+  currency in the named cohort. The accepted checkout command remains the sole
+  authority for the actual cart: immediately before any provider object it
+  revalidates every designation/payment group, Legal Entity and binding,
+  connected account/mode, amount and provider limits, cadence, selected method,
+  currency/exponent, policy/qualification generation, and currency-bearing
+  idempotency fingerprint. A donor decline, Radar decision, authentication,
+  device/wallet condition, or ordinary network failure does not retroactively
+  falsify global setup readiness; a deterministic contract mismatch or
+  authoritative provider/account drift does.
+
+  The authorized Site-policy save checks the expected complete policy revision
+  and exact qualification fingerprints in one transaction after provider reads
+  complete outside it. A stale race writes nothing and returns the updated
+  consequence. Initial activation requires at least one qualified cohort; a
+  partial result names the exact mode, while the Site default must qualify for
+  every current entry that relies on it. The enabled Site currency remains a
+  broad but bounded ceiling—offer it wherever this Site's routes qualify—so
+  staff do not maintain a route/payment-method matrix. Later qualification may
+  widen or narrow effective new-gift availability without rewriting that
+  intent. Unknown, stale, contradictory, deauthorized, or unavailable evidence
+  pauses only the affected new-gift cohort and never rewrites carts, accepted
+  commands, recurring agreements, provider evidence, refunds, receipts, ledger,
+  reporting, settlement, or accounting history.
+
+- **Phase 24 D63 — preserve purpose, clear money, and confirm.** D63 applies
+  only while the cart is unaccepted and editable. If it contains no entered,
+  selected, prefilled, or allocated amount; fee-cover choice/estimate; derived
+  monetary claim/total; payment-method selection/input; mandate/acceptance;
+  wallet/authentication state; exposed client secret; provider session; or
+  submitted operation, the donor may change to another currently qualified
+  currency immediately. Merely rendering unselected amount choices is pristine.
+  Otherwise the original cart stays authoritative while the shared Base UI
+  AlertDialog explains the exact loss and offers **Keep CAD** and **Change to
+  USD**. Cancel, Escape, browser back, eligibility/concurrency failure, or lost
+  response clears nothing.
+
+  The transition revalidates the target currency against the complete current
+  cart—including every line's Tenant/Site route, Legal Entity/payment group,
+  cadence, account/environment, and D62 qualification—before changing state. A
+  server-owned preserve allowlist may carry stable line IDs/order, designation/
+  purpose, Site/source/locale attribution, cadence/recurring terms, donor/contact
+  fields, tribute, anonymity, comments, and consents only where their meaning and
+  authority remain currency-independent and currently valid. Every other field
+  clears by default: all line/allocation/installment/match/benefit/add-on amounts,
+  preset selection, fee-cover election/basis/estimate, totals and amount-derived
+  copy, payment selection/details, wallet/mandate/authorization/review state,
+  mounted provider UI, browser client secret, and provider-attempt identity. If
+  any purpose or cadence cannot survive, the current cart remains intact; Core
+  never drops a line, redesignates, changes monthly to one-time, substitutes a
+  currency, converts value, rounds, or copies numeric digits.
+
+  One command binds owner/guest session, cart, expected revision/source
+  currency, target currency, complete line-scope fingerprint, qualification
+  generations, and semantic idempotency identity. It atomically creates the
+  target monetary revision, preserves line lineage, clears money, advances CAS,
+  and rotates every future command/provider idempotency namespace. Duplicate
+  delivery returns that same result; another-tab or guest→account change cannot
+  erase unseen work or create two successors. An authenticated cart remains
+  owner-only RLS with per-line Tenant/Site composite integrity; a guest cart
+  remains untrusted, Tenant-namespaced client intent. Service-role paths reassert
+  owner/session and every line scope. Prior draft revision evidence is retained
+  only as needed for ordinary bounded cart concurrency/readback/retention—not as
+  permanent ledger, donor, or analytics history.
+
+  Currency is locked whenever submission, confirmation, redirect/wallet
+  approval, authentication, `requires_action`, processing, capture-pending,
+  cancellation, webhook reconciliation, success, or outcome-unknown work exists.
+  A terminal failed attempt may start a separately identified successor only
+  after reconciliation; no attempted provider object is mutated or reused. The
+  target architecture creates provider effects only after accepted Core intent.
+  If an integration already has a still-unattempted provider object with no
+  browser-exposed source-currency secret, the Payments adapter—not cart/UI code—
+  may update or replace it only when the pinned lifecycle proves stale execution
+  impossible. Stripe currently permits some PaymentIntent currency updates;
+  D63's new Core money identity is an integrity choice, not a false provider
+  limitation.
+
+  The dialog uses a visible title/description, initially focuses **Keep CAD**,
+  traps focus, and uses ordinary rather than severe warning styling. Copy names
+  the number of amounts affected and appends fee/payment loss only when present.
+  After authoritative success, the previous payment UI is destroyed, retained
+  non-money work stays visible, one persistent status says **Currency changed to
+  USD. Enter your gift amounts in USD**, and focus moves to the first amount
+  field. A failed command says the CAD cart is unchanged. D63 requires keyboard,
+  screen-reader, 44×44 touch, 320-CSS-pixel reflow, 200% zoom/text spacing, long
+  translated names, RTL/bidi, reduced-motion, offline/slow-network, browser-
+  restoration, and stale-client-secret proof. It adds no FX request, undo store,
+  generic transition engine, provider-status UI, or permanent draft audit.
+
+- **Phase 24 D64 — native Site suggestions, donor Money stays authoritative.**
+  Checkout receives at most one complete current Site Suggested Amount Set for
+  each line's exact resolved Tenant, Site, cart ISO currency, and `one_time` or
+  exact Phase 16 cadence. Operational Postgres owns the immutable versioned
+  set; CMS, URL parameters, component constants, Stripe Products/Prices, and
+  provider state do not. A set has zero to six unique positive target-currency
+  minor-unit values in ascending order and selects none automatically. Set
+  existence neither authorizes the currency/cadence nor proves the actual amount
+  or payment method.
+
+  Ordinary open giving always offers a currency-labelled custom amount. A
+  missing or reviewed-empty set therefore remains usable only while the exact
+  currency/cadence context remains qualified and presents no staff-setup error
+  to the donor. No set selects money. Added cart lines and a D63
+  successor remain blank; only a separately governed, validated explicit CTA
+  amount may initialize an intent. D64 leaves the behavior of a donor-initiated
+  frequency change after amount interaction for D65 rather than silently copying
+  or mapping values.
+
+  Selecting a suggestion records only bounded source set/version/entry
+  provenance and creates ordinary donor cart intent. `amount_minor + currency`
+  remains authoritative and passes the same current exponent, destination,
+  cadence, route, minimum/maximum, fee, method, and final acceptance checks as
+  custom input. No contribution, recurring agreement, or provider object
+  depends on mutable preset identity. Removing or editing a suggestion never
+  rewrites a selected/resumed cart amount; if still currently valid it appears
+  as custom. Invalid or stale CTA/URL money is never adopted into cart amount
+  state: checkout shows a blank currency-labelled custom field and plain
+  correction. Only text the donor personally typed into that current field may
+  remain visible for correction. Neither path clamps, rounds, converts, or
+  remaps value.
+
+  The current duplicated hard-coded USD ladders, literal `$`, client default
+  `100`, two-decimal parser, and one-time coercion are migration evidence, not
+  approved Site policy. One shared currency-aware amount component and server
+  projection must replace every public giving surface together. The literals
+  are never backfilled as staff-reviewed D64 versions. Non-USD and frequency-
+  specific cohorts remain gated until the operational owner, D61/D62
+  qualification, D63 transition, Phase 16 cadence, cache/version isolation,
+  and complete public-surface migration pass release proof.
+
+- **Phase 24 D65 — donor schedule transitions preserve purpose and clear
+  affected money/schedule.** A Donor Gift-Schedule Transition changes exactly
+  one unaccepted editable cart line between two distinct closed schedule
+  identities: `one_time`, or `recurring + exact Phase 16 cadence_code`. It never
+  edits accepted gifts or recurring agreements and never carries source digits,
+  maps preset position, converts value, or silently substitutes a designation.
+  A merely rendered, unanswered line switches immediately. Any nonempty or
+  incomplete amount, preset/handoff provenance, donor-entered schedule detail,
+  fee election/estimate, derived claim/review state, payment selection,
+  future-use/mandate acceptance, wallet/client-secret/provider state, or
+  submission makes the transition consequential and requires one concise
+  confirmation while the complete source cart remains authoritative.
+
+  For an authenticated cart, one owner-scoped command binds the cart and
+  expected revision, stable line, source/target schedule identities, complete
+  dependency fingerprint, current Site/currency/cadence/qualification
+  generations, planner version, and semantic idempotency identity; it commits
+  one successor revision with cause `donor_schedule_change` or nothing. A guest
+  cart remains client-only: it submits a minimal untrusted local revision and
+  fingerprint, the server independently derives/revalidates the target and
+  returns one idempotent successor result, and the client replaces local state
+  only after that result or bounded readback. The server may retain only an
+  expiring non-PII command outcome—not a guest cart or permanent donor history.
+  When guest checkout already has server/provider state, the command also binds
+  the server-issued checkout-operation token; caller-supplied provider/group IDs
+  have no authority. Immediately before any clear, both paths reauthorize and
+  re-prove destination/purpose, target cadence, current route, and payment
+  qualification. Duplicate delivery returns the same effect; different meaning
+  under one key, stale tabs, guest-to-login races, concurrent edits, lost
+  responses, and acceptance races never clear newer work.
+
+  Success preserves the affected line's stable lineage, order, currency,
+  Tenant/Site/source/locale/entry attribution, and only revalidated schedule-
+  independent purpose/contact/tribute/anonymity/comment/consent. Every unrelated
+  cart line's amount, purpose, and schedule remains unchanged. It clears the
+  affected amount and raw/partial input, D64/CTA provenance, allocations and
+  amount-derived claims; every source anchor/start/end/final date and schedule
+  preview; affected fee basis/election/estimate; review and authorization
+  fingerprints; selected/saved payment method, wallet, future-use/mandate
+  acceptance and mounted provider UI. The target amount is null and explicitly
+  **Amount needed**, never zero or an inferred equivalent, and its exact D64 set
+  renders unselected with **Other amount**.
+
+  The mutation is line-scoped but invalidation follows the smallest complete
+  dependency closure. The Phase 13/16 planner supersedes every draft one-time
+  payment group, recurring cohort preview, execution plan, total, fee estimate,
+  authorization hash, and review token whose membership or meaning changed.
+  Because `cover_fees` is currently cart-header state, a prior fee election
+  clears when the changed line affects its meaning; the dialog names that
+  broader consequence, and no per-line fee setting is invented to hide it. A
+  sibling line's donor intent remains even if its shared execution projection
+  must be rebuilt.
+
+  No provider object is created for the target before a target amount is
+  chosen. An exposed, attempted, authenticated, processing, mandate-bound, or
+  outcome-ambiguous object/secret never authorizes the successor. A provably
+  unattempted and unexposed object may be updated or replaced only through the
+  pinned Payments adapter when its lifecycle contract proves predecessor
+  submission impossible; otherwise a fenced, reconcilable retirement completes
+  before target payment is enabled. Review and acceptance require a positive
+  currently valid amount and complete target schedule. Draft schedule changes
+  create no contribution, CRM record, staff task, Phase 16 agreement/cohort/
+  occurrence, provider subscription, ledger fact, receipt, or permanent guest
+  history.
+
+  The donor dialog uses the shared accessible Base UI AlertDialog. Example:
+  **Change this gift to monthly? Your gift amount will be cleared. Where this
+  gift goes will stay. You'll choose a new amount for each month.** It names
+  scheduled dates, fee coverage, or payment re-selection only when applicable;
+  actions are **Keep one-time** and **Change to monthly**, with the least-
+  destructive action initially focused. Cancel, Escape, outside press, browser
+  back, failure, offline state, or stale proof changes nothing. After
+  authoritative success, focus moves to the affected line's first amount
+  control, other lines remain visible, totals show incomplete rather than zero,
+  and persistent status says **This gift is now monthly. Choose an amount for
+  each month.**
+
 - **Real-vs-forward (as of authoring):** the current public donate path is a single-charge `PaymentIntent` with no cart. `donatePostSchema` omits the attribution axes and drops `coverFees` before the POST (the server never learns the donor opted in). The proven substrate to build on: the donate saga over the transactional outbox, three-layer idempotency, and the connected-account Customer save at `packages/api/.../saga.ts` (repo already attaches the PM to a Customer). This is **mostly extension, not rebuild** — the cart fans the proven single-line path out to N lines.
 - **Server re-validates every line (Phase 5 handoff HONORED).** Client amounts and labels are **suggestions**; the server re-validates **every** line against the resolved tenant (exists + `is_active` + public-eligibility), extending `begin_donation_saga`'s per-reference check to per-line. Public labels are re-fetched server-side, so a stale or restricted name never renders or charges. Invalid / cross-tenant / inactive lines **fail safe** — dropped or flagged "no longer available," never an error, never a leak, never a mis-designation.
 - **Persistence is HYBRID, and the RLS scope is OWNER-only — not owner+tenant.** This is a **decisive correction**: a donor gives across multiple orgs and has **no single `tenant_id` JWT claim** (`authz.current_tenant_id()` is a _staff_ membership claim). Copying the staff RLS clause onto the cart is wrong.
-  - **Guest cart = client-only `localStorage`, zero pre-identity PII on the server** (strongest enumeration-safe posture; consistent with Phase 5 §A8). It stores only opaque designation IDs, amounts, one-time/recurring intent terms, and the attribution axes — never a name, email, or card pre-identity. Namespaced by tenant context. Soft **90-day TTL** (D15.3), client-side.
+  - **Guest cart = client-only `localStorage`, zero pre-identity PII on the server** (strongest enumeration-safe posture; consistent with Phase 5 §A8). It stores only opaque designation IDs, answered-or-null draft amounts, one-time/recurring intent terms, and the attribution axes — never a name, email, or card pre-identity. Namespaced by tenant context. Soft **90-day TTL** (D15.3), client-side.
   - **Authenticated cart = server-side, owner-scoped, cross-device.** Schema: `carts(id, owner_user_id NOT NULL FK, status, …)` with a **partial-unique index `WHERE status='active'`** (exactly ONE active cart per owner); `tenant_id` lives on each `cart_lines` row (opaque designation ref, suggested amount, gift mode plus versioned recurring intent terms, `is_fee_cover`, attribution incl. `tenant_id`, stable opaque `line_id`). RLS: `USING/WITH CHECK (owner_user_id = (SELECT auth.uid()))`. Opaque UUID PK. The API is **`GET /cart`** (owner implicit from the session), never `/cart/:id`. Any admin / service-role read **MUST re-assert `owner_user_id`** (a unit test proves a cross-owner read returns empty). The cart stores **intent only** — no card, no PII beyond the owner FK, no denormalized labels.
 - **Guest → login merge = ONE idempotent RPC under a per-owner advisory lock** (the repo's custom-collection-reorder locked-function pattern), idempotency-keyed on `cartKey`. Union by complete intent fingerprint: a new fingerprint stays; the same destination plus identical gift mode/cadence/anchor/end terms keeps the incoming amount and never sums; materially different terms remain separate lines. If the login tenant ≠ the guest-cart tenant, **discard/re-scope the guest lines that do not belong to the login tenant** (never dump Tenant A's lines into Tenant B). The 50-line cap and min-$1 are enforced **inside the lock**. Garbage collection is convert-driven + lazy-TTL and **never deletes a cart with an in-flight accepted-agreement saga**.
 - **Cart → Phase 13 money branch + Phase 16 recurring branch.** The mixed cart is **not** forced into one Stripe object. The server creates one accepted checkout command, then a durable saga hands stable line intent to the appropriate owner. `add_invoice_items` is rejected because provider objects never become donor intent.
@@ -1507,24 +1763,44 @@ Composition is a one-directional precondition chain whose first step is tender-s
 
 ### New/changed tables — giving cart, cross-device (D15)
 
-- **`carts`** — the authenticated, **owner-scoped** cart (a donor gives _across_ tenants and has no single tenant JWT claim — so **owner-only, NOT owner+tenant** RLS). Key columns: `id` (opaque UUID PK), `owner_user_id NOT NULL FK`, `status`, timestamps; **partial-unique `WHERE status='active'`** (one active cart per owner). RLS `USING/WITH CHECK (owner_user_id = (SELECT auth.uid()))`; the API is `GET /cart` (implicit owner), never `/cart/:id`; admin/service-role reads must re-assert `owner_user_id`. **Guest cart = client-only localStorage** (90-day TTL, 50-line max), zero server state (enumeration-safe). Merge (guest→login) is **one idempotent RPC under a per-owner advisory lock**: union by ref (new→keep, same ref+freq→**keep incoming amount, never SUM**, same ref+diff freq→keep both), discard/re-scope guest lines not belonging to the login tenant.
+- **`carts`** — the authenticated, **owner-scoped** cart (a donor gives _across_ tenants and has no single tenant JWT claim — so **owner-only, NOT owner+tenant** RLS). Key columns: `id` (opaque UUID PK), `owner_user_id NOT NULL FK`, `status`, nullable `currency` only while the cart has no line/provider effect, revision, timestamps; **partial-unique `WHERE status='active'`** (one active cart per owner) plus a unique `(id, currency)` relationship target once currency is selected. The first line and currency freeze atomically; later currency transition requires the separately governed successor command. RLS `USING/WITH CHECK (owner_user_id = (SELECT auth.uid()))`; the API is `GET /cart` (implicit owner), never `/cart/:id`; admin/service-role reads must re-assert `owner_user_id`. **Guest cart = client-only localStorage** (90-day TTL, 50-line max), zero server state (enumeration-safe). Merge (guest→login) is **one idempotent RPC under a per-owner advisory lock**: union by ref (new→keep, same ref+freq→**keep incoming amount, never SUM**, same ref+diff freq→keep both), discard/re-scope guest lines not belonging to the login tenant. Merge rejects or routes an explicit donor recovery when two nonempty carts carry different currencies; it never picks one, converts, or mixes.
 - **`cart_lines`** — one designation line. Key columns: `cart_id`,
   `tenant_id` (lives on the line, not the cart), stable opaque `line_id`,
   `designation_ref` (missionary_id XOR fund_id; general→null), `amount_minor`
-  (min $1), **one-time or a Phase 16 recurring cadence intent**,
+  (nullable only while the line belongs to an editable draft; otherwise a
+  positive integer satisfying the current exact currency/route minimum),
+  **one-time or a Phase 16 recurring cadence intent**,
   `is_fee_cover`, and the frozen attribution axes (`site_id`, `source_code_id`,
-  `currency`, `locale`, `entry_method='public_checkout'`). Monthly is featured
-  when enabled; the server validates any recurring cadence against the
+  `currency`, `locale`, `entry_method='public_checkout'`). A composite
+  `(cart_id, currency)` foreign key references the cart's same pair so a mixed-
+  currency line is structurally impossible; currency is not independently
+  mutable per line. Monthly is featured when enabled; the server validates any
+  recurring cadence against the
   tenant's versioned Phase 16 allowlist. Invariants: intent only (no card, no
   PII beyond the owner FK, no denormalized labels—the label/state resolves at
   render through the Phase-10-aware read model); one cart = one currency
-  (mixed-currency **rejected**); server re-validates every line against live
-  tenant state on load AND submit; invalid/cross-tenant/inactive lines **fail
-  safe** (dropped/flagged, never leak or mis-designate). \*(Amended 2026-07-13.)\_
+  (mixed-currency **rejected**); a draft may preserve purpose with no amount
+  after D63, but cannot enter review, acceptance, provider creation, recurring,
+  or money projection until every line has a checked target-currency amount;
+  server re-validates every line against live tenant state on load AND submit;
+  invalid/cross-tenant/inactive lines **fail safe** (flagged for explicit donor
+  repair, never silently dropped during D63, leaked, or mis-designated).
+  \*(Amended 2026-07-13 and 2026-08-30.)\_
 
 ### New/changed tables — fee-cover config (D12)
 
 - **`tenant_fee_cover_config`** (per-tenant, **per-payment-method**) — a clean two-row matrix (card / ACH), each `{enabled, rate_bps INTEGER, mode}` where `mode ∈ {optional_opt_out (default), optional_opt_in, mandatory}`. The **engine is `% + fixed-flat` gross-up** — `charge = round((net + flat_cents) / (1 − bps/10000))`, flat = a per-method system constant — so a pure % does not silently under-recover the flat fee; **the tenant sets a simple %, the donor sees clean dollar amounts**. Fail-CLOSED: default optional-opt-out, mandatory OFF, never fail-open to mandatory or a garbage rate. **Mandatory card is bounded** (surcharge law): gift-total framing never "card fee," debit/prepaid hard carve-out via `card.funding` (`unknown` treated as non-credit, auto-downgrade to optional), pre-auth disclosure of the exact added amount + new total, rate clamped ≤3%, per-installment persistence with **no silent recurring increases** (a rate hike is grandfathered or re-consented), plus a tenant warning banner. Fee-cover is its **own ledger line** (`is_fee_cover=true`, reserved system fund), **fully deductible**, and **refund includes the cover**.
+
+  **Phase 24 D61 multicurrency correction:** `flat_cents`, dollar copy, one
+  universal rate, and USD card/ACH assumptions apply only to the original USD
+  evidence and cannot be generalized. For any additional Donor Presentment
+  Currency, the payments/fee-policy owner must prove the exact method, account/
+  charge topology, currency, integer-minor flat/rate basis, legal mode, and
+  recurring/refund behavior. If it cannot, fee cover is unavailable for that
+  exact path while the independently qualified gift may remain available; Core
+  never converts a USD flat, fabricates a rate, or lets fee-cover failure change
+  currency. Donor and staff UI use the exact selected currency and say
+  **estimated** where the amount is only an estimate.
 
 ### New/changed tables — recurring commitments (D16, D24, D25)
 

@@ -53,3 +53,15 @@ preserved or quarantined when it cannot be proven.
   uniqueness are superseded by the dated Phase 16 congruence amendment.
 - No generalized billing-topology optimizer, arbitrary cross-group merge, or
   hidden normalization engine is built in v1.
+
+**Phase 24 D65 amendment (2026-08-30).** A pre-acceptance **Donor
+Gift-Schedule Transition** changes one editable cart line, not a recurring
+group or accepted agreement. Its primary effect is line-scoped, but the
+compatibility planner must invalidate and recompute the smallest complete
+dependency closure: every draft payment group, cohort preview, execution plan,
+fee basis, authorization fingerprint, and review token whose membership or
+meaning changes. Another line's donor-entered amount, purpose, and schedule are
+preserved even when a shared plan must be rebuilt. No submitted, attempted, or
+outcome-ambiguous provider operation is reused, and no Phase 16 group, term,
+schedule epoch, cohort, leg, or occurrence is created merely because a donor
+changes an editable line's schedule identity.

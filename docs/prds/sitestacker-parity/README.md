@@ -740,6 +740,27 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   floor without remediation. The blast radius is planning-only: the Phase 21
   PRD, decision evidence, ADRs, OpenSpec change, and named cross-phase contract
   amendments; it grants no runtime authority.
+- [`phase-24-multi-site-management.md`](./phase-24-multi-site-management.md)
+  — the canonical implementation-ready Phase 24 PRD. Its active OpenSpec
+  contract is
+  [`add-multi-site-management`](../../../openspec/changes/add-multi-site-management/proposal.md).
+  Founder decisions D1–D18 and D57–D84 are normative and scope-frozen;
+  D19–D55 remain preserved cross-phase evidence and D56 remains deferred.
+  Parent specification issue
+  [#1431](https://github.com/Asymmetric-al/core/issues/1431) carries the exact
+  approved PRD. Implementation tickets
+  [#1432–#1557](https://github.com/Asymmetric-al/core/issues/1432) are published
+  and dependency-governed; P24-01/#1432 is the sole ready frontier and the
+  other 125 tickets remain blocked. These artifacts are planning authority
+  only: they do not claim runtime implementation, migration, deployment, or
+  production activation.
+- [`phase-24-multi-site-management-decision-log.md`](./phase-24-multi-site-management-decision-log.md)
+  — the complete founder-decision and adversarial-review record. ADR-0181
+  through ADR-0205 preserve the accepted Phase 24 decisions after predecessor
+  ADR numbering is reconciled.
+- [`phase-24-multi-site-management-traceability.md`](./phase-24-multi-site-management-traceability.md)
+  — the decision/story/requirement/scenario/proof matrix for independent
+  implementation and release verification.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
