@@ -2,8 +2,9 @@
 
 - **Status:** Normative Phase 17 companion specification
 - **Parent PRD:** `phase-17-system-messages-template-management.md`
-- **Decision coverage:** D1 and D16 directly; implementation envelopes and proof
-  links for D2–D20
+- **Decision coverage:** Phase 17 D1 and D16 directly; implementation envelopes
+  and proof links for D2–D20; Phase 24 D44–D55 access-request attention,
+  channel, and no-reminder amendment
 - **Activation posture:** This specification does not make any key Live. Every
   Target Live key remains `Reserved` until its exact proof-gated activation
   passes.
@@ -20,6 +21,360 @@ message occurrences. Route failure cannot produce a donor notice to the same
 failed route. These meanings remain Reserved until each row has its complete
 source fence, recipient resolver, Delivery Plan, protected-action contract, and
 proof pack.
+
+## Phase 24 D44–D55 access-governance amendment
+
+Phase 24 D44 adds two tenant-scoped Target Live candidates:
+`holder_access_review_requested_v1` and
+`access_request_responsibility_updated_v1`. Both remain runtime `Reserved` in
+this manifest revision. The profile, fields, source boundaries, required local
+step, and D45 optional-email posture below are normative Reserved contracts but
+create no presentation, readiness, publication, intent, or delivery authority
+until generated code/projections, exact D43/D44 trigger bindings, source fences,
+current-recipient resolver, system-default publications, OpenSpec, proof packs,
+census/traceability, migration, and release evidence all pass in one later
+reviewed activation generation.
+
+The first key is one recipient-specific required staff in-product occurrence
+for a newly opened D43 request and newly admitted current D44 coordinator. The
+second is one recipient-level aggregate required staff in-product occurrence
+per source-owned responsibility-application generation when a route or
+eligibility change newly admits that coordinator to existing pending requests.
+That generation pins the route revision, current eligibility/authorization
+basis, admission cause, and immutable sealed child set, preserving source
+identity across removal and later re-admission while preventing one bell item
+per request. Neither may contain request/decision prose,
+grant/group/capability provenance, raw ids, recipient qualification failures,
+or an inline Keep/Remove action. Both use
+`presentation.source_actionable_then_recent_90d@1`. D45 permits one independent
+immediate `staff_email` sibling under `plan.required_in_product_optional_email@1`.
+The system/default Tenant plan begins Off. Recipient preference key
+`preference.access_request_responsibility_email@1` is only `inherit | disabled`;
+absence/`inherit` follows a deliberate Tenant On, while
+`disabled` suppresses and cannot be overridden by an administrator. Email
+compiles only after contract, Tenant plan, non-disabled recipient preference,
+current D43/D44 source/recipient/authorization, safe current
+contact/suppression, and exact Tenant Resend/Sender/Reply readiness all pass.
+Absence, suppression, or failure of email can never suppress or complete the
+required local item, D43 request, or ADR-0183 task. Personal D44 routing cannot
+activate as Tasks-Hub-only or email-only attention.
+
+D45 adds no other executable channel or timing. D46 affirmatively adds no
+access-request reminder key, occurrence, profile, step, plan choice, fact,
+binding, renderer, preference, schedule, publication, or placeholder because
+D43 owns no source temporal requirement. Request age, task fields,
+notification/email engagement, Tenant configuration, and executor time cannot
+enter the manifest as substitute source truth. Push, Slack, Microsoft Teams,
+and Google Chat remain absent channels; reminder, digest, and escalation remain
+absent source meanings rather than channels. SMS remains structurally dark
+under ADR-0028. A future transport may be added only through a distinct reviewed
+channel/profile/step plus destination/install
+authority, readiness, preference/consent, suppression, renderer, adapter,
+idempotency/evidence, retention, isolation, and key-specific proof. The bounded
+plan/compiler seam is reusable. If business meaning is unchanged, that contract
+generation adds the named channel step to the same stable D44 key/source
+occurrence; it does not mint a channel-specific key or duplicate source event.
+Only changed business meaning warrants a successor key. A generic channel enum
+fallback, arbitrary webhook, notification-settings map, or Tenant-authored
+rules DSL is forbidden.
+
+Before a later reminder meaning can be proposed, Phase 12 must ratify the exact
+source temporal fact, source/policy revision and current predicate, absolute
+instant plus any human time-zone/calendar semantics, semantic occurrence
+identity, recipient generation, cancellation/supersession, late-usefulness,
+recovery, and terminal rules. Product records own atomic handoff and permanent
+business idempotency; every executor wake re-proves current source,
+authorization, recipient, cancellation, and usefulness. Inngest may then be a
+durable executor or reconciler only. Its sleep, event-id window, run
+cancellation, and logs do not create or prove the reminder. A future reminder
+meaning is distinct from the D45 initial email and its channel Delivery Steps
+remain independently governed.
+
+D47 permits a bounded candidate to become evidence-qualified and only a
+separately activated Tenant profile to become a Phase 12 source policy. It does not add an executable reminder key,
+occurrence, profile, step, plan choice, fact, binding, renderer, preference,
+schedule, publication, or placeholder to this generation, and counts remain
+unchanged. A later manifest may register one stable reminder message key only
+after the source policy, exact clock, one-per-request occurrence, policy-version/
+effective semantics for admitted work, D48 source admission, D44-recipient treatment, cancellation/
+usefulness,
+and complete activation proof are ratified. Phase 17 still owns the stable
+message key and plan compilation; Phase 12 owns policy/time/occurrence; Phase 6
+owns recipient communication intents and delivery evidence.
+
+D48 makes the first possible application prospective by Phase 12 source order:
+only a genuine D43 request creation ordered after the first successful non-Off
+cadence-policy boundary and atomically recorded as admitted may later produce a
+reminder source occurrence. Pre-boundary requests cannot produce a reminder
+key, occurrence, plan/member, presentation, delivery, or catch-up through age,
+timestamps, current policy, tasks, notifications, migration, replay, restore,
+or executor work. D48 adds no manifest row, profile, step, plan, preference,
+publication, renderer, event, schedule, or placeholder, so counts remain
+unchanged. D50 now supplies request-anchored elapsed eligibility and D51
+supplies policy edit/Off/re-enable behavior; useful lateness, stable meaning,
+and channels remain required before a later manifest generation may propose a
+reminder key.
+D49 keeps the D44 task unchanged and permits only bounded, narrowing attention
+descendants from the one source occurrence.
+
+D49 now requires Phase 12 to atomically seal the source occurrence with the
+complete exact current D44 responsibility cohort: one canonical unordered set
+of one to three members each binding the exact D44 recipient-generation identity
+and Active Tenant Assignment, or a terminal proved-zero result.
+Partial, stale, contradictory, over-limit, or otherwise indeterminate proof
+releases nothing and retries only the same durable occurrence identity. A later
+D44 route or eligibility change cannot add, replace, or restore a source member;
+only a gap-free D44 continuation may retain one, while definite source/
+assignment/authorization loss may only suppress one. The Phase
+17/6 compiler must receive the complete source candidate envelope once, and its
+recipient-step result for every presentation/channel must remain a subset of
+that sealed cohort. It cannot query the route, task assignees, another channel,
+provider state, or an executor to broaden membership.
+
+D49 adds no reminder key, profile, binding, step, plan, renderer, preference,
+publication, history class, event, job, or manifest row. Counts remain
+unchanged.
+
+D50 now requires one immutable request-anchored elapsed eligibility instant for
+each D48-admitted episode. After D48's serialized policy winner is proved, Phase
+12 captures one fresh trusted database source-created instant, pins the exact
+code-owned duration identity/revision and bounded whole elapsed seconds, and
+derives one finite UTC not-before instant in the successful D43 transaction. If
+a later approved value uses “day,” it means exactly 86,400 seconds; civil/
+working calendars, Tenant/session zones, DST, weekends, holidays, D44 changes,
+tasks, presentation, providers, and executors cannot move it. D49 still seals
+the then-current cohort at the later successful source occurrence commit.
+
+Not-before means eligibility only. It creates no Due/Overdue state, countdown,
+schedule display, or delivery promise. An early wake releases nothing and a
+late wake attempts only the same product occurrence under later cancellation/
+usefulness rules. D50 adds no reminder key, profile, binding, step, plan,
+renderer, preference, publication, history class, event, job, manifest row,
+schema, OpenSpec requirement, UI, or telemetry artifact. Counts remain
+unchanged. D51 now supplies policy-edit/Off/re-enable semantics; late
+usefulness, stable message meaning/content, channel, retention, and complete activation proof remain required
+before a later generation may propose one reminder key.
+
+D51 makes every Active-to-Off publication advance a separate monotonic Phase
+12 cancellation epoch. D48 request admission pins the current epoch. Non-Off
+edits do not advance it, and re-enable carries it forward so old work never
+revives or catches up. D49 seal and every later in-product/external irreversible
+admission must re-prove the pinned epoch. Off-first prevents admission;
+admission-first preserves truthful history. The Off source transaction is O(1)
+in request count and performs no manifest/member census, fanout, task change,
+item/message creation, or provider mutation.
+
+Every future reminder Delivery Step must register its own product-owned
+irreversible-effect admission. For an in-product reminder member, it is the
+atomic role-safe queryable release, not a human read. Source-end may remove active/
+unread presentation after Off while retaining immutable history and never
+fabricating read/dismissal. For external delivery, irreversible admission is
+the currently governed email step's Phase 6 provider-submission attempt fence
+committed before the first byte may leave Asym, not provider acceptance.
+**Prepared definitely unsubmitted** remains suppressible. If attempt admission
+wins first, dispatch is permanently **Submission may have begun** while the
+independent **None**/**Accepted**/**Definitely rejected**/**Indeterminate**
+provider outcome may reconcile,
+but Off permits no further provider call, retry, replacement attempt, rekey,
+blind resend, or recall claim. A future push/chat step must separately prove its
+exact admission/finality/recovery boundary; it cannot inherit email assumptions
+or add a generic cancellation engine.
+
+D51 adds no reminder key, profile, binding, step, plan, renderer, preference,
+publication, history class, event, job, manifest row, schema, OpenSpec, UI,
+telemetry, or count. D52 separately closes useful-lateness; a later manifest
+still cannot propose the reminder until all remaining activation proofs close.
+
+D52 now requires one immutable source-owned half-open usefulness interval for
+each D48-admitted request. A future activated complete code-owned timing
+profile pins positive finite whole-second `wait_for_seconds` and
+`useful_for_seconds`; D48/D50 derive immutable finite UTC `not_before` and
+`useful_until` in the successful D43 source transaction. D49 seal and every
+still-unreleased reminder plan member/step must capture a fresh trusted primary-
+database claim after locks and prove
+`not_before <= claim_instant < useful_until`, the D51 epoch, current D43
+actionability, the sealed D49 member, and all current authorization/privacy/
+channel gates. Equality at the upper bound is terminal expiry.
+
+D49 indeterminate at expiry closes usefulness-expired/no-release without being
+relabeled proved zero. A sealed cohort remains immutable evidence, but every
+unreleased descendant independently expires and no member/channel authorizes
+another. A local item released in time remains governed by ADR-0027 and current
+D43 source actionability. Email still **Prepared definitely unsubmitted** at
+expiry is suppressed; a pre-expiry **Submission may have begun** attempt's one
+admitted initial provider call may start, finish, or reconcile afterward, but
+only as the immediate bounded continuation of that same pre-I/O critical section
+with its envelope already prepared. A stalled/restarted process makes no call or
+retry; no new attempt, follow-up call, replacement,
+rekey, resend, or recall claim may begin after expiry. Provider TTL may only
+narrow delivery; neither a provider nor Inngest owns or extends source time.
+
+D52 creates no reminder key, profile/value, binding, step, plan, renderer,
+preference, publication, history class, event, job, manifest row, provider
+request, schema, OpenSpec, UI, telemetry, or count. Counts remain unchanged. A
+later manifest cannot propose a reminder until D53–D55 and the D47 evidence gate
+admit an exact complete timing pair and every remaining content/channel/
+activation proof closes. The future editor adds no separate usefulness control;
+its concise helper says **If Asym cannot create the reminder soon enough, it
+skips it instead of sending it late.**
+
+D53 makes that admission boundary explicit without adding machinery. Cadence
+remains Off by normative absence until one exact immutable complete timing
+pair passes D47's preregistered representative-evidence gate. There is no
+placeholder row, stored Off value, provisional profile, flag, renderer,
+setting, evidence database, approval service, or production experiment in this
+manifest generation. Evidence lives only in reviewed, privacy-minimized
+research/decision/release documents. Each pair uses an immutable
+`research_candidate_id` and preregistered protocol version and must qualify on
+its own; a different second value, protocol version, or materially changed
+semantic/interaction contract is a new proposal. Meaning-preserving editorial,
+accessibility, and localization corrections are not.
+
+A D47 pass yields an **evidence-qualified timing-pair proposal**, not a
+manifest entry or executable product fact. Only a later reviewed activation
+generation that closes the complete source, content, channel, authorization,
+privacy, retention, accessibility, concurrency/idempotency, load,
+migration/mixed-version, disable/repair, OpenSpec, manifest, test, and release
+package may register an **activated access-review timing profile**.
+That future registry may contain only immutable code-owned identity/revision
+pairs with exact positive finite whole-second wait and usefulness values.
+Tenant policy may reference an activated identity/revision only; trusted server
+code resolves its seconds. No caller, Tenant row, import, support tool, worker,
+provider, or experiment can author or rewrite timing. Temporary rollout/kill
+controls may only narrow a fully activated profile and require an owner and
+removal criteria; they cannot define or qualify one.
+
+Ordinary retirement removes an activated profile from new policy selection/
+reselection only; a Tenant's current selected head continues prospective D43
+source admission until deliberate change. D55 now makes urgent safety withdrawal
+a terminal exact-profile platform fence that preserves the selected head while
+effective cadence becomes Off. D56 must still settle its authority/evidence-
+review contract before activation.
+
+Before that activation, neither this manifest nor product UI represents an Off
+row or unavailable cadence capability. After activation, the setting may show
+only the Tenant's current effective Off choice—whether represented by absence
+or an explicit later policy revision—plus fully activated complete profiles in one
+vertical single-choice fieldset. Proposed, failed, unsupported, and research-
+only pairs remain absent. A retired profile is absent from new choices and new
+selection APIs but remains truthfully visible in a separate read-only **Current
+setting** summary outside the selectable radio choices wherever a Tenant's
+policy head still references it. No second usefulness
+control, arbitrary duration, evidence score, provider state, or dynamic profile
+inheritance is permitted. An available, collapsed-by-default **How timing
+works** disclosure must render the selected exact pair in plain language—
+**Eligible after [wait]; if it cannot be created within the next [usefulness],
+it is skipped**—without exposing internal field names. Counts remain 20 Target Live candidates and 20
+Reserved keys.
+
+D54 closes local presentation semantics without admitting an executable key.
+After a timing profile and reminder contract later pass the complete activation
+gate, each exact still-qualified D49 sealed member may atomically release at most
+one required local `staff_in_product` descendant represented by one distinct
+recipient item.
+The activation generation—not this manifest revision—must assign/register that
+future key and one reminder-specific applicability/end rule proving D43 current
+actionability, D49 sealed membership plus uninterrupted D44 responsibility
+continuation, D51 cancellation, current same-Tenant authorization/privacy/source
+visibility, and the ordinary Phase 17 Recent-history contract. D52 limits first
+release only; it never shortens truthful released history.
+
+At that future atomic release boundary, the D43/D48/D49/D51/D52 source facts,
+current assignment/Party/role/surface/privacy facts, semantic uniqueness, and
+valid Phase 17 group attachment must all pass. Product-database identity binds
+the reminder source occurrence, sealed member, future registered step/key, and
+contract revision. Duplicate replay returns the same item; changed immutable
+meaning conflicts; an item cannot become queryable without its valid group
+attachment.
+
+The new item and an eligible matching `holder_access_review_requested_v1` item
+may share exactly one deterministic, rebuildable **Access-review attention
+group** for the same Tenant, D43 request episode, recipient, role/surface/privacy
+boundary, and uninterrupted D44 responsibility lineage. The multi-request
+`access_request_responsibility_updated_v1` aggregate cannot join. A recipient
+without an eligible initial child gets a complete one-child group; no initial
+item is fabricated, revived, cloned, or backfilled.
+
+Each child keeps its own availability, applicability, engagement, and history.
+Only the new child receives fresh unread state. The group has no independent
+engagement or business truth; its unread/badge contribution is the Boolean OR of
+currently authorized visible unread children and at most one, and Needs-
+attention membership derives from current actionable children. Passive expand,
+scroll, sort, or realtime invalidation never marks a child read. Any explicit
+group command resolves to item-level idempotent expected-set operations.
+
+The future item is ordinary **Attention**, uses
+`presentation.source_actionable_then_recent_90d@1`, and carries only the safe
+meaning **Access review is still waiting**, category **Access requests**, helper
+**Review this request in People & access.**, and one typed authenticated action.
+It is not a resend, deadline, escalation, no-response/awareness claim, task,
+decision, access change, or delivery receipt, and exposes no protected request,
+person, grant/provenance, capability, authority, location, ministry, or member-
+care fact. D43 resolution ends applicable children independently. D51 Off after
+release ends only reminder active/unread contribution; access loss removes all
+active/recent presentation and later restoration never revives it.
+
+D45's `profile.access_governance_attention@1` applies only to its two initial-
+email slots. The reminder never inherits its Tenant switch or recipient
+preference. Local presentation is required; every reminder external channel is
+absent/not-applicable until separately admitted. D54 adds no key, manifest row,
+profile, source-end registration, plan, step, renderer, preference, publication,
+runtime, schema, OpenSpec, UI, or count. The current census therefore remains 20
+Target Live candidates and 20 Reserved keys. A later activation must add and
+mechanically reconcile all of those artifacts together; it cannot infer one
+from this prose.
+
+D55 closes the urgent-safety-withdrawal behavior without adding a manifest row.
+Before any profile can activate, the activation generation must prove one
+persisted, irreversible, append-only, exact-profile-revision platform safety
+disposition. It preserves Tenant-selected policy heads and pinned history but
+makes the derived effective cadence Off. It is distinct from ordinary
+retirement, Tenant Off, a profile/plan/step, provider pause, feature flag, and
+generic kill-switch/override system. It can never be edited, cleared, deleted,
+retargeted, reselected, or used to choose a fallback. Recovery is a separately
+evidenced/activated successor plus deliberate Tenant selection.
+
+Every selection/reselection, D43 admission, D49 seal, compiler input, local
+release, and external irreversible-effect admission must atomically prove the
+exact profile revision is not withdrawn using current product-database state.
+Missing, stale, malformed, unreadable, unknown, or unsupported safety proof
+fails closed for the optional reminder effect while the request/lane, D44
+initial attention, and task remain usable. Fence-first releases nothing. A
+selection/admission that committed first may remain selected/pinned, but the
+fence blocks every not-yet-irreversible descendant and no later repair,
+successor, or cache refresh catches it up.
+
+Unreleased work closes under a stable safety-withdrawn/no-release result—not
+D49 proved zero, D52 expiry, D51 Tenant Off, or source resolution. An already
+released local item ends active/unread under its future reminder-specific end
+rule while preserving its initial sibling and authorized generic history.
+External **Prepared definitely unsubmitted** work is suppressed; a previously
+committed **Submission may have begun** effect may only complete/reconcile its
+one frozen call and never make another call, retry, rekey, fallback, replacement,
+follow-up, or recall claim.
+
+The future platform decision must use one trusted target revision, server-
+derived actor/initiator, trusted database time, stable safe reason class,
+restricted evidence reference/digest, contract revision, and durable
+idempotency. Duplicate replay converges and changed facts conflict. Tenant/
+browser/import/support/provider/worker/flag mutation is unavailable. D56 must
+settle exact actuation authority/assurance and evidence review before activation.
+
+Tenant UI/API omits the withdrawn profile from new choices but safely projects a
+preserved head as **Selected: [profile label]**, **Status: Unavailable for
+safety**, **Effective: Off**, and **Courtesy reminders are off. Existing access
+requests, tasks, and access are unchanged. This setting will not restart.** A
+secondary choice flow has no replacement preselected. No incident evidence,
+actor, Tenant count, disabled radio, automatic policy write/substitute, task,
+notification, email, banner, or mass fanout is created. D42-governed audit
+remains separate.
+
+D55 adds no key, profile, withdrawal registry row, plan, step, source-end entry,
+renderer, publication, preference, runtime, schema/RLS, OpenSpec, UI, feature
+flag, worker, telemetry, or count. Counts remain 20 Target Live candidates and
+20 Reserved keys. The later activation package must add the safety substrate,
+compatible readers, atomic gates, safe projection, tests, and proof together;
+rollback must preserve it.
 
 ## Executable Target Live Contract Manifest
 
@@ -200,6 +555,7 @@ database ids and cannot authorize a read.
 | `approval.reminder_sequence`                           | bounded positive integer from the producer-owned SLA occurrence                                                                                                                                                           |
 | `approval.escalated_at`                                | `FrozenInstant` from the producer-owned escalation occurrence                                                                                                                                                             |
 | `approval.decision` / `approval.decided_at`            | closed source decision and `FrozenInstant`; no decision-note body in the notification                                                                                                                                     |
+| `access_review.initial_assigned_count`                 | bounded positive integer frozen by the D44 responsibility-application source; no child identity/list and no later mutable current-count claim                                                                             |
 | `publication.candidate_reference`                      | `OpaqueDisplayReference<64>` for the exact immutable candidate                                                                                                                                                            |
 | `publication.message_safe_title`                       | safe code/catalog title, not personalized subject or content                                                                                                                                                              |
 | `publication.scope_label` / `publication.locale_label` | safe system-generated labels for exact scope and locale                                                                                                                                                                   |
@@ -246,6 +602,12 @@ additional fail-closed barrier:
   `contribution.remaining_amount`,
   `contribution.payment_method`, `correction.personal_note`,
   `correction.reason_free_text`, and `provider.*`.
+- `forbid.access_governance_detail@1`: `access_review.requester_*`,
+  `access_review.holder_*`, `access_review.reason`, `access_review.decision_*`,
+  `access_review.child_*` except the exact bounded aggregate count,
+  `permission.*`, `capability.*`, `grant.*`, `group.*`, `provenance.*`,
+  `authority.*`, `audit.*`, `care.*`, `ministry.private_*`, `location.*`,
+  every `recipient.*` fact, `action.raw_url`, and `action.secret`.
 - `forbid.publication_content@1`: `publication.document_body`,
   `publication.compiled_html`, `publication.compiled_text`,
   `publication.review_comment_body`, `publication.fact_values`, every
@@ -264,25 +626,29 @@ additional fail-closed barrier:
 These are producer-owned descriptors, never URLs or bearer tokens supplied by a
 template:
 
-| Descriptor id                         | Producer and harmless-landing postcondition                                                                                                                                                                                                                   |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `receipt.open_current@1`              | Phase 18 opens the exact current artifact after current tenant/Party/source-validity/lineage/artifact authorization reproof; Phase 7 supplies eligibility/issuance/correction effect only, and GET never issues, replaces, corrects, or acknowledges anything |
-| `contribution.open_history@1`         | contribution operations opens the authorized contribution detail/history; no mutation                                                                                                                                                                         |
-| `giving.open_support@1`               | opens the tenant's protected giving-help route or exposes the D17 reply affordance; no dynamic mailbox or recipient data                                                                                                                                      |
-| `approval.open_request@1`             | contribution operations opens the exact pending/outcome request; approval/rejection requires a fresh separately authorized source command                                                                                                                     |
-| `publication.open_candidate_review@1` | Phase 17 opens the exact immutable candidate for an active independent reviewer; the notification click never approves                                                                                                                                        |
-| `publication.open_candidate@1`        | Phase 17 opens the exact candidate and review result for a currently authorized editor; no mutation                                                                                                                                                           |
-| `repair.open_case@1`                  | D15 opens one grouped repair case after current `system_messages.repair.manage` reproof; no force-send or blind replay                                                                                                                                        |
+| Descriptor id                             | Producer and harmless-landing postcondition                                                                                                                                                                                                                               |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `receipt.open_current@1`                  | Phase 18 opens the exact current artifact after current tenant/Party/source-validity/lineage/artifact authorization reproof; Phase 7 supplies eligibility/issuance/correction effect only, and GET never issues, replaces, corrects, or acknowledges anything             |
+| `contribution.open_history@1`             | contribution operations opens the authorized contribution detail/history; no mutation                                                                                                                                                                                     |
+| `giving.open_support@1`                   | opens the tenant's protected giving-help route or exposes the D17 reply affordance; no dynamic mailbox or recipient data                                                                                                                                                  |
+| `approval.open_request@1`                 | contribution operations opens the exact pending/outcome request; approval/rejection requires a fresh separately authorized source command                                                                                                                                 |
+| `access_requests.open_exact_review@1`     | Phase 12 opens the exact current D43 request only after active-Tenant, exact D44 recipient-generation, source-visibility, and current decision-authority reproof; the message click never keeps or removes access                                                         |
+| `access_requests.open_filtered_lane@1`    | Phase 12 opens the current permission-filtered Access requests lane for the exact admitted assignment/Party/role; no sealed child list or count authorizes a row or decision                                                                                              |
+| `notifications.manage_self_preferences@1` | Phase 17 opens **Settings → Notifications → Access request responsibility** for the exact authenticated Active Tenant Assignment/Party/role; only self may save either `inherit` or `disabled`, and opening/saving changes no source, responsibility, or delivery outcome |
+| `publication.open_candidate_review@1`     | Phase 17 opens the exact immutable candidate for an active independent reviewer; the notification click never approves                                                                                                                                                    |
+| `publication.open_candidate@1`            | Phase 17 opens the exact candidate and review result for a currently authorized editor; no mutation                                                                                                                                                                       |
+| `repair.open_case@1`                      | D15 opens one grouped repair case after current `system_messages.repair.manage` reproof; no force-send or blind replay                                                                                                                                                    |
 
 ### Exact surface and capability envelopes
 
-| Envelope id                   | Product surfaces                                                                                                                                                                             | Required capability/reproof                                                                                                                                                                                                                                                                                                                                                                                 |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `surface.donor_official@1`    | System Messages catalog/editor/preview/version history; donor email; donor-safe Phase 6 history; staff body-free history; optional eligible Recent copy; Phase 18 generated-document surface | authoring uses `system_messages.read`, `system_messages.draft.edit`, `system_messages.commit`, and the applicable exact `system_messages.publish.standard`, `system_messages.review.protected`, or `system_messages.publish.protected` capability; Recent copy uses `system_messages.recent_copy.reveal`; donor artifact read uses current Phase 18 access authority constrained by Phase 7 source validity |
-| `surface.donor_financial@1`   | System Messages catalog/editor/preview/version history; donor email; donor-safe Phase 6 history; staff body-free history; optional eligible Recent copy; source contribution history         | same Phase 17 authoring capabilities; source suppression/history actions require contribution-operation capability; donor view re-proves current Party/contact projection                                                                                                                                                                                                                                   |
-| `surface.staff_finance@1`     | active-tenant bell, notification center, exact source approval task/detail, body-free history, and optional staff email                                                                      | recipient must remain the exact active eligible approver or requester and retain source-record access; engagement never grants `contributions.approve_corrections`; content authoring uses Phase 17 capabilities                                                                                                                                                                                            |
-| `surface.staff_publication@1` | active-tenant bell, notification center, candidate detail/review queue, and body-free history                                                                                                | review request recipient re-proves `system_messages.review.protected`; changes-requested recipient re-proves active candidate edit access; notification engagement never publishes                                                                                                                                                                                                                          |
-| `surface.staff_repair@1`      | active-tenant bell, notification center, System Messages Needs attention, one grouped repair surface, and body-free history                                                                  | viewer re-proves `system_messages.read`; action additionally re-proves `system_messages.repair.manage`; no support impersonation may repair or reveal content                                                                                                                                                                                                                                               |
+| Envelope id                         | Product surfaces                                                                                                                                                                             | Required capability/reproof                                                                                                                                                                                                                                                                                                                                                                                 |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `surface.donor_official@1`          | System Messages catalog/editor/preview/version history; donor email; donor-safe Phase 6 history; staff body-free history; optional eligible Recent copy; Phase 18 generated-document surface | authoring uses `system_messages.read`, `system_messages.draft.edit`, `system_messages.commit`, and the applicable exact `system_messages.publish.standard`, `system_messages.review.protected`, or `system_messages.publish.protected` capability; Recent copy uses `system_messages.recent_copy.reveal`; donor artifact read uses current Phase 18 access authority constrained by Phase 7 source validity |
+| `surface.donor_financial@1`         | System Messages catalog/editor/preview/version history; donor email; donor-safe Phase 6 history; staff body-free history; optional eligible Recent copy; source contribution history         | same Phase 17 authoring capabilities; source suppression/history actions require contribution-operation capability; donor view re-proves current Party/contact projection                                                                                                                                                                                                                                   |
+| `surface.staff_finance@1`           | active-tenant bell, notification center, exact source approval task/detail, body-free history, and optional staff email                                                                      | recipient must remain the exact active eligible approver or requester and retain source-record access; engagement never grants `contributions.approve_corrections`; content authoring uses Phase 17 capabilities                                                                                                                                                                                            |
+| `surface.staff_access_governance@1` | active-Tenant bell, Notification Center, ADR-0183 Tasks Hub projection, exact/filtered People & access request destination, body-free Phase 6 history, and optional staff email              | recipient must remain the exact D44 Active Tenant Assignment mapped to current Tenant/Party/staff role/surface and retain exact-scope `permissions.manage_grants`, ceiling/floor, D43 source visibility, and decision authority; task/notification/email possession or engagement grants nothing; content authoring uses Phase 17 capabilities                                                              |
+| `surface.staff_publication@1`       | active-tenant bell, notification center, candidate detail/review queue, and body-free history                                                                                                | review request recipient re-proves `system_messages.review.protected`; changes-requested recipient re-proves active candidate edit access; notification engagement never publishes                                                                                                                                                                                                                          |
+| `surface.staff_repair@1`            | active-tenant bell, notification center, System Messages Needs attention, one grouped repair surface, and body-free history                                                                  | viewer re-proves `system_messages.read`; action additionally re-proves `system_messages.repair.manage`; no support impersonation may repair or reveal content                                                                                                                                                                                                                                               |
 
 Every deep link re-proves tenant, active membership, source-record access,
 capability epoch, restricted-person policy, and exact destination code. A hidden
@@ -519,6 +885,99 @@ override in the Target Live table.
 - `proof_requirements`: `proof.staff_finance_attention@1` plus key-specific test
   ids.
 
+#### `profile.access_governance_attention@1` — Reserved D44/D45 contract
+
+- `scope_kind`: `tenant`.
+- `purpose/classification`: `access_request_attention` /
+  `internal_authorization@1`.
+- `requiredness`: `plan.required_in_product_optional_email@1`. The exact
+  `staff_in_product` member is required for every current admitted D44
+  recipient. `staff_email` is optional; the system/default Tenant plan defaults
+  Off. Recipient key `preference.access_request_responsibility_email@1` is only
+  `inherit | disabled`; absence means `inherit`, and only that recipient may set
+  or clear `disabled`. Only a current same-Tenant actor with
+  `system_messages.plan.manage` may publish the family-plan slot; Owner/Admin,
+  coordinator, grant-manager, task, support, or service labels alone grant
+  nothing, and no plan manager can override `disabled`. Publishing the Tenant slot On requires the
+  exact Resend/Sender/Reply path Ready; later readiness loss preserves the
+  published choice but makes new email ineligible and visibly unavailable.
+- `family_plan_invariant`: one atomic selection under this profile governs both
+  exact D44 `staff_email` slots. Mixed per-key On/Off is invalid. On may publish
+  only when both key contracts, email publications, and Resend/Sender/Reply
+  dependencies are compatible; occurrence, render DTO, action, semantic
+  identity, and outcome remain key-specific. The closed value is
+  `email_disabled | email_enabled`; missing, legacy, unknown, or unproved state
+  resolves to `email_disabled`. Only a current same-Tenant actor with
+  `system_messages.plan.manage` may publish a successor; coordinator, D44 route,
+  request-decision, task, notification, or `permissions.manage_grants`
+  authority does not imply plan management.
+- `audiences`: exact per-key Phase 12 D44 resolver override, bound first to one
+  current Active Tenant Assignment and then through the trusted current Tenant/
+  Party/staff-role/surface mapping. The requester is excluded from their own
+  request. Profile id, email, display name, role name, task possession, and
+  notification state never select a recipient.
+- `document_class`: `staff_internal_authorization_notice@1`.
+- `fact_schema`: the per-request key has an exact empty render-fact set; the
+  aggregate key requires only `access_review.initial_assigned_count`. Neither
+  key allows optional facts.
+- `truth_core` and `source_identity`: exact per-key overrides below. `actions`
+  has that key's one primary source action on both steps; `staff_email` also has
+  the profile-owned secondary
+  `notifications.manage_self_preferences@1` footer action. No template may
+  remove, relabel, reorder above the primary CTA, or replace either typed action.
+- `channels/delivery_plan`: required `staff_in_product` and optional immediate
+  `staff_email`; no timer, delay, repeat, fallback, secondary recipient, or
+  tenant-authored condition. System plan id
+  `plan.access_governance_in_product_only@1` keeps email disabled.
+- `email_eligibility`: contract permits slot ∧ published Tenant plan enables ∧
+  `preference.access_request_responsibility_email@1` is absent/`inherit`, not
+  `disabled` ∧ current D43 source and D44 recipient/
+  authorization pass ∧ one current same-Tenant owned/contactable email revision
+  passes Phase 3/4/9 and suppression ∧ exact Tenant Resend connection,
+  `staff_operations` Sender Profile, `staff_operations_help` reply destination,
+  publication, and preparation dependencies are Ready. Every missing, false,
+  stale, suppressed, or indeterminate term rejects/suppresses the email member
+  without changing the required local member. Source/recipient/contact/
+  suppression/readiness re-prove at compile and external preparation/dispatch;
+  Tenant Off, recipient `disabled`, and every source/auth/contact/suppression/
+  readiness narrowing suppress any not-yet-submitted optional email, including
+  a prepared member, without mutating/rerendering it. Provider-accepted mail is
+  non-retractable. Tenant On, `disabled`→`inherit`, and contact/readiness repair
+  are future-only widenings that never add an omitted member to a released
+  occurrence.
+- `locale_policy`: `locale.staff_language_first_system_safe@1`,
+  `tenant_policy_eligible`, with a compatible protected system default.
+- `layout_role`: `not_applicable` in-product and `service_message@1` email.
+- `sender_purpose`: `staff_operations` email; `not_applicable` in-product.
+- `reply_posture`: `staff_operations_help` email; replies are support only and
+  cannot decide the request; `not_applicable` in-product.
+- `recent_copy_policy`: Off-only.
+- `prepared_artifact_retention_class_by_step`:
+  `{ staff_in_product: prepared.none@1, staff_email: prepared.optional_staff_7d@1 }`.
+- `in_product_presentation_policy_by_step`:
+  `{ staff_in_product: presentation.source_actionable_then_recent_90d@1, staff_email: not_applicable }`.
+- `presentation_end_rule_by_step`: exact per-key source rule below;
+  `staff_email: not_applicable`.
+- `recovery_policy`: required local presentation, task, request, and access
+  remain independent. Optional email can be not applicable, suppressed,
+  expired, failed, bounced, complained, or indeterminate without creating a
+  fallback or another source/task/item. Repair targets only the same email step.
+- `provider_policy`: `provider.local_in_product@1` plus
+  `resend.optional_internal@2026-07-19`, tracking Off, one recipient, exact
+  Tenant-owned Ready connection only, and
+  `monitor.optional_access_governance_email@1`.
+- `surface_capability_envelope`: `surface.staff_access_governance@1`.
+- `retention_audit_class`: `retention.authorization_notice@1`.
+- `publication_review`: generic surrounding wording may self-publish; the
+  protected title, no-detail/no-inline-decision wall, authenticated action,
+  required local step, default-Off email posture, recipient/eligibility gates,
+  grouping grain, sender/reply, exact preference footer/action, or source-end
+  change requires D11.
+- `decision_clause_ids`: `trace.access_governance_attention@1`, to be expanded
+  before activation.
+- `proof_requirements`: `proof.access_governance_attention@1` plus
+  `P17-AR-EMAIL-01` through `P17-AR-EMAIL-08` and per-key proof ids.
+
 #### `profile.publication_governance_attention@1`
 
 - `scope_kind`: `tenant`.
@@ -605,8 +1064,10 @@ resolver facts and resolver-supplied producer facts, then unions the two proved
 projections. Per-key duplicate ownership lists and arbitrary record bags are
 forbidden. Every fact named in `protected` must render in the Managed
 source-owned semantic group.
-All 18 Target Live keys inherit the explicit `scope_kind: tenant` from their one
-named profile; a key override may not alter scope. This generation has no Eve
+All 18 currently expanded Target Live keys inherit the explicit
+`scope_kind: tenant` from their one named profile; a key override may not alter
+scope. The two D44/D45 candidates are also declared tenant-scoped and must satisfy
+the same generated-data rule when expanded. This generation has no Eve
 platform-email key. Eve email remains blocked until a later manifest generation
 adds exact meaning-specific Reserved keys under a separately named
 `scope_kind: platform` profile and each selected key passes its named
@@ -672,6 +1133,62 @@ and inherit `forbid.external_sensitive@1` plus
 `forbid.staff_financial_detail@1`. The optional email slot receives the same
 minimal fact envelope as the in-product slot; it cannot become a richer leak.
 
+#### Phase 24 access-governance attention keys — Reserved
+
+| Stable key                                 | Shared profile                          | Exact source/fence and recipient resolver                                                                                                                                                                                                          | Required facts                                      | Protected action/core                                                                                                                                                                                                                                                          | Forbidden sets                                                     | Proof pack               |
+| ------------------------------------------ | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------ |
+| `holder_access_review_requested_v1`        | `profile.access_governance_attention@1` | `phase12.holder_direct_grant_review_pending@1`; `{request_id, request_head, recipient_generation}`; `phase12.active_access_request_coordinator@1`, excluding the requester's principal/assignment and re-proving current D43 exact-scope authority | exact empty render-fact set; no optional facts      | `access_requests.open_exact_review@1`; protect **Access review needs attention**, generic HTML/plain text, authenticated action, required local attention, and source-pending meaning; no inbox Keep/Remove or claim that email delivery means awareness                       | `forbid.external_sensitive@1`, `forbid.access_governance_detail@1` | `P17-KEY-ACCESS-REQ@1`   |
+| `access_request_responsibility_updated_v1` | `profile.access_governance_attention@1` | `phase12.access_request_responsibility_applied@1`; `{application_id, application_generation, recipient_assignment_id, sealed_child_set_digest}`; same current resolver and exact immutable child/source-end proof                                  | `access_review.initial_assigned_count`; no optional | `access_requests.open_filtered_lane@1`; protect **Access review responsibilities updated**, the immutable initial count, one authenticated filtered-lane action, required local aggregate, and one-email-per-recipient/application grain; never enumerate or deep-link a child | same                                                               | `P17-KEY-ACCESS-ROUTE@1` |
+
+The `staff_email` rendering for each row is no richer than its in-product safe
+core. The first uses subject **Access review needs attention**, preheader **Sign
+in to see current status and available actions.**, CTA **Review access
+request**, and stale-safe body **An access review was assigned to you. Sign in
+to see current status and available actions. This email does not grant
+permission and does not mean access has changed.** The
+aggregate uses subject **Access review responsibilities updated**, generic body
+**You were assigned {count} existing access requests. Sign in to see current
+status and available actions. This email does not grant permission or change
+anyone's access.**, and CTA **View access
+requests**; its fixed generic preheader is **Sign in to see current status and
+available actions.** and contains no count. Both provide HTML and plain text,
+one typed authenticated Asym primary action,
+`Auto-Submitted: auto-generated`, tracking Off, no
+List-Unsubscribe marketing posture, and no recipient/holder name or raw id.
+Subject and preheader are fixed generic content with no Tenant name or count.
+The per-request render DTO is empty; only the aggregate body may use
+`access_review.initial_assigned_count`. Governed Sender Profile and layout/Brand
+Kit carry Tenant identity. Each email footer uses the secondary authenticated
+action `notifications.manage_self_preferences@1` with the exact link label
+**Manage notification preferences**; it changes only the signed-in recipient's
+future preference and is never a Tenant-delivery-settings action. The static
+per-request footer is **This email was prepared because your organization
+enabled access request email, you were assigned as an Access request
+coordinator, and your personal setting followed the organization's choice.
+Manage notification preferences.** The aggregate substitutes **updated its
+Access request coordinators** for the assignment clause. Only **Manage
+notification preferences** is the preference link.
+The confirmed `staff_operations_help` Reply-To is support-only: replies leave
+Core for the Tenant mailbox and cannot create request comments, responsibility
+transitions, or access decisions.
+Email and in-product identities are separate members under the same released
+bounded plan occurrence; one member's result never mutates the other.
+
+`monitor.optional_access_governance_email@1` is connection-wide because Resend
+reputation is connection-wide, while preserving a D45 key dimension for
+diagnosis. Release evidence must pin and reverify the then-current official
+Resend quota/AUP thresholds. The 2026-08-29 provider snapshot requires bounce
+rate below 4% and spam/complaint rate below 0.08%; those numbers are dated
+evidence, not permanent product constants. Any provider restriction, any
+connection-wide rate at or beyond the stricter current threshold, or any D45
+complaint opens a body-free incident/repair signal. The Tenant email
+administrator owns Tenant pause/repair and the named Phase 17 service-operations
+owner owns provider/reputation diagnosis. The response pauses only the affected
+optional email step/connection, keeps required in-product attention and source
+work unchanged, applies recipient suppression where proved, and resumes only
+after current Ready and reputation evidence pass. There is no force-send,
+fallback provider, or automatic re-enable.
+
 #### Phase 17 governance and repair attention keys
 
 | Stable key                                        | Shared profile                               | Exact source/fence and recipient resolver                                                                                                                                                         | Required facts                                                                                                                                                                                                                                               | Protected action/core                                                                                                                                                                                              | Forbidden sets                                                | Proof pack                |
@@ -682,15 +1199,17 @@ minimal fact envelope as the in-product slot; it cannot become a richer leak.
 
 #### Exact Target Live in-product presentation mapping
 
-| Stable key                                        | Presentation policy                                | `presentation_end_rule_by_step.staff_in_product` | Key-specific note                                                           |
-| ------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
-| `contribution_approval_requested_v1`              | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.approval_pending_current@1`    | exact request occurrence                                                    |
-| `contribution_approval_reminder_v1`               | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.approval_pending_current@1`    | new child may reopen unread; never extends or mutates an older item         |
-| `contribution_approval_escalated_v1`              | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.approval_pending_current@1`    | generated escalation resolver proves the exact current escalation recipient |
-| `contribution_approval_outcome_v1`                | `presentation.information_30d_then_recent_90d@1`   | `presentation_end.approval_outcome_current@1`    | correction/supersession ends unread early without rewriting evidence        |
-| `system_message_publication_review_requested_v1`  | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.publication_review_current@1`  | exact immutable candidate and reviewer authority                            |
-| `system_message_publication_changes_requested_v1` | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.publication_changes_current@1` | exact current editable candidate and editor authority                       |
-| `system_message_delivery_needs_attention_v1`      | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.repair_case_open_current@1`    | later meaningful transition creates a new item and may reopen the group     |
+| Stable key                                        | Presentation policy                                | `presentation_end_rule_by_step.staff_in_product`           | Key-specific note                                                                                                                  |
+| ------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `contribution_approval_requested_v1`              | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.approval_pending_current@1`              | exact request occurrence                                                                                                           |
+| `contribution_approval_reminder_v1`               | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.approval_pending_current@1`              | new child may reopen unread; never extends or mutates an older item                                                                |
+| `contribution_approval_escalated_v1`              | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.approval_pending_current@1`              | generated escalation resolver proves the exact current escalation recipient                                                        |
+| `contribution_approval_outcome_v1`                | `presentation.information_30d_then_recent_90d@1`   | `presentation_end.approval_outcome_current@1`              | correction/supersession ends unread early without rewriting evidence                                                               |
+| `system_message_publication_review_requested_v1`  | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.publication_review_current@1`            | exact immutable candidate and reviewer authority                                                                                   |
+| `system_message_publication_changes_requested_v1` | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.publication_changes_current@1`           | exact current editable candidate and editor authority                                                                              |
+| `holder_access_review_requested_v1`               | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.access_review_pending_current@1`         | Reserved D44/D45; exact request remains `pending_review` for current recipient generation and current source visibility/authority  |
+| `access_request_responsibility_updated_v1`        | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.access_request_responsibility_current@1` | Reserved D44/D45; at least one sealed child remains pending/current for this recipient/application generation; no later broad scan |
+| `system_message_delivery_needs_attention_v1`      | `presentation.source_actionable_then_recent_90d@1` | `presentation_end.repair_case_open_current@1`              | later meaningful transition creates a new item and may reopen the group                                                            |
 
 `recurring_occurrence_missed_v1` remains Reserved in this generation and is not
 silently activated or assigned by this table. Any future Reserved→Live
@@ -776,19 +1295,21 @@ Each compiled binding contains:
 
 The Target Live bindings are:
 
-| Contract family/key                                           | Producer event → named step → channel/publication slot                                                                   | Requiredness / recipient resolver                                                                                                                                 |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `giving_receipt_issued_v1`                                    | `phase7.receipt.issued@1` + `phase18.document.current_ready@1` → `recipient_email` → `email/service`                     | required only after both Phase 7 eligibility/issuance and exact Phase 18 artifact readiness; `phase7.legal_donor_delivery_contact@1`                              |
-| `giving_receipt_replaced_v1`                                  | `phase7.receipt.replacement_issued@1` + exact Phase 18 successor artifact → `recipient_email` → `email/service`          | required only after current successor proof; same recipient resolver                                                                                              |
-| `contribution_receipt_corrected_v1`                           | `contribution.receipt_correction_effect@1` + exact Phase 18 successor artifact → `recipient_email` → `email/service`     | source-required/audited suppression; `phase7.legal_donor_delivery_contact@1`                                                                                      |
-| every other Target Live `contribution_*` donor correction key | its exact `contribution.<meaning>@1` row above → `recipient_email` → `email/service`                                     | source-required/audited suppression; same resolver                                                                                                                |
-| `contribution_approval_requested_v1`                          | `contribution.approval_requested@1` → `staff_in_product` → `in_product/compact`; sibling `staff_email` → `email/service` | in-product required; email optional only when tenant and recipient preference are enabled; `contribution.active_eligible_approver@1`                              |
-| `contribution_approval_reminder_v1`                           | `contribution.approval_reminder_due@1` → the same two slots                                                              | same, using exact reminder occurrence/resolver                                                                                                                    |
-| `contribution_approval_escalated_v1`                          | `contribution.approval_escalated@1` → the same two slots                                                                 | same, using `contribution.active_eligible_escalation_approver@1`                                                                                                  |
-| `contribution_approval_outcome_v1`                            | `contribution.approval_decided@1` → the same two slots                                                                   | in-product required; email optional; `contribution.active_requester@1`                                                                                            |
-| `system_message_publication_review_requested_v1`              | `system_messages.protected_candidate_committed@1` → `staff_in_product` → `in_product/compact`                            | required; `phase12.active_publication_reviewer@1`, with editor/reviewer separation                                                                                |
-| `system_message_publication_changes_requested_v1`             | `system_messages.publication_changes_requested@1` → `staff_in_product` → `in_product/compact`                            | required; `publication.active_candidate_editors@1`                                                                                                                |
-| `system_message_delivery_needs_attention_v1`                  | `system_messages.repair_case_meaningful_transition@1` → `staff_in_product` → `in_product/compact`                        | required only for a code-owned meaningful transition; `phase12.active_email_repair_operator@1`; Attention Group suppresses duplicate noise but not source history |
+| Contract family/key                                           | Producer event → named step → channel/publication slot                                                                              | Requiredness / recipient resolver                                                                                                                                                  |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `giving_receipt_issued_v1`                                    | `phase7.receipt.issued@1` + `phase18.document.current_ready@1` → `recipient_email` → `email/service`                                | required only after both Phase 7 eligibility/issuance and exact Phase 18 artifact readiness; `phase7.legal_donor_delivery_contact@1`                                               |
+| `giving_receipt_replaced_v1`                                  | `phase7.receipt.replacement_issued@1` + exact Phase 18 successor artifact → `recipient_email` → `email/service`                     | required only after current successor proof; same recipient resolver                                                                                                               |
+| `contribution_receipt_corrected_v1`                           | `contribution.receipt_correction_effect@1` + exact Phase 18 successor artifact → `recipient_email` → `email/service`                | source-required/audited suppression; `phase7.legal_donor_delivery_contact@1`                                                                                                       |
+| every other Target Live `contribution_*` donor correction key | its exact `contribution.<meaning>@1` row above → `recipient_email` → `email/service`                                                | source-required/audited suppression; same resolver                                                                                                                                 |
+| `contribution_approval_requested_v1`                          | `contribution.approval_requested@1` → `staff_in_product` → `in_product/compact`; sibling `staff_email` → `email/service`            | in-product required; email optional only when tenant and recipient preference are enabled; `contribution.active_eligible_approver@1`                                               |
+| `contribution_approval_reminder_v1`                           | `contribution.approval_reminder_due@1` → the same two slots                                                                         | same, using exact reminder occurrence/resolver                                                                                                                                     |
+| `contribution_approval_escalated_v1`                          | `contribution.approval_escalated@1` → the same two slots                                                                            | same, using `contribution.active_eligible_escalation_approver@1`                                                                                                                   |
+| `contribution_approval_outcome_v1`                            | `contribution.approval_decided@1` → the same two slots                                                                              | in-product required; email optional; `contribution.active_requester@1`                                                                                                             |
+| `system_message_publication_review_requested_v1`              | `system_messages.protected_candidate_committed@1` → `staff_in_product` → `in_product/compact`                                       | required; `phase12.active_publication_reviewer@1`, with editor/reviewer separation                                                                                                 |
+| `system_message_publication_changes_requested_v1`             | `system_messages.publication_changes_requested@1` → `staff_in_product` → `in_product/compact`                                       | required; `publication.active_candidate_editors@1`                                                                                                                                 |
+| `holder_access_review_requested_v1`                           | `phase12.holder_direct_grant_review_pending@1` → `staff_in_product` → `in_product/compact`; sibling `staff_email` → `email/service` | Reserved D44/D45; local required; email optional only under `condition.access_request_optional_email_current@1`; `phase12.active_access_request_coordinator@1`, requester excluded |
+| `access_request_responsibility_updated_v1`                    | `phase12.access_request_responsibility_applied@1` → the same two slots, one occurrence per recipient/application generation         | Reserved D44/D45; local aggregate required; at most one grouped optional email under the same condition, never one per sealed child; same current resolver                         |
+| `system_message_delivery_needs_attention_v1`                  | `system_messages.repair_case_meaningful_transition@1` → `staff_in_product` → `in_product/compact`                                   | required only for a code-owned meaningful transition; `phase12.active_email_repair_operator@1`; Attention Group suppresses duplicate noise but not source history                  |
 
 Every Target Live binding uses `plan_occurrence_token@1`. The generated server
 resolver creates one top-level scope/event/contract/effective-plan context even
@@ -803,6 +1324,10 @@ truncating recipients. The plan compiler's initial global member ceiling is 200;
 this is an execution-safety limit, not the Resend batch limit. M0 load evidence
 must confirm or lower these exact values before any key becomes Live; raising
 them requires measured load/concurrency proof and a manifest generation change.
+The D44 coordinator resolver instead declares its policy-derived hard recipient
+ceiling of three. Each recipient may contribute one required local and at most
+one optional email member; the aggregate key's sealed child requests are facts
+under one recipient/application occurrence, never recipient-step fanout.
 
 For every row, the generated registry expands the family shorthand into an
 individual binding. CI fails if one Target Live key lacks an exact row, if two
@@ -883,9 +1408,11 @@ package. It contains:
 2. a product-obligation census covering the 41 dated categories in this PRD,
    with source citation, owning phase, stable key or intentional deferral,
    blocker, migration disposition, and tenant-visibility classification;
-3. the 38-key planning catalog: 18 Target Live candidates and 20 Reserved keys,
+3. the 40-key planning catalog: 20 Target Live candidates and 20 Reserved keys,
    with zero Retired keys at the fresh-build target; all keys start Reserved in
-   runtime until proof-gated activation;
+   runtime until proof-gated activation, and the two D44/D45 candidates
+   additionally require the complete access-governance source, preference,
+   destination, email, and proof amendment above;
 4. current migration evidence for receipt/replacement, every contribution
    correction variant, approval request/reminder/escalation/outcome, templates,
    versions, bindings, legacy queue/data, the orphan `refund_started` variant,
@@ -917,7 +1444,10 @@ activation and final Phase 17 release reruns it again. CI blocks when:
   derived plan maximum exceeds the compiler ceiling;
 - an in-product step lacks a known presentation policy or exact source-end rule,
   a non-in-product step is not explicit `not_applicable`, a key leaves a source
-  terminal state unmapped, or the seven Target Live mappings above are missing;
+  terminal state unmapped, the seven currently instantiated Target Live
+  mappings plus both Reserved D44/D45 mappings above are missing, or either
+  access-governance key is activated before its required source/email mapping
+  and proof are present;
 - a direct provider/send import exists outside the approved Phase 6 executor
   without a census-governed nonproduction test/tooling entry carrying an
   accountable owner, mandatory review trigger, current expiry or explicit
@@ -1034,7 +1564,7 @@ explicit dated product-decision amendment.
 
 1. Expand every profile/key pair and snapshot-test the complete flat object;
    there are no `undefined`, inferred, or runtime-defaulted safety fields.
-2. Compile all 18 Target Live candidates and 20 Reserved keys; Reserved entries
+2. Compile all 20 Target Live candidates and 20 Reserved keys; Reserved entries
    generate no tenant publication, binding, preview, readiness, or send path.
 3. Reject an unknown fact, a fact in any inherited forbidden set, a missing
    required/conditional fact, an unlisted optional fact, and a protected fact
@@ -1051,7 +1581,7 @@ explicit dated product-decision amendment.
    fake tenant id.
 7. Prove system-default selection only for an eligible profile and complete
    compatible slot/locale; donor correction no-fallback keys block instead.
-8. Prove all 18 Target Live keys have exact key-specific proof packs and no two
+8. Prove all 20 Target Live keys have exact key-specific proof packs and no two
    keys emit for the same semantic occurrence unless the manifest documents
    non-overlapping source predicates.
 9. Prove the receipt-correction and receipt-replacement predicates are mutually
@@ -1067,8 +1597,8 @@ explicit dated product-decision amendment.
     primary purge, backup/erasure state, permanent body-free residue and every
     submit/webhook/cancel/erasure/lease race without replay or restoration.
 12. Prove the single shared `P17-SCOPE-01`: `scope_kind` is present in the
-    required schema, all five profiles, all 18 expanded Target Live keys, and
-    every generated projection; tenant/platform owner and recipient arcs,
+    required schema, every applicable profile, all 20 expanded Target Live
+    keys, and every generated projection; tenant/platform owner and recipient arcs,
     scope-aware FKs/keys, single-scope batches, service-only platform RLS,
     exact platform connection and authority revision, tenant backfill, and
     no-fake-tenant failures pass. The same artifact proves acceptance examples
@@ -1091,7 +1621,7 @@ explicit dated product-decision amendment.
     limit-plus-one creates no header or child while no logical occurrence is
     chunked.
 
-This is deliberately one typed registry, five shared profiles, a finite fact and
+This is deliberately one typed registry, six shared profiles, a finite fact and
 action vocabulary, one generated trigger projection, one protected system
 publication namespace, and one traceability/census gate. It does not add a
 rules engine, tenant trigger builder, second queue, generic workflow, provider

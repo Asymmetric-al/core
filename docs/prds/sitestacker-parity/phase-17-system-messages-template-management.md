@@ -3,6 +3,11 @@
 ## Status
 
 - **Product decision:** Ratified D1–D20 on 2026-07-17 through 2026-07-19
+- **Phase 24 downstream amendment:** D44–D55 access-request in-product/email
+  attention, cadence-admission, clock, cancellation, and bounded-usefulness
+  contract accepted 2026-08-29; both current keys remain Reserved and D47–D55
+  add no reminder key until the manifest/OpenSpec/proof gate below activates a
+  later independently admitted contract
 - **Specification date:** 2026-07-19
 - **Program posture:** PRD complete; epic #873 and children #874–#905
   published; every child remains `status:blocked`; groomed but not dispatched
@@ -287,13 +292,30 @@ Reserved authoring work.
 - `packages/api/src/giving/receipts.ts` has successful and replacement receipt send paths with useful idempotency behavior but hard-coded content and no complete Phase 6/17 path.
 - `packages/email/contribution-correction-tags.ts` and `packages/api/src/admin/contribution-operations/notifications/**` provide current correction families, typed tags, producer mappings, send behavior, and history inputs.
 - `packages/api/src/admin/contribution-operations/approval-notifications.ts` and `approval-notification-email.ts` provide durable approval-notification rows, recipient planning, in-product/email channel choices, and direct email content.
+- `supabase/migrations/20260611150000_contribution_approval_notifications.sql`
+  defaults contribution in-app delivery On and both Tenant/recipient email
+  switches Off. `support_notification_preferences` separately carries Support-
+  owned assignment/mention/digest switches. These prove the product already has
+  domain-local preference concepts, not a shared Phase 17 preference authority.
 
 ### REAL constraints that must be treated as migration hazards
 
 - Current template `category`, `is_active`, family/variant binding, or provider template does not prove a stable product-message lifecycle.
 - Current caller-selected `transactional | marketing` classification is too coarse and too easy to misuse; it becomes a derived adapter output from the producer contract.
 - Current request-level From and Reply-To inputs must not survive the one-resolver cutover.
+- Current contribution approval routing selects broad profile roles, keys
+  preferences by `profile_id`, stores mutable JSON payloads, resolves
+  `profiles.email`, and synchronously performs best-effort email. Its useful
+  default-Off concept is retained, but its tables, identity, payload, direct
+  sender, dedupe, and failure semantics are not D45 infrastructure.
+- Support's agent-scoped default-on assignment email and daily-digest settings
+  remain Support-domain migration input. They cannot silently become System
+  Messages defaults, D44 recipient truth, or authorization for another channel.
 - Current global-environment or permissive Resend key paths must not become tenant fallback.
+- Current `tenant_email_settings.is_connected`, legacy deliverability scalars,
+  a successful test-send response, or the integration page's toast is not D45
+  Resend readiness. Only the evolved validation snapshot and exact current
+  connection/Sender/Reply proof may admit an optional email step.
 - Current raw provider payloads, click URLs, IP addresses, user agents, and personalized subject storage exceed the D14 durable-history minimum and require a retention/minimization migration.
 - Current `email_templates` and `email_template_versions` are RLS-disabled,
   service-only migration inputs with anonymous/authenticated access revoked;
@@ -409,52 +431,609 @@ hide the gap.
 ### Target launch catalog
 
 The table is the required Phase 17 acceptance disposition. “Target Live” means the build may mark it `Live` only after its complete proof bundle passes; until then it remains `Reserved` and cannot send through the new catalog.
-All 18 Target Live entries below explicitly compile as `scope_kind: tenant`
-through their named manifest profile. Scope is required generated data, never an
-inference from a tenant publication or recipient. A future platform entry must
-use a separately named `scope_kind: platform` profile and pass the complete
-platform proof gate before activation.
+The catalog contains 20 Target Live candidates after the Phase 24 D44–D45
+amendment. The original 18 explicitly compile as `scope_kind: tenant` through
+their named manifest profiles. The two D44/D45 access-governance candidates are
+also tenant-scoped. Their executable-manifest specification fixes a normative
+Reserved profile, source/end, local presentation, and optional-email posture,
+but runtime remains Reserved until generated projections and bindings,
+OpenSpec, system-default publications, migration, census, traceability, key-
+specific proof packs, and release evidence agree. Personal D44 routing cannot
+activate before that closed amendment passes; a prose row/profile is not send
+or presentation authority. Scope is required generated data, never an inference
+from a tenant publication or recipient. A future platform entry must use a separately named
+`scope_kind: platform` profile and pass the complete platform proof gate before
+activation.
 
-| Stable key                                        | Target                                    | Owner and meaning                                                                                                      | Audience / steps                                                             | Important contract pins                                                                                                                                                                                        |
-| ------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `giving_receipt_issued_v1`                        | Target Live tracer                        | Phase 7 source issuance is current and the exact current Phase 18 artifact is ready                                    | donor; required email where legally/operationally eligible                   | official receipt block protected; exact artifact action; fallback policy fixed; Giving sender purpose; Replies supported for giving help; no open/click truth                                                  |
-| `giving_receipt_replaced_v1`                      | Target Live                               | Phase 7 authorizes successor facts/issuance and Phase 18 promotes the replacement artifact                             | legal donor; required email where eligible                                   | replacement identity and supersession protected; never mutates prior history                                                                                                                                   |
-| `contribution_refund_failed_v1`                   | Target Live                               | contribution operation ended with failed refund                                                                        | proven donor/contact where notice is required by producer policy             | no raw provider decline; support action; correction owner facts                                                                                                                                                |
-| `contribution_refund_completed_v1`                | Target Live                               | refund completed when producer does not classify partial/full separately                                               | proven donor                                                                 | amount/date/finality protected                                                                                                                                                                                 |
-| `contribution_partial_refund_completed_v1`        | Target Live                               | partial refund completed                                                                                               | proven donor                                                                 | original/refund/remainder truth source-owned                                                                                                                                                                   |
-| `contribution_full_refund_completed_v1`           | Target Live                               | full refund completed                                                                                                  | proven donor                                                                 | finality and receipt impact protected                                                                                                                                                                          |
-| `contribution_amount_corrected_v1`                | Target Live                               | posted contribution amount corrected                                                                                   | proven donor                                                                 | old/new amount and artifact impact protected                                                                                                                                                                   |
-| `contribution_designation_changed_v1`             | Target Live                               | posted designation corrected                                                                                           | proven donor                                                                 | previous/current designation and effective truth protected                                                                                                                                                     |
-| `contribution_receipt_corrected_v1`               | Target Live                               | source correction effect is current and Phase 18 replacement artifact is ready                                         | legal donor                                                                  | Phase 18 exact-current artifact action protected; Phase 7 facts never altered by template                                                                                                                      |
-| `statement_current_updated_v1`                    | Reserved until Phase 18/19 artifact proof | a meaningful corrected/replacement successor is exact-current and the governing source/exposure contract admits notice | exact authorized statement recipient                                         | no Live status before source, current-artifact, recipient, exposure, and safety proof; never fabricates correction wording                                                                                     |
-| `contribution_payment_state_corrected_v1`         | Target Live                               | payment state corrected                                                                                                | proven donor                                                                 | provider-confirmed old/new state; receipt/statement implications protected                                                                                                                                     |
-| `contribution_donor_relinked_v1`                  | Target Live                               | contribution donor ownership link corrected                                                                            | permitted affected contact                                                   | privacy-safe explanation only; Party identity not inferred by template                                                                                                                                         |
-| `contribution_approval_requested_v1`              | Target Live                               | correction approval requires staff attention                                                                           | exact eligible approver role; required in-product, optional email if enabled | source task owns completion; notification engagement never approves                                                                                                                                            |
-| `contribution_approval_reminder_v1`               | Target Live                               | an existing approval remains due at producer-owned reminder point                                                      | exact eligible approver; in-product, optional email                          | fixed producer timing; no tenant timer or duplicate task                                                                                                                                                       |
-| `contribution_approval_escalated_v1`              | Target Live                               | producer marks approval overdue/escalated                                                                              | exact authorized escalation role; in-product, optional email                 | urgency source-owned; no automatic approval                                                                                                                                                                    |
-| `contribution_approval_outcome_v1`                | Target Live                               | approval requester receives final decision                                                                             | exact requester; in-product, optional email                                  | decision truth and destination protected                                                                                                                                                                       |
-| `system_message_publication_review_requested_v1`  | Target Live                               | a protected immutable candidate needs independent review                                                               | exact Phase 12 reviewer projection; required in-product                      | candidate action opens authenticated review; no approval by email click                                                                                                                                        |
-| `system_message_publication_changes_requested_v1` | Target Live                               | reviewer requested changes on exact candidate                                                                          | author/editors; required in-product                                          | exact candidate and comment metadata, no content body in notification                                                                                                                                          |
-| `system_message_delivery_needs_attention_v1`      | Target Live                               | D10/D15 repair condition materially changed                                                                            | tenant email admin/repair capability; required in-product                    | grouped case, one safe action, no credentials/provider payload                                                                                                                                                 |
-| `recurring_recovery_started_v1`                   | Reserved                                  | Phase 16 card recovery episode began                                                                                   | Party-safe donor recipient                                                   | exact Phase 16 facts; email eligibility is producer-owned                                                                                                                                                      |
-| `recurring_action_required_v1`                    | Reserved                                  | Phase 16 requires donor payment action                                                                                 | donor                                                                        | protected recovery action; no raw decline                                                                                                                                                                      |
-| `recurring_occurrence_missed_v1`                  | Reserved                                  | one recurring occurrence is terminally missed                                                                          | donor email/in-product; missionary in-product only where Phase 16 permits    | no debt/backcharge; schedule continues; no per-attempt missionary noise                                                                                                                                        |
-| `recurring_payment_truth_corrected_v1`            | Reserved                                  | provider-confirmed recurring payment truth changed                                                                     | affected donor                                                               | old/new truth, receipt/statement impact, correction semantics                                                                                                                                                  |
-| `recurring_ach_initiated_v1`                      | Reserved                                  | ACH occurrence initiated and is processing                                                                             | donor                                                                        | processing is not received; official receipt waits for success                                                                                                                                                 |
-| `recurring_upcoming_charge_v1`                    | Reserved                                  | required upcoming semiannual/annual charge notice                                                                      | donor                                                                        | amount/date/merchant/manage/cancel facts                                                                                                                                                                       |
-| `recurring_schedule_changed_v1`                   | Reserved                                  | recurring arrangement changed successfully                                                                             | donor                                                                        | next dates, effective behavior, in-flight non-effect, provider-sync truth                                                                                                                                      |
-| `fixed_pledge_upcoming_v1`                        | Reserved                                  | enrolled fixed-pledge expectation is upcoming                                                                          | commitment Party                                                             | no debt or cash claim; optional/gentle profile                                                                                                                                                                 |
-| `fixed_pledge_source_aware_followup_v1`           | Reserved                                  | current records show no applied gift after enrolled expectation                                                        | commitment Party                                                             | processing/matching uncertainty and stop-purpose action                                                                                                                                                        |
-| `identity_account_claim_invitation_v1`            | Reserved                                  | Phase 4 issued a legacy account-claim invitation                                                                       | exact invited contact                                                        | D6 scanner-resistant handoff; invitation owner controls expiry/revocation                                                                                                                                      |
-| `identity_magic_link_v1`                          | Reserved                                  | Supabase magic-link sign-in requested in a tenant context                                                              | exact auth recipient                                                         | ephemeral D6 handoff; Supabase hook deadline; no fallback across tenant                                                                                                                                        |
-| `identity_email_otp_v1`                           | Reserved                                  | Supabase email OTP requested where adopted                                                                             | exact auth recipient                                                         | code/action secrecy; rate and expiry producer-owned                                                                                                                                                            |
-| `identity_password_recovery_v1`                   | Reserved                                  | Supabase password recovery requested                                                                                   | exact auth recipient                                                         | scanner-resistant landing and fresh proof                                                                                                                                                                      |
-| `identity_email_change_v1`                        | Reserved                                  | Supabase email-change confirmation requested                                                                           | source-defined old/new recipients                                            | recipient cardinality and action mapping must be proved before Live                                                                                                                                            |
-| `document_artifact_ready_v1`                      | Reserved                                  | Phase 18 immutable artifact is ready                                                                                   | artifact owner recipient                                                     | protected authenticated download only; no artifact body/PDF attachment; Phase 21 D12 may consume only after Reserved→Live proof, a current source-owned notice occurrence, and current recipient authorization |
-| `statement_current_available_v1`                  | Reserved                                  | Phase 19 admits the one ordinary frozen current-statement delivery occurrence                                          | exact authorized statement recipient                                         | one ordinary donor notice only; portal/self-print/package readiness and run completion do not mint another occurrence                                                                                          |
-| `statement_current_withdrawn_v1`                  | Reserved                                  | source/purpose/jurisdiction contract permits or requires notice that no current successor is available                 | exact authorized statement recipient                                         | truthful consequence and help route only; invalid bytes are never linked or presented                                                                                                                          |
-| `statement_additional_copy_ready_v1`              | Reserved                                  | Phase 19 D12 admits one fresh exact-current copy fulfillment after current authority is re-proved                      | exact authorized request recipient                                           | new occurrence identity; never replays ready/correction/replacement/withdrawal meaning and never rerenders                                                                                                     |
-| `statement_delivery_attention_v1`                 | Reserved                                  | a deterministic grouped statement-delivery condition materially needs staff action                                     | exact tenant staff owner/capability; in-product, optional bounded email      | no per-recipient noise, donor-failure message, provider jargon, arbitrary retry, or claim that the statement failed as a legal document                                                                        |
+| Stable key                                        | Target                                    | Owner and meaning                                                                                                      | Audience / steps                                                                                                              | Important contract pins                                                                                                                                                                                                               |
+| ------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `giving_receipt_issued_v1`                        | Target Live tracer                        | Phase 7 source issuance is current and the exact current Phase 18 artifact is ready                                    | donor; required email where legally/operationally eligible                                                                    | official receipt block protected; exact artifact action; fallback policy fixed; Giving sender purpose; Replies supported for giving help; no open/click truth                                                                         |
+| `giving_receipt_replaced_v1`                      | Target Live                               | Phase 7 authorizes successor facts/issuance and Phase 18 promotes the replacement artifact                             | legal donor; required email where eligible                                                                                    | replacement identity and supersession protected; never mutates prior history                                                                                                                                                          |
+| `contribution_refund_failed_v1`                   | Target Live                               | contribution operation ended with failed refund                                                                        | proven donor/contact where notice is required by producer policy                                                              | no raw provider decline; support action; correction owner facts                                                                                                                                                                       |
+| `contribution_refund_completed_v1`                | Target Live                               | refund completed when producer does not classify partial/full separately                                               | proven donor                                                                                                                  | amount/date/finality protected                                                                                                                                                                                                        |
+| `contribution_partial_refund_completed_v1`        | Target Live                               | partial refund completed                                                                                               | proven donor                                                                                                                  | original/refund/remainder truth source-owned                                                                                                                                                                                          |
+| `contribution_full_refund_completed_v1`           | Target Live                               | full refund completed                                                                                                  | proven donor                                                                                                                  | finality and receipt impact protected                                                                                                                                                                                                 |
+| `contribution_amount_corrected_v1`                | Target Live                               | posted contribution amount corrected                                                                                   | proven donor                                                                                                                  | old/new amount and artifact impact protected                                                                                                                                                                                          |
+| `contribution_designation_changed_v1`             | Target Live                               | posted designation corrected                                                                                           | proven donor                                                                                                                  | previous/current designation and effective truth protected                                                                                                                                                                            |
+| `contribution_receipt_corrected_v1`               | Target Live                               | source correction effect is current and Phase 18 replacement artifact is ready                                         | legal donor                                                                                                                   | Phase 18 exact-current artifact action protected; Phase 7 facts never altered by template                                                                                                                                             |
+| `statement_current_updated_v1`                    | Reserved until Phase 18/19 artifact proof | a meaningful corrected/replacement successor is exact-current and the governing source/exposure contract admits notice | exact authorized statement recipient                                                                                          | no Live status before source, current-artifact, recipient, exposure, and safety proof; never fabricates correction wording                                                                                                            |
+| `contribution_payment_state_corrected_v1`         | Target Live                               | payment state corrected                                                                                                | proven donor                                                                                                                  | provider-confirmed old/new state; receipt/statement implications protected                                                                                                                                                            |
+| `contribution_donor_relinked_v1`                  | Target Live                               | contribution donor ownership link corrected                                                                            | permitted affected contact                                                                                                    | privacy-safe explanation only; Party identity not inferred by template                                                                                                                                                                |
+| `contribution_approval_requested_v1`              | Target Live                               | correction approval requires staff attention                                                                           | exact eligible approver role; required in-product, optional email if enabled                                                  | source task owns completion; notification engagement never approves                                                                                                                                                                   |
+| `contribution_approval_reminder_v1`               | Target Live                               | an existing approval remains due at producer-owned reminder point                                                      | exact eligible approver; in-product, optional email                                                                           | fixed producer timing; no tenant timer or duplicate task                                                                                                                                                                              |
+| `contribution_approval_escalated_v1`              | Target Live                               | producer marks approval overdue/escalated                                                                              | exact authorized escalation role; in-product, optional email                                                                  | urgency source-owned; no automatic approval                                                                                                                                                                                           |
+| `contribution_approval_outcome_v1`                | Target Live                               | approval requester receives final decision                                                                             | exact requester; in-product, optional email                                                                                   | decision truth and destination protected                                                                                                                                                                                              |
+| `system_message_publication_review_requested_v1`  | Target Live                               | a protected immutable candidate needs independent review                                                               | exact Phase 12 reviewer projection; required in-product                                                                       | candidate action opens authenticated review; no approval by email click                                                                                                                                                               |
+| `system_message_publication_changes_requested_v1` | Target Live                               | reviewer requested changes on exact candidate                                                                          | author/editors; required in-product                                                                                           | exact candidate and comment metadata, no content body in notification                                                                                                                                                                 |
+| `holder_access_review_requested_v1`               | Target Live after D44/D45 manifest proof  | one current D43 holder direct-grant review becomes personally actionable to a newly admitted D44 coordinator           | exact current D44 coordinator; required in-product; optional immediate email, default Off                                     | source-owned pending state; safe title and authenticated People & access link only; no request reason, grant provenance, capability, group, inline decision, or task-completion authority; email is independently gated and evidenced |
+| `access_request_responsibility_updated_v1`        | Target Live after D44/D45 manifest proof  | one D44 responsibility-application generation newly admits a coordinator to one or more already-pending D43 reviews    | exact newly admitted D44 coordinator; one required aggregate in-product item; at most one optional grouped email, default Off | immutable sealed child set and source-end proof; safe initial count and filtered Access requests link only; no per-request bell/email fanout, protected child detail, continuing/removed-recipient alert, or task authority           |
+| `system_message_delivery_needs_attention_v1`      | Target Live                               | D10/D15 repair condition materially changed                                                                            | tenant email admin/repair capability; required in-product                                                                     | grouped case, one safe action, no credentials/provider payload                                                                                                                                                                        |
+| `recurring_recovery_started_v1`                   | Reserved                                  | Phase 16 card recovery episode began                                                                                   | Party-safe donor recipient                                                                                                    | exact Phase 16 facts; email eligibility is producer-owned                                                                                                                                                                             |
+| `recurring_action_required_v1`                    | Reserved                                  | Phase 16 requires donor payment action                                                                                 | donor                                                                                                                         | protected recovery action; no raw decline                                                                                                                                                                                             |
+| `recurring_occurrence_missed_v1`                  | Reserved                                  | one recurring occurrence is terminally missed                                                                          | donor email/in-product; missionary in-product only where Phase 16 permits                                                     | no debt/backcharge; schedule continues; no per-attempt missionary noise                                                                                                                                                               |
+| `recurring_payment_truth_corrected_v1`            | Reserved                                  | provider-confirmed recurring payment truth changed                                                                     | affected donor                                                                                                                | old/new truth, receipt/statement impact, correction semantics                                                                                                                                                                         |
+| `recurring_ach_initiated_v1`                      | Reserved                                  | ACH occurrence initiated and is processing                                                                             | donor                                                                                                                         | processing is not received; official receipt waits for success                                                                                                                                                                        |
+| `recurring_upcoming_charge_v1`                    | Reserved                                  | required upcoming semiannual/annual charge notice                                                                      | donor                                                                                                                         | amount/date/merchant/manage/cancel facts                                                                                                                                                                                              |
+| `recurring_schedule_changed_v1`                   | Reserved                                  | recurring arrangement changed successfully                                                                             | donor                                                                                                                         | next dates, effective behavior, in-flight non-effect, provider-sync truth                                                                                                                                                             |
+| `fixed_pledge_upcoming_v1`                        | Reserved                                  | enrolled fixed-pledge expectation is upcoming                                                                          | commitment Party                                                                                                              | no debt or cash claim; optional/gentle profile                                                                                                                                                                                        |
+| `fixed_pledge_source_aware_followup_v1`           | Reserved                                  | current records show no applied gift after enrolled expectation                                                        | commitment Party                                                                                                              | processing/matching uncertainty and stop-purpose action                                                                                                                                                                               |
+| `identity_account_claim_invitation_v1`            | Reserved                                  | Phase 4 issued a legacy account-claim invitation                                                                       | exact invited contact                                                                                                         | D6 scanner-resistant handoff; invitation owner controls expiry/revocation                                                                                                                                                             |
+| `identity_magic_link_v1`                          | Reserved                                  | Supabase magic-link sign-in requested in a tenant context                                                              | exact auth recipient                                                                                                          | ephemeral D6 handoff; Supabase hook deadline; no fallback across tenant                                                                                                                                                               |
+| `identity_email_otp_v1`                           | Reserved                                  | Supabase email OTP requested where adopted                                                                             | exact auth recipient                                                                                                          | code/action secrecy; rate and expiry producer-owned                                                                                                                                                                                   |
+| `identity_password_recovery_v1`                   | Reserved                                  | Supabase password recovery requested                                                                                   | exact auth recipient                                                                                                          | scanner-resistant landing and fresh proof                                                                                                                                                                                             |
+| `identity_email_change_v1`                        | Reserved                                  | Supabase email-change confirmation requested                                                                           | source-defined old/new recipients                                                                                             | recipient cardinality and action mapping must be proved before Live                                                                                                                                                                   |
+| `document_artifact_ready_v1`                      | Reserved                                  | Phase 18 immutable artifact is ready                                                                                   | artifact owner recipient                                                                                                      | protected authenticated download only; no artifact body/PDF attachment; Phase 21 D12 may consume only after Reserved→Live proof, a current source-owned notice occurrence, and current recipient authorization                        |
+| `statement_current_available_v1`                  | Reserved                                  | Phase 19 admits the one ordinary frozen current-statement delivery occurrence                                          | exact authorized statement recipient                                                                                          | one ordinary donor notice only; portal/self-print/package readiness and run completion do not mint another occurrence                                                                                                                 |
+| `statement_current_withdrawn_v1`                  | Reserved                                  | source/purpose/jurisdiction contract permits or requires notice that no current successor is available                 | exact authorized statement recipient                                                                                          | truthful consequence and help route only; invalid bytes are never linked or presented                                                                                                                                                 |
+| `statement_additional_copy_ready_v1`              | Reserved                                  | Phase 19 D12 admits one fresh exact-current copy fulfillment after current authority is re-proved                      | exact authorized request recipient                                                                                            | new occurrence identity; never replays ready/correction/replacement/withdrawal meaning and never rerenders                                                                                                                            |
+| `statement_delivery_attention_v1`                 | Reserved                                  | a deterministic grouped statement-delivery condition materially needs staff action                                     | exact tenant staff owner/capability; in-product, optional bounded email                                                       | no per-recipient noise, donor-failure message, provider jargon, arbitrary retry, or claim that the statement failed as a legal document                                                                                               |
+
+### Phase 24 D45 access-request email amendment
+
+D45 retains both D44 staff in-product steps as required and permits one
+separate immediate `staff_email` sibling for each exact eligible recipient.
+Email is optional and the system/default Tenant Delivery Plan keeps the slot
+Off. The exact self-owned
+`preference.access_request_responsibility_email@1` value is closed to
+`inherit | disabled`: absence means `inherit`, which follows a deliberate Tenant On, while
+`disabled` suppresses email and cannot be overridden by a Tenant administrator.
+The preference cannot enable a Tenant-disabled slot or create D44
+responsibility.
+
+One atomic `profile.access_governance_attention@1` family-plan selection
+governs both exact D44 email slots. A mixed per-key On/Off plan is invalid, and
+On cannot publish unless both keys' contract, publication, and current Resend/
+Sender/Reply dependencies are compatible. Contract-specific source
+occurrences, render DTOs, actions, semantic identities, and outcomes remain
+separate.
+The effective Tenant choice is exactly `email_disabled | email_enabled`;
+missing, legacy, unknown, or unproved state resolves to `email_disabled`. Only
+a current same-Tenant actor with `system_messages.plan.manage` may publish its
+successor. Coordinator status, D44 route-management, request-decision, task,
+notification, or `permissions.manage_grants` authority does not imply plan
+management.
+
+Eligibility is the conjunction of all current proof, evaluated in this order:
+
+1. the Live code-owned key/profile permits `staff_email`;
+2. the exact published Tenant plan enables that optional slot;
+3. `preference.access_request_responsibility_email@1` is absent/`inherit`, not
+   `disabled`;
+4. the D43 request or sealed D44 responsibility-application source remains
+   applicable, and the exact recipient remains a current independently
+   authorized D44 coordinator for that source;
+5. Phase 3/4/9 resolve one current same-Tenant owned, safe, contactable email
+   revision and every applicable contact/`do_not_contact`/provider suppression
+   check passes; and
+6. the exact Tenant-owned Resend connection, `staff_operations` Sender Profile,
+   `staff_operations_help` reply destination, publication, and preparation
+   dependencies are Ready.
+
+The source/recipient/authorization, destination/contactability, suppression,
+and delivery-readiness terms are re-proved when the bounded occurrence compiles
+and again immediately before external preparation/dispatch. A later narrowing
+wins; no later widening adds an omitted member to the released occurrence.
+
+Missing, Off, stale, suppressed, unready, contradictory, or indeterminate proof
+never selects a fallback address, profile, role, sender, provider account, or
+channel. It yields a typed body-free non-applicable/suppressed/failed outcome
+for the optional step while required in-product attention and source-owned work
+continue. Optional email is not a safety fallback and cannot be the only way a
+coordinator learns of work.
+
+For `holder_access_review_requested_v1`, each current recipient/source
+generation compiles at most one immediate email sibling with subject **Access
+review needs attention**, preheader **Sign in to see current status and
+available actions.**, CTA **Review access request**, and stale-safe body **An
+access review was assigned to you. Sign in to see current status and available
+actions. This email does not grant permission and does not mean access has
+changed.** The authenticated destination resolves current truth;
+the email does not claim the request remains open or assigned when it arrives.
+For
+`access_request_responsibility_updated_v1`, each exact recipient and immutable
+responsibility-application generation compiles at most one grouped email with
+subject **Access review responsibilities updated**, the bounded immutable
+initial assigned count in body **You were assigned {count} existing access
+requests. Sign in to see current status and available actions. This email does
+not grant permission or change anyone's access.**, preheader **Sign in to see
+current status and available actions.**,
+CTA **View access requests**, and the authenticated filtered Access requests
+lane.
+It never sends one email per sealed child request. Neither message contains a
+requester/holder name, request/decision explanation, grant/capability/group,
+provenance, authority evidence, raw id, protected child list, inline Keep/
+Remove action, tracking pixel, or rewritten action URL.
+Subjects and preheaders are generic and never interpolate a Tenant name or the
+aggregate count. The per-request render-fact set is empty; the aggregate's
+immutable initial count may appear only in its body. Tenant identity comes only
+from the governed Sender Profile and layout/Brand Kit.
+The confirmed `staff_operations_help` Reply-To gives coordinators a humane
+support route, but a reply leaves Core for the Tenant mailbox and never creates
+a request comment, source event, responsibility transition, or decision.
+
+The email step has its own Phase 6 semantic identity, communication intent,
+prepared artifact, submission/attempt/provider outcome, expiry, body-free
+history, and advisory engagement. Resend acceptance/delivery/open/click cannot
+mark the in-product item read, close a Tasks Hub projection, resolve a request,
+keep/remove access, prove human awareness, or complete another email. Email
+failure, bounce, complaint, suppression, provider outage, or outcome ambiguity
+changes none of those sibling/source truths.
+
+Tenant-plan/preference enablement is future-only and never adds a member to a
+released occurrence; `disabled`→`inherit` and contact/readiness repair are the
+same future-only widening. Tenant Off, `inherit`→`disabled`, and every source/
+authorization/contact/suppression/readiness narrowing re-prove immediately
+before external submission and suppress any not-yet-submitted optional email,
+including a prepared member, without mutating/rerendering its sealed artifact.
+Provider-accepted mail is non-retractable. No path replays current/historical
+requests or revives an ended recipient generation. A later
+source-authorized request or responsibility-application generation evaluates
+the then-current policy. D44's application of current responsibility remains
+the only bounded backlog source and produces one grouped email per recipient/
+application generation when D45 is then eligible.
+
+The one canonical Tenant editor is **System Messages → Messages → Access review
+requested → Delivery**. People & access may show a compact notification summary
+and **Manage email delivery** deep-link to that route, but never edits or stores
+another setting; D45 adds no navigation. The editor shows required **In-product:
+Always on** plus optional
+**Email access request coordinators: Off/On**, current Resend readiness, one
+repair action, **Personal settings may narrow delivery**, and the future-only
+impact **0 existing requests will be emailed**.
+Turning On requires the exact Tenant connection/Sender/Reply path to be Ready.
+If readiness later degrades, the published choice remains visible as **On —
+email unavailable**, no fallback occurs, new occurrences omit/suppress email,
+and repair never backfills an omitted member. An already-created same-step retry
+remains governed only by its pinned recovery contract, not D45 widening.
+The Tenant surface deliberately shows no selected/eligible/preference-disabled
+coordinator counts; with a bounded one-to-three-person cohort, those counts add
+noise and disclose personal settings without improving the decision.
+
+The personal route is **Settings → Notifications → Access request
+responsibility**. It shows a read-only **Effective email** status
+plus a stable radio choice: **Follow my organization's setting** (`inherit`,
+default) or **Off for me** (`disabled`). Effective status is never the form
+control value and uses truthful states **Off by organization**, **On**, **Off
+for me**, or **Email unavailable**. Changes remain a local draft until **Save changes**,
+with **Cancel** and
+durable inline success/error; only that recipient may save, and Tenant
+administrators cannot override **Off for me**. Both surfaces explain the other
+gate, do not promise delivery, and use shared Base Maia controls,
+programmatically associated help/errors, keyboard/mobile/zoom/RTL/CJK support,
+and no channel matrix or nested modal.
+The recipient/email-footer link label is **Manage notification preferences**
+and points only to that authenticated personal route; Tenant configuration never
+uses that label. The exact per-request footer is **This email was prepared
+because your organization enabled access request email, you were assigned as an
+Access request coordinator, and your personal setting followed the
+organization's choice. Manage notification preferences.** The aggregate
+substitutes **updated its Access request coordinators** for the assignment
+clause. Only **Manage notification preferences** is linked.
+
+D45 adds no reminder, digest, escalation, deadline, SLA, SMS, push, Slack,
+Microsoft Teams, Google Chat, or generic webhook. Each future transport needs a
+separately reviewed channel profile/Delivery Step, exact recipient and
+destination/install authority, readiness, preference or consent,
+suppression, safe renderer, adapter/idempotency/evidence, retention, operations,
+tenant-isolation, accessibility, migration, rollback, and proof pack. It may
+reuse the bounded Delivery Plan compiler and Phase 6 intent seam only through a
+reviewed schema generation, never a generic setting, provider-neutral send
+function, Tenant-authored condition, or workflow DSL. SMS remains additionally
+blocked by ADR-0028. D46 creates no automatic access-request reminder while
+Phase 12 owns no due instant, expiry, risk transition, SLA, or other ratified
+temporal requirement. D47 permits a bounded candidate to become evidence-
+qualified and a separately activated Tenant profile to become a Phase 12 source policy without deadline or access
+meaning, but activates no policy or reminder. Consequently this Phase 17 generation adds no reminder meaning, key,
+profile, step, plan choice, binding, renderer, preference, timer, schedule,
+publication, UI, or placeholder. The access-request surfaces must not show a
+countdown, due/overdue treatment, or reminder control. Digest and escalation
+require later separate decisions. A future
+transport for unchanged D44 meaning extends the same stable key and source
+occurrence through one named channel step; it does
+not mint a channel-specific key or duplicate source event. Only changed
+business meaning warrants a successor key.
+
+An access-request reminder can enter a later manifest only after Phase 12
+ratifies one stable source-owned temporal occurrence with exact source/policy
+revision, absolute instant and human time-zone/calendar semantics when
+applicable, durable business idempotency, recipient generation, cancellation/
+supersession, current usefulness, late/outage recovery, and terminal rules.
+The source-owned reminder occurrence is a new message meaning—not a D45 resend
+or a mutation/extension of the original attention item—and any channel remains
+an independently governed Delivery Step. Phase 6/product records own the atomic
+handoff, permanent uniqueness, and evidence. Inngest may later wake or reconcile
+the occurrence, but every wake must claim the product record and re-prove
+source, authorization, recipient, cancellation, and usefulness; provider or
+Inngest timing, event deduplication, cancellation, and logs are secondary only.
+No generic reminder engine, scheduler, cadence preset, workflow graph, or rules
+DSL is created in anticipation.
+
+D47 does not move cadence into System Messages. A future authorized Tenant
+choice lives with the Phase 12 Access requests source policy; Phase 17 neither
+stores nor publishes its timing. Only after a still-current source commits one
+independently proved reminder occurrence may a later manifest generation
+register one stable reminder message key and compile bounded recipient/channel
+steps. Later decisions must define recipient-generation timing, widening/
+narrowing, zero-member and routing-change/backfill behavior; D47 does not. A
+reminder never creates a task. D45 initial-email plan/preference authorizes no reminder
+delivery. D47 registers no key, step, plan, preference, renderer, publication,
+or settings surface now; exact clock choices and all channels remain later
+decisions.
+
+D48 limits the first possible reminder cohort to D43 request creations that
+Phase 12 orders after the first successful non-Off cadence-policy boundary and
+atomically records as admitted. A pre-boundary request can never produce a
+reminder occurrence, plan member, presentation, delivery, missed/legacy badge,
+or catch-up through current policy, age, task/notification state, migration,
+projection rebuild, worker, or provider. Exact request replay preserves the
+original disposition. D48 registers no stable key, profile, step, plan,
+preference, publication, renderer, current-cohort operation, or UI. D49 binds
+the one occurrence to bounded D44 recipient truth as specified below; D50
+supplies request-anchored elapsed eligibility as specified below, and D51
+supplies policy edit/Off/re-enable cancellation as specified below; useful-
+lateness, content, and channels remain gated. The existing
+D44 task stays work truth and no reminder task is created.
+
+D49 binds that one occurrence to the exact current D44 responsibility
+generation for the request at the Phase 12 source occurrence—not the configured
+coordinator roster, request-creation audience, task assignees, or a channel-time
+query. Phase 12 atomically records the complete canonical zero-to-three-member
+candidate result—with each member's exact D44 recipient-generation identity and
+Active Tenant Assignment—with the source occurrence and receipt. Proved zero is
+terminal for that occurrence; indeterminate leaves the same occurrence
+unreleased with append-only attempt evidence and may retry only that identity.
+Later coordinator additions, remove-then-readd, restored eligibility, and
+recreated assignments never join the sealed cohort; only a gap-free D44
+continuation may retain an original member.
+
+Phase 17 and Phase 6 may only narrow the sealed source candidates through fresh
+current source, assignment, authorization, requester-exclusion, preference,
+consent, destination/readiness, suppression, and privacy proof. Source-level
+loss suppresses all remaining effects for that member; channel-specific loss
+narrows only that channel. No adapter may add a replacement or resolve D44
+independently. D49 adds no key, renderer, item, preference, plan, publication,
+history row, channel, task, executor, or UI now.
+
+D50 gives Phase 17 only a product-owned occurrence after one immutable finite
+UTC not-before instant; it does not give Phase 17 a schedule. Phase 12 captures
+one fresh trusted database source-created instant after D48's serialized policy
+winner is proved, pins the exact code-owned duration identity/revision and
+bounded whole elapsed seconds, and derives the not-before instant in the same
+successful D43 transaction. If a later approved choice says “day,” it means
+exactly 86,400 elapsed seconds. Civil or working calendars, Tenant/session
+zones, DST, weekends, holidays, task/notification age, recipient changes, and
+executor/provider time cannot reinterpret or reset it. D49 still seals its
+cohort only at the actual successful source occurrence commit.
+
+The not-before instant is eligibility—not Due, Overdue, a countdown, delivery
+time, or proof of notification. Phase 17 may neither calculate nor mutate it;
+an early wake releases nothing and a late wake attempts only the same product
+occurrence under later cancellation/usefulness rules and all fresh gates. D50
+adds no key, renderer, item, profile, plan, preference, publication, history
+row, channel, task, executor, schema, OpenSpec requirement, UI, or telemetry
+artifact. The remaining usefulness, content, channel, retention, and activation
+decisions stay gated.
+
+D51 now fixes the policy-lifecycle cancellation ceiling. Every successful
+Active-to-Off Phase 12 publication advances a separate monotonic cancellation
+epoch. D48 admission pins the current epoch; non-Off interval edits do not
+advance it, and re-enable retains it so canceled work cannot revive. Every D49
+seal, in-product release, external preparation/decryption, and provider-
+submission attempt admission
+must re-prove the pinned epoch against current source truth. Off-first prevents
+the admission. A source/effect boundary that commits first remains truthful
+history even if its projection or provider outcome becomes visible later.
+
+Every future Delivery Step must register its own product-owned irreversible-
+effect admission. For in-product presentation, the boundary is the atomic role-
+safe release that makes the exact item queryable, not human read. Off may source-end
+an already released reminder's active/unread presentation under its registered
+policy but never fabricates read, dismissal, or deletion. For external delivery,
+the currently governed email boundary is Phase 6's sealed provider-submission
+attempt fence committed before the first byte can leave Asym. **Prepared
+definitely unsubmitted** work is suppressible; an admitted attempt
+is permanently **Submission may have begun**, while its independent provider
+outcome remains **None**, **Accepted**, **Definitely rejected**, or
+**Indeterminate** as evidence permits. Once Off wins, provider/webhook
+reconciliation may reduce existing evidence, but no same-key follow-up call,
+replacement attempt, blind resend, provider-recall claim, or changed-envelope
+replay may occur. Any future push, Slack, Teams, Google Chat, or other step must
+separately prove its exact admission/finality/recovery boundary and cannot
+inherit email assumptions or introduce a generic cancellation engine.
+
+Off, non-Off edit, and re-enable create no task, cancellation notification,
+bell item, email, chat, unread reset, or engagement mutation. The future editor
+uses one local draft and inline consequence review before the specific **Turn
+off courtesy reminders** action; no autosaving toggle, nested dialog, protected
+current-work count/list, or recipient disclosure is introduced. D51 creates no
+message key, profile, plan, step, binding, renderer, preference, publication,
+history row, channel, event, job, schema, OpenSpec, UI, or telemetry artifact.
+D52 separately supplies late-usefulness; every remaining activation gate still
+applies.
+
+D52 now makes late usefulness one Phase 12 source-admission interval, not a
+Delivery Plan schedule. Each future activated cadence card represents
+one complete versioned code-owned pair of positive finite whole-second
+`wait_for_seconds` and `useful_for_seconds`. D48/D50 pin both values and derive
+immutable finite UTC `not_before` and `useful_until` facts in the successful D43
+source transaction. Phase 17 may release a presentation/member only when a
+fresh trusted primary-database claim after its locks satisfies the half-open
+source interval `not_before <= claim_instant < useful_until`, the D51 epoch
+matches, and every current source/member/authorization/privacy/channel gate
+passes. Equality at the upper bound is expired; Phase 17, a provider, and an
+executor cannot calculate, reset, extend, or repair it.
+
+At expiry, an unresolved D49 result closes usefulness-expired/no-release while
+remaining historically indeterminate; proved zero stays zero. A cohort sealed
+inside the interval remains immutable source evidence, but every still-
+unreleased member/step expires independently. One released member or channel
+never authorizes another. No replay, restore, route repair, re-enable, provider
+retry, or late wake creates a successor or catch-up occurrence.
+
+For in-product presentation, a release admitted in time remains governed by
+ADR-0027 and current D43 source actionability; D52 is not an automatic read,
+archive, retention, or presentation-end date. For email, **Prepared definitely
+unsubmitted** work is suppressed at expiry. A pre-expiry **Submission may have
+begun** attempt's one admitted initial provider call may start, finish, or
+reconcile afterward only as the immediate bounded continuation of the same pre-
+I/O critical section with its envelope already prepared; a stalled/restarted
+process makes no call or retry. The independent canonical provider outcome
+remains, but expiry permits no new attempt, follow-up call, same-key
+follow-up, retry, replacement, rekey, resend, or recall claim. Provider TTL or
+channel expiration may only narrow transport and never owns or extends the
+source interval.
+
+The future policy editor exposes no second grace-period control, custom
+duration, countdown, Due/Overdue or missed badge, task date, catch-up action,
+provider state, worker state, or recipient failure notification. The selected
+complete card says **If Asym cannot create the reminder soon enough, it skips
+it instead of sending it late.** D42-authorized audit may show the exact
+localized timing, seal, skip, release, submission, and provider evidence. D52
+adds no key, profile/value, renderer, item, preference, plan, publication,
+history row, channel, job, provider request, schema, OpenSpec, UI, or telemetry
+artifact now. D53 and D47's representative-evidence gate must admit exact pairs
+before activation.
+
+D53 keeps cadence **Off by normative absence** until an exact complete
+`(wait_for_seconds, useful_for_seconds)` pair passes D47's preregistered
+representative-evidence gate. No stored Off row, provisional profile, feature
+flag, disabled choice, beta label, empty state, evidence table, approval
+workflow, or experiment configuration is created. Research evidence remains
+privacy-minimized, version-controlled decision and release evidence; it is
+never a runtime input or Tenant-authored authority. Each exact pair qualifies
+under an immutable `research_candidate_id` and preregistered protocol version.
+Compatible baseline evidence may be reused, but changed timing or material
+semantic/interaction meaning requires new pair-specific proof. Meaning-
+preserving editorial, accessibility, and localization corrections do not.
+
+Passing D47 creates only an **evidence-qualified timing-pair proposal**. It
+does not make a key, profile, manifest row, policy, plan, source occurrence,
+step, publication, renderer, setting, event, job, or UI available. The exact
+pair becomes an **activated access-review timing profile** only after a
+separate reviewed activation package also closes D46–D55 source semantics,
+message meaning/content, every proposed channel, authorization/RLS/privacy,
+retention, concurrency/idempotency, accessibility/localization, load,
+migration/mixed-version, disable/repair, OpenSpec, manifest, tests, and release
+evidence. A future registry contains only immutable code-owned activated
+identity/revision pairs; Tenant policy stores that identity, and trusted server
+code resolves its exact whole-second values. Caller input, Tenant data,
+imports, support tools, workers, providers, and experiments cannot author or
+rewrite them. A temporary rollout or kill control may only narrow a fully
+activated profile and must have an owner and removal criteria; it cannot
+qualify or define the profile.
+
+Ordinary profile retirement removes the profile from new policy selection/
+reselection only; a Tenant's current selected head continues prospective D43
+source admission until a deliberate policy change. D55 now makes urgent safety
+withdrawal a terminal exact-profile platform fence that preserves the selected
+head while effective cadence becomes Off. D56 must still settle its authority/
+evidence-review contract before first activation.
+
+Before any profile is fully activated there is no cadence surface at all:
+Access requests remains complete without a teaser or blocked setting. After
+activation, the D44/D47-governed future route-addressable **People & access →
+Access requests → Settings** surface
+shows one quiet vertical radio fieldset named **Courtesy reminders**, containing
+only the Tenant's current effective **Off** choice—whether represented by
+absence or an explicit later policy revision—and fully activated complete
+profiles. Rendering Off does not seed a placeholder. A retired profile
+referenced by the current policy head appears only in a
+separate read-only **Current setting** summary outside the selectable radio
+choices; it cannot be reselected.
+Each plain-language profile choice controls the whole pair; usefulness is not a
+second setting. Concise helper text states: **This creates one courtesy
+reminder only if the request is still waiting. It does not set a due date or
+change access. If Asym cannot create the reminder soon enough, it skips it
+instead of sending it late.** An available, collapsed-by-default **How timing
+works** disclosure holds D48–D52 detail and renders the selected pair in plain
+language: **Eligible after [wait]; if it cannot be created within the next
+[usefulness], it is skipped.** It never exposes internal field names. The
+governed explicit Save/Cancel, future-only consequence
+review, expected-head concurrency, durable receipt, persistent success, and
+lost-response recovery patterns apply. No autosave, modal-only warning,
+countdown, evidence score, provider state, or hidden unavailable option is
+introduced.
+
+D54 selects one future required local `staff_in_product` reminder descendant
+per exact still-qualified D49 sealed member. It is a distinct recipient item
+whose protected meaning is only that this exact current access review is still
+waiting at the admitted courtesy point. It is not a resend/mutation of either
+D44 item, a deadline, escalation, no-response or awareness claim, request/access
+decision, provider delivery fact, or ADR-0183 task change. D54 does not name or
+reserve a key; the later complete activation package must register the stable
+key, immutable fact schema, exact local step, safe content, renderer, and one
+reminder-specific source-applicability/end rule together.
+
+The future local release is atomic with the D43 current head, D48 admission,
+exact D49 sealed member and uninterrupted D44 continuation, D51 epoch, D52
+half-open usefulness interval, current same-Tenant Party/assignment/role/surface
+authorization/privacy/source visibility, semantic uniqueness, and valid group
+attachment. A failed attachment cannot publish an orphan item. Product-owned
+uniqueness, not event, group, task, worker, realtime, or provider identity,
+converges replay; changed immutable meaning conflicts.
+
+The item and an eligible matching `holder_access_review_requested_v1` child use
+one deterministic, rebuildable **Access-review attention group** for the same
+Tenant, exact D43 request episode, recipient, role/surface/privacy boundary, and
+uninterrupted D44 responsibility lineage. The multi-request
+`access_request_responsibility_updated_v1` aggregate never joins. If the exact
+recipient never had an eligible per-request initial child, the reminder is a
+complete one-child group; Core never fabricates, revives, clones, or backfills
+an initial item.
+
+Each child retains independent immutable availability, applicability,
+engagement, and history. Only the new child receives fresh unread state. The
+group has no engagement or business row: its unread/badge contribution is the
+Boolean OR of currently authorized visible unread children and therefore at most
+one; Needs-attention membership derives from current actionable children.
+Expand/collapse, viewport exposure, sorting, and realtime refresh write no
+engagement. An explicit group engagement command, if the shared Phase 17 UI
+offers one, must resolve to idempotent item-level expected-set writes so a
+concurrent new child remains unread or yields a truthful stale result. Selecting
+the reminder's exact authenticated Review action may idempotently mark only that
+reminder child read; lost-response reconciliation cannot clear a sibling,
+group, task, source, peer, or external channel.
+
+The future item uses ordinary **Attention** and
+`presentation.source_actionable_then_recent_90d@1`. Its safe presentation is
+**Access review is still waiting**, category **Access requests**, supporting
+copy **Review this request in People & access.**, and one typed authenticated
+action. It carries no holder/requester identity, reason, capability, access
+group/grant/provenance, authority evidence, decision, member-care, location, or
+ministry context. D43 resolution ends applicable children independently. D51
+Off after release ends only reminder active/unread contribution; D52 controls
+first release, not truthful released retention. Access loss removes active and
+recent presentation immediately and restoration never revives it.
+
+Presentation reuses the one Phase 17 model and existing Base Maia/Base UI
+primitives. It is not a generic thread, conversation, grouping DSL, shared
+engagement object, custom keyboard widget, or second task/notification system.
+Visual and DOM/accessible hierarchy and order must agree, with semantic list/
+heading/disclosure relationships, visible labels, non-color unread state, quiet
+arrival, keyboard/focus, reflow/zoom, target-size, forced-colors, reduced-motion,
+localization/RTL/CJK, mobile, and low-bandwidth proof. No inline Keep/Remove,
+avatar/person signal, task control, due/overdue copy, urgent style, sound, focus
+theft, auto-open, or toast-only history is allowed. The current hardcoded bell
+demo is not a precedent.
+
+D45's `profile.access_governance_attention@1` governs only the two initial email
+slots and is never inherited. Local presentation is required; each external
+reminder channel remains absent/not-applicable until separately admitted and
+proved. D54 is documentation only and adds no key, manifest/census row, plan,
+step, renderer, preference, publication, runtime, schema/RLS migration, OpenSpec,
+route, job, telemetry, or UI. Counts remain unchanged under D53.
+
+D55 adds the permanent urgent-withdrawal contract but no executable artifact.
+One future platform decision may safety-withdraw one exact activated timing-
+profile identity/revision. It is append-only, irreversible, platform-scoped,
+and narrowing only. It preserves every Tenant-selected policy head and pinned
+historical tuple while making the derived effective cadence Off. It is not an
+ordinary profile retirement, Tenant Off, Delivery Plan, message preference,
+provider pause, feature flag, or generic kill-switch/workflow product; it may
+never be cleared, edited, retargeted, or treated as a fallback selector.
+
+Every new profile selection/reselection, D43 admission, D49 seal, local release,
+plan compile/member release, and external irreversible-effect admission must
+atomically re-prove that the exact profile revision is not withdrawn. Missing,
+stale, unreadable, malformed, unknown, or mixed-version-unsupported safety proof
+fails closed for reminder work while leaving the D43 request/lane, initial D44
+attention, and task available. The product database owns this fact; cache,
+Realtime, Inngest, provider, support, browser, and feature-flag state can never
+authorize around it.
+
+Fence-first produces no reminder item or external member. If local release won
+first, ADR-0027 ends only the reminder child's active/unread contribution and
+may retain authorized generic non-unread Recent/audit history; the initial child
+and request/task/access remain. External work **Prepared definitely
+unsubmitted** is suppressed. An already committed **Submission may have begun**
+boundary preserves only its one frozen call and reconciliation; withdrawal
+permits no new I/O, retry, rekey, fallback, replacement, follow-up, or recall
+claim. Unreleased work closes under a stable safety-withdrawn/no-release result,
+not D49 proved zero, D52 expiry, D51 Tenant Off, or D43 resolution.
+
+The future exact-profile decision uses trusted server/database target, actor/
+initiator, effective time, safe reason class, restricted evidence reference/
+digest, contract revision, and durable idempotency. Tenant/browser/import/
+support/provider/worker/flag writes are forbidden; duplicate replay converges
+and changed immutable facts conflict. A safe Tenant projection exposes only the
+selected profile's unavailability/effect. Exact evidence, actor, incident
+detail, affected-Tenant counts, and person-level research remain behind D42-
+governed audit. D56 separately settles the authorized-human/assurance and
+evidence-review rule before any activation.
+
+The future settings UX omits a withdrawn profile from choices/save APIs while
+showing a separate read-only **Current setting** when it remains selected:
+**Selected: [profile label]**, **Status: Unavailable for safety**, **Effective:
+Off**, and **Courtesy reminders are off. Existing access requests, tasks, and
+access are unchanged. This setting will not restart.** A secondary **Choose a
+new setting** action opens the ordinary Off/available-profile fieldset with no
+replacement preselected and Save disabled until a deliberate choice. Cancel
+preserves the Tenant head. A successor requires separate evidence/activation
+and deliberate Tenant selection and never catches up old episodes.
+
+No withdrawn disabled radio, auto-substitution, auto-save, blocking modal,
+incident detail, internal fence/head/revision jargon, task, notification, email,
+banner, toast, or mass Tenant fanout appears. Visible/programmatic selected and
+effective states, labels, errors, status, focus, keyboard, forced colors, reflow/
+zoom, text spacing, screen reader, localization/RTL/CJK, mobile, and low-
+bandwidth/lost-response behavior must agree. Mixed-version readers/writers and
+rollback preserve the withdrawal and decoder. D55 adds no key, manifest/census
+row, profile, plan, step, publication, renderer, source-end registration,
+schema/RLS, OpenSpec, UI, flag, worker, telemetry, or count now.
+
+The active `outbound-communications` OpenSpec already requires bounded plans,
+independent email/in-product outcomes, fixed contract → Tenant → recipient →
+current-access narrowing, exact external readiness, and optional-staff prepared
+material. It is compatible but does not yet name either D44 key, the D45
+default-Off Tenant plan plus `inherit | disabled` recipient narrowing,
+access-request preference identity, grouped
+email grain, safe field wall, or future-channel negative cases. Those exact
+requirements/scenarios must be added before either key leaves Reserved; prose
+in this PRD/manifest does not bypass OpenSpec.
+
+Its generic scenario in which a Tenant enables a contract-permitted reminder
+slot is not access-reminder authority: for D47, Phase 12 source policy must
+first commit the reminder occurrence, and Phase 17 may only compile downstream
+delivery. Before any access-reminder activation, OpenSpec must add that source-
+specific negative/positive scenario and state that a Delivery Plan or recipient
+preference cannot create, backfill, reclassify, delay, reschedule, or cancel
+Phase 12 source admission/time. It must also prove D48's first-boundary/request-
+creation order and no pre-boundary enrollment, plus D49's source-atomic complete
+current-responsibility cohort, proved-zero/indeterminate split, and monotonic
+narrowing plus D50's request-anchored elapsed eligibility and no-deadline/time-
+authority rules, and D51's monotonic Off epoch, pre-release/pre-submission
+reproof, prospective re-enable, and no-revival/no-post-Off-I/O rules, plus
+D52's half-open source interval, terminal no-catch-up outcomes, and no-post-
+expiry-I/O rule, plus D53's evidence-qualification versus full-activation
+boundary, absent-until-admitted registry, and exact immutable timing-profile
+identity before activation, plus D54's distinct-item, request-group, independent-
+engagement, reminder-specific end-rule, required-local, and external-channel-
+noninheritance contract, plus D55's selected/effective separation, terminal
+exact-profile withdrawal, no-mass-write behavior, successor-only recovery,
+atomic fail-closed gate coverage, released/unreleased boundaries, safe Tenant
+projection, and mixed-version preservation. D47–D55 do not
+modify or activate OpenSpec/runtime now, and the canonical workflow
+ownership model remains unchanged.
 
 ### Inventory-only categories with keys deferred
 
@@ -462,48 +1041,50 @@ Do not mint stable keys until the producing phase fixes meaning, owner, recipien
 
 The complete obligation census below prevents those deferred meanings from disappearing. It is an inventory, not tenant-visible configuration and not permission to invent a stable key.
 
-| Product meaning to account for                                       | Owning source / target phase                                              | Phase 17 disposition                                                                                                          |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Account claim invitation                                             | Phase 4                                                                   | stable Reserved key above; D6 mapping required                                                                                |
-| Magic link and adopted email OTP                                     | Supabase Auth / Phase 4                                                   | stable Reserved keys above; exact hook action/recipient mapping required                                                      |
-| Password recovery                                                    | Supabase Auth / Phase 4                                                   | stable Reserved key above                                                                                                     |
-| Email confirmation/change and reauthentication                       | Supabase Auth / Phase 4                                                   | email-change key Reserved; split/add successor only after exact current/old/new recipient semantics are proved                |
-| Password/email/security change completed notice                      | Phase 4/future security owner                                             | key deferred; no producer/recipient occurrence proved                                                                         |
-| Staff/donor account invitation or membership change                  | Phase 4/12                                                                | key deferred; distinguish authorization notice from marketing                                                                 |
-| Donor profile/address/contact change confirmation                    | donor self-service phase                                                  | key deferred; source command and security consequence not yet fixed                                                           |
-| One-time gift acknowledgement                                        | Phase 7/13                                                                | key deferred until acknowledgement versus official receipt is a distinct emitted occurrence                                   |
-| Successful gift receipt                                              | Phase 7                                                                   | Target Live tracer above                                                                                                      |
-| Receipt replacement, correction, void or supersession                | Phase 7                                                                   | replacement Target Live; other meanings get distinct keys only when their occurrences exist                                   |
-| Refund, return, chargeback or payment-state correction               | Phase 13/contribution operations                                          | current correction keys above; missing meanings deferred rather than conflated                                                |
-| ACH initiated/processing confirmation                                | Phase 13 or Phase 16 by occurrence kind                                   | recurring key Reserved; one-time key deferred to its owner                                                                    |
-| ACH success/failure/return                                           | Phase 13/16 plus Phase 7                                                  | source event may issue receipt/correction; no duplicate generic success key                                                   |
-| Recurring arrangement created/confirmed                              | Phase 16                                                                  | use exact producer-owned confirmation obligation; no new key until Phase 16 names it beyond schedule-change/receipt contracts |
-| Recurring schedule/amount/destination/end changed                    | Phase 16                                                                  | `recurring_schedule_changed_v1` Reserved                                                                                      |
-| Recurring skipped, paused, resumed or canceled                       | Phase 16                                                                  | contextual product confirmation/source projection; separate email key deferred unless Phase 16 emits stable meaning           |
-| Recurring recovery started/action required/missed/corrected          | Phase 16                                                                  | exact Reserved keys above                                                                                                     |
-| Upcoming recurring charge                                            | Phase 16                                                                  | exact Reserved key above; required only for its contract-declared cadences                                                    |
-| Payment method updated/expiring/unusable                             | Phase 16/payment-method owner                                             | key deferred except where represented by `recurring_action_required_v1`; no raw provider event becomes meaning                |
-| Fixed pledge upcoming/source-aware follow-up                         | Phase 16                                                                  | exact Reserved keys above; quiet optional profile                                                                             |
-| Missionary recurring pause visibility                                | Phase 16 dashboard projection                                             | not a message; no Phase 17 key or runtime intent                                                                              |
-| Missionary terminal recurring miss                                   | Phase 16 + D8                                                             | in-product step of the exact terminal occurrence contract; no per-attempt/email noise                                         |
-| DAF/tribute/matching/church recognition acknowledgement              | Phase 14                                                                  | keys deferred per exact recognition occurrence and recipient owner                                                            |
-| Artifact ready/download notice                                       | Phase 18                                                                  | stable Reserved key above                                                                                                     |
-| Statement ready/delivery/correction/failure/void                     | Phase 19 run/item + Phase 7 facts + Phase 18 artifact + Phase 17 delivery | Reserved until every exact owner contract is proved; no phase collapses another axis                                          |
-| Annual tax summary or other official document delivery               | Phase 19 run/item + Phase 18 artifact + Phase 17 delivery                 | key deferred until document class, legal recipient and exact handoff are fixed                                                |
-| Contribution correction approval request/reminder/escalation/outcome | contribution operations                                                   | Target Live keys above                                                                                                        |
-| Generic staff assignment or @mention                                 | owning CRM/workflow phase                                                 | key deferred until typed source/destination exists; D8 is presentation only                                                   |
-| Task deadline/overdue/escalation                                     | Phase 34 or owning domain                                                 | key deferred; producer owns clock and completion                                                                              |
-| Workflow form/file/reference request                                 | Phase 34                                                                  | key deferred; Phase 17 may render only a future Live contract                                                                 |
-| Workflow stage/outcome notice                                        | Phase 34                                                                  | key deferred; no generic workflow event key                                                                                   |
-| Support conversation assigned/replied/SLA/undelivered                | Phase 26                                                                  | system-notice keys deferred; human message body remains outside catalog                                                       |
-| Event registration/ticket/team/fundraiser notice                     | future Event Hub                                                          | key deferred; benchmark outcome only                                                                                          |
-| Public form submission/content review/publish/domain change          | public-content phases                                                     | key deferred; exact producer/audience required                                                                                |
-| Campaign/newsletter/journey message                                  | Phases 32/34/35                                                           | outside system catalog unless it invokes an already-Live system meaning                                                       |
-| Resend connection/domain/webhook/sender/reply problem                | Phase 17 D10/D15                                                          | one Target Live grouped Needs-attention meaning; no email-only incident dependency                                            |
-| Publication review/change request                                    | Phase 17 D11                                                              | Target Live in-product meanings above                                                                                         |
-| Import/export/transfer job completion or action needed               | Phase 17 D19                                                              | contextual job state; stable notification key deferred unless user testing proves an attention event is needed                |
-| Eve platform-operator outage/security incident                       | Eve #436 plus Phase 17 email seam                                         | Eve owns safe facts/recipient/policy and Discord; email key deferred until exact event meaning is enumerated and Live-proved  |
-| SMS STOP/HELP, registration and delivery                             | later explicit SMS phase                                                  | evidence vocabulary only; no Phase 17 key, content or transport                                                               |
+| Product meaning to account for                                       | Owning source / target phase                                              | Phase 17 disposition                                                                                                                                                                                                                 |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Account claim invitation                                             | Phase 4                                                                   | stable Reserved key above; D6 mapping required                                                                                                                                                                                       |
+| Magic link and adopted email OTP                                     | Supabase Auth / Phase 4                                                   | stable Reserved keys above; exact hook action/recipient mapping required                                                                                                                                                             |
+| Password recovery                                                    | Supabase Auth / Phase 4                                                   | stable Reserved key above                                                                                                                                                                                                            |
+| Email confirmation/change and reauthentication                       | Supabase Auth / Phase 4                                                   | email-change key Reserved; split/add successor only after exact current/old/new recipient semantics are proved                                                                                                                       |
+| Password/email/security change completed notice                      | Phase 4/future security owner                                             | key deferred; no producer/recipient occurrence proved                                                                                                                                                                                |
+| Staff/donor account invitation or membership change                  | Phase 4/12                                                                | key deferred; distinguish authorization notice from marketing                                                                                                                                                                        |
+| Donor profile/address/contact change confirmation                    | donor self-service phase                                                  | key deferred; source command and security consequence not yet fixed                                                                                                                                                                  |
+| One-time gift acknowledgement                                        | Phase 7/13                                                                | key deferred until acknowledgement versus official receipt is a distinct emitted occurrence                                                                                                                                          |
+| Successful gift receipt                                              | Phase 7                                                                   | Target Live tracer above                                                                                                                                                                                                             |
+| Receipt replacement, correction, void or supersession                | Phase 7                                                                   | replacement Target Live; other meanings get distinct keys only when their occurrences exist                                                                                                                                          |
+| Refund, return, chargeback or payment-state correction               | Phase 13/contribution operations                                          | current correction keys above; missing meanings deferred rather than conflated                                                                                                                                                       |
+| ACH initiated/processing confirmation                                | Phase 13 or Phase 16 by occurrence kind                                   | recurring key Reserved; one-time key deferred to its owner                                                                                                                                                                           |
+| ACH success/failure/return                                           | Phase 13/16 plus Phase 7                                                  | source event may issue receipt/correction; no duplicate generic success key                                                                                                                                                          |
+| Recurring arrangement created/confirmed                              | Phase 16                                                                  | use exact producer-owned confirmation obligation; no new key until Phase 16 names it beyond schedule-change/receipt contracts                                                                                                        |
+| Recurring schedule/amount/destination/end changed                    | Phase 16                                                                  | `recurring_schedule_changed_v1` Reserved                                                                                                                                                                                             |
+| Recurring skipped, paused, resumed or canceled                       | Phase 16                                                                  | contextual product confirmation/source projection; separate email key deferred unless Phase 16 emits stable meaning                                                                                                                  |
+| Recurring recovery started/action required/missed/corrected          | Phase 16                                                                  | exact Reserved keys above                                                                                                                                                                                                            |
+| Upcoming recurring charge                                            | Phase 16                                                                  | exact Reserved key above; required only for its contract-declared cadences                                                                                                                                                           |
+| Payment method updated/expiring/unusable                             | Phase 16/payment-method owner                                             | key deferred except where represented by `recurring_action_required_v1`; no raw provider event becomes meaning                                                                                                                       |
+| Fixed pledge upcoming/source-aware follow-up                         | Phase 16                                                                  | exact Reserved keys above; quiet optional profile                                                                                                                                                                                    |
+| Missionary recurring pause visibility                                | Phase 16 dashboard projection                                             | not a message; no Phase 17 key or runtime intent                                                                                                                                                                                     |
+| Missionary terminal recurring miss                                   | Phase 16 + D8                                                             | in-product step of the exact terminal occurrence contract; no per-attempt/email noise                                                                                                                                                |
+| DAF/tribute/matching/church recognition acknowledgement              | Phase 14                                                                  | keys deferred per exact recognition occurrence and recipient owner                                                                                                                                                                   |
+| Artifact ready/download notice                                       | Phase 18                                                                  | stable Reserved key above                                                                                                                                                                                                            |
+| Statement ready/delivery/correction/failure/void                     | Phase 19 run/item + Phase 7 facts + Phase 18 artifact + Phase 17 delivery | Reserved until every exact owner contract is proved; no phase collapses another axis                                                                                                                                                 |
+| Annual tax summary or other official document delivery               | Phase 19 run/item + Phase 18 artifact + Phase 17 delivery                 | key deferred until document class, legal recipient and exact handoff are fixed                                                                                                                                                       |
+| Contribution correction approval request/reminder/escalation/outcome | contribution operations                                                   | Target Live keys above                                                                                                                                                                                                               |
+| Holder direct-grant review needs coordinator attention               | Phase 12 D43–D45                                                          | `holder_access_review_requested_v1`; required staff in-product plus independently gated default-Off immediate email from the current D44 recipient generation                                                                        |
+| Access-request responsibility changes across current pending work    | Phase 12 D44–D45                                                          | one aggregate `access_request_responsibility_updated_v1` per newly admitted recipient/responsibility-application generation; one exact task per request, one local aggregate item, and at most one independently gated grouped email |
+| Generic staff assignment or @mention                                 | owning CRM/workflow phase                                                 | key deferred until typed source/destination exists; D8 is presentation only                                                                                                                                                          |
+| Task deadline/overdue/escalation                                     | Phase 34 or owning domain                                                 | key deferred; producer owns clock and completion                                                                                                                                                                                     |
+| Workflow form/file/reference request                                 | Phase 34                                                                  | key deferred; Phase 17 may render only a future Live contract                                                                                                                                                                        |
+| Workflow stage/outcome notice                                        | Phase 34                                                                  | key deferred; no generic workflow event key                                                                                                                                                                                          |
+| Support conversation assigned/replied/SLA/undelivered                | Phase 26                                                                  | system-notice keys deferred; human message body remains outside catalog                                                                                                                                                              |
+| Event registration/ticket/team/fundraiser notice                     | future Event Hub                                                          | key deferred; benchmark outcome only                                                                                                                                                                                                 |
+| Public form submission/content review/publish/domain change          | public-content phases                                                     | key deferred; exact producer/audience required                                                                                                                                                                                       |
+| Campaign/newsletter/journey message                                  | Phases 32/34/35                                                           | outside system catalog unless it invokes an already-Live system meaning                                                                                                                                                              |
+| Resend connection/domain/webhook/sender/reply problem                | Phase 17 D10/D15                                                          | one Target Live grouped Needs-attention meaning; no email-only incident dependency                                                                                                                                                   |
+| Publication review/change request                                    | Phase 17 D11                                                              | Target Live in-product meanings above                                                                                                                                                                                                |
+| Import/export/transfer job completion or action needed               | Phase 17 D19                                                              | contextual job state; stable notification key deferred unless user testing proves an attention event is needed                                                                                                                       |
+| Eve platform-operator outage/security incident                       | Eve #436 plus Phase 17 email seam                                         | Eve owns safe facts/recipient/policy and Discord; email key deferred until exact event meaning is enumerated and Live-proved                                                                                                         |
+| SMS STOP/HELP, registration and delivery                             | later explicit SMS phase                                                  | evidence vocabulary only; no Phase 17 key, content or transport                                                                                                                                                                      |
 
 ### Explicit exclusions and migration dispositions
 
@@ -586,7 +1167,7 @@ Each catalog entry compiles from one versioned TypeScript definition with these 
 
 The registry is not tenant data. Tenants cannot create keys, facts, actions, purposes, roles, channels, classifications, or failure policies. A tenant can select only the controls explicitly exposed by the active contract.
 
-The normative companion [Phase 17 Executable System-Message Manifest Specification](./phase-17-system-message-executable-manifest.md) instantiates these fields for all 18 Target Live keys, defines the five compile-time shared profiles, closed fact/forbidden/action/surface/retention vocabularies, exact trigger bindings, protected Asym system-default namespace, generated projections, closure rules and D1–D20 traceability. It is part of this PRD, not optional implementation guidance. The compiler expands each profile and named override into one complete flat object and hashes it into the activation generation; there is no runtime profile lookup, deep merge, inferred default, tenant profile editor, or generic policy language.
+The normative companion [Phase 17 Executable System-Message Manifest Specification](./phase-17-system-message-executable-manifest.md) instantiates these fields for the original 18 Target Live keys and the normative non-executable D44/D45 candidate contract, defines six compile-time shared profiles, closed fact/forbidden/action/surface/retention vocabularies, exact trigger bindings, protected Asym system-default namespace, generated projections, closure rules and D1–D20 traceability. The two access-governance additions remain runtime Reserved: generated code/projections, exact source bindings/resolver, system publications, OpenSpec, migration, census/traceability, and proof packs must agree before either key or personal D44 routing can become Live. The companion is part of this PRD, not optional implementation guidance. The compiler expands each profile and named override into one complete flat object and hashes it into the activation generation; there is no runtime profile lookup, deep merge, inferred default, tenant profile editor, or generic policy language.
 
 ### Producer submission contract
 
@@ -909,6 +1490,96 @@ The settings UI always labels whether the effective policy is inherited from the
 
 One versioned Brand Kit owns reusable email presentation tokens: approved logos/assets, colors with contrast evidence, typography from the email-safe set, link/button styles, spacing scale, border/radius choices, organization identity and footer presentation. Staff see a visual brand workspace and live message examples, not token JSON.
 
+**Phase 24 D58 ownership boundary (2026-08-30):** this Brand Kit is an
+immutable **message-channel presentation dependency**, not the live authority
+for the Tenant's authenticated web account shell. The one Tenant Donor Account
+Brand keeps sign-in, recovery, protected-action landing, and portal identity
+stable across all Sites. The two domains may intentionally reuse approved
+identity assets or derive bounded projections from an explicitly governed
+source, but neither silently inherits from or writes the other, and a Site-
+specific email override cannot reskin account authentication. Exact persistence
+and projection design remain for the owning implementation spec; D58 creates no
+second generic theme engine.
+
+**Phase 24 D59 ownership boundary (2026-08-30):** a public Site Brand Version
+and an optional Site-scoped email Brand Kit remain independent immutable
+presentation inputs under different renderers and release authorities. An email
+draft may start from an exact compatible Site Brand Version or explicitly reuse
+approved immutable assets, but it never live-reads a public Site brand; Site
+rebranding never mutates prepared/sent messages, and the public runtime never
+reads the email Brand Kit. D59 adds no cross-channel synchronization or second
+message-publication path.
+
+**Phase 24 D60 consumption boundary (2026-08-30):** the Site workspace may
+show one compact, read-only **Messages** summary for the exact Site capabilities
+and Site Locales applicable now. This is a disposable, role-filtered projection
+of Phase 17's current Tenant message-readiness results, not a second settings,
+readiness, provider, activation, task, or audit authority. Phase 17 derives the
+applicable set and source result; Reserved, Retired, disabled optional,
+unrelated Tenant-wide, platform-owned, other-Site, and future contracts do not
+become Site setup debt. Tenant-wide donor-account messages remain in their
+Tenant-wide context unless an exact Site capability genuinely depends on an
+organization-wide prerequisite, which must be labelled as such.
+
+The summary preserves Phase 17's `Ready`, `Uses compatible fallback`, and
+`Needs attention` results. The presentation adds **Status unavailable** only
+when it cannot prove one current complete projection; **Checking** may describe
+an active observation, and **Setup needed** may explain a `Needs attention`
+reason, but neither becomes a competing readiness lifecycle. Missing, stale,
+partial, source-mismatched, unavailable, or unknown evidence never renders
+`Ready`. Each non-Ready item names the affected capability, human-readable
+Site/locale scope, consequence, responsible owner, and one safe next action.
+The Site UI never infers readiness from current compatibility scalars such as
+`connected`, `sendReady`, a deliverability score, a template publication, a
+provider-domain status, or a prior successful test.
+
+Every projection is provider-neutral, Tenant/environment/Site/applicability
+scoped, tied to the observed Phase 17 catalog and readiness-evidence
+generation, evaluated at a trusted time, rebuildable, and safe for the current
+viewer. A code-owned typed destination may open the exact System Messages
+context, which independently reauthorizes and reloads current truth. A viewer
+without that authority receives a safe existing handoff such as **Ask an
+organization administrator**, not restricted detail or a dead-end link. The
+projection contains no message body, recipient, credential hint, sender/reply
+address, DNS record, provider identifier/payload, suppression evidence, or
+hidden contract inventory.
+
+D60 creates no Site-owned message field, provider poller, mutation endpoint,
+manual override, cache authority, readiness reducer, repair queue, workflow, or
+notification. The core public Site remains independently activatable under
+Phase 24 D6. Only the owner of an exact capability may declare and re-prove a
+Phase 17 dependency inside that capability's activation command; the Site
+summary can explain the consequence but can never activate, block, waive, or
+satisfy it.
+
+**Phase 24 D66 separation (2026-08-30):** core Site Locale publication does not
+activate a message locale and does not make every Site, account, Giving,
+receipt, or Tenant message a website blocker. The Languages workspace may show
+the existing D60 summary beside—but outside—the Site Locale Publication
+Contract. If a separately owned public capability later becomes favorable and
+can emit a message, that capability alone declares and re-proves its applicable
+Phase 17 dependency. `Ready`, `Uses compatible fallback`, `Needs attention`, and
+`Status unavailable` retain their Phase 17 meanings. D66 neither upgrades a
+compatible fallback to an exact translation nor rejects one that the owning
+contract permits.
+
+**Phase 24 D67 separation (2026-08-30):** website Translation Basis,
+**Out of date**, source public-use disposition, and resource closure apply only
+to exact public-Site dependencies. They do not reinterpret a Phase 17 whole-
+message publication, locale resolver, compatible fallback, prepared message,
+recipient intent, or delivery history. A message owner may expose its own typed
+safety/public-use result through the D66 dependency adapter, but Phase 24 cannot
+withdraw, republish, translate, fall back, or declare a message current. D67
+creates no message notification, reminder, task, or email about translation
+freshness.
+
+**Phase 24 D68 separation (2026-08-30):** Site **Suggested translation
+sources** ranks explicit website-editor Copy/Compare choices only. It does not
+configure, reorder, or reinterpret Phase 17 exact-locale publications, the two
+permitted whole-message fallback priorities, prepared-message locale, recipient
+resolution, or delivery. Conversely, Phase 17 message fallback never initializes
+or supplies the Site authoring preference or a website Translation Basis.
+
 Tenants retain broad freedom inside safe HTML-email constraints. They may create complete site-specific Brand Kit overrides, change visual tokens, reorder allowed layout regions, add safe decorative content, and use Saved Sections. They cannot alter protected truth, inject code, hide mandatory identity/unsubscribe/legal content, or create inaccessible output.
 
 The v1 safe control set is explicit and visual: approved logo/image assets and alt text; email-safe type family, bounded size/weight/line-height; foreground/background/accent colors with contrast evidence; bounded content width, spacing, alignment, border, radius and divider; button/link presentation; organization identity/footer treatment; code-owned header/body/footer regions; and contract-approved optional decorative/content blocks. Tenants can arrange eligible regions and optional blocks, use complete site overrides, and preview every dependency. They cannot enter raw HTML/CSS/JavaScript, arbitrary fonts, absolute/fixed positioning, negative/off-canvas hiding, custom breakpoints/media queries, invisible text, tracking pixels, forms, iframes, scripts, or styles that obscure a Managed node.
@@ -1004,12 +1675,14 @@ Vercel-CDN-Cache-Control: no-store
 ```
 
 No protected route permits `s-maxage`, stale fallback, an optimizer, or service
-worker handling. At startup, the server parses the configured
-`protectedActionOrigin` as one canonical HTTPS origin and joins it only to the
-code-owned exact `PROTECTED_ACTION_PATH`; tenant input, request headers, and
+worker handling. Under the Phase 24 D57 amendment, a Tenant-scoped issuance
+resolves exactly one current verified Tenant Donor Portal Host from trusted
+product state and freezes that canonical HTTPS origin with the code-owned exact
+`PROTECTED_ACTION_PATH`. Tenant content, Site context, request headers, and
 arbitrary configured paths never participate. The route may carry only the
-closed, random non-secret selector field. It never carries the verifier. Invalid
-or non-round-tripping origin/route configuration fails readiness.
+closed, random non-secret selector field. It never carries the verifier. Invalid,
+stale, unproved, or non-round-tripping origin/route configuration fails
+readiness, and no donor-visible `asymmetric.al` fallback is permitted.
 
 For every landing and terminal response, the server generates at least 128 fresh
 random bits with a cryptographically secure random-number generator and
@@ -1429,7 +2102,17 @@ Do not invent a deliverability score, continuous inbox test, DNS-management clon
 
 ### Provider event reducer and suppression boundary
 
-Provider evidence never collapses into one mutable status. For each attempt retain independent provider submission (`definitely_unsubmitted`, `may_have_submitted`, `accepted`, `definitely_rejected`), mail-server delivery (`pending`, `delayed`, `delivered`, `failed`, `bounced`, `suppressed`), reputation (`none_observed`, `complained`), advisory engagement (`not_observed`, `opened_observed`, `clicked_observed`), and evidence health (`current`, `duplicate`, `out_of_order`, `unknown_schema`, `conflicting`). `delivered` means accepted by the receiving mail server—not inbox placement, reading, understanding, consent, or product completion. Tracking remains disabled; unexpected open/click evidence is advisory drift only.
+Provider evidence never collapses into one mutable status. For each email retain
+independent dispatch phase (`Unprepared`, `Prepared definitely unsubmitted`,
+`Submission may have begun`), provider outcome (`None`, `Accepted`, `Definitely
+rejected`, `Indeterminate`), downstream mail-server lifecycle (`Queued/Sent`,
+`Delivery delayed`, `Delivered`, `Suppressed`, `Failed`, `Bounced`,
+`Complained`), reputation (`none_observed`, `complained`), advisory engagement
+(`not_observed`, `opened_observed`, `clicked_observed`), and evidence health
+(`current`, `duplicate`, `out_of_order`, `unknown_schema`, `conflicting`).
+`Delivered` means accepted by the receiving mail server—not inbox placement,
+reading, understanding, consent, or product completion. Tracking remains
+disabled; unexpected open/click evidence is advisory drift only.
 
 | Verified same-connection Resend event    | Monotonic reducer effect                                                                                                                                                                                                                                                                          |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1897,15 +2580,16 @@ Existing `email_template_system_bindings` becomes a temporary migration adapter 
 
 ### Presentation, locale and plan configuration
 
-| Record                                                  | Required fields and constraints                                                                                                                                                                                                                        |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `message_brand_kits` / `message_brand_kit_versions`     | tenant, scope, mutable head; append-only exact tokens/assets/contrast evidence/hash; complete organization or site version                                                                                                                             |
-| `message_role_layouts` / `message_role_layout_versions` | tenant, layout role, scope, mutable head; append-only structured layout, compatible Brand Kit, locale-neutral/exact locale declaration, compiler evidence                                                                                              |
-| `message_saved_sections` / versions                     | tenant-owned structured source and assets; insertion always copies; no publication runtime reference                                                                                                                                                   |
-| `system_message_fallback_policy_versions`               | tenant, organization default or eligible contract override, one of two algorithms, resolver/CLDR version, impact evidence, publication actor/time                                                                                                      |
-| `system_message_locale_activations`                     | tenant, scope, canonical locale, direction, default flag, independently active/inactive state, responsible owner, activation/deactivation actor/time/epoch and impact hash; never a readiness Boolean                                                  |
-| `system_message_locale_readiness`                       | tenant, scope, contract generation, canonical locale, presentation dependency set, platform-render-capability pin, exact `Ready`/`Uses compatible fallback`/`Needs attention` result, reasons, evidence version/time                                   |
-| `system_message_delivery_plans` / versions              | tenant-owned plans use tenant ownership; platform plans use an immutable Asym-owned `platform_scope_id` branch with no tenant foreign key; mutable head; append-only complete fixed-slot selections, timing/condition ids, publication/review evidence |
+| Record                                                    | Required fields and constraints                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `message_brand_kits` / `message_brand_kit_versions`       | tenant, scope, mutable head; append-only exact tokens/assets/contrast evidence/hash; complete organization or site version                                                                                                                                                                                                                                                                                                                                                                  |
+| `message_role_layouts` / `message_role_layout_versions`   | tenant, layout role, scope, mutable head; append-only structured layout, compatible Brand Kit, locale-neutral/exact locale declaration, compiler evidence                                                                                                                                                                                                                                                                                                                                   |
+| `message_saved_sections` / versions                       | tenant-owned structured source and assets; insertion always copies; no publication runtime reference                                                                                                                                                                                                                                                                                                                                                                                        |
+| `system_message_fallback_policy_versions`                 | tenant, organization default or eligible contract override, one of two algorithms, resolver/CLDR version, impact evidence, publication actor/time                                                                                                                                                                                                                                                                                                                                           |
+| `system_message_locale_activations`                       | tenant, scope, canonical locale, direction, default flag, independently active/inactive state, responsible owner, activation/deactivation actor/time/epoch and impact hash; never a readiness Boolean                                                                                                                                                                                                                                                                                       |
+| `system_message_locale_readiness`                         | tenant, scope, contract generation, canonical locale, presentation dependency set, platform-render-capability pin, exact `Ready`/`Uses compatible fallback`/`Needs attention` result, reasons, evidence version/time                                                                                                                                                                                                                                                                        |
+| `system_message_delivery_plans` / versions                | tenant-owned plans use tenant ownership; platform plans use an immutable Asym-owned `platform_scope_id` branch with no tenant foreign key; mutable head; append-only complete fixed-slot selections, timing/condition ids, publication/review evidence                                                                                                                                                                                                                                      |
+| `system_message_recipient_channel_preferences` / versions | tenant, exact Active Tenant Assignment plus trusted Party/role/surface mapping, closed code-owned preference key/channel and allowed value enum, one unique current head, append-only versions, expected revision, self actor/time; D45 key `preference.access_request_responsibility_email@1` admits only `inherit` or `disabled`, absence means `inherit`, and administrator writes cannot override `disabled`; same-Tenant composite FKs, forced RLS, no recipient or authority creation |
 
 Complete dependency versions are immutable. Mutable aggregate rows point to heads; already-prepared messages point directly to versions, never heads.
 
@@ -2099,18 +2783,18 @@ Every command returns exact evidence and next action. Bulk operations are dry-ru
 
 Each state-changing family has one server command schema and closed result union. Equivalent names are allowed, but implementations must preserve these preconditions and atomic outcomes:
 
-| Family                                 | Required command identity and precondition                                                                                                                | Atomic success / conflict behavior                                                                                                                                                                                            |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| draft/autosave/commit                  | tenant aggregate id, expected draft revision, canonical command hash, capability                                                                          | append/replace only the mutable draft revision; commit seals one immutable candidate; stale revision returns current revision without overwriting                                                                             |
-| standard/protected publish             | exact immutable candidate/dependency graph, expected head epoch, publication floor/reason codes, review evidence if required                              | CAS one future-resolution head and append audit/publication; stale head or changed candidate/dependency/reviewer authority invalidates approval and publishes nothing                                                         |
-| protected action POST                  | exact descriptor/version, tenant/recipient/source/issuance, expected producer state, origin/CSRF, current auth/step-up and producer idempotency           | producer command performs at most one authoritative transition and returns a privacy-safe terminal/recovery result; GET/HEAD and landing exchange cannot mutate                                                               |
-| policy/locale/layout/plan/sender/reply | exact aggregate and expected head/epoch, synthetic impact version, capability/governance epoch                                                            | append a complete version and CAS its future-effective head/assignment; changed impact or overlapping assignment conflicts; already-prepared work keeps prior pins                                                            |
-| connection/secret lifecycle            | exact connection/revision, current posture/epoch, protected capability and step-up where required                                                         | append pending/proved/active/retired evidence and atomically cut over or pause; no command returns a secret or silently changes provider account/domain                                                                       |
-| reply challenge                        | tenant/destination revision, initiating human principal, expected state, keyed challenge proof, current capability and fresh step-up                      | activate only the exact confirmed destination revision; forwarding, scanner access, changed principal, stale/expired/replayed code, or failed replacement leaves prior Ready active                                           |
-| notification engagement/preferences    | exact tenant+viewer Party+role+item or preference version, cursor/current access and derived closed presentation state                                    | idempotent engagement/preference CAS only; never changes source, availability, presentation deadlines, recipient role or communication outcome; an active required item rejects archive with the plain-language policy result |
-| recent-copy reveal                     | exact history/preparation, current tenant, role/capability, recipient Party/contact revision, site/source, privacy/restriction/erasure and expiry reproof | returns the inert support projection once and appends content-free allow/deny audit; source access alone is insufficient; no durable browser cache or alternate content endpoint                                              |
-| repair preflight/resume                | repair case/version, immutable short-lived preflight generation, capability and per-item claim                                                            | returns/claims only server-partitioned eligible opaque items; counts may shrink on reproof; no caller recipient list, accepted/indeterminate replay or payload editing                                                        |
-| import/export/transfer                 | job/offer version, exact digest, source/destination capabilities and destination mapping                                                                  | stage/re-key drafts/assets or append exact blocked/loss result; duplicate accept is idempotent, revoke/accept races serialize, and no authority/publication transfers                                                         |
+| Family                                 | Required command identity and precondition                                                                                                                 | Atomic success / conflict behavior                                                                                                                                                                                                                                                                                                                             |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| draft/autosave/commit                  | tenant aggregate id, expected draft revision, canonical command hash, capability                                                                           | append/replace only the mutable draft revision; commit seals one immutable candidate; stale revision returns current revision without overwriting                                                                                                                                                                                                              |
+| standard/protected publish             | exact immutable candidate/dependency graph, expected head epoch, publication floor/reason codes, review evidence if required                               | CAS one future-resolution head and append audit/publication; stale head or changed candidate/dependency/reviewer authority invalidates approval and publishes nothing                                                                                                                                                                                          |
+| protected action POST                  | exact descriptor/version, tenant/recipient/source/issuance, expected producer state, origin/CSRF, current auth/step-up and producer idempotency            | producer command performs at most one authoritative transition and returns a privacy-safe terminal/recovery result; GET/HEAD and landing exchange cannot mutate                                                                                                                                                                                                |
+| policy/locale/layout/plan/sender/reply | exact aggregate and expected head/epoch, synthetic impact version, capability/governance epoch                                                             | append a complete version and CAS its future-effective head/assignment; changed impact or overlapping assignment conflicts; already-prepared work keeps prior pins                                                                                                                                                                                             |
+| connection/secret lifecycle            | exact connection/revision, current posture/epoch, protected capability and step-up where required                                                          | append pending/proved/active/retired evidence and atomically cut over or pause; no command returns a secret or silently changes provider account/domain                                                                                                                                                                                                        |
+| reply challenge                        | tenant/destination revision, initiating human principal, expected state, keyed challenge proof, current capability and fresh step-up                       | activate only the exact confirmed destination revision; forwarding, scanner access, changed principal, stale/expired/replayed code, or failed replacement leaves prior Ready active                                                                                                                                                                            |
+| notification engagement/preferences    | exact tenant+viewer Active Tenant Assignment/Party/role/item or closed preference key/version, cursor/current access and derived closed presentation state | idempotent self-engagement/preference CAS only; an administrator may publish the Tenant plan but cannot write, clear, or override a recipient's `disabled`; never changes source, availability, presentation deadlines, responsibility, recipient role or communication outcome; an active required item rejects archive with the plain-language policy result |
+| recent-copy reveal                     | exact history/preparation, current tenant, role/capability, recipient Party/contact revision, site/source, privacy/restriction/erasure and expiry reproof  | returns the inert support projection once and appends content-free allow/deny audit; source access alone is insufficient; no durable browser cache or alternate content endpoint                                                                                                                                                                               |
+| repair preflight/resume                | repair case/version, immutable short-lived preflight generation, capability and per-item claim                                                             | returns/claims only server-partitioned eligible opaque items; counts may shrink on reproof; no caller recipient list, accepted/indeterminate replay or payload editing                                                                                                                                                                                         |
+| import/export/transfer                 | job/offer version, exact digest, source/destination capabilities and destination mapping                                                                   | stage/re-key drafts/assets or append exact blocked/loss result; duplicate accept is idempotent, revoke/accept races serialize, and no authority/publication transfers                                                                                                                                                                                          |
 
 The producer/worker/provider protocol is also closed:
 
@@ -2645,6 +3329,9 @@ operationally necessary; no tenant label is invented for platform work:
 - publication/review conflict and stale-review counts;
 - connection/sender/reply readiness and drift;
 - provider accepted/rejected/indeterminate/bounce/complaint and webhook lag/duplicate/conflict;
+- D45 optional-email admitted/omitted/suppressed/outcome counts by stable key
+  and low-cardinality cause, plus connection-wide bounce/complaint rates; never
+  recipient, coordinator, or preference labels;
 - notification projection/count/realtime recovery;
 - recent-copy creation/reveal/expiry/purge by policy class, never content;
 - repair cases opened/aged/repaired/recurred and resume partition counts;
@@ -2659,12 +3346,28 @@ Alert on unknown/Retired key emission; missing Live activation proof; manifest s
 
 Each alert names owner, impact, diagnostic query, safe containment, reconciliation path, rollback/kill control and recovery proof. Kill controls are narrow: quarantine a publication/dependency, pause one tenant connection, fence one contract generation/producer, stop one backlog resume or disable one optional step. There is no global force-send or provider switch.
 
+For `monitor.optional_access_governance_email@1`, provider reputation is
+connection-wide even though D45 diagnostics retain the stable-key dimension.
+Implementation and every release re-pin the official
+[Resend account limits](https://resend.com/docs/knowledge-base/account-quotas-and-limits)
+and [Acceptable Use Policy](https://resend.com/legal/acceptable-use). The
+2026-08-29 evidence snapshot requires bounce rate below 4% and spam/complaint
+rate below 0.08%; these are dated provider thresholds, not permanent product
+semantics, and a stricter current threshold wins.
+
+| Signal                                                                | Threshold                                                                        | Owner                                                                                                              | Required response                                                                                                                                                                                                       |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Resend restriction, pause, or account/connection unable-to-send state | any current restriction                                                          | Tenant email administrator for Tenant pause/repair; named Phase 17 service-operations owner for provider diagnosis | pause only affected optional email/connection, preserve required local attention and source work, reconcile provider evidence, and resume only after current Ready/reputation proof                                     |
+| connection-wide bounce rate                                           | at or above the stricter current provider threshold; 2026-08-29 snapshot `4%`    | same                                                                                                               | prevent new optional D45 submission on the affected connection, inspect destination authority/list hygiene/suppression, and use the same proof-gated resume; no fallback provider or blind replay                       |
+| connection-wide spam/complaint rate                                   | at or above the stricter current provider threshold; 2026-08-29 snapshot `0.08%` | same                                                                                                               | pause affected optional delivery, apply proved recipient suppression, investigate source/relevance/preference/content, and resume only with current proof                                                               |
+| D45 complaint event                                                   | at least one signed, normalized complaint for either D45 key                     | named Phase 17 service-operations owner with the Tenant email administrator                                        | open a body-free D45 review even when connection volume makes the aggregate percentage look low; preserve the complaint suppression floor and escalate to the connection response on recurrence or provider restriction |
+
 ### Capacity and performance
 
 - Size queues and indexes from the measured producer census plus documented headroom for the next forecast period; do not prebuild speculative sharding.
 - Keep preparation deterministic and cached by immutable skeleton/dependency hash; recipient binding remains bounded by contract collection limits.
 - Use keyset pagination for catalog/history/notification/repair lists and eliminate per-row producer/provider queries.
-- Apply scope-owner-fair scheduling through one adapter policy whose M0 baseline is the 2026-07-19 rate-specific Resend documentation (10 requests/second/team; maximum batch 100) but whose runtime limiter consumes current response headers and typed 429 evidence. Tenant owners and the service-only platform owner remain isolated; fairness never permits mixed-scope work. Re-verify at build/release; do not turn a dated documentation value into permanent product semantics.
+- Apply scope-owner-fair scheduling through one adapter policy whose M0 baseline is the 2026-08-29 rate-specific Resend documentation (5 requests/second/team; maximum batch 100) but whose runtime limiter consumes current response headers and typed 429 evidence. Tenant owners and the service-only platform owner remain isolated; fairness never permits mixed-scope work. Re-verify at build/release; do not turn a dated documentation value into permanent product semantics.
 - Separate latency-critical auth/security/receipt lanes from optional aggregation while preserving the same one-writer contract.
 - Load tests use realistic long locales, maximum approved collections, high tenant counts, bursty receipts, provider 429/5xx, webhook delay/reorder, and one noisy scope owner. Acceptance requires measured headroom and no starvation, duplicate, cross-owner leak or unbounded memory/row growth.
 
@@ -2710,7 +3413,11 @@ Live.
 
 **M6 — Launch staff in-product center and approval contracts.** Adapt approval requested/reminder/escalation/outcome rows to the one Phase 6/17 model, build bell/center/context destinations, group meaningful episodes and remove direct email content paths after parity.
 
-**M7 — Complete tenant controls.** Deliver Delivery Plans, all required settings/editing/review/readiness/impact surfaces, optional Sender/Reply mappings, Recent sent copy, repair cases, locale activation and full accessibility/usability validation.
+**M7 — Complete tenant controls.** Deliver Delivery Plans, D45 Tenant enablement
+and self-only recipient channel preferences, all required settings/editing/
+review/readiness/impact surfaces, optional Sender/Reply mappings, Recent sent
+copy, repair cases, locale activation and full accessibility/usability
+validation.
 
 **M8 — Complete portability and negative SMS posture.** Land signed native package, finite foreign conversion, bilateral transfer, cleanup/retention and structural no-SMS tests. Do not ship dormant Twilio code.
 
@@ -2726,41 +3433,49 @@ Tests use the repo's real harness, production-equivalent compiler and database p
 
 The following stable conformance IDs are release blocking and complement the scenario suites below:
 
-| ID               | Required proof                                                                                                                                                                                                                                                                                                                                                               |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `P17-REV-01`     | every platform publication predicate produces the exact protected reason code/floor                                                                                                                                                                                                                                                                                          |
-| `P17-REV-02`     | one protected consumer elevates a shared dependency candidate and enumerates its complete fan-out                                                                                                                                                                                                                                                                            |
-| `P17-REV-03`     | split/rename/client-floor/stale-generation/role-switch attempts cannot evade protection                                                                                                                                                                                                                                                                                      |
-| `P17-REV-04`     | author/editor, impersonation, shared/service identity, stale permission/governance epoch, and stale head cannot approve                                                                                                                                                                                                                                                      |
-| `P17-REV-05`     | delegated review is exact-candidate, synthetic-only, expiring/revocable, and non-reusable                                                                                                                                                                                                                                                                                    |
-| `P17-REV-06`     | emergency restoration permits only compatible system default or previously reviewed same-tenant content and rejects new/wider meaning                                                                                                                                                                                                                                        |
-| `P17-ACT-01`     | scanner/prefetch/GET/HEAD/redirect/refresh causes zero producer mutation or credential consumption                                                                                                                                                                                                                                                                           |
-| `P17-ACT-02`     | POST requires exact tenant/actor/source/issuance/current-state proof plus CSRF/origin and idempotency under double-click/race/timeout                                                                                                                                                                                                                                        |
-| `P17-ACT-03`     | host/forwarded-host/open-redirect/environment/tenant/recipient/terminal-state attacks fail safely                                                                                                                                                                                                                                                                            |
-| `P17-ACT-04`     | no-store/no-referrer/no-third-party/redaction plus a fresh cryptographically random 128-bit-or-stronger response nonce, exact header/style nonce match, code-owned-route CSP source serialization with delimiter rejection and policy round-trip, and zero literal placeholders prevent protected handle, token, OTP, hash, and URL leakage                                  |
-| `P17-AUTH-01`    | signup/invite/magiclink/recovery/reauthentication, both Secure Email Change messages, and the Secure Email Change-disabled path use exact recipient/token/hash mapping                                                                                                                                                                                                       |
-| `P17-AUTH-02`    | all adopted Supabase security-notification types expose only exact typed facts and no generic credential-bearing variable                                                                                                                                                                                                                                                    |
-| `P17-AUTH-03`    | raw-body Standard Webhooks signature/timestamp/project binding plus same-id replay and changed-digest conflict                                                                                                                                                                                                                                                               |
-| `P17-AUTH-04`    | five-second hook path covers definite reject, accepted, possible acceptance, replay, and zero duplicate mail                                                                                                                                                                                                                                                                 |
-| `P17-RSE-01`     | sent/delayed/delivered duplicates and all out-of-order permutations reduce monotonically                                                                                                                                                                                                                                                                                     |
-| `P17-RSE-02`     | failed/bounced/suppressed/delivered/complained remain distinct and contradictions quarantine                                                                                                                                                                                                                                                                                 |
-| `P17-RSE-03`     | exact signed Resend lifecycle fixtures map correctly without claiming fixture delivery is inbox proof                                                                                                                                                                                                                                                                        |
-| `P17-RSE-04`     | provider suppression is region/contact-revision scoped, separate from consent, non-clearable per profile, and complaint absence remains unknown                                                                                                                                                                                                                              |
-| `P17-HDR-01`     | a delivered canary preserves `Auto-Submitted: auto-generated` and every tenant/import override fails                                                                                                                                                                                                                                                                         |
-| `P17-HDR-02`     | optional subscribed mail has visible unsubscribe plus DKIM-covered RFC 8058 headers; GET is inert and both allowed POST encodings are exact, idempotent, cookieless, unauthenticated, and non-redirecting                                                                                                                                                                    |
-| `P17-CON-01`     | non-mutating access probe distinguishes overprivileged, least-privilege, invalid, rate/quota, provider/network, and unknown-schema outcomes                                                                                                                                                                                                                                  |
-| `P17-CON-02`     | per-connection limiter consumes observed rate/quota/retry headers and isolates tenants                                                                                                                                                                                                                                                                                       |
-| `P17-CON-03`     | webhook disablement becomes Needs tenant action; signed test/replay/reconciliation repairs evidence without blind resend                                                                                                                                                                                                                                                     |
-| `P17-CON-04`     | only `resend_sending_key` is instantiable and every OAuth/other-provider path is structurally dark                                                                                                                                                                                                                                                                           |
-| `P17-CON-05`     | rotation/compromise/disconnect/domain/team/region migration preserves pins, fences new work, reconciles indeterminate work, and forbids cross-account replay                                                                                                                                                                                                                 |
-| `P17-SCOPE-01`   | every current profile/key/projection explicitly declares tenant scope; the tenant/platform owner and recipient arcs, scope-prefixed FKs/keys/indexes, single-scope batch, service-only RLS, fixed platform connection, verified authority revision, no-fake-tenant migration, and Eve email/Discord ownership boundary all pass positive-and-negative database/service tests |
-| `P17-RPY-01`     | unauthorized start/complete, spray, brute force, forwarding, scanner, replay, wrong context, expiry, and concurrent replacement cannot activate Reply-To                                                                                                                                                                                                                     |
-| `P17-RPY-02`     | challenge proves access-at-a-time only, monitoring responsibility stays separate, and prior Ready destination survives failed replacement                                                                                                                                                                                                                                    |
-| `P17-ID-01`      | valid localized/RTL names round-trip while controls/injection/bidi override/fake-thread/variable/deceptive-collision/provider-mutation cases fail or receive required protected review                                                                                                                                                                                       |
-| `P17-ERASURE-01` | live purge removes every durable live copy, invalidates worker leases/processes that could hold bounded plaintext, and prevents restored systems from decrypting a tombstoned revision before serving traffic                                                                                                                                                                |
-| `P17-ERASURE-02` | any recoverable backup forces Backup expiry pending; only irreversible key denial/destruction plus restore proof records Cryptographic erasure verified                                                                                                                                                                                                                      |
-| `P17-RET-01`     | every email contract freezes one closed prepared-material class and nonextendable purge deadline; batch retention is the earliest member deadline                                                                                                                                                                                                                            |
-| `P17-RET-02`     | every terminal trigger denies decryption immediately, purges primary material within 24 hours, preserves body-free truth, and wins submit/webhook/lease/erasure races without replay                                                                                                                                                                                         |
+| ID                | Required proof                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `P17-REV-01`      | every platform publication predicate produces the exact protected reason code/floor                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `P17-REV-02`      | one protected consumer elevates a shared dependency candidate and enumerates its complete fan-out                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `P17-REV-03`      | split/rename/client-floor/stale-generation/role-switch attempts cannot evade protection                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `P17-REV-04`      | author/editor, impersonation, shared/service identity, stale permission/governance epoch, and stale head cannot approve                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `P17-REV-05`      | delegated review is exact-candidate, synthetic-only, expiring/revocable, and non-reusable                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `P17-REV-06`      | emergency restoration permits only compatible system default or previously reviewed same-tenant content and rejects new/wider meaning                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `P17-ACT-01`      | scanner/prefetch/GET/HEAD/redirect/refresh causes zero producer mutation or credential consumption                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `P17-ACT-02`      | POST requires exact tenant/actor/source/issuance/current-state proof plus CSRF/origin and idempotency under double-click/race/timeout                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `P17-ACT-03`      | host/forwarded-host/open-redirect/environment/tenant/recipient/terminal-state attacks fail safely                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `P17-ACT-04`      | no-store/no-referrer/no-third-party/redaction plus a fresh cryptographically random 128-bit-or-stronger response nonce, exact header/style nonce match, code-owned-route CSP source serialization with delimiter rejection and policy round-trip, and zero literal placeholders prevent protected handle, token, OTP, hash, and URL leakage                                                                                                                                                                                                                                          |
+| `P17-AUTH-01`     | signup/invite/magiclink/recovery/reauthentication, both Secure Email Change messages, and the Secure Email Change-disabled path use exact recipient/token/hash mapping                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `P17-AUTH-02`     | all adopted Supabase security-notification types expose only exact typed facts and no generic credential-bearing variable                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `P17-AUTH-03`     | raw-body Standard Webhooks signature/timestamp/project binding plus same-id replay and changed-digest conflict                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `P17-AUTH-04`     | five-second hook path covers definite reject, accepted, possible acceptance, replay, and zero duplicate mail                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `P17-RSE-01`      | sent/delayed/delivered duplicates and all out-of-order permutations reduce monotonically                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `P17-RSE-02`      | failed/bounced/suppressed/delivered/complained remain distinct and contradictions quarantine                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `P17-RSE-03`      | exact signed Resend lifecycle fixtures map correctly without claiming fixture delivery is inbox proof                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `P17-RSE-04`      | provider suppression is region/contact-revision scoped, separate from consent, non-clearable per profile, and complaint absence remains unknown                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `P17-HDR-01`      | a delivered canary preserves `Auto-Submitted: auto-generated` and every tenant/import override fails                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `P17-HDR-02`      | optional subscribed mail has visible unsubscribe plus DKIM-covered RFC 8058 headers; GET is inert and both allowed POST encodings are exact, idempotent, cookieless, unauthenticated, and non-redirecting                                                                                                                                                                                                                                                                                                                                                                            |
+| `P17-CON-01`      | non-mutating access probe distinguishes overprivileged, least-privilege, invalid, rate/quota, provider/network, and unknown-schema outcomes                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `P17-CON-02`      | per-connection limiter consumes observed rate/quota/retry headers and isolates tenants                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `P17-CON-03`      | webhook disablement becomes Needs tenant action; signed test/replay/reconciliation repairs evidence without blind resend                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `P17-CON-04`      | only `resend_sending_key` is instantiable and every OAuth/other-provider path is structurally dark                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `P17-CON-05`      | rotation/compromise/disconnect/domain/team/region migration preserves pins, fences new work, reconciles indeterminate work, and forbids cross-account replay                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `P17-SCOPE-01`    | every current profile/key/projection explicitly declares tenant scope; the tenant/platform owner and recipient arcs, scope-prefixed FKs/keys/indexes, single-scope batch, service-only RLS, fixed platform connection, verified authority revision, no-fake-tenant migration, and Eve email/Discord ownership boundary all pass positive-and-negative database/service tests                                                                                                                                                                                                         |
+| `P17-RPY-01`      | unauthorized start/complete, spray, brute force, forwarding, scanner, replay, wrong context, expiry, and concurrent replacement cannot activate Reply-To                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `P17-RPY-02`      | challenge proves access-at-a-time only, monitoring responsibility stays separate, and prior Ready destination survives failed replacement                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `P17-ID-01`       | valid localized/RTL names round-trip while controls/injection/bidi override/fake-thread/variable/deceptive-collision/provider-mutation cases fail or receive required protected review                                                                                                                                                                                                                                                                                                                                                                                               |
+| `P17-ERASURE-01`  | live purge removes every durable live copy, invalidates worker leases/processes that could hold bounded plaintext, and prevents restored systems from decrypting a tombstoned revision before serving traffic                                                                                                                                                                                                                                                                                                                                                                        |
+| `P17-ERASURE-02`  | any recoverable backup forces Backup expiry pending; only irreversible key denial/destruction plus restore proof records Cryptographic erasure verified                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `P17-RET-01`      | every email contract freezes one closed prepared-material class and nonextendable purge deadline; batch retention is the earliest member deadline                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `P17-RET-02`      | every terminal trigger denies decryption immediately, purges primary material within 24 hours, preserves body-free truth, and wins submit/webhook/lease/erasure races without replay                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `P17-AR-EMAIL-01` | both D44 keys always compile required in-product; optional email is absent unless contract, deliberate Tenant On over a default-Off plan, `preference.access_request_responsibility_email@1` is absent/`inherit` rather than `disabled`, current D43/D44 authority/source, current safe destination/suppression, and exact Tenant Resend/Sender/Reply readiness all pass                                                                                                                                                                                                             |
+| `P17-AR-EMAIL-02` | email intent/preparation/provider outcome/engagement remain independent from notification engagement, Tasks Hub closure, request decision, and access; every disabled/unready/suppressed/failed/indeterminate case leaves source and local attention truthful                                                                                                                                                                                                                                                                                                                        |
+| `P17-AR-EMAIL-03` | a new request creates at most one email per admitted recipient; one responsibility-application generation assigning N pending requests creates exactly one grouped email per newly admitted recipient with the frozen safe count and no child list or N-email fanout                                                                                                                                                                                                                                                                                                                 |
+| `P17-AR-EMAIL-04` | exact email HTML/plain text, subject/preheader/body, primary CTA, preparation-time explanatory footer, and typed **Manage notification preferences** action match the protected fixtures; events, logs, provider metadata, and Recent-copy denial contain no dynamic Tenant name, holder/requester identity, reason, capability, group, provenance, authority evidence, raw id, inline decision, tracking pixel, or rewritten action URL; aggregate count appears only in the body and per-request render facts remain empty                                                         |
+| `P17-AR-EMAIL-05` | Tenant On, recipient `disabled`→`inherit`, and contact/readiness repair are future-only widenings that never add/replay an omitted member; Tenant Off, `inherit`→`disabled`, and source/auth/contact/suppression/readiness narrowing suppress any not-yet-submitted optional email including prepared work without rerendering, while provider-accepted mail is non-retractable; future channels remain structurally non-instantiable without separately registered steps/profiles/adapters/proof and preserve the same stable key/source occurrence unless business meaning changes |
+| `P17-AR-EMAIL-06` | canonical Tenant IA, no coordinator/preference counts, truthful Ready/unavailable/future-only copy, and recipient read-only effective status plus draft radio choices `inherit` or `disabled`, **Cancel**, and **Save changes** pass keyboard, screen-reader, mobile, zoom, RTL/CJK, stale-save, offline, and cross-Tenant negative proof                                                                                                                                                                                                                                            |
+| `P17-AR-EMAIL-07` | one atomic `profile.access_governance_attention@1` plan choice governs both exact email slots; mixed per-key On/Off and partial dependency readiness reject, while contract-specific source/render/intent/outcome identities remain separate                                                                                                                                                                                                                                                                                                                                         |
+| `P17-AR-EMAIL-08` | release evidence re-pins current provider reputation thresholds; any provider restriction, a connection-wide bounce/spam rate at or beyond the stricter current threshold, or any D45 complaint produces the named body-free signal, owner, containment, and proof-gated resume without changing required in-product/source truth or enabling force-send/fallback                                                                                                                                                                                                                    |
 
 ### 1. Catalog and producer closure
 
@@ -2864,6 +3579,30 @@ The following stable conformance IDs are release blocking and complement the sce
 - current source/role/contact/consent/suppression/identity reproof at dispatch;
 - independent sibling outcome and same-step repair; no business completion from engagement;
 - complete plan compare, synthetic source/locale/channel/consent/suppression/unavailable simulation, restore-as-new-draft, grouped occurrence history and future-only effective boundary;
+- D45 default-Off Tenant plan and recipient `inherit | disabled` narrowing
+  compose only by intersection; Tenant Off, recipient `disabled`, administrator
+  override, stale D43/D44 authority/source, requester/self recipient, stale/foreign/invalid destination,
+  suppression, unready Resend/Sender/Reply, and indeterminate proof emit no
+  email member and never affect the required in-product member;
+- the one access-governance family plan enables/disables both email slots
+  atomically, rejects mixed per-key state and partial publication/readiness, and
+  does not merge either key's occurrence, facts, action, or outcome;
+- one new-request email per admitted recipient and one grouped current-work
+  email per recipient/responsibility-application generation preserve exact
+  semantic identity, complete parent membership, stable replay, bounded count,
+  and no N-child email fanout;
+- Tenant On and recipient `disabled`→`inherit` widening add no child to a
+  released occurrence or backlog replay; contact/readiness repair is likewise
+  future-only. Tenant Off, recipient `inherit`→`disabled`, and source/auth/
+  contact/suppression/readiness narrowing suppress any not-yet-submitted
+  optional email, including a prepared member, without rerendering; provider-
+  accepted mail remains non-retractable;
+- unregistered push/Slack/Teams/Google Chat/SMS/reminder/digest/escalation and
+  arbitrary webhook/channel values fail catalog, compiler, API, import,
+  database, and worker paths; a future reviewed profile may reuse the compiler
+  without introducing a generic channel DSL, and unchanged meaning extends the
+  same stable key/source occurrence instead of minting channel-specific
+  identity;
 - Phase 16 missionary notice only on terminal `Missed`, never per attempt/retry and never automatic outreach task;
 - tenant isolation, bounded fan-out, poison item, provider outage, load/fairness and legacy cutover; and
 - guided/non-drag/mobile/a11y builder with all complete states.
@@ -2871,8 +3610,23 @@ The following stable conformance IDs are release blocking and complement the sce
 ### 7. In-product notifications
 
 - availability, engagement and source status remain independent under every transition;
+- D45 email Disabled/Not applicable/Suppressed/Pending/Delivered/Failed/
+  Indeterminate and advisory Opened/Clicked states never change required D44
+  in-product availability/read/archive, Tasks Hub state, D43 request state, or
+  EffectiveAccess; local engagement likewise never changes email outcome;
+- the Tenant and recipient preference surfaces show required in-product locked
+  On, optional email Off by default, the other gate and truthful Resend/
+  destination status, and accessible persistent confirmation without a broad
+  channel matrix or delivery promise;
+- the canonical Tenant route and People & access deep-link cannot create dual
+  settings; no coordinator/preference cohort counts appear; recipient effective
+  status is read-only and the draft radio `inherit | disabled` changes only on
+  **Save changes**/**Cancel** under exact self authorization;
 - Information/Attention/Urgent remains code-owned; evaluation order is contract → tenant → recipient preference → current access/privacy and cannot suppress required safety;
-- exactly two closed presentation policies and exact per-key source-end rules; all seven Target Live in-product keys map mechanically and a missing/unknown mapping fails closed;
+- exactly two closed presentation policies and exact per-key source-end rules;
+  all seven currently instantiated Target Live in-product keys map
+  mechanically, both D44 keys must join that closed mapping before activation,
+  and a missing/unknown mapping fails closed;
 - source-actionable items remain in **Needs attention** after read, omit archive while required work remains, end atomically on the key's source predicate, then remain authorized non-unread recent history for 90 days; resolved-before-view creates no unread debt or fabricated read;
 - informational outcomes are **All**-only, stop unread treatment by day 30, leave user-facing recent history by day 90, and cannot have either deadline extended by archive, grouping, retry, tenant settings, or worker delay;
 - two-tenant, one identity with multiple tenant/Party/role memberships, tenant switch and global-badge negative tests;

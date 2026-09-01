@@ -67,7 +67,15 @@ Concretely, Phase 2:
 5. Wires per-site **branding** end-to-end so multiple branded websites under one tenant actually
    render, editable through the existing Web Studio (Payload) shell.
 6. Keeps the **checkout flow unchanged** — per-site difference is a theming layer — and leaves the
-   **donor portal** (a tenant-scoped surface, not a site) undisturbed.
+   **donor portal** Tenant-scoped rather than Site-scoped. Phase 24 D57 gives
+   that portal exactly one current verified Tenant Donor Portal Host per
+   environment; every Site enters the same Tenant account experience, and no
+   Site host becomes authenticated authority. Phase 24 D58 gives that account
+   experience one stable Tenant Donor Account Brand; the Default Site and entry
+   Site never reskin it. Phase 24 D59 gives each public Site complete immutable
+   Site Brand Versions as bounded presentation inputs; the applicable public-
+   Site release authority pins one exact qualified version without creating a
+   second serving head or live inheritance.
 7. Updates the durable **OpenSpec** language from "the public tenant website" (singular) to "one or
    more sites per tenant," so governance matches the model.
 
@@ -158,8 +166,10 @@ rather than a cautious, reversible, production-safe migration.
     BCP-47 form (e.g. `en-US`, `es-MX`), so that language support is a property of the site.
 26. As **finance/compliance**, I want each receipt and system message to record the locale it was
     rendered in, so that a future Spanish receipt can prove it was issued in `es-MX`.
-27. As an **engineer**, I want a documented locale fallback order (requested → site default →
-    `en-US`), so that when localization is built later, the rule is already agreed and consistent.
+27. As an **engineer**, I want locale resolution documented per purpose, so that fallback is never
+    guessed: non-public contracts retain their owner-approved requested → site default → `en-US`
+    order, while Phase 24 public Site routes, shell, Navigation, CMS content, search, sitemap,
+    canonical, and `hreflang` use the exact requested Site Locale and never cross-language fallback.
 28. As the **organization**, I do **not** want a translation engine or localized content in this
     phase, so that we do not build i18n machinery for languages that do not exist yet.
 
@@ -206,16 +216,30 @@ rather than a cautious, reversible, production-safe migration.
 
 - **A1. Site is a first-class entity, a child of tenant ("C-lite").** One tenant → one default site
   - optional additional sites. A site absorbs what SiteStacker splits into "site" and "site channel"
-    (domain + branding + language + content + public giving entry) into a single row. We do **not**
-    build SiteStacker's two-tier `site → site-channel` nesting, nor a hierarchy of
-    `site_locales`/`site_currency_settings` tables — **locale and currency are facets of the site**,
-    matching how Shopify Markets and Contentful model per-market/per-locale as facets of one site
-    rather than separate sites. (ADR-worthy — see ADRs.)
+    (domain + branding + language + content + public giving entry) into a single row. Phase 2 does
+    **not** build SiteStacker's two-tier `site → site-channel` nesting or premature
+    `site_locales`/`site_currency_settings` hierarchies — **locale and currency are facets of the
+    site**, matching how Shopify Markets and Contentful model per-market/per-locale as facets of one
+    site rather than separate sites. Phase 24 D66 later normalizes stable `site_locales` as A1a's
+    bounded repeated-facet exception because immutable identity/public history no longer fit a
+    scalar/array; it remains a facet, not another Site level. (ADR-worthy — see ADRs.)
 - **A1a. Settings-as-facets, generalized (the D9 rule).** A site setting that needs a home before the
   phase that consumes it lives as a **typed column on `public.sites`**, never in a premature
   `site_*_settings` table. The "facets, not a hierarchy" rule extends to _all_ pre-phase site
   settings, not just locale and currency. This is the recorded justification against adding a
-  `site_settings` table when the next setting arrives.
+  generic `site_settings` table when the next setting arrives. A later owning phase may normalize
+  a bounded repeated child aggregate only when scalar columns cannot express its cardinality and
+  the phase supplies exact relational, lifecycle, concurrency, and authorization invariants.
+  Phase 24 D64's versioned Site Suggested Amount Sets are that narrow exception; they do not create
+  EAV/JSON settings, another Site level, or permission for arbitrary `site_*_settings` tables.
+  **Phase 24 D66 amendment (2026-08-30):** stable Site Locale identity, immutable
+  `/lang/{locale}` allocation, independent public history, and one current
+  locale-exact Public Site Generation can no longer be represented safely by
+  `default_locale` plus `allowed_locales[]`. Phase 24 therefore normalizes one
+  bounded repeated `site_locales` aggregate as A1a's explicit exception. It
+  remains a Site facet—not a nested Site/channel hierarchy or generic settings
+  table—and stores no translation bodies, readiness checklist rows, percentages,
+  Giving/message/payment state, or second serving head.
 - **A2. Legal Entity owns financial identity; site owns presentation.** Tenant
   remains the outer isolation boundary, but merchant, settlement owner, legal
   issuer, and accounting owner are roles of the canonical Phase 7/20 **Legal
@@ -244,20 +268,105 @@ rather than a cautious, reversible, production-safe migration.
   consume separately qualified Phase 20, provider, or bank evidence as the exact
   target-currency admission basis; consuming evidence never transfers account-
   identity or default authority to Phase 2 or the evidence source.)_
+  _(Clarified 2026-08-30 by Phase 24 D61: a Site owns one explicit default and
+  a bounded enabled Donor Presentment Currency ceiling for new giving intent.
+  The donor-visible set is the payment-owner-derived intersection with current
+  exact Tenant, environment, Legal Entity, Settlement Account Binding,
+  connected-account, route/cart, frequency, amount, and payment-method
+  qualification. One trusted coarse country may suggest a member only for an
+  empty intent; locale, browser language, URL, profile, Site default, provider
+  global support, or client input never authorizes it. Manual donor choice is
+  still server-revalidated and freezes one currency for the entire accepted
+  gift intent. D61 adds no payment account to Site, no FX engine, no retained
+  settlement lane, and no Checkout Sessions dependency.)_
 - **A3. Dual representation in one database.** Payload and Supabase share a **single Postgres**
   (Payload in schema `cms`, app data in `public`; the Payload DB URL falls back to the Supabase DB
   URL). So a site is represented by `public.sites` (operational source of truth: identity, tenant
-  FK, currency/money facets, default flag, domains — the row that gifts' `site_id` points at) and a
+  FK, currency/money facets, and default flag — the row that gifts' `site_id` points at) and a
   `cms.sites` Payload collection (presentation: branding, content scoping) sharing the **same UUID**.
   Fields are **disjoint** and it is one database, so there is **no cross-database sync engine** — it
   mirrors the existing tenant dual-representation (Supabase-authoritative, Payload aligned on login).
-- **A4. Domains live in `public.sites` (operational).** So the resolver can be a boundary-safe
+- **A4. Domains are operational Site facets, not CMS fields.** The resolver is a boundary-safe
   Supabase query in `packages/api` shared by both the public site and the giving path, never
   importing Payload (which the data-access boundary forbids in the giving code). Web Studio shows
   domains **read-only** in Phase 2; domain verification and management are deferred. Note: today's
   resolver is host→**tenant** only (it has no concept of a site, which does not yet exist in the
   repo); Phase 2 introduces host→**site**→tenant resolution as a **new** capability, not a relocation
   of existing site logic.
+
+  **Phase 24 D72 supersession:** domains do not remain scalar/array fields on `public.sites`.
+  Operational Domain authority owns relational exact-host bindings with one current Primary Site
+  Domain and optional non-website-serving Redirect Site Domains. Provider/DNS/TLS facts are evidence only;
+  CMS and `public.sites` may expose read-only projections but are not role write authorities. Exact
+  physical table/column names remain for the Phase 24 implementation spec.
+  Because Core environments use isolated Supabase databases, V1 Tenant-controlled public roles are
+  production-only unless one platform-wide cross-environment hostname-claim authority lands first;
+  nonproduction uses protected private preview hosts.
+
+  **Phase 24 D73 amendment:** replacing an existing Primary Site Domain always binds one explicit
+  former-primary website disposition in the same immutable Domain role successor. It also prepares
+  compatible successors for the exact current public Site Locale origin heads; no scalar Site field,
+  provider assignment, apex/`www` relation, migration, or historical redirect may infer the result.
+  Independently source-owned routes remain independently owned, and stopping website use is not
+  provider detachment or hostname release.
+
+  **Phase 24 D74 amendment:** one exact Tenant-controlled custom hostname may later disconnect
+  through a separate Tenant self-service command only after a complete current finite owner
+  manifest proves no positive hosting dependency. The authoritative transition first establishes
+  an adverse Disconnecting barrier, then reconciles exact Core-controlled provider removal outside
+  the database transaction, and only after current authenticated absence ends the current Site-
+  binding interval and global occupancy claim. Canonical hostname identity, immutable history, and
+  D9–D15 reservations survive. DNS, registration, renewal, email, provider-account ownership,
+  and cross-host cascade remain separate authorities; future fresh claims follow D75/ADR-0196.
+
+  **Phase 24 D75 amendment:** after D74 final release, every Tenant uses the same Add domain flow
+  only after a Core-owned seven-day exact-host DNS-control challenge. An unproved attempt is private,
+  nonexclusive, provider-dark, and reserves nothing. One transaction consumes fresh proof, acquires
+  the platform-wide current claim, and creates a new private binding generation; old bindings are
+  never retargeted. No former positive state follows, while D9–D15 adverse reservations remain.
+  Provider attachment, TLS, DNS routing, Site readiness, and public role activation are later gates.
+
+  **Phase 24 D76 amendment:** an exact still-connected custom hostname may move between two Sites
+  in the same Tenant/environment through one prepared successor without D74 release, D75 claim,
+  routine DNS proof, or mutation of the old binding. Destination role is explicit; an active source
+  Primary requires a different qualified replacement; D6/D73 and every D9–D15 owner retain their
+  authority. One acknowledged adverse Moving generation precedes append-and-advance of the private
+  global host head plus both Sites' complete Domain/public heads. Launch is a provider no-op on the
+  shared donor project and may expose only a bounded neutral gap, never two favorable Sites.
+
+  **Phase 24 D77 amendment:** before that Moving generation, D76 consumes one
+  immutable authority digest produced from the existing small code-owned critical
+  owner-family registry and complete source/destination effective-host route
+  manifests. Critical unknown blocks. Source-only ordinary addresses compile
+  durable not-found effects into the new binding generation, target-only
+  addresses retain their owner effect, exact collisions require owner action,
+  and only an already owner-qualified successor may continue. The comparison is
+  derived proof, not another route owner, adapter framework, resolver, redirect
+  table, or provider rule.
+
+  **Phase 24 D78 amendment:** one D77 different-identity collision may continue
+  only through the ordinary Page owner's directional, exact-address,
+  revision-bound General Page successor qualification. Source and target Site
+  identities remain distinct and immutable; qualification neither moves nor
+  copies a Page. Exact Tenant/environment/Site/locale/family/public/safety/
+  route generations remain mandatory. Same-path direct service requires the
+  target Primary; a Redirect Site Domain remains redirect-only to the Primary.
+  Missing/stale/rejected proof remains not-found and D78 adds no provider or
+  money effect.
+
+  **Phase 24 D79 amendment:** before D76 activation, D78 remains bound to the
+  exact reviewed target release. After activation, each relation pins one
+  sparse, opaque target General Page/locale Page Purpose Continuity Version. A
+  changed candidate effective Page release, including exact meaning-bearing
+  localized/shared/Reusable Section/reference dependencies, explicitly
+  preserves the current version or declares that D80 must create a fresh
+  independent private Page. D80 leaves the source version/relations unchanged
+  and the target inherits none. Site, locale, Page family,
+  audience, Reach, safety, route,
+  binding, and publication remain separate owner facts; D79 introduces no
+  tenant-authored purpose field/taxonomy, provider/money effect, or second Site/
+  Page identity.
+
 - **A5. Attribution = four orthogonal axes, no generic "channel."** `site_id` (where), `source`
   represented canonically as **entry method** (how it entered), `source_code` (what drove it), and
   designation (fund/campaign, what it is for). Phase 13 owns those axes on committed contributions;
@@ -298,15 +407,110 @@ knowledge behind a stable, boring interface so the rest of the codebase never di
 - This module replaces the current cents assumption in the donate path (the code multiplies the
   incoming amount by 100 to derive minor units).
 
+**Phase 24 D61 activation boundary.** Phase 24 may widen the transaction
+allowlist only through a server-owned, source-labelled qualification for the
+exact current financial route and complete gift context. The canonical money
+value is always checked integer minor units plus ISO currency; presentation
+formatting also consumes an explicit canonical locale but never infers currency
+from it. D61 cannot launch while any amount entry, preset, fee calculation,
+minimum/maximum, review, provider adapter, recurring term, confirmation,
+receipt, refund, history, staff/reporting projection, or idempotency path still
+uses floating major units, `×100`, two-decimal formatting, implicit USD, or a
+caller-authorized currency. JPY, BHD, ISK, HUF, TWD, current Stripe limits, and
+lossless provider round-trip are release evidence, not optional later polish.
+
+**Phase 24 D62 setup-qualification boundary.** Selecting another currency in
+the Site's existing Currencies setup automatically asks the Payments owner for
+one versioned, source-labelled **Donor Presentment Currency Qualification**;
+Phase 2 stores no caller-authored or CMS-authored `ready` flag. The setup check
+may prove only the stable offering cohort available before a donor exists:
+exact Tenant, live environment, Site financial route, Legal Entity, effective
+Settlement Account Binding, connected account and charge topology, ISO
+currency, current giving mode/cadence family, at least one admissible rail,
+canonical money-pipeline generation, and pinned provider-contract evidence.
+Actual destinations, amount, method, donor/issuer eligibility, and current
+provider execution are re-proved by the accepted checkout command.
+
+The check is declarative and side-effect-free: it creates no PaymentIntent,
+SetupIntent, Customer, subscription, charge, refund, settlement/accounting
+record, or provider configuration change, and test-mode evidence never
+qualifies a live Site. Initial activation requires at least one qualified
+route; a partial result names its exact current mode and a default currency
+must cover every current entry that relies on that default. Unknown, stale,
+contradictory, unavailable, or mismatched evidence does not qualify. Provider
+reads happen through the Payments adapter outside the Site-policy transaction;
+the final authorized save atomically compares the Site-policy revision and
+exact qualification generations before changing the complete default/enabled
+set. Physical table, queue, cache, refresh duration, and provider API shape stay
+implementation design rather than Phase 2 authority.
+
+**Phase 24 D63 transition boundary.** A donor-requested change from one
+qualified Donor Presentment Currency to another is a new monetary revision of
+the same still-mutable gift intent, never an FX calculation or accepted-money
+edit. A pristine intent changes without warning. If any amount, preset,
+fee-cover decision, derived total/claim, payment selection/input, authorization,
+client secret, or provider session exists, the original currency and every
+field remain unchanged until the donor confirms the exact loss. The server then
+re-proves the complete target-currency cart and preserves only an explicit
+allowlist of currency-independent purpose, cadence, attribution, identity/
+contact, tribute, consent, and form intent whose meaning remains valid. Every
+currency-denominated or provider-dependent field clears by default; no numeric
+digits, rate, rounding, or fee equivalence carries forward.
+
+The canonical cart model therefore permits an absent `amount_minor` only on a
+mutable draft line whose currency is explicit. Ready-for-review, accepted,
+provider-bound, recurring, contribution, receipt, refund, ledger, and
+accounting states require the owning phase's checked positive integer minor
+amount and exact current limits. The authoritative acceptance boundary rejects
+any line without a valid target-currency amount. Phase 2 freezes no physical
+nullable-column strategy, provider-object update/replacement choice, dialog
+component, or preset source; it requires the semantic distinction so preserving
+purpose never requires preserving or fabricating money.
+
+**Phase 24 D64 native-suggestion boundary.** Operational Postgres owns one
+optional immutable, versioned Site Suggested Amount Set for each exact Tenant,
+Site, ISO currency, and `one_time` or exact Phase 16 recurring cadence. Repeated
+values are a normalized bounded Site child aggregate under A1a, not scalar
+`public.sites` columns, a generic settings blob, CMS content, or another Site
+hierarchy. Each reviewed current set contains zero to six unique positive
+integer-minor-unit amounts with the set currency and canonical exponent. No
+suggestion is selected automatically. Values outside the applicable current
+amount envelope, ambiguous grouping under the authenticated staff UI locale,
+duplicates, excess precision, overflow, or a seventh value reject atomically.
+The staff locale is the authoring-parser authority and supplies a visible input
+example; the explicit Site/public locale formats preview/donor output but never
+reinterprets stored integer Money.
+
+Every value is entered in its target currency. Core performs no authoring-time
+or runtime FX, rounding, ordinal mapping, cross-currency/cross-frequency digit
+copy, or live inheritance. Preset existence never enables a currency, creates a
+cadence, proves a payment route, changes a minimum/maximum, or supplies accepted
+money. D61/D62 and Phase 16 own those facts; Phase 13 accepts the donor's exact
+chosen Money. An authorized D64 save is the review and creates a prospective
+successor under expected revision—no Payload publication workflow or new
+approval engine. For an otherwise qualified context, missing or intentionally
+empty sets mean custom amount only.
+Deliberate currency/cadence policy disablement preserves versions but retires
+their public use; a later policy re-enable must explicitly reaffirm former
+values through a successor before they return. A transient payment-
+qualification pause preserves the reviewed policy and follows D62 recovery
+without fabricating custom eligibility.
+Physical version/head tables remain an implementation-design choice, but same-
+Tenant/Site composite integrity, one current head per exact scope, immutable
+history, direct-DML revocation, FORCE RLS with complete `USING`/`WITH CHECK`,
+and service-path parity are not optional.
+
 **Module 2 — Site context resolver (host → site → tenant).** Home: `packages/api` (boundary-safe
 Supabase query; no Payload import), shared by the CMS public API and the giving path. This is a
 **new** capability — today's resolver returns a tenant only.
 
 - Interface (shape): `resolveSiteFromHost(host) → { site, tenant } | null`,
   `defaultSiteForTenant(tenantId) → site`.
-- Resolution order: exact `primary_domain` match → `alias_domains[]` match → subdomain-slug →
-  explicit override (dev/local) → tenant default site. Host uniqueness is enforced (a domain maps to
-  exactly one site).
+- Resolution order after D72: exact normalized current Domain binding → explicit bounded private-
+  preview subdomain binding → environment-gated dev/local override. A Primary Site Domain may resolve
+  favorable Site context; a Redirect Site Domain returns a distinct route-owner-qualified redirect
+  decision and never resolves as a serving alias. Unknown production hosts never fall back to a
+  Tenant Default Site. Current custom host uniqueness is platform-wide.
 - The authenticated donate path derives tenant from the auth context and **defaults `site_id` to the
   tenant's default site**; host resolution is used by the CMS public routes and by the public
   anonymous checkout when it is built (Phase 5 — Public Website Runtime Contract).
@@ -349,31 +553,126 @@ creation of the default site and conformance of existing (mock) data.
 - Seeds the **two-site demo** (two hosts, two brand-color sets, one public home page each) so the
   acceptance test "two domains, one tenant, two brands, both give" can pass.
 
-**Module 5 — Branding / theming resolver.** Home: shared UI/config consumed by the donor app (reads
-the site's presentation facet; no giving-path coupling). Turns a site's branding facet into the
-tokens the donor app applies, closing the edit→live loop.
+**Module 5 — Public-Site branding / theming resolver.** Home: shared UI/config consumed by the donor
+app (reads the site's public presentation facet; no giving-path or authenticated-account coupling).
+Turns a site's branding facet into the tokens an eligible public Site applies, closing the
+edit→live loop.
 
-- Interface (shape): `resolveSiteBranding(site) → { name, logo, tagline, brandTokens }`, where
-  `brandTokens` are CSS custom properties (`--brand-*`) with a documented fallback to platform
-  defaults.
-- The donor public layout consumes this via a site-config context (replacing the current static
+- **Phase 24 D59 amendment (2026-08-30):** the old four-field example is not a set of independently
+  mutable live settings. The resolver consumes one exact complete **Site Brand Version** selected
+  by the applicable public-Site release authority and returns one serialized same-revision safe
+  projection containing its public identity, approved assets, dedicated semantic brand roles,
+  approved typography treatment, and code-owned Site-frame choices. Exact persistence and
+  field/token names remain for the Phase 24 implementation spec.
+- The brand projection uses dedicated centralized semantic brand roles; it never replaces Core's
+  neutral, status, focus, form, validation, payment, legal, spacing, radius, breakpoint, or motion
+  semantics. A documented fallback uses code-owned safe structure plus the trusted Site text
+  identity and never displays Asym, GiveHope, another Tenant, the Default Site, the Tenant Donor
+  Account Brand, or another Site as the public brand.
+- The donor **public-Site** layout consumes this via a site-config context (replacing the current static
   brand-config import); checkout reads brand tokens instead of hard-coded colors; the footer's
   hard-coded sections become templated. The checkout **flow** is untouched — only theming varies.
+  Authenticated, claim, recovery, and account layouts must not consume this resolver or its Site
+  context; Phase 24 D58 keeps their Tenant Donor Account Brand stable across every entry path.
+- Site branding owns identity/default assets and approved shell presentation only. Page and campaign
+  imagery remain CMS content; Navigation owns labels, destinations, order, and visibility; page
+  templates own block composition; legal/support owners supply their exact links and disclosures.
+  Those records consume the Site brand but cannot create route- or block-local brand overrides.
 
 ### Data model
 
-_All site settings that need a home before their consuming phase are **typed columns on
-`public.sites`**, per A1a — not `site_\*_settings` tables._
+_Scalar Site settings that need a home before their consuming phase are **typed
+columns on `public.sites`**, per A1a—not generic `site_\*_settings` tables. D66
+Site Locales and D72 Site Domains are normalized repeated facets because their
+independent identity, lifecycle, uniqueness, and history require relations._
 
 - **`public.sites`** (operational SoT): `id (uuid)`, `tenant_id (fk, not null)`, `slug`,
-  `is_default (bool)`, `primary_domain`, `alias_domains (text[])`, `default_locale (bcp-47)`,
+  `is_default (bool)`, `default_locale (bcp-47)`,
   `allowed_locales (text[])`, `presentment_currency`, `reporting_currency`,
   `default_designation (nullable)`, `is_active`. No merchant/account selector
   lives on the Site.
-  Unique host index across `primary_domain` + `alias_domains`.
-- **`cms.sites`** (Payload collection): same `id`, `tenant` relationship, branding fields
-  (name, logo→Media, tagline, brand color tokens), content-scoping. Presentation only; disjoint from
-  the operational columns.
+  **D72 supersession:** legacy/proposed `primary_domain` and `alias_domains[]` are
+  migration inputs/projections only. A relational Domain binding facet owns
+  canonical host identity, complete Tenant/environment/Site scope, current
+  Primary/Redirect role, lifecycle, immutable history, and globally unique
+  current-host occupancy. A publicly activated, nonretired Site has exactly one
+  current primary, including during serving suspension; a Redirect Site Domain's
+  website role never serves Site website content, while separately authorized
+  source-owned routes retain only their own behavior. Exact physical names remain design-owned.
+  D74 disconnection ends only the current binding/occupancy interval after an acknowledged adverse
+  fence and provider-absence proof; it never deletes the hostname identity or protected history.
+  D75 fresh reuse creates a new private binding generation only after an exact Core DNS challenge
+  is atomically consumed with the current global claim. Verification attempts are not bindings or
+  reservations, and former positive Site meaning never follows the hostname.
+  D76 same-Tenant movement retains the current global occupancy, appends a new Site-binding
+  generation, and advances the one private current head only after an adverse cutover fence and
+  complete source/destination role/public evidence. It never updates an old `site_id`, moves a
+  provider project, copies Site state, or reinterprets Giving/auth routes.
+  D77 binds that move to one current critical-owner/effective-route authority digest. Historical
+  source-only ordinary paths receive explicit negative route effects that survive the new binding
+  until their owner publishes a separately qualified successor; later destination content cannot
+  claim them from absence, path, slug, similarity, or provider routing.
+  D78 defines that sole different-Page exception as one immutable
+  source-address-to-target-General-Page owner qualification bound to exact
+  reviewed public revisions. It is neither Page equivalence nor a Site/content
+  relationship and cannot be symmetric, transitive, inferred, or reused.
+  D79 preserves exact revision proof before cutover and then binds each active
+  relation to one opaque Page Purpose Continuity Version for the stable target
+  Page/locale. A changed effective Page meaning-bearing dependency digest
+  explicitly keeps the version or declares that the candidate requires D80's
+  fresh independent private Page. D80 never advances the source head, transfers
+  D78/D79 state, or rewrites/copies the Site, locale, Page, relation, or owner
+  facts. It uses one separately reviewed same-Site D2 placement/path and remains
+  private until later ordinary D1 publication; D81 settles the recoverable
+  source Working Revision.
+  **D66 supersession:** `default_locale` and `allowed_locales` are migration
+  inputs/compatibility projections only once Phase 24 lands. Authoritative
+  identity moves to same-scope stable Site Locale rows and the sole Default Site
+  Locale/Public Site Generation heads. No old and new field may remain dual
+  writable.
+- **`public.site_locales`** (Phase 24 operational SoT): one stable immutable ID
+  under exact Tenant and Site inside one deployment-environment-isolated
+  Supabase project/database; canonical BCP 47 identity under a pinned standards
+  profile; generated immutable `/lang/{locale}` segment after first public use;
+  and private lifecycle metadata. Composite same-scope unique keys and foreign
+  keys prevent cross-Tenant/Site relationships. Deployment environment remains
+  a trusted command/cache/audit coordinate, not a partially persisted Site key.
+  If multiple deployment environments ever share one database, Core must first
+  add a non-null environment discriminator to `public.sites` and every dependent
+  key/FK in one expand-and-cut-over migration; partial coexistence is forbidden.
+  Public release history/head remains with the existing Public Site Generation authority;
+  `site_locales` has no `is_ready` or `is_public` Boolean. Delete is restrictive
+  after any route, release, default, receipt, or artifact reference.
+  **D68 authoring-preference amendment:** a Site may additionally own an optional
+  partial order of stable same-Site Site Locale IDs named **Suggested translation
+  sources**. It ranks explicit staff Copy/Compare choices only and never changes
+  Default Site Locale, Site Locale identity/lifecycle, Translation Basis, public
+  alternatives, runtime fallback, or Public Site Generation. The logical value
+  requires same-scope membership/unique order and one optimistic revision; the
+  later accepted Phase 24 design must choose a structurally constrained representation,
+  not another locale-string array or generic settings blob.
+  **D69 Copy-head amendment:** a D68-eligible Site Locale may project at most two
+  distinct exact logical source heads for one explicit Copy action: the current
+  server-acknowledged private Working Revision and the current authoritative
+  public source revision. These heads belong to D12 and D1/Public Site
+  Generation respectively; they are not `site_locales` columns, a locale
+  lifecycle state, a Site setting, a provider-latest pointer, or a scheduled
+  third option. Selecting private source work freezes/reuses immutable source-
+  owned checkpoint evidence, creates only a private target, and gains no public
+  locale authority. D69 adds no physical Site Locale schema until the accepted
+  Phase 24 design proves the composed owner/constraint boundary.
+  **D70 Copy-qualification amendment:** Copy Qualification and Source Finding
+  Summary belong to exact resource revisions and their source owners, not
+  `site_locales`. They create no locale-ready/copy-ready flag, allowed-source
+  list, Site setting, fallback, publication proof, or repeated locale relation.
+  Enabling a Site Locale never qualifies content or fabricates qualification
+  evidence.
+- **`cms.sites`** (Payload collection): same `id`, `tenant` relationship, content scoping, and the
+  CMS-owned Site Brand Version lifecycle (complete drafts, immutable versions, approved same-Tenant
+  assets, and source provenance). Presentation only; disjoint from the operational columns. The
+  applicable public-Site release authority pins the exact qualified brand version into public
+  output; this logical owner does not freeze the physical version-storage shape before Phase 24
+  design or create a second serving head.
 - **`currency_metadata`** (seed table mirroring the TS constant): `code (pk)`, `exponent`,
   special-case flags.
 - **`currency_rate_snapshots`** — **shape reserved, behavior deferred**: sourced later from the
@@ -503,8 +802,10 @@ convention, from the tombstoned phase-01 operating-foundation PRD):
      actually launches a three-decimal currency (nothing in Phase 2 transacts one).
    - _Transactability:_ `assertTransactable` rejects every non-settlement currency in Phase 2, and
      ISO-4217 validation rejects unknown codes.
-2. **Site context resolver** — host resolution by primary domain, alias, subdomain, and default-site
-   fallback; host uniqueness; unknown host behavior; the donate-path default-site path.
+2. **Site context resolver** — host resolution by Primary Site Domain, distinct route-qualified
+   Redirect Site Domain result, bounded platform subdomain, and dev-only override; platform-wide
+   host uniqueness; unknown production host without Default-Site fallback; the authenticated
+   donate-path default-site path remains separately derived from auth context.
 3. **Attribution builder** — entry-method vocabulary enforcement and the caller→entry_method mapping;
    `source_code` sanitization (allowlist filtering, length cap, **CSV formula-injection
    neutralization**, PII/raw-query rejection); default-site assignment for portal/offline/import;
@@ -515,15 +816,26 @@ convention, from the tombstoned phase-01 operating-foundation PRD):
    entry-method remap becomes a runtime contract. The two-site demo seed
    produces canonical Phase 13 acceptance fixtures without fabricated source
    evidence.
-5. **Branding/theming resolver** — branding lookup → tokens with fallback to platform defaults; the
-   donor layout consumes the context (no hard-coded colors leak back into checkout).
+5. **Public-Site branding/theming resolver** — branding lookup → tokens with a safe, non-marketing
+   semantic fallback; the public Site layout consumes the context (no hard-coded colors leak back
+   into checkout and no Site brand leaks into authenticated account chrome).
 
 **Integration / acceptance:**
 
 - **The headline acceptance test:** two sites on two hosts under one tenant render two distinct
   brands, and a gift on each is stored with the correct `site_id`, currency, and (if present)
   `source_code`.
-- Donor portal shows a donor's gifts across **both** sites (multi-site does not fragment history).
+- Donor portal shows a donor's gifts across **both** sites through the one
+  Tenant Donor Portal Host (multi-site does not fragment history or create a
+  per-Site account origin). Both Sites enter the same Tenant Donor Account
+  Brand; authorized gift rows may retain their source-Site attribution without
+  reskinning the surrounding account shell.
+- Each demo Site resolves one distinct complete Site Brand Version through the
+  applicable public-Site release authority. Drafts never affect public output;
+  a design release changes only the exact Site; one response cannot mix revisions;
+  cross-Tenant/cross-Site brand
+  or asset references fail closed; public giving keeps the Site presentation
+  while exact legal/payment truth remains non-overridable.
 - The Phase 13 public-giving acceptance path persists all four attribution axes
   and the currency-aware amount on the canonical contribution revision.
 
@@ -549,6 +861,10 @@ write-up.
   (Pledges & Recurring Commitments): recurring-cadence availability is the deliberate exception.
   Phase 16 owns it as tenant-scoped, versioned recurring-policy records with grandfathered existing
   schedules; there is no per-site cadence override unless a later phase explicitly ratifies one.)_
+  _(Amended 2026-08-30 by Phase 24 D64: repeated Site Suggested Amount Sets are a bounded normalized
+  child aggregate because Site × currency × exact cadence × up to six values cannot be represented
+  safely as scalar columns. This does not move cadence availability into the Site or open a generic
+  settings-table exception.)_
 - **Receipt compliance** (legal name/address/tax-language storage), **accounting exports**, **gift
   triggers**, **reports** — deferred to Phase 7 (Receipt & Statement Compliance Rules +
   donor-identity/credit model) and the later reporting/export phases; Phase 2 reserves the primitives
@@ -616,7 +932,10 @@ Tracked as epic **#477** + children (created via `/to-issues`). Ticket shape:
 5. Attribution builder + `source_code` capture/sanitization (Module 3); public
    input plus the Phase 13 contribution-acceptance handoff.
 6. CMS site-scoping retrofit (the six touch-points) + per-site slug uniqueness.
-7. Branding/theming resolver + donor-app wiring (Module 5); checkout brand tokens; footer templating.
+7. Complete Site Brand Version lifecycle + resolver + donor-app wiring
+   (Module 5); dedicated semantic brand roles; production-faithful preview;
+   checkout presentation; footer templating; no arbitrary code or live
+   inheritance.
 8. Web Studio `cms.sites` (branding editable, rest read-only, create/delete gated) + Mission Control
    read-only Sites list.
 9. Two ADRs (site-before-ledger; currency-aware minor units).
@@ -645,6 +964,9 @@ recovery, the fixed D15 order checks one compatible prior publication at the
 same scope and exact locale, then one purpose-permitted ancestor publication at
 the exact locale. It never uses a system, sibling, foreign-locale, tenant-
 reordered, or fragment-mixed fallback. Every other contract continues to use
-Phase 2's fixed order. `rendered_locale` remains a frozen issuance/render fact.
+Phase 2's fixed order except Phase 24 public Site routes, shell, Navigation,
+CMS content, search, sitemap, canonical, and `hreflang`, whose exact-locale,
+no-cross-language-fallback rule is owned by D15 and D66. `rendered_locale`
+remains a frozen issuance/render fact.
 Phase 24, not Phase 17 or Phase 18, owns broad site, CMS, public-shell, staff-
 shell, domain, currency, and jurisdiction localization.

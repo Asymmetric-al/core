@@ -132,6 +132,24 @@ Underneath, the foundation is **method-agnostic** (it binds on proven email poss
 - **A6 — Claiming is method-agnostic; magic-link-first.** The claim gate binds on **proven email possession**, regardless of how proven (magic link, password, and — reserved — Google/Apple/passkey). **Magic-link/OTP is the hard-rule entry**; set-password is a post-authentication step only (a signup entry path collides on Supabase's global-unique email and leaks cross-tenant existence).
 - **A7 — Tenancy: Path 2 (complete data isolation).** Single Supabase project; the shared credential authorizes nothing. Separate donor record, membership, and claim per tenant; **no cross-tenant linking, merge, single-view, or dedupe**; every access carries `tenant_id`. Physical per-tenant auth (separate projects) is reserved for future compliance.
 - **A8 — Experiential separation is mandatory.** Every identity surface is per-tenant branded. For auth email, Phase 4/Supabase Auth is only the producer and purpose authority: its **Send Email Hook emits a typed auth-purpose request → Phase 17 resolves immutable prepared content and the bounded sender profile → Phase 6 creates the sole communication event, schedules/dispatches, and records provider outcome/history → Resend transports the message**. Phase 4 never renders or sends directly. Login/claim UI stays on the tenant's own domain with `base-maia`/zinc tokens; **no cross-tenant surface** appears in the donor portal. This is an acceptance criterion _and_ a test (unbranded chrome = failing build).
+  **Phase 24 D57 amendment (2026-08-30):** “the tenant's own domain” means
+  exactly one current verified Tenant Donor Portal Host per Tenant and
+  environment, not a Site host or arbitrary alias. Sign-in, registration,
+  claim, verification, recovery, protected Tenant action, portal, and sign-out
+  remain on that Tenant-controlled host with no donor-visible Asym branding or
+  `asymmetric.al` fallback. The host is presentation/routing only: every action
+  still re-proves the exact Tenant relationship and authorization server-side.
+  Required legal, merchant, processor, payment, security, and accessibility
+  disclosures remain truthful and are not co-branding.
+  **Phase 24 D58 amendment (2026-08-30):** every identity and account surface
+  on that host uses the one current Tenant Donor Account Brand. The Default
+  Site, entry Site, last gift, locale, referrer, query, cookie, and return
+  destination never reskin authentication, recovery, navigation, errors, or
+  support presentation. A currently valid same-Tenant entry Site may appear as
+  restrained secondary context and a validated return action; direct, email,
+  recovery, and bookmarked entry remain complete without it. Brand is bounded
+  presentation and never selects Tenant, membership, authorization, Legal
+  Entity, merchant, issuer, payment, support, or Site truth.
 - **A9 — Merge is non-destructive, reversible, replayable, never automatic.** Admin picks the surviving record and composes a field-by-field golden record; eligible **mutable CRM references** re-point (`donor_feed_preferences`, `crm_record_links`, invitations, and current canonical Party references only where the source domain permits identity repair); frozen contribution, legal-donor, receipt, statement, accounting, and commitment-owner facts never re-point. Consent merges to the **most-restrictive**; a `merged_into_donor_id` tombstone plus a **replayable `merge_operations`** record make un-merge real; an **opt-in, completeness-gated** hard-delete may remove the empty shell without ever touching money history. Dedupe scan is on-demand + scheduled self-healing, **within-tenant only**. The re-point child list is expected to grow in later phases only for source-domain-approved mutable projections such as Party relationships and engagement rows; Phase 7 `contribution_receipts` and its frozen legal-donor facts are explicitly excluded. _(Amended 2026-07-06, Phase 9 C1: the re-point list additionally gains `parties`, `crm_relationships`, and the party-keyed engagement tables.)_ _(Amended 2026-07-13, Phase 16 A11/D14: only a governed, same-tenant merge of duplicate records proven to represent the same real-world Party may re-point a commitment's current canonical Party ID, while the commitment retains its immutable original Commitment Party snapshot and merge provenance. That identity repair is not an owner transfer. A genuine owner change supersedes the old commitment and creates a successor under fresh Party intent and collection authority; neither path may cross tenants.)_
 - **A10 — Auth methods reserved, not built.** Social (Google/Apple) and passkeys are reserved as **per-tenant-optional** fast-follows (they reinforce one global identity via verified-email auto-linking, so they change UX, not isolation; passkeys are a _post-claim_ upgrade). SAML SSO is reserved for a future **staff** auth phase. The consent-screen branding limitation is why magic-link stays the branded default.
 
@@ -283,7 +301,16 @@ Good tests here assert **external behavior and safety invariants**, not implemen
 - [ ] Staff can merge donors from a dedupe queue and from CRM search; merge is field-by-field golden-record, re-points every eligible child, preserves immutable commitment-owner snapshots/provenance, is reversible/replayable, and offers an opt-in completeness-gated shell delete; merges never transfer a genuine commitment owner, auto-run, or span tenants.
 - [ ] A scheduled self-healing dedupe scan surfaces within-tenant candidates without auto-merging.
 - [ ] **Cross-tenant negative tests are green**; every tenant table has `FORCE` RLS + a policy; the tenant-guard and branding CI gates pass.
-- [ ] Every identity surface (auth emails, login, claim, portal) is tenant-branded on the `base-maia`/zinc tokens; no cross-tenant surface appears in the donor portal.
+- [ ] Every identity surface (auth emails, login, claim, protected Tenant
+      action, recovery, portal, and sign-out) is Tenant-brand-native on the one
+      current Tenant Donor Portal Host; no cross-tenant or donor-visible Asym
+      surface appears, and branding/host never substitutes for authorization.
+- [ ] Direct, email, recovery, bookmarked, and every same-Tenant Site entry
+      render the same Tenant Donor Account Brand. Changing the Default Site,
+      retiring an entry Site, viewing another Site's authorized history, or
+      losing a decorative brand asset cannot change the account identity,
+      authorize data, or expose Asym/another Tenant; verified Site context may
+      remain only as secondary attribution or a safe return action.
 - [ ] The inert typed `persons` anchor + `person_id` FKs (on missionaries/profiles; `donors` receives `party_id` instead — Phase 9 C1, 2026-07-06) exist; Phase 4 creates no receipt-fact row, and merge leaves Phase 7 frozen legal-donor/issuer facts unchanged.
 - [ ] All claim/attribution/invitation/merge events are audited (identifiers-only) with tenant and a stable actor id.
 
