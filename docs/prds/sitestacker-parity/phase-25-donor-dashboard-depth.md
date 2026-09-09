@@ -18,6 +18,8 @@ Shared shadcn base-maia/Base UI/Figtree/Zinc, ReUI-inspired actual grids, readab
 
 ## User Stories
 
+<!-- Generated from docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/traceability.json stories and final trace mappings. Do not hand-edit; run node docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/tools/render-stories.mjs --write. -->
+
 Each story is independently verifiable using its matching **US25** acceptance entry and referenced normative sections. The acceptance entry states observable outcomes and negative boundaries; the shared contract applies without creating a separate feature or permission.
 
 1. As an account holder, I want a useful self-service Home with recognizable ordinary destinations, so that I can complete my task without a tour or staff detour. **US25-U01**
@@ -267,7 +269,7 @@ Each story is independently verifiable using its matching **US25** acceptance en
 
 1. Preserve the existing donor/public/admin/missionary surface split and shared API/Auth/database/UI ownership. CRM and money remain in Asym Postgres; CMS owns published presentation. No retired CRM, new donor ledger, generic dashboard/request/notification engine or alternate permission system.
 2. Use the existing P12 Tenant Authorization Context and current Active Tenant Assignment for authenticated humans; source grants narrow exact resources/purposes within it. Resolve personal, represented, reader, legal donor, employee/advisor, credential and document subjects independently. Every direct and privileged route enforces the same boundary.
-3. Complete each named producer contract before enabling its consumer. Typed source results distinguish empty, limited, updating, unavailable and exact current facts. Proposed contracts and catalog entries are not evidence of active runtime behavior. Carry the explicit P3/P4/P7/P9/P12/P13/P14/P16/P18/P19 amendments into the owner implementation.
+3. Complete each named producer contract before enabling its consumer. Typed source results distinguish empty, limited, updating, unavailable and exact current facts. Proposed contracts and catalog entries are not evidence of active runtime behavior. Carry the explicit P3/P4/P7/P9/P12/P13/P14/P16/P18/P19 amendments into the owner implementation. Q25 additionally adopts the bounded P28/P12 guest-origin recipient projection and P32 automatic-enrollment exclusion under EX11–EX13/EX16 before consumer dispatch; neither whole future phase must be completed.
 4. For mutations, validate exact current scope and expected source revision before atomic acceptance/result/audit. Preserve durable semantic identity, independently successful children, known no-effect and indeterminate outcomes. Same-operation reconciliation never becomes another charge, email, export or detach. Plain contact edits use the existing CRM change record, not a new provider journal.
 5. Keep recurring intent, schedule, authorization, provider control, payment and finality distinct. Fixed-total pledges never own an automatic collection mandate. Replacement, Add, preference and Remove are independent effects. Resume preserves the grid; fully canceled restart is new authorization. Cards and ACH retain their source-specific recovery rules.
 6. History, annual summary and CSV use their exact original/current/requested/matched meanings, currency/exponent, issuer date and source basis. No browser folds, loaded-page completeness, hidden sibling inference or mixed-currency/tax totals. Annual export preserves the full reviewed descriptor and exact source measure.

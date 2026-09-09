@@ -8,6 +8,7 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
   { id: "verify-git-attribution", script: "verify:git-attribution" },
   { id: "format", script: "format:check" },
   { id: "skills-verify", script: "skills:verify" },
+  { id: "verify-phase25-spec", script: "verify:phase25-spec" },
   { id: "openspec-validate", script: "openspec:validate" },
   { id: "lint", script: "lint" },
   { id: "verify-data-boundary", script: "verify:data-boundary" },

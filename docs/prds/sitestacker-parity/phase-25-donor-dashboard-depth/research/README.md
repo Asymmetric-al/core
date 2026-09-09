@@ -1,6 +1,6 @@
 # Phase 25 research and provenance
 
-These records preserve the complete decision chronology, alternatives, adversarial findings and evidence used to produce [AL-1563](https://github.com/Asymmetric-al/core/issues/1563). Their historical proposed/pending wording does not reopen ratified scope. Start with the [specification](../../phase-25-donor-dashboard-depth.md), [acceptance](../acceptance.md), [source map](../source-map.json) and [decision log](../decision-log.md).
+Grooming is complete and the implementation specification is published. These records preserve the complete decision chronology, alternatives, adversarial findings and evidence used to produce [AL-1563](https://github.com/Asymmetric-al/core/issues/1563). Their historical proposed/pending wording, earlier “current entry point” labels and “grooming in progress” status do not describe current work or reopen ratified scope. Start with the [package reading order](../README.md#read-and-implement-in-this-order); these records support that specification rather than define a competing entry point.
 
 Source snapshots were adopted through relative-link, machine-path and Markdown-format normalization. The source map retains raw original hashes and original line coordinates, and hashes the adopted repository files independently. Prior-art notes name actual existing test seams. Recorded experiments remain historical synthetic/source evidence, not target production qualification. The two retained SQL/Python files are inert research fixtures; they are not migrations or feature implementation.
 

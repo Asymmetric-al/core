@@ -6,11 +6,28 @@ This is the repository package for [AL-1563](https://github.com/Asymmetric-al/co
 
 1. [Implementation specification](../phase-25-donor-dashboard-depth.md): scope and 242 independently verifiable stories.
 2. [Shared decisions and owner gates](contracts/shared.md), then the applicable [identity](contracts/identity.md), [recurring giving and Wallet](contracts/recurring.md), [financial records](contracts/financial.md) and [experience](contracts/experience.md) contracts: 87 normative sections in total.
-3. [Acceptance register](acceptance.md): the observable outcome and negative boundary for each story.
-4. [Implementation tasks](implementation-tasks.md) and [OpenSpec design](../../../../openspec/changes/add-donor-dashboard-depth/design.md): 266 unchecked implementation tasks, sequencing and required qualification.
+3. [Acceptance register](acceptance.md): the generated reading view of every observable outcome and negative boundary from the canonical story records.
+4. [Canonical OpenSpec task plan](../../../../openspec/changes/add-donor-dashboard-depth/tasks.md) and [OpenSpec design](../../../../openspec/changes/add-donor-dashboard-depth/design.md): 266 unchecked implementation tasks, sequencing and required qualification. The [PRD task page](implementation-tasks.md) is a pointer only.
 5. [Traceability](traceability.md), [source map](source-map.json), [decision log](decision-log.md) and [research inventory](research/README.md): the source and ratification behind each decision, including the final F01–F14 clarifications.
 
 The [local architecture decision](architecture.md), [glossary](glossary.md), [evidence and testing prior art](evidence.md) and [publication record](publication.md) explain the remaining boundaries and provenance. The source map's 1,951 rows include evidence and adoption records; they are not 1,951 separate feature requirements or runtime certifications.
+
+## Authoring and generated views
+
+The `stories` array in [traceability.json](traceability.json) is the sole editable source for each US25 story's actor, requested outcome, benefit, acceptance predicates, question references and contract references. It contains all 242 stories. Acceptance source labels combine each story’s `question_refs` with the exact `P25.FINAL.*` → story mappings already recorded in the same JSON’s `traces` array. These final mappings, including the existing `P25.FINAL.U-ACTION` addendum, are the single source for final-assembly provenance; there is no separately maintained source-reference field. An empty question list is valid only when a mapped final source supplies provenance. The 87 owner-contract sections remain the independently authored domain design rules.
+
+[Acceptance](acceptance.md), the main specification's [User Stories](../phase-25-donor-dashboard-depth.md#user-stories) section and all 242 [OpenSpec story requirements](../../../../openspec/changes/add-donor-dashboard-depth/specs/donor-dashboard-depth/spec.md) are generated projections of those same records. Their complete observable requirements remain available in OpenSpec. Do not edit these projections independently or treat their repeated presentation as separate requirements.
+
+For an authorized story amendment, edit `traceability.json` → `stories`, retaining stable IDs and exact source/contract references. Correct final-assembly provenance in its existing qualified trace-to-story mapping, rather than inventing a question number or editing a generated source label. Regenerate the three views from the repository root:
+
+```sh
+bun docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/tools/render-stories.mjs --write
+bun run verify:phase25-spec
+```
+
+The [local renderer](tools/render-stories.mjs) defaults to checking without writing; the verification command checks the projections and their complete ID/outcome coverage. It does not execute product behavior or earn a release gate. Follow the existing OpenSpec validation workflow after any intended-contract change.
+
+The [OpenSpec task plan](../../../../openspec/changes/add-donor-dashboard-depth/tasks.md) is the sole authoring location for task definitions and completion state. The PRD pointer and the historical published task appendices carry no separately editable checklist. Original publication hashes continue to identify the published snapshots, not regenerated repository bytes.
 
 ## Planning and activation boundaries
 

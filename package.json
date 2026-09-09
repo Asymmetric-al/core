@@ -102,6 +102,7 @@
     "verify:cms-public-sole-entry": "node scripts/verify/cms-public-sole-entry.mjs",
     "cutover:assess:documents": "bun scripts/document-cutover/assess-document-cutover.ts",
     "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs",
+    "verify:phase25-spec": "node docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/tools/render-stories.mjs --check",
     "skills:sync": "node scripts/sync-agent-skills.mjs",
     "skills:verify": "node scripts/verify-skills-sync.mjs",
     "openspec": "bunx --no-install --package @fission-ai/openspec openspec",

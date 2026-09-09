@@ -5135,7 +5135,31 @@ These terms record ratified Phase 25 product language. The
 [full specification](docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth.md)
 and [glossary](docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/glossary.md)
 preserve the complete distinctions; source-owner amendments remain proposed
-and definitions do not claim implementation or activation.
+and definitions do not claim implementation or activation. The phase glossary
+is the complete navigation dictionary; the entries below use the same labels.
+The existing **Fixed-total pledge** definition above also governs Phase 25; its
+Campaign commitments presentation creates no separate pledge meaning.
+
+**Personal giving**:
+The human's currently admitted personal financial context. It does not require
+a donor row for every account holder.
+_Avoid_: universal donor account, mandatory giving profile
+
+**Giving you help manage**:
+Separately admitted represented financial work. Switching this context does not
+change the human's personal reading, contact or communication subjects.
+_Avoid_: impersonation, shared household access
+
+**Known empty**:
+Current authoritative evidence establishes no admitted records. Unknown,
+unavailable, denied and stale data are different states.
+_Avoid_: failed request as zero, permission denial as absence
+
+**Zero-artifact rule**:
+Known irrelevance of an optional rare-record surface leaves no ordinary
+navigation, count, placeholder or promotional UI. It does not suppress truthful
+explicit-route failure.
+_Avoid_: hidden error, speculative rare-feature promotion
 
 **Newsletter request**:
 A person's request to receive one missionary's separately managed newsletter,
@@ -5160,7 +5184,7 @@ continuing state. It is not an unread notification or a separate completion
 record.
 _Avoid_: portal task authority, every available action
 
-**New-gift payment preference**:
+**New-gift preference**:
 A qualified saved-method preference for future gifts within its exact source
 scope. It neither changes existing recurring uses nor establishes a provider
 Customer default or a new payment authorization.

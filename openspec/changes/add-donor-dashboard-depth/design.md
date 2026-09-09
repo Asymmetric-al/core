@@ -10,6 +10,8 @@ See proposal.md for motivation. The current donor application mixes real legacy-
 
 ## Decisions
 
+The [Phase 1 ownership matrix's Phase 25 extension](../../../docs/prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md#dated-phase-25-donor-self-service-ownership-extension-2026-09-09) records the current owner and exact proposed extension for durable facts. The Phase 25 cells in the [phase map](../../../docs/prds/sitestacker-parity/phase-map.md) and [roadmap](../../../docs/prds/sitestacker-parity/roadmap.md) distinguish baseline starting dependencies from mandatory accepted-contract and qualified-producer conditions before affected consumer work is dispatched. P22–P24-dependent consumer work is not ready while those conditions remain unmet; this does not block independent documentation, source-contract or other safe work.
+
 The normative design is the Shared S01–S07 contract and four domain contracts linked below. They specify owners, finite logical model invariants, commands/read envelopes, scopes, source amendments, dependency adoption, failure/replay/clock semantics and exact composition. Physical names follow the actual owner convention; a logical proposed interface is not a claim it is already implemented.
 
 - Use canonical shared business/API and source-owner modules rather than an app-local service or raw table replica; this preserves one authority and existing testing seams.

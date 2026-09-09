@@ -1,12 +1,14 @@
+> **Current repository status: grooming complete; specification published.** The ratified implementation specification and owner contracts now govern the accepted proposal. Implementation and activation remain outstanding.
+
 > Historical research record adopted for AL-1563. Scope and testing are ratified; earlier pending decisions and research-only workflow restrictions below preserve chronology. The [implementation specification](../phase-25-donor-dashboard-depth.md) and its owner contracts are the implementation authority for this proposal. No historical synthetic/source check certifies target runtime behavior.
 
 > **Specification published, 9 September 2026:** Conrad explicitly invoked `/to-spec` and confirmed the testing seams. [AL-1563 — Phase25 implementation specification](https://github.com/Asymmetric-al/core/issues/1563) now contains the accepted scope, exact contracts, acceptance/traceability and OpenSpec planning artifacts. Earlier research-only stage restrictions below are historical. Feature implementation, a child-ticket graph and activation remain outside this publication; native Auth G01 is an explicit unresolved qualification gate.
 
-> **Current entry point — 9 September 2026:** Q01–Q29 are ratified and Q30's assembled scope is accepted. The [final builder clarification register](research/phase25-implementation-clarifications.md), [decision index](research/phase25-decision-index.md) and [evidence](research/phase25-final-audit-evidence.md) reconcile the complete phase. Historical unanswered/proposed wording below is preserved chronology. Auth G01 remains unresolved; scope acceptance is not canonical implementation or release proof.
+> **Historical final-grooming entry — 9 September 2026:** Q01–Q29 are ratified and Q30's assembled scope is accepted. The [final builder clarification register](research/phase25-implementation-clarifications.md), [decision index](research/phase25-decision-index.md) and [evidence](research/phase25-final-audit-evidence.md) reconcile the complete phase. Historical unanswered/proposed wording below is preserved chronology. Auth G01 remains unresolved; scope acceptance is not canonical implementation or release proof.
 
 # Phase 25 — Donor Dashboard Depth: grooming notebook
 
-Research started 6 September 2026. Status: **grooming in progress; strengthened R01 explicitly ratified by Conrad; R02 explicitly founder-ratified; R03, R04, Questions 05–16 and their reviewed requirements accepted on 7 September; Questions 17–25 explicitly ratified on 8 September; Questions26–29 fully ratified on 9 September**. This is a decision log and research index, not a PRD, formal specification, implementation plan, or ticket set.
+Historical notebook status, preserved as originally recorded: Research started 6 September 2026. Status: **grooming in progress; strengthened R01 explicitly ratified by Conrad; R02 explicitly founder-ratified; R03, R04, Questions 05–16 and their reviewed requirements accepted on 7 September; Questions 17–25 explicitly ratified on 8 September; Questions26–29 fully ratified on 9 September**. This is a decision log and research index, not a PRD, formal specification, implementation plan, or ticket set.
 
 ## Session boundaries
 

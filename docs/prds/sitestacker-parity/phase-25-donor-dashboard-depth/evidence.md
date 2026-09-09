@@ -6,6 +6,18 @@ The full Q01–Q29 corrected execution is ratified; Q30 confirms thirteen donor 
 
 Current repository intent and runtime are distinguished: merged platform/capability specs and accepted ADRs remain the governing base; the explicitly listed Phase25 source amendments define this proposal's intended changes. Current code is evidence of what exists, not proof it is correct. P22–P24 active specification branches remain unmerged dependencies; they cannot be silently treated as deployed.
 
+## Repository authoring boundary
+
+The [package authoring rules](README.md#authoring-and-generated-views) distinguish current editable source from generated and historical copies. The `stories` array in [traceability.json](traceability.json) owns the 242 story records and acceptance predicates; [acceptance.md](acceptance.md), the main story list and the full OpenSpec story requirements are checked projections. Generated acceptance source labels additionally consume the existing exact `P25.FINAL.*` trace-to-story mappings in that same JSON, without a second provenance field. Domain contracts remain source-owned design rules. All task definitions and completion state live only in the [OpenSpec task plan](../../../../openspec/changes/add-donor-dashboard-depth/tasks.md); the PRD task page is navigation. Historical research and issue-publication hashes retain their original provenance and do not become independent authoring surfaces.
+
+## Review adoption after the original publication
+
+The [publication record](publication.md#review-adoption-after-publication) distinguishes the original immutable issue snapshot from the corrected repository contract. US25-I14 AC02 and IC05 now state the existing IC04 distinction precisely: a new/unbound Facebook attempt lacking email takes safe fallback, while an already-bound stable subject is not rejected solely for absent mutable provider email when the qualified native flow actually establishes a valid sign-in and current admission. Native failure still takes safe recovery and preserves the binding. This is a conditional integration rule, not proof that the current deployment supports email-absent native sign-in; it neither bypasses native validation nor resolves G01.
+
+US25-I27 restores its Q11 source reference and retains the existing P25.FINAL.F04 mapping. US25-I26 remains final-source-only through P25.FINAL.F04 rather than receiving an invented question. Other final mappings are rendered from the existing trace records. These metadata corrections change no acceptance outcome.
+
+The P28/P12 guest-origin recipient-access and P32 request-only enrollment-exclusion deltas, with the bounded extension to task 1.1, make the already-ratified [EX11–EX13](contracts/experience.md#ex11--newsletter-request-input-and-durable-visitor-result) and [EX16](contracts/experience.md#ex16--qualification-rollout-and-retained-proof) owner-adoption obligations explicit before Q25 consumer dispatch. They do not require or declare completion of the whole future P28 workspace or P32 newsletter-synchronization feature.
+
 ## Repository source snapshot
 
 Read-only base inspected: `7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd` in Core. The complete planning package is now recorded in this repository, with [decision chronology](decision-log.md), [research inventory](research/README.md) and [original/adopted source hashes](source-map.json). No product runtime code, dependency manifest, credential, provider, hosted database or financial record was changed for this specification.
@@ -20,6 +32,8 @@ Read-only base inspected: `7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd` in Core. Th
 Inspect final accepted predecessor versions before affected source adoption; their scope is not reopened and their current merge state is not assumed.
 
 ## Governing owners and ADRs
+
+The [Phase 1 ownership matrix's dated Phase 25 extension](../phase-01-source-of-truth-ownership-matrix.md#dated-phase-25-donor-self-service-ownership-extension-2026-09-09) records each reached durable record or purpose extension, its existing system of record, authorized write path, conflict winner and repair path. It distinguishes existing owner families from new Phase 25 purposes and makes proposed predecessor readiness explicit.
 
 The root CONTEXT/CONTEXT-MAP, mapped contribution-detail context, current platform principles/boundaries and relevant capability/active-change specs were inspected. Older mapped contribution vocabulary explicitly includes retired Twenty/staging concepts; it is not authority to restore those paths. Current P13/P16 gift/line/cohort, P12 context and P18/P19 document language controls reached modern behavior.
 
@@ -53,6 +67,8 @@ The exact existing prior-art files are recorded in the [identity/Auth preflight]
 Before future unit tests, isolate external credentials and opt-in provider integration selection: the inspected broad unit include pattern can reach Stripe-live tests, and its current key check occurs before operations while livemode is asserted only afterward. Before real-source donor E2E, explicitly disable and assert absence of demo bypass; a strict runner name does not do this automatically. All production/test secrets remain securely injected, never in this spec, fixtures, repository config, command output or artifacts.
 
 ## Fresh external evidence and its limits
+
+- During PR review, the current [Supabase Facebook guide](https://supabase.com/docs/guides/auth/social-login/auth-facebook) still requires email permission and warns that its absence can prevent native authentication. [Identity linking guidance](https://supabase.com/docs/guides/auth/auth-identity-linking) distinguishes native identity linking and its account rules. IC05 therefore preserves an already-bound valid native sign-in when mutable provider email is absent, without claiming native support has been proved: failed native completion still takes the safe email-recovery route and never authorizes a fabricated principal or custom token path. This reconciles IC05 with the already-ratified stable-subject distinction in IC04; G01 remains unresolved.
 
 - [IRS Publication526](https://www.irs.gov/publications/p526) and [Publication590-B](https://www.irs.gov/publications/p590b) were refreshed for publication. The retained policy distinguishes actual credit-card charge date, acknowledgment timing/content and QCD no-double-benefit/documentation. The portal is not a tax eligibility calculator or a claim the IRS certified this delivery UX. Existing P7 qualified finance/tax review remains required.
 - [IRS acknowledgment guidance](https://www.irs.gov/charities-non-profits/charitable-organizations/charitable-contributions-written-acknowledgments), [Publication1771](https://www.irs.gov/pub/irs-pdf/p1771.pdf), [quid-pro-quo disclosures](https://www.irs.gov/charities-non-profits/charitable-organizations/charitable-contributions-quid-pro-quo-contributions) and [Fidelity Charitable grant guidance](https://www.fidelitycharitable.org/giving-account-guide/recommending-a-grant.html) support the existing scoped record/channel/DAF distinctions. They are not blanket jurisdiction or personal deduction guarantees.

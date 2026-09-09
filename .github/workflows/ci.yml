@@ -43,6 +43,7 @@ jobs:
       - run: bun ci --no-cache --backend=copyfile
       - run: bun run format:check
       - run: bun run skills:verify
+      - run: bun run verify:phase25-spec
       - run: bun run openspec:validate
 
   lint:

@@ -4,9 +4,21 @@
 
 ## Authority and preservation
 
-The issue body, contracts, acceptance and unchecked tasks form the published specification. This PR records that specification in the normal PRD and active OpenSpec directories. Link/provenance corrections do not silently amend product choices. The repository source map hashes original research separately from formatted adopted records; its original line coordinates are historical, while its heading links navigate the adopted documents.
+The issue body, contracts, acceptance and unchecked tasks form the original published specification. Its exact hashes remain publication provenance. This PR records the same scope in the normal PRD and active OpenSpec directories with the [repository authoring boundary](README.md#authoring-and-generated-views): the JSON story records are the sole acceptance source, their Markdown/OpenSpec views are checked generated projections, and the OpenSpec task plan is the sole editable task register. The PRD task page points there; the three originally published task appendices retain the historical 266-task snapshot. Link/provenance corrections do not silently amend product choices. The repository source map hashes original research separately from formatted adopted records; its original line coordinates are historical, while its heading links navigate the adopted documents.
+
+Repository regeneration repairs scenario-label formatting and renders every canonical acceptance predicate verbatim. Three historical OpenSpec paraphrases converge to the already published JSON/acceptance terminology: US25-D04 and US25-D50 use “JavaScript” in place of “application numeric transport”; US25-D25 uses “Query and DB” in place of “request and collection caches.” These terminology corrections preserve the observable requirements and do not rewrite the original issue hashes.
 
 The specification issue remains open. This PR does not close the phase, create implementation tickets, mark tasks complete, archive OpenSpec, merge predecessor PRs or qualify a production capability. Follow the normal review workflow for any later material contract amendment.
+
+## Review adoption after publication
+
+The original issue hashes identify the original published bytes. The repository is the current review-corrected implementation contract; its content is not claimed byte-identical to the publication. The earlier scenario formatting and three terminology convergences above remain recorded separately.
+
+- **US25-I14 AC02 and IC05:** the original blanket missing-email fallback is qualified for the already-bound stable-subject case established in [IC04](contracts/identity.md#ic04--native-social-identity-safety-and-unresolved-g01). New/unbound attempts without email still use safe fallback. Already-bound sign-in must actually succeed through the qualified native flow and current admission before absence of mutable provider email may be ignored; native failure retains safe recovery and the binding. This promises no unsupported native capability and leaves G01 and native validation intact. The other 647 story predicates retain their published acceptance wording.
+- **Acceptance source metadata:** source labels now combine canonical `question_refs` with exact existing `P25.FINAL.*` trace-to-story mappings. US25-I27 uses Q11 plus P25.FINAL.F04; US25-I26 uses only P25.FINAL.F04. No question is fabricated and no second provenance field is added.
+- **P28/P12 and P32 owner adoption:** the named Guest-Origin Newsletter Recipient Access and Newsletter Requests Do Not Enroll External Subscribers requirements, the bounded extension to task 1.1 and the matching Implementation Decision 3 clarification expose the existing EX11–EX13/EX16 guest-recipient and request-only exclusion duties in the owner deltas and dispatch prerequisites. The same immutable request, frozen intended human/current purpose authority, original custody and no-enrollment boundaries remain controlling. All other 265 tasks and original capability requirements remain unchanged.
+
+All 648 current acceptance predicates agree across the canonical JSON and generated acceptance/OpenSpec views. Verification compares the historical snapshot using only these exact recorded review adoptions; it does not waive arbitrary wording, scope, owner or source-reference changes. The main story list and all 242 story IDs remain present.
 
 ## Publication verification
 

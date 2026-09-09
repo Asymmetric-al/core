@@ -1056,7 +1056,7 @@
       "benefit": "a development-only success does not become a broken donor experience",
       "acceptance": [
         "Actual app mode, identity/email scope and ordinary non-role account work.",
-        "Missing/denied email yields safe email fallback without fake principals.",
+        "A new/unbound attempt missing email uses safe email fallback without fake principals; an already-bound stable subject with a qualified valid native sign-in is not rejected solely for absent provider email. Native failure uses safe recovery and preserves the binding.",
         "Adopted deauthorization/privacy/deletion events use the identity/privacy owner and preserve financial records."
       ],
       "question_refs": ["Q14"],
@@ -1241,7 +1241,7 @@
         "Lost response reconciles; refresh failure does not redefine committed save; stale/ABA fails safely.",
         "REST/GraphQL/RPC and readers converge, including the donor phone save-then-403 regression."
       ],
-      "question_refs": [],
+      "question_refs": ["Q11"],
       "contract_refs": ["IC10", "IC16"],
       "lane": "identity"
     },

@@ -266,5 +266,57 @@
       "resource": "openspec-crm-core"
     }
   },
-  "repository_adoption": "Normative contract/story/task meanings are preserved. Repository links, discovery, source mapping, historical provenance and local architecture/glossary navigation are integrated separately from the issue delivery wrappers."
+  "repository_adoption": "The original issue text hashes remain immutable publication provenance. The current repository contract includes only the explicitly recorded formatting, terminology, identity-qualification, source-metadata and narrow owner-adoption review corrections. JSON stories and existing final trace mappings own the checked generated views; OpenSpec tasks.md is the sole task writer. Original and current repository content are not claimed byte-identical.",
+  "repository_authoring": {
+    "story_source": {
+      "path": "traceability.json",
+      "field": "stories"
+    },
+    "generated_story_views": [
+      "acceptance.md",
+      "../phase-25-donor-dashboard-depth.md#user-stories",
+      "../../../../openspec/changes/add-donor-dashboard-depth/specs/donor-dashboard-depth/spec.md"
+    ],
+    "projection_renderer": "tools/render-stories.mjs",
+    "projection_check": "bun run verify:phase25-spec",
+    "canonical_task_plan": "../../../../openspec/changes/add-donor-dashboard-depth/tasks.md",
+    "task_pointer": "implementation-tasks.md",
+    "published_task_snapshots": "The tasks-01, tasks-02 and tasks-03 issue appendices preserve their original 266 unchecked tasks as historical publication provenance.",
+    "projection_adoption": "All 648 current acceptance predicates render verbatim from canonical JSON. One reviewed I14 AC02 condition clarifies the already-bound Facebook case; the other 647 retain original acceptance wording. D04, D25 and D50 OpenSpec terminology converges to canonical acceptance terms. Source labels derive question_refs plus existing final trace mappings. Original published hashes remain unchanged.",
+    "final_source_mappings": {
+      "path": "traceability.json",
+      "field": "traces",
+      "selection": "Existing P25.FINAL.* records mapped to each story through their stories arrays; acceptance Source labels combine these exact IDs with canonical question_refs. No additional source-reference field."
+    }
+  },
+  "repository_review_adoptions": [
+    {
+      "id": "I14-IC05-bound-facebook",
+      "story": "US25-I14",
+      "predicate": "AC02",
+      "contract": "IC05",
+      "source_boundary": "IC04 already-bound stable-subject sign-in is distinct from new email-matching attachment; qualified native sign-in and current admission remain prerequisites, native failure preserves recovery/binding, and G01 remains unresolved."
+    },
+    {
+      "id": "final-source-provenance",
+      "corrected_question_refs": {
+        "I27": ["Q11"]
+      },
+      "final_only_story_sources": {
+        "I26": ["P25.FINAL.F04"]
+      },
+      "meaning": "All generated Source labels reuse existing exact final trace mappings; no new provenance field or acceptance outcome."
+    },
+    {
+      "id": "P28-P12-P32-owner-adoption",
+      "requirements": [
+        "Phase25 Guest-Origin Newsletter Recipient Access",
+        "Phase25 Newsletter Requests Do Not Enroll External Subscribers"
+      ],
+      "task": "1.1",
+      "source_contracts": ["EX11", "EX12", "EX13", "EX16"],
+      "meaning": "Narrow qualified owner duties before Q25 consumer dispatch; no whole-phase completion or external enrollment authority.",
+      "main_decision": "Implementation Decision 3 records the same bounded P28/P12/P32 dispatch prerequisites."
+    }
+  ]
 }
