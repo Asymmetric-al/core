@@ -15,3 +15,11 @@ Archive upload may reduce incremental upload caching. Verify the corrected comma
 ## Rollback
 
 Revert the workflow commands. No data or configuration migration.
+
+## Recorded validation
+
+The workflow correction at `8e15e8c7a116776bbda037ef2d8961dfeaad16bc` passed 14 focused workflow/scope tests, strict OpenSpec validation and full `bun run ci:preflight`, including all application builds and 3,846 unit tests (four existing skips). Pre-commit and pre-push hooks passed. Both required GitHub gates passed. PR #1562 retains the correction for human review.
+
+Actual authenticated CLI checks used the separate auth candidate `12e2d1dc` in the same monorepo. The app-directory command failed at `apps/admin/apps/admin`; repository-root upload hit the 15,000-file limit; root plus `--archive=tgz` created deployment `dpl_9uBySL96tcspbR7fnmgVeGbf3CYf` and extracted 16,076 files. The hosted build then failed in existing Core Eve sandbox prewarm with `governance_unavailable`. This verifies upload progress, not hosted application success. No governance bypass or skip-prewarm option was used.
+
+The failed prewarm left one temporary sandbox running. Its exact recorded session was stopped and independently listed as stopped. No production alias, credential rotation, purchase or model call occurred. The failed deployment record remains available as evidence. Resolving Core Eve's hosted governance/bootstrap behavior is separate from this upload correction.

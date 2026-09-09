@@ -8,7 +8,7 @@
 
 ## 2. Validation
 
-- [ ] 2.1 Run formatting, strict OpenSpec validation and repository preflight.
-- [ ] 2.2 Exercise the corrected preview upload and record the actual downstream build result.
-- [ ] 2.3 Submit for human review and retain rollback evidence.
+- [x] 2.1 Run formatting, strict OpenSpec validation and repository preflight.
+- [x] 2.2 Exercise the corrected preview upload and record the actual downstream build result.
+- [x] 2.3 Submit for human review and retain rollback evidence.
 - [ ] 2.4 Obtain human approval and merge before treating the workflow as shipped.
