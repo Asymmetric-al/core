@@ -1,3 +1,5 @@
+# Request-scoped authentication correction
+
 ## Why
 
 Factory commissioning reproduced valid donor sign-in followed by No access when the CMS service credential is configured. The server auth context switches to an administrative profile reader and reads an unexposed membership schema, making identity resolution depend on unrelated administrative privileges.
