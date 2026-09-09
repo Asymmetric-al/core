@@ -1,0 +1,270 @@
+{
+  "schema_version": 1,
+  "specification_issue": "https://github.com/Asymmetric-al/core/issues/1563",
+  "publication_marker": "P25SPEC:v1:20260909",
+  "published_main_sha256": "9c85a765af828c864d933c07c4c713b07b20be04bdc8735bef15e5c2cdd8ba2e",
+  "published_main_characters": 60672,
+  "text_hash_convention": "SHA256 of UTF-8 text with LF line endings as sent to GitHub. Repository-adopted source files have separate byte hashes in source-map.json.",
+  "parts": {
+    "shared-01": {
+      "id": 5601658250,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601658250",
+      "sha256": "50a59d19eeeaee49a081115411721999f55d853cd77598c84ca2d3cafeccb296",
+      "characters": 28068,
+      "resource": "shared"
+    },
+    "identity-01": {
+      "id": 5601658646,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601658646",
+      "sha256": "88fd5de6c42b249bfd59ef05ce7dbcd89dc111ef18d86a1cb3cde241b1e44786",
+      "characters": 37597,
+      "resource": "identity"
+    },
+    "identity-02": {
+      "id": 5601659063,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601659063",
+      "sha256": "cd4c2f41bc831a55ce077cc394db36d76495f91c1827ff11a2969e0067577ce5",
+      "characters": 9137,
+      "resource": "identity"
+    },
+    "recurring-01": {
+      "id": 5601659419,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601659419",
+      "sha256": "30a32a9d24aefc9bf77568d32c61f387fef2e8d7896a34c285c40ff81dc37650",
+      "characters": 38254,
+      "resource": "recurring"
+    },
+    "recurring-02": {
+      "id": 5601659793,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601659793",
+      "sha256": "44717f13eeabb6458c2227c0877b3871733b13ceb70d66c5bb1ddff7f011e23b",
+      "characters": 31208,
+      "resource": "recurring"
+    },
+    "financial-01": {
+      "id": 5601660213,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601660213",
+      "sha256": "4db7cd6dbe1cdf832f22097bac613b433630f7a6c4827a1c6979708cd1a334aa",
+      "characters": 37679,
+      "resource": "financial"
+    },
+    "financial-02": {
+      "id": 5601660612,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601660612",
+      "sha256": "a71fc1fe4ec10a38b85b972c1556435e9118c6b3ac06d9c3a0546d98fe1884ae",
+      "characters": 22631,
+      "resource": "financial"
+    },
+    "experience-01": {
+      "id": 5601661046,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601661046",
+      "sha256": "8633a7fba378395b4579eb55d20542d1fb5fc61fe38405819bc42e6f0c5d90f7",
+      "characters": 38052,
+      "resource": "experience"
+    },
+    "experience-02": {
+      "id": 5601661532,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601661532",
+      "sha256": "4ecd3c5bf43ed5d19cca4a0d8471eb89ba8c6724ed34063d3d841fe9d4d078e3",
+      "characters": 35485,
+      "resource": "experience"
+    },
+    "acceptance-01": {
+      "id": 5601661956,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601661956",
+      "sha256": "dec9362e1e9dd08cb5bfc8a43d3a95f3008c857335bbdb13f506825f3c9b691f",
+      "characters": 38165,
+      "resource": "acceptance"
+    },
+    "acceptance-02": {
+      "id": 5601662434,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601662434",
+      "sha256": "bba0e0c0b04b798f0cb3525c3594913f4d2fad3a8213ade0e20cf82ac75b231f",
+      "characters": 37932,
+      "resource": "acceptance"
+    },
+    "acceptance-03": {
+      "id": 5601662952,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601662952",
+      "sha256": "fad99d52c237bb2bf19fce265fa4bfc13c836ceae7515194a712a8050dd75016",
+      "characters": 38068,
+      "resource": "acceptance"
+    },
+    "acceptance-04": {
+      "id": 5601663493,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601663493",
+      "sha256": "b73de4385479ce58201766cce6f75609671ab9cbfc2abc0b0ab4b848d8f198ec",
+      "characters": 23052,
+      "resource": "acceptance"
+    },
+    "traceability-01": {
+      "id": 5601663980,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601663980",
+      "sha256": "5988428ce7217a6af078b0ed4baf59c5d676daf03570e78480d4e7d400b20bbc",
+      "characters": 38197,
+      "resource": "traceability"
+    },
+    "traceability-02": {
+      "id": 5601664421,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601664421",
+      "sha256": "2bf71a9d8db424b620155718bd9086abd8d3a1c3d4529bfc6e90eaf670eaa1c1",
+      "characters": 38282,
+      "resource": "traceability"
+    },
+    "traceability-03": {
+      "id": 5601664967,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601664967",
+      "sha256": "40baae1ca8af00a01daa987297fdad66bd1345a220b17099c86ffcd6ec9a929f",
+      "characters": 38268,
+      "resource": "traceability"
+    },
+    "traceability-04": {
+      "id": 5601665441,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601665441",
+      "sha256": "651751298e259db2ee40272af755fc6107a9933fb40758c75b308aa48387c96e",
+      "characters": 38174,
+      "resource": "traceability"
+    },
+    "traceability-05": {
+      "id": 5601665852,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601665852",
+      "sha256": "828f4b3ce6b1368dbc5e92aeb8dadd67cb1ed210d3fa808f4db6a9695dd2f5c0",
+      "characters": 38131,
+      "resource": "traceability"
+    },
+    "traceability-06": {
+      "id": 5601666388,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601666388",
+      "sha256": "f8d30b0557093c007eaeebc5e34d556b3d5c920a3c890e64fe0d65fc19ba9f30",
+      "characters": 38265,
+      "resource": "traceability"
+    },
+    "traceability-07": {
+      "id": 5601666869,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601666869",
+      "sha256": "a649b9e5c355c91741d100d967d0cea3bba7ec6a6dac58a3bc94d5f42cd5181f",
+      "characters": 38230,
+      "resource": "traceability"
+    },
+    "traceability-08": {
+      "id": 5601667367,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601667367",
+      "sha256": "ba0f93d83eb29733ec96f77370da36d7f7c8aedb239a3d832ff9047f397f4445",
+      "characters": 22800,
+      "resource": "traceability"
+    },
+    "evidence-01": {
+      "id": 5601667843,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601667843",
+      "sha256": "97a7250cb0551b9e78c3bef71f2fb56b35f4c4b46b378523dfe63f211a1d187c",
+      "characters": 12427,
+      "resource": "evidence"
+    },
+    "tasks-01": {
+      "id": 5601668387,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601668387",
+      "sha256": "742a18aced600bbfff90221fee6eb610f0e838c3f5246363e304c072b4399483",
+      "characters": 36669,
+      "resource": "tasks"
+    },
+    "tasks-02": {
+      "id": 5601668954,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601668954",
+      "sha256": "c6ebd6d12c93bca25cb4d1af51c70d20982ff938d33f50e44610ba97e139263f",
+      "characters": 38247,
+      "resource": "tasks"
+    },
+    "tasks-03": {
+      "id": 5601669376,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601669376",
+      "sha256": "353e30094e5157043cd14e41cc8c0a902703f2c590158d3018c22d0cdb8283a4",
+      "characters": 3478,
+      "resource": "tasks"
+    },
+    "openspec-proposal-01": {
+      "id": 5601669713,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601669713",
+      "sha256": "803df4a6c7540c8c2ebf8998ffd7d1c40f0dc51d21bf27a48dd08e780d2e6559",
+      "characters": 3937,
+      "resource": "openspec-proposal"
+    },
+    "openspec-design-01": {
+      "id": 5601670067,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601670067",
+      "sha256": "a699dd7f7e5b40fbac79f67c9231adbd5139655fe81b4f038eaa5eee1ccdb920",
+      "characters": 5911,
+      "resource": "openspec-design"
+    },
+    "openspec-donor-dashboard-depth-01": {
+      "id": 5601670507,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601670507",
+      "sha256": "b1566b4f8d190b67fc270c503289cede1183c122b3a7999798fcae3b365f054e",
+      "characters": 38024,
+      "resource": "openspec-donor-dashboard-depth"
+    },
+    "openspec-donor-dashboard-depth-02": {
+      "id": 5601671013,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601671013",
+      "sha256": "3d148db956698f20d9a9ab35598c3ad08d8a7efdde98b1c4a04206b1d95a4bed",
+      "characters": 38059,
+      "resource": "openspec-donor-dashboard-depth"
+    },
+    "openspec-donor-dashboard-depth-03": {
+      "id": 5601671462,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601671462",
+      "sha256": "57d053fe98c6965b04686e2ee5393859a5c87a2041fc2b5049a6fed2c7753e39",
+      "characters": 38136,
+      "resource": "openspec-donor-dashboard-depth"
+    },
+    "openspec-donor-dashboard-depth-04": {
+      "id": 5601671931,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601671931",
+      "sha256": "4fb19787ae756071b59c489aca5c10aee6823afb57820dbc7ebf6adb66923891",
+      "characters": 38277,
+      "resource": "openspec-donor-dashboard-depth"
+    },
+    "openspec-donor-dashboard-depth-05": {
+      "id": 5601672321,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601672321",
+      "sha256": "5998812d9ce9b898bb70482c795aa622fa37f072abadadc7b20460e7b3c53247",
+      "characters": 37892,
+      "resource": "openspec-donor-dashboard-depth"
+    },
+    "openspec-donor-dashboard-depth-06": {
+      "id": 5601672762,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601672762",
+      "sha256": "dae6295aa25fc6497e93c803766ab116d2804c6479ae5e08963848a894a8689e",
+      "characters": 38309,
+      "resource": "openspec-donor-dashboard-depth"
+    },
+    "openspec-donor-dashboard-depth-07": {
+      "id": 5601673260,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601673260",
+      "sha256": "27fa7a3672342c0af5a5e53b758b6c9ff0c0961e79591342d25f321bf3a3068c",
+      "characters": 11686,
+      "resource": "openspec-donor-dashboard-depth"
+    },
+    "openspec-identity-and-access-01": {
+      "id": 5601673600,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601673600",
+      "sha256": "9bff58dc643dae74667f33ead22f39ed1f50da243ed97bb10a6282c1de273458",
+      "characters": 1592,
+      "resource": "openspec-identity-and-access"
+    },
+    "openspec-donation-lifecycle-01": {
+      "id": 5601673957,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601673957",
+      "sha256": "6681be4c047307da03e0d1d0eb739d70c7da40e32cd1561ec3cc4f3efd5322c8",
+      "characters": 1658,
+      "resource": "openspec-donation-lifecycle"
+    },
+    "openspec-crm-core-01": {
+      "id": 5601674274,
+      "url": "https://github.com/Asymmetric-al/core/issues/1563#issuecomment-5601674274",
+      "sha256": "5c59b208596f16e39f118de675d9bfcaed0172eecded3c0229b50a0c3b5a75da",
+      "characters": 1425,
+      "resource": "openspec-crm-core"
+    }
+  },
+  "repository_adoption": "Normative contract/story/task meanings are preserved. Repository links, discovery, source mapping, historical provenance and local architecture/glossary navigation are integrated separately from the issue delivery wrappers."
+}

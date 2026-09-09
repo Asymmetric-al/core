@@ -157,6 +157,15 @@ Each surface is a **separate Next.js app** with its own `app/` tree and dev port
 
 Shared auth gating uses **`createAuthMiddleware`** from `packages/auth/middleware.ts`, wired in each app through **`apps/<app>/proxy.ts`** (exported `proxy`).
 
+## Product planning
+
+The [SiteStacker parity program](docs/prds/sitestacker-parity/README.md)
+tracks outcome parity and phase dependencies. The
+[Phase 25 Donor Dashboard Depth specification](docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth.md)
+records the ratified donor scope, acceptance criteria, source contracts and
+qualification gates. It is planning authority, not implemented or activated
+behavior; its source-owner amendments remain proposed.
+
 ## Development
 
 Use the per-app `dev:*` scripts when you only need one surface, or `bun run dev` / `bun run dev:all` when you need several (see root `package.json`).

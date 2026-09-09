@@ -147,7 +147,7 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3                                       | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **23** | `web-studio-cms`             | CMS / Site Planner Dynamic Content Parity                                                                                         | 5, 3, 2                                               | 22                                                    | Web Studio, Payload, Public Website                             | `future (needs PRD)` — deps allow an early start after Phase 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | **24** | `multi-site-management`      | Full Multi-Site, Language & Currency Management                                                                                   | 2, 5, 13, 20, 23                                      | 17                                                    | Tenant settings, Web Studio, Contributions settings             | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **25** | `donor-portal-depth`         | Donor Dashboard Depth                                                                                                             | 4, 3, 13, 7, 6                                        | 17, 19                                                | Donor Portal                                                    | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **25** | `donor-portal-depth`         | [Donor Dashboard Depth](./phase-25-donor-dashboard-depth.md)                                                                      | 4, 3, 13, 7, 6                                        | 17, 19                                                | Donor Portal                                                    | `PRD exists` (spec #1563; Q01-Q29 ratified, Q30 scope accepted; proposed owner amendments and exact qualification gates; not implemented; no child-ticket graph)                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17                                        | —                                                     | Support Hub, communication services, `packages/api`             | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **27** | `donor-development`          | Donor Development & Portfolio Management _(beyond-parity differentiator)_                                                         | **9**, 3, 6, 13                                       | consumes 14, 16; 26; enhanced by 33, 34               | Mission Control CRM (Development)                               | `future (needs PRD)` (was v1 Phase 33)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | **28** | `missionary-workspace-depth` | Missionary Workspace Depth & Support-Raising CRM                                                                                  | 9, 13, 16, 6, 3, 27                                   | 26                                                    | Missionary Workspace                                            | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -2832,63 +2832,73 @@ delivery configuration.
 
 ### Phase 25 — Donor Dashboard Depth (`donor-portal-depth`)
 
-**What this phase is (plain language).** The donor portal becomes a
-complete self-service home: manage recurring giving (change amount, pause,
-skip, reactivate), keep payment methods current, view or download the
-exact-current receipt and statement for each logical document, control
-communication preferences by topic, and see a giving history with impact —
-the features research shows retain recurring donors (pause/skip alone retains
-~8 of 10 recurring donors over 12 months; amount-modification cuts
-cancellation likelihood ~26%).
+**Status.** The complete
+[Phase 25 specification](./phase-25-donor-dashboard-depth.md), published as
+[#1563](https://github.com/Asymmetric-al/core/issues/1563), records Q01-Q29's
+ratified choices, Q30's accepted scope and F01-F14's final clarifications.
+Its 242 stories, five normative contracts, source-clause traceability and
+implementation task plan govern the proposed work. No Phase 25 feature is
+implemented or activated by this publication, and no child-ticket graph is
+created.
 
-**Why it sits here.** After identity (4), projections (3), the ledger (13),
-receipt facts (7), comms (6), recurring commands (16), governed messages (17),
-canonical generated documents (18), and statement runs (19).
+**What this phase is.** One calm organization portal lets donors care for their
+giving, retrieve the right records, read Ministry Updates and change their own
+account and communication choices. Personal giving is the neutral starting
+point when available; an exact represented task keeps its independently
+authorized financial context. Reading and personal contact choices remain the
+acting human's own.
 
 **What it covers.**
 
-- **Recurring control** built as custom UI over the Phase 16 server-command
-  and provider-adapter contracts — explicitly **not** delegated to the hosted
-  billing portal. Donors can change eligible future amount/date/designation
-  terms, skip one named occurrence, pause until a date or indefinitely,
-  resume a pause, and cancel. Restart after cancellation requires fresh
-  authorization and creates a linked successor; it never resurrects the old
-  authorization. The portal consumes Phase 16's separate donor-intent,
-  schedule/occurrence, payment/collection-health, and provider-control/
-  reconciliation facts. A planned pause is shown truthfully as paused, never
-  inferred as behind or lapsed. Phase 25 owns the donor-facing portal UX and
-  wallet completion, not a second lifecycle or retry authority.
-- **Wallet**: add/remove/set-default payment methods (the settled
-  disposition's donor-side completion), network card-updater, pre-expiry and
-  failed-payment notices with self-service recovery links (17).
-- **Documents**: for each logical per-gift receipt or year-end statement,
-  present one exact-current canonical accessible PDF with a clear current
-  status and correction explanation plus unmetered view/download. Immutable
-  prior versions remain governed evidence in Phase 18, not separate donor
-  file choices. Repeatable outbound-copy requests use Phase 19's bounded
-  fulfillment contract; offline/imported gifts merge into one history without
-  minting retroactive receipts.
-- **Giving history + impact**: cumulative totals partitioned by currency,
-  per-missionary/project impact view, CSV export (Phase 3-governed). Any
-  converted comparison is an explicitly labelled Phase 33 reporting
-  projection with rate, basis, and as-of time, never source truth.
-- **Preference center**: topic- and channel-granular over the shipped
-  consent gate; **RFC 8058 one-click unsubscribe** honored instantly
-  (Gmail/Yahoo bulk-sender rules) with topic mapping — never
-  unsubscribe-all-by-accident, and transactional mail (receipts) never
-  suppressed by marketing opt-out.
-- **Access**: passwordless magic-link flows aligned with Phase 4
-  account-claiming (guest-first; enumeration-safe, constant-time).
-- **"My Campaigns"** socket reserved for Phase 36 P2P.
+- **Home, Updates and ministry connection:** a useful neutral Home, bounded
+  current Needs attention, a prominent complete Ministry Updates reader,
+  independent Show and post-email preferences, finite source-owned
+  notifications, an optional private ministry overview and a simple newsletter
+  request. A newsletter request records interest without claiming external
+  enrollment or delivery.
+- **Recurring giving and Wallet:** native owner-reviewed changes, pause,
+  resume, skip, cancel and fresh-authorized successor restart, with distinct
+  card and ACH recovery. Add, selected-use replacement, new-gift preference
+  and Remove are independently qualified effects; a provider default does not
+  become product authority and hosted billing UI does not own these commands.
+- **Giving records:** all currently authorized source-admitted History, exact
+  filters and bounded exports; an explainable calendar-year monetary measure
+  partitioned by issuer and currency; and one Receipts & statements destination
+  over exact current canonical documents. No guessed impact, cross-currency
+  total or portal tax calculation is introduced.
+- **Account and Preferences:** email-first link/code entry with the selected
+  qualified Google, Apple and Facebook direction; guided sign-in/contact email
+  changes; ordinary Name and optional Phone; one optional personal mailing
+  address; and direct purpose-specific communication choices. Authentication,
+  claims, represented access and each communication purpose retain separate
+  owners.
+- **Relevant-only records:** fixed-total Campaign commitments, recorded
+  employer-match progress and received DAF-grant awareness appear only under
+  their exact admitted scope. IRA/QCD intent, source-case admission and
+  acknowledgment remain distinct from DAF recognition and personal tax
+  treatment. These paths create no general household or sponsor access.
 
-**Boundaries & guardrails.** The donor portal is self-service — never a
-staff finance or CRM console. Everything renders through Phase 3
-projections.
+**Dependencies and boundaries.** The existing phase dependencies remain the
+base. The exact producer amendments and additional per-capability adoption
+conditions are in
+[Shared S04-S06](./phase-25-donor-dashboard-depth/contracts/shared.md#s04--exact-owner-amendment-and-predecessor-reconciliation-register),
+including identity/contact, authorization, financial, recurring, document,
+communication and public/host owners. A proposed predecessor does not prove
+an available producer. Phase 22-24 sources are pinned proposal evidence;
+reconcile their final accepted versions before affected adoption and
+activation. Independent safe work can proceed while an unrelated profile is
+unqualified.
 
-**Open questions for grooming.** Household visibility (do spouses see each
-other's gifts — Phase 7 receipted-donor model governs); giving-history depth
-for imported legacy data (with 30); donor-facing designation names for
-restricted workers (10).
+**Remaining qualification.** The product choices are ratified, not open
+roadmap questions. G01's supported native Auth linking guarantee remains
+unresolved and blocks affected social activation; email-only does not complete
+the selected social scope. Actual database, native provider, document,
+accessibility and complete-journey proof remain to be earned at the named
+owner gates. The
+[decision log](./phase-25-donor-dashboard-depth/decision-log.md),
+[glossary](./phase-25-donor-dashboard-depth/glossary.md) and
+[evidence register](./phase-25-donor-dashboard-depth/evidence.md)
+retain the decision and research context without certifying runtime behavior.
 
 ---
 

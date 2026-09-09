@@ -1,0 +1,29 @@
+> Historical research record adopted for AL-1563. Scope and testing are ratified; earlier pending decisions and research-only workflow restrictions below preserve chronology. The [implementation specification](../../phase-25-donor-dashboard-depth.md) and its owner contracts are the implementation authority for this proposal. No historical synthetic/source check certifies target runtime behavior.
+
+# Financial contract independent money review
+
+9 September2026. Read-only review of `financial-contract.md` and the financial story inventory against Q05/Q08/Q10/Q13/Q20/Q23/Q28/Q29 and final F06/F07. No root artifact edits or runtime/provider tests.
+
+## Required clarification
+
+**D11 / story D50 — make the already reviewed Excel precision boundary executable.** The contract currently says values beyond supported spreadsheet numeric precision use exact text, but does not state the numeric limit. Q20:241 expressly cites Excel's15 significant decimal digits. A builder can otherwise choose JavaScript safe-integer range, which still includes16-digit values that Excel will round.
+
+Add: **For the supported Excel numeric-cell path, at most15 significant decimal digits may be emitted as numeric cells. A source value requiring greater decimal precision must be emitted as protected exact text even if JavaScript considers its integer representation safe. Currency scale and sign must remain exact. Qualification includes15/16-significant-digit boundary cases and reimport comparison of the original source value.** Apply to D50 acceptance as well. This operationalizes the ratified shared serializer requirement; it introduces no format or new donor choice. Trusted source-generated finite decimal remains required, arbitrary strings never opt themselves into numeric mode, and universal spreadsheet roundtrip safety remains explicitly unclaimed.
+
+## No other material financial contradiction found
+
+- D01 correctly separates P13 contribution legal-donor authority from P14 recognition, with coherent money/date/credit basis and current egress independent. Header effective sequence is not a global snapshot.
+- D02/D04 preserve original Gift amount versus charged cover/current effective/matched allocation, one root and exact pre-posting correlation; hidden parent rights remain separate.
+- D06/D07 preserve canonical current artifact, full/HEAD/Range one-generation response, valid-predecessor versus withdrawal, dark new issuance versus historical access, and separately deliberate copy fulfillment.
+- D08 preserves exact issuer/legal-donor preference scope and prospective P7 admission boundary, first/required notices, current-authorized Off recovery and no legal-receipt/read fiction. The250/75 distinctions and non-universal January31 copy remain proportionate.
+- D09/D10 carry complete Q23 annual descriptor into exact Q20 snapshot, correct10-minute issuance/acceptance clocks, first-Ready24h, failed-payload24h and30-day correlation, one active preparation per exact initiating context, current contraction invalidation and no bearer URL. The one-active concurrency default is explicitly present in ratified Q20:199; it is not a new restriction invented here.
+- D12 uses the correct current-effective monetary measure including fee cover, excludes processing/noncash/recognition, applies corrections to effective gift-date cohorts and preserves issuer/currency/local-year differences. Informational giving can include source-posted return-exposed money without claiming irreversible finality.
+- D13/D14 preserve expected versus actual match facts/currency, proper received/reversed/closed state walls on all writers, null/hidden origin, conserving settlement identity, coherent per-header basis and source-owned merge/reimport behavior. The no-import-sends/credits stance is explicitly inherited from P14, not a ban inferred merely from the new read UI.
+- D15–D17 preserve DAF sponsor/advisor and IRA owner/custodian roles, separate QCD intent/case/personal tax result, lawful independently evidenced ordinary successor, canonical QCD purpose, historical access and ordinary-year-end exclusion. Personal giving1500 versus ordinary statement500 plus IRA acknowledgment1000 is explained without a deductible-total claim.
+- D18 correctly preserves real target proof versus catalog/mock/static/current-source evidence, production-shaped workload assumptions and six-participant formative comprehension as a design gate, not measured success or statistical certification.
+
+## Recurring contract numerical completion checked
+
+The recurring contract was strengthened at RC22 to make the inherited timing standalone: Balanced weekly original+2/+4, other cadence original+2/+4/+6; Off one ordinary; narrowing immediate versus expansion prospective; not-before=max(resolved candidate instant, previous actual attempt+48elapsed hours); expiry=min(next local midnight, next ordinary−48hours, earlier safety cutoff); equality suppresses; weekend/DST/candidate-date preservation; no-attempt release only in original window. It also retains24-hour prior-control proof,15 unattended attempts/rolling30×24hours, trigger plus three later eligible failure cycles, one ACH normal entry/one-use recovery grant, third normal soft return or180calendar-day ACH runway,15-minute preview,2-minute bounded lease,24h/10day preference,90-day fixed request text and source audit/privacy lifetimes. Before a queued job means before that job runs, not an exception to source not-before/expiry.
+
+These are contract completions from existing source rules, not proof that the target owner/provider behavior is implemented. Structural generation validates68 recurring stories,28 exact section references,508 trace records and every393 indexed A/J/V/C/T alias plus83 previously unindexed numbered anchors; no heading matches remain unresolved. Five existing setup dirty paths remain unchanged. No financial action or database operation ran.
