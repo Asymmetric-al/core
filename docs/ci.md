@@ -54,18 +54,19 @@ bun run ci:preflight
 1. `verify:git-attribution`
 2. `format:check`
 3. `skills:verify`
-4. `openspec:validate`
-5. `lint`
-6. `verify:data-boundary`
-7. `verify:cms-public-sole-entry`
-8. `verify:workspace-contract`
-9. `verify:bun-lock-drift`
-10. `verify:eslint`
-11. `verify:shadcn-config`
-12. `verify:shadcn-diff`
-13. `typecheck`
-14. `build` (with CI-compatible env defaults for local parity)
-15. `test:unit`
+4. `verify:phase25-spec`
+5. `openspec:validate`
+6. `lint`
+7. `verify:data-boundary`
+8. `verify:cms-public-sole-entry`
+9. `verify:workspace-contract`
+10. `verify:bun-lock-drift`
+11. `verify:eslint`
+12. `verify:shadcn-config`
+13. `verify:shadcn-diff`
+14. `typecheck`
+15. `build` (with CI-compatible env defaults for local parity)
+16. `test:unit`
 
 Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage order),
 `tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
@@ -160,9 +161,9 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `format`
 
-- _What it checks:_ Runs `bun run format:check` (Prettier) and `bun run skills:verify` (skills mirror drift gate). Fails if formatting or mirror sync is out of policy.
-- _Why it exists:_ Prevents formatting drift and skill-source/mirror drift that cause noisy diffs and review confusion.
-- _Debug locally:_ Run `bun run format:check`; if needed run `bun run format`. Then run `bun run skills:verify` (or `bun run skills:sync` to update mirrors) and re-check.
+- _What it checks:_ Runs `bun run format:check` (Prettier), `bun run skills:verify` (skill mirrors), `bun run verify:phase25-spec` (controlled story projections and source references), and `bun run openspec:validate` (strict OpenSpec validation).
+- _Why it exists:_ Prevents formatting, mirror and specification drift. Phase 25's [authoring boundary](prds/sitestacker-parity/phase-25-donor-dashboard-depth/README.md#authoring-and-generated-views) keeps one story source and one task writer.
+- _Debug locally:_ Run `bun run format:check`; if needed run `bun run format`. Check skill mirrors with `bun run skills:verify` (use `bun run skills:sync` for intentional mirror updates). For a Phase 25 story edit, regenerate through its documented renderer and run `bun run verify:phase25-spec`. Finish with `bun run openspec:validate`.
 
 ### `lint` (needs: `format`)
 

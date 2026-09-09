@@ -1,0 +1,29 @@
+{
+  "supabase_labs_0_0_1": {
+    "url": "https://registry.npmjs.org/@supabase-labs%2Ftanstack-db/0.0.1",
+    "name": "@supabase-labs/tanstack-db",
+    "version": "0.0.1",
+    "dependencies": {
+      "@tanstack/db": "^0.6.0",
+      "@tanstack/query-core": "^5.0.0",
+      "@standard-schema/spec": "^1.1.0",
+      "@supabase/supabase-js": "^2.0.0",
+      "@supabase/postgrest-js": "^2.0.0",
+      "@tanstack/query-db-collection": "^1.0.0"
+    },
+    "peerDependencies": {}
+  },
+  "query_collection_1_2_12": {
+    "url": "https://registry.npmjs.org/@tanstack%2Fquery-db-collection/1.2.12",
+    "name": "@tanstack/query-db-collection",
+    "version": "1.2.12",
+    "dependencies": {
+      "@tanstack/db": "0.8.7",
+      "@standard-schema/spec": "^1.1.0"
+    },
+    "peerDependencies": {
+      "typescript": ">=4.7",
+      "@tanstack/query-core": "^5.0.0"
+    }
+  }
+}

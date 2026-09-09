@@ -333,14 +333,32 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 ### 15. Donor dashboard depth
 
 - **Benchmark:** SiteStacker donor dashboard. (s)
-- **Current state:** donor portal built (phase 09: snapshot, billing portal,
-  receipts, statements); self-service depth (pause/cancel recurring, payment
-  methods) **proposed** in PR #462. (v)
-- **Depends on:** #5, #8.
-- **Acceptance test:** a donor manages giving, recurring gifts, payment methods,
-  and documents self-service.
-- **Evidence:** phase 09 evidence; add-donor-self-service (PR #462).
-- **Open questions:** depth gap vs SiteStacker donor tools.
+- **Current state:** the inspected Core snapshot at `7abd2c11` has partial
+  donor reads and prototype self-service paths. Its billing-portal handoff,
+  live-text receipt/statement output and local Wallet/preferences state do
+  not establish the Phase 25 target. `Live?` remains unconfirmed.
+- **PRD:** the complete
+  [Phase 25 specification](./phase-25-donor-dashboard-depth.md), published as
+  [#1563](https://github.com/Asymmetric-al/core/issues/1563), preserves the
+  ratified scope, 242 acceptance stories, five normative contracts and exact
+  source/qualification gates. Source-owner amendments remain proposed; no
+  feature implementation or child-ticket graph is claimed.
+- **Depends on:** the source-owner and predecessor adoption register in
+  [Shared S04-S06](./phase-25-donor-dashboard-depth/contracts/shared.md#s04--exact-owner-amendment-and-predecessor-reconciliation-register).
+  P22-P24 proposal inputs require final accepted reconciliation before their
+  affected capabilities activate.
+- **Acceptance test:** complete permitted donor journeys prove giving,
+  recurring and Wallet commands, records/documents, Updates, preferences,
+  account changes and relevant-only pledge/match/DAF/IRA behavior; owner,
+  actual database and provider/artifact proof qualify their separate effects.
+- **Evidence:** the dated
+  [source and evidence register](./phase-25-donor-dashboard-depth/evidence.md)
+  distinguishes inspected implementation, ratified intent and unexecuted
+  qualification. Historical smoke or prototype behavior is not completion
+  evidence for this target.
+- **Open questions:** product scope is ratified. G01's supported native Auth
+  linking guarantee remains unresolved and blocks affected social activation;
+  the other named release gates still require actual proof.
 
 ### 16. Missionary dashboard depth
 

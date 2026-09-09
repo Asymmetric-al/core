@@ -740,6 +740,24 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   floor without remediation. The blast radius is planning-only: the Phase 21
   PRD, decision evidence, ADRs, OpenSpec change, and named cross-phase contract
   amendments; it grants no runtime authority.
+- [`phase-25-donor-dashboard-depth.md`](./phase-25-donor-dashboard-depth.md)
+  — the full Donor Dashboard Depth specification published as
+  [#1563](https://github.com/Asymmetric-al/core/issues/1563). Q01-Q29 are
+  ratified, Q30's assembled scope is accepted, and F01-F14 reconcile the final
+  joins. The packet contains 242 acceptance stories, five normative contracts,
+  source-clause traceability, an implementation task plan and exact owner and
+  release gates. Its
+  [`decision log`](./phase-25-donor-dashboard-depth/decision-log.md),
+  [`glossary`](./phase-25-donor-dashboard-depth/glossary.md) and
+  [`evidence register`](./phase-25-donor-dashboard-depth/evidence.md)
+  preserve the complete decision and research lineage. The active OpenSpec
+  proposal is
+  [`add-donor-dashboard-depth`](../../../openspec/changes/add-donor-dashboard-depth/proposal.md).
+  Source-owner amendments remain proposed; Phase 22-24 predecessor contracts
+  are pinned external proposal evidence pending final accepted reconciliation.
+  G01's supported native Auth linking guarantee remains unresolved and blocks
+  affected social activation. This package implements no feature, publishes
+  no child-ticket graph and certifies no runtime or provider qualification.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

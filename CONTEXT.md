@@ -5128,3 +5128,71 @@ batch rows remain evidence of their own systems. They do not become a Statement
 Run, establish eligibility, merge legal donors, prove delivery or printing, or
 authorize a current artifact. Phase 19 D1–D18 are a groomed planning contract,
 not a claim that these glossary objects are built or dispatched.
+
+## Phase 25 donor self-service language
+
+These terms record ratified Phase 25 product language. The
+[full specification](docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth.md)
+and [glossary](docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/glossary.md)
+preserve the complete distinctions; source-owner amendments remain proposed
+and definitions do not claim implementation or activation. The phase glossary
+is the complete navigation dictionary; the entries below use the same labels.
+The existing **Fixed-total pledge** definition above also governs Phase 25; its
+Campaign commitments presentation creates no separate pledge meaning.
+
+**Personal giving**:
+The human's currently admitted personal financial context. It does not require
+a donor row for every account holder.
+_Avoid_: universal donor account, mandatory giving profile
+
+**Giving you help manage**:
+Separately admitted represented financial work. Switching this context does not
+change the human's personal reading, contact or communication subjects.
+_Avoid_: impersonation, shared household access
+
+**Known empty**:
+Current authoritative evidence establishes no admitted records. Unknown,
+unavailable, denied and stale data are different states.
+_Avoid_: failed request as zero, permission denial as absence
+
+**Zero-artifact rule**:
+Known irrelevance of an optional rare-record surface leaves no ordinary
+navigation, count, placeholder or promotional UI. It does not suppress truthful
+explicit-route failure.
+_Avoid_: hidden error, speculative rare-feature promotion
+
+**Newsletter request**:
+A person's request to receive one missionary's separately managed newsletter,
+using the supplied contact details. Recording or conveying it is not evidence
+of enrollment, sending or delivery.
+_Avoid_: subscription confirmation, Ministry Update email preference
+
+**Sign-in email**:
+The mutable address identifying an account in the email-first sign-in journey.
+It is neither an authenticator by itself nor the account's immutable identity.
+_Avoid_: donor identity, organization contact email
+
+**Contact email with this organization**:
+The person's source-owned contact address within this Tenant's donor/Party
+context. It is distinct from the sign-in credential and from each message's
+consent, security and delivery rules.
+_Avoid_: login email, universal delivery address
+
+**Current Home need**:
+An authorized presentation of an exact source-owned donor step or required
+continuing state. It is not an unread notification or a separate completion
+record.
+_Avoid_: portal task authority, every available action
+
+**New-gift preference**:
+A qualified saved-method preference for future gifts within its exact source
+scope. It neither changes existing recurring uses nor establishes a provider
+Customer default or a new payment authorization.
+_Avoid_: universal default card, change all recurring payments
+
+**IRA gift with QCD intent**:
+A source-recorded IRA-origin charitable transfer whose contributor is the
+resolved owner or applicable inherited-IRA beneficiary, with a separate
+custodian and evidenced intention. Intent, organization-side source/document
+admission and final personal tax treatment are distinct.
+_Avoid_: DAF soft credit, certified personal deduction
