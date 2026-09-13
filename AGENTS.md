@@ -16,9 +16,9 @@ This is the always-on Codex entrypoint for `Asymmetric-al/core`. Keep it a compa
 
 1. Identify the app, package, or operational area in scope.
 2. Read the nearest applicable `AGENTS.md` before editing that subtree.
-3. Inspect current source, tests, manifests, and configuration before choosing a workflow.
+3. Inspect current source, tests, manifests, and configuration relevant to the requested change before choosing a workflow.
 4. For non-trivial behavior, workflow, or durable-convention changes, read `openspec/project.md`, the relevant `openspec/specs/**`, and matching active changes under `openspec/changes/**`.
-5. Load a discovered skill when its description matches. Do not use skill instructions as a substitute for repository context.
+5. Load explicitly requested skills and discovered skills whose descriptions match the task's workflow. Respect explicit-only invocation settings. Read supporting references only as needed; skills do not replace repository context.
 6. Preserve user-owned changes and keep the diff focused on the requested outcome.
 
 ## Repository map
@@ -65,6 +65,8 @@ Nested files contain only local constraints. They do not replace repository-wide
 
 ## Domain routing
 
+Read the rulebooks for the work in scope; a small edit does not require loading unrelated domains.
+
 | Work                                 | Read before editing                                     |
 | ------------------------------------ | ------------------------------------------------------- |
 | General workflow, branches, PRs, CI  | `docs/ai/rules/general.md`                              |
@@ -108,7 +110,9 @@ Use Bun and the scripts declared in the current root `package.json`.
 - Workspace contract: `bun run verify:workspace-contract`
 - PR/push readiness: `bun run ci:preflight`
 
-Run the smallest relevant checks while iterating, then the broader gate proportional to risk. Do not bypass hooks or claim checks that were not run. Secrets stay out of source, docs, commands, and logs.
+Run the smallest relevant checks while iterating, then the broader gate proportional to risk. Avoid repeating passed checks unless new edits, failures, unresolved risk, or required workflow gates justify it. Do not bypass hooks or claim checks that were not run. Secrets stay out of source, docs, commands, and logs.
+
+Complete the requested outcome, including relevant verification and fixes for failures caused by the change, within the authorized scope. Continue routine, reversible local work without asking for approval at each step. Stop at the user's requested review or planning boundary, when further action needs new authorization, or when a genuine blocker requires user input.
 
 ## Code review rules
 
