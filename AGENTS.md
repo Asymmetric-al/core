@@ -18,7 +18,7 @@ This is the always-on Codex entrypoint for `Asymmetric-al/core`. Keep it a compa
 2. Read the nearest applicable `AGENTS.md` before editing that subtree.
 3. Inspect current source, tests, manifests, and configuration relevant to the requested change before choosing a workflow.
 4. For non-trivial behavior, workflow, or durable-convention changes, read `openspec/project.md`, the relevant `openspec/specs/**`, and matching active changes under `openspec/changes/**`.
-5. Load explicitly requested skills and those whose workflow applies to the task. Read supporting references only as needed; skills do not replace repository context.
+5. Load explicitly requested skills and discovered skills whose descriptions match the task's workflow. Respect explicit-only invocation settings. Read supporting references only as needed; skills do not replace repository context.
 6. Preserve user-owned changes and keep the diff focused on the requested outcome.
 
 ## Repository map
