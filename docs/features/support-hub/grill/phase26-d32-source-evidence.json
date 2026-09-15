@@ -1,0 +1,238 @@
+{
+  "date": "2026-09-13",
+  "status": "D32 C selected; detailed amendments under review",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "originDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "reverifiedQ32Sources": [
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/composer/AttachmentChips.tsx",
+      "bytes": 3126,
+      "sha256": "a6044b42fa35d5146e58ee62179cb49db3329fd86337972635a69b17be74d678"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/timeline/EmailMessage.tsx",
+      "bytes": 8567,
+      "sha256": "3e3c515336d577ef66d4b2be0789628d66809e414ce6d88a8d6646a8915a0489"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "bytes": 7927,
+      "sha256": "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "bytes": 313201,
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "kind": "Local grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d16-adversarial-review.md",
+      "bytes": 68720,
+      "sha256": "696193f798ed9cd49d2d1f667d3b8ef17cc28cc64b84a338dc6b695be56e33c5"
+    },
+    {
+      "kind": "Local grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d19-adversarial-review.md",
+      "bytes": 76508,
+      "sha256": "9f58410e7bc5dcbbf120b47c261e27aaa5dbbd6921dcede253b59c2b9e5a57a3"
+    },
+    {
+      "kind": "Local grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d22-adversarial-review.md",
+      "bytes": 61756,
+      "sha256": "a66614e3b3565bd427a263203c673b112b6e573982d5286c8678f8ab8ab2002c"
+    },
+    {
+      "kind": "Local grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d26-adversarial-review.md",
+      "bytes": 69638,
+      "sha256": "8a28532b1fa59aee76d6d2cf2f6a26ba614ca8338ad996de24d2133cfa1c0e2e"
+    },
+    {
+      "kind": "Local grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d31-adversarial-review.md",
+      "bytes": 50903,
+      "sha256": "4b77757fbe96fb374f5ad546167e09d65ebf19a40a7c33bfab3e4b9822514ea7"
+    }
+  ],
+  "d32CitedSources": [
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/composer/AttachmentChips.tsx",
+      "bytes": 3126,
+      "sha256": "a6044b42fa35d5146e58ee62179cb49db3329fd86337972635a69b17be74d678"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/timeline/EmailMessage.tsx",
+      "bytes": 8567,
+      "sha256": "3e3c515336d577ef66d4b2be0789628d66809e414ce6d88a8d6646a8915a0489"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "bun.lock",
+      "bytes": 695873,
+      "sha256": "47f0cd34dd5e7a75e55f36945b8c5e190f0971004ea796e316a90d2be9faad84"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0033-canonical-generated-document-authorities-and-clean-cutover.md",
+      "bytes": 4745,
+      "sha256": "6ac066e3f6fe16dfefe10d50590b7eb0aeead3e38c59e0241ab7dbe074ac7774"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0034-evidence-qualified-renderer-and-canonical-pdf-profiles.md",
+      "bytes": 4043,
+      "sha256": "b79da08b8e9cffef662631ef4cf7f80ac2eb909aee98a8286449e6813e72974c"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0037-scanner-safe-exact-artifact-access.md",
+      "bytes": 6646,
+      "sha256": "3b8338c231101638b9b40ac512865aec737271f1ff2f41cd2dd588f4abfaa033"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "bytes": 313201,
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/workflow-orchestration/spec.md",
+      "bytes": 6306,
+      "sha256": "0dd65864532b7508fb87a5ba9a98c2078c625178f55b6b6599409e5d07f56136"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "package.json",
+      "bytes": 16357,
+      "sha256": "c7fc03480ebe9e31a5b01065b0f21348c17783cda4576ed090ba323472c7d351"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/package.json",
+      "bytes": 12127,
+      "sha256": "4e665b9703259e0a5e67f4e7e42f21fd37d34f96f99debabe2c0c5595c8bb2ca"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "bytes": 45362,
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "bytes": 4241,
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/generated-documents/purpose-catalog/types.ts",
+      "bytes": 9678,
+      "sha256": "c79fa558de51a76e29d0add277d870a7f94bebe023e637f67a4e541c48784bb8"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/pdf-templates/docraptor.ts",
+      "bytes": 3032,
+      "sha256": "0ad05ae79e120a0c2a6d286254ce78b2a114759b3265aab4a95ed3a5c96bb69d"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/workflows/adapters/inbound-email.ts",
+      "bytes": 17641,
+      "sha256": "e6dd0c78259b2fd3f79f9512687ba486716c6b1a77bbff64bddadf6c2cfe5385"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260511024000_email_assets_storage_bucket.sql",
+      "bytes": 575,
+      "sha256": "69abcfc1af339b5f8d947637e9f7fafb8998732687e35c4a625ec822a3e9ad1a"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "bytes": 31417,
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "vendor/react-pdf-packages/asym-docraptor-client/dist/index.mjs",
+      "bytes": 29101,
+      "sha256": "92e24b6530068741ea49eefd7af40d204a62ec7a432ffc2e28aad25c87bd211f"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "vendor/react-pdf-packages/asym-pdf-renderer/package.json",
+      "bytes": 1451,
+      "sha256": "08bcb0d8d2fd41f0fc3ba4a77d1ab2b79cac3ab1b2073591c150a62b5794d87c"
+    }
+  ]
+}

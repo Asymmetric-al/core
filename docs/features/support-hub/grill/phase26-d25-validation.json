@@ -1,0 +1,45 @@
+{
+  "status": "passed",
+  "date": "2026-09-12",
+  "stage": "D1-D24 fully ratified; D25 C selected; complete amendments proposed pending ratification; no Q26",
+  "D25FullyRatified": false,
+  "D25Clauses": 32,
+  "D25CategoryFindings": 23,
+  "D25RequiredUnexecutedProofGroups": 50,
+  "D25OperationalControls": 6,
+  "D25ProposedGlossaryTerms": 4,
+  "priorDecisionArtifactsPreserved": 160,
+  "priorADRsPreserved": 24,
+  "priorGlossaryPreserved": true,
+  "priorValidationRecordsUnchanged": 2,
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sourceHashesVerified": 22,
+  "probeSourceHashesVerified": 3,
+  "sourceProbes": {
+    "probes": 2,
+    "observations": 7,
+    "routeResolverCases": 4,
+    "providerHelperCases": 3,
+    "limitations": "Isolated current source control flow under synthetic adapters/intercepted fetch. No proposed activation/ingress/proof/DB/RLS/provider/browser implementation was tested."
+  },
+  "mirrorPairs": 18,
+  "immutableCoreSourceLinksChecked": 64,
+  "uniqueImmutableCoreSourceLinks": 40,
+  "localLinksChecked": 517,
+  "outputLinksChecked": 487,
+  "ADR0026Created": false,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "independentFinalChecks": [
+    "Data/auth/custody/lifecycle: no additional material correction",
+    "Complete two-path use/maintenance/AT UX: no additional material correction",
+    "Provider/P17/P6 owner seams: passed after distinguishing provider Full-access requirement from Asym separate-key safeguard"
+  ],
+  "limits": [
+    "No formal specification, implementation or GitHub changes",
+    "No provider account, DNS, real message, secret or inbox changes",
+    "No live receiving provenance/account/canary/forwarding/DB/RLS/concurrency/browser/AT/capacity/usability proof",
+    "All50 implementation/release proof groups remain required and unexecuted; mandatory provider proof gates activation"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "date": "2026-09-14",
+  "method": "Actual installed-Bun module with mocked transport and forbidden network; source-backed counterexample",
+  "checksPassed": 5,
+  "checks": [
+    {
+      "check": "Actual composer wires mention insertion directly to activity writer",
+      "passed": true
+    },
+    {
+      "check": "Actual helper attempts one published-note POST for a mention",
+      "passed": true
+    },
+    {
+      "check": "Actual helper does not preserve mention verb as an admission distinction",
+      "passed": true
+    },
+    {
+      "check": "Payload author comes from supplied agent rather than trusted identity",
+      "passed": true
+    },
+    {
+      "check": "Null actor skips helper request, not a replacement authorization proof",
+      "passed": true
+    }
+  ],
+  "sources": [
+    {
+      "path": "apps/admin/features/support-hub/lib/activity-log.ts",
+      "sha256": "2c880340294d61775a3ee22b07cd16c9eb5180adf374a5531b05d5595addc976"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/ConversationComposer.tsx",
+      "sha256": "a35d4b9d36f7eed1184465e09512533dac0f7f6eb6d5dbda4d1521b9906063fc"
+    }
+  ],
+  "realNetworkRequests": 0,
+  "databaseWrites": 0,
+  "runtimeD38Proof": false,
+  "limitation": "Proves the inspected helper attempts the note route and static composer wiring reaches it. Does not invoke actual UI, server auth, database, notification delivery or production."
+}

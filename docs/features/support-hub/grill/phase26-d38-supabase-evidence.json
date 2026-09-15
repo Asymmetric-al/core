@@ -1,0 +1,382 @@
+{
+  "date": "2026-09-14",
+  "stage": "D38A selected; proposed detailed amendments; D1-D37 fully ratified; noQ39",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "configuredPostgresMajor": 17,
+  "runtimePostgresVersionVerified": false,
+  "sourcePins": [
+    {
+      "pin": "S01",
+      "path": "apps/admin/features/support-hub/components/detail/composer/use-conversation-composer.ts",
+      "sha256": "7a4e8e6a8d7108783d5a6d04b41e362a213136a34e08a233e0754991b6dc72e3",
+      "lineCount": 292,
+      "ranges": [
+        {
+          "start": 66,
+          "end": 112
+        },
+        {
+          "start": 144,
+          "end": 187
+        },
+        {
+          "start": 224,
+          "end": 265
+        }
+      ],
+      "kind": "repository source"
+    },
+    {
+      "pin": "S02",
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a",
+      "lineCount": 290,
+      "ranges": [
+        {
+          "start": 58,
+          "end": 85
+        }
+      ],
+      "kind": "repository source"
+    },
+    {
+      "pin": "S03",
+      "path": "packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "sha256": "c209deb5a02bb49a788d2bad6a56b528ebc1c3f52bd27c9834815f01b5615682",
+      "lineCount": 81,
+      "ranges": [
+        {
+          "start": 73,
+          "end": 80
+        }
+      ],
+      "kind": "repository source"
+    },
+    {
+      "pin": "S04-S05",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+      "lineCount": 1451,
+      "ranges": [
+        {
+          "start": 73,
+          "end": 86
+        },
+        {
+          "start": 143,
+          "end": 199
+        },
+        {
+          "start": 499,
+          "end": 509
+        },
+        {
+          "start": 566,
+          "end": 660
+        },
+        {
+          "start": 941,
+          "end": 963
+        }
+      ],
+      "kind": "repository source"
+    },
+    {
+      "pin": "S06a",
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1",
+      "lineCount": 153,
+      "ranges": [
+        {
+          "start": 31,
+          "end": 86
+        }
+      ],
+      "kind": "repository source"
+    },
+    {
+      "pin": "S06b",
+      "path": "packages/api/src/admin/support-hub/request-context.ts",
+      "sha256": "a07e2eae577a095989b30f7cd1e21f9d3f2784769042d4fc33c1a716b6a33a95",
+      "lineCount": 28,
+      "ranges": [
+        {
+          "start": 5,
+          "end": 24
+        }
+      ],
+      "kind": "repository source"
+    },
+    {
+      "pin": "S07-S08",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16",
+      "lineCount": 791,
+      "ranges": [
+        {
+          "start": 286,
+          "end": 343
+        },
+        {
+          "start": 525,
+          "end": 610
+        }
+      ],
+      "kind": "repository source"
+    },
+    {
+      "pin": "S09",
+      "path": "supabase/migrations/20260226113000_authz_memberships_foundation.sql",
+      "sha256": "f301ded06fa98fd93d82d8b2260db08e01b764cece8583edfe2692ee39f1d305",
+      "lineCount": 468,
+      "ranges": [
+        {
+          "start": 45,
+          "end": 70
+        },
+        {
+          "start": 122,
+          "end": 140
+        },
+        {
+          "start": 181,
+          "end": 209
+        }
+      ],
+      "kind": "repository source"
+    },
+    {
+      "pin": "Config",
+      "path": "supabase/config.toml",
+      "sha256": "3a31bbfd599aa7203245fbfab25e4b623ec98043049293cbf35052c6736a54c7",
+      "lineCount": 382,
+      "ranges": [
+        {
+          "start": 10,
+          "end": 14
+        },
+        {
+          "start": 29,
+          "end": 34
+        }
+      ],
+      "kind": "repository source"
+    },
+    {
+      "pin": "Retired-CRM-conflict",
+      "path": "openspec/specs/crm-core/spec.md",
+      "sha256": "6aee2c2d799cd60b873a355e1dca9c10273e15b13a3c4986a2db9e4d846acce5",
+      "lineCount": 348,
+      "ranges": [
+        {
+          "start": 5,
+          "end": 18
+        }
+      ],
+      "kind": "repository source"
+    },
+    {
+      "pin": "Native-CRM-owner",
+      "path": "docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "sha256": "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174",
+      "lineCount": 138,
+      "ranges": [],
+      "kind": "repository source"
+    },
+    {
+      "pin": "Canonical-document",
+      "path": "docs/adr/0030-canonical-message-document-and-presentation-dependencies.md",
+      "sha256": "6da9e5c451c1c3a6e42f1ed39e0445b7f9a0db279686489393dfea92303b8a1d",
+      "lineCount": 51,
+      "ranges": [],
+      "kind": "repository source"
+    },
+    {
+      "pin": "In-product-versus-provider",
+      "path": "docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "sha256": "7aeb08a2a499471d31e856914d940d94d4c43f57654812e80f6ee41024a62d21",
+      "lineCount": 137,
+      "ranges": [],
+      "kind": "repository source"
+    },
+    {
+      "pin": "Shared-platform-boundaries",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4",
+      "lineCount": 407,
+      "ranges": [],
+      "kind": "repository source"
+    },
+    {
+      "pin": "Permission-priority",
+      "path": "openspec/specs/platform-principles/spec.md",
+      "sha256": "b78c1cf7952a212769a04160501748962911998069a185809a6dc2d5d98e5b22",
+      "lineCount": 205,
+      "ranges": [],
+      "kind": "repository source"
+    },
+    {
+      "pin": "S10",
+      "path": "docs/features/support-hub/grill/phase26-d37-full-ratification.md",
+      "sha256": "f76f84df8037d6e139ec08976a212f5821af8b1625eba21795b54f3da18a9c0a",
+      "lineCount": 87,
+      "ranges": [],
+      "kind": "accepted grooming authority"
+    },
+    {
+      "pin": "S10-contract",
+      "path": "docs/features/support-hub/grill/phase26-d37-data-contract.md",
+      "sha256": "2bdbdd2c532344579c2ca1a93986cab9a92609b293ebb71f86a301a9cb85d1d9",
+      "lineCount": 174,
+      "ranges": [],
+      "kind": "accepted grooming authority"
+    },
+    {
+      "pin": "S11",
+      "path": "docs/features/support-hub/grill/phase26-d10-adversarial-review.md",
+      "sha256": "7529bc78bb0c910215f1737beb8fb27a643032b3b54bd3e94959876433e718df",
+      "lineCount": 349,
+      "ranges": [
+        {
+          "start": 121,
+          "end": 127
+        }
+      ],
+      "kind": "accepted grooming authority"
+    },
+    {
+      "pin": "S12-attention",
+      "path": "docs/features/support-hub/grill/phase26-d15-adversarial-review.md",
+      "sha256": "5d104580018711c68bd4a9fed45b2e17204641c45bd5dcc8ce0ce53e742df1ef",
+      "lineCount": 339,
+      "ranges": [
+        {
+          "start": 53,
+          "end": 81
+        }
+      ],
+      "kind": "accepted grooming authority"
+    },
+    {
+      "pin": "S12-retention",
+      "path": "docs/features/support-hub/grill/phase26-d17-adversarial-review.md",
+      "sha256": "af3a54ab11c3aac719ccb9bb1f29e3d5d12fb4489749c6b90671b99562d5cd6c",
+      "lineCount": 377,
+      "ranges": [
+        {
+          "start": 45,
+          "end": 51
+        }
+      ],
+      "kind": "accepted grooming authority"
+    },
+    {
+      "pin": "S13",
+      "path": "docs/features/support-hub/grill/phase26-d35-adversarial-review.md",
+      "sha256": "12df9c2ef039aca0f37b9f03d6c741b09d28b718b936e88179dfffe90e1ba78b",
+      "lineCount": 171,
+      "ranges": [
+        {
+          "start": 35,
+          "end": 37
+        },
+        {
+          "start": 45,
+          "end": 69
+        }
+      ],
+      "kind": "accepted grooming authority"
+    },
+    {
+      "pin": "No-note-work-plan",
+      "path": "docs/features/support-hub/grill/phase26-d24-adversarial-review.md",
+      "sha256": "63b54d34c3aff1f5733deca679969cd54b159b87ce7430d35a38b3fdf498ed1a",
+      "lineCount": 336,
+      "ranges": [
+        {
+          "start": 9,
+          "end": 11
+        },
+        {
+          "start": 65,
+          "end": 71
+        }
+      ],
+      "kind": "accepted grooming authority"
+    },
+    {
+      "pin": "Purpose-profiles",
+      "path": "docs/features/support-hub/grill/phase26-d23-adversarial-review.md",
+      "sha256": "10e1c6a3fcfe21bbb849709da8f4acef03059b80b77696e78478acaa02541676",
+      "lineCount": 328,
+      "ranges": [
+        {
+          "start": 85,
+          "end": 89
+        }
+      ],
+      "kind": "accepted grooming authority"
+    }
+  ],
+  "primaryReferences": [
+    {
+      "url": "https://supabase.com/changelog.md",
+      "qualifiedUse": "Downloaded via HTTP to work/d38-supabase-changelog.md; web open rejected text/markdown"
+    },
+    {
+      "url": "https://supabase.com/changelog/realtime-schema-locked-down-against-modification",
+      "qualifiedUse": "14 July 2026; avoid application tables in provider realtime schema, policies remain allowed"
+    },
+    {
+      "url": "https://supabase.com/changelog/46080-self-hosted-supabase-upgrading-from-pg-15-to-17-breaking-change",
+      "qualifiedUse": "18 May 2026, default change17June; not hosted/CLI local migration instruction"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+      "qualifiedUse": "Implicit WITH CHECK and effective policy combinations"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/ddl-rowsecurity.html",
+      "qualifiedUse": "Owner/BYPASSRLS/FORCE rules, constraints and cross-row races"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/sql-createfunction.html",
+      "qualifiedUse": "Owner privileges, PUBLIC EXECUTE defaults, safe search path"
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security",
+      "qualifiedUse": "Current role/grant/JWT/view/RLS documentation via web and Supabase search_docs"
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/functions",
+      "qualifiedUse": "Invokers/definers and permissions"
+    },
+    {
+      "url": "https://supabase.com/docs/guides/api/securing-your-api",
+      "qualifiedUse": "Consumer-specific API/grant/RLS boundaries"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/17/ddl-constraints.html",
+      "qualifiedUse": "Row-local constraints versus cross-row invariants, referencing FK indexes"
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security-performance",
+      "qualifiedUse": "Actual plans, row-independent identity function caching caveat"
+    },
+    {
+      "url": "https://supabase.com/docs/guides/storage/security/access-control",
+      "qualifiedUse": "Storage policy and upsert permission requirements"
+    },
+    {
+      "url": "https://supabase.com/docs/guides/storage/buckets/fundamentals",
+      "qualifiedUse": "Private authenticated/signed access versus public retrieval"
+    }
+  ],
+  "changelogSha256": "49b064520ad70f592ea4ffc25f456fcc981404dc925f0c499e21438719a07163",
+  "checks": {
+    "C01-C15sequence": true,
+    "allSourceRangesWithinActualFiles": true,
+    "sourceHashesRecorded": true
+  },
+  "limits": "Read-only local source and current public documentation inspection. No database SQL or runtime RLS/grant/RPC/Storage/provider/browser tests executed. No product/config/schema/skill/dependency mutation. No real messages."
+}

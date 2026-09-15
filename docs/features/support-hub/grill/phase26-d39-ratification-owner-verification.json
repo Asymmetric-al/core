@@ -1,0 +1,1438 @@
+{
+  "date": "2026-09-15",
+  "checkedAtUtc": "2026-09-14T18:42:57.028759+00:00",
+  "status": "Pass",
+  "method": "Independent actual full-ratification incorporation, original-body and historical-evidence preservation, source-pin and mirror verification; no new runtime proof",
+  "checksPassed": 255,
+  "checksTotal": 255,
+  "checks": [
+    {
+      "check": "independent baseline hash 0039-personal-conversation-read-unread.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash CONTEXT.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-completion-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-completion-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-evidence.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-evidence.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-final-lifecycle-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-final-lifecycle-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-final-supabase-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-final-supabase-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-final-supabase-reviewed-files.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-final-supabase-reviewed-files.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-final-ux-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-final-ux-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-lifecycle-seam-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-lifecycle-seam-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-proof-and-operations.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-proof-and-operations.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-reader-probe.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-reader-probe.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-reader-source-evidence.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-reader-source-evidence.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-reader-tiptap-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-reader-tiptap-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-review-corrections.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-review-corrections.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-selection.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-selection.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-source-evidence.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-source-evidence.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-supabase-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-supabase-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-supabase-evidence.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-supabase-evidence.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-ux-research.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-ux-research.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-d39-validation.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-d39-validation.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-grill-log.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-grill-log.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline hash phase26-session-handoff.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "independent baseline matches root-before phase26-session-handoff.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "R clauses exact sequence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "C contracts exact sequence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "L contracts exact sequence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "UX contracts exact sequence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "P proof exact sequence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "O controls exact sequence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "F corrections exact sequence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "23 categories retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "eighteen worked reasoning traces",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "eighteen lifecycle acceptance cases",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "twelve reader outcomes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-adversarial-review.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-adversarial-review.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-completion-audit.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-completion-audit.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-evidence.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-evidence.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-final-lifecycle-review.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-final-lifecycle-review.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-final-supabase-review.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-final-supabase-review.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-final-supabase-reviewed-files.json original bytes preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-final-ux-review.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-final-ux-review.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-lifecycle-seam-review.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-lifecycle-seam-review.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-proof-and-operations.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-proof-and-operations.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-reader-probe.json original bytes preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-reader-source-evidence.json original bytes preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-reader-tiptap-contract.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-reader-tiptap-contract.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-review-corrections.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-review-corrections.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-selection.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-selection.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-source-evidence.json original bytes preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-supabase-contract.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-supabase-contract.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-supabase-evidence.json original bytes preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-ux-research.md original body exactly preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-ux-research.md current banner accepts full package",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-validation.json original bytes preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "glossary status heading only",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "glossary D39 now ratified",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "one glossary term unchanged",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "ADR original substantive body preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "ADR current full acceptance",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "ADR Q40 unanswered",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-grill-log.md prior history preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-grill-log.md current full D39 ratification",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-grill-log.md next question unanswered",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-session-handoff.md prior history preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-session-handoff.md current full D39 ratification",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-session-handoff.md next question unanswered",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes R01\u2013R26",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes C01\u2013C16",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes L01\u2013L16",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes UX01\u2013UX14",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes P01\u2013P30",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes O01\u2013O05",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes F01\u2013F02",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes P17",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes P6",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes D15",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes D17",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes CRM",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes Tiptap",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes 33",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes unexecuted",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes all supporting",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes source-control",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes combined",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes active composition",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes manual",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes gateway",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master includes base-maia",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master full acceptance and incorporation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "master Q40 not selected",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "no next-decision ADR accepted",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical documentary groups remain 33",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical selected evidence retains date/status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical runtime proof remains zero",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "four original no-mock renderer fixtures",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 1 hash AGENTS.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 1 range/count AGENTS.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 2 hash docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 2 range/count docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 3 hash docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 3 range/count docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 4 hash openspec/specs/crm-core/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 4 range/count openspec/specs/crm-core/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 5 hash docs/ai/skills/grill-with-docs/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 5 range/count docs/ai/skills/grill-with-docs/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 6 hash docs/ai/skills/grilling/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 6 range/count docs/ai/skills/grilling/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 7 hash docs/ai/skills/domain-modeling/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 7 range/count docs/ai/skills/domain-modeling/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 8 hash docs/ai/rules/backend.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 8 range/count docs/ai/rules/backend.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 9 hash supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 9 range/count supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 10 hash packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 10 range/count packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 11 hash apps/admin/features/support-hub/components/table/cells.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 11 range/count apps/admin/features/support-hub/components/table/cells.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 12 hash apps/admin/features/support-hub/components/board/BoardCard.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 12 range/count apps/admin/features/support-hub/components/board/BoardCard.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 13 hash packages/api/src/admin/support-hub/reads/conversations.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 13 range/count packages/api/src/admin/support-hub/reads/conversations.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 14 hash packages/api/src/admin/support-hub/schemas.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 14 range/count packages/api/src/admin/support-hub/schemas.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 15 hash packages/api/src/admin/support-hub/adapter/types.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 15 range/count packages/api/src/admin/support-hub/adapter/types.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 16 hash apps/admin/features/support-hub/stores/support-store.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 16 range/count apps/admin/features/support-hub/stores/support-store.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 17 hash packages/api/src/admin/support-hub/route-helpers.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 17 range/count packages/api/src/admin/support-hub/route-helpers.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 18 hash packages/api/src/admin/support-hub/request-context.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 18 range/count packages/api/src/admin/support-hub/request-context.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 19 hash apps/admin/features/support-hub/components/detail/ConversationDetail.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 19 range/count apps/admin/features/support-hub/components/detail/ConversationDetail.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 20 hash supabase/config.toml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 20 range/count supabase/config.toml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 21 hash supabase/migrations/20260226113000_authz_memberships_foundation.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 21 range/count supabase/migrations/20260226113000_authz_memberships_foundation.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 22 hash openspec/specs/identity-and-access/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 22 range/count openspec/specs/identity-and-access/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 23 hash openspec/specs/platform-boundaries/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 23 range/count openspec/specs/platform-boundaries/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 24 hash openspec/specs/platform-principles/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 24 range/count openspec/specs/platform-principles/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 25 hash docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 25 range/count docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 26 hash docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 26 range/count docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 27 hash docs/features/support-hub/grill/phase26-d10-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 27 range/count docs/features/support-hub/grill/phase26-d10-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 28 hash docs/features/support-hub/grill/phase26-d15-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 28 range/count docs/features/support-hub/grill/phase26-d15-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 29 hash docs/features/support-hub/grill/phase26-d16-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 29 range/count docs/features/support-hub/grill/phase26-d16-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 30 hash docs/features/support-hub/grill/phase26-d17-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 30 range/count docs/features/support-hub/grill/phase26-d17-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 31 hash docs/features/support-hub/grill/phase26-d35-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 31 range/count docs/features/support-hub/grill/phase26-d35-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 32 hash docs/features/support-hub/grill/phase26-d38-full-ratification.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 32 range/count docs/features/support-hub/grill/phase26-d38-full-ratification.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 33 hash packages/ui/components/shadcn/rich-text-editor/rich-text-viewer.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 33 range/count packages/ui/components/shadcn/rich-text-editor/rich-text-viewer.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 34 hash packages/ui/components/shadcn/rich-text-editor/helpers.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 34 range/count packages/ui/components/shadcn/rich-text-editor/helpers.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 35 hash packages/ui/components/shadcn/rich-text-editor/extensions.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 35 range/count packages/ui/components/shadcn/rich-text-editor/extensions.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 36 hash packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 36 range/count packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 37 hash apps/admin/features/support-hub/components/detail/ConversationDetail.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 37 range/count apps/admin/features/support-hub/components/detail/ConversationDetail.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 38 hash apps/admin/features/support-hub/components/detail/ConversationTimeline.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 38 range/count apps/admin/features/support-hub/components/detail/ConversationTimeline.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 39 hash apps/admin/features/support-hub/components/detail/timeline/EmailMessage.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 39 range/count apps/admin/features/support-hub/components/detail/timeline/EmailMessage.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 40 hash apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 40 range/count apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 41 hash apps/admin/features/support-hub/hooks/use-support-messages.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 41 range/count apps/admin/features/support-hub/hooks/use-support-messages.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 42 hash apps/admin/features/support-hub/hooks/use-support-conversation.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 42 range/count apps/admin/features/support-hub/hooks/use-support-conversation.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 43 hash apps/admin/features/support-hub/components/table/cells.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 43 range/count apps/admin/features/support-hub/components/table/cells.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 44 hash apps/admin/features/support-hub/components/board/BoardCard.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 44 range/count apps/admin/features/support-hub/components/board/BoardCard.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 45 hash packages/ui/components.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 45 range/count packages/ui/components.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 46 hash docs/ai/skills/tiptap/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 46 range/count docs/ai/skills/tiptap/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 47 hash docs/ai/rules/frontend.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 47 range/count docs/ai/rules/frontend.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 48 hash docs/ai/skills/accessibility-review/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "source pin 48 range/count docs/ai/skills/accessibility-review/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "48 pins across 43 source paths",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical reviewed hash refers to preserved body phase26-d39-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical reviewed hash refers to preserved body phase26-d39-proof-and-operations.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical reviewed hash refers to preserved body phase26-d39-supabase-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical reviewed hash refers to preserved body phase26-d39-supabase-evidence.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical reviewed hash refers to preserved body phase26-d39-lifecycle-seam-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical reviewed hash refers to preserved body phase26-d39-reader-tiptap-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical reviewed hash refers to preserved body phase26-d39-reader-probe.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical reviewed hash refers to preserved body phase26-d39-review-corrections.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-adversarial-review.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-completion-audit.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-evidence.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-final-lifecycle-review.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-final-supabase-review.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-final-supabase-reviewed-files.json Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-final-ux-review.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-lifecycle-seam-review.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-proof-and-operations.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-reader-probe.json Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-reader-source-evidence.json Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-reader-tiptap-contract.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-review-corrections.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-selection.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-source-evidence.json Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-supabase-contract.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-supabase-evidence.json Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-ux-research.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-validation.json Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-d39-full-ratification.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-grill-log.md Core mirror",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "phase26-session-handoff.md Core mirror",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "changedOnlyByCurrentRatificationBanner": [
+    "phase26-d39-adversarial-review.md",
+    "phase26-d39-completion-audit.md",
+    "phase26-d39-evidence.md",
+    "phase26-d39-final-lifecycle-review.md",
+    "phase26-d39-final-supabase-review.md",
+    "phase26-d39-final-ux-review.md",
+    "phase26-d39-lifecycle-seam-review.md",
+    "phase26-d39-proof-and-operations.md",
+    "phase26-d39-reader-tiptap-contract.md",
+    "phase26-d39-review-corrections.md",
+    "phase26-d39-selection.md",
+    "phase26-d39-supabase-contract.md",
+    "phase26-d39-ux-research.md"
+  ],
+  "byteIdenticalOriginalEvidence": [
+    "phase26-d39-final-supabase-reviewed-files.json",
+    "phase26-d39-reader-probe.json",
+    "phase26-d39-reader-source-evidence.json",
+    "phase26-d39-source-evidence.json",
+    "phase26-d39-supabase-evidence.json",
+    "phase26-d39-validation.json"
+  ],
+  "mirrorsVerified": [
+    "phase26-d39-adversarial-review.md",
+    "phase26-d39-completion-audit.md",
+    "phase26-d39-evidence.md",
+    "phase26-d39-final-lifecycle-review.md",
+    "phase26-d39-final-supabase-review.md",
+    "phase26-d39-final-supabase-reviewed-files.json",
+    "phase26-d39-final-ux-review.md",
+    "phase26-d39-lifecycle-seam-review.md",
+    "phase26-d39-proof-and-operations.md",
+    "phase26-d39-reader-probe.json",
+    "phase26-d39-reader-source-evidence.json",
+    "phase26-d39-reader-tiptap-contract.md",
+    "phase26-d39-review-corrections.md",
+    "phase26-d39-selection.md",
+    "phase26-d39-source-evidence.json",
+    "phase26-d39-supabase-contract.md",
+    "phase26-d39-supabase-evidence.json",
+    "phase26-d39-ux-research.md",
+    "phase26-d39-validation.json",
+    "phase26-d39-full-ratification.md",
+    "phase26-grill-log.md",
+    "phase26-session-handoff.md"
+  ],
+  "incorporation": {
+    "R": 26,
+    "C": 16,
+    "L": 16,
+    "UX": 14,
+    "categories": 23,
+    "F": 2,
+    "P": 30,
+    "O": 5,
+    "lifecycleReasoningTraces": 18,
+    "lifecycleAcceptanceCases": 18,
+    "readerOutcomes": 12,
+    "glossaryTerms": 1
+  },
+  "historicalDocumentaryGroups": 33,
+  "historicalSourcePinRecords": 48,
+  "distinctSourcePaths": 43,
+  "historicalRendererFixtures": 4,
+  "runtimeProofGroupsRequired": 30,
+  "runtimeProofGroupsExecuted": 0,
+  "files": [
+    {
+      "name": "phase26-d39-adversarial-review.md",
+      "sha256": "3e7bfb72e564d679462f7d003180523e69f11339ded23662a28e7025060b209f"
+    },
+    {
+      "name": "phase26-d39-completion-audit.md",
+      "sha256": "a406245e1250550788d83744be7dafcba7d5f9855ddc05ab81157622c428faf7"
+    },
+    {
+      "name": "phase26-d39-evidence.md",
+      "sha256": "79682d2ff3c7439109b1acaa03ff7fe8f69f7863ce881438a107636301518c77"
+    },
+    {
+      "name": "phase26-d39-final-lifecycle-review.md",
+      "sha256": "6b55c0edb40d6db2f35d7db63aeae45d22b080a107c7ed2e2a2092b1c8847332"
+    },
+    {
+      "name": "phase26-d39-final-supabase-review.md",
+      "sha256": "52bd56af7f42457ed18632aabf099347f2cf58b3805d6320c4f04b12eb04fda8"
+    },
+    {
+      "name": "phase26-d39-final-supabase-reviewed-files.json",
+      "sha256": "1abcaa599a61cbed503bf65fc9c21a0952bc986f91bd8d127e275582c92e2ab0"
+    },
+    {
+      "name": "phase26-d39-final-ux-review.md",
+      "sha256": "39733d84285b3ea1572b6a28617f1a441d906925a1ef14b17199593fda3f836d"
+    },
+    {
+      "name": "phase26-d39-full-ratification.md",
+      "sha256": "dd28d1f7adce67427c5b051160b3d227f709cd19cc99fc0b980a5a8dae35297e"
+    },
+    {
+      "name": "phase26-d39-lifecycle-seam-review.md",
+      "sha256": "8a3ee32b7030bf6184110a8b542ff720d487062f1902fe80a2e2ecf58052e12d"
+    },
+    {
+      "name": "phase26-d39-proof-and-operations.md",
+      "sha256": "a866b4285155e3443b1d23ef0a298c987353cda130f12af1080aaa6bf6a347cf"
+    },
+    {
+      "name": "phase26-d39-ratification-audit.md",
+      "sha256": "cf5f8df6a9589ee184996e5186f4bbff3c41a293dc0f1bc887757a4c0027f33a"
+    },
+    {
+      "name": "phase26-d39-reader-probe.json",
+      "sha256": "4bde929dd6a05d7df282e5b30034617b5a38742103bd80e85121d30bff2f920d"
+    },
+    {
+      "name": "phase26-d39-reader-source-evidence.json",
+      "sha256": "c0835fcceb3273f517d26f649f1b9cbf692410a72b2a7d998b32b70b68ce16c7"
+    },
+    {
+      "name": "phase26-d39-reader-tiptap-contract.md",
+      "sha256": "d1639698dc3f7b779c7470db9372d929c24ebce8af5d13a4c59ce19d834e9d38"
+    },
+    {
+      "name": "phase26-d39-review-corrections.md",
+      "sha256": "38e9bceaf8724590363971e520d875d239758cae5ec74a0c5ff3ae12562c43c0"
+    },
+    {
+      "name": "phase26-d39-selection.md",
+      "sha256": "f5105ece4da8ed6f1249263236cc34957daf9959098c92b9f0e54ce4d56b0666"
+    },
+    {
+      "name": "phase26-d39-source-evidence.json",
+      "sha256": "da9475ee10f4c8a487c455c5d2db813c5a7c7d2aea7bed8717f0321f98f8cc0f"
+    },
+    {
+      "name": "phase26-d39-supabase-contract.md",
+      "sha256": "3e3964339e2d00a0a22afe9002018aa373557992c48c69d49fa78d15590c4cb1"
+    },
+    {
+      "name": "phase26-d39-supabase-evidence.json",
+      "sha256": "99f2366ee2b1c7493964caf2fd394ba11ec4712bc9cfb136a03c72f7bde9ea78"
+    },
+    {
+      "name": "phase26-d39-ux-research.md",
+      "sha256": "a50a3081f288af81a5431388eb25de553a0e4eb8a4209084d110e4f405541d33"
+    },
+    {
+      "name": "phase26-d39-validation.json",
+      "sha256": "f0aed41fc13109af34e2230dfae65f096af900f84bb4b395805e6a7e2ae1598e"
+    }
+  ]
+}

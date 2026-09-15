@@ -1,0 +1,216 @@
+{
+  "status": "passed",
+  "kind": "Synthetic reference facts and current source observations only",
+  "count": 29,
+  "cases": [
+    {
+      "name": "leading-zero text remains text",
+      "observed": "000123",
+      "expected": "000123",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "intentionally stale cache remains original saved value",
+      "observed": "42",
+      "expected": "42",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "formula source and cache are different facts",
+      "observed": "1+1",
+      "expected": "1+1",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "missing cached value is absent rather than zero",
+      "observed": true,
+      "expected": true,
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "large numeric raw value retains lexical precision",
+      "observed": "12345678901234567890",
+      "expected": "12345678901234567890",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "sparse dimension not equal populated cell count",
+      "observed": 6,
+      "expected": 6,
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "huge dimension is explicitly declared metadata",
+      "observed": "A1:XFD1048576",
+      "expected": "A1:XFD1048576",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "hidden row omitted with source coordinates preserved",
+      "observed": ["A1", "B1", "C1", "D1", "E1"],
+      "expected": ["A1", "B1", "C1", "D1", "E1"],
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "saved pivot-like result remains ordinary visible cell",
+      "observed": "7",
+      "expected": "7",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "date-system flag stays a distinct source fact",
+      "observed": "1",
+      "expected": "1",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "total-sheet parser budget includes hidden sheets",
+      "observed": 2,
+      "expected": 2,
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "visible-sheet projection excludes hidden sheet",
+      "observed": ["Shown"],
+      "expected": ["Shown"],
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "CSV leading zeros not coerced",
+      "observed": "00012",
+      "expected": "00012",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "CSV quoted newline remains one field",
+      "observed": "line1\nline2",
+      "expected": "line1\nline2",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "CSV formula-looking field remains literal",
+      "observed": "=1+1",
+      "expected": "=1+1",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "CSV trailing empty field preserved",
+      "observed": "",
+      "expected": "",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "CSV first record retained",
+      "observed": ["name", "value", "note"],
+      "expected": ["name", "value", "note"],
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "explicit semicolon input option differs from comma",
+      "observed": ["a", "b", "c"],
+      "expected": ["a", "b", "c"],
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "explicit comma does not silently detect semicolon",
+      "observed": ["a;b;c"],
+      "expected": ["a;b;c"],
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "UTF8 BOM decoder preserves international text",
+      "observed": "ชื่อ",
+      "expected": "ชื่อ",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "UTF16 BOM decoder preserves international text",
+      "observed": "مرحبا",
+      "expected": "مرحبا",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "invalid UTF8 is not silently replaced",
+      "observed": true,
+      "expected": true,
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "HTML-like source is escaped text",
+      "observed": "&lt;img src=x onerror=alert(1)&gt;",
+      "expected": "&lt;img src=x onerror=alert(1)&gt;",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "cumulative expanded bytes exceed compressed transport",
+      "observed": true,
+      "expected": true,
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "external reference is present as data, never fetched",
+      "observed": true,
+      "expected": true,
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "reading metadata/projection does not alter original package digest",
+      "observed": "98a0b1900714809bd2de671fd17090a5e8602ea57dbfb6a72b9cbdca4e854fe1",
+      "expected": "98a0b1900714809bd2de671fd17090a5e8602ea57dbfb6a72b9cbdca4e854fe1",
+      "kind": "synthetic representation fact",
+      "passed": true
+    },
+    {
+      "name": "actual attachment schema includes nullable URL",
+      "observed": true,
+      "expected": true,
+      "kind": "actual source observation",
+      "passed": true
+    },
+    {
+      "name": "actual attachment schema already has same-tenant parent FK",
+      "observed": true,
+      "expected": true,
+      "kind": "actual source observation",
+      "passed": true
+    },
+    {
+      "name": "actual email-assets bucket explicitly public",
+      "observed": true,
+      "expected": true,
+      "kind": "actual source observation",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "No actual DOCX/PPTX conversion, XLSX product parser, PDF/image rendering or malware execution",
+    "No actual SQL/RLS/storage/range/browser/AT/concurrency/worker qualification",
+    "No verification of arbitrary workbook cache freshness",
+    "No external file upload, network fetch or source-content mutation"
+  ]
+}

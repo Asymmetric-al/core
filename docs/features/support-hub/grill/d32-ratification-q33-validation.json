@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "date": "2026-09-13",
+  "ratified": "D1-D32 including all amendments",
+  "D32": {
+    "clauses": 28,
+    "categories": 23,
+    "requiredUnexecutedReleaseGroups": 40,
+    "operatingControls": 6,
+    "terms": 3,
+    "primaryDocs": 7,
+    "originalSubstancePreserved": true,
+    "fullAppendix": true,
+    "EmailStudioSeam": "fully ratified; no preview preparation/send/public asset or official issuance",
+    "independentRatificationReview": "Pass"
+  },
+  "Q33": {
+    "status": "unanswered",
+    "options": [
+      "A compact reading with easy expansion",
+      "B full messages by default",
+      "C personal Compact or Full default"
+    ],
+    "recommendation": "A",
+    "independentFinalReview": "Pass",
+    "featureADR0033Created": false
+  },
+  "sourceFiles": 16,
+  "uniqueGitSources": 9,
+  "gitSourceLinkInstances": 20,
+  "questionLocalLinks": 35,
+  "planningPRs": 5,
+  "priorFilesPreserved": 477,
+  "originalD32EvidenceFilesPreserved": 9,
+  "mirrorFilesIncludingRegistryAndValidation": 17,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnly": true,
+  "runtimeProof": "not executed"
+}

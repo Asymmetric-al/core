@@ -1,0 +1,62 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "headAndOriginDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "relatedPRs": [
+    {
+      "number": 1335,
+      "state": "OPEN",
+      "head": "e1c86e1a30f479363960eeb35500112665e16bb3"
+    },
+    {
+      "number": 1336,
+      "state": "OPEN",
+      "head": "3b2827ffcf184bf767664018efedda317c7da03c"
+    },
+    {
+      "number": 1564,
+      "state": "OPEN",
+      "head": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1"
+    }
+  ],
+  "sourceHashes": [
+    {
+      "path": "apps/admin/app/(app)/crm/detail-drawer.tsx",
+      "sha256": "e37d9cb41ec5f1a99af106a76fc9f4236944aaa94cb1e91c9674ea1e2b32c042"
+    },
+    {
+      "path": "docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "sha256": "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md",
+      "sha256": "82463b0ce3c42894c01f3542e70db175d13de583246c4228903d47d7e331cc66"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "path": "packages/api/src/admin/crm/detail/service.ts",
+      "sha256": "488887537732e4383b9176e1034fdc53e6bd20f294cee97f1ab90e24595e6810"
+    },
+    {
+      "path": "packages/api/src/admin/crm/notes/service.ts",
+      "sha256": "29ab4788db52f87ed599b95400ca51d3d2bcf5a76c167bb72a0af3d2f5d66273"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "sha256": "c209deb5a02bb49a788d2bad6a56b528ebc1c3f52bd27c9834815f01b5615682"
+    },
+    {
+      "path": "packages/api/src/missionary-portal/donor.ts",
+      "sha256": "0f406f4e82be81ca9ae28559dd5351880dbda928f36a99cb9b5d5a9c331aa1ef"
+    }
+  ],
+  "stage": "D1-D25 fully ratified; Q26 unanswered",
+  "limits": "Current source and primary documentation inspected. No runtime/DB/provider/browser or staff usability proof for the unanswered choice."
+}

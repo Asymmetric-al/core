@@ -1,0 +1,180 @@
+{
+  "status": "passed",
+  "date": "2026-09-14",
+  "checksPassed": 41,
+  "checks": [
+    {
+      "check": "26 exact unique clauses",
+      "passed": true
+    },
+    {
+      "check": "23 explicit categories",
+      "passed": true
+    },
+    {
+      "check": "every category concern disposition",
+      "passed": true
+    },
+    {
+      "check": "30 actual release groups",
+      "passed": true
+    },
+    {
+      "check": "five operating controls",
+      "passed": true
+    },
+    {
+      "check": "all26clauses map to release proof",
+      "passed": true
+    },
+    {
+      "check": "selected intent not silent ratification",
+      "passed": true
+    },
+    {
+      "check": "all runtime groups unexecuted",
+      "passed": true
+    },
+    {
+      "check": "F01 semantic comparison",
+      "passed": true
+    },
+    {
+      "check": "F02 accessible bounded excerpt",
+      "passed": true
+    },
+    {
+      "check": "F03 caret text consistency",
+      "passed": true
+    },
+    {
+      "check": "inert quote tokens and actual compiler requirement",
+      "passed": true
+    },
+    {
+      "check": "independent evidence native clock distinction",
+      "passed": true
+    },
+    {
+      "check": "source-authorized external recipients",
+      "passed": true
+    },
+    {
+      "check": "one complete P17/P6 boundary",
+      "passed": true
+    },
+    {
+      "check": "new scoped ADR exists",
+      "passed": true
+    },
+    {
+      "check": "two scoped glossary definitions",
+      "passed": true
+    },
+    {
+      "check": "glossary meaning rather than implementation",
+      "passed": true
+    },
+    {
+      "check": "earlier source/evidence preserved",
+      "passed": true
+    },
+    {
+      "check": "Q36 answered notice",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.md current selected scope",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.md current selected scope",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.md prior body preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.md prior body preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-q36-outgoing-email-context.md prior body preserved",
+      "passed": true
+    },
+    {
+      "check": "prior glossary bytes preserved",
+      "passed": true
+    },
+    {
+      "check": "18actualsourcefiles",
+      "passed": true
+    },
+    {
+      "check": "source hashes and bounds",
+      "passed": true
+    },
+    {
+      "check": "13prioracceptedsourcehashes",
+      "passed": true
+    },
+    {
+      "check": "five open livePRrecords",
+      "passed": true
+    },
+    {
+      "check": "HEAD retained",
+      "passed": true
+    },
+    {
+      "check": "tracked source diff remains only existing contextmap",
+      "passed": true
+    },
+    {
+      "check": "four synthetic actualsource counterexample assertions",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-final-data-review.md final pass",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-final-editor-review.md final pass",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-final-ux-review.md final pass",
+      "passed": true
+    },
+    {
+      "check": "allnewlocallinksresolve",
+      "passed": true
+    },
+    {
+      "check": "allresultmirrorsbyteidentical",
+      "passed": true
+    },
+    {
+      "check": "no next ADR opened",
+      "passed": true
+    },
+    {
+      "check": "scopedPrettierpass",
+      "passed": true
+    },
+    {
+      "check": "trackedwhitespacepass",
+      "passed": true
+    }
+  ],
+  "d36": "A selected; complete amendments proposed",
+  "q37": "not opened",
+  "mirrorsBeforeValidationArtifact": 18,
+  "sourceFiles": 18,
+  "priorRatifiedSources": 13,
+  "actualSerializerCounterexampleAssertions": 4,
+  "runtimeReleaseGroupsExecuted": 0,
+  "runtimeReleaseGroupsRequired": 30,
+  "realMessagesSent": false
+}

@@ -1,0 +1,21 @@
+{
+  "reviewedAt": "2026-09-12",
+  "sourcePath": "packages/api/src/admin/support-hub/mutations/run-macro.ts",
+  "sourceSha256": "2b2356c639b4916ac6787705b8b0eb72120e07b4aa95c107a9cc0eea9191c4c4",
+  "method": "Executed unchanged current TypeScript runner except replacing its adapter import with isolated in-memory synthetic fixture; transpiled with installed Bun.Transpiler. No network, database, actual messages or domain effects.",
+  "cases": [
+    {
+      "name": "Earlier work remains and later work executes after middle failure",
+      "events": ["status:resolved", "assignment:failed", "label:add"],
+      "ok": false,
+      "statuses": ["ok", "failed", "ok"]
+    },
+    {
+      "name": "Only skipped actions report overall ok",
+      "events": [],
+      "ok": true,
+      "statuses": ["skipped", "skipped"]
+    }
+  ],
+  "limitation": "These cases establish current runner control flow under mocked adapter results. They do not prove deployed route authorization, database rollback, proposed atomic admission, email dispatch or UI behavior. All proposed D24 release proof remains unexecuted."
+}

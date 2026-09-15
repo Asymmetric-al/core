@@ -1,0 +1,219 @@
+{
+  "date": "2026-09-15",
+  "checkedAtUtc": "2026-09-15T07:45:16.266412+00:00",
+  "pass": true,
+  "stage": "D40 B selected; detailed amendments proposed; D1-D39 ratified; no Q41",
+  "evidenceClass": "Documentary/source verification only",
+  "checks": [
+    {
+      "name": "phase26-d40-adversarial-review.md ordered IDs",
+      "pass": true,
+      "detail": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25, 26, 27, 28, 29, 30
+      ]
+    },
+    {
+      "name": "phase26-d40-adversarial-review.md ordered IDs",
+      "pass": true,
+      "detail": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23
+      ]
+    },
+    {
+      "name": "phase26-d40-proof-and-operations.md ordered IDs",
+      "pass": true,
+      "detail": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38,
+        39, 40
+      ]
+    },
+    {
+      "name": "phase26-d40-proof-and-operations.md ordered IDs",
+      "pass": true,
+      "detail": [1, 2, 3, 4, 5, 6]
+    },
+    {
+      "name": "phase26-d40-data-contract.md ordered IDs",
+      "pass": true,
+      "detail": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+    },
+    {
+      "name": "phase26-d40-lifecycle-seam-review.md ordered IDs",
+      "pass": true,
+      "detail": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "phase26-d40-ux-blueprint.md ordered IDs",
+      "pass": true,
+      "detail": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    },
+    {
+      "name": "phase26-d40-review-corrections.md ordered IDs",
+      "pass": true,
+      "detail": [1, 2, 3, 4]
+    },
+    {
+      "name": "Prior accepted records preserved",
+      "pass": true,
+      "detail": {
+        "baseline": 1380,
+        "unchanged": 1371,
+        "authorizedChanged": 9,
+        "unexpected": []
+      }
+    },
+    {
+      "name": "phase26-grill-log.md preserves historical body",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-grill-log.md current mirror",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-session-handoff.md preserves historical body",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-session-handoff.md current mirror",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-q40-unwanted-correspondence.md preserves historical body",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-q40-unwanted-correspondence.md current mirror",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-q40-clarification.md preserves historical body",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-q40-clarification.md current mirror",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Only two conceptual glossary terms appended",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "No Q41 artifact",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Fresh HEAD PR snapshot and unchanged source status",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Data lifecycle and UI source pins/ranges",
+      "pass": true,
+      "detail": {
+        "records": 59,
+        "uniqueFiles": 57,
+        "UIpins": 5,
+        "failed": []
+      }
+    },
+    {
+      "name": "Actual six unchanged helper observations retained",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Independent final reviewed hashes match",
+      "pass": true,
+      "detail": [
+        {
+          "review": "data",
+          "pass": true,
+          "count": 9,
+          "failed": []
+        },
+        {
+          "review": "phase26-d40-final-lifecycle-review.md",
+          "pass": true,
+          "count": 8,
+          "failed": []
+        },
+        {
+          "review": "phase26-d40-final-ux-review.md",
+          "pass": true,
+          "count": 8,
+          "failed": []
+        }
+      ]
+    },
+    {
+      "name": "Every category explicitly addresses material concern and exact change",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Four independent actions and backlog consequences",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "F01-F04 and mixed component projection exact",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Email Studio and prior owners explicit",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Runtime and empirical proof not claimed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Exploratory ADR0040 selected B proposed only",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "All D40 mirrors equal",
+      "pass": true,
+      "detail": 18
+    },
+    {
+      "name": "Local artifact links resolve",
+      "pass": true,
+      "detail": {
+        "count": 107,
+        "missing": []
+      }
+    }
+  ],
+  "totals": {
+    "groups": 31,
+    "passed": 31,
+    "baselineFiles": 1380,
+    "unchangedBaseline": 1371,
+    "authorizedChanged": 9,
+    "pinRecords": 59,
+    "uniquePinnedFiles": 57,
+    "currentArtifactsExcludingValidation": 18,
+    "actualHelperObservations": 6,
+    "runtimeGroupsExecuted": 0,
+    "runtimeGroupsRequired": 40
+  }
+}

@@ -1,0 +1,240 @@
+{
+  "date": "2026-09-13",
+  "cwd": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "scope": "Read-only source and accepted-session provenance. Planning-tree objects are not implemented runtime. No DB query, provider call, migration or synthetic runtime test.",
+  "gitSources": [
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/project.md",
+      "bytes": 4255,
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-surfaces/spec.md",
+      "bytes": 11085,
+      "sha256": "2f9cae0d5073464717d0888c5efc82ec4a04d56fc54d2c4d3c0310e3201ebf73"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "bytes": 7239,
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "bytes": 313201,
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/context.ts",
+      "bytes": 1834,
+      "sha256": "80efa2687d8ceac8a092921e8ef410567bbfd1998461288cd4217edf1bb4d375"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/reader.ts",
+      "bytes": 5137,
+      "sha256": "236d680029954d6ee0bca1286f613f26956a463f463296c81991554f579dba66"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/published-content-reader.ts",
+      "bytes": 9209,
+      "sha256": "479ccc0560345b0e9809632881cc0d12be392e7ede1249f5f401c16ed915a096"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/resolve-tenant.ts",
+      "bytes": 4880,
+      "sha256": "02862dc987ae47e4bd89b94c9f8932b568e8ab6ccd75d880ebe0922be846447b"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/route-helpers.ts",
+      "bytes": 1125,
+      "sha256": "dac77538b0aaf1b5df57a92e1880e854d63c934c67c8bbe310ed1153a4a34956"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/lib/cms/client.ts",
+      "bytes": 8089,
+      "sha256": "3a277bef352e8bf133ac0486baa5843ffcb5c1e1895ae4972c3d3bbf8749f828"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/app/(public)/(hero)/faq/faq-client.tsx",
+      "bytes": 16820,
+      "sha256": "4bbcdfca7813a555b29e4c94852a481b00e74fa40a01e6e0ffdd33ac6bb329aa"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/donor-portal/route-helpers.ts",
+      "bytes": 1046,
+      "sha256": "a3459a57d9c676caae1517160beeb6f63ae011520ea34d180e48440a7ec4a4b4"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "bytes": 8648,
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "bytes": 4241,
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/inbound-router.ts",
+      "bytes": 4229,
+      "sha256": "6bb9db43d29a459009939308d0a573a35f4dc1239e2065a0f7d564dd641d629f"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "bytes": 31417,
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0158-versioned-dynamic-source-catalog-and-content-list.md",
+      "bytes": 11526,
+      "sha256": "c9b3ddd6c3324e60707df93cef9514d95ec13cd4b63dadfdfa95d7bbaa6b7b4b"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0159-three-bounded-content-list-curation-strategies.md",
+      "bytes": 9942,
+      "sha256": "976158ec4270e4446827c9bed6240e044591dccb6c72b68d15e89ca3a3d58135"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0161-derived-public-site-search-projection-and-adverse-first-convergence.md",
+      "bytes": 11437,
+      "sha256": "f31ec862abd7fd47efcfd940b25675ca9e4330c97104c7440cf43c64b7f4f7d2"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0168-one-exact-public-audience-and-app-owned-authenticated-surfaces.md",
+      "bytes": 12282,
+      "sha256": "4454ed8790b9a47d744894b31a6b13624454a0a2805fbd397106bcb9a3df60a6"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0170-purpose-bounded-public-form-definitions-and-domain-owned-routing.md",
+      "bytes": 19189,
+      "sha256": "382f219e563c038c3b592ccb2b992e86c9bba5fbf8b4236e11ca4865b028d442"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0172-versioned-site-search-sharing-profile-and-d1-compiler-ownership.md",
+      "bytes": 27100,
+      "sha256": "fcb5ab82665f22a607c1b4e7a3346fee39e54e47dfff59dfcc2aa80ad322b860"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "bytes": 85561,
+      "sha256": "b1918986b7508f03e5d9bcf1b743f005574f20ec7c9b2f965f96f520d77bcecf"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/prds/sitestacker-parity/phase-23-web-studio-cms.md",
+      "bytes": 64638,
+      "sha256": "33237425979848223ab3a05048dca0466110f6bebd17133b3d199281e78dc96c"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/prds/sitestacker-parity/research/phase-23-d26-public-form-definitions-and-routing-decision-brief.md",
+      "bytes": 45516,
+      "sha256": "65b333b25b291d5c9c1e4f960cb06e5c2a7c8ef25ead8e1554323770803ead66"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/prds/sitestacker-parity/research/phase-23-d26-public-forms-adversarial-review.md",
+      "bytes": 33925,
+      "sha256": "bbea3540e7ffb5d4dedb85680c7498a012560d4a59a3920f7d7311864410a9fb"
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/prds/sitestacker-parity/phase-24-multi-site-management.md",
+      "bytes": 58751,
+      "sha256": "60ecf01f9f8bdfbac23e9b692864c163598f2be10d5d1c01e2859bc13c55e9f6"
+    },
+    {
+      "ref": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "path": "docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth.md",
+      "bytes": 57456,
+      "sha256": "9fe683de186f769403e51b8f312900c5a48447281c20eb6072134ec64730b47b"
+    },
+    {
+      "ref": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "path": "docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/contracts/experience.md",
+      "bytes": 72978,
+      "sha256": "f4716bff1817481b0455584f821921d2b266bdb529b795cfe696e16d658af911"
+    }
+  ],
+  "acceptedSessionSources": [
+    {
+      "path": "outputs/phase26-d1-adversarial-review.md",
+      "bytes": 54177,
+      "sha256": "4654c2e7ad232bdd775395ead61bbacac1942e7ce3e05f1d4cbc7654944cee2f"
+    },
+    {
+      "path": "outputs/phase26-d9-adversarial-review.md",
+      "bytes": 72653,
+      "sha256": "2b115c00c70a052652856e98c3806e25987dd42449287e615d3e3f63cf197a2f"
+    },
+    {
+      "path": "outputs/phase26-d13-adversarial-review.md",
+      "bytes": 76631,
+      "sha256": "4950cca55f74614c9022ece2981343695ba69e5a6847fb6ae76cbf636752bfb6"
+    },
+    {
+      "path": "outputs/phase26-d14-adversarial-review.md",
+      "bytes": 87323,
+      "sha256": "8da8039edba331e3890d4eeb5c75e0c944bd338a6322f5db47776352099f761a"
+    },
+    {
+      "path": "outputs/phase26-d17-adversarial-review.md",
+      "bytes": 73144,
+      "sha256": "af3a54ab11c3aac719ccb9bb1f29e3d5d12fb4489749c6b90671b99562d5cd6c"
+    },
+    {
+      "path": "outputs/phase26-d19-adversarial-review.md",
+      "bytes": 76508,
+      "sha256": "9f58410e7bc5dcbbf120b47c261e27aaa5dbbd6921dcede253b59c2b9e5a57a3"
+    },
+    {
+      "path": "outputs/phase26-d25-adversarial-review.md",
+      "bytes": 70872,
+      "sha256": "6f26099cda52ad9bb59521f4dbae2253bd1eafd83b462ff48b03e5e49b8e9e3d"
+    },
+    {
+      "path": "outputs/phase26-d26-adversarial-review.md",
+      "bytes": 69638,
+      "sha256": "8a28532b1fa59aee76d6d2cf2f6a26ba614ca8338ad996de24d2133cfa1c0e2e"
+    },
+    {
+      "path": "outputs/phase26-d27c-adversarial-review.md",
+      "bytes": 66651,
+      "sha256": "40153084546604fbc5644f17b8d0f51d881cc9dbc3bce97d1917a4b4160e023f"
+    },
+    {
+      "path": "outputs/phase26-d28-adversarial-review.md",
+      "bytes": 70103,
+      "sha256": "5563383b0a14e3090b947f50d3cd88ee0d8aa4bf5c596c5f4eaa6cda4c28eb13"
+    }
+  ],
+  "externalPrimaryDocs": [
+    "https://supabase.com/changelog.md",
+    "https://supabase.com/docs/guides/database/postgres/row-level-security",
+    "https://www.postgresql.org/docs/17/sql-createpolicy.html"
+  ],
+  "externalReadNote": "web open rejected markdown content type for changelog; PowerShell HTTPS GET succeeded, saved to work/d29-supabase-changelog.md. No affected adapter/version change is proposed."
+}

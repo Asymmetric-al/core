@@ -1,0 +1,932 @@
+{
+  "status": "passed",
+  "scope": "Synthetic reference predicates and enumerated transaction orders; no product runtime/DB/RLS/provider/browser or actual donor data",
+  "checks": [
+    {
+      "name": "percentage_boundary_0",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 0,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_1",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 100,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_2",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 200,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_3",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 300,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_4",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 400,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_5",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 500,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_6",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 600,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_7",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 700,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_8",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 800,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_9",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 900,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_10",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 1000,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_11",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 1100,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_12",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 1200,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_13",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 1300,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_14",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 1400,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_15",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 1500,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_16",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 1600,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_17",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 1700,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_18",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 1800,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_19",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 1900,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_20",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 2000,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_21",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 2100,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_22",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 2200,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_23",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 2300,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_24",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 2400,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_25",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 2500,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_26",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 2600,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_27",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 2700,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_28",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 2800,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_29",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 2900,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_30",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 3000,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_31",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 3100,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_32",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 3200,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_33",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 3300,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_34",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 3400,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_35",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 3500,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_36",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 3600,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_37",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 3700,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_38",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 3800,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_39",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 3900,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_40",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 4000,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_41",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 4100,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_42",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 4200,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_43",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 4300,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_44",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 4400,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_45",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 4500,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_46",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 4600,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_47",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 4700,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_48",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 4800,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_49",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 4900,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_50",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 5000,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_51",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 5100,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_52",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 5200,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_53",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 5300,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_54",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 5400,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_55",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 5500,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_56",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 5600,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_57",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 5700,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_58",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 5800,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_59",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 5900,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_60",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 6000,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_61",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 6100,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_62",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 6200,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_63",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 6300,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_64",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 6400,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_65",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 6500,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_66",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 6600,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_67",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 6700,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_68",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 6800,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_69",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 6900,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_70",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 7000,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_71",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 7100,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_72",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 7200,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_73",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 7300,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_74",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 7400,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_75",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 7500,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_76",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 7600,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_77",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 7700,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_78",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 7800,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_79",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 7900,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_80",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 8000,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_81",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 8100,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_82",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 8200,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_83",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 8300,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_84",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 8400,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_85",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 8500,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_86",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 8600,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_87",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 8700,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_88",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 8800,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_89",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 8900,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_90",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 9000,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_91",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 9100,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_92",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 9200,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_93",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 9300,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_94",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 9400,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_95",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 9500,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_96",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 9600,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_97",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 9700,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_98",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 9800,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_99",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 9900,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "percentage_boundary_100",
+      "passed": true,
+      "evidence": {
+        "selectedDraws": 10000,
+        "allDraws": 10000
+      }
+    },
+    {
+      "name": "retry_and_policy_change_do_not_reroll",
+      "passed": true,
+      "evidence": [25, 2700, false]
+    },
+    {
+      "name": "first_score_boundary_inclusive_exclusive",
+      "passed": true,
+      "evidence": {
+        "selectedMax": 2499,
+        "excludedMin": 2500
+      }
+    },
+    {
+      "name": "cooldown_exact_elapsed_boundary",
+      "passed": true,
+      "evidence": {
+        "gapSeconds": 2592000
+      }
+    },
+    {
+      "name": "serialized_endpoint_guard_ab",
+      "passed": true,
+      "evidence": ["a"]
+    },
+    {
+      "name": "serialized_endpoint_guard_ba",
+      "passed": true,
+      "evidence": ["b"]
+    },
+    {
+      "name": "negative_control_preview_only_guard_fails",
+      "passed": true,
+      "evidence": "Both workers read old state before either commits; database serialization is required."
+    },
+    {
+      "name": "off_before_submission_cancels",
+      "passed": true,
+      "evidence": "No external submission may start."
+    },
+    {
+      "name": "off_after_possible_submission_reconciles",
+      "passed": true,
+      "evidence": "Never assert recall or create a new effect."
+    },
+    {
+      "name": "merge_two_pending_deterministic",
+      "passed": true,
+      "evidence": "Real implementation also locks current D10 topology."
+    },
+    {
+      "name": "merge_prior_possible_suppresses_pending",
+      "passed": true,
+      "evidence": "Preserve historical original IDs."
+    },
+    {
+      "name": "merge_two_possible_preserves_history",
+      "passed": true,
+      "evidence": "Model never rewrites past provider outcomes."
+    },
+    {
+      "name": "merge_not_selected_is_not_another_chance",
+      "passed": true,
+      "evidence": "Any original decision in the current component blocks an additional draw, including Not selected."
+    },
+    {
+      "name": "merge_unsampled_has_one_representative",
+      "passed": true,
+      "evidence": "Representative order here uses stable IDs; real contract orders completion then ID under topology lock."
+    },
+    {
+      "name": "unknown_history_has_bounded_contact_guard",
+      "passed": true,
+      "evidence": "Unknown outcome may remain; a proved closed future-crossing window plus full gap permits different genuine work."
+    },
+    {
+      "name": "preference_outlives_credential",
+      "passed": true,
+      "evidence": "Credential expiry never clears the separate owner preference."
+    },
+    {
+      "name": "single_response_retry_conflict",
+      "passed": true,
+      "evidence": "One logical response, no Used-action replay with a different score."
+    },
+    {
+      "name": "synthetic_mean_sanity",
+      "passed": true,
+      "evidence": {
+        "syntheticTrials": 10000,
+        "eligibleOpportunitiesPerTrial": 20,
+        "configuredPercent": 25,
+        "observedMeanSelected": 4.9962,
+        "expectedSelected": 5,
+        "probabilityNoSelectionsExact": 0.0031712119389339932,
+        "probabilityNoResponsesAssumingIndependent20PercentResponse": 0.3584859224085419,
+        "hypotheticalResponseRateIsNotAnEmpiricalEstimate": true,
+        "frequentMailboxChanceAtLeastOneSelectionAcross10OpportunitiesWithoutCooldown": 0.9436864852905273
+      }
+    }
+  ],
+  "checkCount": 118,
+  "samplingIllustration": {
+    "syntheticTrials": 10000,
+    "eligibleOpportunitiesPerTrial": 20,
+    "configuredPercent": 25,
+    "observedMeanSelected": 4.9962,
+    "expectedSelected": 5,
+    "probabilityNoSelectionsExact": 0.0031712119389339932,
+    "probabilityNoResponsesAssumingIndependent20PercentResponse": 0.3584859224085419,
+    "hypotheticalResponseRateIsNotAnEmpiricalEstimate": true,
+    "frequentMailboxChanceAtLeastOneSelectionAcross10OpportunitiesWithoutCooldown": 0.9436864852905273
+  },
+  "limits": [
+    "A lock modeled by serial order does not prove PostgreSQL locking or isolation correctness.",
+    "The sample mean does not validate production cryptographic randomness.",
+    "The hypothetical20% response rate is only arithmetic and no donor-care norm.",
+    "No production performance/consent/privacy validation was run."
+  ]
+}

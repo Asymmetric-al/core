@@ -1,0 +1,57 @@
+# Q25: Which email setup path should Asym lead with?
+
+**Historical Q25 evidence: the founder selected and fully ratified C and all D25 amendments on 12 September 2026.** Earlier unanswered/recommendation/no-ADR text records the question stage only. [Complete ratified D25](phase26-d25-adversarial-review.md) and [Email Studio seam](phase26-d25-email-studio-integration.md) govern current acceptance.
+
+**D1–D24 and every adopted amendment are fully founder-ratified. Q25 is unanswered.** This question chooses the normal first-inbox setup journey. Forwarding and dedicated receiving are already within Phase26's scope; this is not a new provider choice, channel expansion or permission to change live email routing.
+
+## Practical context
+
+Imagine Maya manages donor care at Harbor Mission, an illustrative tenant. Donors and churches already write to `donorcare@harbor.example`, handled in the organization's current email service. Maya is now setting up Support Hub. Asym can lead with keeping that address and guiding its qualified forwarding into Support, or lead with a new dedicated address such as `care@support.harbor.example`. It can also show both paths equally without recommending one.
+
+Preserving an established address avoids changing published contact details and requester habits. A dedicated address can suit a new program or an existing mailbox that mixes unrelated work. Neither route removes the need to qualify sending, receiving, tenant routing and the staff transition. Not every tenant has an appropriate existing address; no personal employee mailbox or confidential mixed-use inbox should be presumed suitable.
+
+## Actual options
+
+| Option                                           | First setup experience                                                                                                                                                                                                | Benefit                                                                                     | Tradeoff                                                                                                                                          |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A — Keep an existing Support address first**   | Start with the address the team already gives requesters, then guide verified forwarding into the qualified tenant receiving route. Keep a clear new-address route for fresh starts or unsuitable existing mailboxes. | Preserves the address and minimizes requester-facing migration where one already exists.    | Depends on the existing mail service's forwarding policies and needs a clear transition to handling replies in Support Hub.                       |
+| **B — Create a dedicated Support address first** | Lead with a new purpose-specific address on a qualified receiving domain/subdomain. Existing-address forwarding remains available.                                                                                    | Suits new programs and provides clear intake separation with fewer forwarding dependencies. | Established teams must publicize a new address or keep forwarding anyway; domain and sender setup still need qualification.                       |
+| **C — Present both paths equally**               | Show plain-language Use an existing address and Create a dedicated address choices, with the benefits explained and neither preselected.                                                                              | Respects different starting situations without presuming one is typical.                    | Adds an upfront decision for administrators who could follow a sensible contextual recommendation; does not reduce verification or recovery work. |
+
+These are alternative onboarding priorities over the same already-scoped receiving capabilities. They are not three modes to build, and none introduces Gmail/Microsoft mailbox synchronization, history import, OAuth sending or a multi-provider mail platform.
+
+## Single recommendation: C — Present both paths equally
+
+On reconsideration, recommend **C**, expressed as one plain-language first step: **Use an existing Support address** or **Create a new Support address**. Then show only the relevant guided setup path. The administrator chooses a familiar starting situation; they do not need to choose between forwarding protocols, MX records or email-provider architecture.
+
+The initial A recommendation prioritized continuity when a suitable address exists. That conditional benefit remains true, but the evidence does not establish how often each starting situation occurs across Asym tenants. An equally clear initial choice accommodates established donor-care teams, new programs and mailboxes that must remain separate, with one small selection. No default is needed to preserve an existing address when the administrator chooses that route.
+
+A remains strongest when an appropriate existing address is already known; B remains strongest when a new dedicated program is already known. C is the best general onboarding recommendation with the evidence available. This is a revised product judgment, not a new finding that either technical receiving method is superior, and no measured conversion/usability advantage is claimed. Both paths were already scoped. [Initial recommendation and evidence preserved](phase26-q25-initial-recommendation.md).
+
+[Zendesk's support-address management](https://support.zendesk.com/hc/en-us/articles/4408842868506-Adding-support-email-addresses-for-users-to-submit-tickets) documents explicit existing-external and new-address options. [Resend's custom receiving documentation](https://resend.com/docs/dashboard/receiving/custom-domains) supports forwarding and dedicated subdomains while preserving existing ordinary mail service. These establish credible routes; they do not prove C's usability or authorize copying either vendor's account/brand/provider model.
+
+## What this recommendation would require from the journey
+
+The first step presents the two plain-language address choices equally and routes into only the selected guide. The entry is contextual Support inbox setup, with clear navigation into current integration/domain administration when needed and preserved return context. Do not duplicate credentials, sender controls or provider truth inside a new wizard. The current source tells staff without an inbox to go to Mission Control integrations; that link alone does not establish a complete setup experience.
+
+Explain the public address, incoming route and approved outgoing identity separately. **Can send** is not **Can receive**, and a verified DNS record is not proof that a message reaches the intended tenant inbox. A future activation journey must surface current, independently evidenced readiness and actionable repair. Owner permissions can divide work between a Support administrator and an email/domain administrator without granting either unrestricted credentials or donor/care access.
+
+Keeping an address means forwarding its eligible incoming mail into the qualified route. It does not imply that replies sent in Gmail/Outlook are synchronized into Support. The setup should clearly establish where staff handle new Support work, preserve the original provider's independent copies under its own custody, and avoid claiming Asym can diagnose mail it never received. Filters, spam handling and external forwarding policy can prevent arrival upstream. Gmail documents that its ordinary automatic forwarding excludes spam; Microsoft documents that external forwarding can be blocked by interacting policies. [Google](https://support.google.com/mail/answer/10957), [Microsoft](https://learn.microsoft.com/en-us/defender-office-365/outbound-spam-policies-external-email-forwarding).
+
+The dedicated path uses an appropriately qualified address/domain or subdomain. It must not tell an organization to replace or casually add competing root MX records for its existing everyday mailbox service. A provider-managed receiving address may be technical evidence, but this question does not authorize exposing it as a public tenant address or creating a shared platform fallback. Domain verification, receiving ownership and exact tenant routing remain actual owner proofs.
+
+Setup verification must use its qualified owner-controlled verification flow. It is not a request to send tests now, an arbitrary rich email template, a shortcut, a CRM interaction or a new donor conversation. D13 acknowledgement and D19 intake-review coverage remain accepted dependencies; this question does not ask them again. Exact verification challenges, route cardinality, change/reconnect/deactivation behavior and operational acceptance criteria are investigated through the selected answer's review, rather than silently frozen in this unanswered question.
+
+## Email Studio and other settled boundaries
+
+- Email Studio/P17 owns actual reply wording, signatures/presentation and preparation, including D18/D23/D24 source roles. It does not own DNS, mailboxes, forwarding rules, recipient routing or provider credentials.
+- Support owns its qualified inbox/work routing and human admission. P6 owns the tenant Resend connection and actual outbound provider evidence. The mandatory Resend inbound qualification remains a technical proof obligation, not a founder popularity vote about providers.
+- Sender/Reply identity, receiving address, inbox name, responsible team and CRM owner are distinct. Address verification is not requester identity or protected-data disclosure authority.
+- No option changes D1 email continuation, D2 recipients, D3–D14 work/handling/reply-target rules, D16/D17 retention, D19 review, or D24 shortcuts. Existing move/merge/history rules remain settled; their remaining proof is not a new A/B/C question.
+- No real messages, forwarding/DNS/provider changes, formal specification, implementation or GitHub mutations are authorized during grooming.
+
+The [evidence register](phase26-q25-evidence.md), [independent coverage review](phase26-q25-gap-review.md) and [vendor/UX comparison](phase26-q25-vendor-research.md) explain the selection and evidence limits. **No ADR0025 or new accepted glossary term is created.** The founder's answer will receive its own adversarial review before ratification.
+
+## Presentation correction and recommendation revision
+
+The founder reported that the previous response did not expose actual options. The complete A/B/C comparison is therefore presented directly as a comparison, with the single decision asked through the question control. A bounded independent UX recheck also recommended C: both capabilities already exist in scope, and choosing the known starting situation avoids assuming an existing mailbox. D1–D24 remain ratified; Q25 remains unanswered. [Clarification validation](q25-clarification-validation.json) preserves the earlier ratification and all accepted records.

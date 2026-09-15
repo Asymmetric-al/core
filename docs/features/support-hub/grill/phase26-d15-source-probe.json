@@ -1,0 +1,38 @@
+{
+  "scope": "Isolated current-source in-memory module observations with synthetic mutation, Bun --no-env-file; no app bootstrap, server route, credentials, DB, provider, browser, or production proof",
+  "sourceHashes": {
+    "packages/api/src/admin/support-hub/adapter/in-memory.ts": "d64785ce410a9c4d6165394cd9ca2ab517808ae85d5c306a018eee61a6aabd21",
+    "packages/api/src/admin/support-hub/request-context.ts": "a07e2eae577a095989b30f7cd1e21f9d3f2784769042d4fc33c1a716b6a33a95",
+    "packages/api/src/admin/support-hub/adapter/fixtures.ts": "f3e4758b744eb307b8e2d1ebf1aca04943abef97e5d35bd70cb8a45f7fedca73",
+    "packages/database/query-keys.ts": "87d4f1ddbc72053ebefda6146b2505ea7e06822baeedc9a17903ba6d5a571fea"
+  },
+  "observations": [
+    {
+      "name": "Actual in-memory preference writer accepts a nonexistent agent id",
+      "observed": true,
+      "significance": "Fixture adapter lacks relationship/actor check; not proof that Supabase FK accepts this row"
+    },
+    {
+      "name": "Actual in-memory preference writer accepts any existing same-tenant selected agent with only tenant context",
+      "observed": true,
+      "significance": "Actor authorization is not provided by this seam; route/schema/source inspection determines integration implication"
+    },
+    {
+      "name": "Actual in-memory preference list returns all tenant preference rows",
+      "beforeCount": 2,
+      "afterCount": 3,
+      "includedSynthetic": true,
+      "significance": "No viewer dimension exists at this list boundary"
+    },
+    {
+      "name": "Other tenant write is rejected by actual in-memory demo guard",
+      "observed": true,
+      "significance": "This guard is real but only proves fixture tenant isolation, not current source-policy access"
+    },
+    {
+      "name": "Actual canonical preference query key is static",
+      "value": ["admin", "support", "notification-preferences"],
+      "significance": "Does not itself include tenant/viewer/role; does not prove leakage because whole QueryClient lifecycle was not exercised"
+    }
+  ]
+}

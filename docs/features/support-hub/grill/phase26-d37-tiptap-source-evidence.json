@@ -1,0 +1,71 @@
+{
+  "date": "2026-09-14",
+  "coreHead": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sources": [
+    {
+      "path": "packages/ui/package.json",
+      "sha256": "7d736a382db44e90e81cfad225bf210419ae73083be7979a3c53b547295a5126",
+      "lines": 124
+    },
+    {
+      "path": "bun.lock",
+      "sha256": "47f0cd34dd5e7a75e55f36945b8c5e190f0971004ea796e316a90d2be9faad84",
+      "lines": 5747
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "sha256": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f",
+      "lines": 158
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/helpers.ts",
+      "sha256": "f81a57bfbb06d9d897ac6d0c6986c62da2d2f810dcdbdf3978973b767d720c16",
+      "lines": 115
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/use-conversation-composer.ts",
+      "sha256": "7a4e8e6a8d7108783d5a6d04b41e362a213136a34e08a233e0754991b6dc72e3",
+      "lines": 292
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/use-composer-hotkeys.ts",
+      "sha256": "5ffc9c0cae6c27b56436f6f8ea251f6bb25f7b0606481f53d1a56689e5a9ffd6",
+      "lines": 38
+    },
+    {
+      "path": "apps/admin/features/support-hub/models/editor-payload.ts",
+      "sha256": "5a05ce0375bb0254d1bf9830db0b5fda026e576302c4fab9817a16792d979a98",
+      "lines": 46
+    },
+    {
+      "path": "packages/ui/components.json",
+      "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134",
+      "lines": 69
+    }
+  ],
+  "referenceRepositories": [
+    {
+      "name": "tiptap",
+      "url": "https://github.com/ueberdosis/tiptap",
+      "head": "7ab690e5056fe999988552822c4fc1b1064bf094",
+      "status": "",
+      "refresh": "git pull --ff-only: Already up to date on2026-09-14"
+    },
+    {
+      "name": "tiptap-docs",
+      "url": "https://github.com/ueberdosis/tiptap-docs",
+      "head": "de0873c397b84b221b1924193301819200333f74",
+      "status": "",
+      "refresh": "git pull --ff-only: Already up to date on2026-09-14"
+    }
+  ],
+  "versions": {
+    "manifest": "^3.22.3",
+    "installedCoreReact": "3.22.3",
+    "mixedLock": "3.23.1 extension-mention, suggestion, html, superscript",
+    "npmLatestCore": "3.31.3",
+    "npmReadUrl": "https://registry.npmjs.org/@tiptap/core/latest",
+    "referenceMainPackage": "3.30.3"
+  },
+  "limitations": "Read-only source/doc/package metadata; no dependency upgrade, product edit, live database, provider or genuine user content used."
+}

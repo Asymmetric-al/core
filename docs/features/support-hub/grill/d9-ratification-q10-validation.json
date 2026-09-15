@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "D9": "Fully founder-ratified including all amendments/additions/adjustments/changes/updates, 11 September 2026",
+  "requirementsPreserved": 22,
+  "proofGroupsPreserved": 32,
+  "categoryFindingsPreserved": 23,
+  "operationalSignalsPreserved": 7,
+  "UXBehaviorPreserved": true,
+  "priorD1D8ArtifactsPreserved": 25,
+  "priorADRsPreserved": 8,
+  "priorGlossaryAndD9TermsPreserved": true,
+  "actualSourceProbePreserved": true,
+  "sourceHashesVerified": true,
+  "updatedMirrorsMatched": 9,
+  "localLinksChecked": 311,
+  "immutableSourceLinksChecked": 399,
+  "formatAndGitDiffCheck": "passed",
+  "Q10": "Unanswered; A independent, B resolve/reference with independent reopening, C reviewed consolidation recommended",
+  "noD10ADR": true,
+  "limits": "Documentation and current source/provider documentation only; no new runtime/DB/Auth/RLS/concurrency/provider/browser/usability proof."
+}

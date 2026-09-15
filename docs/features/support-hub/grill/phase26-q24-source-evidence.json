@@ -1,0 +1,31 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sourceHashes": [
+    {
+      "path": "apps/admin/features/support-hub/components/macros/RunMacroPopover.tsx",
+      "sha256": "87270bb59738ae0b1118181ff992b695bee4c9e5706266a27129f3706cdef6e1"
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/automation-engine.ts",
+      "sha256": "27feb27107bf3bdc6fdd21b77b4223233380551b146267b0ee810769555926d2"
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/macro-runner.ts",
+      "sha256": "9457e8f5b9ac0608747ee18351a66668b2ef155a6258a974e07673003a2590a7"
+    },
+    {
+      "path": "apps/admin/features/support-hub/types/macro.ts",
+      "sha256": "821789a281ef32094bee1e8591f4fa18f58c8db5ecc1a0195a03c7798bbcceb8"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/mutations/run-macro.ts",
+      "sha256": "2b2356c639b4916ac6787705b8b0eb72120e07b4aa95c107a9cc0eea9191c4c4"
+    }
+  ],
+  "proof": "Static source and primary product research only; Q24 unanswered; no runtime or proposed-design tests"
+}

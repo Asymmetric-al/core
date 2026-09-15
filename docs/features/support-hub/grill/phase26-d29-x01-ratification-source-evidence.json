@@ -1,0 +1,149 @@
+{
+  "date": "2026-09-14",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "remoteDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "Q35GitSources": [
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx",
+      "bytes": 2273,
+      "sha256": "98bcb91183cddde198f3a84c08e0234a5626cba071c7d7ebb1b940d29de0f731",
+      "reverified": "2026-09-14",
+      "matchesGitAndWorkingFile": true
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "bytes": 19260,
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4",
+      "reverified": "2026-09-14",
+      "matchesGitAndWorkingFile": true
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-principles/spec.md",
+      "bytes": 9562,
+      "sha256": "b78c1cf7952a212769a04160501748962911998069a185809a6dc2d5d98e5b22",
+      "reverified": "2026-09-14",
+      "matchesGitAndWorkingFile": true
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "bytes": 45362,
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+      "reverified": "2026-09-14",
+      "matchesGitAndWorkingFile": true
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/adapter/types.ts",
+      "bytes": 8340,
+      "sha256": "2f679a98cf3dc83f0a4320b7465891d79025a61cd9dc141b2749a4a2903b08f6",
+      "reverified": "2026-09-14",
+      "matchesGitAndWorkingFile": true
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "bytes": 2480,
+      "sha256": "c209deb5a02bb49a788d2bad6a56b528ebc1c3f52bd27c9834815f01b5615682",
+      "reverified": "2026-09-14",
+      "matchesGitAndWorkingFile": true
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "bytes": 8648,
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a",
+      "reverified": "2026-09-14",
+      "matchesGitAndWorkingFile": true
+    }
+  ],
+  "citedSources": [
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx#L25",
+      "sha256": "98bcb91183cddde198f3a84c08e0234a5626cba071c7d7ebb1b940d29de0f731",
+      "lines": 67
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/adapter/types.ts#L231",
+      "sha256": "2f679a98cf3dc83f0a4320b7465891d79025a61cd9dc141b2749a4a2903b08f6",
+      "lines": 301
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/schemas.ts#L58",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a",
+      "lines": 290
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/mutations/conversations.ts#L78",
+      "sha256": "c209deb5a02bb49a788d2bad6a56b528ebc1c3f52bd27c9834815f01b5615682",
+      "lines": 81
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/adapter/supabase.ts#L941",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+      "lines": 1451
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/openspec/specs/platform-boundaries/spec.md#L46",
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4",
+      "lines": 407
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/openspec/specs/platform-principles/spec.md",
+      "sha256": "b78c1cf7952a212769a04160501748962911998069a185809a6dc2d5d98e5b22",
+      "lines": 205
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md#L19",
+      "sha256": "7aeb08a2a499471d31e856914d940d94d4c43f57654812e80f6ee41024a62d21",
+      "lines": 137
+    }
+  ]
+}

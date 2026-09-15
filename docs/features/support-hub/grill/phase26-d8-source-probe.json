@@ -1,0 +1,34 @@
+{
+  "executedAt": "2026-09-10T17:36:13.272Z",
+  "sourcePath": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10/packages/auth/permissions.ts",
+  "sourceSha256": "b268c48093d630ebafc2e0f60e8895e910f70f42dc5604f40899235bae104d25",
+  "passed": 5,
+  "checks": [
+    {
+      "name": "staff_profile_with_inactive_membership",
+      "hasStaffRole": true,
+      "primaryRole": "staff"
+    },
+    {
+      "name": "admin_profile_with_inactive_membership",
+      "hasStaffRole": true,
+      "primaryRole": "admin"
+    },
+    {
+      "name": "staff_profile_with_no_memberships",
+      "hasStaffRole": true,
+      "primaryRole": "staff"
+    },
+    {
+      "name": "no_profile_role_with_inactive_membership",
+      "hasStaffRole": false,
+      "primaryRole": null
+    },
+    {
+      "name": "no_profile_role_with_active_staff_membership",
+      "hasStaffRole": true,
+      "primaryRole": "staff"
+    }
+  ],
+  "proofLimits": "Actual imported pure role helper with synthetic snapshots. No env, Auth/network/client, session, API, RLS, database or deployed access attempt. Shows fallback semantics; does not prove real revoked sessions remain authorized or establish authoritative Support access loss."
+}

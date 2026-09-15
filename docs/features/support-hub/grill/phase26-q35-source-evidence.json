@@ -1,0 +1,160 @@
+{
+  "date": "2026-09-13",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "originDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "status": "D1-D34 fully ratified; Q35 unanswered",
+  "files": [
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx",
+      "bytes": 2273,
+      "sha256": "98bcb91183cddde198f3a84c08e0234a5626cba071c7d7ebb1b940d29de0f731"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "bytes": 19260,
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-principles/spec.md",
+      "bytes": 9562,
+      "sha256": "b78c1cf7952a212769a04160501748962911998069a185809a6dc2d5d98e5b22"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "bytes": 45362,
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/adapter/types.ts",
+      "bytes": 8340,
+      "sha256": "2f679a98cf3dc83f0a4320b7465891d79025a61cd9dc141b2749a4a2903b08f6"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "bytes": 2480,
+      "sha256": "c209deb5a02bb49a788d2bad6a56b528ebc1c3f52bd27c9834815f01b5615682"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "bytes": 8648,
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a"
+    },
+    {
+      "kind": "Local ratified grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d3-adversarial-review.md",
+      "bytes": 80158,
+      "sha256": "d4f09215c0d388d305b275863ce63a65c67d5594cfb819908d2d71df9daa445c"
+    },
+    {
+      "kind": "Local ratified grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d4-adversarial-review.md",
+      "bytes": 68173,
+      "sha256": "4cfcacdcd391b5f344637fa573eb06e2a06fac905535e814ca8925430e4fffcb"
+    },
+    {
+      "kind": "Local ratified grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d9-adversarial-review.md",
+      "bytes": 72653,
+      "sha256": "2b115c00c70a052652856e98c3806e25987dd42449287e615d3e3f63cf197a2f"
+    },
+    {
+      "kind": "Local ratified grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d15-adversarial-review.md",
+      "bytes": 82504,
+      "sha256": "5d104580018711c68bd4a9fed45b2e17204641c45bd5dcc8ce0ce53e742df1ef"
+    },
+    {
+      "kind": "Local ratified grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d16-adversarial-review.md",
+      "bytes": 68720,
+      "sha256": "696193f798ed9cd49d2d1f667d3b8ef17cc28cc64b84a338dc6b695be56e33c5"
+    },
+    {
+      "kind": "Local ratified grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d17-adversarial-review.md",
+      "bytes": 73144,
+      "sha256": "af3a54ab11c3aac719ccb9bb1f29e3d5d12fb4489749c6b90671b99562d5cd6c"
+    },
+    {
+      "kind": "Local ratified grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d20-adversarial-review.md",
+      "bytes": 71549,
+      "sha256": "90c4a8733f765410a65318901b406b5e54e323a2cf3bc44b759f0b503b9e3a9a"
+    },
+    {
+      "kind": "Local ratified grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d21-adversarial-review.md",
+      "bytes": 67860,
+      "sha256": "1ec1559a8f1222c142f4c8b58ffaded58930d3337f0193c9b356cf5fbb510ef6"
+    },
+    {
+      "kind": "Local ratified grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d23-adversarial-review.md",
+      "bytes": 79124,
+      "sha256": "10e1c6a3fcfe21bbb849709da8f4acef03059b80b77696e78478acaa02541676"
+    },
+    {
+      "kind": "Local ratified grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d26-adversarial-review.md",
+      "bytes": 69638,
+      "sha256": "8a28532b1fa59aee76d6d2cf2f6a26ba614ca8338ad996de24d2133cfa1c0e2e"
+    },
+    {
+      "kind": "Local ratified grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d34-adversarial-review.md",
+      "bytes": 55401,
+      "sha256": "5d7c9e801479f45d01f45ad86bcf2dde62ad9f2ad8799d3a0e8eadf7c813154b"
+    }
+  ]
+}

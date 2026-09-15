@@ -1,0 +1,217 @@
+{
+  "date": "2026-09-12",
+  "cwd": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "scope": "D27-C independent data-owner review. Immutable source hashes only; no environment, database, provider, runtime, network or behavioral probe.",
+  "planning_pr_state_source": "Root refreshed PR state; this script only reads these already available git objects.",
+  "files": [
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/project.md",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e",
+      "bytes": 4255,
+      "lines": 110
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-surfaces/spec.md",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "2f9cae0d5073464717d0888c5efc82ec4a04d56fc54d2c4d3c0310e3201ebf73",
+      "bytes": 11085,
+      "lines": 233
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4",
+      "bytes": 19260,
+      "lines": 407
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0027-transport-agnostic-public-content-reader.md",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "69e136006ba2b6242b9e5d9d3ae2a41d79f583378e8541b9f619b618a7c7d64f",
+      "bytes": 2753,
+      "lines": 49
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0029-reference-not-copy-cms-operational.md",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "67948ee43e8d7aa9b0ecbec675e55518b9619ca0f16a3d6c208dbe2d8a24611d",
+      "bytes": 3009,
+      "lines": 53
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0038-purpose-owned-records-schedules-and-verified-disposal.md",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "376eda4a3583be23d3151173e4f402bb9dc904b06c5199a017bd2fbe47c07bab",
+      "bytes": 9888,
+      "lines": 162
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-10-sensitive-data-safety.md",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "47a22da3f90647f841f4038d98da1e7dbd8bba3c3d9ab7141f23d3c8b2e0e67c",
+      "bytes": 68979,
+      "lines": 570
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-12-full-role-permission-configuration.md",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "1e2102866fddc0dbbe8f5c645b836d3ed967cab1a0b9bb0121fc67fdd38ecb6b",
+      "bytes": 112409,
+      "lines": 1117
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "4653ae542c1f28e076cc7f9c39fe316c82ad77d59340bfe90b9b0f58f3ef524d",
+      "bytes": 422074,
+      "lines": 3236
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/context.ts",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "80efa2687d8ceac8a092921e8ef410567bbfd1998461288cd4217edf1bb4d375",
+      "bytes": 1834,
+      "lines": 49
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/reader.ts",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "236d680029954d6ee0bca1286f613f26956a463f463296c81991554f579dba66",
+      "bytes": 5137,
+      "lines": 144
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/access/public-read.ts",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "a796af6a5ff5e5be7d5ac787b9704ed4064495480d04c6c487c0fc73f2093ce9",
+      "bytes": 10558,
+      "lines": 318
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/collections/pages.ts",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "f968a013c33385d3b8afb76b02b25a23a8629c14da6057efa7ee3d14736389ae",
+      "bytes": 2733,
+      "lines": 109
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/published-content-reader.ts",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "479ccc0560345b0e9809632881cc0d12be392e7ede1249f5f401c16ed915a096",
+      "bytes": 9209,
+      "lines": 316
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1",
+      "bytes": 4241,
+      "lines": 153
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/mutations/registry.ts",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "2f2bd450e93138636bc9321acdb0b95fb90fadfefd97fa3796c4211fc38f49c8",
+      "bytes": 3844,
+      "lines": 100
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/collections/support-workspace.ts",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "2ae59f8d71565116cb30cf3490a7cef116f1c851fbacc02c291d68a81f0593d1",
+      "bytes": 8118,
+      "lines": 277
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/app/(app)/support/support-hub.data.ts",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "43a90d21df79a01a59bc1d9f2dc3a3b8555e8472b1ff3530ade88fa2ab9353c1",
+      "bytes": 141,
+      "lines": 3
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/app/(app)/support/knowledge/page.tsx",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "8db9d9755879e4435ab4f0c261d0d6cb3597314e41f10e1c664161c148e95840",
+      "bytes": 2528,
+      "lines": 83
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "status": "current source / merged governing documents, not new-guide runtime proof",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16",
+      "bytes": 31417,
+      "lines": 791
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0161-derived-public-site-search-projection-and-adverse-first-convergence.md",
+      "status": "founder-ratified P23 planning / OPEN PR1340, not implemented proof",
+      "sha256": "f31ec862abd7fd47efcfd940b25675ca9e4330c97104c7440cf43c64b7f4f7d2",
+      "bytes": 11437,
+      "lines": 122
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0166-bounded-localized-editorial-profile-over-exact-locale-lineages.md",
+      "status": "founder-ratified P23 planning / OPEN PR1340, not implemented proof",
+      "sha256": "a931f52bfaa2a97f8f1558d0316563de5eec8ae069cef784e31ffe74516c9eb3",
+      "bytes": 27933,
+      "lines": 394
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0168-one-exact-public-audience-and-app-owned-authenticated-surfaces.md",
+      "status": "founder-ratified P23 planning / OPEN PR1340, not implemented proof",
+      "sha256": "4454ed8790b9a47d744894b31a6b13624454a0a2805fbd397106bcb9a3df60a6",
+      "bytes": 12282,
+      "lines": 179
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0174-single-staff-access-authority-and-governed-engine-diagnostics.md",
+      "status": "founder-ratified P23 planning / OPEN PR1340, not implemented proof",
+      "sha256": "cd1c9e556308b51a39f01e7440e797df14b68044aac9462cae3fd63f71840043",
+      "bytes": 25753,
+      "lines": 365
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/adr/0187-proof-gated-independent-site-locale-publication.md",
+      "status": "founder-ratified P24 planning / OPEN PR1558, not implemented proof",
+      "sha256": "415c84d2a0231948d5f5b5fc76744da3412852b7b811e9ddb0847327c9a5d6b7",
+      "bytes": 8007,
+      "lines": 128
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/adr/0193-one-primary-site-domain-with-redirect-site-domains.md",
+      "status": "founder-ratified P24 planning / OPEN PR1558, not implemented proof",
+      "sha256": "980a9cdbe2c5e003a848392fe6fdb2da8e74598a573890ff56fc5308f8e44926",
+      "bytes": 25769,
+      "lines": 395
+    }
+  ]
+}
