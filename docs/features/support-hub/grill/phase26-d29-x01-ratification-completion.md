@@ -1,0 +1,13 @@
+# D29-X01 ratification and Q35 continuation — completion
+
+**14 September 2026.** The founder's full ratification is recorded in the [complete acceptance record](phase26-d29-x01-full-ratification.md), all nine original/refreshed primary D29 documents, feature ADR0029 and the session log/handoff. Original review bodies and evidence are preserved. The four glossary definitions are unchanged because this amendment introduces no new domain term.
+
+All original30clauses, both23-category reviews, full journeys and owner contracts, final corrections,44original proof groups, six controls, X01 and X-P01–X-P03 are accepted. **All47 actual release proof groups remain required and unexecuted.** Earlier proposed/pending X01 passages are historical and create no repeat approval gate. D1–D34 remain fully ratified.
+
+The [ratification seam review](phase26-d29-refresh-ratification-seam-review.md) verifies the complete P23/P17/P6 boundary. P23 controls optional acknowledgement enablement; Email Studio controls the closed compatible message profile, wording, presentation, Live publication and immutable preparation; P6 controls delivery/reconciliation. Actual source/endpoint/contactability facts remain with their owners. Automatic acknowledgement content restrictions do not silently restrict separately authorized human authoring. Full same-request/exact-recipient human precedence remains intact.
+
+The next choice is the same unanswered **Q35: correcting a posted ordinary internal Support note**. The [question with actual A/B/C policies](phase26-q35-post-d29-question.md), [fresh UX research](phase26-q35-post-d29-ux-research.md), [source/boundary review](phase26-q35-post-d29-scope-review.md) and [final independent review](phase26-q35-post-d29-final-review.md) preserve a single recommendation: original-author edits with visible permitted history. Linked corrections only and a brief edit window are meaningful alternatives. No duration, schema, permission enum or answer is inferred.
+
+The [new validation](phase26-d29-x01-ratification-q35-validation.json) records actual source hashes/line bounds, ratification coverage, preservation of original documents/evidence, scoped formatting, mirrors and unchanged product/Git state. Current HEAD/remote develop and five related open PRs are captured in the [fresh source record](phase26-d29-x01-ratification-source-evidence.json). The previous24 synthetic examples and27 documentary checks retain their original date/scope; no new runtime conformance is claimed.
+
+This is complete grooming/recording and a researched next question. No feature ADR0035, formal PRD/OpenSpec, implementation ticket, product source/schema, dependency, commit/push, provider/DNS/inbox state or real message was created.

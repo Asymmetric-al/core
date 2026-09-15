@@ -1,0 +1,4743 @@
+{
+  "scope": "Independent documentary preservation and owner-contract check; no runtime/provider/SQL/browser proof",
+  "passed": true,
+  "assertions": 1179,
+  "failures": [],
+  "primaryDocuments": 7,
+  "priorOutputsUnchanged": 541,
+  "priorCanonicalFilesUnchanged": 585,
+  "checks": [
+    {
+      "check": "phase26-d35-adversarial-review.md: one current status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-adversarial-review.md: full status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-adversarial-review.md: one complete appendix",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-adversarial-review.md: original bytes recover exactly",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-adversarial-review.md: output/canonical mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-ux-blueprint.md: one current status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-ux-blueprint.md: full status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-ux-blueprint.md: one complete appendix",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-ux-blueprint.md: original bytes recover exactly",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-ux-blueprint.md: output/canonical mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-data-contract.md: one current status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-data-contract.md: full status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-data-contract.md: one complete appendix",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-data-contract.md: original bytes recover exactly",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-data-contract.md: output/canonical mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-editor-email-studio-contract.md: one current status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-editor-email-studio-contract.md: full status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-editor-email-studio-contract.md: one complete appendix",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-editor-email-studio-contract.md: original bytes recover exactly",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-editor-email-studio-contract.md: output/canonical mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-proof-and-operations.md: one current status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-proof-and-operations.md: full status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-proof-and-operations.md: one complete appendix",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-proof-and-operations.md: original bytes recover exactly",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-proof-and-operations.md: output/canonical mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-evidence.md: one current status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-evidence.md: full status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-evidence.md: one complete appendix",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-evidence.md: original bytes recover exactly",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-evidence.md: output/canonical mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-completion-audit.md: one current status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-completion-audit.md: full status",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-completion-audit.md: one complete appendix",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-completion-audit.md: original bytes recover exactly",
+      "passed": true
+    },
+    {
+      "check": "phase26-d35-completion-audit.md: output/canonical mirror",
+      "passed": true
+    },
+    {
+      "check": "feature ADR0035 original preserved",
+      "passed": true
+    },
+    {
+      "check": "feature ADR0035 full accepted status/appendix",
+      "passed": true
+    },
+    {
+      "check": "glossary only authorized status changes",
+      "passed": true
+    },
+    {
+      "check": "both exact terms preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.md: prior record plus exact accepted entry",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.md: canonical mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.md: prior record plus exact accepted entry",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.md: canonical mirror",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: core-phase26-session.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d10-ratification-q11-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d11-ratification-q12-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d12-ratification-q13-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d13-ratification-q14-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d14-ratification-q15-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d15-ratification-q16-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d16-ratification-q17-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d17-ratification-q18-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d18-ratification-q19-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d19-ratification-q20-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d20-ratification-q21-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d21-ratification-q22-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d22-ratification-q23-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d23-ratification-q24-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d24-ratification-q25-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d25-ratification-q26-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d26-ratification-q27-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d27-ratification-q28-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d27c-ratification-q28-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d28-ratification-q29-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d29-ratification-q30-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d30-ratification-q31-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d31-ratification-q32-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d32-ratification-q33-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d33-ratification-q34-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d34-ratification-q35-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: d9-ratification-q10-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: Enter-Core-Phase26.ps1",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d1-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d1-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d10-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d10-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d10-merge-undo-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d10-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d10-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d11-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d11-assistance-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d11-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d11-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d11-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d12-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d12-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d12-related-conversation-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d12-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d12-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d13-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d13-cli-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d13-confirmation-ux-template.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d13-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d13-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d14-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d14-calendar-examples.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d14-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d14-reply-targets-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d14-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d14-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d15-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d15-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d15-following-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d15-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d15-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d16-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d16-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d16-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d16-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d16-redaction-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d16-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d16-us-legal-and-provider-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d16-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d16-vendor-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d17-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d17-data-crm-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d17-data-inventory.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d17-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d17-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d17-retention-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d17-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d17-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d17-vendor-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d18-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d18-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d18-data-crm-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d18-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d18-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d18-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d18-library-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d18-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d18-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d18-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d18-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d19-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d19-auth-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d19-data-lifecycle-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d19-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d19-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d19-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d19-intake-review-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d19-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d19-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d19-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d19-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d2-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d2-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d20-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d20-auth-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d20-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d20-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d20-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d20-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d20-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d20-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d20-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d20-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d20-views-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-auth-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-labels-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d21-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d22-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d22-auth-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d22-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d22-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d22-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d22-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d22-search-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d22-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d22-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d22-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d22-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-signature-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-tiptap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d23-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-macro-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-owner-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-shortcut-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d24-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-provider-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-provider-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-route-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-setup-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d25-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d26-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d27c-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-data-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-goal-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-owner-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-reference-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-ux-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d28-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-data-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-owner-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-reference-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-reference-experiments.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-final-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-proof-and-seams.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-reference-results.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-refresh-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-ux-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-x01-full-ratification.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-x01-ratification-completion.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-x01-ratification-q35-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d29-x01-ratification-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d3-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d3-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d3-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-data-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-owner-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-ux-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d30-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-final-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-proof-and-operations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-temporal-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d31-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-final-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-proof-and-operations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-reference-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d32-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-browser-reference-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-final-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-proof-and-operations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-source-checks.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d33-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-final-runtime-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-proof-and-operations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-ratification-coverage-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-ratification-owner-verification.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-reference-model.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-reference-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-runtime-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-runtime-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-runtime-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d34-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d35-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d35-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d35-editor-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d35-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d35-final-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d35-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d35-reference-model.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d35-reference-results.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d35-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d35-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d35-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d4-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d4-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d4-send-template-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d5-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d5-awareness-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d5-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d6-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d6-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d6-routing-configuration-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d6-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d7-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d7-coverage-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d7-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d7-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d8-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d8-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d8-handoff-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d8-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d9-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d9-crm-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d9-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d9-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-d9-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q10-duplicate-conversations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q10-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q11-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q11-specialist-assistance.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q12-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q12-independent-request-conversations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q13-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q13-receipt-confirmation-policy.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q14-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q14-reply-timeliness.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q15-conversation-following.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q15-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q15-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q16-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q16-sensitive-content-correction.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q16-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q17-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q17-routine-content-retention.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q18-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q18-reusable-reply-library.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q18-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q18-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q19-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q19-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q19-intake-review-ownership.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q19-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q2-reply-audience.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q20-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q20-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q20-recurring-work-views.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q20-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q21-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q21-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q21-support-labels.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q21-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q22-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q22-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q22-search-coverage.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q22-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q23-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q23-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q23-reply-signatures.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q23-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q23-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q24-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q24-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q24-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q24-support-shortcuts.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q24-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q25-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q25-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q25-inbox-setup.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q25-initial-recommendation.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q25-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q25-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q26-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q26-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q26-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q26-manual-support-intake.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q26-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q26-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q27-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q27-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q27-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q27-guidance-coverage.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q27-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q27-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q28-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q28-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q28-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q28-requester-feedback.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q28-resumed-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q28-resumed-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q28-resumed-question.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q28-resumed-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q28-resumed-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q28-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q28-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q29-clarification.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q29-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q29-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q29-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q29-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q29-requester-help.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q29-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q29-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q3-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q3-work-status.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q30-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q30-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q30-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q30-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q30-support-overview.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q30-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q31-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q31-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q31-follow-up-time-choices.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q31-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q31-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q31-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q32-attachment-viewing.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q32-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q32-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q32-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q32-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q32-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q33-conversation-reading.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q33-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q33-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q33-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q33-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q33-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q34-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q34-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q34-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q34-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q34-teammate-awareness.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q34-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-internal-note-corrections.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-options-clarification-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-options-clarification.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-post-d29-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-post-d29-question.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-post-d29-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-post-d29-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q35-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q4-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q4-send-action.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q5-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q5-no-response.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q6-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q6-initial-assignment.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q7-absence-coverage.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q7-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q8-access-loss-handoff.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q8-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q9-crm-context.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-q9-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: phase26-research-baseline.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: q25-clarification-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior output: q29-clarification-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/release-notes.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/operator-guide.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/phase-01-discovery.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/phase-02-foundation.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/phase-06-reports-settings-automation.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/phase-04-detail-and-composer.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/phase-07-hardening-and-release.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/phase-03-inbox-page.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/admin-guide.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/final-audit-and-wrap-up.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/phase-05-productivity.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/file-map.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/chatwoot-gray-parity-map.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q33-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q7-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d4-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-reference-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d7-coverage-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d28-ratification-q29-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q33-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q34-teammate-awareness.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q24-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-goal-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d2-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q8-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d13-cli-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d22-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-ratification-coverage-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q6-initial-assignment.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-x01-full-ratification.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q34-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d9-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d18-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q31-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d27-ratification-q28-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d22-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-ux-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-post-d29-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-proof-and-operations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q20-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d20-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d14-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q10-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q15-conversation-following.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q20-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d5-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d32-ratification-q33-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d13-ratification-q14-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-data-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q3-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q23-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d20-ratification-q21-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d9-crm-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-data-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-reference-model.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d18-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d17-data-inventory.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-post-d29-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d12-related-conversation-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d3-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d35-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d18-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d19-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d17-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d18-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d22-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d35-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/q29-clarification-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d18-data-crm-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d17-vendor-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q20-recurring-work-views.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d20-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q22-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q21-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d6-routing-configuration-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d16-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d5-awareness-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q34-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d22-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q4-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d17-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q30-support-overview.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d9-ratification-q10-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d11-ratification-q12-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d20-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d11-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d15-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d17-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d9-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d20-auth-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d12-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-runtime-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d1-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d19-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d18-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q30-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q29-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q18-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q31-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-setup-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d16-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q27-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-labels-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d11-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q7-absence-coverage.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d35-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d18-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d18-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q17-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q6-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q34-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d22-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q16-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-reference-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d6-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q23-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d15-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d16-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q29-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q11-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q30-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q21-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q27-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q9-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d34-ratification-q35-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d22-ratification-q23-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q12-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q34-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d35-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q23-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q29-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q26-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q22-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d19-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-final-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q26-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d35-reference-results.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d7-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d20-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-reference-experiments.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q33-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d20-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q31-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-macro-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d9-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q31-follow-up-time-choices.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-x01-ratification-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q27-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d35-reference-model.py",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q30-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-proof-and-operations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-reference-results.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q4-send-action.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d8-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d35-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q33-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-proof-and-operations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-data-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d15-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-internal-note-corrections.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-ratification-owner-verification.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q28-resumed-question.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d29-ratification-q30-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q28-resumed-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d4-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d12-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q28-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q27-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q19-intake-review-ownership.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d35-final-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d12-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-provider-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d10-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d13-confirmation-ux-template.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q11-specialist-assistance.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-reference-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d10-merge-undo-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q15-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d19-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-runtime-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d11-assistance-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d3-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d18-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q27-guidance-coverage.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-options-clarification-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q13-receipt-confirmation-policy.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d35-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q9-crm-context.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d35-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-shortcut-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d20-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-auth-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d5-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-proof-and-operations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q18-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q25-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d14-calendar-examples.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q15-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q19-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d22-auth-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d20-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d1-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-post-d29-question.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d20-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d6-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q28-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d8-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q14-reply-timeliness.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q32-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-final-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q24-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d16-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d16-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q32-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d14-ratification-q15-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d15-ratification-q16-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q30-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q22-search-coverage.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-tiptap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q25-inbox-setup.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-provider-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q34-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d20-views-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d17-ratification-q18-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q28-resumed-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d15-following-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d18-library-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d22-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q10-duplicate-conversations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d26-ratification-q27-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q30-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-options-clarification.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q21-support-labels.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d6-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q26-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q28-resumed-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d10-ratification-q11-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q23-reply-signatures.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q16-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-final-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q31-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d24-ratification-q25-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d4-send-template-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d15-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d16-us-legal-and-provider-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q28-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q5-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q12-independent-request-conversations.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q29-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q32-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-owner-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-ux-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-owner-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q3-work-status.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-owner-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d17-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d16-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-x01-ratification-completion.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d30-ratification-q31-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d16-vendor-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-source-checks.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q32-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d13-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q19-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-runtime-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q33-conversation-reading.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d19-auth-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d22-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d33-ratification-q34-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d8-handoff-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d19-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-browser-reference-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q29-clarification.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d21-ratification-q22-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q25-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d19-data-lifecycle-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q5-no-response.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-owner-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d10-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-ux-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q24-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q27-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q28-requester-feedback.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q23-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d19-ratification-q20-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q24-support-shortcuts.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q26-manual-support-intake.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-x01-ratification-q35-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q8-access-loss-handoff.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-temporal-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d19-intake-review-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d19-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d7-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d14-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d12-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-proof-and-seams.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q22-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d7-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q29-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d18-ratification-q19-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d14-reply-targets-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d24-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q21-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d26-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-final-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-route-source-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d22-search-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d21-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q13-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d28-reference-experiments.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d19-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27-data-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-signature-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q29-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d17-retention-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d22-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q25-initial-recommendation.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q2-reply-audience.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d17-data-crm-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q28-resumed-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q29-requester-help.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d12-ratification-q13-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q20-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d25-email-studio-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d23-ratification-q24-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d35-editor-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d2-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d18-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d16-ratification-q17-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-final-runtime-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q32-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q25-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q26-final-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d34-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d13-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q35-post-d29-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d31-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d10-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-ratification-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q14-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q33-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d22-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q25-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d27c-ratification-q28-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q18-scope-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q31-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q28-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d10-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d17-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d31-ratification-q32-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d20-data-contract.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-final-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d32-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q24-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-owner-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q26-vendor-research.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d23-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q17-routine-content-retention.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/q25-clarification-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d11-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d3-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d8-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q32-attachment-viewing.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q16-sensitive-content-correction.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/d25-ratification-q26-validation.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d13-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d14-source-probe.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q19-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d9-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d14-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q18-reusable-reply-library.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d16-redaction-ux.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-refresh-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d29-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d11-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d27c-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-q28-gap-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d19-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d33-data-review.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/grill/phase26-d30-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0008-shared-access-loss-handoff-with-explicit-review-policy.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0025-equal-path-qualified-support-inbox-setup.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0031-consistent-follow-up-choices-and-authoritative-time.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0005-explicit-no-response-ending-and-honest-awareness.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0012-related-request-conversations-with-original-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0030-focused-support-overview-and-future-configuration.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0032-broader-attachment-previews-and-source-owned-renditions.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0004-send-with-explicit-work-intent-and-prepared-replies.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0018-personal-and-shared-saved-replies.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0013-qualified-new-request-confirmation.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0024-curated-reply-and-work-shortcuts.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0023-inbox-signatures-and-governed-tiptap-authoring.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0010-reviewed-duplicate-merge-with-current-state-undo.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0017-automatic-support-content-expiry.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0026-staff-recorded-support-and-complete-crm-access.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0009-peer-related-records-and-source-owned-crm-history.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0029-contact-first-help-with-optional-guides.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0020-personal-and-curated-shared-support-views.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0016-selective-permanent-source-redaction.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0011-retained-support-responsibility-and-shared-internal-work.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0034-private-source-qualified-composing-awareness.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0001-email-continuation-with-owner-authorized-actions.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0021-optional-curated-support-labels.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0006-shared-intake-and-configurable-first-assignment.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0002-personal-reply-defaults-and-explicit-draft-audiences.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0028-sampled-automatic-support-feedback.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0019-designated-inbox-intake-reviewers.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0003-explicit-waiting-and-dependable-follow-up.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0022-source-qualified-conversation-search.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0014-source-scoped-internal-reply-targets.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0033-personal-support-reading-and-source-preserving-compaction.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0027-selected-public-guidance-in-support.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0007-explicit-absence-coverage-and-current-handoff-authority.md",
+      "passed": true
+    },
+    {
+      "check": "unchanged prior canonical: docs/features/support-hub/docs/adr/0015-deliberate-original-scoped-conversation-following.md",
+      "passed": true
+    },
+    {
+      "check": "master fully ratified and no remaining approval",
+      "passed": true
+    },
+    {
+      "check": "master canonical mirror",
+      "passed": true
+    },
+    {
+      "check": "exact clauses",
+      "passed": true,
+      "detail": {
+        "actual": 26,
+        "required": 26
+      }
+    },
+    {
+      "check": "exact categories",
+      "passed": true,
+      "detail": {
+        "actual": 23,
+        "required": 23
+      }
+    },
+    {
+      "check": "exact proof groups",
+      "passed": true,
+      "detail": {
+        "actual": 40,
+        "required": 40
+      }
+    },
+    {
+      "check": "exact operating controls",
+      "passed": true,
+      "detail": {
+        "actual": 6,
+        "required": 6
+      }
+    },
+    {
+      "check": "all 40 release groups still unexecuted",
+      "passed": true
+    },
+    {
+      "check": "Q36 remains a question, no policy answer",
+      "passed": true
+    },
+    {
+      "check": "Core HEAD unchanged",
+      "passed": true
+    },
+    {
+      "check": "context-map unchanged",
+      "passed": true
+    }
+  ]
+}

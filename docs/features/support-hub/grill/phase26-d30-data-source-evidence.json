@@ -1,0 +1,243 @@
+{
+  "date": "2026-09-13",
+  "cwd": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "gitSources": [
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "bytes": 313201,
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/project.md",
+      "bytes": 4255,
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-surfaces/spec.md",
+      "bytes": 11085,
+      "sha256": "2f9cae0d5073464717d0888c5efc82ec4a04d56fc54d2c4d3c0310e3201ebf73"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "bytes": 19260,
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "bytes": 7239,
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/app/api/admin/support/reports/route.ts",
+      "bytes": 1367,
+      "sha256": "264786bce99093561c3175f57c224f0a7bab8c2997adfe5101b2297ba233eb01"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/hooks/use-support-reports.ts",
+      "bytes": 3937,
+      "sha256": "a7ed9ebd93eb8bff1e861ae0754b7281f27950ceb56160cc1beac2302407c613"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/lib/report-aggregations.ts",
+      "bytes": 16404,
+      "sha256": "3af2e383d1dd5b58cb62dba6b1f269f8a3b6ee7302c54fbaa1a9467f7dfc5528"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/lib/report-state.ts",
+      "bytes": 4238,
+      "sha256": "fecf2f424bd693e8607c55adf49aaa913a95345ae9af690e643e748a020cd398"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/lib/report-export.ts",
+      "bytes": 2548,
+      "sha256": "ea4e7bbd645f83488b699da46336487672381f0606a9f308778d7d56618574b9"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/lib/business-hours.ts",
+      "bytes": 3562,
+      "sha256": "b3e1f177f28b230113433d33bcc94aaa877ce64b69dad2f1ee3b781ce6d02589"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/lib/time.ts",
+      "bytes": 2001,
+      "sha256": "be7e60f56a3b5d1533e92ddaaeaf2aad7f0086c3e42d02631e2f8feba93cfea8"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/types/report.ts",
+      "bytes": 1344,
+      "sha256": "27e900961ec36368a31fc469e382df1ea143280aca9b4364e966d1d1b8a7e7a8"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/reports/surfaces/OverviewReport.tsx",
+      "bytes": 2379,
+      "sha256": "b3ec2b721a13c994b8be67af195519af29b52d29068a1c479d06ee9ead0b2f2e"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/reports/surfaces/AgentsReport.tsx",
+      "bytes": 898,
+      "sha256": "941af6474a08a55e2da0df16a2884334321ff45d449e575a0d49a6ce8cf0bc3d"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/reports/surfaces/InboxReport.tsx",
+      "bytes": 2162,
+      "sha256": "841acb8625c6062fdb544b40ca9776a1c689257f288d0484e95a0102bf45a610"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/reports/ReportSummaryCards.tsx",
+      "bytes": 1214,
+      "sha256": "d135452b153a6609f77fec39d89511d067591678745dfc66c7e67ee84841b59d"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/reports/ReportScopeSelect.tsx",
+      "bytes": 3655,
+      "sha256": "8be4c932c80719da61603274a1bfc84b9f0b6e1d2e75e4013237c003075b1f7e"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/reports/ReportTable.tsx",
+      "bytes": 1505,
+      "sha256": "44c5a1b1f8256aafa56cb1f88ccdc3089f3d70882aac399430310833953f1ff6"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/reports/ReportExportMenu.tsx",
+      "bytes": 1820,
+      "sha256": "1d247bb99a319ad1d711edb496e615cbedf5ad17598fac67f12416dffb21b9e6"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/query-keys.ts",
+      "bytes": 4432,
+      "sha256": "87d4f1ddbc72053ebefda6146b2505ea7e06822baeedc9a17903ba6d5a571fea"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "bytes": 45362,
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "bytes": 4241,
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "bytes": 31417,
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/config.toml",
+      "bytes": 14046,
+      "sha256": "3a31bbfd599aa7203245fbfab25e4b623ec98043049293cbf35052c6736a54c7"
+    }
+  ],
+  "sessionAndProbeSources": [
+    {
+      "path": "outputs/phase26-d3-adversarial-review.md",
+      "bytes": 80158,
+      "sha256": "d4f09215c0d388d305b275863ce63a65c67d5594cfb819908d2d71df9daa445c"
+    },
+    {
+      "path": "outputs/phase26-d6-adversarial-review.md",
+      "bytes": 74249,
+      "sha256": "3e57c1372e4c98d8304255c21a32de54a3d84d20fcb8b4bc8d81197673d886b0"
+    },
+    {
+      "path": "outputs/phase26-d10-adversarial-review.md",
+      "bytes": 74683,
+      "sha256": "7529bc78bb0c910215f1737beb8fb27a643032b3b54bd3e94959876433e718df"
+    },
+    {
+      "path": "outputs/phase26-d14-adversarial-review.md",
+      "bytes": 87323,
+      "sha256": "8da8039edba331e3890d4eeb5c75e0c944bd338a6322f5db47776352099f761a"
+    },
+    {
+      "path": "outputs/phase26-d14-reply-targets-ux.md",
+      "bytes": 21402,
+      "sha256": "a7dd41c9fe5c29655788a08d8d0302f038972d1c1576dfa52790f099039d82e1"
+    },
+    {
+      "path": "outputs/phase26-d20-adversarial-review.md",
+      "bytes": 71549,
+      "sha256": "90c4a8733f765410a65318901b406b5e54e323a2cf3bc44b759f0b503b9e3a9a"
+    },
+    {
+      "path": "outputs/phase26-d21-adversarial-review.md",
+      "bytes": 67860,
+      "sha256": "1ec1559a8f1222c142f4c8b58ffaded58930d3337f0193c9b356cf5fbb510ef6"
+    },
+    {
+      "path": "outputs/phase26-d21-data-contract.md",
+      "bytes": 19101,
+      "sha256": "5436fb65d0e34b5a597d7acd72285b1f33c9cba0657542f1cea46ed7512862ac"
+    },
+    {
+      "path": "outputs/phase26-d26-adversarial-review.md",
+      "bytes": 69638,
+      "sha256": "8a28532b1fa59aee76d6d2cf2f6a26ba614ca8338ad996de24d2133cfa1c0e2e"
+    },
+    {
+      "path": "outputs/phase26-d28-adversarial-review.md",
+      "bytes": 70103,
+      "sha256": "5563383b0a14e3090b947f50d3cd88ee0d8aa4bf5c596c5f4eaa6cda4c28eb13"
+    },
+    {
+      "path": "outputs/phase26-d28-data-contract.md",
+      "bytes": 29462,
+      "sha256": "51391e0c287047793758f53b66ac0916731ee2978c2d8a98d68d0e7df4a36d41"
+    },
+    {
+      "path": "outputs/phase26-d29-adversarial-review.md",
+      "bytes": 71299,
+      "sha256": "56cd04044de8c95ebdfa34b46d2998bba9705012a9709bd6e1189e5efc6e1a36"
+    },
+    {
+      "path": "work/d30-source-probe.ts",
+      "bytes": 4138,
+      "sha256": "32adfd4647dc4d1bf5223e4a43451c363d2470170f2651e29c3c259d117a0e19"
+    },
+    {
+      "path": "work/d30-extract-source.py",
+      "bytes": 1034,
+      "sha256": "253e57b2ef92ff15582a53fe0a806a9bdf052aa4cf7d0b174b5f461496d49e6d"
+    },
+    {
+      "path": "outputs/phase26-d30-source-probe.json",
+      "bytes": 1878,
+      "sha256": "d83a0b29d80d6c103baa418032a02d4aa7b10917d0ceddce39683490ad4cda02"
+    }
+  ],
+  "probeExecution": {
+    "command": "bun --no-env-file --cwd <Windows workspace mapped work directory> d30-source-probe.ts",
+    "runtime": "Bun existing installation; no dependency install",
+    "network": "No provider/DB/bootstrap imports; global fetch throws",
+    "inputs": "Synthetic inputs to three byte-identical pinned pure source files",
+    "checks": 5,
+    "result": "passed",
+    "limit": "Observed legacy helper behavior only; no proposed-model/SQL/RLS/API/browser/provider/performance qualification."
+  }
+}

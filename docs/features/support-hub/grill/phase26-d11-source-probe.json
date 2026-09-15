@@ -1,0 +1,53 @@
+{
+  "baseline": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "evidenceKind": "current task helper execution with synthetic persistence dependencies; not a D11 model or database test",
+  "files": [
+    {
+      "path": "packages/api/src/admin/mission-control-tasks/service.ts",
+      "sha256": "76df55a5fbcfe3827eee26df6d8cf5ac03de075b47545f3df8effa45ad5e695d"
+    },
+    {
+      "path": "packages/api/src/admin/mission-control-tasks/assignment-policy.ts",
+      "sha256": "d171e1b23775570b1738b79aca74638d82582e811e5f9b7d53d1eecce26626fb"
+    },
+    {
+      "path": "packages/api/src/admin/mission-control-tasks/urgency.ts",
+      "sha256": "cf66d42ebd497a7185d56e54cd997bb11ea90bbdb669c899bb86f51978ec404b"
+    }
+  ],
+  "observations": [
+    {
+      "name": "link-stage failure leaves the helper-created task; same-input retry creates another",
+      "afterLinkFailure": {
+        "tasks": 1,
+        "links": 0,
+        "events": 0
+      },
+      "afterSameInputRetry": {
+        "tasks": 2,
+        "links": 1,
+        "events": 1
+      }
+    },
+    {
+      "name": "event-stage failure leaves task and link without event",
+      "afterEventFailure": {
+        "tasks": 1,
+        "links": 1,
+        "events": 0
+      }
+    },
+    {
+      "name": "default actor_and_queue assigns the requester as well as selected queue",
+      "actorProfileId": "requesting-support-worker",
+      "assigneeProfileId": "requesting-support-worker",
+      "queueId": "synthetic-finance-queue"
+    }
+  ],
+  "limits": [
+    "The synthetic dependencies retain writes just like separately committed calls; no production transaction was exercised.",
+    "This shows no atomicity/idempotency in the helper itself, not absence of all upstream owner-specific dedupe or transactions.",
+    "Requester assignment is current intentional helper behavior; it is a misuse risk for specialist delegation, not a proven current product incident.",
+    "No environment loading, app bootstrap, DB/Auth/RLS, provider, network or future D11 task state machine tested."
+  ]
+}

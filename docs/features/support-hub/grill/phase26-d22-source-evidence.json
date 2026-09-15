@@ -1,0 +1,101 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "mode": "Read-only source review/hash verification; isolated existing matcher expression executed separately; no API/DB/RLS/index/browser proof",
+  "observations": {
+    "S01": "Capped metadata concatenation search",
+    "S02": "Broad message/draft/attachment raw projections",
+    "S03": "Toolbar debounce/filters and raw q URL",
+    "S04": "Client filtering/cache/fixture paths",
+    "S05": "Subject tsvector index/broad grants/localPG17",
+    "S06": "P9/P10 indexability and source/CRM gates",
+    "S07": "Recent/retention/query-version ownership",
+    "S08": "P29/P40/shared platform scope"
+  },
+  "sourceHashes": [
+    {
+      "path": "supabase/config.toml",
+      "sha256": "3a31bbfd599aa7203245fbfab25e4b623ec98043049293cbf35052c6736a54c7"
+    },
+    {
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/adapter/types.ts",
+      "sha256": "2f679a98cf3dc83f0a4320b7465891d79025a61cd9dc141b2749a4a2903b08f6"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/reads/conversations.ts",
+      "sha256": "fc2eb92848899e67099cac6b1df0bab6e7bd7e25bda09c06eefeac359c99fc61"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/toolbar/InboxToolbar.tsx",
+      "sha256": "75d3dc9ec81a600b9b6b505dd8b8213fe746621c61c4de10cf731c4e9763193b"
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/route-state.ts",
+      "sha256": "ffb8d4c01675db57226db8da2159269567d604b7db2658122c4e479def6e83fe"
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/selectors.ts",
+      "sha256": "d8d60d5d80f53de337fa94dec3b5c14ede181fd7a80d031cede151d26e0fc6bb"
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/api-client.ts",
+      "sha256": "a21820751d25f733c15163aabb68d6325f4db140ad6185e3ba98942e4a7b99dc"
+    },
+    {
+      "path": "apps/admin/features/support-hub/hooks/use-support-conversations.ts",
+      "sha256": "3e52f9121d7782b2d7a0effcdf7fece5efc5f37f9f596fc6b80f480b7acc9508"
+    },
+    {
+      "path": "packages/database/query-keys.ts",
+      "sha256": "87d4f1ddbc72053ebefda6146b2505ea7e06822baeedc9a17903ba6d5a571fea"
+    },
+    {
+      "path": "packages/database/collections/support-hub.ts",
+      "sha256": "edabdc658b565d1f39272377aeded21634aecc779db43f4a738788ebd9615da2"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md",
+      "sha256": "82463b0ce3c42894c01f3542e70db175d13de583246c4228903d47d7e331cc66"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-10-sensitive-data-safety.md",
+      "sha256": "47a22da3f90647f841f4038d98da1e7dbd8bba3c3d9ab7141f23d3c8b2e0e67c"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "path": "docs/adr/0031-body-free-history-with-expiring-recent-copy.md",
+      "sha256": "2cdb0dc085cf1c85d191b84aba5320bebe9ba72b86f4a10ca5d2fe1c66127baf"
+    },
+    {
+      "path": "openspec/project.md",
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e"
+    },
+    {
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "path": "openspec/specs/identity-and-access/spec.md",
+      "sha256": "c2d1e411ff413c61549fdd56ed174fb983f2ae6c2818dd0dbf6033d93fc4dba5"
+    },
+    {
+      "path": "packages/ui/AGENTS.md",
+      "sha256": "358a36a1e9e70b3a93b3b897d06999c0503329d61ba9e0ae3cb701113021c1d7"
+    }
+  ]
+}

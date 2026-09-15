@@ -1,0 +1,263 @@
+{
+  "date": "2026-09-14",
+  "status": "passed",
+  "scope": "document/source ratification and next-question verification; no runtime qualification",
+  "checkCount": 44,
+  "checks": [
+    {
+      "name": "current ratification phase26-d35-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body preserved phase26-d35-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "current ratification phase26-d35-ux-blueprint.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body preserved phase26-d35-ux-blueprint.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "current ratification phase26-d35-data-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body preserved phase26-d35-data-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "current ratification phase26-d35-editor-email-studio-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body preserved phase26-d35-editor-email-studio-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "current ratification phase26-d35-proof-and-operations.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body preserved phase26-d35-proof-and-operations.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "current ratification phase26-d35-evidence.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body preserved phase26-d35-evidence.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "current ratification phase26-d35-completion-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body preserved phase26-d35-completion-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "all other feature artifacts preserved",
+      "passed": true,
+      "detail": {
+        "count": 585,
+        "changed": []
+      }
+    },
+    {
+      "name": "original research/source/model/validation preserved",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "context map preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "two exact glossary definitions unchanged",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "session history retained phase26-grill-log.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "session history retained phase26-session-handoff.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "26 original clauses retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "23 original categories retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "40 proof groups and 6 controls retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "full master scope and source seam",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ADR ratified",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "independent ratification Pass",
+      "passed": true,
+      "detail": 1179
+    },
+    {
+      "name": "Q36 actual three alternatives",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "one recommendation; no answer",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "nested history / no stripping nuance",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "actual AI-specific feedback qualification",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "recipients threading reading separate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "independent question scope Pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "independent question UX corrections closed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no feature ADR0036",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "all new links resolve",
+      "passed": true,
+      "detail": {
+        "count": 48,
+        "missing": []
+      }
+    },
+    {
+      "name": "5 current source files verified",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "6 cited source bounds verified",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "10 accepted source documents current",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "current HEAD preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "5 related PRs remain open",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "scoped formatting",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "git whitespace",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "no product/Git mutation",
+      "passed": true,
+      "detail": " M CONTEXT-MAP.md\n?? docs/features/support-hub/CONTEXT.md\n?? docs/features/support-hub/docs/\n?? docs/features/support-hub/grill/\n"
+    },
+    {
+      "name": "canonical mirrors byte-identical",
+      "passed": true,
+      "detail": 19
+    }
+  ],
+  "hashes": {
+    "phase26-d35-adversarial-review.md": "12df9c2ef039aca0f37b9f03d6c741b09d28b718b936e88179dfffe90e1ba78b",
+    "phase26-d35-ux-blueprint.md": "8d06a048c3d232c772d5171635d1e203e3b1b71004a24fc160617dafec0e63d1",
+    "phase26-d35-data-contract.md": "b75ab2b426580bd0fe7f5eea6684ec54be875e792715cd4aeb4c0fbe6af82761",
+    "phase26-d35-editor-email-studio-contract.md": "8cd9a533bb5777b5bbcef6423d49a5618ead1bf58a6fb57782fd05c8abefe1b3",
+    "phase26-d35-proof-and-operations.md": "b6439c5a2f0cf58e364446ef00180757fc223b42ea50f29f019641f40f3390c8",
+    "phase26-d35-evidence.md": "59c217d3e18c2eed9725e98bfa5e1876f457a33338a67e2b99d9ebc25651f8bb",
+    "phase26-d35-completion-audit.md": "091b9f58f5f767c1e7f3ecf4b93186aec38644c043eacfd66c3a92ba8a3fe0c3",
+    "phase26-d35-full-ratification.md": "90a71654d32077d59c7389b24b5d5364e9fc8641e5e99bb766511428d8a6a484",
+    "phase26-d35-ratification-seam-review.md": "fbb36757ede732e1b15c6baec1a8e677ad7f96043067c81f2bf221d0c2addba0",
+    "phase26-d35-ratification-q36-completion.md": "acec55122ea7550addb5cabb99f3f6d72d61051858d3924c9e02acdfed395204",
+    "phase26-q36-gap-review.md": "6b956b2d0312fd820921926c2ce8d192eda618f605da724397c42b2fea7e88ce",
+    "phase26-q36-quote-ux-research.md": "9d164e7f1d594891df706a7865c5b7750cfc1c921d19bf01db684a39159154c6",
+    "phase26-q36-outgoing-email-context.md": "7461d0e13b00b9c7088cad58515094732f9446f7d4a03142a8b39d44e77d4c04",
+    "phase26-q36-final-scope-review.md": "7e4925ffa1d4b874e35d5406b9726fa4decf676f79569270dcbca30acb7b1bde",
+    "phase26-q36-final-ux-review.md": "f3f6984903a305a8f926314fd5142e65a9360160202f45d59e91c8ac84f4945a",
+    "phase26-grill-log.md": "734a6ec3575acbb465e3d705ffaf8973f8d2396d545fa639b336c92e3e103617",
+    "phase26-session-handoff.md": "c4fa0e2978385784716ea419565ed6c09a488b1ec243bd050b6f16256cbd8a2d",
+    "phase26-d35-ratification-q36-source-evidence.json": "fa8b3d67d75eec655df2d036ecd25be02bb78d613c802902aa20568021114d49",
+    "phase26-d35-ratification-owner-verification.json": "57e26d71918704066e905ef0b9a71e1a51467d861d5ff56e75bf5b576d2d3991"
+  },
+  "ADR": {
+    "path": "docs/features/support-hub/docs/adr/0035-author-owned-internal-note-corrections-with-history.md",
+    "sha256": "d20caf5de560cee526e22d66ec4860c138af37fdf5c1a5fdb698f32311404bed"
+  },
+  "glossarySha256": "beaf7e446f8e0ad643e38f1cfcd4d4dc18d36ebf15c446d8ff1fc64500ce275d",
+  "ratification": "D1-D35 including D29-X01 and all amendments fully ratified",
+  "Q36": "unanswered; A recommended; B/C alternatives",
+  "actualReleaseGroupsExecuted": 0
+}

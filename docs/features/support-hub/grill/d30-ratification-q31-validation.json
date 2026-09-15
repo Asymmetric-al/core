@@ -1,0 +1,58 @@
+{
+  "status": "passed",
+  "date": "2026-09-13",
+  "ratified": "D1-D30 including every adopted amendment",
+  "D30": {
+    "clauses": 32,
+    "categories": 23,
+    "requiredUnexecutedProofGroups": 48,
+    "operatingControls": 6,
+    "ratifiedGlossaryTerms": 4,
+    "primaryDocuments": 6,
+    "fullRatificationAppendix": true,
+    "originalSubstancePreserved": true,
+    "futureFullConfigurationDirectionRatified": true,
+    "independentSeamReview": "Pass"
+  },
+  "Q31": {
+    "status": "unanswered",
+    "topic": "Follow-up reminder time-choice breadth",
+    "options": [
+      "A consistent quick choices plus Custom",
+      "B choose date and time every time",
+      "C quick choices plus personal saved presets"
+    ],
+    "recommendation": "A",
+    "independentScopeUXFinalReviews": 3,
+    "D24ClosedPatchPreserved": true,
+    "ADR0031Created": false
+  },
+  "preservation": {
+    "priorDecisionArtifacts": 247,
+    "priorADRs": 29,
+    "D30OriginalArtifacts": 16,
+    "Q30HistoricalArtifacts": 6,
+    "priorValidationUnchanged": true,
+    "glossaryDefinitionsUnchanged": true
+  },
+  "verification": {
+    "HEAD": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+    "planningPRsReadOnly": 5,
+    "sourceHashes": 16,
+    "uniqueGitSources": 8,
+    "immutableCoreLinkInstances": 22,
+    "uniqueCoreLinks": 19,
+    "localLinks": 745,
+    "mirrorFilesIncludingValidation": 16,
+    "formatting": "passed",
+    "gitDiffCheck": "passed",
+    "groomingOnly": true
+  },
+  "limits": [
+    "No implementation/formal spec/tickets/GitHub/provider/DNS/inbox/database mutation or real messages",
+    "Ratification does not prove runtime SQL/RLS/provider/concurrency/browser/accessibility/usability",
+    "Original five D30 extracted-source observations and validation remain historical evidence",
+    "All 48 D30 real release groups remain required and unexecuted",
+    "Q31 recommendation is not selected; no exact menu/hour/count/timezone hierarchy preselected"
+  ]
+}

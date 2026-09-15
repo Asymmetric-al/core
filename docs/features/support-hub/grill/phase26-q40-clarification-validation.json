@@ -1,0 +1,19 @@
+{
+  "date": "2026-09-15",
+  "checkedAtUtc": "2026-09-14T18:57:16.490471+00:00",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "pass": true,
+  "checks": {
+    "prior decisions and question/evidence unchanged": true,
+    "session history preserved": true,
+    "session mirrors match": true,
+    "clarification mirror matches": true,
+    "actual A B C visible": true,
+    "single recommendation": true,
+    "unanswered and ratified stage retained": true,
+    "A recurrence and B separate hold explicit": true,
+    "no ADR0040": true
+  },
+  "scope": "Presentation clarification only; no new answer, accepted-policy change or implementation",
+  "preservedTrackedArtifacts": 757
+}

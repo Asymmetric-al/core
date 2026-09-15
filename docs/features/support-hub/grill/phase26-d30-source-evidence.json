@@ -1,0 +1,192 @@
+{
+  "date": "2026-09-13",
+  "stage": "D30 A selected, future configuration intended; detailed amendments proposed",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "originDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "files": [
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/project.md",
+      "bytes": 4255,
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "bytes": 19260,
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/identity-and-access/spec.md",
+      "bytes": 6732,
+      "sha256": "c2d1e411ff413c61549fdd56ed174fb983f2ae6c2818dd0dbf6033d93fc4dba5"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/crm-core/spec.md",
+      "bytes": 16474,
+      "sha256": "6aee2c2d799cd60b873a355e1dca9c10273e15b13a3c4986a2db9e4d846acce5"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "bytes": 7927,
+      "sha256": "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "bytes": 313201,
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/rules/frontend.md",
+      "bytes": 12794,
+      "sha256": "f11a37f1ebb847987171c957857b938239fc93a2f670d2b19682669df6e79447"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/rules/backend.md",
+      "bytes": 5887,
+      "sha256": "f0f5c8b05aa053cbc2400bb80040a34d4809d6f76fcad4110aea6702b735b655"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/skills/accessibility-review/SKILL.md",
+      "bytes": 4319,
+      "sha256": "196b083e8e2440676a69d17af19d2ab4e2df628fe47b753d29b9cb26e1fd8675"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/AGENTS.md",
+      "bytes": 5194,
+      "sha256": "358a36a1e9e70b3a93b3b897d06999c0503329d61ba9e0ae3cb701113021c1d7"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/reports/surfaces/OverviewReport.tsx",
+      "bytes": 2379,
+      "sha256": "b3ec2b721a13c994b8be67af195519af29b52d29068a1c479d06ee9ead0b2f2e"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/hooks/use-support-reports.ts",
+      "bytes": 3937,
+      "sha256": "a7ed9ebd93eb8bff1e861ae0754b7281f27950ceb56160cc1beac2302407c613"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/lib/report-state.ts",
+      "bytes": 4238,
+      "sha256": "fecf2f424bd693e8607c55adf49aaa913a95345ae9af690e643e748a020cd398"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/lib/report-aggregations.ts",
+      "bytes": 16404,
+      "sha256": "3af2e383d1dd5b58cb62dba6b1f269f8a3b6ee7302c54fbaa1a9467f7dfc5528"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d14-adversarial-review.md",
+      "bytes": 87323,
+      "sha256": "8da8039edba331e3890d4eeb5c75e0c944bd338a6322f5db47776352099f761a"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d14-reply-targets-ux.md",
+      "bytes": 21402,
+      "sha256": "a7dd41c9fe5c29655788a08d8d0302f038972d1c1576dfa52790f099039d82e1"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d21-adversarial-review.md",
+      "bytes": 67860,
+      "sha256": "1ec1559a8f1222c142f4c8b58ffaded58930d3337f0193c9b356cf5fbb510ef6"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d21-data-contract.md",
+      "bytes": 19101,
+      "sha256": "5436fb65d0e34b5a597d7acd72285b1f33c9cba0657542f1cea46ed7512862ac"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d28-adversarial-review.md",
+      "bytes": 70103,
+      "sha256": "5563383b0a14e3090b947f50d3cd88ee0d8aa4bf5c596c5f4eaa6cda4c28eb13"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d29-adversarial-review.md",
+      "bytes": 71299,
+      "sha256": "56cd04044de8c95ebdfa34b46d2998bba9705012a9709bd6e1189e5efc6e1a36"
+    }
+  ],
+  "externalTechnicalSources": [
+    "https://www.postgresql.org/docs/17/transaction-iso.html",
+    "https://www.postgresql.org/docs/17/sql-createpolicy.html",
+    "https://supabase.com/docs/guides/database/postgres/row-level-security",
+    "https://supabase.com/docs/reference/javascript/select",
+    "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html",
+    "https://www.w3.org/WAI/tutorials/tables/"
+  ],
+  "limits": [
+    "Source and planning provenance only; no runtime/DB/provider audit",
+    "The five actual extracted-helper observations confirm legacy behavior only",
+    "No code/schema/GitHub/provider/DNS/inbox mutation or real messages"
+  ]
+}

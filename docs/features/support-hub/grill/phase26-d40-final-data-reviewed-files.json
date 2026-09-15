@@ -1,0 +1,405 @@
+{
+  "date": "2026-09-15",
+  "checkedAtUtc": "2026-09-15T07:39:46.156097+00:00",
+  "result": "Pass",
+  "method": "Independent actual integrated data/owner/transaction/scope review, documentary structure and source hash/range checks; no database or provider operations",
+  "checksPassed": 85,
+  "checksTotal": 85,
+  "checks": [
+    {
+      "name": "adversarial-review exact ordered 30 IDs",
+      "passed": true
+    },
+    {
+      "name": "data-contract exact ordered 18 IDs",
+      "passed": true
+    },
+    {
+      "name": "lifecycle-seam-review exact ordered 16 IDs",
+      "passed": true
+    },
+    {
+      "name": "ux-blueprint exact ordered 15 IDs",
+      "passed": true
+    },
+    {
+      "name": "review-corrections exact ordered 4 IDs",
+      "passed": true
+    },
+    {
+      "name": "proof-and-operations exact ordered 40 IDs",
+      "passed": true
+    },
+    {
+      "name": "proof-and-operations exact ordered 6 IDs",
+      "passed": true
+    },
+    {
+      "name": "all23categoryrows",
+      "passed": true
+    },
+    {
+      "name": "proposed not ratified",
+      "passed": true
+    },
+    {
+      "name": "runtime unexecuted",
+      "passed": true
+    },
+    {
+      "name": "F01 email source scopes aligned",
+      "passed": true
+    },
+    {
+      "name": "F02 not outbound suppression",
+      "passed": true
+    },
+    {
+      "name": "F03 held-input start aligned",
+      "passed": true
+    },
+    {
+      "name": "F04 late owner recovery captured",
+      "passed": true
+    },
+    {
+      "name": "first acceptance and absent insertion",
+      "passed": true
+    },
+    {
+      "name": "source gate no mutable head",
+      "passed": true
+    },
+    {
+      "name": "qualified in-product seam primary citation",
+      "passed": true
+    },
+    {
+      "name": "source hash G01",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G01",
+      "passed": true
+    },
+    {
+      "name": "source hash G02",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G02",
+      "passed": true
+    },
+    {
+      "name": "source hash G03",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G03",
+      "passed": true
+    },
+    {
+      "name": "source hash G04",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G04",
+      "passed": true
+    },
+    {
+      "name": "source hash G05",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G05",
+      "passed": true
+    },
+    {
+      "name": "source hash G06",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G06",
+      "passed": true
+    },
+    {
+      "name": "source hash G07",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G07",
+      "passed": true
+    },
+    {
+      "name": "source hash G08",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G08",
+      "passed": true
+    },
+    {
+      "name": "source hash G09",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G09",
+      "passed": true
+    },
+    {
+      "name": "source hash G10",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G10",
+      "passed": true
+    },
+    {
+      "name": "source hash G11",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G11",
+      "passed": true
+    },
+    {
+      "name": "source hash G12",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G12",
+      "passed": true
+    },
+    {
+      "name": "source hash G13",
+      "passed": true
+    },
+    {
+      "name": "source line ranges G13",
+      "passed": true
+    },
+    {
+      "name": "source hash S01",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S01",
+      "passed": true
+    },
+    {
+      "name": "source hash S02",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S02",
+      "passed": true
+    },
+    {
+      "name": "source hash S03",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S03",
+      "passed": true
+    },
+    {
+      "name": "source hash S04",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S04",
+      "passed": true
+    },
+    {
+      "name": "source hash S05",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S05",
+      "passed": true
+    },
+    {
+      "name": "source hash S06",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S06",
+      "passed": true
+    },
+    {
+      "name": "source hash S07",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S07",
+      "passed": true
+    },
+    {
+      "name": "source hash S08",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S08",
+      "passed": true
+    },
+    {
+      "name": "source hash S09",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S09",
+      "passed": true
+    },
+    {
+      "name": "source hash S10",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S10",
+      "passed": true
+    },
+    {
+      "name": "source hash S11",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S11",
+      "passed": true
+    },
+    {
+      "name": "source hash S12",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S12",
+      "passed": true
+    },
+    {
+      "name": "source hash S13",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S13",
+      "passed": true
+    },
+    {
+      "name": "source hash S14",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S14",
+      "passed": true
+    },
+    {
+      "name": "source hash S15",
+      "passed": true
+    },
+    {
+      "name": "source line ranges S15",
+      "passed": true
+    },
+    {
+      "name": "accepted source hash outputs/phase26-d1-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "name": "accepted source hash outputs/phase26-d10-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "name": "accepted source hash outputs/phase26-d16-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "name": "accepted source hash outputs/phase26-d17-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "name": "accepted source hash outputs/phase26-d19-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "name": "accepted source hash outputs/phase26-d19-data-lifecycle-contract.md",
+      "passed": true
+    },
+    {
+      "name": "accepted source hash outputs/phase26-d19-email-studio-integration.md",
+      "passed": true
+    },
+    {
+      "name": "accepted source hash outputs/phase26-d28-data-contract.md",
+      "passed": true
+    },
+    {
+      "name": "accepted source hash outputs/phase26-d39-full-ratification.md",
+      "passed": true
+    },
+    {
+      "name": "six no-mock actual helper observations",
+      "passed": true
+    },
+    {
+      "name": "actual helper source unchanged",
+      "passed": true
+    },
+    {
+      "name": "probe digest matches manifest",
+      "passed": true
+    }
+  ],
+  "files": [
+    {
+      "name": "phase26-d40-adversarial-review.md",
+      "sha256": "58c742f90abf35ae46cb07a10323ded8e85a16dead77f2eb7660162610d50d06"
+    },
+    {
+      "name": "phase26-d40-proof-and-operations.md",
+      "sha256": "7be0a4adf92695ae4dcf734084098c05150222885d364bf328ab4aca8b9a96a2"
+    },
+    {
+      "name": "phase26-d40-data-contract.md",
+      "sha256": "9f45965939999a842ce573f593714508f25aa53db4c8ce9dbecef9abd199a772"
+    },
+    {
+      "name": "phase26-d40-data-source-evidence.json",
+      "sha256": "735fe133f2633141dd58a946cbc56bd07850c521ae6b48e477feb782d4b19b2f"
+    },
+    {
+      "name": "phase26-d40-lifecycle-seam-review.md",
+      "sha256": "1fb599c9b862677187c060025e4ddc55665e717c97a09726f2702886ac1bacf4"
+    },
+    {
+      "name": "phase26-d40-ux-blueprint.md",
+      "sha256": "5844a9b7c964dde416ad608a1ab88f2bc9f9dcadbadd73c7a8a95a434ab393e0"
+    },
+    {
+      "name": "phase26-d40-review-corrections.md",
+      "sha256": "d2ac3b6c3a1c2511000e37a35c9ac3311b1861fa74aac316447db4309239af6a"
+    },
+    {
+      "name": "phase26-d40-address-probe.json",
+      "sha256": "63970814f34b93e9066b3fd025afcd272b124449a2793e042214cac2d58db8f2"
+    },
+    {
+      "name": "phase26-d40-source-evidence.json",
+      "sha256": "048c212fb2b6c25af213de0c0dce88173b4c5199a065a33ddccc868675a79c61"
+    }
+  ],
+  "inventory": {
+    "R": 30,
+    "C": 18,
+    "L": 16,
+    "UX": 15,
+    "categories": 23,
+    "F": 4,
+    "P": 40,
+    "O": 6
+  },
+  "currentCoreSourcePins": 28,
+  "earlierRatifiedReferenceFiles": 9,
+  "primaryTechnicalReferences": 11,
+  "actualHelperObservations": 6,
+  "runtimeGroupsRequired": 40,
+  "runtimeGroupsExecuted": 0,
+  "founderDetailedRatificationClaimed": false
+}

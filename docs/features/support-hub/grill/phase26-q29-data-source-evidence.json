@@ -1,0 +1,95 @@
+{
+  "date": "2026-09-13",
+  "cwd": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "scope": "Read-only Git object provenance and bounded filename inventory; no live database, runtime, provider or implementation proof.",
+  "sources": [
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "bytes": 313201,
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/project.md",
+      "bytes": 4255,
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-surfaces/spec.md",
+      "bytes": 11085,
+      "sha256": "2f9cae0d5073464717d0888c5efc82ec4a04d56fc54d2c4d3c0310e3201ebf73"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/reader.ts",
+      "bytes": 5137,
+      "sha256": "236d680029954d6ee0bca1286f613f26956a463f463296c81991554f579dba66"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/published-content-reader.ts",
+      "bytes": 9209,
+      "sha256": "479ccc0560345b0e9809632881cc0d12be392e7ede1249f5f401c16ed915a096"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/app/(public)/(solid)/help/about/page.tsx",
+      "bytes": 4398,
+      "sha256": "f8ceaf33caa21d79a6e30a430986bf91af5d6a40e520729f19fc6bb780cd3345"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/missionary/app/help/about/page.tsx",
+      "bytes": 3638,
+      "sha256": "43f1481c22cf82c96a88d37b2798faa2f9ca51e95509d326ad4e6e66448fb9ad"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0161-derived-public-site-search-projection-and-adverse-first-convergence.md",
+      "bytes": 11437,
+      "sha256": "f31ec862abd7fd47efcfd940b25675ca9e4330c97104c7440cf43c64b7f4f7d2"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0168-one-exact-public-audience-and-app-owned-authenticated-surfaces.md",
+      "bytes": 12282,
+      "sha256": "4454ed8790b9a47d744894b31a6b13624454a0a2805fbd397106bcb9a3df60a6"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0170-purpose-bounded-public-form-definitions-and-domain-owned-routing.md",
+      "bytes": 19189,
+      "sha256": "382f219e563c038c3b592ccb2b992e86c9bba5fbf8b4236e11ca4865b028d442"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0172-versioned-site-search-sharing-profile-and-d1-compiler-ownership.md",
+      "bytes": 27100,
+      "sha256": "fcb5ab82665f22a607c1b4e7a3346fee39e54e47dfff59dfcc2aa80ad322b860"
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/prds/sitestacker-parity/phase-24-multi-site-management.md",
+      "bytes": 58751,
+      "sha256": "60ecf01f9f8bdfbac23e9b692864c163598f2be10d5d1c01e2859bc13c55e9f6"
+    }
+  ],
+  "routeFilenameInventory": {
+    "roots": ["apps/donor/app", "apps/missionary/app", "packages/api/src"],
+    "caseSensitiveTerms": [
+      "/help/",
+      "/contact/",
+      "support-request",
+      "support-intake",
+      "help-intake"
+    ],
+    "matches": [
+      "apps/donor/app/(public)/(solid)/help/about/page.tsx",
+      "apps/missionary/app/help/about/page.tsx"
+    ],
+    "limit": "A bounded filename query does not establish all current Help entry points or runtime route absence."
+  }
+}

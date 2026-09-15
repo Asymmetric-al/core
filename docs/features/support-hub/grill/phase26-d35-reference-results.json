@@ -1,0 +1,123 @@
+{
+  "date": "2026-09-14",
+  "status": "passed",
+  "scope": "finite sequential requirement model only; no Core implementation, real auth/SQL/RLS, concurrent DB, provider, browser, performance or usability proof",
+  "checkCount": 24,
+  "checks": [
+    {
+      "name": "one correction keeps note publication and file membership",
+      "passed": true
+    },
+    {
+      "name": "correction is no new note or notification",
+      "passed": true
+    },
+    {
+      "name": "permitted original remains deliberate history",
+      "passed": true
+    },
+    {
+      "name": "identical retry has one effect",
+      "passed": true
+    },
+    {
+      "name": "changed operation meaning conflicts",
+      "passed": true
+    },
+    {
+      "name": "one winner from same base a",
+      "passed": true
+    },
+    {
+      "name": "one winner from same base b",
+      "passed": true
+    },
+    {
+      "name": "same tenant different author rejected",
+      "passed": true
+    },
+    {
+      "name": "different tenant rejected",
+      "passed": true
+    },
+    {
+      "name": "generated note kind not human editing",
+      "passed": true
+    },
+    {
+      "name": "no-op binds identity beyond response cache",
+      "passed": true
+    },
+    {
+      "name": "ABA content equality does not accept stale base",
+      "passed": true
+    },
+    {
+      "name": "old privacy fence cannot write",
+      "passed": true
+    },
+    {
+      "name": "old topology fence cannot retarget write",
+      "passed": true
+    },
+    {
+      "name": "deadline equality denies save and history",
+      "passed": true
+    },
+    {
+      "name": "edit does not renew retention deadline",
+      "passed": true
+    },
+    {
+      "name": "lost response reconciles read-only",
+      "passed": true
+    },
+    {
+      "name": "old result and current head stay distinct",
+      "passed": true
+    },
+    {
+      "name": "replay cannot expose after authority loss",
+      "passed": true
+    },
+    {
+      "name": "natural reference deletion preserves actual files",
+      "passed": true
+    },
+    {
+      "name": "new typed target rejected",
+      "passed": true
+    },
+    {
+      "name": "unsafe older correspondence is not exposed",
+      "passed": true
+    },
+    {
+      "name": "current-head search excludes retained old term",
+      "passed": true
+    },
+    {
+      "name": "lookup of unknown operation creates nothing",
+      "passed": true
+    }
+  ],
+  "counterexamples": [
+    {
+      "name": "blind overwrite loses first same-base correction",
+      "reproduced": true
+    },
+    {
+      "name": "unrecorded no-op permits changed key reuse",
+      "reproduced": true
+    },
+    {
+      "name": "redacting current body alone leaves older value visible",
+      "reproduced": true
+    },
+    {
+      "name": "text equality alone misses ABA stale base",
+      "reproduced": true
+    }
+  ],
+  "releaseGroupsExecuted": 0
+}

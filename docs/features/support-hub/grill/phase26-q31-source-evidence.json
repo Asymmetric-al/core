@@ -1,0 +1,155 @@
+{
+  "date": "2026-09-13",
+  "status": "read-only source verified; Q31 unanswered",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "originDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "files": [
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/command/SupportCommandPalette.tsx",
+      "bytes": 11094,
+      "sha256": "dd909c57eb42aabe9d4e2bb5ef7e779117aee2668b6075d222118fe5fe847037"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/ConversationHeader.tsx",
+      "bytes": 5406,
+      "sha256": "3e57bd1c273970cc973b5208658ba303b90b740443d9140c7e553a8c5fbcd0fc"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/ConversationSnoozeMenu.tsx",
+      "bytes": 3096,
+      "sha256": "306d62d60fd478e349191c384a5a5cd534915197d0a94156c7e7d5d0a9686233"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/table/bulk-actions.tsx",
+      "bytes": 8462,
+      "sha256": "7a42c0736c1826427f9406cb84ee9f901b67f9ca38700643490cd5a8083914b2"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/lib/bulk-mutations.ts",
+      "bytes": 795,
+      "sha256": "67b6b6a9bf2a9c7753fdf032d35c564d9ae9fd137965e0e8bef0c318e9f4dd6a"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "bytes": 313201,
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-surfaces/spec.md",
+      "bytes": 11085,
+      "sha256": "2f9cae0d5073464717d0888c5efc82ec4a04d56fc54d2c4d3c0310e3201ebf73"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/move-service.ts",
+      "bytes": 16606,
+      "sha256": "856d77dc019bde8ef9f920ad0eca2c8f25e6980bfb9d56bbf0cde8004f08f40a"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d3-adversarial-review.md",
+      "bytes": 80158,
+      "sha256": "d4f09215c0d388d305b275863ce63a65c67d5594cfb819908d2d71df9daa445c"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d3-ux-blueprint.md",
+      "bytes": 18384,
+      "sha256": "6a8eccd1277dee0f5e7f3b7cb7ef74d2087b170b03e8b96b48bd8e203d8917cd"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d4-adversarial-review.md",
+      "bytes": 68173,
+      "sha256": "4cfcacdcd391b5f344637fa573eb06e2a06fac905535e814ca8925430e4fffcb"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d7-adversarial-review.md",
+      "bytes": 71747,
+      "sha256": "a3e2fec4083bf07631395740088d659abc206262bebc8d02a7bde7747769ec0c"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d14-adversarial-review.md",
+      "bytes": 87323,
+      "sha256": "8da8039edba331e3890d4eeb5c75e0c944bd338a6322f5db47776352099f761a"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d24-adversarial-review.md",
+      "bytes": 78377,
+      "sha256": "63b54d34c3aff1f5733deca679969cd54b159b87ce7430d35a38b3fdf498ed1a"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d26-adversarial-review.md",
+      "bytes": 69638,
+      "sha256": "8a28532b1fa59aee76d6d2cf2f6a26ba614ca8338ad996de24d2133cfa1c0e2e"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d30-adversarial-review.md",
+      "bytes": 74618,
+      "sha256": "106dbf017701cbb8e2669aaa350fdcc290e48dd4de46ba79d9031a74ef75ba54"
+    }
+  ],
+  "limits": [
+    "No product test/DB/provider/browser/usability probe run for this question",
+    "Arithmetic examples illustrate inspected source, not timezone/runtime conformance",
+    "D3 follow-up semantics and D24 closed shortcut patch remain ratified; only time-choice breadth is open",
+    "No new menu/hour/zone hierarchy chosen or implemented"
+  ]
+}
