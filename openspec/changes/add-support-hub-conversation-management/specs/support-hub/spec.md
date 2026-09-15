@@ -4,6 +4,8 @@ Support Hub lets tenant staff handle ordinary requests with dependable ownership
 
 This capability binds the complete Phase26 user-story/implementation book (including G01–G15), normative requirement volumes A (D1–D13), B (D14–D26) and C (D27–D40), and the normative glossary. Stable US26/REQ26/AC26 identifiers identify the exact clauses; the publication index provides every full volume. The local formal package is the matching Phase26 documentation set. These requirements are not satisfied by the shortened scenarios alone.
 
+This is the **derived OpenSpec behavioral projection** of the user-story book: its 217 story requirements and 717 acceptance outcomes were generated from the corresponding US26/AC entries. Maintain product wording in the story book, detailed normative requirement volumes and glossary, then propagate the affected projection by stable identifier and verify the complete acceptance text and referenced suites remain aligned. Do not edit this projection as a separate product authority. The GIVEN/WHEN lines inherit the identified story and full REQ conditions; the concrete THEN outcome and full normative acceptance suite define the observable proof, including denied, stale, duplicate and interrupted cases. Passing this index through OpenSpec validation does not prove any behavior.
+
 ## ADDED Requirements
 
 ### Requirement: US26-D01-01 — Continue an ordinary help request by email

@@ -2,14 +2,15 @@
 
 The [published specification, AL-1656](https://github.com/Asymmetric-al/core/issues/1656), records all forty ratified decisions and amendments. This directory preserves the decision history; the formal package below is the current implementation contract. Specification readiness does not mean the feature has shipped.
 
-## Current implementation contract
+## Reading and implementation order
 
-- [User stories, implementation and testing](../../prds/sitestacker-parity/phase-26-support-hub-conversation-management.md)
-- [Current consolidated glossary](../../prds/sitestacker-parity/phase-26-support-hub-glossary.md)
-- [Requirements A — D1–D13](../../prds/sitestacker-parity/phase-26-support-hub-requirements-a.md), [B — D14–D26](../../prds/sitestacker-parity/phase-26-support-hub-requirements-b.md), [C — D27–D40](../../prds/sitestacker-parity/phase-26-support-hub-requirements-c.md)
-- [Complete source traceability](../../prds/sitestacker-parity/phase-26-support-hub-traceability.md) and [machine register](../../prds/sitestacker-parity/phase-26-support-hub-traceability.json)
-- [OpenSpec proposal](../../../openspec/changes/add-support-hub-conversation-management/proposal.md), [design](../../../openspec/changes/add-support-hub-conversation-management/design.md), [observable requirements](../../../openspec/changes/add-support-hub-conversation-management/specs/support-hub/spec.md), and [future tasks](../../../openspec/changes/add-support-hub-conversation-management/tasks.md)
-- [Publication evidence and proof limits](../../prds/sitestacker-parity/phase-26-support-hub-evidence.md)
+1. **Understand the intended behavior.** Start with the [user stories, implementation and testing contract](../../prds/sitestacker-parity/phase-26-support-hub-conversation-management.md) and [current consolidated glossary](../../prds/sitestacker-parity/phase-26-support-hub-glossary.md). The [source-of-truth ownership matrix](../../prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md) and governing Core decisions retain their authority.
+2. **Read the binding detail for the work in scope.** Follow the story's requirement identifiers into [Requirements A — D1–D13](../../prds/sitestacker-parity/phase-26-support-hub-requirements-a.md), [B — D14–D26](../../prds/sitestacker-parity/phase-26-support-hub-requirements-b.md), or [C — D27–D40](../../prds/sitestacker-parity/phase-26-support-hub-requirements-c.md), together with the [shared-owner design](../../../openspec/changes/add-support-hub-conversation-management/design.md). These establish the behavior, boundaries and required proof.
+3. **Use the implementation queue.** The [future tasks](../../../openspec/changes/add-support-hub-conversation-management/tasks.md) identify work and qualification to perform against those requirements. Completion needs the applicable evidence; a checked task cannot redefine the governing contract or establish another owner's outcome.
+4. **Navigate and cross-check coverage.** This package's [derived OpenSpec behavior projection](../../../openspec/changes/add-support-hub-conversation-management/specs/support-hub/spec.md) and [human-readable source trace](../../prds/sitestacker-parity/phase-26-support-hub-traceability.md) help locate story, requirement and acceptance identifiers. The [machine register](../../prds/sitestacker-parity/phase-26-support-hub-traceability.json) supports automated validation. These derived representations are synchronized from the governing contract, not maintained as independent product decisions.
+5. **Inspect the basis and history.** Read the [proposal](../../../openspec/changes/add-support-hub-conversation-management/proposal.md), [publication evidence and proof limits](../../prds/sitestacker-parity/phase-26-support-hub-evidence.md), and [publication/review provenance](publication-provenance.md), then use the relevant decision history below.
+
+For this Phase26 package, make an authorized contract correction in the governing requirement/design material and reconcile its queue, derived projection and trace in the same change. A disagreement is a documentation synchronization defect to resolve; it does not create a second source of product intent. The original published issue packet remains dated evidence, while the provenance register identifies subsequent reviewed repository amendments.
 
 ## Decision history and authority
 

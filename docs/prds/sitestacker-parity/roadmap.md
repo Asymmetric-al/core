@@ -148,7 +148,7 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **23** | `web-studio-cms`             | CMS / Site Planner Dynamic Content Parity                                                                                         | 5, 3, 2                                               | 22                                                    | Web Studio, Payload, Public Website                             | `future (needs PRD)` — deps allow an early start after Phase 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | **24** | `multi-site-management`      | Full Multi-Site, Language & Currency Management                                                                                   | 2, 5, 13, 20, 23                                      | 17                                                    | Tenant settings, Web Studio, Contributions settings             | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **25** | `donor-portal-depth`         | Donor Dashboard Depth                                                                                                             | 4, 3, 13, 7, 6                                        | 17, 19                                                | Donor Portal                                                    | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17                                        | —                                                     | Support Hub, communication services, `packages/api`             | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17; 23 (selected lanes)                   | —                                                     | Support Hub, communication services, `packages/api`             | `PRD exists` — [ratified specification #1656](https://github.com/Asymmetric-al/core/issues/1656); D1–D40 complete, including D27-C and D29-X01; implementation and release proof outstanding                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | **27** | `donor-development`          | Donor Development & Portfolio Management _(beyond-parity differentiator)_                                                         | **9**, 3, 6, 13                                       | consumes 14, 16; 26; enhanced by 33, 34               | Mission Control CRM (Development)                               | `future (needs PRD)` (was v1 Phase 33)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | **28** | `missionary-workspace-depth` | Missionary Workspace Depth & Support-Raising CRM                                                                                  | 9, 13, 16, 6, 3, 27                                   | 26                                                    | Missionary Workspace                                            | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **29** | `files-documents`            | File Manager & Document Management                                                                                                | 3, 9                                                  | 18, 26, the shipped workflow-orchestration runtime    | Documents/File Manager, CRM, Workflows, Web Studio              | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -163,6 +163,16 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **38** | `member-care-ops`            | Member Care, Crisis & Restricted-Ministry Operations                                                                              | 10, 3, 4, 9, 29                                       | 6, 12, 26, 34                                         | Member Care, Mission Control, security-sensitive projections    | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **39** | `field-first-ux`             | Mobile, Low-Bandwidth & Conflict-Safe Field Experience                                                                            | 3, 4, 9, 28                                           | 31                                                    | Cross-surface UX, `packages/api` concurrency contracts          | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **40** | `data-stewardship-ai`        | Data Stewardship, Global Search & AI Operator Workbench                                                                           | 3, 4, 8, 9, 13, 30, 33                                | 6, 11, 34                                             | Mission Control, Data Tools, Search, AI Assist                  | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+
+**Phase 26 activation qualifier.** Phase 23 is a required owning-phase
+prerequisite for the selected Help/contact/form and Public Guidance lanes, with
+qualification at each actual consumer seam before that lane activates. It is
+not a blanket prerequisite for all Support work: core inbox/work/CRM paths keep
+their own dependencies, and Internal Staff guides remain Support-owned
+operational content rather than CMS Pages. The
+[ratified Phase 26 specification](./phase-26-support-hub-conversation-management.md)
+sets the exact boundaries and proof gates; this qualifier grants no activation
+or implementation authority.
 
 **Out of scope (deliberate):** **child sponsorship** (tracked as an
 out-of-scope row in [`parity-matrix.md`](./parity-matrix.md)).
@@ -2894,79 +2904,85 @@ restricted workers (10).
 
 ### Phase 26 — Support Hub & Conversation Management (`support-hub`)
 
-**What this phase is (plain language).** The staff home for **inbound**
-communication: a donor replies to a receipt, a church emails a question, a
-missionary asks for help — every message lands in a shared team inbox,
-routes to the right person, links to the sender's CRM record, and can't be
-lost, double-answered, or silently dropped. The industry table stakes are
-four features: **assignment, collision detection, internal notes, and
-status tracking** — plus a quarantine queue so no donor email ever
-disappears.
+**Status and authority.** D1–D40, including D27-C and D29-X01, are fully
+ratified. The [Phase 26 specification](./phase-26-support-hub-conversation-management.md),
+[glossary](./phase-26-support-hub-glossary.md), normative requirement volumes
+[A](./phase-26-support-hub-requirements-a.md),
+[B](./phase-26-support-hub-requirements-b.md) and
+[C](./phase-26-support-hub-requirements-c.md),
+[traceability register](./phase-26-support-hub-traceability.md), and
+[OpenSpec package](../../../openspec/changes/add-support-hub-conversation-management/)
+form the implementation contract published in
+[specification #1656](https://github.com/Asymmetric-al/core/issues/1656).
+The former roadmap-level grooming questions are settled by that contract.
+Implementation and runtime release proof remain outstanding.
 
-**Why it sits here.** After the comms spine (6 — conversations emit into
-`communication_events`), parties (9 — sender linking), and templates (17 —
-macros/canned responses ride the same variable safety), with Phase 10
-classification deciding which subjects may enter the general inbox. **The repo is
-already well down this road** — a 19-table Support Hub schema (inboxes,
-agents, teams, labels, SLA policies, conversations, messages, saved views,
-macros, automation rules, audit log), a live Supabase adapter with
-inbound-email → conversation routing through the durable workflow ledger,
-an admin workspace UI, and unit + e2e smoke coverage all exist (classified
-durable), alongside an **older parallel `support` module (fixed queue ids)
-that this phase must consolidate or retire**, plus two written-but-
-unexecuted hardening plans (SQL-side filters; inbound pipeline). This phase
-grooms all of that against the researched semantics and completes the
-product.
+**What this phase is (plain language).** Support Hub is one staff surface
+within Asym for handling ordinary help requests, continuing them by email and
+using qualified contextual Help entry points. Staff see the responsible worker,
+current work, permitted CRM context and truthful action outcomes without
+turning every ministry workflow into a ticket. Requesters do not need an Asym
+account to continue ordinary email contact; this phase does not add a requester
+"My messages" archive.
 
-**What it covers.**
+**Ratified scope.**
 
-- **Conversation model**: one canonical thread with typed parts (customer
-  message / staff reply / internal note / system event — notes structurally
-  never deliverable), status lifecycle (decide Front-lightweight
-  open/snoozed/closed vs Zendesk-full at grooming; snooze-with-timer and
-  reopen-on-reply either way).
-- **Collision detection that blocks send** on mid-compose updates (Help
-  Scout semantics) — the highest-ROI delta over a shared mailbox.
-- **Assignment**: individual + team, manual, round-robin, and rules
-  conditioned on CRM party data (donor tier, missionary link, content, wait
-  time); an explicit unassigned queue. Launch routing is a bounded coded
-  policy, not a second tenant-authored automation engine.
-- **CRM linking**: auto-match sender → party on exact email;
-  suggest-and-confirm for unknown senders (never HubSpot-style auto-create
-  junk); conversations on the person timeline via the Phase 6 emit-hook with
-  the dedupe rule (support replies must not double-write timeline events).
-- **Inbound ingestion**: forwarding-based + BYO-domain (MX/inbound routes)
-  with verification; RFC-2822 threading (In-Reply-To/References) +
-  unguessable plus-address tokens as fallback; quoted-reply stripping;
-  attachment limits. The provider spike qualifies Resend Inbound against the
-  mandatory contract first. Other providers remain contingency research only
-  if Resend cannot satisfy a mandatory inbound capability; Phase 26 does not
-  ship a multi-provider mail adapter.
-- **The safety layer ships before real domains open**: suspended/quarantine
-  review queue (never silently drop), Auto-Submitted/Precedence:bulk
-  detection, per-sender loop rate limits (Zendesk's 20/hr-suspend, 40/hr-
-  reject budget), DMARC-failure and own-address-loop guards.
-- **Outbound failure states on the conversation** (pending → retrying →
-  undelivered/bounced) from the Resend webhooks + Phase 6 monotonic machine.
-- **SLA machinery** (schema exists): first-reply/next-reply/resolution
-  against business-hours calendars — groom whether small missions teams need
-  enforcement UI at launch or reporting suffices.
-- **Macros/canned responses** through the Phase 17 variable allow-list.
+- **Work and continuity.** Four work states — Open, Waiting for requester,
+  Waiting on our side and Resolved — remain separate from assignment, personal
+  reading, reminders and delivery. Qualified assignment and coverage, exact
+  duplicate merge/Undo, related conversations and delegated owner work preserve
+  original-source identity, current authorization and genuine obligations.
+- **Safe reading and authoring.** Deliberate Reply and Internal note modes,
+  private Reply/new-note drafts in My drafts, optional quotation, own-note edits
+  with visible history, advisory composing cues, personal read/unread, a Compact
+  default with a personal Full option, and qualified file previews share the
+  accessible Base UI/Maia experience. Presence and reading never replace the
+  exact send-review and concurrency checks.
+- **CRM continuity.** Observed sender endpoints and authorized CRM associations
+  remain distinct. Matching email does not prove identity or access and does not
+  create a Party automatically. Support and CRM show the same owner-filtered
+  facts; protected updates use the owning domain's commands without duplicate
+  CRM records, communication history or Support-to-CRM synchronization.
+- **Intake and recovery.** Canonical intake, source-safe threading, loop and
+  abuse controls, accountable Needs review with exact Release/Dismiss, truthful
+  attachment/delivery recovery, and Resend qualification precede applicable
+  activation. Unwanted correspondence has a recoverable designation separate
+  from work status; future holding is a separate, explicit exact
+  receiving-inbox/mailbox policy. It does not block CRM contacts or silently
+  dispose of already accepted or held inputs.
+- **Useful guidance and wording.** Public and Internal Guidance share a surface
+  while retaining different content owners. Contextual guides and direct
+  contact do not force self-service. Saved wording, signatures and curated
+  shortcuts use qualified authoring and publication boundaries.
+- **Truthful history and reporting.** Optional internal First/Next reply targets
+  are distinct from public service promises or resolution timers. Feedback and
+  reports preserve genuine obligations and historical evidence. Restrictions,
+  redaction, finite purpose-based retention and recovery follow the exact source,
+  privacy and authorization contracts.
 
-**Boundaries & guardrails.** Support Hub owns support work — not CRM truth,
-provider mail truth, message-template truth, or member-care private truth
-(care-classified subjects route to Phase 38 surfaces, not the general inbox).
-Phase 17 owns and prepares governed replies; Phase 6 dispatches and records them.
-Existing `support_automation_rules` remain inert versioned data until Phase 34
-becomes the sole configurable trigger/condition/action vocabulary and
-adopts or migrates them; Phase 26 does not forward-gate on Phase 34 or ship a
-parallel builder.
+**Ownership and activation.** Phases 6, 3, 4, 9 and 17 remain the foundational
+owners. Email Studio (Phase 17) owns governed email preparation and its reusable
+content; Phase 6 owns dispatch, immutable communication/provider evidence and
+recovery. Support owns work, deliberate authoring and its private working state.
+Internal note saving/posting is not external email preparation; any independently
+authorized notification keeps its own Phase 17/6 admission. CRM, giving and
+sensitive-care actions retain their owning domain's permissions and history.
 
-**Open questions for grooming.** Whether donors/missionaries get a "my
-messages" portal view (rides Phase 6 projections) or the hub stays
-staff-only; conversation merge/split at launch; retention/redaction class
-for message bodies + attachments (Phase 6 redact-not-delete interplay);
-auto-acknowledgment policy and loop budget.
+Phase 23 is required before activating the selected Help/contact/form and Public
+Guidance lanes, including their qualified occurrence, publication and withdrawal
+seams. This lane-specific gate does not make Phase 23 the owner of Internal Staff
+guides or a blanket prerequisite for core inbox/work/CRM behavior. Phase 34 remains
+the sole configurable automation vocabulary; legacy Support rule data does not
+authorize a parallel builder or make Phase 34 a blanket forward gate.
+
+**Proof still required.** Existing schema, adapters, UI, tests and the parallel
+legacy Support module are partial source evidence, not proof of the ratified
+product. Consolidation and migration must preserve qualified identities/history.
+The confirmed testing contract requires real authenticated API/intake/job seams,
+disposable Supabase database and Storage checks, authorization/concurrency/replay
+and migration cases, complete browser and assistive-technology journeys, intended
+user evaluation, and actual provider/capacity qualification. Production inboxes
+and dependent lanes activate only after their recorded evidence gates pass.
 
 ---
 

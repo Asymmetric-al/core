@@ -740,6 +740,13 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   floor without remediation. The blast radius is planning-only: the Phase 21
   PRD, decision evidence, ADRs, OpenSpec change, and named cross-phase contract
   amendments; it grants no runtime authority.
+- [`phase-26-support-hub-conversation-management.md`](./phase-26-support-hub-conversation-management.md)
+  — the fully ratified Phase 26 Support Hub specification, published as
+  [#1656](https://github.com/Asymmetric-al/core/issues/1656). D1–D40 include
+  D27-C and D29-X01; implementation and runtime release proof remain outstanding.
+  The [Support feature entry](../../features/support-hub/README.md) links the
+  complete formal contract, glossary, traceability and historical evidence.
+  This is implementation-ready planning, not shipped functionality.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

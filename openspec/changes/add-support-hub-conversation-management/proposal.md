@@ -21,7 +21,7 @@ Tenant staff need one dependable place to handle incoming requests, collaborate,
 
 ### Modified Capabilities
 
-None. Existing platform, identity/access and workflow requirements remain controlling. CRM's native-Postgres correction already exists in the accepted retirement change; this change consumes it and expressly rejects the stale Twenty backing/synchronization wording rather than creating a competing CRM redesign. P6/P17 and other owning-domain requirements are referenced and qualified at their existing boundaries, not copied into Support as new authorities.
+None in the Support change. Existing platform, identity/access and workflow requirements remain controlling. Accepted ADR-0001 and the merged native CRM implementation establish Asym Postgres ownership. This documentation PR synchronizes the existing `complete-twenty-crm-retirement` delta into `crm-core`; that owning change remains active, with remaining tasks and external-cleanup evidence unchanged. Support consumes the resulting native CRM contract without adding a competing CRM delta. P6/P17 and other owning-domain requirements are referenced and qualified at their existing boundaries, not copied into Support as new authorities.
 
 ## Impact
 
