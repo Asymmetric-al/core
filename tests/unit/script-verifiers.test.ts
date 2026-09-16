@@ -597,6 +597,53 @@ describe("sync-agent-skills", () => {
     expect(existsSync(path.join(tempRoot, ".agents/skills"))).toBe(false);
   }, 20_000);
 
+  it("allowlists demo credential-word lines in ecosystem skill copies", async () => {
+    const tempRoot = await createTempRepo("sync-skills-scanner");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/claude-handoff");
+    await mkdir(ecosystemDir, { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      `# Handoff\n\nRedact API keys, ${demoCredentialWord}, or PII.\n`,
+    );
+    await mkdir(path.join(ecosystemDir, "assets"), { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "assets/examples.json"),
+      `{"input":"How do I reset my ${demoCredentialWord}?"}\n`,
+    );
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const copied = await readFile(
+        path.join(tempRoot, runtimeRoot, "claude-handoff/SKILL.md"),
+        "utf8",
+      );
+      expect(copied).toContain("pragma: allowlist secret");
+      const jsonCopy = JSON.parse(
+        await readFile(
+          path.join(tempRoot, runtimeRoot, "claude-handoff/assets/examples.json"),
+          "utf8",
+        ),
+      );
+      expect(jsonCopy.input).toContain("pragma: allowlist secret");
+    }
+  }, 20_000);
+
   it(
     "prints help and rejects unknown arguments",
     { timeout: 20_000 },

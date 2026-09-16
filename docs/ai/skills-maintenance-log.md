@@ -381,6 +381,11 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
 - Vendored NestJS, Playwright, and Payload reference docs keep
   `pragma: allowlist secret` on credential-example lines, and those trees
   are Prettier-ignored so wrapping does not re-trip the commit scanner.
+- `skills:sync` now allowlists those same credential-example lines in
+  ecosystem `.agents` copies (including JSON string values) before mirroring
+  to Cursor and Claude, so lockfile-only skills stay committable after CLI
+  refresh. `skills:refresh-upstream` walks every copied canonical file, not
+  only `better-accessibility` / `better-writing`.
 
 ## Rollback Notes
 
