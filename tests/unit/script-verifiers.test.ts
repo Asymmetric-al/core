@@ -1810,6 +1810,166 @@ describe("refresh-upstream-skills", () => {
       "canonical stays intact\n",
     );
   });
+
+  const askMattGrillDepthOverlay = [
+    "<!-- CORE-OVERLAY-START -->",
+    "",
+    "1. **Choose the grill depth.** Use **`/grill-with-docs`** for the normal codebase-backed interview: it is stateful, retaining what it learns in `CONTEXT.md` and ADRs. Use **`/grill-for-unknowns` instead** only when the user explicitly requests its map-vs-territory pass, blindspot/unknown-unknown discovery, unknown-known prototypes, or a subagent launch packet; it owns that session's grilling loop, so do not also run `/grilling` or `/grill-with-docs`. (No codebase? Use `/grill-me` — see Standalone.)",
+    "<!-- CORE-OVERLAY-END -->",
+  ].join("\n");
+
+  const askMattUpstreamBody = [
+    "---",
+    "name: ask-matt",
+    "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+    "disable-model-invocation: true",
+    "---",
+    "",
+    "# Ask Matt",
+    "",
+    "You don't remember every skill, so ask.",
+    "",
+    "## The main flow: idea → ship",
+    "",
+    "The route most work travels. You have an idea and want it built.",
+    "",
+    "1. **`/grill-with-docs`** sharpens the idea by interview. Start here whenever you are **working in a working directory**: it's stateful, retaining what it learns in `CONTEXT.md` and ADRs. (No working directory? Use `/grill-me` instead, covered under Standalone. Both run the same `/grilling` primitive; `grill-with-docs` is the one that leaves a paper trail, which makes it the better of the two whenever a repo is there to leave it in.)",
+    "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+    "",
+    "## Standalone",
+    "",
+    "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
+    "",
+  ].join("\n");
+
+  const askMattCanonicalSkill = [
+    "---",
+    "name: ask-matt",
+    "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+    "disable-model-invocation: true",
+    "---",
+    "",
+    "# Ask Matt",
+    "",
+    "You don't remember every skill, so ask.",
+    "",
+    "## The main flow: idea → ship",
+    "",
+    "The route most work travels. You have an idea and want it built.",
+    "",
+    askMattGrillDepthOverlay,
+    "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+    "",
+    "## Standalone",
+    "",
+    "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
+    "",
+  ].join("\n");
+
+  function askMattOverlayPlacement(content: string) {
+    return {
+      heading: content.indexOf("## The main flow: idea → ship"),
+      overlay: content.indexOf("<!-- CORE-OVERLAY-START -->"),
+      stepTwo: content.indexOf("2. **Branch"),
+    };
+  }
+
+  it("restores the Ask Matt grill-depth overlay under the main flow after a CLI add", async () => {
+    const tempRoot = await createTempRepo("refresh-ask-matt-main-flow");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/ask-matt/SKILL.md",
+    );
+    const canonicalRoot = path.join(tempRoot, "docs/ai/skills/ask-matt");
+    await mkdir(path.dirname(sourceSkillPath), { recursive: true });
+    await writeFile(sourceSkillPath, askMattUpstreamBody);
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      askMattCanonicalSkill,
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "# Core provenance\n",
+    );
+
+    runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+      "--only=mattpocock/skills",
+    ]);
+
+    const refreshed = await readFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "utf8",
+    );
+    const placement = askMattOverlayPlacement(refreshed);
+    expect(placement.heading).toBeGreaterThan(-1);
+    expect(placement.overlay).toBeGreaterThan(placement.heading);
+    expect(placement.stepTwo).toBeGreaterThan(placement.overlay);
+    expect(refreshed).toContain("/grill-for-unknowns");
+    expect(refreshed).toContain("/writing-great-skills");
+    expect(refreshed).not.toContain("/writing-for-agents");
+    expect(refreshed).not.toContain(
+      "1. **`/grill-with-docs`** sharpens the idea by interview.",
+    );
+    await expect(
+      readFile(path.join(canonicalRoot, "references/upstream.md"), "utf8"),
+    ).resolves.toBe("# Core provenance\n");
+  });
+
+  it("fails closed when the Ask Matt overlay is restored after the H1 instead of the main flow", async () => {
+    const tempRoot = await createTempRepo("refresh-ask-matt-misplaced-overlay");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const misplacedSource = [
+      "---",
+      "name: ask-matt",
+      "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+      "disable-model-invocation: true",
+      "---",
+      "",
+      "# Ask Matt",
+      "",
+      askMattGrillDepthOverlay,
+      "",
+      "You don't remember every skill, so ask.",
+      "",
+      "## The main flow: idea → ship",
+      "",
+      "The route most work travels. You have an idea and want it built.",
+      "",
+      "1. **`/grill-with-docs`** sharpens the idea by interview. Start here whenever you are **working in a working directory**: it's stateful, retaining what it learns in `CONTEXT.md` and ADRs. (No working directory? Use `/grill-me` instead, covered under Standalone. Both run the same `/grilling` primitive; `grill-with-docs` is the one that leaves a paper trail, which makes it the better of the two whenever a repo is there to leave it in.)",
+      "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+      "",
+      "## Standalone",
+      "",
+      "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
+      "",
+    ].join("\n");
+
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/ask-matt/SKILL.md",
+    );
+    const canonicalSkillPath = path.join(
+      tempRoot,
+      "docs/ai/skills/ask-matt/SKILL.md",
+    );
+    await mkdir(path.dirname(sourceSkillPath), { recursive: true });
+    await writeFile(sourceSkillPath, misplacedSource);
+    await mkdir(path.dirname(canonicalSkillPath), { recursive: true });
+    await writeFile(canonicalSkillPath, askMattCanonicalSkill);
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+        "--only=mattpocock/skills",
+      ]),
+    ).toThrow(/main flow/);
+    await expect(readFile(canonicalSkillPath, "utf8")).resolves.toBe(
+      askMattCanonicalSkill,
+    );
+  });
 });
 
 describe("verify-eslint-config", () => {
