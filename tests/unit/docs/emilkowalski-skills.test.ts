@@ -124,9 +124,9 @@ describe("emilkowalski skill pack", () => {
     expect(
       readSkillFile("docs/ai/skills", "emil-prototype", "SKILL.md"),
     ).toContain("disable-model-invocation: true");
-    expect(
-      readSkillFile("docs/ai/skills", "animate", "SKILL.md"),
-    ).toContain("disable-model-invocation: true");
+    expect(readSkillFile("docs/ai/skills", "animate", "SKILL.md")).toContain(
+      "disable-model-invocation: true",
+    );
     expect(
       readSkillFile("docs/ai/skills", "write-swift", "SKILL.md"),
     ).toContain("disable-model-invocation: true");
@@ -184,7 +184,10 @@ describe("emilkowalski skill pack", () => {
 
   it("keeps Base UI ownership in Emil component design and the shared Sonner toaster", () => {
     const componentDesign = readFileSync(
-      path.join(repoRoot, "docs/ai/skills/emil-design-engineering/component-design.md"),
+      path.join(
+        repoRoot,
+        "docs/ai/skills/emil-design-engineering/component-design.md",
+      ),
       "utf8",
     );
     const askSonner = readFileSync(
@@ -215,9 +218,7 @@ describe("emilkowalski skill pack", () => {
 
     expect(animate).toContain("Do not invoke `pick-ui-library`");
     expect(prototype).toContain("apps/*/app/prototypes/");
-    expect(refreshScript).toContain(
-      'relativePath: "component-design.md"',
-    );
+    expect(refreshScript).toContain('relativePath: "component-design.md"');
     expect(refreshScript).toContain(
       "4. **asChild** - Render as different element (Radix pattern)",
     );

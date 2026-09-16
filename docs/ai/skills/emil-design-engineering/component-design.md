@@ -198,7 +198,7 @@ import { buttonVariants } from "@asym/ui/components/shadcn/button";
 
 <Link href="/page" className={buttonVariants({ variant: "default" })}>
   Click me
-</Link>
+</Link>;
 ```
 
 When a Base UI primitive must render as another element, use its `render` prop.
