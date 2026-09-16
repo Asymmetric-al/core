@@ -12,7 +12,7 @@
 
 - The agent needs to choose a canonical skill under `docs/ai/skills/`
 - The agent needs to restore ecosystem skills from `skills-lock.json`
-- The agent needs Core-specific notes for a vendor skill (Supabase, Resend CLI, Emil Kowalski, Matt Pocock, Inngest, shadcn, TDD)
+- The agent needs Core-specific notes for a vendor skill (Supabase, Resend CLI, Emil Kowalski, Matt Pocock, Inngest, shadcn, TDD, Next.js app architecture)
 - Root `AGENTS.md` points here when discovered skill metadata is insufficient
   or skill maintenance is requested
 
@@ -74,6 +74,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`improve`** ([`shadcn/improve`](https://github.com/shadcn/improve)) is in `docs/ai/skills/improve/`. Refresh via `npx skills add shadcn/improve -y`, then **delete any project-level `.claude/skills/improve` symlink the CLI creates** (this repo routes Claude Code through `docs/ai/skills/` + this file, not `.claude/skills/`), reconcile into `docs/ai/skills/improve/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/improve/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
 
+**`nextjs-app-architecture`** ([`aurorascharff/nextjs-app-architecture-skill`](https://github.com/aurorascharff/nextjs-app-architecture-skill)) is in `docs/ai/skills/nextjs-app-architecture/`. Refresh via `npx skills add aurorascharff/nextjs-app-architecture-skill -y`, then **delete any project-level `.claude/skills/nextjs-app-architecture` symlink the CLI creates** (this repo routes Claude Code through `docs/ai/skills/` + this file, not `.claude/skills/`), reconcile into `docs/ai/skills/nextjs-app-architecture/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/nextjs-app-architecture/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
+
 **Official Inngest agent skills** (`docs/ai/skills/inngest-*`) are vendored from [`inngest/inngest-skills`](https://github.com/inngest/inngest-skills) and [`inngest/inngest-codex-plugin`](https://github.com/inngest/inngest-codex-plugin). Refresh them with `bun run skills:refresh-inngest`, then `bun run skills:sync` and `bun run skills:verify`; source SHAs and licenses are documented in `docs/ai/skills/inngest/references/upstream.md`. These skills are agent tooling for integration work, not evidence of product runtime adoption. Use `docs/ai/skills/inngest/SKILL.md` as the router when unsure which Inngest skill applies.
 
 **`eve`**, **`create-agent`**, **`impeccable`**, and **`playwright-best-practices`** are vendored under `docs/ai/skills/` with refresh steps in each skill's `references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today. Upstream CLI id for Impeccable is **`impeccable`** (not `critique`).
@@ -82,6 +84,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
+- **Next.js 16 page composition, feature-folder UI layout, colocated Suspense skeletons, and leaf-client UX:** `docs/ai/skills/nextjs-app-architecture/SKILL.md` (subordinate to `docs/ai/rules/frontend.md`, `nextjs-app-router`, `cache-components`, and `docs/guides/architecture/data-access-boundary.md`; do not move business queries or privileged mutations into app feature folders)
 - **Verify Next.js runtime behavior after edits (running dev server + browser + React tree):** `next-dev-loop` (first-party `vercel/next.js` skill; ecosystem install under `.agents/skills/`, mirrored to `.claude/skills/` and `.cursor/skills/`; requires `agent-browser` ≥0.27)
 - **Adopt Cache Components on existing routes (feature-by-feature):** `next-cache-components-adoption` (first-party `vercel/next.js` skill; ecosystem install)
 - **Grow a route's static shell / make navigations instant:** `next-cache-components-optimizer` (first-party `vercel/next.js` skill; ecosystem install) — see **Instant Navigation (Next.js 16.3)** in `docs/ai/rules/frontend.md`

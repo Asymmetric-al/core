@@ -80,6 +80,19 @@ workflows, and use `docs/ai/skills/inngest-setup/SKILL.md` only when explicitly
 adding product runtime Inngest. Refresh with `bun run skills:refresh-inngest`,
 then `bun run skills:sync` and `bun run skills:verify`.
 
+**Example — Next.js app architecture:** page composition, feature-folder UI
+layout, colocated Suspense skeletons, and leaf-client UX are covered by
+`docs/ai/skills/nextjs-app-architecture/SKILL.md`. Install or refresh from
+[`aurorascharff/nextjs-app-architecture-skill`](https://github.com/aurorascharff/nextjs-app-architecture-skill)
+with `npx skills add aurorascharff/nextjs-app-architecture-skill -y`, then
+restore the local overlay from `docs/ai/skills/nextjs-app-architecture/SKILL.md`
+and `docs/ai/skills/nextjs-app-architecture/references/upstream.md`, then
+`bun run skills:sync` and `bun run skills:verify`. Keep it subordinate to
+`docs/ai/rules/frontend.md`, `docs/ai/skills/nextjs-app-router/SKILL.md`,
+`docs/ai/skills/cache-components/SKILL.md`, and
+`docs/guides/architecture/data-access-boundary.md`. Do not move business
+queries or privileged mutations into app feature folders.
+
 ## How to Help Users Find Skills
 
 ### Step 1: Understand What They Need
