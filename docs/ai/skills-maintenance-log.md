@@ -340,6 +340,48 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
   `skills:refresh-frontend-design`, `skills:refresh-taste-skill`,
   `skills:refresh-obra-tdd`.
 
+## 2026-09-16 - Full catalog freshness audit
+
+- Audited every lockfile-managed skill (128 original names) against live
+  GitHub `SKILL.md` bytes. True content refreshes were applied; overlay,
+  Prettier, OpenSpec `v1.9.0` pin, and Core-adapter diffs were not treated as
+  stale upstream.
+- Kept OpenSpec skills on installed CLI `@fission-ai/openspec@1.9.0`. Did not
+  bump to upstream `v1.13.0`. Frozen OpenSpec changes stay frozen.
+- Refreshed Cursor Team Kit at `c1c0a328`, Babysitter `babysit` from default
+  branch `main` at `baae1ad6` (fail-closed npm-exec, no `latest` fallback),
+  and `grill-for-unknowns` 0.1.3 at `d8d5f4b`. Grill lock `computedHash`
+  tracks canonical overlayed `SKILL.md` bytes.
+- Realigned lockfile hashes to GitHub-raw `SKILL.md` SHA-256 where the local
+  tree already matched HEAD (CLI `computedHash` is not the repo convention).
+  Left Prettier-formatted Team Kit skills, overlayed canonical skills, the
+  OpenSpec pin, and Core adapters (`prototype`, `vitest`, `tdd`,
+  `emil-prototype`) on their existing hashes.
+- Promoted moved GitHub paths without growing the lockfile: `vercel/eve`
+  `skills/eve/SKILL.md`, `playwright-best-practices/SKILL.md`,
+  `skills/nestjs-best-practices/SKILL.md` (NestJS reference only; no
+  NestJS/TypeORM in Core), `resend/resend-cli` at v2.21.0. `playwright-skill`
+  stays lockfile + `.agents` only.
+- `create-agent` stays a kept snapshot (`ikindacodes/ship-eve` no longer
+  publishes `skills/`).
+- Matt Pocock HEAD removed `design-an-interface`, `edit-article`,
+  `obsidian-vault`, `qa`, `request-refactor-plan`, `ubiquitous-language`, and
+  `writing-great-skills`. Canonical copies stay as kept snapshots. Did not
+  vendor successor `writing-for-agents`.
+- Inngest refresh now vendors `inngest-api-cli` and `rest-api-v2.md` /
+  `cli-commands.md`; retired `agent-friction.md`. Pins unchanged.
+- Payload reference files already matched HEAD; SKILL.md differs only by Core
+  overlay. bendc README wrapper reviewed 2026-09-16.
+- Restored marked and unmarked Core overlays on promote. `skills:sync` /
+  `skills:verify` rewrite runtime mirrors after CLI adds.
+- Restored the marked ask-matt grill-depth overlay so `/grill-for-unknowns`
+  stays on the main flow after the Matt CLI body refresh. NestJS overlay
+  keeps `not a NestJS application` on one line. Anthropic `frontend-design`
+  now vendors root `LICENSE.txt` instead of `references/LICENSE.md`.
+- Vendored NestJS, Playwright, and Payload reference docs keep
+  `pragma: allowlist secret` on credential-example lines, and those trees
+  are Prettier-ignored so wrapping does not re-trip the commit scanner.
+
 ## Rollback Notes
 
 If mirror files drift, rerun:

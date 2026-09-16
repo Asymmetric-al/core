@@ -127,11 +127,16 @@ function expectCanonicalOverlayAndMirrors(
   const canonicalRoot = path.join(repoRoot, "docs/ai/skills", skillName);
   const canonicalFiles = listFiles(canonicalRoot).sort();
   const skill = readSkillFile("docs/ai/skills", skillName, "SKILL.md");
+  const licenseFiles = requiredFiles.some(
+    (file) => file === "LICENSE.txt" || file.endsWith("/LICENSE.md"),
+  )
+    ? []
+    : ["references/LICENSE.md"];
 
   expect(canonicalFiles).toEqual(
     expect.arrayContaining([
       ...requiredFiles,
-      "references/LICENSE.md",
+      ...licenseFiles,
       "references/upstream.md",
     ]),
   );

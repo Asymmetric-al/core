@@ -41,7 +41,7 @@ const GRILL_UPSTREAM_DESCRIPTION =
   "description: Use when starting or reviewing a complex implementation where the user wants an agent to interrogate the plan against docs/source evidence, surface unknown unknowns, and avoid rushing into build mode. Combines docs-grounded grilling with a map-vs-territory unknowns pass.";
 const GRILL_CORE_DESCRIPTION =
   "description: Use only when the user explicitly invokes grill-for-unknowns or asks for a map-vs-territory unknowns pass, blindspot discovery, unknown-known prototypes, or a subagent launch packet before implementation.";
-const GRILL_REVIEWED_VERSION = "0.1.1";
+const GRILL_REVIEWED_VERSION = "0.1.3";
 const MATT_POCOCK_LINEAGE_COMMIT = "391a2701dd948f94f56a39f7533f8eea9a859c87";
 
 const emilKowalskiSkillNames = [
@@ -109,7 +109,7 @@ const upstreamSources = [
       "skills",
       "supabase-postgres-best-practices",
     ),
-    preserve: ["references/upstream.md"],
+    preserve: ["references/upstream.md", "AGENTS.md", "CLAUDE.md"],
   },
   {
     sourceGroup: "animations.dev",
@@ -220,7 +220,7 @@ const githubUpstreamGroups = [
     repo: "https://github.com/a5c-ai/babysitter-cursor.git",
     source: "a5c-ai/babysitter-cursor",
     sourceUrl: "https://github.com/a5c-ai/babysitter-cursor",
-    ref: "develop",
+    ref: "main",
     sourceRoot: "skills",
     skillNames: ["babysit"],
     lockSkillPath() {
@@ -230,7 +230,7 @@ const githubUpstreamGroups = [
       return `skills/${skillName}/`;
     },
     sourceUrlForSkill(skillName) {
-      return `https://github.com/a5c-ai/babysitter-cursor/tree/develop/skills/${skillName}`;
+      return `https://github.com/a5c-ai/babysitter-cursor/tree/main/skills/${skillName}`;
     },
     skillExtraCopies: {
       babysit: [
@@ -270,13 +270,19 @@ const githubUpstreamGroups = [
 const BABYSIT_UPSTREAM_DEPENDENCY_BLOCK = `Read the SDK version from \`versions.json\` to ensure version compatibility:
 
 \`\`\`bash
-SDK_VERSION=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('\${PLUGIN_ROOT}/versions.json','utf8')).sdkVersion||'latest')}catch{console.log('latest')}")
-npm i -g @a5c-ai/babysitter-sdk@$SDK_VERSION
+SDK_VERSION=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('\${CURSOR_PLUGIN_ROOT}/versions.json','utf8')).sdkVersion||'latest')}catch{console.log('latest')}")
+npm i -g @a5c-ai/babysitter-sdk@$SDK_VERSION || npm i -g @a5c-ai/babysitter-sdk@latest
 
-CLI="npx -y @a5c-ai/babysitter-sdk@$SDK_VERSION"
+if command -v babysitter >/dev/null 2>&1 && babysitter --version >/dev/null 2>&1; then
+  CLI="babysitter"
+else
+  CLI="npm exec --yes --package @a5c-ai/babysitter-sdk@$SDK_VERSION -- babysitter"
+fi
 \`\`\`
 
-If \`babysitter\` is already installed globally at the correct version, you may use \`CLI="babysitter"\` instead.`;
+If the pinned version fails to install (e.g. not yet published), the fallback installs \`latest\`.
+
+If a stale or broken global shim fails with \`MODULE_NOT_FOUND\`, repair it with \`npm rm -g @a5c-ai/babysitter @a5c-ai/babysitter-sdk && npm i -g @a5c-ai/babysitter-sdk@$SDK_VERSION\`, then re-run \`babysitter --version\`.`;
 
 const BABYSIT_CORE_DEPENDENCY_BLOCK = `Resolve the repository root and read the reviewed SDK version from
 \`docs/ai/skills/babysit/versions.json\`. Stop immediately if the repository root
@@ -311,7 +317,7 @@ try {
 ' "$REPO_ROOT"
 ) || exit 1
 
-CLI="npx -y @a5c-ai/babysitter-sdk@$SDK_VERSION"
+CLI="npm exec --yes --package @a5c-ai/babysitter-sdk@$SDK_VERSION -- babysitter"
 \`\`\``;
 
 const POST_REFRESH_REPLACEMENTS = [
@@ -466,6 +472,8 @@ const POST_REFRESH_REPLACEMENTS = [
       "├── SKILL.md",
       "├── README.md",
       "├── LICENSE",
+      "├── .claude-plugin/",
+      "│   └── plugin.json",
       "├── references/",
       "│   ├── domain-modeling-add-on.md",
       "│   ├── upstream-lineage.md",
@@ -1098,18 +1106,18 @@ function annotateEmilDesignEngineeringFormsControls(content) {
         }
       }
 
-      // The password example triggers the repo secret scanner. Target the line
-      // that contains `type="password"` (not "second <input>" by index: when
-      // email+password share one line, the next line is `tel` and would get a
+      // The password example triggers the repo secret scanner. Target the line // pragma: allowlist secret
+      // that contains `type="password"` (not "second <input>" by index: when // pragma: allowlist secret
+      // email+password share one line, the next line is `tel` and would get a // pragma: allowlist secret
       // spurious pragma).
-      const passwordLineIndex = inputLineIndexes.find((idx) =>
-        lines[idx].includes('type="password"'),
+      const passwordLineIndex = inputLineIndexes.find((idx) => // pragma: allowlist secret
+        lines[idx].includes('type="password"'), // pragma: allowlist secret
       );
       if (
-        passwordLineIndex !== undefined &&
+        passwordLineIndex !== undefined && // pragma: allowlist secret
         !lines[passwordLineIndex].includes("// pragma: allowlist secret")
       ) {
-        lines[passwordLineIndex] =
+        lines[passwordLineIndex] = // pragma: allowlist secret
           `${lines[passwordLineIndex]} // pragma: allowlist secret`;
       }
     }

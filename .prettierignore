@@ -64,5 +64,11 @@ vendor/react-pdf-packages/*/
 .cursor/mcp.json
 .claude/skills
 
+# Vendored NestJS, Playwright, and Payload examples trip the commit scanner
+# when Prettier wraps identifiers that contain a common demo credential word.
+docs/ai/skills/nestjs-best-practices/
+docs/ai/skills/playwright-best-practices/
+docs/ai/skills/payloadcms-payload/reference/
+
 # Local Supabase CLI temp state
 supabase/.temp/

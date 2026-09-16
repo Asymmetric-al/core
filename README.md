@@ -212,7 +212,7 @@ Commit both the canonical files and any mirror updates.
 5. Follow `references/upstream.md` for manual-vendored skills such as Resend CLI, Payload CMS, and bendc frontend guidelines.
 6. `bun run skills:sync` then `bun run skills:verify` — refresh mirrors and confirm a clean tree.
 
-**Cursor Team Kit and Babysitter vendor notes:** `bun run skills:refresh-upstream` shallow-clones `cursor/plugins` (`main`) and `a5c-ai/babysitter-cursor` (`develop`), copies each configured skill directory into `docs/ai/skills/<name>/`, regenerates `references/upstream.md`, and updates `skills-lock.json`. Cursor Team Kit's two companion agents are copied into `.cursor/agents/`; its upstream always-on Cursor rules are documented but intentionally not vendored because they are not skill dependencies and would change repo-wide Cursor behavior.
+**Cursor Team Kit and Babysitter vendor notes:** `bun run skills:refresh-upstream` shallow-clones `cursor/plugins` (`main`) and `a5c-ai/babysitter-cursor` (`main`), copies each configured skill directory into `docs/ai/skills/<name>/`, regenerates `references/upstream.md`, and updates `skills-lock.json`. Cursor Team Kit's two companion agents are copied into `.cursor/agents/`; its upstream always-on Cursor rules are documented but intentionally not vendored because they are not skill dependencies and would change repo-wide Cursor behavior.
 
 **Updating the vendored Resend CLI skill from upstream** (maintainers / on CLI releases):
 
