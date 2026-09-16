@@ -1000,7 +1000,7 @@ describe("git attribution verifier", () => {
     ]);
   });
 
-  it("does not use an untrusted remote name as the new-ref query target", () => {
+  it("rebuilds a trusted push URL before using it as the new-ref query target", () => {
     const runCommand = vi.fn((command: string, args: string[]) => {
       expect(command).toBe("git");
 
@@ -1021,7 +1021,7 @@ describe("git attribution verifier", () => {
           ok: true,
           stdout:
             remoteName === "origin" && isPushUrl
-              ? "git@github.com:Asymmetric-al/core.git"
+              ? "https://x-access-token:secret@github.com/Asymmetric-al/core.git"
               : "git@github.com:attacker/core.git",
           stderr: "",
           status: 0,
@@ -1036,7 +1036,7 @@ describe("git attribution verifier", () => {
         remoteName: "origin",
         runCommand,
       }),
-    ).toBe("git@github.com:Asymmetric-al/core.git");
+    ).toBe("https://github.com/Asymmetric-al/core.git");
   });
 
   it("does not subtract new-ref history from an untrusted fetch remote", () => {

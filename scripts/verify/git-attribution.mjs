@@ -1132,7 +1132,7 @@ export function resolveTrustedRemoteQueryTarget({
     ]);
 
     if (pushUrlResult.ok && remoteUrlIsCanonical(pushUrlResult.stdout)) {
-      return pushUrlResult.stdout.trim();
+      return canonicalGitUrl;
     }
   }
 
