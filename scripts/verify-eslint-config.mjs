@@ -2,6 +2,10 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
+import { uiWorkspaces } from "../tooling/eslint-config/design-system.mjs";
+import { verifyDesignSystemHealth } from "../tooling/eslint-config/health.mjs";
+import { validateSuppressions } from "../tooling/eslint-config/lint.mjs";
+
 const ROOT = process.cwd();
 const SOURCE_EXTENSIONS = new Set([
   ".js",
@@ -289,6 +293,25 @@ async function main() {
   await verifyLegacyEslintrcFiles();
   await verifyDisableCommentFormat();
   await verifyArchitectureRules();
+
+  // Acceptance must exercise actual component/theme/Tailwind discovery, not
+  // just the presence of rule names or a successful plugin import.
+  try {
+    validateSuppressions(
+      JSON.parse(
+        await fs.readFile(
+          path.join(ROOT, "tooling/eslint-config/suppressions.json"),
+          "utf8",
+        ),
+      ),
+    );
+    await verifyDesignSystemHealth({ rootDir: ROOT });
+    for (const workspace of uiWorkspaces) {
+      await verifyDesignSystemHealth({ rootDir: ROOT, workspace });
+    }
+  } catch (error) {
+    errors.push(error.message);
+  }
 
   if (errors.length > 0) {
     console.error("ESLint config verification failed:");

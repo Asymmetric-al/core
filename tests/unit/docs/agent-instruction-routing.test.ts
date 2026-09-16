@@ -215,6 +215,73 @@ describe("agent instruction routing fixtures", () => {
     expect(parseApplyTo(copilotAppsUi)).toBe("apps/**/*.{tsx,jsx,css}");
   });
 
+  it("routes UI lint through one scoped Core overlay reference", () => {
+    const referencePath =
+      "docs/ai/skills/moai-library-shadcn/references/design-system-lint.md";
+    const reference = readRepoFile(referencePath);
+    for (const [name, content] of [
+      ["shared UI", uiAgents],
+      ["frontend rulebook", frontend],
+      ["Copilot app UI", copilotAppsUi],
+      ["Copilot shared UI", copilotUi],
+      ...[
+        ".cursor/agents/qa-foreman.md",
+        ".cursor/agents/ci-watcher.md",
+        ".cursor/agents/openspec-guardian.md",
+        ".cursor/agents/thermo-nuclear-code-quality-review.md",
+        ".cursor/commands/4-close-project.md",
+      ].map((path) => [path, readRepoFile(path)]),
+    ]) {
+      expect(content, name).toContain(referencePath);
+    }
+    expect(moaiSkill).toContain(
+      "[Core design-system lint](references/design-system-lint.md)",
+    );
+    expect(agents).not.toContain(referencePath);
+    expect(reference).toContain("tooling/eslint-config/design-system.mjs");
+    expect(reference).toContain("explicit-only");
+    expect(reference).toContain(
+      "Per-file/per-rule counts are not identity-level",
+    );
+    expect(reference).toContain("Unrelated");
+    expect(reference).toContain("prose-only");
+    expect(reference).toContain("hovr:flex");
+    expect(reference).toContain("Do not exempt all of");
+    for (const rule of [
+      "no-restyle",
+      "no-raw-colors",
+      "no-arbitrary-values",
+      "no-inline-styles",
+      "no-unknown-classes",
+      "require-static-classes",
+    ]) {
+      expect(reference).toContain(`shadcn/${rule}`);
+    }
+  });
+
+  it("exposes identical UI lint guidance through generated client mirrors", () => {
+    const source =
+      "docs/ai/skills/moai-library-shadcn/references/design-system-lint.md";
+    for (const client of [".agents", ".cursor", ".claude"]) {
+      expect(
+        readRepoFile(
+          `${client}/skills/moai-library-shadcn/references/design-system-lint.md`,
+        ),
+      ).toBe(readRepoFile(source));
+    }
+    for (const relativePath of [
+      "agents/qa-foreman.md",
+      "agents/ci-watcher.md",
+      "agents/openspec-guardian.md",
+      "agents/thermo-nuclear-code-quality-review.md",
+      "commands/4-close-project.md",
+    ]) {
+      expect(readRepoFile(`.claude/${relativePath}`)).toBe(
+        readRepoFile(`.cursor/${relativePath}`),
+      );
+    }
+  });
+
   it("rejects alternate shadcn styles and conflicting registry islands in UI guidance", () => {
     expect(uiAgents).toMatch(/Another shadcn style \(`base-nova`/);
     expect(uiAgents).toContain("Do not keep the original visual system");

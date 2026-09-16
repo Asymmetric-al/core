@@ -1,0 +1,20 @@
+diff --git a/dist/index.js b/dist/index.js
+index 7c65ec3711599964699c9c8b121b72213f4e427a..f9632ed63b12688135b56f5764dc3d915b308864 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -2240,11 +2240,13 @@ function importNameOf(imported, root, property) {
+ 	};
+ }
+ function componentFromImport(index, binding, importedName, patterns) {
+-	if (binding && index.owns(binding.file)) {
++	// Preserve shared-component identity through a consumer's local barrel.
++	const owner = binding && !index.owns(binding.file) ? componentsFor(binding.file) : index;
++	if (binding && owner.owns(binding.file)) {
+ 		const component = `${binding.name}${importedName.suffix}`;
+ 		return {
+ 			component,
+-			file: index.files.get(component) ?? binding.file
++			file: owner.files.get(component) ?? binding.file
+ 		};
+ 	}
+ 	if (patterns.some((pattern) => pattern.test(importedName.source))) return {

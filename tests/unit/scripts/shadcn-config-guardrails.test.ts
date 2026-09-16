@@ -24,12 +24,22 @@ const validComponentsConfig = {
 const validGlobals = {
   "apps/admin/app/globals.css": '@import "@asym/ui/styles/globals.css";\n',
   "apps/donor/app/globals.css": '@import "@asym/ui/styles/globals.css";\n',
-  "apps/missionary/app/globals.css": '@import "@asym/ui/styles/globals.css";\n',
+  "apps/missionary/app/globals.css": '@import "@asym/missionary/styles.css";\n',
+};
+
+const validMissionaryFacade = {
+  missionaryStyles:
+    '/* Shared styles only. */\n@import "@asym/ui/styles/globals.css";\n',
+  missionaryPackage: {
+    name: "@asym/missionary",
+    exports: { "./styles.css": "./styles.css" },
+  },
 };
 
 describe("shadcn config guardrails", () => {
   it("accepts the pinned shared UI shadcn configuration", () => {
     const failures = validateShadcnConfigGuardrails({
+      ...validMissionaryFacade,
       componentsConfig: validComponentsConfig,
       appConfigFiles: [],
       appGlobals: validGlobals,
@@ -41,6 +51,7 @@ describe("shadcn config guardrails", () => {
 
   it("reports every preserved components.json drift with path and expected value", () => {
     const failures = validateShadcnConfigGuardrails({
+      ...validMissionaryFacade,
       componentsConfig: {
         ...validComponentsConfig,
         style: "new-york",
@@ -96,6 +107,7 @@ describe("shadcn config guardrails", () => {
 
   it("fails rsc drift unless the explicit override env is set", () => {
     const withoutOverride = validateShadcnConfigGuardrails({
+      ...validMissionaryFacade,
       componentsConfig: {
         ...validComponentsConfig,
         rsc: true,
@@ -105,6 +117,7 @@ describe("shadcn config guardrails", () => {
       env: {},
     });
     const withOverride = validateShadcnConfigGuardrails({
+      ...validMissionaryFacade,
       componentsConfig: {
         ...validComponentsConfig,
         rsc: true,
@@ -127,6 +140,7 @@ describe("shadcn config guardrails", () => {
 
   it("rejects app-local shadcn and tailwind config files", () => {
     const failures = validateShadcnConfigGuardrails({
+      ...validMissionaryFacade,
       componentsConfig: validComponentsConfig,
       appConfigFiles: [
         "apps/admin/components.json",
@@ -152,6 +166,7 @@ describe("shadcn config guardrails", () => {
 
   it("requires shared globals import as the first non-comment app CSS line", () => {
     const failures = validateShadcnConfigGuardrails({
+      ...validMissionaryFacade,
       componentsConfig: validComponentsConfig,
       appConfigFiles: [],
       appGlobals: {
@@ -167,6 +182,68 @@ describe("shadcn config guardrails", () => {
         expected: '@import "@asym/ui/styles/globals.css";',
       }),
     );
+  });
+
+  it.each([
+    '@import "@asym/ui/styles/globals.css"; :root { --primary: red; }',
+    '@import "@asym/ui/styles/globals.css"; @import "./other.css";',
+    '/* before */ .override { color: red } /* after */ @import "@asym/ui/styles/globals.css";',
+    '@import "@asym/ui/styles/glo/* hidden */bals.css";',
+    '@import "./indirect.css";',
+    undefined,
+  ])(
+    "rejects any override, extra import, or missing missionary facade: %s",
+    (missionaryStyles) => {
+      const failures = validateShadcnConfigGuardrails({
+        ...validMissionaryFacade,
+        missionaryStyles,
+        componentsConfig: validComponentsConfig,
+        appConfigFiles: [],
+        appGlobals: validGlobals,
+        env: {},
+      });
+      expect(failures).toContainEqual(
+        expect.objectContaining({ path: "packages/missionary/styles.css" }),
+      );
+    },
+  );
+
+  it("rejects a broken facade export and forbids using it from another app", () => {
+    const failures = validateShadcnConfigGuardrails({
+      ...validMissionaryFacade,
+      missionaryPackage: {
+        name: "@asym/missionary",
+        exports: { "./styles.css": "./other.css" },
+      },
+      componentsConfig: validComponentsConfig,
+      appConfigFiles: [],
+      appGlobals: {
+        ...validGlobals,
+        "apps/donor/app/globals.css": '@import "@asym/missionary/styles.css";',
+      },
+      env: {},
+    });
+    expect(failures).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: "packages/missionary/package.json#exports./styles.css",
+        }),
+        expect.objectContaining({ path: "apps/donor/app/globals.css" }),
+      ]),
+    );
+  });
+
+  it("accepts only comments around the facade's exact shared import", () => {
+    const failures = validateShadcnConfigGuardrails({
+      ...validMissionaryFacade,
+      missionaryStyles:
+        '/* before */\n@import "@asym/ui/styles/globals.css"; /* after */\n',
+      componentsConfig: validComponentsConfig,
+      appConfigFiles: [],
+      appGlobals: validGlobals,
+      env: {},
+    });
+    expect(failures).toEqual([]);
   });
 
   it("finds the first non-comment CSS line through block comments", () => {

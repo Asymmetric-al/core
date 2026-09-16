@@ -31,6 +31,7 @@
     "start:missionary": "turbo run start --filter=@asym/missionary-app",
     "start:donor": "turbo run start --filter=@asym/donor",
     "lint": "turbo run lint",
+    "lint:ui": "node tooling/eslint-config/lint.mjs",
     "lint:admin": "turbo run lint --filter=@asym/admin",
     "lint:missionary": "turbo run lint --filter=@asym/missionary-app",
     "lint:donor": "turbo run lint --filter=@asym/donor",
@@ -238,10 +239,13 @@
   },
   "lint-staged": {
     "{apps,packages,tooling}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
-      "eslint --fix"
+      "node tooling/eslint-config/lint.mjs --fix"
     ],
     "*": [
       "prettier --ignore-unknown --write"
     ]
+  },
+  "patchedDependencies": {
+    "@shadcn/lint@0.1.0": "tooling/eslint-config/patches/@shadcn%2Flint@0.1.0.patch"
   }
 }

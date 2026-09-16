@@ -460,7 +460,8 @@
     ],
     "moai-library-shadcn": [
       "SKILL.md",
-      "reference-links.md"
+      "reference-links.md",
+      "references/design-system-lint.md"
     ],
     "motion": [
       "SKILL.md"

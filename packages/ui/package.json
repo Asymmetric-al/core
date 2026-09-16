@@ -51,7 +51,7 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "lint": "eslint .",
+    "lint": "node ../../tooling/eslint-config/lint.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

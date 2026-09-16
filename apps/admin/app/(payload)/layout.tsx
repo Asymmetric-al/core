@@ -178,6 +178,7 @@ async function PayloadEmbeddedLayout({ children }: Props) {
       translations={req.i18n.translations}
       user={req.user}
     >
+      {/* eslint-disable-next-line shadcn/no-inline-styles -- TODO(integrate-design-system-lint): Payload requires this CSS layer order before its providers render. */}
       <style>{`@layer payload-default, payload;`}</style>
       <ProgressBar />
       {renderPayloadProviders({

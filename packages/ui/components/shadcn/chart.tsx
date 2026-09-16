@@ -95,6 +95,7 @@ ${colorConfig
     )
     .join("\n");
 
+  // eslint-disable-next-line shadcn/no-inline-styles -- TODO(integrate-design-system-lint): ChartConfig owns per-chart runtime theme variables.
   return <style>{css}</style>;
 };
 
@@ -290,10 +291,10 @@ function ChartLegendContent({
                 <itemConfig.icon />
               ) : (
                 <div
-                  className="size-2 shrink-0 rounded-[2px]"
-                  style={{
-                    backgroundColor: item.color,
-                  }}
+                  className="size-2 shrink-0 rounded-[2px] bg-(--legend-color)"
+                  style={
+                    { "--legend-color": item.color } as React.CSSProperties
+                  }
                 />
               )}
               {itemConfig?.label}

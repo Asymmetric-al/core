@@ -8,7 +8,7 @@
     "dev:playwright": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "node ../../tooling/eslint-config/lint.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

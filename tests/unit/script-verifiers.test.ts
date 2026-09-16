@@ -156,6 +156,18 @@ async function createEslintVerifyRepo() {
     recursive: true,
   });
 
+  // These tests isolate disable-banner/ownership scanning. Real ESLint policy,
+  // discovery and native suppressions have integration coverage in the
+  // design-system-* suites; keep their boundary explicit in this tiny repo.
+  for (const [file, source] of Object.entries({
+    "design-system.mjs": "export const uiWorkspaces = [];\n",
+    "health.mjs": "export async function verifyDesignSystemHealth() {}\n",
+    "lint.mjs": "export function validateSuppressions() {}\n",
+    "suppressions.json": "{}\n",
+  })) {
+    await writeFile(path.join(tempRoot, "tooling/eslint-config", file), source);
+  }
+
   await writeJson(path.join(tempRoot, "apps/admin/package.json"), {
     name: "@asym/admin",
   });
@@ -1591,6 +1603,17 @@ describe("refresh-upstream-skills", () => {
 });
 
 describe("verify-eslint-config", () => {
+  it("propagates a failed design-system health check through the existing verifier", async () => {
+    const tempRoot = await createEslintVerifyRepo();
+    await writeFile(
+      path.join(tempRoot, "tooling/eslint-config/health.mjs"),
+      'export async function verifyDesignSystemHealth() { throw new Error("fixture: theme discovery failed"); }\n',
+    );
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-eslint-config.mjs"),
+    ).toThrow(/fixture: theme discovery failed/);
+  });
+
   it("allows Payload-generated files to keep their bare eslint-disable banner", async () => {
     const tempRoot = await createEslintVerifyRepo();
 

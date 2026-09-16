@@ -147,8 +147,8 @@ export function ChartLegend({ items, className }: ChartLegendProps) {
           className="flex items-center gap-2 group"
         >
           <div
-            className="size-2 rounded-full shrink-0"
-            style={{ backgroundColor: item.color }}
+            className="size-2 rounded-full shrink-0 bg-(--legend-color)"
+            style={{ "--legend-color": item.color } as React.CSSProperties}
           />
           <div className="flex items-baseline gap-1.5">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
@@ -182,8 +182,12 @@ export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
           >
             <div className="flex items-center gap-1.5">
               <div
-                className="size-1.5 rounded-full"
-                style={{ backgroundColor: item.color || item.fill }}
+                className="size-1.5 rounded-full bg-(--legend-color)"
+                style={
+                  {
+                    "--legend-color": item.color || item.fill,
+                  } as React.CSSProperties
+                }
               />
               <span className="text-muted-foreground text-[10px] font-semibold uppercase tracking-tight">
                 {item.name}
