@@ -160,9 +160,9 @@ describe("nextjs-app-architecture skill", () => {
     expect(
       readSkillFile("docs/ai/skills", "references/cache-components.md"),
     ).toContain("revalidateTag(tag, { expire: 0 })");
-    expect(
-      readSkillFile("docs/ai/skills", "references/example.md"),
-    ).toContain("packages/api");
+    expect(readSkillFile("docs/ai/skills", "references/example.md")).toContain(
+      "packages/api",
+    );
     expect(provenance).toContain("f2902b8538b25610da694394ecf88e69adf5f96a");
     expect(provenance).toContain(
       "94f700fb57aef401e135ddbb0d13a2986d6416820ee4e1b2bf1fd8e17fae0d66",
