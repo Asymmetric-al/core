@@ -116,8 +116,13 @@ describe("grill-for-unknowns skill", () => {
     );
     expect(skillRouting).toContain("do not pair it redundantly");
     expect(askMatt).toContain("/grill-for-unknowns");
+    expect(askMatt).toContain("/writing-great-skills");
+    expect(askMatt).not.toContain("/writing-for-agents");
     expect(packageJson.scripts["skills:refresh-grill-for-unknowns"]).toBe(
       "node scripts/refresh-upstream-skills.mjs --only=nicobailon/grill-for-unknowns",
+    );
+    expect(packageJson.scripts["skills:refresh-ask-matt"]).toBe(
+      "node scripts/refresh-upstream-skills.mjs --only=mattpocock/skills",
     );
     expect(readRepoFile("CLAUDE.md")).toBe("@AGENTS.md\n");
   });

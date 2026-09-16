@@ -18,13 +18,19 @@ Canonical copy in this repo: `docs/ai/skills/ask-matt/` (mirrored to `.agents/sk
 ## Refresh from ecosystem
 
 1. `npx skills add mattpocock/skills -y` updates `.agents/skills/*` and `skills-lock.json`.
-2. Reconcile the freshly installed upstream copy from `.agents/skills/ask-matt/` into canonical `docs/ai/skills/ask-matt/` if this canonical copy needs updating. Treat `.agents/skills/ask-matt/` as a temporary Skills CLI import at this point; after `bun run skills:sync`, it is generated mirror output again.
-3. Reapply the Core overlay in `SKILL.md`: restore the marked
-   `<!-- CORE-OVERLAY-START -->` grill-depth step so `/grill-for-unknowns`
-   remains on the main flow. Keep `/teach` and `/writing-great-skills` only
-   when those skills are intentionally installed in this repo.
+2. Run `bun run skills:refresh-ask-matt` (`--only=mattpocock/skills`) to copy
+   `.agents/skills/ask-matt/` into canonical `docs/ai/skills/ask-matt/` while
+   preserving this provenance file. Treat `.agents/skills/ask-matt/` as a
+   temporary Skills CLI import at this point; after `bun run skills:sync`, it
+   is generated mirror output again.
+3. The refresh restores the marked `<!-- CORE-OVERLAY-START -->` grill-depth
+   step so `/grill-for-unknowns` remains on the main flow, then remaps the
+   writing-for-agents successor bullet to kept `/writing-great-skills`. Core
+   does not vendor that successor.
 4. Preserve or regenerate this `references/upstream.md` file with the current
    lock hash.
 5. Run `bun run skills:sync` and `bun run skills:verify`.
 
-This skill is **not** updated by `bun run skills:refresh-upstream`.
+This skill is updated by `bun run skills:refresh-ask-matt` after a Skills CLI
+add. Full `bun run skills:refresh-upstream` skips the group when
+`.agents/skills/ask-matt` is missing.

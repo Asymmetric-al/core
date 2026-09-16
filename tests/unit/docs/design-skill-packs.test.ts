@@ -206,8 +206,10 @@ describe("jakubkrehel, anthropic, taste, and obra skill packs", () => {
     }
 
     for (const skillName of explicitOnlySkills) {
-      expect(readSkillFile("docs/ai/skills", skillName, "SKILL.md")).toContain(
-        "disable-model-invocation: true",
+      const skill = readSkillFile("docs/ai/skills", skillName, "SKILL.md");
+      const frontmatter = skill.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1];
+      expect(frontmatter, skillName).toMatch(
+        /^disable-model-invocation: true$/m,
       );
     }
 

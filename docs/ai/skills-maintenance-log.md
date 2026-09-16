@@ -386,6 +386,12 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
   to Cursor and Claude, so lockfile-only skills stay committable after CLI
   refresh. `skills:refresh-upstream` walks every copied canonical file, not
   only `better-accessibility` / `better-writing`.
+- Follow-up 2026-09-16: restore `disable-model-invocation: true` in
+  Anthropic `frontend-design` YAML frontmatter (overlay prose was not
+  enough). Remap ask-matt `/writing-for-agents` to kept
+  `/writing-great-skills`; add `skills:refresh-ask-matt` without vendoring
+  the successor. `skills:sync` now skips and prunes macOS Finder junk
+  (`Archive.zip`, `__MACOSX`, `.DS_Store`, `._*`) from ecosystem copies.
 
 ## Rollback Notes
 

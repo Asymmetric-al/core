@@ -106,6 +106,23 @@ describe("skill quality gate overlays", () => {
     expect(findSkills).not.toContain("**Example — Resend:** **CLI** work");
   });
 
+  it("does not vendor macOS Finder junk in skill trees", () => {
+    const junkNames = new Set(["Archive.zip", "__MACOSX", ".DS_Store"]);
+    const skillRoots = ["docs/ai/skills", ...generatedSkillRoots] as const;
+
+    for (const root of skillRoots) {
+      for (const relativePath of listRepoFiles(root)) {
+        const parts = relativePath.split("/");
+        expect(
+          parts.some(
+            (part) => junkNames.has(part) || part.startsWith("._"),
+          ),
+          `${root}/${relativePath}`,
+        ).toBe(false);
+      }
+    }
+  });
+
   it("keeps curated skills routed, attributed, and identical across generated mirrors", () => {
     const skillRouting = readRepoFile("docs/ai/rules/agent-skill-routing.md");
 

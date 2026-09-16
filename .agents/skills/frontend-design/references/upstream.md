@@ -37,6 +37,9 @@ Canonical copy in this repo: `docs/ai/skills/frontend-design/`, mirrored to
 - Content between `<!-- CORE-OVERLAY-START -->` and
   `<!-- CORE-OVERLAY-END -->` is owned by Core and preserved by the focused
   refresh command.
+- YAML frontmatter must keep `disable-model-invocation: true`. Overlay prose
+  is not enough; the refresh POST_REFRESH patch restores the key after a CLI
+  add.
 - `docs/ai/rules/frontend.md`, Base UI, and `base-maia` remain
   higher-priority than generic upstream visual recipes.
 - Update `source_commit`, `upstream_skill_commit`, and `last_reviewed`

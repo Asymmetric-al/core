@@ -200,10 +200,45 @@ function getSkillFilePathUnderRoot(targetRoot, skillName, relativePath) {
   return targetPath;
 }
 
+function isVendoredSkillJunkName(name) {
+  return (
+    name === "Archive.zip" ||
+    name === "__MACOSX" ||
+    name === ".DS_Store" ||
+    name.startsWith("._")
+  );
+}
+
+async function pruneVendoredSkillJunk(rootDir) {
+  let entries;
+  try {
+    entries = await readdir(rootDir, { withFileTypes: true });
+  } catch (error) {
+    if (getErrorCode(error) === "ENOENT") {
+      return;
+    }
+    throw error;
+  }
+
+  for (const entry of entries) {
+    const entryPath = path.join(rootDir, entry.name);
+    if (isVendoredSkillJunkName(entry.name)) {
+      await rm(entryPath, { recursive: true, force: true });
+      continue;
+    }
+    if (entry.isDirectory()) {
+      await pruneVendoredSkillJunk(entryPath);
+    }
+  }
+}
+
 async function overlayDirectory(sourceDir, targetDir) {
   await mkdir(targetDir, { recursive: true });
   const sourceEntries = await readdir(sourceDir, { withFileTypes: true });
   for (const entry of sourceEntries) {
+    if (isVendoredSkillJunkName(entry.name)) {
+      continue;
+    }
     await cp(
       path.join(sourceDir, entry.name),
       path.join(targetDir, entry.name),
@@ -385,6 +420,9 @@ async function replaceDirectory(sourceDir, targetDir) {
 
   try {
     for (const entry of sourceEntries) {
+      if (isVendoredSkillJunkName(entry.name)) {
+        continue;
+      }
       await cp(
         path.join(sourceDir, entry.name),
         path.join(stagingDir, entry.name),
@@ -907,6 +945,10 @@ async function main() {
       canonicalSkills,
       canonicalSkillFiles,
     );
+  }
+
+  for (const targetRoot of targetRoots) {
+    await pruneVendoredSkillJunk(targetRoot);
   }
 
   await annotateSecretScannerMentionsInTree(targetRoots[0]);

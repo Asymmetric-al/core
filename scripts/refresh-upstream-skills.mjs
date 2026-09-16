@@ -141,6 +141,12 @@ const upstreamSources = [
     preserve: ["references/upstream.md", "references/LICENSE.md"],
   },
   {
+    sourceGroup: "mattpocock/skills",
+    skillName: "ask-matt",
+    from: path.join(repoRoot, ".agents", "skills", "ask-matt"),
+    preserve: ["references/upstream.md"],
+  },
+  {
     sourceGroup: "obra/superpowers",
     skillName: "test-driven-development",
     from: path.join(repoRoot, ".agents", "skills", "test-driven-development"),
@@ -393,6 +399,15 @@ const POST_REFRESH_REPLACEMENTS = [
     search: "license: Complete terms in LICENSE.txt\n---",
     replace:
       "license: Complete terms in LICENSE.txt\ndisable-model-invocation: true\n---",
+    required: true,
+  },
+  {
+    skillName: "ask-matt",
+    relativePath: "SKILL.md",
+    search:
+      "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
+    replace:
+      "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
     required: true,
   },
   {

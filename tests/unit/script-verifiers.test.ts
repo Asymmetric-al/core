@@ -648,6 +648,48 @@ describe("sync-agent-skills", () => {
     }
   }, 20_000);
 
+  it("strips macOS Finder junk from ecosystem skill copies", async () => {
+    const tempRoot = await createTempRepo("sync-skills-macos-junk");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const ecosystemDir = path.join(
+      tempRoot,
+      ".agents/skills/deploy-to-vercel",
+    );
+    await mkdir(path.join(ecosystemDir, "__MACOSX"), { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      "---\nname: deploy-to-vercel\n---\n# Deploy\n",
+    );
+    await writeFile(path.join(ecosystemDir, "Archive.zip"), "zip-bytes");
+    await writeFile(path.join(ecosystemDir, ".DS_Store"), "store");
+    await writeFile(path.join(ecosystemDir, "._SKILL.md"), "appledouble");
+    await writeFile(path.join(ecosystemDir, "__MACOSX/._junk"), "junk");
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const skillDir = path.join(tempRoot, runtimeRoot, "deploy-to-vercel");
+      expect(existsSync(path.join(skillDir, "SKILL.md"))).toBe(true);
+      expect(existsSync(path.join(skillDir, "Archive.zip"))).toBe(false);
+      expect(existsSync(path.join(skillDir, ".DS_Store"))).toBe(false);
+      expect(existsSync(path.join(skillDir, "._SKILL.md"))).toBe(false);
+      expect(existsSync(path.join(skillDir, "__MACOSX"))).toBe(false);
+    }
+  }, 20_000);
+
   it(
     "prints help and rejects unknown arguments",
     { timeout: 20_000 },
