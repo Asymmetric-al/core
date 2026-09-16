@@ -587,6 +587,30 @@ describe("git attribution verifier", () => {
     );
   });
 
+  it("rejects an external GitHub actor association that has a login but no immutable id", () => {
+    const errors = validateGitHubActorAttribution(
+      commitMetadata({
+        author: { name: "Ada Lovelace", email: "ada@example.org" },
+        committer: { name: "Ada Lovelace", email: "ada@example.org" },
+      }),
+      unsignedActorEvidence({
+        authorLogin: "ada-lovelace",
+        authorId: null,
+        committerLogin: "ada-lovelace",
+        eventActorLogin: "ada-lovelace",
+      }),
+      {
+        allowExternalAuthor: true,
+        allowExternalCommitter: true,
+      },
+    );
+
+    expect(errors).not.toEqual([]);
+    expect(errors.join("\n")).toContain(
+      "did not resolve to an immutable account id",
+    );
+  });
+
   it("accepts signature proof when sender metadata is ghost and actor id is absent", () => {
     expect(
       validateGitHubActorAttribution(

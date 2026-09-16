@@ -329,6 +329,13 @@ export function validateLocalGitConfig(
   });
 }
 
+function hasImmutableGithubId(id) {
+  return (
+    (typeof id === "number" && Number.isSafeInteger(id)) ||
+    (typeof id === "string" && /^\d+$/.test(id.trim()))
+  );
+}
+
 function validateRemoteIdentity({
   allowExternal,
   allowPlatformAlias,
@@ -355,6 +362,13 @@ function validateRemoteIdentity({
 
   if (isForbiddenGithubLogin(login)) {
     errors.push(`${label} GitHub actor ${login} is forbidden`);
+    return errors;
+  }
+
+  if (!hasImmutableGithubId(id)) {
+    errors.push(
+      `${label} GitHub actor did not resolve to an immutable account id`,
+    );
     return errors;
   }
 
