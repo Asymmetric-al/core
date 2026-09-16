@@ -90,9 +90,12 @@ is:
 Phase 23 owns ordinary exact-locale authoring, Site structure, coherent
 generation release, Preview, public discovery/sharing/forms/still-image media,
 Library organization, health, and the smallest public-safe interfaces to other
-owners. It depends on Phase 2 Tenants, Phase 3 Sites, Phase 5 public runtime,
-Phase 10 eligibility, Phase 12 capabilities, and the founder-ratified Phase 22
-contracts. Phase 22 documentation is a dependency, not proof of implementation.
+owners. Hard implementation dependencies are Phase 2 Tenants, Phase 3 Sites, and
+Phase 5 public runtime. Phase 10 eligibility, Phase 12 capabilities, and
+founder-ratified Phase 22 contracts are consumer/safety seams, not merge gates
+for this Phase 23 core. Phase 22 documentation is a dependency of those seams, not
+proof of implementation, and the Phase 22 PRD remains open as
+[#1323](https://github.com/Asymmetric-al/core/pull/1323).
 
 Phases 6/17 and 24–34 and later authenticated applications retain their named
 message, domain, renderer, search, localization, form, custody, import,
