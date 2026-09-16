@@ -603,6 +603,17 @@ export function validateGitHubActorAttribution(
     );
   }
 
+  if (
+    !isValidSignature(actors?.signature) &&
+    authorIdentityRecord &&
+    committerIdentityRecord &&
+    authorIdentityRecord.githubId !== committerIdentityRecord.githubId
+  ) {
+    errors.push(
+      "unsigned mixed registered author and committer identities require a verified signature; event-actor and pull-request-author proofs cannot independently attest two different registered identities",
+    );
+  }
+
   return errors;
 }
 

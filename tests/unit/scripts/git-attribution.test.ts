@@ -564,6 +564,28 @@ describe("git attribution verifier", () => {
     ).toEqual([]);
   });
 
+  it("rejects unsigned mixed registered author and committer identities that independently match different GitHub principals", () => {
+    const errors = validateGitHubActorAttribution(
+      commitMetadata({ committer: blakeIdentity }),
+      {
+        ...unsignedActorEvidence({
+          authorLogin: conradGithubLogin,
+          committerLogin: blakeGithubLogin,
+          eventActorLogin: blakeGithubLogin,
+          eventActorId: blakeGithubId,
+        }),
+        pullRequestAuthorId: conradGithubId,
+        pullRequestAuthorLogin: conradGithubLogin,
+      },
+      { allowEventActorProof: true },
+    );
+
+    expect(errors).not.toEqual([]);
+    expect(errors.join("\n")).toContain(
+      "unsigned mixed registered author and committer identities",
+    );
+  });
+
   it("accepts signature proof when sender metadata is ghost and actor id is absent", () => {
     expect(
       validateGitHubActorAttribution(
