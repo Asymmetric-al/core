@@ -1039,9 +1039,10 @@ function resolveLocalRemoteContext() {
   const repoSlug = hasPrePushSlug
     ? process.env.ASYM_PRE_PUSH_REPOSITORY_SLUG || null
     : parseGitHubRepoSlug(mustRunGit(["remote", "get-url", remoteName]));
-  const remoteQueryTarget =
-    suppliedRemoteName ||
-    (repoSlug ? `https://github.com/${repoSlug}.git` : "");
+  const remoteQueryTarget = resolveTrustedRemoteQueryTarget({
+    remoteName,
+    runCommand: run,
+  });
 
   return {
     remoteName,
@@ -1068,6 +1069,10 @@ function collectLocalCommitShas({ remoteName, remoteQueryTarget }) {
     mustRunGit(["rev-list", "HEAD", "--not", "--remotes"]),
     "local-only",
   );
+}
+
+function remoteUrlIsCanonical(url) {
+  return isCanonicalRepositorySlug(parseGitHubRepoSlug(url));
 }
 
 function collectTrustedRemoteNames(remoteName, { runCommand }) {
@@ -1098,15 +1103,46 @@ function collectTrustedRemoteNames(remoteName, { runCommand }) {
       candidateName,
     ]);
 
-    if (
-      remoteUrlResult.ok &&
-      isCanonicalRepositorySlug(parseGitHubRepoSlug(remoteUrlResult.stdout))
-    ) {
+    if (remoteUrlResult.ok && remoteUrlIsCanonical(remoteUrlResult.stdout)) {
       remoteNames.add(candidateName);
     }
   }
 
   return remoteNames;
+}
+
+export function resolveTrustedRemoteQueryTarget({
+  remoteName,
+  runCommand = run,
+} = {}) {
+  const canonicalGitUrl = `https://github.com/${CANONICAL_REPOSITORY}.git`;
+
+  if (typeof remoteName === "string" && remoteName.trim()) {
+    const fetchUrlResult = runCommand("git", ["remote", "get-url", remoteName]);
+
+    if (fetchUrlResult.ok && remoteUrlIsCanonical(fetchUrlResult.stdout)) {
+      return remoteName;
+    }
+
+    const pushUrlResult = runCommand("git", [
+      "remote",
+      "get-url",
+      "--push",
+      remoteName,
+    ]);
+
+    if (pushUrlResult.ok && remoteUrlIsCanonical(pushUrlResult.stdout)) {
+      return pushUrlResult.stdout.trim();
+    }
+  }
+
+  for (const trustedRemoteName of collectTrustedRemoteNames(remoteName, {
+    runCommand,
+  })) {
+    return trustedRemoteName;
+  }
+
+  return canonicalGitUrl;
 }
 
 export function isReachableFromTrustedRemoteBranch(

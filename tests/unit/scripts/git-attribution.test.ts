@@ -17,6 +17,7 @@ import {
   resolveTriggeringActor,
   allowExternalCommitterForLocalCommit,
   isReachableFromTrustedRemoteBranch,
+  resolveTrustedRemoteQueryTarget,
   validateDevelopMergeProvenance,
   validateGitHubActorAttribution,
   validateProductionPromotion,
@@ -997,6 +998,102 @@ describe("git attribution verifier", () => {
       platformSha,
       "refs/remotes/upstream/develop",
     ]);
+  });
+
+  it("does not use an untrusted remote name as the new-ref query target", () => {
+    const runCommand = vi.fn((command: string, args: string[]) => {
+      expect(command).toBe("git");
+
+      if (args[0] === "remote" && args.length === 1) {
+        return {
+          ok: true,
+          stdout: "origin",
+          stderr: "",
+          status: 0,
+        };
+      }
+
+      if (args[0] === "remote" && args[1] === "get-url") {
+        const remoteName = args[2] === "--push" ? args[3] : args[2];
+        const isPushUrl = args[2] === "--push";
+
+        return {
+          ok: true,
+          stdout:
+            remoteName === "origin" && isPushUrl
+              ? "git@github.com:Asymmetric-al/core.git"
+              : "git@github.com:attacker/core.git",
+          stderr: "",
+          status: 0,
+        };
+      }
+
+      throw new Error(`unexpected git command: ${args.join(" ")}`);
+    });
+
+    expect(
+      resolveTrustedRemoteQueryTarget({
+        remoteName: "origin",
+        runCommand,
+      }),
+    ).toBe("git@github.com:Asymmetric-al/core.git");
+  });
+
+  it("does not subtract new-ref history from an untrusted fetch remote", () => {
+    const runCommand = vi.fn((command: string, args: string[]) => {
+      expect(command).toBe("git");
+
+      if (args[0] === "remote" && args.length === 1) {
+        return {
+          ok: true,
+          stdout: "origin",
+          stderr: "",
+          status: 0,
+        };
+      }
+
+      if (args[0] === "remote" && args[1] === "get-url") {
+        return {
+          ok: true,
+          stdout: "git@github.com:attacker/core.git",
+          stderr: "",
+          status: 0,
+        };
+      }
+
+      throw new Error(`unexpected git command: ${args.join(" ")}`);
+    });
+
+    expect(
+      resolveTrustedRemoteQueryTarget({
+        remoteName: "origin",
+        runCommand,
+      }),
+    ).toBe("https://github.com/Asymmetric-al/core.git");
+  });
+
+  it("keeps a canonical fetch remote as the new-ref query target", () => {
+    const runCommand = vi.fn((command: string, args: string[]) => {
+      expect(command).toBe("git");
+
+      if (args[0] === "remote" && args[1] === "get-url") {
+        return {
+          ok: true,
+          stdout: "git@github.com:Asymmetric-al/core.git",
+          stderr: "",
+          status: 0,
+        };
+      }
+
+      throw new Error(`unexpected git command: ${args.join(" ")}`);
+    });
+
+    expect(
+      resolveTrustedRemoteQueryTarget({
+        remoteName: "origin",
+        runCommand,
+      }),
+    ).toBe("origin");
   });
 
   it("does not trust a seed remote whose URL is outside the canonical repository", () => {
