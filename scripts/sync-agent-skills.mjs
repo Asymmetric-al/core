@@ -819,7 +819,9 @@ async function annotateSecretScannerMentionsInTree(rootDir) {
 
   const files = await listFilesRecursively(rootDir);
   for (const filePath of files) {
-    if (SECRET_SCANNER_SKIP_SUFFIXES.has(path.extname(filePath).toLowerCase())) {
+    if (
+      SECRET_SCANNER_SKIP_SUFFIXES.has(path.extname(filePath).toLowerCase())
+    ) {
       continue;
     }
 

@@ -636,7 +636,11 @@ describe("sync-agent-skills", () => {
       expect(copied).toContain("pragma: allowlist secret");
       const jsonCopy = JSON.parse(
         await readFile(
-          path.join(tempRoot, runtimeRoot, "claude-handoff/assets/examples.json"),
+          path.join(
+            tempRoot,
+            runtimeRoot,
+            "claude-handoff/assets/examples.json",
+          ),
           "utf8",
         ),
       );
