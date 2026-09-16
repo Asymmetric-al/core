@@ -12,6 +12,13 @@
     "babysit",
     "base-ui",
     "bendc-frontend-guidelines",
+    "better-accessibility",
+    "better-colors",
+    "better-interface",
+    "better-layout",
+    "better-typography",
+    "better-ui",
+    "better-writing",
     "cache-components",
     "check-compiler-errors",
     "code-review",
@@ -21,6 +28,7 @@
     "control-cli",
     "control-ui",
     "create-agent",
+    "design-taste-frontend",
     "deslop",
     "diagnosing-bugs",
     "domain-model",
@@ -33,6 +41,7 @@
     "find-skills",
     "fix-ci",
     "fix-merge-conflicts",
+    "frontend-design",
     "get-pr-comments",
     "grill-for-unknowns",
     "grill-me",
@@ -56,10 +65,12 @@
     "inngest-setup",
     "inngest-steps",
     "inngest-v3-v4-migration",
+    "interface-review",
     "loop-on-ci",
     "make-pr-easy-to-review",
     "migrate-to-shoehorn",
     "moai-library-shadcn",
+    "mobile-native",
     "motion",
     "new-branch-and-pr",
     "nextjs-app-router",
@@ -84,6 +95,7 @@
     "react-component-dev",
     "react-doctor",
     "rechart",
+    "redesign-existing-projects",
     "repo-entry",
     "request-refactor-plan",
     "research",
@@ -98,6 +110,7 @@
     "supabase",
     "supabase-postgres-best-practices",
     "tdd",
+    "test-driven-development",
     "thermo-nuclear-code-quality-review",
     "tiptap",
     "to-spec",
@@ -168,6 +181,75 @@
       "references/readme-original.md",
       "references/upstream.md"
     ],
+    "better-accessibility": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "focus-and-keyboard.md",
+      "forms.md",
+      "hit-areas.md",
+      "motion-and-zoom.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "screen-readers.md",
+      "semantics-and-aria.md"
+    ],
+    "better-colors": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "color-formats.md",
+      "color-usage.md",
+      "contrast.md",
+      "palette-generation.md",
+      "palette-structure.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "token-naming.md"
+    ],
+    "better-interface": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "review-format.md"
+    ],
+    "better-layout": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "grouping-and-alignment.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "spacing-and-adaptivity.md"
+    ],
+    "better-typography": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "choosing-fonts.md",
+      "css-cheat-sheet.md",
+      "details-and-accessibility.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "spacing-and-sizing.md",
+      "variable-fonts-and-opentype.md",
+      "wrapping-and-punctuation.md"
+    ],
+    "better-ui": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "animations.md",
+      "enter-exit.md",
+      "icon-transitions.md",
+      "icons.md",
+      "performance.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "surfaces.md"
+    ],
+    "better-writing": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "cache-components": [
       "SKILL.md"
     ],
@@ -202,6 +284,11 @@
     "create-agent": [
       "SKILL.md",
       "reference.md",
+      "references/upstream.md"
+    ],
+    "design-taste-frontend": [
+      "SKILL.md",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "deslop": [
@@ -263,6 +350,12 @@
     ],
     "fix-merge-conflicts": [
       "SKILL.md",
+      "references/upstream.md"
+    ],
+    "frontend-design": [
+      "LICENSE.txt",
+      "SKILL.md",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "get-pr-comments": [
@@ -476,6 +569,14 @@
     "inngest-v3-v4-migration": [
       "SKILL.md"
     ],
+    "interface-review": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "removed-signals.md",
+      "scope-resolution.md"
+    ],
     "loop-on-ci": [
       "SKILL.md",
       "references/upstream.md"
@@ -491,6 +592,11 @@
     "moai-library-shadcn": [
       "SKILL.md",
       "reference-links.md"
+    ],
+    "mobile-native": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
     ],
     "motion": [
       "SKILL.md"
@@ -607,6 +713,11 @@
     ],
     "rechart": [
       "SKILL.md"
+    ],
+    "redesign-existing-projects": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
     ],
     "repo-entry": [
       "SKILL.md"
@@ -734,6 +845,12 @@
       "mocking.md",
       "references/upstream.md",
       "tests.md"
+    ],
+    "test-driven-development": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "writing-good-tests.md"
     ],
     "thermo-nuclear-code-quality-review": [
       "SKILL.md",

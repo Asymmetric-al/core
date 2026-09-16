@@ -2,10 +2,10 @@
 source_name: emilkowalski/skills
 source_url: https://github.com/emilkowalski/skills
 source_path: skills/write-swift/
-source_commit: d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7
-upstream_skill_commit: 8e1ec02cdd4bcfcaa1b5df2a3fbc9a35e5f4394e
+source_commit: 85e8e2363b713506e1d5b6e07a0eb2da66be1bc3
+upstream_skill_commit: 85e8e2363b713506e1d5b6e07a0eb2da66be1bc3
 license: MIT
-last_reviewed: 2026-08-29
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: write-swift
@@ -15,7 +15,7 @@ Canonical copy in this repo: `docs/ai/skills/write-swift/`, mirrored to
 `bun run skills:sync`.
 
 - **Repository:** https://github.com/emilkowalski/skills
-- **Reviewed pack commit:** `d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7`
+- **Reviewed pack commit:** `85e8e2363b713506e1d5b6e07a0eb2da66be1bc3`
 - **Source path:** `skills/write-swift/`
 - **Vendored upstream files:** `SKILL.md`
 - **License:** MIT; the exact upstream notice is preserved in

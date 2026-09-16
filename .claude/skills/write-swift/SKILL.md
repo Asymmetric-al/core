@@ -30,6 +30,14 @@ use Swift. Reconcile this overlay after upstream refreshes before running
 
 <!-- CORE-OVERLAY-END -->
 
+## Initial Response
+
+When this skill is first invoked without a specific question, respond only with:
+
+> I'm ready to help you write modern Swift, the way the language wants to be written.
+
+Do not provide any other information until the user asks a question.
+
 How to write Swift the way the language wants to be written, current through Swift 6.4.
 
 **Toolchain baseline: Swift 6.3** (current release as of August 2026). Everything here compiles on 6.3 unless marked ⚠, which flags unreleased Swift 6.4 features. Concurrency guidance assumes the Swift 6.2 model — if the project is on 6.1 or earlier, §3's rules about `async` and `@concurrent` do not apply.

@@ -53,6 +53,7 @@ const emilKowalskiSkillNames = [
   "emil-design-eng",
   "emil-prototype",
   "improve-animations",
+  "mobile-native",
   "pick-ui-library",
   "review-animations",
   "write-swift",
@@ -60,6 +61,33 @@ const emilKowalskiSkillNames = [
 
 const emilKowalskiSources = emilKowalskiSkillNames.map((skillName) => ({
   sourceGroup: "emilkowalski/skills",
+  skillName,
+  from: path.join(repoRoot, ".agents", "skills", skillName),
+  preserve: ["references/upstream.md", "references/LICENSE.md"],
+}));
+
+const jakubKrehelSkillNames = [
+  "better-accessibility",
+  "better-colors",
+  "better-interface",
+  "better-layout",
+  "better-typography",
+  "better-ui",
+  "better-writing",
+  "interface-review",
+];
+
+const jakubKrehelSources = jakubKrehelSkillNames.map((skillName) => ({
+  sourceGroup: "jakubkrehel/skills",
+  skillName,
+  from: path.join(repoRoot, ".agents", "skills", skillName),
+  preserve: ["references/upstream.md", "references/LICENSE.md"],
+}));
+
+const tasteSkillNames = ["design-taste-frontend", "redesign-existing-projects"];
+
+const tasteSkillSources = tasteSkillNames.map((skillName) => ({
+  sourceGroup: "leonxlnx/taste-skill",
   skillName,
   from: path.join(repoRoot, ".agents", "skills", skillName),
   preserve: ["references/upstream.md", "references/LICENSE.md"],
@@ -106,7 +134,21 @@ const upstreamSources = [
     from: path.join(repoRoot, ".agents", "skills", "grill-for-unknowns"),
     preserve: ["references/upstream.md"],
   },
+  {
+    sourceGroup: "anthropics/skills",
+    skillName: "frontend-design",
+    from: path.join(repoRoot, ".agents", "skills", "frontend-design"),
+    preserve: ["references/upstream.md", "references/LICENSE.md"],
+  },
+  {
+    sourceGroup: "obra/superpowers",
+    skillName: "test-driven-development",
+    from: path.join(repoRoot, ".agents", "skills", "test-driven-development"),
+    preserve: ["references/upstream.md", "references/LICENSE.md"],
+  },
   ...emilKowalskiSources,
+  ...jakubKrehelSources,
+  ...tasteSkillSources,
 ];
 
 const openspecSkillNames = [
@@ -337,6 +379,32 @@ const POST_REFRESH_REPLACEMENTS = [
     relativePath: "SKILL.md",
     search: "license: MIT\nmetadata:",
     replace: "license: MIT\ndisable-model-invocation: true\nmetadata:",
+    required: true,
+  },
+  {
+    skillName: "frontend-design",
+    relativePath: "SKILL.md",
+    search: "license: Complete terms in LICENSE.txt\n---",
+    replace:
+      "license: Complete terms in LICENSE.txt\ndisable-model-invocation: true\n---",
+    required: true,
+  },
+  {
+    skillName: "design-taste-frontend",
+    relativePath: "SKILL.md",
+    search:
+      "description: Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, audit-first on redesigns, strict pre-flight check.\n---",
+    replace:
+      "description: Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, audit-first on redesigns, strict pre-flight check.\ndisable-model-invocation: true\n---",
+    required: true,
+  },
+  {
+    skillName: "redesign-existing-projects",
+    relativePath: "SKILL.md",
+    search:
+      "description: Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end design standards without breaking functionality. Works with any CSS framework or vanilla CSS.\n---",
+    replace:
+      "description: Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end design standards without breaking functionality. Works with any CSS framework or vanilla CSS.\ndisable-model-invocation: true\n---",
     required: true,
   },
   {
@@ -1082,6 +1150,19 @@ function normalizeImproveAnimationsPlanTemplate(content, templatePath) {
   return normalized;
 }
 
+function annotateSecretScannerMentions(content) {
+  return content
+    .split("\n")
+    .map((line) => {
+      const hasSecretToken = line.toLowerCase().includes("password"); // pragma: allowlist secret
+      if (hasSecretToken && !line.includes("pragma: allowlist secret")) {
+        return `${line} // pragma: allowlist secret`;
+      }
+      return line;
+    })
+    .join("\n");
+}
+
 function applyCompatibilityReplacement(content, search, replacement) {
   let cursor = 0;
   let output = "";
@@ -1126,6 +1207,21 @@ async function applyPostRefreshReplacements(skillName, targetRoot) {
 
     if (patchedContent !== formsControlsContent) {
       await writeFile(formsControlsPath, patchedContent, "utf8");
+    }
+  }
+
+  if (skillName === "better-accessibility" || skillName === "better-writing") {
+    const relativePaths =
+      skillName === "better-accessibility"
+        ? ["SKILL.md", "forms.md"]
+        : ["SKILL.md"];
+    for (const relativePath of relativePaths) {
+      const targetPath = path.join(targetRoot, relativePath);
+      const original = await readFile(targetPath, "utf8");
+      const patched = annotateSecretScannerMentions(original);
+      if (patched !== original) {
+        await writeFile(targetPath, patched, "utf8");
+      }
     }
   }
 
