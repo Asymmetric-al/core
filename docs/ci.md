@@ -15,22 +15,19 @@ Current workflow semantics:
 - `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `production`) and for stacked Cursor Cloud PRs whose base matches `cursor/**`.
 - `ci-integration.yml` runs on the same pull-request bases. Pushes still run only on `develop` and `production`.
 - `Shadscan` (`.github/workflows/shadscan.yml`) uses the same pull-request bases; pushes remain `develop` only.
-- `test-e2e-smoke` is **blocking on `develop`** through `integration-gate`, which depends on `e2e-smoke-gate` (not a separate branch-protection check).
-- `test-e2e` is **informational on `develop`** (`continue-on-error: true` there).
+- `test-e2e-smoke` produces `e2e-smoke-gate`; `integration-gate` summarizes
+  `migrate`, `smoke`, and that gate. See § Branch protection for the dated live
+  required-context inventory.
 - Stacked `cursor/**` PRs run the same placeholder Supabase E2E path as `develop`
   (`example.supabase.co`, zero-config bypass). They do **not** inherit
   `continue-on-error`; full E2E must pass. Production PRs keep hosted secrets
   and `e2e-gate`.
-- `test-e2e` is enforced on `production` through the workflow's `e2e-gate`, and
-  branch protection must require `ci-gate`, `integration-gate`, and `e2e-gate`
-  before production release PRs can merge.
-- `main` is retired and protected historical history; active workflows do not
-  treat it as development or production.
+- `test-e2e` remains informational on `develop` and is summarized by
+  `e2e-gate` on `production`.
+- The canonical repository has no `main` branch. Legacy deny-only configuration
+  may still mention it.
 
-Required checks:
-
-- `develop`: `ci-gate`, `integration-gate`
-- `production`: `ci-gate`, `integration-gate`, `e2e-gate`
+The exact live required-check sets are recorded only in § Branch protection.
 
 ### Bun toolchain
 
@@ -71,13 +68,26 @@ Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage ord
 `tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
 `tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` (app unit smoke paths).
 
-This command is wired into `.husky/pre-push` so pushes fail fast when a blocking CI gate would fail in GitHub.
+The `.husky/pre-push` coordinator reads Git's ref updates once, preserves the
+production guard, and passes the complete outgoing commit set into
+`ci:preflight`. Existing remote history is not attributed to the current
+developer.
 
-`verify:git-attribution` blocks local pushes when Git is configured as
-`Codex <codex@example.com>`, when the latest commit uses that identity, or when
-GitHub resolves the latest commit to `abiatarprado`. The allowed identities are
-`Blake <blake@risencode.org>` and
-`Blake <116130409+II-ricky-bobby-II@users.noreply.github.com>`.
+`verify:git-attribution` requires exact registered internal tuples on canonical
+pushes, rejects forbidden legacy identities, and preserves attributable external
+authors. Fork pull requests may use external authors and committers without
+granting them canonical push authority. The exact human and automation tuples
+and secure Windows/WSL setup are in `docs/ops/git-attribution.md`.
+
+Remote actor-or-signature verification runs inside the `format` job before
+formatting. Pull requests check the complete event `base..head` graph. Protected
+pushes reject non-fast-forwards and check the first-parent integration spine:
+`develop` requires exact merged-PR provenance, while `production` must already
+be reachable from canonical `develop`. Every protected integration commit must
+be a two-parent GitHub platform merge with a valid `web-flow` signature.
+Signatures and rerun actors are resolved to immutable account IDs; commit-email
+association alone is not proof. The result is inherited by `ci-gate`, not a new
+branch-protection context.
 
 ### Production release guard
 
@@ -160,13 +170,21 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `format`
 
-- _What it checks:_ Runs `bun run format:check` (Prettier) and `bun run skills:verify` (skills mirror drift gate). Fails if formatting or mirror sync is out of policy.
-- _Why it exists:_ Prevents formatting drift and skill-source/mirror drift that cause noisy diffs and review confusion.
-- _Debug locally:_ Run `bun run format:check`; if needed run `bun run format`. Then run `bun run skills:verify` (or `bun run skills:sync` to update mirrors) and re-check.
+- _What it checks:_ Checks out full history, runs remote
+  `verify:git-attribution` for the event-specific commit scope, then runs
+  `bun run format:check` (Prettier) and `bun run skills:verify` (skills mirror
+  drift gate).
+- _Why it exists:_ Rejects unproven registered identity claims, forbidden event
+  principals, and unresolvable GitHub metadata inside `ci-gate`, then prevents
+  formatting and skill-mirror drift.
+- _Debug locally:_ Run `bun run verify:git-attribution`, then
+  `bun run format:check`; if needed run `bun run format`. Run
+  `bun run skills:verify` (or `bun run skills:sync` to update mirrors) and
+  re-check. Event-actor and signature proof require CI metadata and GitHub APIs.
 
 ### `lint` (needs: `format`)
 
-- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails) and `bun run verify:shadcn-diff` (component drift guard).
+- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails) and `bun run verify:shadcn-diff` (component drift guard).
 - _Why it exists:_ Enforces consistent code quality and prevents architecture, workspace, and ESLint config drift.
 - _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, `bun run verify:shadcn-config`, and `bun run verify:shadcn-diff`.
 
@@ -228,7 +246,9 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
 ### `test-e2e-smoke` (needs: `smoke`)
 
 - _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030 with `E2E_AUTH_BYPASS=true`, waits for both `/api/health` endpoints, and runs the bounded Playwright smoke suite via `bun run test:e2e:smoke` (demo auth preflight, usability smoke, donate, upload-crop under the donor-auth project, and Support Hub smoke). The job has a 25-minute cap, the Playwright smoke step has a 15-minute cap, and failures upload `playwright-smoke-report/`.
-- _Branch behavior:_ Blocking on `develop` through `e2e-smoke-gate` and `integration-gate`.
+- _Branch behavior:_ Produces `e2e-smoke-gate`; `integration-gate` also summarizes
+  this result. See § Branch protection for which contexts GitHub currently
+  requires.
 - _Debug locally:_ Run `bun run test:e2e:smoke` after `bun run test:e2e:auth-preflight` with donor on port 3005.
 - _Coverage note:_ This bounded smoke gate is not the a11y, hydration, perf, or full auth signal. Run `bun run test:a11y`, `bun run test:perf`, or the broader `bun run test:e2e` when a change affects those contracts.
 - _Regression guards (unit):_ `tests/unit/scripts/ci-integration-workflow.contract.test.ts` locks `integration-gate` / `e2e-smoke-gate` / `e2e-gate` wiring; `tests/unit/e2e/e2e-flake-guards.test.ts` forbids `waitForTimeout` in `tests/e2e/**/*.spec.ts`; `tests/unit/scripts/ci-preflight.contract.test.ts` locks `ci:preflight` stage order; `tests/unit/scripts/local-gates.contract.test.ts` locks `bun run check`; `tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` keeps donor/missionary unit smoke coverage and API email mock posture.
@@ -253,23 +273,34 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
 
 ## Branch protection
 
-The workflow files are the source of truth for execution. Branch protection should mirror the behavior you want to enforce in GitHub.
+Workflow YAML is the source of truth for the jobs Core emits. GitHub's
+branch-protection API is the source of truth for which contexts are currently
+required. Those two sets must not be conflated.
 
-### Required checks by branch
+### Live required checks
 
-- `develop`: `ci-gate` and `integration-gate` are enforced; the full `CI Integration / test-e2e` job remains visible but intentionally non-blocking.
-- `production`: `ci-gate`, `integration-gate`, and `e2e-gate` are enforced; production release is handled by `bun run release:production`.
-- `main`: retired/protected historical branch only; do not treat it as production or development in this repo.
+Verified through the GitHub branch-protection API on 2026-08-25:
 
-### GitHub branch rule guidance
+- `develop` uses strict status checks and requires `ci-gate`,
+  `e2e-smoke-gate`, `migrate`, and `smoke`.
+- `production` uses strict status checks and requires `ci-gate`, `e2e-gate`,
+  `e2e-smoke-gate`, `migrate`, `release-source-gate`, and `smoke`.
+- Both branches enforce administrators and disable force pushes and deletion.
+  `develop` requires one approving review and resolved conversations;
+  `production` requires resolved conversations and uses the release path rather
+  than a PR-review requirement.
+- `integration-gate` remains a workflow summary job but is not currently a
+  required branch-protection context.
+- `release-source-gate` remains required on `production`, although no current
+  workflow file defines that job. Reconcile that drift separately before
+  relying on a production promotion.
+- The canonical repository has no `main` branch. Legacy `main: false`
+  deployment configuration is a deny-only compatibility rule, not evidence of
+  a live protected branch.
 
-1. Go to _Settings → Branches → Branch protection rules_.
-2. Keep rules for `production` and `develop`.
-3. Enable **Require status checks to pass before merging**.
-4. Require `ci-gate`, `integration-gate`, and `e2e-gate` on `production`.
-5. Require `ci-gate` and `integration-gate` on `develop`.
-6. Disable force pushes on both branches.
-7. For `develop`, leave `CI Integration / test-e2e` optional if you want the current "signal, not blocker" behavior to remain intact.
+Attribution remains a step inherited by `ci-gate`; it does not create a new
+required context or grant branch authorization. Changes to live branch
+protection require a separate, explicitly reviewed platform reconciliation.
 
 ---
 
