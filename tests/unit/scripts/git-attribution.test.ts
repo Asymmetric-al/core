@@ -999,6 +999,51 @@ describe("git attribution verifier", () => {
     ]);
   });
 
+  it("does not trust a seed remote whose URL is outside the canonical repository", () => {
+    const forkSha = "6".repeat(40);
+    const runCommand = vi.fn((command: string, args: string[]) => {
+      expect(command).toBe("git");
+
+      if (args[0] === "remote" && args.length === 1) {
+        return {
+          ok: true,
+          stdout: "origin",
+          stderr: "",
+          status: 0,
+        };
+      }
+
+      if (args[0] === "remote" && args[1] === "get-url") {
+        return {
+          ok: true,
+          stdout: "git@github.com:external/core.git",
+          stderr: "",
+          status: 0,
+        };
+      }
+
+      if (args[0] === "show-ref") {
+        return {
+          ok: args[3] === "refs/remotes/origin/develop",
+          stdout: "",
+          stderr: "",
+          status: args[3] === "refs/remotes/origin/develop" ? 0 : 1,
+        };
+      }
+
+      throw new Error(`unexpected git command: ${args.join(" ")}`);
+    });
+    const runGitStatus = vi.fn(() => 0);
+
+    expect(
+      isReachableFromTrustedRemoteBranch(forkSha, "origin", {
+        runCommand,
+        runGitStatus,
+      }),
+    ).toBe(false);
+    expect(runGitStatus).not.toHaveBeenCalled();
+  });
+
   it("allows already-integrated external committers when the commit is reachable from a trusted remote branch", () => {
     const integratedSha = "5".repeat(40);
     const runCommand = vi.fn((command: string, args: string[]) => {

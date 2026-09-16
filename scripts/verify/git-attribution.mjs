@@ -1071,25 +1071,27 @@ function collectLocalCommitShas({ remoteName, remoteQueryTarget }) {
 }
 
 function collectTrustedRemoteNames(remoteName, { runCommand }) {
-  const remoteNames = new Set();
+  const candidates = new Set();
 
   if (remoteName) {
-    remoteNames.add(remoteName);
+    candidates.add(remoteName);
   }
 
   const remotesResult = runCommand("git", ["remote"]);
 
-  if (!remotesResult.ok) {
-    return remoteNames;
+  if (remotesResult.ok) {
+    for (const candidate of remotesResult.stdout.split(/\r?\n/)) {
+      const candidateName = candidate.trim();
+
+      if (candidateName) {
+        candidates.add(candidateName);
+      }
+    }
   }
 
-  for (const candidate of remotesResult.stdout.split(/\r?\n/)) {
-    const candidateName = candidate.trim();
+  const remoteNames = new Set();
 
-    if (!candidateName || remoteNames.has(candidateName)) {
-      continue;
-    }
-
+  for (const candidateName of candidates) {
     const remoteUrlResult = runCommand("git", [
       "remote",
       "get-url",
