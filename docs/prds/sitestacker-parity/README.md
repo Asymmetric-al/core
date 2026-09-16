@@ -740,6 +740,21 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   floor without remediation. The blast radius is planning-only: the Phase 21
   PRD, decision evidence, ADRs, OpenSpec change, and named cross-phase contract
   amendments; it grants no runtime authority.
+- [`phase-23-web-studio-cms.md`](./phase-23-web-studio-cms.md)
+  — the canonical implementation-ready Phase 23 PRD. Its active OpenSpec
+  contract is
+  [`add-web-studio-cms`](../../../openspec/changes/add-web-studio-cms/proposal.md).
+  D1–D36 are founder-ratified and scope-frozen. Parent specification issue
+  [#1339](https://github.com/Asymmetric-al/core/issues/1339) carries the
+  approved contract. These artifacts are planning authority only: they do not
+  claim runtime implementation, migration, deployment, or production
+  activation. Ticket slicing remains separate `/to-tickets` work.
+- [`phase-23-web-studio-cms-decision-log.md`](./phase-23-web-studio-cms-decision-log.md)
+  — the supporting founder-ratified D1–D36 grooming authority, closed by D36 on
+  2026-08-24. ADR-0145 through ADR-0180 preserve the individual decisions, and
+  the
+  [`closure checklist`](./phase-23-closure-testing-evidence-and-issue-readiness-checklist.md)
+  preserves the evidence-gated implementation handoff.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
