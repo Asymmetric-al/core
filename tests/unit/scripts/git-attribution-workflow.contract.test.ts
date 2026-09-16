@@ -59,7 +59,7 @@ describe("CI Git attribution contract", () => {
       "ASYM_GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}",
     );
     expect(attributionStep).toContain(
-      "ASYM_GITHUB_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}",
+      "ASYM_GITHUB_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || (github.event_name != 'pull_request' && github.repository) || '' }}",
     );
     expect(attributionStep).toContain(
       "ASYM_GITHUB_REPOSITORY: ${{ github.repository }}",

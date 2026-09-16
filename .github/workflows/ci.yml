@@ -49,7 +49,7 @@ jobs:
           ASYM_GITHUB_EVENT_NAME: ${{ github.event_name }}
           ASYM_GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           ASYM_GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          ASYM_GITHUB_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ASYM_GITHUB_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || (github.event_name != 'pull_request' && github.repository) || '' }}
           ASYM_GITHUB_REPOSITORY: ${{ github.repository }}
           ASYM_GITHUB_REF_NAME: ${{ github.ref_name }}
           ASYM_GITHUB_REF_TYPE: ${{ github.ref_type }}
