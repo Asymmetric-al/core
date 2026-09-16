@@ -79,6 +79,16 @@ GitHub resolves the latest commit to `abiatarprado`. The allowed identities are
 `Blake <blake@risencode.org>` and
 `Blake <116130409+II-ricky-bobby-II@users.noreply.github.com>`.
 
+GitHub-created integration merges use a separate, narrow proof path: live
+canonical-repository metadata must match the local commit and ordered parents,
+prove GitHub's valid `web-flow` signature, and identify the exact merged pull
+request to protected `develop` or `production` with trusted author and merger
+accounts. Missing proof fails the gate. Ordinary and local identities retain
+their existing restrictions; the hosted `ricky` alias is limited to the exact
+trusted human noreply email. See [Git attribution policy](ops/git-attribution.md)
+for the full criteria. The broader team workflow in
+[PR #1428](https://github.com/Asymmetric-al/core/pull/1428) remains proposed.
+
 ### Production release guard
 
 Direct pushes to `production` are blocked by `.husky/pre-push` unless they come from
