@@ -127,6 +127,9 @@ describe("emilkowalski skill pack", () => {
     expect(
       readSkillFile("docs/ai/skills", "animate", "SKILL.md"),
     ).toContain("disable-model-invocation: true");
+    expect(
+      readSkillFile("docs/ai/skills", "write-swift", "SKILL.md"),
+    ).toContain("disable-model-invocation: true");
     expect(lock.skills.prototype).toMatchObject({
       source: "mattpocock/skills",
       skillPath: "skills/engineering/prototype/SKILL.md",
