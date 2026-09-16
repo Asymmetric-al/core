@@ -1144,6 +1144,12 @@ describe("refresh-upstream-skills", () => {
           "",
         ].join("\n"),
       },
+      "mobile-native": {
+        "SKILL.md": minimalEmilSkill("mobile-native", [
+          "# Feeling Native On Mobile",
+          "",
+        ]),
+      },
       "improve-animations": {
         "AUDIT.md": [
           "# Audit",
@@ -1252,6 +1258,7 @@ describe("refresh-upstream-skills", () => {
       "ask-sonner/SKILL.md",
       "emil-design-eng/SKILL.md",
       "emil-prototype/SKILL.md",
+      "mobile-native/SKILL.md",
       "improve-animations/AUDIT.md",
       "improve-animations/PLAN-TEMPLATE.md",
       "pick-ui-library/SKILL.md",

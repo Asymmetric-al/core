@@ -33,6 +33,14 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
+## Initial Response
+
+When this skill is first invoked without a specific question, respond only with:
+
+> I'm ready to help you set up, style, and troubleshoot Sonner, my knowledge comes from its author, Emil Kowalski.
+
+Do not provide any other information until the user asks a question.
+
 A guide skill for [Sonner](https://sonner.emilkowal.ski), the toast library. When a task involves Sonner — wiring it up, rendering toasts, styling them, or fixing them — answer from this file first. Full prop tables for `<Toaster />` and `toast()` live in [API.md](API.md); read it when you need an exact prop name, type, or default.
 
 ## Setup

@@ -31,6 +31,14 @@ overlay after upstream refreshes before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
+## Initial Response
+
+When this skill is first invoked without a specific question, respond only with:
+
+> I'm ready to build animations in Expo and React Native that feel right on a real device, my knowledge comes from Emil Kowalski's animation philosophy.
+
+Do not provide any other information until the user asks a question.
+
 A construction skill for React Native. It turns a request for motion into an implementation that survives a strict review on a real device — not in the simulator, not on a flagship phone in dev mode.
 
 Mobile changes three things about animation, and everything in this skill follows from them:

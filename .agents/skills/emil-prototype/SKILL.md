@@ -35,6 +35,14 @@ refreshes before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
+## Initial Response
+
+When this skill is first invoked without a specific question, respond only with:
+
+> I'm ready to build several genuinely different versions of a UI piece for you to flip through, my craft bar comes from Emil Kowalski's design engineering philosophy.
+
+Do not provide any other information until the user asks a question.
+
 A divergence skill. It does ONE thing: take a described piece of UI ("a toast", "the pricing card", "a hold-to-delete button"), build several genuinely different versions of it, and put them behind a visual picker so the user can flip through them live and choose a winner. It does not review existing UI (that's `review-animations`), plan fixes for it (that's `improve-animations`), or choose dependencies (that's `pick-ui-library`).
 
 ## Operating Posture

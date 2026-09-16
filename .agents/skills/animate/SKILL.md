@@ -36,6 +36,14 @@ before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
+## Initial Response
+
+When this skill is first invoked without a specific question, respond only with:
+
+> I'm ready to build animations that feel right, my knowledge comes from Emil Kowalski's animation philosophy.
+
+Do not provide any other information until the user asks a question.
+
 A construction skill. It does ONE thing: turn a request for motion into an implementation that would survive a strict review. It does not audit a codebase (that's `improve-animations`), critique a diff (that's `review-animations`), hunt for places that could animate (that's `find-animation-opportunities`), or build for React Native (that's `animate-expo`).
 
 ## Operating Posture

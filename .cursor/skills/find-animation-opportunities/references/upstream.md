@@ -3,16 +3,16 @@ source_name: emilkowalski/skills (find-animation-opportunities)
 source_url: https://github.com/emilkowalski/skills
 source_type: github
 upstream_path: skills/find-animation-opportunities/SKILL.md
-reviewed_commit: 86cf9f7d91c6de0215cbb2e36fccfe6c8127a841
+reviewed_commit: 85e8e2363b713506e1d5b6e07a0eb2da66be1bc3
 license: MIT
-last_reviewed: 2026-08-29
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: find-animation-opportunities
 
 - **Copyright:** 2026 Emil Kowalski
 - **License:** MIT; see the upstream
-  [`LICENSE`](https://github.com/emilkowalski/skills/blob/86cf9f7d91c6de0215cbb2e36fccfe6c8127a841/LICENSE).
+  [`LICENSE`](https://github.com/emilkowalski/skills/blob/85e8e2363b713506e1d5b6e07a0eb2da66be1bc3/LICENSE).
 - **Announcement source:**
   https://x.com/emilkowalski/status/2077404975555031509
 
