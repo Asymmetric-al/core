@@ -991,6 +991,43 @@ describe("refresh-upstream-skills", () => {
       "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
     );
     await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      [
+        "4. **asChild** - Render as different element (Radix pattern)",
+        "",
+        "## The `asChild` Pattern",
+        "",
+        "Allow rendering as a different element while preserving behavior:",
+        "",
+        "```jsx",
+        "// Render as button (default)",
+        "<Button>Click me</Button>",
+        "",
+        "// Render as link",
+        "<Button asChild>",
+        '  <a href="/page">Click me</a>',
+        "</Button>",
+        "",
+        "// Render as Next.js Link",
+        "<Button asChild>",
+        '  <Link href="/page">Click me</Link>',
+        "</Button>",
+        "```",
+        "",
+        "Implementation using Radix Slot:",
+        "",
+        "```jsx",
+        'import { Slot } from "@radix-ui/react-slot";',
+        "",
+        "function Button({ asChild, ...props }) {",
+        '  const Comp = asChild ? Slot : "button";',
+        "  return <Comp {...props} />;",
+        "}",
+        "```",
+        "",
+      ].join("\n"),
+    );
 
     const canonicalRoot = path.join(
       tempRoot,
@@ -1022,6 +1059,23 @@ describe("refresh-upstream-skills", () => {
     await expect(
       readFile(path.join(canonicalRoot, "references/upstream.md"), "utf8"),
     ).resolves.toBe("preserve me\n");
+    await expect(
+      readFile(path.join(canonicalRoot, "component-design.md"), "utf8"),
+    ).resolves.not.toContain("asChild");
+    await expect(
+      readFile(path.join(canonicalRoot, "component-design.md"), "utf8"),
+    ).resolves.toContain("buttonVariants");
+  });
+
+  it("does not treat destination collisions as cross-device refresh moves", async () => {
+    const refreshScript = await readFile(
+      path.join(repoRoot, "scripts/refresh-upstream-skills.mjs"),
+      "utf8",
+    );
+
+    expect(refreshScript).toContain('getErrorCode(error) !== "EXDEV"');
+    expect(refreshScript).not.toContain('code === "EEXIST"');
+    expect(refreshScript).not.toContain('code === "ENOTEMPTY"');
   });
 
   it("fails a focused Emil Kowalski refresh before mutation when a source is missing", async () => {

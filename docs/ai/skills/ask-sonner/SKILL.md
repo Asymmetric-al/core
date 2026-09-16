@@ -25,11 +25,14 @@ overlay after upstream refreshes before running `bun run skills:sync`.
    `@asym/ui/components/shadcn` re-exports.
 2. Import `toast` from `sonner` the same way existing UI files do.
 3. Keep theme, tokens, and layout ownership in Core's design system.
+4. After overlay or toaster-host refreshes, run `bun run skills:sync` and
+   `bun run skills:verify`.
 
 ### Checklist
 
 - [ ] No second `<Toaster />` is mounted.
 - [ ] The existing `@asym/ui` toaster is the only host.
+- [ ] Skill mirrors stayed in sync (`bun run skills:verify`).
 
 <!-- CORE-OVERLAY-END -->
 

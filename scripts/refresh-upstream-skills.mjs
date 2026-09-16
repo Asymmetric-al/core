@@ -667,6 +667,69 @@ const POST_REFRESH_REPLACEMENTS = [
       "Disable 1Password autocomplete when not needed: // pragma: allowlist secret",
   },
   {
+    skillName: "emil-design-engineering",
+    relativePath: "component-design.md",
+    search: "4. **asChild** - Render as different element (Radix pattern)",
+    replace:
+      "4. **Composition** - For link-styled actions, apply `buttonVariants` on `Link` / `<a>` (Base UI `render`, not a Radix Slot wrapper)",
+    required: true,
+  },
+  {
+    skillName: "emil-design-engineering",
+    relativePath: "component-design.md",
+    search: [
+      "## The `asChild` Pattern",
+      "",
+      "Allow rendering as a different element while preserving behavior:",
+      "",
+      "```jsx",
+      "// Render as button (default)",
+      "<Button>Click me</Button>",
+      "",
+      "// Render as link",
+      "<Button asChild>",
+      '  <a href="/page">Click me</a>',
+      "</Button>",
+      "",
+      "// Render as Next.js Link",
+      "<Button asChild>",
+      '  <Link href="/page">Click me</Link>',
+      "</Button>",
+      "```",
+      "",
+      "Implementation using Radix Slot:",
+      "",
+      "```jsx",
+      'import { Slot } from "@radix-ui/react-slot";',
+      "",
+      "function Button({ asChild, ...props }) {",
+      '  const Comp = asChild ? Slot : "button";',
+      "  return <Comp {...props} />;",
+      "}",
+      "```",
+    ].join("\n"),
+    replace: [
+      "## Link-styled actions (Base UI)",
+      "",
+      "Core's `Button` is Base UI `ButtonPrimitive` plus `buttonVariants`. Do not add",
+      "a Radix Slot wrapper. For a control that should navigate, put the variants on",
+      "the real link:",
+      "",
+      "```jsx",
+      'import Link from "next/link";',
+      'import { buttonVariants } from "@asym/ui/components/shadcn/button";',
+      "",
+      '<Link href="/page" className={buttonVariants({ variant: "default" })}>',
+      "  Click me",
+      "</Link>",
+      "```",
+      "",
+      "When a Base UI primitive must render as another element, use its `render` prop.",
+      "Keep that local to the primitive — do not wrap `Button` in a slot helper.",
+    ].join("\n"),
+    required: true,
+  },
+  {
     skillName: "emil-design-eng",
     relativePath: "SKILL.md",
     search:
@@ -1875,21 +1938,13 @@ async function moveDirectory(fromPath, toPath) {
   try {
     await renameOnce(fromPath, toPath);
   } catch (error) {
-    const destExists = await pathExists(toPath);
-    const code = getErrorCode(error);
-    const isCrossDevice =
-      code === "EXDEV" ||
-      (destExists && (code === "EEXIST" || code === "ENOTEMPTY"));
-
-    if (!isCrossDevice) {
+    if (getErrorCode(error) !== "EXDEV") {
+      throw error;
+    }
+    if (await pathExists(toPath)) {
       throw error;
     }
 
-    // `fs.cp` into an existing dest merges leftover files. Replace must
-    // remove the dest first so extras from the previous tree cannot survive.
-    if (destExists) {
-      await rm(toPath, { recursive: true, force: true });
-    }
     await cp(fromPath, toPath, { recursive: true, force: true });
     await rm(fromPath, { recursive: true, force: true });
   }

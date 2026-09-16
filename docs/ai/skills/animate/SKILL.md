@@ -27,6 +27,9 @@ before running `bun run skills:sync`.
 2. Reuse existing Core motion tokens and Base UI primitives. Do not fork
    durations, easings, or introduce Radix APIs.
 3. Keep reduced-motion on the global baseline in `packages/ui/styles/globals.css`.
+4. If the task needs a toast, drawer, menu, or dropdown, reuse `@asym/ui` /
+   Base UI. Do not invoke `pick-ui-library` unless the user explicitly asked
+   which library to use.
 
 ### Checklist
 

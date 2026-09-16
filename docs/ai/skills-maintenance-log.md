@@ -295,7 +295,7 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
 ## 2026-08-29 - Emil Kowalski pack and paid skill refresh
 
 - Confirmed live upstream `emilkowalski/skills` at
-  `d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7` now ships twelve public skills.
+  `d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7` now ships eleven public skills.
   Core lockfile-manages eleven of them (`animate`, `animate-expo`,
   `animation-vocabulary`, `apple-design`, `ask-sonner`, `emil-design-eng`,
   `emil-prototype`, `improve-animations`, `pick-ui-library`,

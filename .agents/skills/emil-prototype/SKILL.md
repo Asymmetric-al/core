@@ -23,8 +23,9 @@ refreshes before running `bun run skills:sync`.
 
 ### Workflow
 
-1. Explore only on an isolated prototype surface. Do not edit production
-   routes while diverging.
+1. Explore only on an isolated prototype surface outside Core app routes.
+   Do not add `apps/*/app/prototypes/` pages. Do not edit production routes
+   while diverging.
 2. Keep Core tokens, Base UI, and `anim` constraints on every variant.
 3. Promote a winner only after the user picks one.
 

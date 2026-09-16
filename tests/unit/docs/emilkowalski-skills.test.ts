@@ -198,5 +198,28 @@ describe("emilkowalski skill pack", () => {
     expect(componentDesign).toContain("Base UI");
     expect(askSonner).not.toMatch(/import \{ Toaster \} from ["']sonner["']/);
     expect(askSonner).toContain("@asym/ui/components/shadcn/sonner");
+    expect(askSonner).toContain("bun run skills:verify");
+  });
+
+  it("keeps animate and prototype overlays from installing libraries or public prototype routes", () => {
+    const animate = readSkillFile("docs/ai/skills", "animate", "SKILL.md");
+    const prototype = readSkillFile(
+      "docs/ai/skills",
+      "emil-prototype",
+      "SKILL.md",
+    );
+    const refreshScript = readFileSync(
+      path.join(repoRoot, "scripts/refresh-upstream-skills.mjs"),
+      "utf8",
+    );
+
+    expect(animate).toContain("Do not invoke `pick-ui-library`");
+    expect(prototype).toContain("apps/*/app/prototypes/");
+    expect(refreshScript).toContain(
+      'relativePath: "component-design.md"',
+    );
+    expect(refreshScript).toContain(
+      "4. **asChild** - Render as different element (Radix pattern)",
+    );
   });
 });
