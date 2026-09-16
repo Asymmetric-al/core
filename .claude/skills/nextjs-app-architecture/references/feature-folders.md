@@ -1,6 +1,6 @@
 # Feature folders
 
-> **Core:** Existing `apps/*/features/` folders are UI composition only. Do not add `*-queries.ts` or `*-actions.ts` at all. Call `@asym/api` or `@asym/database/hooks` from the feature component.
+> **Core:** `apps/*/features/` folders are UI composition only. Do not add `*-queries.ts` or `*-actions.ts` at all. Call `@asym/api` or `@asym/database/hooks` from the feature component.
 
 How to organize code under `features/` and `app/`.
 

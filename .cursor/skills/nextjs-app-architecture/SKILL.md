@@ -1,6 +1,6 @@
 ---
 name: nextjs-app-architecture
-description: Build or audit Next.js 16 App Router apps using a next-beats-style React Server Components architecture. Use when scaffolding a new app, adding a feature, reviewing an existing app, refactoring route-loader-shaped pages into feature-owned async server components, deciding where queries/actions/components live, keeping pages synchronous with `params.then()`, placing Suspense boundaries, choosing the client/server boundary, designing skeletons, preventing CLS, or enabling Cache Components. Also use when the user asks about RSC composition, components receiving IDs instead of route params, `'use cache'`, `cacheTag`, `updateTag`, static-shell prerendering, or making an app easier for AI agents to modify.
+description: Build or audit Next.js 16 App Router apps using a next-beats-style React Server Components architecture. Use when scaffolding a new app, adding a feature, reviewing an existing app, refactoring route-loader-shaped pages into feature-owned async server components, deciding where queries/actions/components live, keeping pages synchronous with `params.then()`, placing Suspense boundaries, choosing the client/server boundary, designing skeletons, preventing CLS, or following Cache Components Instant Navigation. Also use when the user asks about RSC composition, components receiving IDs instead of route params, `'use cache'`, `cacheTag`, `updateTag`, static-shell prerendering, or making an app easier for AI agents to modify.
 license: MIT
 metadata:
   author: aurorascharff
@@ -38,7 +38,7 @@ A workflow for building and auditing Next.js 16+ App Router apps so they follow 
 
 ## Prerequisite
 
-Before changing a Next.js app, make sure the project is set up for AI agents to read version-matched docs. Follow the [AI Coding Agents guide](https://preview.nextjs.org/docs/app/guides/ai-agents): prefer the project's `AGENTS.md` / bundled docs, and create or refresh them when missing. Then use this skill for architecture decisions.
+Before changing a Next.js app, read version-matched docs from `apps/<app>/node_modules/next/dist/docs/` or `.next-docs/`. Do not create or refresh root `AGENTS.md` from `preview.nextjs.org`. Then use this skill for architecture decisions.
 
 ## Architecture target
 

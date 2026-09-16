@@ -1,12 +1,14 @@
 # Pages and Suspense
 
+> **Core:** Pages compose UI only. Privileged reads stay in `packages/api`. Wrap `searchParams` and combined `Promise.all([params, searchParams])` in a page-owned `<Suspense>`. Prefetch policy lives in `docs/ai/rules/frontend.md`.
+
 How to compose pages, place Suspense boundaries, and prevent layout shift.
 
 ## Pages are composition only
 
 Pages in `app/` import feature components and place `<Suspense>` boundaries. They never:
 
-- Fetch data directly (queries live in feature folders)
+- Fetch data directly (privileged reads stay in `packages/api`; features compose those calls)
 - Define reusable UI components except thin transition wrappers (e.g. `<ViewTransition>`) or tiny route-local control-flow helpers
 - Inline route-specific UI (extract it into the feature folder)
 - Pass raw `params` / `searchParams` to features
@@ -61,10 +63,14 @@ Use an implicit-return arrow function when the callback just renders JSX — e.g
 ```tsx
 // searchParams only
 export default function SearchPage({ searchParams }: PageProps<"/search">) {
-  return searchParams.then((sp) => {
-    const q = typeof sp.q === "string" ? sp.q : "";
-    return q ? <SearchResults query={q} /> : <EmptyState />;
-  });
+  return (
+    <Suspense fallback={<SearchResultsSkeleton />}>
+      {searchParams.then((sp) => {
+        const q = typeof sp.q === "string" ? sp.q : "";
+        return q ? <SearchResults query={q} /> : <EmptyState />;
+      })}
+    </Suspense>
+  );
 }
 
 // Both params and searchParams
@@ -72,9 +78,13 @@ export default function ProfilePage({
   params,
   searchParams,
 }: PageProps<"/u/[handle]">) {
-  return Promise.all([params, searchParams]).then(([{ handle }, sp]) => (
-    <ProfileFeed handle={handle} tab={parseTab(sp.tab)} />
-  ));
+  return (
+    <Suspense fallback={<ProfileFeedSkeleton />}>
+      {Promise.all([params, searchParams]).then(([{ handle }, sp]) => (
+        <ProfileFeed handle={handle} tab={parseTab(sp.tab)} />
+      ))}
+    </Suspense>
+  );
 }
 ```
 
@@ -82,7 +92,7 @@ Use `Promise.all([params, searchParams])` when both are needed. Avoid nested `.t
 
 ### Metadata, static params, and `notFound()`
 
-- [`generateMetadata`](https://preview.nextjs.org/docs/app/api-reference/functions/generate-metadata) runs before render, so `await params` is fine there — it's a separate async function, not the page body, so it doesn't make the page dynamic.
+- [`generateMetadata`](https://preview.nextjs.org/docs/app/api-reference/functions/generate-metadata) is a separate async function. Under Cache Components, `await params` there does not make the page body dynamic; keep the page function synchronous. Qualify metadata reads the same way as other Instant Navigation decisions in `docs/ai/rules/frontend.md`.
 - Export [`generateStaticParams`](https://preview.nextjs.org/docs/app/api-reference/functions/generate-static-params) from a `[slug]` page/layout to pre-build a known set of slugs; with `cacheComponents` + `'use cache'` they land in the static shell. It does **not** change the page signature — `params` is still a Promise, still consumed with `params.then()`.
 - A query that can't find its resource calls [`notFound()`](https://preview.nextjs.org/docs/app/api-reference/functions/not-found), which bubbles to the nearest [`not-found.tsx`](https://preview.nextjs.org/docs/app/api-reference/file-conventions/not-found). Don't try/catch it — use [`unstable_rethrow`](https://preview.nextjs.org/docs/app/api-reference/functions/unstable_rethrow) if you must catch nearby.
 
@@ -273,11 +283,7 @@ To audit CLS, use React DevTools' Suspense panel to pin each boundary in its loa
 
 ## Optimizing prefetching for high-value routes
 
-With `cacheComponents` + [`partialPrefetching`](https://preview.nextjs.org/docs/app/api-reference/config/next-config-js/partialPrefetching) enabled, a visible `<Link>` prefetches the destination's shared [App Shell](https://preview.nextjs.org/docs/app/glossary#app-shell) — enough to commit navigation instantly, with link-specific content streaming after. The default (`'auto'`) already does this; don't write `prefetch = 'auto'`.
-
-Use `<Link prefetch={true}>` on high-value links to also resolve the destination's per-link data (`params`, `searchParams`, the full URL) at prefetch time. Each such link can wake the server for a prerender, so reserve it for routes users predictably visit next. See [Optimizing prefetching](https://preview.nextjs.org/docs/app/guides/optimizing-prefetching).
-
-Can't enable `partialPrefetching` app-wide yet? Opt in per route with `export const prefetch = 'partial'` on the destination, then drop the per-route exports once the global flag is on — see [Adopting Partial Prefetching](https://preview.nextjs.org/docs/app/guides/adopting-partial-prefetching) for the incremental path and [prefetch config](https://preview.nextjs.org/docs/app/api-reference/file-conventions/route-segment-config/prefetch) for the options. To validate navigation feels instant, see the [`instant` config](https://preview.nextjs.org/docs/app/api-reference/file-conventions/route-segment-config/instant) and [Instant Navigation guide](https://preview.nextjs.org/docs/app/guides/instant-navigation).
+Core already runs `cacheComponents: true` and `partialPrefetching: true`. Do not re-enable them, and do not copy preview.nextjs.org prefetch recipes into app code. Deeper per-link prefetching, `prefetch={true}`, and `export const prefetch = 'allow-runtime'` follow `docs/ai/rules/frontend.md`.
 
 ## Never wrap the entire page in a Suspense fallback
 

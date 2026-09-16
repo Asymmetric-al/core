@@ -1,5 +1,7 @@
 # Cache Components
 
+> **Core:** All apps already set `cacheComponents: true`. Do not "enable" the flag. In payments, auth, and other privileged webhooks, use `revalidateTag(tag, { expire: 0 })` when stale data must not be served and `updateTag` cannot be used.
+
 Decisions for when [`cacheComponents: true`](https://preview.nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents) is set in `next.config.ts`. This file is about _which reads to cache, which directive to use, and how to invalidate_ — for the mechanics of each directive, follow the doc links.
 
 ## When this reference applies
@@ -52,6 +54,7 @@ Prefer `io()` over [`connection()`](https://preview.nextjs.org/docs/app/api-refe
 ## Decide how to invalidate
 
 - [`updateTag(tag)`](https://preview.nextjs.org/docs/app/api-reference/functions/updateTag) — in **server actions**, when the user should see the result immediately (read-your-own-writes). Requires the query to carry a matching `cacheTag`.
+- [`revalidateTag(tag, { expire: 0 })`](https://preview.nextjs.org/docs/app/api-reference/functions/revalidateTag) — in **route handlers** for payments, auth, and other privileged webhooks when stale data must not be served. The next request is a blocking revalidate / cache miss. Use this when `updateTag` cannot be used.
 - [`revalidateTag(tag, 'max')`](https://preview.nextjs.org/docs/app/api-reference/functions/revalidateTag) — in **route handlers** (webhooks, cron) for stale-while-revalidate. The single-arg `revalidateTag(tag)` form is deprecated.
 - [`refresh()`](https://preview.nextjs.org/docs/app/api-reference/functions/refresh) — re-render the current route for the current user. Use it for deliberately dynamic reads with no tag; don't use it instead of `updateTag()` for cached reads.
 

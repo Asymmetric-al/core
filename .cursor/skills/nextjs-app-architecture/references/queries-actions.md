@@ -19,8 +19,10 @@ Resource queries own `notFound()` when a requested record is absent. Route pages
 ```ts
 import "server-only";
 
+import { posts } from "@asym/api";
+
 export async function getFeed(userId: string) {
-  return db.post.findMany({ where: { userId } });
+  return posts.listByUser(userId);
 }
 ```
 
@@ -64,6 +66,7 @@ Create `features/<domain>/<domain>-actions.ts`. Mark with `'use server'` at the 
 ```tsx
 "use server";
 
+import { posts } from "@asym/api";
 import { refresh } from "next/cache";
 
 export async function createPost(formData: FormData) {
@@ -73,7 +76,7 @@ export async function createPost(formData: FormData) {
     return { ok: false as const, error: parsed.error.issues[0].message };
   }
 
-  await db.post.create({ data: { body: parsed.data.body, userId: user.id } });
+  await posts.create({ body: parsed.data.body, userId: user.id });
   refresh();
   return { ok: true as const };
 }
@@ -133,11 +136,10 @@ A shared `ActionResult<T>` is optional — a per-action inline union is just as 
 If your DB rows have shapes you don't want to leak to components (extra columns, ORM-specific types), write a mapper inside the query:
 
 ```ts
+import { posts } from "@asym/api";
+
 export async function getPost(id: string) {
-  const row = await db.post.findUnique({
-    where: { id },
-    include: { author: true },
-  });
+  const row = await posts.getById(id);
   if (!row) notFound();
   return toPost(row);
 }

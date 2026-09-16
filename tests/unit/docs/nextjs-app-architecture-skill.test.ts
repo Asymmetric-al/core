@@ -144,11 +144,25 @@ describe("nextjs-app-architecture skill", () => {
     expect(queriesActions).toContain(
       "must not be copied into `apps/*/features/`",
     );
+    expect(queriesActions).not.toMatch(/db\.post\./);
+    expect(queriesActions).toContain('import { posts } from "@asym/api"');
     expect(featureFolders).toContain("> **Core:**");
     expect(featureFolders).toContain("UI composition only");
     expect(featureFolders).toContain(
       "Do not add `*-queries.ts` or `*-actions.ts` at all",
     );
+    expect(
+      readSkillFile("docs/ai/skills", "references/pages-suspense.md"),
+    ).toContain("<Suspense fallback={<SearchResultsSkeleton />}>");
+    expect(
+      readSkillFile("docs/ai/skills", "references/pages-suspense.md"),
+    ).toContain("privileged reads stay in `packages/api`");
+    expect(
+      readSkillFile("docs/ai/skills", "references/cache-components.md"),
+    ).toContain("revalidateTag(tag, { expire: 0 })");
+    expect(
+      readSkillFile("docs/ai/skills", "references/example.md"),
+    ).toContain("packages/api");
     expect(provenance).toContain("f2902b8538b25610da694394ecf88e69adf5f96a");
     expect(provenance).toContain(
       "94f700fb57aef401e135ddbb0d13a2986d6416820ee4e1b2bf1fd8e17fae0d66",
