@@ -124,6 +124,7 @@ describe("grill-for-unknowns skill", () => {
     expect(packageJson.scripts["skills:refresh-ask-matt"]).toBe(
       "node scripts/refresh-upstream-skills.mjs --only=mattpocock/skills",
     );
+    expect(skillRouting).toContain("skills:refresh-ask-matt");
     expect(readRepoFile("CLAUDE.md")).toBe("@AGENTS.md\n");
   });
 
