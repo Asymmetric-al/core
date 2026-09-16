@@ -660,10 +660,7 @@ describe("sync-agent-skills", () => {
       "---\nname: sample-skill\ndescription: Sample\n---\n",
     );
 
-    const ecosystemDir = path.join(
-      tempRoot,
-      ".agents/skills/deploy-to-vercel",
-    );
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/deploy-to-vercel");
     await mkdir(path.join(ecosystemDir, "__MACOSX"), { recursive: true });
     await writeFile(
       path.join(ecosystemDir, "SKILL.md"),

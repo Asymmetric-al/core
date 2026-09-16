@@ -114,9 +114,7 @@ describe("skill quality gate overlays", () => {
       for (const relativePath of listRepoFiles(root)) {
         const parts = relativePath.split("/");
         expect(
-          parts.some(
-            (part) => junkNames.has(part) || part.startsWith("._"),
-          ),
+          parts.some((part) => junkNames.has(part) || part.startsWith("._")),
           `${root}/${relativePath}`,
         ).toBe(false);
       }
