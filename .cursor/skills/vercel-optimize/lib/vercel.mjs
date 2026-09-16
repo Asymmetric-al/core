@@ -2,18 +2,98 @@
 
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { existsSync, readFileSync } from 'node:fs';
 import { readFile, access } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, win32 } from 'node:path';
 import { getMetricThrottle, isDailyQuotaExceeded, retryOnRateLimit } from './throttle.mjs';
 
 const exec = promisify(execFile);
+
+// On Windows, execFile cannot run the `vercel.cmd` shim directly: PATHEXT is not
+// applied by execFile, and .cmd/.bat require `shell: true` since Node 20 — but a
+// shell would mangle args containing spaces or URL query strings (e.g.
+// `vercel api '/v9/projects/:id?teamId=:org'`, `-f 'http_status ge 500'`). So we
+// resolve the Vercel package's JS entry from PATH and run it via `node` directly:
+// no shell, every arg passed verbatim. POSIX is unchanged (`vercel` on PATH).
+export function resolveVercelCommand({
+  platform = process.platform,
+  env = process.env,
+  execPath = process.execPath,
+  exists = existsSync,
+  readText = (file) => readFileSync(file, 'utf-8'),
+} = {}) {
+  if (platform !== 'win32') return { file: 'vercel', prefix: [] };
+
+  const pathValue = env.PATH || env.Path || env.path || '';
+  for (const dir of pathValue.split(win32.delimiter).filter(Boolean)) {
+    const entry = resolveVercelPackageEntry(dir, exists);
+    if (entry) return { file: execPath, prefix: [entry] };
+
+    const shimEntry = resolveVercelShimEntry(dir, exists, readText);
+    if (shimEntry) return { file: execPath, prefix: [shimEntry] };
+  }
+
+  return { file: execPath, prefix: [], missing: true };
+}
+
+function resolveVercelPackageEntry(dir, exists) {
+  const packageRoots = [
+    win32.join(dir, 'node_modules', 'vercel'),
+    win32.join(win32.dirname(dir), 'vercel'),
+  ];
+  for (const root of packageRoots) {
+    for (const rel of ['dist/vc.js', 'dist/index.js']) {
+      const entry = win32.join(root, rel);
+      if (exists(entry)) return entry;
+    }
+  }
+  return null;
+}
+
+function resolveVercelShimEntry(dir, exists, readText) {
+  for (const bin of ['vercel.cmd', 'vc.cmd']) {
+    const shim = win32.join(dir, bin);
+    if (!exists(shim)) continue;
+    let raw;
+    try {
+      raw = readText(shim);
+    } catch {
+      continue;
+    }
+    const match = raw.match(/["']([^"'\r\n]*vercel[\\/]+dist[\\/]+(?:vc|index)\.js)["']/i);
+    if (!match) continue;
+    const entry = normalizeWindowsShimTarget(match[1], dir);
+    if (exists(entry)) return entry;
+  }
+  return null;
+}
+
+function normalizeWindowsShimTarget(target, dir) {
+  const baseDir = `${dir}${win32.sep}`;
+  const expanded = target
+    .replace(/%~dp0/gi, baseDir)
+    .replace(/%dp0%/gi, baseDir)
+    .replace(/\$basedir/g, dir);
+  return win32.normalize(win32.isAbsolute(expanded) ? expanded : win32.resolve(dir, expanded));
+}
+
+async function runVercel(args, opts = {}) {
+  const command = resolveVercelCommand({ env: opts.env });
+  if (command.missing) {
+    const err = new Error('VERCEL_NOT_INSTALLED: `vercel` CLI not found in PATH. Install with `npm i -g vercel@latest`.');
+    err.code = 'ENOENT';
+    throw err;
+  }
+  return await exec(command.file, [...command.prefix, ...args], { windowsHide: true, ...opts });
+}
+
 const MIN_CLI_VERSION = [53, 0, 0];
 
 // Pre-v53 lacks `vercel metrics` and `vercel contract`.
 export async function checkCliVersion() {
   let raw;
   try {
-    const { stdout } = await exec('vercel', ['--version']);
+    const { stdout } = await runVercel(['--version']);
     raw = stdout.trim();
   } catch (err) {
     throw new Error('VERCEL_NOT_INSTALLED: `vercel` CLI not found in PATH. Install with `npm i -g vercel@latest`.');
@@ -34,10 +114,15 @@ export async function checkCliVersion() {
 
 export async function checkAuth() {
   try {
-    await exec('vercel', ['whoami']);
+    await runVercel(['whoami']);
   } catch {
     throw new Error('NOT_AUTH: run `vercel login`.');
   }
+}
+
+export async function getCliIdentity() {
+  const r = await runVercelJson(['whoami', '--format', 'json']);
+  return r.ok ? r.data : null;
 }
 
 // Supports newer `.vercel/repo.json` (multi-project) + legacy `.vercel/project.json` (single-project).
@@ -45,11 +130,18 @@ export async function readProjectJson(cwd = process.cwd()) {
   try {
     const raw = await readFile(join(cwd, '.vercel', 'repo.json'), 'utf-8');
     const parsed = JSON.parse(raw);
-    const first = parsed?.projects?.[0];
+    const projects = Array.isArray(parsed?.projects) ? parsed.projects.filter((p) => p?.id) : [];
+    if (projects.length > 1) {
+      throw new Error('AMBIGUOUS_PROJECT_LINK: `.vercel/repo.json` contains multiple projects. Run from the linked app directory, or pass the intended projectId together with VERCEL_ORG_ID.');
+    }
+    const first = projects[0];
     if (first?.id) {
       return { projectId: first.id, orgId: first.orgId ?? null, source: 'repo.json' };
     }
-  } catch { /* fall through */ }
+  } catch (err) {
+    if (err?.message?.startsWith('AMBIGUOUS_PROJECT_LINK:')) throw err;
+    /* fall through */
+  }
 
   // Legacy single-project format.
   try {
@@ -66,20 +158,151 @@ export async function readProjectJson(cwd = process.cwd()) {
 // Does NOT auto-run `vercel link` — interactive surprises bad.
 export async function resolveProjectId(explicit, cwd = process.cwd()) {
   if (explicit) {
+    const linked = process.env.VERCEL_ORG_ID
+      ? null
+      : await readLinkedOwnerForProjectId(explicit, cwd);
     return {
       projectId: explicit,
-      orgId: process.env.VERCEL_ORG_ID || null,
-      source: 'arg',
+      orgId: process.env.VERCEL_ORG_ID || linked?.orgId || null,
+      source: linked?.source ? `arg+${linked.source}` : 'arg',
     };
   }
   if (process.env.VERCEL_PROJECT_ID) {
+    const linked = process.env.VERCEL_ORG_ID
+      ? null
+      : await readLinkedOwnerForProjectId(process.env.VERCEL_PROJECT_ID, cwd);
     return {
       projectId: process.env.VERCEL_PROJECT_ID,
-      orgId: process.env.VERCEL_ORG_ID || null,
-      source: 'env',
+      orgId: process.env.VERCEL_ORG_ID || linked?.orgId || null,
+      source: linked?.source ? `env+${linked.source}` : 'env',
     };
   }
   return await readProjectJson(cwd);
+}
+
+async function readLinkedOwnerForProjectId(projectId, cwd = process.cwd()) {
+  try {
+    const raw = await readFile(join(cwd, '.vercel', 'repo.json'), 'utf-8');
+    const parsed = JSON.parse(raw);
+    const matches = (Array.isArray(parsed?.projects) ? parsed.projects : [])
+      .filter((p) => p?.id && String(p.id) === String(projectId));
+    if (matches.length > 1) {
+      throw new Error('AMBIGUOUS_PROJECT_LINK: `.vercel/repo.json` contains multiple entries for the requested projectId. Ask the user to confirm the intended Vercel team/personal scope.');
+    }
+    const match = matches[0];
+    if (match?.orgId) return { orgId: match.orgId, source: 'repo.json' };
+  } catch (err) {
+    if (err?.message?.startsWith('AMBIGUOUS_PROJECT_LINK:')) throw err;
+    /* fall through */
+  }
+
+  try {
+    const raw = await readFile(join(cwd, '.vercel', 'project.json'), 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (String(parsed?.projectId ?? '') === String(projectId) && parsed?.orgId) {
+      return { orgId: parsed.orgId, source: 'project.json' };
+    }
+  } catch { /* fall through */ }
+
+  return null;
+}
+
+export async function resolveCommandScope(project = {}) {
+  const orgId = project?.orgId ?? null;
+
+  if (!orgId) {
+    return {
+      ok: false,
+      cliScope: null,
+      source: 'missing-org-scope',
+      required: true,
+      error: 'PROJECT_SCOPE_UNRESOLVED',
+      detail: 'The project was resolved without an owner account, so the collector cannot prove which Vercel scope to query.',
+    };
+  }
+
+  const identity = await getCliIdentity();
+  const currentTeam = identity?.team ?? null;
+
+  if (String(orgId).startsWith('team_')) {
+    if (currentTeam?.id === orgId && currentTeam?.slug) {
+      return {
+        ok: true,
+        cliScope: currentTeam.slug,
+        source: 'whoami-current-team',
+        required: true,
+        teamId: orgId,
+        detail: 'Resolved linked team ID to the current CLI team slug.',
+      };
+    }
+
+    const team = await getTeamInfo(orgId);
+    if (team.ok && team.slug) {
+      return {
+        ok: true,
+        cliScope: team.slug,
+        source: 'team-api',
+        required: true,
+        teamId: orgId,
+        detail: 'Resolved linked team ID to a Vercel CLI scope slug.',
+      };
+    }
+
+    return {
+      ok: false,
+      cliScope: null,
+      source: 'team-api',
+      required: true,
+      teamId: orgId,
+      error: team.error ?? 'TEAM_SCOPE_UNRESOLVED',
+      detail: 'Could not resolve the linked team ID to a Vercel CLI scope slug.',
+    };
+  }
+
+  if (String(orgId).startsWith('usr_')) {
+    const user = identity?.user ?? identity ?? {};
+    const userId = user.id ?? identity?.id ?? null;
+    const username = user.username ?? identity?.username ?? null;
+    if ((!userId || userId === orgId) && username) {
+      return {
+        ok: true,
+        cliScope: username,
+        source: 'whoami-user',
+        required: true,
+        userId: orgId,
+        detail: 'Resolved linked user ID to a Vercel CLI username scope.',
+      };
+    }
+    return {
+      ok: false,
+      cliScope: null,
+      source: 'whoami-user',
+      required: true,
+      userId: orgId,
+      error: 'USER_SCOPE_UNRESOLVED',
+      detail: 'Could not resolve the linked user ID to the authenticated Vercel username.',
+    };
+  }
+
+  return {
+    ok: true,
+    cliScope: orgId,
+    source: 'linked-org-scope',
+    required: true,
+    detail: 'Using the linked org value as the Vercel CLI scope.',
+  };
+}
+
+async function getTeamInfo(teamIdOrSlug) {
+  const r = await runVercelJson(['api', `/v2/teams/${encodeURIComponent(teamIdOrSlug)}`]);
+  if (!r.ok) return { ok: false, error: r.code ?? 'UNKNOWN' };
+  const team = r.data?.team ?? r.data ?? {};
+  return {
+    ok: true,
+    id: team.id ?? null,
+    slug: team.slug ?? null,
+    name: team.name ?? null,
+  };
 }
 
 // Some commands emit `{error: {...}}` on stdout AND exit non-zero — parse stdout first; embedded `error` is the most reliable signal.
@@ -89,7 +312,7 @@ export async function runVercelJson(args, opts = {}) {
   let stderr = '';
   let exitCode = 0;
   try {
-    const r = await exec('vercel', args, { maxBuffer: 32 * 1024 * 1024, ...opts });
+    const r = await runVercel(args, { maxBuffer: 32 * 1024 * 1024, ...opts });
     stdout = r.stdout;
     stderr = r.stderr;
   } catch (err) {
@@ -144,7 +367,7 @@ export function redactSensitiveText(value) {
     .replace(/\b(x-vercel-id:\s*)[^\r\n]+/gi, '$1[REDACTED]')
     .replace(/\b(VERCEL_TOKEN|TURBO_TOKEN|NPM_TOKEN|NODE_AUTH_TOKEN|GITHUB_TOKEN)=("[^"]+"|'[^']+'|[^\s"'`]+)/g, '$1=[REDACTED]')
     .replace(/(--token(?:=|\s+))("[^"]+"|'[^']+'|[^\s"'`]+)/gi, '$1[REDACTED]')
-    .replace(/\b(prj|team)_[A-Za-z0-9]{8,}\b/g, '$1_[REDACTED]')
+    .replace(/\b(prj|team|usr)_[A-Za-z0-9]{8,}\b/g, '$1_[REDACTED]')
     .replace(/("token"\s*:\s*")[^"]{8,}(")/gi, '$1[REDACTED]$2');
 }
 
@@ -181,6 +404,15 @@ export async function checkObservabilityPlusConfiguration({ orgId, projectId } =
       source: 'observability-configuration-api',
       blocker: 'unknown',
       detail: 'No team ID was available for the Observability Plus configuration preflight.',
+    };
+  }
+  if (String(orgId).startsWith('usr_')) {
+    return {
+      ok: false,
+      source: 'observability-configuration-api',
+      access: null,
+      blocker: 'unknown',
+      detail: 'The Observability Plus team configuration preflight is not available for a user-owned project; falling back to the scoped metrics probe.',
     };
   }
   const qs = `?teamId=${encodeURIComponent(orgId)}`;
@@ -280,9 +512,12 @@ export async function queryMetric(metricId, opts = {}) {
   );
 }
 
-// `vercel api /v9/projects/<id>` 404s when project's team ≠ user's currentTeam — always pass `?teamId=<orgId>`.
+// Team-owned projects need `?teamId=<orgId>` to avoid current-team drift. User-
+// owned projects use the authenticated user context and should not pass teamId.
 export async function getProjectConfig(projectId, orgId) {
-  const qs = orgId ? `?teamId=${encodeURIComponent(orgId)}` : '';
+  const qs = orgId && !String(orgId).startsWith('usr_')
+    ? `?teamId=${encodeURIComponent(orgId)}`
+    : '';
   const r = await runVercelJson(['api', `/v9/projects/${projectId}${qs}`]);
   return r.ok ? r.data : { error: r.code, stderr: r.stderr };
 }
@@ -383,9 +618,81 @@ export async function getContract(scope) {
   return r.ok ? r.data : null;
 }
 
-// Hobby teams don't bill — commitments=[] AND usage>$0 ⇒ Pro pay-as-you-go.
-// `commitments=[] AND usage=$0` is genuinely uncertain (Hobby OR Pro with no recent billing).
+export async function getAccountPlan(scope) {
+  const currentTeamId = scope ? null : await getCurrentTeamId();
+  const teamScope = scope || currentTeamId;
+
+  if (teamScope && !String(teamScope).startsWith('usr_')) {
+    const team = await getBillingPlanFromPath(`/v2/teams/${encodeURIComponent(teamScope)}`, 'team.billing.plan');
+    if (team.plan !== 'unknown' || !/not_found|404/i.test(String(team.error ?? ''))) {
+      return team;
+    }
+    // Older project links can carry a user/org id instead of a team id. If the
+    // team lookup misses, fall back to the authenticated user's billing record.
+  }
+
+  return await getBillingPlanFromPath('/v2/user', 'user.billing.plan');
+}
+
+async function getCurrentTeamId() {
+  const identity = await getCliIdentity();
+  return identity?.team?.id ?? null;
+}
+
+async function getBillingPlanFromPath(path, source) {
+  const r = await runVercelJson(['api', path]);
+  if (!r.ok) {
+    return {
+      plan: 'unknown',
+      reason: `${source} unavailable (${r.code ?? 'unknown'})`,
+      source,
+      error: r.code ?? 'unknown',
+    };
+  }
+
+  const parsed = extractBillingPlan(r.data);
+  if (!parsed) {
+    return {
+      plan: 'unknown',
+      reason: `${source} missing from Vercel API response`,
+      source,
+    };
+  }
+
+  return {
+    ...parsed,
+    reason: `${source}=${parsed.plan}`,
+    source,
+  };
+}
+
+export function extractBillingPlan(data) {
+  const raw =
+    data?.billing?.plan ??
+    data?.team?.billing?.plan ??
+    data?.user?.billing?.plan ??
+    null;
+  const plan = normalizeBillingPlan(raw);
+  return plan ? { plan, rawPlan: raw } : null;
+}
+
+function normalizeBillingPlan(raw) {
+  const value = String(raw ?? '').trim().toLowerCase();
+  if (value === 'hobby' || value === 'pro' || value === 'enterprise') return value;
+  return null;
+}
+
+// Primary source: billing.plan from `/v2/teams/:team` or `/v2/user`.
+// Fallbacks: contract category, then recent billed usage for legacy CLI/API gaps.
 export function inferPlan(contract, opts = {}) {
+  const accountPlan = extractPlanOption(opts?.accountPlan);
+  if (accountPlan) {
+    return {
+      plan: accountPlan.plan,
+      reason: accountPlan.reason ?? `${accountPlan.source ?? 'billing.plan'}=${accountPlan.plan}`,
+    };
+  }
+
   const commits = contract?.commitments ?? [];
 
   if (commits.length > 0) {
@@ -414,6 +721,26 @@ export function inferPlan(contract, opts = {}) {
     reason: typeof totalCost === 'number' && totalCost === 0
       ? 'no commitments and no billed usage in window (could be Hobby, or Pro with no recent billing)'
       : 'no commitments on contract; usage unavailable',
+  };
+}
+
+function extractPlanOption(accountPlan) {
+  if (!accountPlan) return null;
+  if (typeof accountPlan === 'string') {
+    const plan = normalizeBillingPlan(accountPlan);
+    return plan ? { plan, reason: `billing.plan=${plan}` } : null;
+  }
+
+  const plan = normalizeBillingPlan(accountPlan.plan);
+  if (!plan) return null;
+  return {
+    plan,
+    reason: accountPlan.reason ?? (
+      accountPlan.source
+        ? `${accountPlan.source}=${plan}`
+        : `billing.plan=${plan}`
+    ),
+    source: accountPlan.source ?? null,
   };
 }
 
@@ -461,6 +788,9 @@ export async function detectStack(cwd = process.cwd()) {
     '@vercel/flags/sveltekit',
     '@vercel/flags/nuxt',
   ].filter((name) => deps[name]);
+  const workflowPackages = Object.keys(deps)
+    .filter((name) => name === 'workflow' || name.startsWith('@workflow/'))
+    .sort();
 
   const isMonorepo =
     !!pkg.workspaces ||
@@ -479,6 +809,8 @@ export async function detectStack(cwd = process.cwd()) {
     rootDirectory: null,
     hasVercelFlagsPackage: vercelFlagsPackages.length > 0,
     vercelFlagsPackages,
+    hasWorkflowPackage: workflowPackages.length > 0,
+    workflowPackages,
   };
 }
 
@@ -488,6 +820,7 @@ function baselineStack() {
     hasAppRouter: false, hasPagesRouter: false, cacheComponents: null, typescript: false,
     orm: 'none', isMonorepo: false, rootDirectory: null,
     hasVercelFlagsPackage: false, vercelFlagsPackages: [],
+    hasWorkflowPackage: false, workflowPackages: [],
   };
 }
 
@@ -506,11 +839,12 @@ async function pathExists(p) {
   try { await access(p); return true; } catch { return false; }
 }
 
-// `--scope <teamId>` is buggy on several subcommands (silently falls back to currentTeam) — only pass slugs.
+// `--scope <teamId>` is buggy on several subcommands (silently falls back to
+// currentTeam). Resolve raw account IDs to slugs/usernames before scoped calls.
 function scopedArgs(args, scope) {
   if (!scope) return args;
-  if (typeof scope === 'string' && /^team_[A-Za-z0-9]+$/.test(scope)) {
-    return args;
+  if (typeof scope === 'string' && /^(team|usr)_/.test(scope)) {
+    throw new Error('RAW_ID_SCOPE_UNRESOLVED: resolve the linked org/user ID to a CLI scope slug before running Vercel commands.');
   }
   return [...args, '--scope', scope];
 }

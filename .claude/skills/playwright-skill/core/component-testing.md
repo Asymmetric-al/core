@@ -27,6 +27,20 @@ test('button renders and responds to click', async ({ mount }) => {
 });
 ```
 
+## Playwright 1.62 Changed the Component Testing Model
+
+> **Read this before using the patterns below.** Playwright 1.62 replaced the experimental component testing model with **stories and galleries**. `fixtures.mount()` now navigates to a gallery and mounts a story by ID, returning a scoped `Locator`.
+
+The experimental packages are no longer updated:
+
+- `@playwright/experimental-ct-react`
+- `@playwright/experimental-ct-react17`
+- `@playwright/experimental-ct-vue`
+
+Existing suites on these packages keep running on a pinned Playwright version, but they will not receive fixes. New component suites should start on the stories model.
+
+The patterns in the rest of this guide were written against the experimental `mount()` API. The testing concepts still hold — what to assert, when a component test beats an E2E test, how to handle providers and slots — but the mounting calls need translating to stories. Check the [official component testing docs](https://playwright.dev/docs/test-components) for the current `mount()` signature before copying a snippet verbatim.
+
 ## Patterns
 
 ### 1. Setup and Configuration

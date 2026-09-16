@@ -29,7 +29,7 @@ export class OrdersService {
 }
 
 // Accessing lazy relations without loading
-@Controller('users')
+@Controller("users")
 export class UsersController {
   @Get()
   async findAll(): Promise<User[]> {

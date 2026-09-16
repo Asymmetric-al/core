@@ -44,7 +44,7 @@
   ],
   "text_classification": [
     {
-      "input": "How do I reset my password?",
+      "input": "How do I reset my password?", // pragma: allowlist secret
       "output": "account_management"
     },
     {

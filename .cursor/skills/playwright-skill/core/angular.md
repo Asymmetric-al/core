@@ -289,18 +289,18 @@ test.describe('reactive forms', () => {
     await expect(page.getByText('Invalid email format')).toBeVisible();
   });
 
-  test('cross-field validation (password match)', async ({ page }) => {
-    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass');
-    await page.getByLabel('Confirm password').fill('different-password');
-    await page.getByLabel('Confirm password').blur();
+  test('cross-field validation (password match)', async ({ page }) => { // pragma: allowlist secret
+    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').fill('different-password'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').blur(); // pragma: allowlist secret
 
-    await expect(page.getByText('Passwords do not match')).toBeVisible();
+    await expect(page.getByText('Passwords do not match')).toBeVisible(); // pragma: allowlist secret
 
     // Fix the mismatch
-    await page.getByLabel('Confirm password').fill('Str0ng!Pass');
-    await page.getByLabel('Confirm password').blur();
+    await page.getByLabel('Confirm password').fill('Str0ng!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').blur(); // pragma: allowlist secret
 
-    await expect(page.getByText('Passwords do not match')).toBeHidden();
+    await expect(page.getByText('Passwords do not match')).toBeHidden(); // pragma: allowlist secret
   });
 
   test('dynamic FormArray -- add and remove items', async ({ page }) => {
@@ -329,8 +329,8 @@ test.describe('reactive forms', () => {
     // Fill all required fields
     await page.getByLabel('Full name').fill('Jane Doe');
     await page.getByLabel('Email').fill('jane@example.com');
-    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass');
-    await page.getByLabel('Confirm password').fill('Str0ng!Pass');
+    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').fill('Str0ng!Pass'); // pragma: allowlist secret
     await page.getByLabel('I agree to the terms').check();
 
     // Now the form is valid -- button should be enabled
@@ -372,8 +372,8 @@ test.describe('reactive forms', () => {
 
     await page.getByLabel('Full name').fill('Jane Doe');
     await page.getByLabel('Email').fill('jane@example.com');
-    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass');
-    await page.getByLabel('Confirm password').fill('Str0ng!Pass');
+    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').fill('Str0ng!Pass'); // pragma: allowlist secret
     await page.getByLabel('I agree to the terms').check();
     await page.getByRole('button', { name: 'Create account' }).click();
 
@@ -407,17 +407,17 @@ test.describe('reactive forms', () => {
     await expect(page.getByText('Invalid email format')).toBeVisible();
   });
 
-  test('cross-field validation (password match)', async ({ page }) => {
-    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass');
-    await page.getByLabel('Confirm password').fill('different-password');
-    await page.getByLabel('Confirm password').blur();
+  test('cross-field validation (password match)', async ({ page }) => { // pragma: allowlist secret
+    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').fill('different-password'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').blur(); // pragma: allowlist secret
 
-    await expect(page.getByText('Passwords do not match')).toBeVisible();
+    await expect(page.getByText('Passwords do not match')).toBeVisible(); // pragma: allowlist secret
 
-    await page.getByLabel('Confirm password').fill('Str0ng!Pass');
-    await page.getByLabel('Confirm password').blur();
+    await page.getByLabel('Confirm password').fill('Str0ng!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').blur(); // pragma: allowlist secret
 
-    await expect(page.getByText('Passwords do not match')).toBeHidden();
+    await expect(page.getByText('Passwords do not match')).toBeHidden(); // pragma: allowlist secret
   });
 
   test('submit button disabled when form is invalid', async ({ page }) => {
@@ -427,8 +427,8 @@ test.describe('reactive forms', () => {
 
     await page.getByLabel('Full name').fill('Jane Doe');
     await page.getByLabel('Email').fill('jane@example.com');
-    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass');
-    await page.getByLabel('Confirm password').fill('Str0ng!Pass');
+    await page.getByLabel('Password', { exact: true }).fill('Str0ng!Pass'); // pragma: allowlist secret
+    await page.getByLabel('Confirm password').fill('Str0ng!Pass'); // pragma: allowlist secret
     await page.getByLabel('I agree to the terms').check();
 
     await expect(submitButton).toBeEnabled();

@@ -34,7 +34,7 @@ await expect(page.getByText('Email is required')).toBeVisible();
 
 ### Filling Basic Form Fields
 
-**Use when**: Testing any form with standard HTML inputs — text, email, password, number, textarea, select, checkbox, radio.
+**Use when**: Testing any form with standard HTML inputs — text, email, password, number, textarea, select, checkbox, radio. // pragma: allowlist secret
 **Avoid when**: Never. This is the foundation pattern.
 
 **TypeScript**
@@ -48,8 +48,8 @@ test('fill and submit a registration form', async ({ page }) => {
   await page.getByLabel('First name').fill('Jane');
   await page.getByLabel('Last name').fill('Doe');
   await page.getByLabel('Email').fill('jane@example.com');
-  await page.getByLabel('Password', { exact: true }).fill('S3cureP@ss!');
-  await page.getByLabel('Confirm password').fill('S3cureP@ss!');
+  await page.getByLabel('Password', { exact: true }).fill('S3cureP@ss!'); // pragma: allowlist secret
+  await page.getByLabel('Confirm password').fill('S3cureP@ss!'); // pragma: allowlist secret
 
   // Textarea
   await page.getByLabel('Bio').fill('Software engineer with 10 years of experience.');
@@ -90,8 +90,8 @@ test('fill and submit a registration form', async ({ page }) => {
   await page.getByLabel('First name').fill('Jane');
   await page.getByLabel('Last name').fill('Doe');
   await page.getByLabel('Email').fill('jane@example.com');
-  await page.getByLabel('Password', { exact: true }).fill('S3cureP@ss!');
-  await page.getByLabel('Confirm password').fill('S3cureP@ss!');
+  await page.getByLabel('Password', { exact: true }).fill('S3cureP@ss!'); // pragma: allowlist secret
+  await page.getByLabel('Confirm password').fill('S3cureP@ss!'); // pragma: allowlist secret
 
   await page.getByLabel('Bio').fill('Software engineer with 10 years of experience.');
   await page.getByLabel('Age').fill('32');
@@ -272,7 +272,7 @@ test('native HTML5 validation with required attribute', async ({ page }) => {
 
 ### Format Validation and Custom Rules
 
-**Use when**: Testing email format, phone number format, password strength, and business-specific validation rules.
+**Use when**: Testing email format, phone number format, password strength, and business-specific validation rules. // pragma: allowlist secret
 **Avoid when**: The validation is purely server-side with no client-side feedback. Test via API instead.
 
 **TypeScript**
@@ -299,24 +299,24 @@ test('validates email format', async ({ page }) => {
   await expect(page.getByText('Please enter a valid email')).not.toBeVisible();
 });
 
-test('validates password strength rules', async ({ page }) => {
+test('validates password strength rules', async ({ page }) => { // pragma: allowlist secret
   await page.goto('/register');
 
-  const passwordField = page.getByLabel('Password', { exact: true });
+  const passwordField = page.getByLabel('Password', { exact: true }); // pragma: allowlist secret
 
   // Too short
-  await passwordField.fill('Ab1!');
-  await passwordField.blur();
+  await passwordField.fill('Ab1!'); // pragma: allowlist secret
+  await passwordField.blur(); // pragma: allowlist secret
   await expect(page.getByText('At least 8 characters')).toBeVisible();
 
   // Missing uppercase
-  await passwordField.fill('abcdefg1!');
-  await passwordField.blur();
+  await passwordField.fill('abcdefg1!'); // pragma: allowlist secret
+  await passwordField.blur(); // pragma: allowlist secret
   await expect(page.getByText('At least one uppercase letter')).toBeVisible();
 
-  // Strong password — all checks pass
-  await passwordField.fill('Str0ngP@ss!');
-  await passwordField.blur();
+  // Strong password — all checks pass // pragma: allowlist secret
+  await passwordField.fill('Str0ngP@ss!'); // pragma: allowlist secret
+  await passwordField.blur(); // pragma: allowlist secret
   await expect(page.getByText(/At least/)).not.toBeVisible();
 });
 
@@ -359,21 +359,21 @@ test('validates email format', async ({ page }) => {
   await expect(page.getByText('Please enter a valid email')).not.toBeVisible();
 });
 
-test('validates password strength rules', async ({ page }) => {
+test('validates password strength rules', async ({ page }) => { // pragma: allowlist secret
   await page.goto('/register');
 
-  const passwordField = page.getByLabel('Password', { exact: true });
+  const passwordField = page.getByLabel('Password', { exact: true }); // pragma: allowlist secret
 
-  await passwordField.fill('Ab1!');
-  await passwordField.blur();
+  await passwordField.fill('Ab1!'); // pragma: allowlist secret
+  await passwordField.blur(); // pragma: allowlist secret
   await expect(page.getByText('At least 8 characters')).toBeVisible();
 
-  await passwordField.fill('abcdefg1!');
-  await passwordField.blur();
+  await passwordField.fill('abcdefg1!'); // pragma: allowlist secret
+  await passwordField.blur(); // pragma: allowlist secret
   await expect(page.getByText('At least one uppercase letter')).toBeVisible();
 
-  await passwordField.fill('Str0ngP@ss!');
-  await passwordField.blur();
+  await passwordField.fill('Str0ngP@ss!'); // pragma: allowlist secret
+  await passwordField.blur(); // pragma: allowlist secret
   await expect(page.getByText(/At least/)).not.toBeVisible();
 });
 
@@ -795,7 +795,7 @@ test('form submission shows server-side validation errors', async ({ page }) => 
   await page.goto('/register');
 
   await page.getByLabel('Email').fill('taken@example.com');
-  await page.getByLabel('Password', { exact: true }).fill('ValidP@ss1');
+  await page.getByLabel('Password', { exact: true }).fill('ValidP@ss1'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Register' }).click();
 
   // Server responds with a 409 — email already taken
@@ -822,7 +822,7 @@ test('form redirects after successful submission', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   // Verify redirect
@@ -854,7 +854,7 @@ test('form submission shows server-side validation errors', async ({ page }) => 
   await page.goto('/register');
 
   await page.getByLabel('Email').fill('taken@example.com');
-  await page.getByLabel('Password', { exact: true }).fill('ValidP@ss1');
+  await page.getByLabel('Password', { exact: true }).fill('ValidP@ss1'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Register' }).click();
 
   await expect(page.getByText('An account with this email already exists')).toBeVisible();
@@ -877,7 +877,7 @@ test('form redirects after successful submission', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   await page.waitForURL('/dashboard');
@@ -1043,7 +1043,7 @@ await page.getByLabel('Email').blur();
 await expect(page.getByText('Please enter a valid email')).toBeVisible();
 
 // Or move focus to the next field
-await page.getByLabel('Password').focus();
+await page.getByLabel('Password').focus(); // pragma: allowlist secret
 ```
 
 ## Related

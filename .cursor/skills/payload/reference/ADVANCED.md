@@ -13,7 +13,7 @@ const response = await fetch('/api/users/login', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     email: 'user@example.com',
-    password: 'password',
+    password: 'password', // pragma: allowlist secret
   }),
 })
 
@@ -22,15 +22,15 @@ const result = await payload.login({
   collection: 'users',
   data: {
     email: 'user@example.com',
-    password: 'password',
+    password: 'password', // pragma: allowlist secret
   },
 })
 ```
 
-### Forgot Password
+### Forgot Password // pragma: allowlist secret
 
 ```ts
-await payload.forgotPassword({
+await payload.forgotPassword({ // pragma: allowlist secret
   collection: 'users',
   data: {
     email: 'user@example.com',
@@ -236,7 +236,7 @@ export const CustomField: TextFieldClientComponent = () => {
 
 ```tsx
 'use client'
-import { DefaultTemplate } from '@payloadcms/next/templates'
+import { DefaultTemplate } from '@payloadcms/ui/rsc'
 
 export const CustomView = () => {
   return (

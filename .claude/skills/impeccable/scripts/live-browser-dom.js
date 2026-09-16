@@ -72,6 +72,31 @@
       };
     }
 
+    function hasFrameworkHmrOwnership(el) {
+      for (let node = el; node; node = node.parentElement) {
+        let keys = [];
+        try {
+          keys = Object.getOwnPropertyNames(node);
+        } catch {}
+        if (
+          keys.some(
+            (key) =>
+              key.startsWith("__reactFiber$") ||
+              key.startsWith("__reactProps$") ||
+              key.startsWith("__reactContainer$") ||
+              key === "_reactRootContainer" ||
+              key === "__vueParentComponent" ||
+              key === "__vue_app__" ||
+              key === "__vnode" ||
+              key === "__svelte_meta",
+          )
+        ) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     function id8() {
       if (crypto?.randomUUID)
         return crypto.randomUUID().replace(/-/g, "").slice(0, 8);
@@ -143,6 +168,7 @@
       desc,
       rectIsUsableAnchor,
       makeFrozenAnchor,
+      hasFrameworkHmrOwnership,
       id8,
       cssId,
       liveUiRoot,

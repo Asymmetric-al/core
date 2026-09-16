@@ -18,7 +18,7 @@ Canonical copy in this repo: `docs/ai/skills/frontend-design/`, mirrored to
 - **Reviewed pack commit:** `34040c9c568585f6929bedeaad110ad08f079624`
 - **Source path:** `skills/frontend-design/`
 - **License:** Apache-2.0; the exact upstream notice is preserved in
-  [LICENSE.md](LICENSE.md).
+  [LICENSE.txt](../LICENSE.txt).
 
 ## Refresh from upstream
 

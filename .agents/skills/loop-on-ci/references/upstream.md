@@ -4,7 +4,7 @@ source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/l
 source_type: github
 upstream_path: cursor-team-kit/skills/loop-on-ci/
 skills_lock_hash: 66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de
-last_reviewed: 2026-06-26
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: loop-on-ci
@@ -13,7 +13,7 @@ Canonical copy in this repo: `docs/ai/skills/loop-on-ci/` (mirrored to `.cursor/
 
 - **Repository:** https://github.com/cursor/plugins
 - **Ref:** `main`
-- **Commit reviewed:** `0452e08a314c03621ec5ac1324f1ad1dd824f1a4`
+- **Commit reviewed:** `c1c0a32802223f4be824112dd83d33ad29a8b26c`
 - **Upstream path:** `cursor-team-kit/skills/loop-on-ci/`
 - **Lock skillPath:** `cursor-team-kit/skills/loop-on-ci/SKILL.md`
 - **Computed hash:** `66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de`
