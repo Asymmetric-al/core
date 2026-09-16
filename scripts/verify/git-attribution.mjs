@@ -1136,6 +1136,23 @@ export function isReachableFromTrustedRemoteBranch(
   return false;
 }
 
+export function allowExternalCommitterForLocalCommit({
+  requireTrustedOperator,
+  sha,
+  remoteName,
+  runCommand,
+  runGitStatus,
+}) {
+  if (!requireTrustedOperator) {
+    return true;
+  }
+
+  return isReachableFromTrustedRemoteBranch(sha, remoteName, {
+    runCommand,
+    runGitStatus,
+  });
+}
+
 function validateLocallyKnownPlatformCommit(metadata, remoteName) {
   const committer = {
     name: metadata.committerName,
@@ -1211,7 +1228,11 @@ function collectLocalVerification() {
       platformErrors ??
       validateCommitAttribution(metadata, {
         allowExternalAuthor: true,
-        allowExternalCommitter: !requireTrustedOperator,
+        allowExternalCommitter: allowExternalCommitterForLocalCommit({
+          requireTrustedOperator,
+          sha,
+          remoteName,
+        }),
       });
 
     errors.push(...commitErrors.map((error) => `${sha}: ${error}`));

@@ -15,6 +15,7 @@ import {
   parseGitIdentity,
   parseLatestCommitLog,
   resolveTriggeringActor,
+  allowExternalCommitterForLocalCommit,
   isReachableFromTrustedRemoteBranch,
   validateDevelopMergeProvenance,
   validateGitHubActorAttribution,
@@ -972,6 +973,74 @@ describe("git attribution verifier", () => {
       platformSha,
       "refs/remotes/upstream/develop",
     ]);
+  });
+
+  it("allows already-integrated external committers when the commit is reachable from a trusted remote branch", () => {
+    const integratedSha = "5".repeat(40);
+    const runCommand = vi.fn((command: string, args: string[]) => {
+      expect(command).toBe("git");
+
+      if (args[0] === "remote" && args.length === 1) {
+        return {
+          ok: true,
+          stdout: "origin",
+          stderr: "",
+          status: 0,
+        };
+      }
+
+      if (args[0] === "remote" && args[1] === "get-url") {
+        return {
+          ok: true,
+          stdout: "git@github.com:Asymmetric-al/core.git",
+          stderr: "",
+          status: 0,
+        };
+      }
+
+      if (args[0] === "show-ref") {
+        const trusted =
+          args[3] === "refs/remotes/origin/develop" ||
+          args[3] === "refs/remotes/origin/production";
+        return {
+          ok: trusted,
+          stdout: "",
+          stderr: "",
+          status: trusted ? 0 : 1,
+        };
+      }
+
+      throw new Error(`unexpected git command: ${args.join(" ")}`);
+    });
+    const runGitStatus = vi.fn((args: string[]) =>
+      args[3] === "refs/remotes/origin/production" ? 0 : 1,
+    );
+
+    expect(
+      allowExternalCommitterForLocalCommit({
+        requireTrustedOperator: true,
+        sha: integratedSha,
+        remoteName: "origin",
+        runCommand,
+        runGitStatus,
+      }),
+    ).toBe(true);
+    expect(
+      allowExternalCommitterForLocalCommit({
+        requireTrustedOperator: true,
+        sha: "6".repeat(40),
+        remoteName: "origin",
+        runCommand,
+        runGitStatus: () => 1,
+      }),
+    ).toBe(false);
+    expect(
+      allowExternalCommitterForLocalCommit({
+        requireTrustedOperator: false,
+        sha: "7".repeat(40),
+        remoteName: "origin",
+      }),
+    ).toBe(true);
   });
 
   it("parses git identities and latest commit log output", () => {
