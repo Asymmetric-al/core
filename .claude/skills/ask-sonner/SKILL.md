@@ -43,9 +43,11 @@ Two pieces, and only two:
 2. **`toast()` called from client code** — event handlers, effects, callbacks. It's a plain function, no hook or provider needed, but it does nothing on the server: in a server action, return the result and call `toast()` in the client code that receives it.
 
 ```jsx
-import { Toaster } from "sonner"; // once, in layout
+import { Toaster } from "@asym/ui/components/shadcn/sonner"; // already mounted in Core layouts
 import { toast } from "sonner"; // anywhere client-side
 ```
+
+Do not import `<Toaster />` from `sonner` and do not mount a second toaster.
 
 ## Picking the right call
 
@@ -93,7 +95,7 @@ Climb only as far as the change requires; jumping to the top rung too early is f
 
 | Symptom                                                               | Cause → fix                                                                                                                                                                                                                                       |
 | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Toast never appears                                                   | No `<Toaster />` mounted, or it unmounted (conditional render, per-page placement). Mount one at the root. If calling from a server action: `toast()` is client-only — call it with the action's result on the client.                            |
+| Toast never appears                                                   | Core already mounts `@asym/ui`'s `<Toaster />`. Reuse that host — do not add another. If it unmounted (conditional render, per-page placement), restore the shared layout toaster. If calling from a server action: `toast()` is client-only — call it with the action's result on the client. |
 | Same toast appears twice                                              | Two Toasters mounted (layout **and** page) — keep one. Or `toast()` fired in an effect under React StrictMode's dev double-invoke — fire from the event handler instead, or pass a stable `id` so the second call updates rather than duplicates. |
 | Tailwind/CSS classes have no effect                                   | Default styles override them. Mark them `!important`, or use `unstyled` / headless (see the ladder above).                                                                                                                                        |
 | Toasts render completely unstyled (common in Astro, view transitions) | Sonner's injected stylesheet was lost — import it explicitly in a layout: `import 'sonner/dist/styles.css'`.                                                                                                                                      |

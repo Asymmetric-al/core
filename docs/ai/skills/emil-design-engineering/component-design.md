@@ -78,7 +78,7 @@ Too much customization: API becomes confusing, maintenance nightmare.
 1. **Variants** - Predefined options (primary, secondary, destructive)
 2. **Size** - Predefined sizes (sm, md, lg)
 3. **className** - Escape hatch for one-off customizations
-4. **asChild** - Render as different element (Radix pattern)
+4. **Composition** - For link-styled actions, apply `buttonVariants` on `Link` / `<a>` (Base UI `render`, not a Radix Slot wrapper)
 
 ## Props API Design
 
@@ -186,35 +186,23 @@ function Card({ children, header, footer }) {
 </Card>;
 ```
 
-## The `asChild` Pattern
+## Link-styled actions (Base UI)
 
-Allow rendering as a different element while preserving behavior:
-
-```jsx
-// Render as button (default)
-<Button>Click me</Button>
-
-// Render as link
-<Button asChild>
-  <a href="/page">Click me</a>
-</Button>
-
-// Render as Next.js Link
-<Button asChild>
-  <Link href="/page">Click me</Link>
-</Button>
-```
-
-Implementation using Radix Slot:
+Core's `Button` is Base UI `ButtonPrimitive` plus `buttonVariants`. Do not add
+a Radix Slot wrapper. For a control that should navigate, put the variants on
+the real link:
 
 ```jsx
-import { Slot } from "@radix-ui/react-slot";
+import Link from "next/link";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 
-function Button({ asChild, ...props }) {
-  const Comp = asChild ? Slot : "button";
-  return <Comp {...props} />;
-}
+<Link href="/page" className={buttonVariants({ variant: "default" })}>
+  Click me
+</Link>
 ```
+
+When a Base UI primitive must render as another element, use its `render` prop.
+Keep that local to the primitive — do not wrap `Button` in a slot helper.
 
 ## Forwarding Refs
 

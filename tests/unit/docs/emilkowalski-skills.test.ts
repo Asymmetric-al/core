@@ -124,6 +124,9 @@ describe("emilkowalski skill pack", () => {
     expect(
       readSkillFile("docs/ai/skills", "emil-prototype", "SKILL.md"),
     ).toContain("disable-model-invocation: true");
+    expect(
+      readSkillFile("docs/ai/skills", "animate", "SKILL.md"),
+    ).toContain("disable-model-invocation: true");
     expect(lock.skills.prototype).toMatchObject({
       source: "mattpocock/skills",
       skillPath: "skills/engineering/prototype/SKILL.md",
@@ -174,5 +177,23 @@ describe("emilkowalski skill pack", () => {
     expect(standards).toContain(
       "Most UI animations stay under 300ms; modals and drawers may use up to 500ms",
     );
+  });
+
+  it("keeps Base UI ownership in Emil component design and the shared Sonner toaster", () => {
+    const componentDesign = readFileSync(
+      path.join(repoRoot, "docs/ai/skills/emil-design-engineering/component-design.md"),
+      "utf8",
+    );
+    const askSonner = readFileSync(
+      path.join(repoRoot, "docs/ai/skills/ask-sonner/SKILL.md"),
+      "utf8",
+    );
+
+    expect(componentDesign).not.toContain("asChild");
+    expect(componentDesign).not.toContain("@radix-ui/react-slot");
+    expect(componentDesign).toContain("buttonVariants");
+    expect(componentDesign).toContain("Base UI");
+    expect(askSonner).not.toMatch(/import \{ Toaster \} from ["']sonner["']/);
+    expect(askSonner).toContain("@asym/ui/components/shadcn/sonner");
   });
 });
