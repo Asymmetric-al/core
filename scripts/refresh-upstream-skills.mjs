@@ -2033,6 +2033,7 @@ async function swapPreparedRefresh(preparedRefresh) {
   } catch (error) {
     if (hasBackup) {
       try {
+        await rm(to, { recursive: true, force: true });
         await moveDirectory(backup, to);
       } catch (restoreError) {
         throw new AggregateError(
