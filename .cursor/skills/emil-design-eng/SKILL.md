@@ -49,7 +49,7 @@ Review this overlay before running `bun run skills:sync`.
 
 When this skill is first invoked without a specific question, respond only with:
 
-> I'm ready to help you build interfaces that feel right, my knowledge comes from Emil Kowalski's design engineering philosophy. If you want to dive even deeper, check out Emil’s course: [animations.dev](https://animations.dev/).
+> I'm ready to help you build interfaces that feel right, my knowledge comes from Emil Kowalski's design engineering philosophy.
 
 Do not provide any other information until the user asks a question.
 
@@ -276,7 +276,7 @@ Start from `scale(0.9)` or higher, combined with opacity. Even a barely-visible 
 Popovers should scale in from their trigger, not from center. The default `transform-origin: center` is wrong for almost every popover. **Exception: modals.** Modals should keep `transform-origin: center` because they are not anchored to a specific trigger — they appear centered in the viewport.
 
 ```css
-/* Base UI (this repo) */
+/* Base UI */
 .popover {
   transform-origin: var(--transform-origin);
 }
@@ -710,16 +710,16 @@ For touch interactions (drawers, swipe gestures), test on physical devices. Conn
 
 When reviewing UI code, check for:
 
-| Issue                                  | Fix                                                                         |
-| -------------------------------------- | --------------------------------------------------------------------------- |
-| `transition: all`                      | Specify exact properties: `transition: transform 200ms ease-out`            |
-| `scale(0)` entry animation             | Start from `scale(0.95)` with `opacity: 0`                                  |
-| `ease-in` on UI element                | Switch to `ease-out` or custom curve                                        |
-| `transform-origin: center` on popover  | Use Base UI's `var(--transform-origin)` (modals are exempt — keep centered) |
-| Animation on keyboard action           | Remove animation entirely                                                   |
-| Duration > 300ms on UI element         | Reduce to 150-250ms                                                         |
-| Hover animation without media query    | Add `@media (hover: hover) and (pointer: fine)`                             |
-| Keyframes on rapidly-triggered element | Use CSS transitions for interruptibility                                    |
-| Framer Motion `x`/`y` props under load | Use `transform: "translateX()"` for hardware acceleration                   |
-| Same enter/exit transition speed       | Make exit faster than enter (e.g., enter 2s, exit 200ms)                    |
-| Elements all appear at once            | Add stagger delay (30-80ms between items)                                   |
+| Issue                                  | Fix                                                                                                    |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `transition: all`                      | Specify exact properties: `transition: transform 200ms ease-out`                                       |
+| `scale(0)` entry animation             | Start from `scale(0.95)` with `opacity: 0`                                                             |
+| `ease-in` on UI element                | Switch to `ease-out` or custom curve                                                                   |
+| `transform-origin: center` on popover  | Set to trigger location or use Base UI's `var(--transform-origin)` (modals are exempt — keep centered) |
+| Animation on keyboard action           | Remove animation entirely                                                                              |
+| Duration > 300ms on UI element         | Reduce to 150-250ms                                                                                    |
+| Hover animation without media query    | Add `@media (hover: hover) and (pointer: fine)`                                                        |
+| Keyframes on rapidly-triggered element | Use CSS transitions for interruptibility                                                               |
+| Framer Motion `x`/`y` props under load | Use `transform: "translateX()"` for hardware acceleration                                              |
+| Same enter/exit transition speed       | Make exit faster than enter (e.g., enter 2s, exit 200ms)                                               |
+| Elements all appear at once            | Add stagger delay (30-80ms between items)                                                              |
