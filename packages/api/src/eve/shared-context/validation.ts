@@ -22,8 +22,6 @@ const FORBIDDEN_VALUE_PATTERNS = [
   /\b(?:\d[ -]*?){13,19}\b/u,
   /\b(?:otp|one[- ]time code)\b\s*[:=]?\s*\d{4,8}\b/iu,
 ] as const;
-const UUID_VALUE_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
 export class EveSharedContextValidationError extends Error {
   constructor(
@@ -37,7 +35,6 @@ export class EveSharedContextValidationError extends Error {
 function containsForbiddenContent(value: unknown, key?: string): boolean {
   if (key && FORBIDDEN_KEY_PATTERN.test(key)) return true;
   if (typeof value === "string") {
-    if (UUID_VALUE_PATTERN.test(value)) return false;
     return FORBIDDEN_VALUE_PATTERNS.some((pattern) => pattern.test(value));
   }
   if (Array.isArray(value)) {
@@ -79,7 +76,8 @@ export function prepareEveSharedContextClaim(input: {
       "Shared context requires the complete versioned attribution schema.",
     );
   }
-  if (containsForbiddenContent(parsed.data)) {
+  const contentToValidate = { ...parsed.data, relatedClaimIds: [] };
+  if (containsForbiddenContent(contentToValidate)) {
     throw new EveSharedContextValidationError(
       "forbidden_sensitive_content",
       "Sensitive content is forbidden in shared run context.",
