@@ -7,6 +7,7 @@ import { dirname, resolve } from 'node:path';
 import { buildFinalReportMessage, renderReport } from '../lib/render-report.mjs';
 import { dedupeRecommendations } from '../lib/dedup-recs.mjs';
 import { canonicalizeRoute } from '../lib/route-normalize.mjs';
+import { hasUnsupportedCacheLifeCdnText, splitCustomerSafeObservations } from '../lib/observation-safety.mjs';
 
 const log = (...a) => console.error('[render-report]', ...a);
 const HARD_REGEN_TRIGGERS = new Set([
@@ -113,7 +114,7 @@ async function main() {
         ...(Array.isArray(recsRaw.observations) ? recsRaw.observations : []),
         ...(Array.isArray(recsRaw.abstentions) ? recsRaw.abstentions : []),
       ]);
-  const { observations: safeObservations, heldBackObservations } = splitCustomerSafeObservations(flattenedObservations, baseAbstentions);
+  const { observations: safeObservations, heldBackObservations } = splitCustomerSafeObservations(flattenedObservations, baseAbstentions, signalsRaw);
   const observations = suppressReadyCoveredObservations(safeObservations, recommendations);
 
   const abstentions = [
@@ -159,7 +160,9 @@ async function main() {
           ? recsRaw.summary.withheldRecommendations
           : (Array.isArray(recsRaw.regenPlan) ? recsRaw.regenPlan.length : 0) +
             (Array.isArray(recsRaw.qualityDropped) ? recsRaw.qualityDropped.length : 0)) +
-        (Array.isArray(recsRaw.sanitizerDropped) ? recsRaw.sanitizerDropped.length : 0),
+        (Array.isArray(recsRaw.sanitizerDropped) ? recsRaw.sanitizerDropped.length : 0) +
+        (Array.isArray(recsRaw.heldBackObservations) ? recsRaw.heldBackObservations.length : 0) +
+        heldBackObservations.length,
       noChangeCount: Number.isInteger(recsRaw.summary?.abstentions)
         ? Math.min(recsRaw.summary.abstentions, publicBaseAbstentions.length)
         : publicBaseAbstentions.length,
@@ -283,24 +286,6 @@ function candidateMatchesRef(candidate, ref) {
   return a === b || canonicalizeRoute(a) === canonicalizeRoute(b);
 }
 
-function splitCustomerSafeObservations(observations, abstentions = []) {
-  const safe = [];
-  const heldBack = [];
-  for (const observation of observations) {
-    const unsafeReason = unsupportedObservationReason(observation, abstentions);
-    if (unsafeReason) {
-      heldBack.push({
-        candidateRef: observation.candidateRef ?? null,
-        reason: unsafeReason,
-        needsEvidence: true,
-      });
-    } else {
-      safe.push(observation);
-    }
-  }
-  return { observations: safe, heldBackObservations: heldBack };
-}
-
 function suppressReadyCoveredObservations(observations, recommendations = []) {
   if (!Array.isArray(observations) || observations.length === 0) return [];
   const readyFamiliesByTarget = new Map();
@@ -348,46 +333,6 @@ function candidateFamily(kind) {
   }
 }
 
-function unsupportedObservationReason(observation, abstentions = []) {
-  if (contradictsNoChangeReason(observation, abstentions)) {
-    return 'This observation repeated an action that another investigation rejected. Re-run with a single scoped candidate before applying it.';
-  }
-  if (hasUnsupportedFrameworkCausalClaim(observation)) {
-    return 'This observation made a framework-specific cause claim that verification could not support. Re-run with runtime logs or official framework evidence before applying it.';
-  }
-  if (hasUnsupportedStaticGenerationClaim(observation)) {
-    return 'This observation made a static-generation behavior claim that verification could not support. Re-run with route-manifest or runtime evidence before applying it.';
-  }
-  if (hasUnsupportedSourceAbsenceClaim(observation)) {
-    return 'This observation made a source-file absence claim that verification could not support. Re-run with a file-existence check or runtime logs before applying it.';
-  }
-  if (hasUnsupportedCacheLifeCdnClaim(observation)) {
-    return 'This observation depended on an unsupported cacheLife-to-CDN claim. Re-run with production header evidence before applying it.';
-  }
-  return null;
-}
-
-function contradictsNoChangeReason(observation, abstentions) {
-  const target = candidateTarget(observation?.candidateRef);
-  if (!target) return false;
-  const observationText = [
-    observation?.summary,
-    observation?.evidence,
-    observation?.suggestedAction,
-  ].filter(Boolean).join(' ').toLowerCase();
-  const relevantReasons = abstentions
-    .filter((a) => candidateTarget(a?.candidateRef) === target)
-    .map((a) => String(a?.reason ?? '').toLowerCase());
-  if (relevantReasons.length === 0) return false;
-
-  if (/\bparalleliz(?:e|ing)\b/.test(observationText) &&
-      /\bgetsession\b/.test(observationText) &&
-      relevantReasons.some((reason) => /\bgetsession\b/.test(reason) && /\b(?:gates?|redirect|auth-preserving|blocked)\b/.test(reason))) {
-    return true;
-  }
-  return false;
-}
-
 function candidateTarget(ref) {
   if (typeof ref !== 'string') return null;
   const idx = ref.indexOf(':');
@@ -400,63 +345,6 @@ function publicNoChangeReason(reason) {
     return 'This candidate overlapped a cache-lifetime draft that did not meet the framework evidence bar. No supported change shipped from this run.';
   }
   return reason;
-}
-
-function hasUnsupportedFrameworkCausalClaim(observation) {
-  const text = [
-    observation?.summary,
-    observation?.evidence,
-    observation?.suggestedAction,
-  ].filter(Boolean).join(' ').toLowerCase();
-  if (!text.includes('notfound') || !text.includes('use cache')) return false;
-  return (
-    /known next\.js cache components edge case/.test(text) ||
-    /next\.js\s+\d+(?:\.\d+)?[^.]{0,120}treats[^.]{0,120}dynamic api/.test(text) ||
-    /can surface as 5xx/.test(text) ||
-    /surface as 500/.test(text) ||
-    /instead of throwing inside (?:the )?cache/.test(text) ||
-    /cache boundary/.test(text)
-  );
-}
-
-function hasUnsupportedStaticGenerationClaim(observation) {
-  const text = [
-    observation?.summary,
-    observation?.evidence,
-    observation?.suggestedAction,
-  ].filter(Boolean).join(' ').toLowerCase();
-  if (!/\bgeneratestaticparams\b/.test(text)) return false;
-  return /\b(?:returns?\s*(?:an\s+)?empty|\[\])\b[^.\n]{0,240}\b(?:every request|on[- ]demand|no params? (?:are )?prebuilt|populate generatestaticparams|served from (?:the )?cdn|hit bucket|cachebreakdown)\b/i.test(text) ||
-    /\b(?:every request|on[- ]demand|no params? (?:are )?prebuilt|populate generatestaticparams|served from (?:the )?cdn|hit bucket|cachebreakdown)\b[^.\n]{0,240}\b(?:returns?\s*(?:an\s+)?empty|\[\])\b/i.test(text) ||
-    /\bdynamic\s*=\s*['"`]error['"`]\b[^.\n]{0,240}\b(?:generatestaticparams|dynamicparams|every request|on[- ]demand)\b/i.test(text);
-}
-
-function hasUnsupportedSourceAbsenceClaim(observation) {
-  const ref = String(observation?.candidateRef ?? '');
-  if (!ref.startsWith('route_errors:')) return false;
-  const text = [
-    observation?.summary,
-    observation?.evidence,
-    observation?.suggestedAction,
-  ].filter(Boolean).join(' ').toLowerCase();
-  return /\b(?:enoent|no\s+(?:matching|corresponding)\s+(?:mdx|file|post)|missing\s+(?:mdx|file|post)|does\s+not\s+exist|not\s+found\s+on\s+disk)\b/.test(text);
-}
-
-function hasUnsupportedCacheLifeCdnClaim(observation) {
-  const text = [
-    observation?.summary,
-    observation?.evidence,
-    observation?.suggestedAction,
-  ].filter(Boolean).join(' ');
-  return hasUnsupportedCacheLifeCdnText(text);
-}
-
-function hasUnsupportedCacheLifeCdnText(text) {
-  if (typeof text !== 'string' || !/\bcacheLife\b/i.test(text)) return false;
-  if (/\btoLaunch-\d+\b/i.test(text)) return true;
-  return /\bcacheLife\b[^.\n]{0,240}\b(?:Cache-Control|s-maxage|CDN|edge cache|cache breakdown|x-vercel-cache|HIT|MISS|function (?:still )?runs per request|every request invokes the function|canonical|toLaunch-\d+)\b/i.test(text) ||
-    /\b(?:Cache-Control|s-maxage|CDN|edge cache|cache breakdown|x-vercel-cache|HIT|MISS|function (?:still )?runs per request|every request invokes the function|canonical|toLaunch-\d+)\b[^.\n]{0,240}\bcacheLife\b/i.test(text) ||
-    /\b(?:no|never|without|missing)\s+cacheLife\b[^.\n]{0,240}\b(?:no|not|never|0%|every|per request|function)\b[^.\n]{0,120}\b(?:cache|cached|hit|runs?|invoke)/i.test(text);
 }
 
 function buildDebugArtifact({

@@ -4,7 +4,7 @@ source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/t
 source_type: github
 upstream_path: cursor-team-kit/skills/thermo-nuclear-code-quality-review/
 skills_lock_hash: 7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f
-last_reviewed: 2026-06-26
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: thermo-nuclear-code-quality-review
@@ -13,7 +13,7 @@ Canonical copy in this repo: `docs/ai/skills/thermo-nuclear-code-quality-review/
 
 - **Repository:** https://github.com/cursor/plugins
 - **Ref:** `main`
-- **Commit reviewed:** `0452e08a314c03621ec5ac1324f1ad1dd824f1a4`
+- **Commit reviewed:** `c1c0a32802223f4be824112dd83d33ad29a8b26c`
 - **Upstream path:** `cursor-team-kit/skills/thermo-nuclear-code-quality-review/`
 - **Lock skillPath:** `cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md`
 - **Computed hash:** `7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f`

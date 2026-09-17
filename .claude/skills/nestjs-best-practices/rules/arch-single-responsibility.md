@@ -85,7 +85,7 @@ export class OrderStatsService {
 }
 
 // Orchestration in controller or dedicated orchestrator
-@Controller('orders')
+@Controller("orders")
 export class OrdersController {
   constructor(
     private orders: OrdersService,

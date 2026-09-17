@@ -2,7 +2,8 @@
 source_name: payloadcms/skills (payload)
 source_url: https://github.com/payloadcms/skills
 license: MIT
-last_reviewed: 2026-05-23
+last_reviewed: 2026-09-16
+skills_lock_hash: 050fc66234ef54906e34a1c0f5209ad7558f9adc59a7a0efd4db342f81427e20
 ---
 
 # Upstream: payloadcms-payload

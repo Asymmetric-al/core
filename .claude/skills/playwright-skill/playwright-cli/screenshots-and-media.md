@@ -403,7 +403,7 @@ playwright-cli screenshot --filename=docs/01-login.png
 
 # Fill and submit
 playwright-cli fill e1 "demo@example.com"
-playwright-cli fill e2 "demo-password"
+playwright-cli fill e2 "demo-password" // pragma: allowlist secret
 playwright-cli screenshot --filename=docs/02-login-filled.png
 
 playwright-cli click e3

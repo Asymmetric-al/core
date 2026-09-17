@@ -192,7 +192,7 @@ The recommender's citation library is filtered by `signals.json.stack.framework@
 | App Router | Next ≥ 13.0 | Default since 14 |
 | `generateStaticParams` | Next ≥ 13.0 | Replaces getStaticPaths for App Router |
 | Fetch `next: { revalidate }` | Next ≥ 13.0 | Note: default fetch caching flipped in Next 15 |
-| `unstable_cache` | Next 14 only | Replaced by 'use cache' in 15+ |
+| `unstable_cache` | Next 14-15 | Replaced by 'use cache' in 16 |
 | `'use cache'` directive | Next ≥ 15.0 | Persistent cache primitive |
 | `cacheLife()`, `cacheTag()` | Next ≥ 15.0 | Pairs with 'use cache' |
 | `after()` | Next ≥ 15.0 | Non-blocking post-response work |

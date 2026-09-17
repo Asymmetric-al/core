@@ -98,6 +98,40 @@ test('web-first assertions demo', async ({ page }) => {
 });
 ```
 
+#### Asserting Pseudo-Element Styles (`toHaveCSS({ pseudo })`, Playwright 1.60+)
+
+**Use when**: The style you care about lives on a `::before` or `::after` pseudo-element — icon glyphs (`content`), decorative bars, required-field asterisks, tooltips.
+**Avoid when**: The style is on the element itself; pass no `pseudo` option.
+
+Playwright 1.60 adds a `pseudo` option to `toHaveCSS()`, so you can assert computed styles of pseudo-elements directly instead of reaching into `getComputedStyle` via `evaluate`.
+
+**TypeScript**
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('required field shows a red asterisk via ::after', async ({ page }) => {
+  await page.goto('/register');
+
+  const label = page.getByText('Email', { exact: true });
+
+  // Verify the ::after content and color of the "required" marker
+  await expect(label).toHaveCSS('content', '"*"', { pseudo: '::after' });
+  await expect(label).toHaveCSS('color', 'rgb(220, 38, 38)', { pseudo: '::after' });
+});
+```
+
+**JavaScript**
+```javascript
+const { test, expect } = require('@playwright/test');
+
+test('required field shows a red asterisk via ::after', async ({ page }) => {
+  await page.goto('/register');
+
+  const label = page.getByText('Email', { exact: true });
+  await expect(label).toHaveCSS('content', '"*"', { pseudo: '::after' });
+});
+```
+
 ### Non-Retrying Assertions
 
 **Use when**: The value is already resolved — a JavaScript variable, an API response body, a page title from `page.title()`, or a URL from `page.url()`.
@@ -245,6 +279,14 @@ test('dashboard shows all expected widgets', async ({ page }) => {
 await expect.soft(page.getByRole('button', { name: 'Next' })).toBeVisible();
 if (test.info().errors.length > 0) return; // bail out — no point continuing
 await page.getByRole('button', { name: 'Next' }).click();
+```
+
+**Soft polling (Playwright 1.61+)**: `expect.soft.poll()` combines both — poll an async condition, record a failure without stopping the test:
+
+```typescript
+// Audit several async conditions; see every failure in one run
+await expect.soft.poll(() => getQueueDepth()).toBe(0);
+await expect.soft.poll(() => getFailedJobCount()).toBe(0);
 ```
 
 ### Polling Assertions
@@ -464,7 +506,7 @@ test('explicit waits for non-locator conditions', async ({ page }) => {
 
   // Wait for navigation after form submit
   await page.getByLabel('Email').fill('user@test.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign In' }).click();
   await page.waitForURL('/dashboard');
   // can also use glob: await page.waitForURL('**/dashboard');
@@ -498,7 +540,7 @@ test('explicit waits for non-locator conditions', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Email').fill('user@test.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign In' }).click();
   await page.waitForURL('/dashboard');
 
@@ -531,6 +573,29 @@ const response = await responsePromise;
 await page.getByRole('button', { name: 'Load' }).click();
 const response = await page.waitForResponse('**/api/data'); // race condition!
 ```
+
+### Cancelling Actions and Assertions (`signal`, Playwright 1.62+)
+
+Playwright 1.62 accepts a standard `AbortSignal` on actions and assertions, so an operation can be cancelled from outside its own timeout.
+
+```javascript
+const controller = new AbortController();
+setTimeout(() => controller.abort(), 1000);
+await page.getByRole('button', { name: 'Submit' }).click({ signal: controller.signal });
+await expect(page.getByText('Done')).toBeVisible({ signal: controller.signal });
+```
+
+**This is not a replacement for timeouts.** A timeout expresses "this should have happened by now" and belongs in config. A signal expresses "we no longer care about this outcome" — a race between 2 possible flows, cleanup when a fixture tears down early, or abandoning a poll once a sibling operation already answered the question. Reach for `signal` when something *else* decides the wait is pointless; reach for `timeout` when the wait itself is too long.
+
+### Waiting on a Condition Inside an Element (`locator.waitForFunction()`, Playwright 1.62+)
+
+```javascript
+await locator.waitForFunction((element) => element.innerText === 'Ready');
+```
+
+The predicate receives the resolved element and re-runs until it returns truthy. This closes a real gap: `expect.poll()` polls a value you compute, and web-first assertions cover the built-in matchers, but neither reads arbitrary DOM state on a specific element without a round trip through `evaluate()`.
+
+**Prefer a web-first assertion when one exists.** `expect(locator).toHaveText('Ready')` is clearer, produces a better failure message, and does not ship a function into the page. Use `waitForFunction()` for conditions no matcher covers — a computed style crossing a threshold, a canvas reaching a state, a third-party widget setting a property.
 
 ### Assertion Timeouts
 
@@ -597,7 +662,7 @@ export default defineConfig({
 | Element count | `expect(locator).toHaveCount(n)` | Retries until count matches |
 | Input value | `expect(locator).toHaveValue('x')` | Auto-retries on the locator |
 | Element attribute | `expect(locator).toHaveAttribute('href', '/x')` | Auto-retries |
-| CSS property | `expect(locator).toHaveCSS('color', 'rgb(0,0,0)')` | Auto-retries; use computed RGB values |
+| CSS property | `expect(locator).toHaveCSS('color', 'rgb(0,0,0)')` | Auto-retries; use computed RGB values. Add `{ pseudo: '::after' }` (1.60+) for pseudo-element styles |
 | Element gone from DOM | `expect(locator).not.toBeAttached()` | Distinguishes hidden vs. removed |
 | URL changed | `page.waitForURL('/path')` or `expect(page).toHaveURL('/path')` | `toHaveURL` auto-retries; `waitForURL` blocks |
 | Page title | `expect(page).toHaveTitle('Title')` | Auto-retries |

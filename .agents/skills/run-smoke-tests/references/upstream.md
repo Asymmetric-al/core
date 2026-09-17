@@ -4,7 +4,7 @@ source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/r
 source_type: github
 upstream_path: cursor-team-kit/skills/run-smoke-tests/
 skills_lock_hash: 848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb
-last_reviewed: 2026-06-26
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: run-smoke-tests
@@ -13,7 +13,7 @@ Canonical copy in this repo: `docs/ai/skills/run-smoke-tests/` (mirrored to `.cu
 
 - **Repository:** https://github.com/cursor/plugins
 - **Ref:** `main`
-- **Commit reviewed:** `0452e08a314c03621ec5ac1324f1ad1dd824f1a4`
+- **Commit reviewed:** `c1c0a32802223f4be824112dd83d33ad29a8b26c`
 - **Upstream path:** `cursor-team-kit/skills/run-smoke-tests/`
 - **Lock skillPath:** `cursor-team-kit/skills/run-smoke-tests/SKILL.md`
 - **Computed hash:** `848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb`

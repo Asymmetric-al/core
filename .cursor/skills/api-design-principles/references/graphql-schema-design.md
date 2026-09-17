@@ -110,7 +110,7 @@ type Query {
 input CreateUserInput {
   email: String!
   name: String!
-  password: String!
+  password: String! // pragma: allowlist secret
   profileInput: ProfileInput
 }
 

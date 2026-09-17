@@ -16,12 +16,12 @@ Send a unique key with each request. If the same key is sent again, the server r
 
 ```typescript
 // Generate deterministic key based on the business event
-const idempotencyKey = `password-reset-${userId}-${resetRequestId}`;
+const idempotencyKey = `password-reset-${userId}-${resetRequestId}`; // pragma: allowlist secret
 
 await resend.emails.send({
   from: 'noreply@example.com',
   to: user.email,
-  subject: 'Reset your password',
+  subject: 'Reset your password', // pragma: allowlist secret
   html: emailHtml,
 }, {
   headers: {
@@ -110,7 +110,7 @@ try {
     await queueForRetry(emailData);
   } else {
     await logFailure(error, emailData);
-    await alertOnCriticalEmail(emailData); // For password resets, etc.
+    await alertOnCriticalEmail(emailData); // For password resets, etc. // pragma: allowlist secret
   }
 }
 ```

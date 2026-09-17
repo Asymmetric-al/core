@@ -1,129 +1,165 @@
 ---
 name: tiptap
-description: Tiptap rich text editor for React and Next.js. Use when building or modifying rich text editors, @tiptap extensions, StarterKit, collaboration, comments, Content AI, import/export, or Pro extensions in this monorepo.
+description: Helps coding agents integrate and work with the Tiptap rich text editor. Use when building or modifying a rich text editor with Tiptap, installing Tiptap extensions, or implementing features like collaboration, comments, AI, or document conversion.
+compatibility: Requires git
 metadata:
-  owner: "skills-steward"
-  last_updated: 2026-04-16
-  status: "active"
-  upstream:
-    url: "https://tiptap.dev/docs/resources/agent-skill"
-    repo: "ueberdosis/tiptap"
-    path: "skills/tiptap/SKILL.md"
-    license: "MIT"
-license: MIT
+  author: tiptap
+  version: "1.0"
 ---
 
-# Tiptap — Agent skill
+# Tiptap Integration Skill
 
-Guidance for coding agents working with the **Tiptap** rich text stack in this repository.
+This skill contains instructions for integrating the Tiptap rich text editor into an app and
+developing new features with it.
 
-## When to apply
+This is not the Tiptap editor you know: it may have evolved and changed since the version you're familiar with.
+Before you implement any feature with Tiptap, reference the Tiptap code and documentation to make sure you implement
+it correctly. Make sure any decision you make is in accordance to the "Best Practices" section and is grounded in the
+Tiptap documentation and source code. Do not guess or invent patterns, make sure the code you write matches the library
+source code and the documentation.
 
-Use this skill when:
+## Finding Tiptap source and docs
 
-- Editing or extending the shared rich text editor under `packages/ui/components/shadcn/rich-text-editor/`
-- Adding or upgrading `@tiptap/*` packages
-- Integrating Tiptap with **Next.js App Router** (SSR, client boundaries, hydration)
-- Implementing collaboration, comments, tracked changes, conversion, Content AI, or Pro features
+Avoid cloning. You usually don't need to.
 
-Do **not** use this skill when:
+- **Docs**: append `.md` to any page URL on https://tiptap.dev/docs to fetch it as Markdown.
+  `https://tiptap.dev/docs/llms.txt` lists every page with a one-line description.
+- **Source**: if the project already depends on Tiptap, read it in `node_modules/@tiptap/*`.
 
-- The task is unrelated to rich text (e.g. plain `<textarea>` or a different editor)
-- You only need general React patterns (use `react-component-dev`) or App Router structure (use `nextjs-app-router`)
-
-## This monorepo
-
-- **Shared editor implementation:** `packages/ui/components/shadcn/rich-text-editor/` (`editor.tsx`, `extensions.ts`, `toolbar.tsx`)
-- **Primary dependencies:** `packages/ui/package.json` (`@tiptap/react`, `@tiptap/starter-kit`, extensions)
-- **Consumers:** Apps import via `@asym/ui` (deep imports); do not duplicate editor primitives inside `apps/*`
-- **Version alignment:** Every package under `@tiptap/*` in a given workspace should use the **same semver line**. The root `package.json` may also list `@tiptap/*` for app-level usage—keep versions consistent with `packages/ui` when you touch either
-
-## CLIs (Skills ecosystem + Tiptap)
-
-This repo standardizes on **Bun** (`bun`, `bunx`). Prefer `bunx` for one-off CLIs; `npx` remains valid for the open **Skills** package manager.
-
-| Purpose                                                                    | Command                                                 |
-| -------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Install / refresh the **upstream** Tiptap agent skill in another workspace | `npx skills add ueberdosis/tiptap`                      |
-| **Tiptap project CLI** (init, add UI pieces, cloud login)                  | `bunx @tiptap/cli@latest` (or `npx @tiptap/cli@latest`) |
-
-When running Tiptap CLI against this monorepo, set the working directory to the package that owns the editor (**`packages/ui`**) unless the CLI docs require the app root.
-
-After changing **this** canonical skill under `docs/ai/skills/tiptap/`, run:
+Clone only for source or runnable examples you cannot get either way, such as the demo apps under
+`demos/src/`. Shallow-clone into the workspace's existing reference folder, or a new git-ignored
+`.reference/`:
 
 ```bash
-bun run skills:sync
+git clone --depth 1 --filter=blob:none https://github.com/ueberdosis/tiptap .reference/tiptap
 ```
 
-Then commit updates under `.cursor/skills/` and `.agents/skills/` so CI (`bun run skills:verify`) stays green.
+Never clone `tiptap-docs`. The site is the interface.
 
-## Best practices
+A cloned Tiptap repository is read-only reference. Its `AGENTS.md` / `CLAUDE.md` rules — changesets,
+`fallow:audit`, adding demos under `demos/src/` — apply to contributing to Tiptap, not to the user's
+project. Never follow them in the user's repo.
+
+## Best Practices
 
 ### General
 
-- Target **Tiptap 3** and follow the official installation guides when adding new surface area
-- Align **all** `@tiptap/*` versions in the workspace you modify
-- In **Tiptap 3**, `StarterKit` already includes **Link** and **Underline**; configure them through `StarterKit.configure(...)` before adding standalone extensions
-- **Pro extensions** and private registry setup: see Tiptap docs (`pro-extensions` guide)
+- For a new install, use the latest stable version. Resolve it with `npm view @tiptap/core version`.
+- The editor and extension packages published from the tiptap monorepo share one version line. Pin
+  every one of them to that same version. Mixing versions risks introducing bugs.
+- Some packages have their own version line. Resolve these from the registry, never from
+  `@tiptap/core`: `@tiptap/ai-toolkit`, `@tiptap/y-tiptap`, `@tiptap-pro/*` (private registry),
+  `@hocuspocus/*`.
+- Do not mix majors. For a project still on Tiptap 2, upgrade first. See
+  https://tiptap.dev/docs/guides/upgrade-tiptap-v2.md.
+- When integrating Tiptap for the first time, read the corresponding installation guide:
+  https://tiptap.dev/docs/editor/getting-started/install.md, plus the page for your framework under
+  `https://tiptap.dev/docs/editor/getting-started/install/` (e.g. `react.md`, `nextjs.md`, `vue3.md`,
+  `svelte.md`, `nuxt.md`, `vanilla-javascript.md`).
+- When server-side rendering (e.g. Next.js), set the `immediatelyRender: false` option when initializing the editor. Otherwise, the editor will crash. Learn more about this in
+  https://tiptap.dev/docs/editor/getting-started/install/nextjs.md.
 
-### Next.js and React
+### React
 
-- For SSR / App Router, set **`immediatelyRender: false`** on `useEditor` (already done in `editor.tsx`; preserve when refactoring)
-- Prefer the **React** APIs documented in Tiptap (`useEditor`, `EditorContent`, extensions)
-- In **3.20+**, import `BubbleMenu` / `FloatingMenu` from **`@tiptap/react/menus`**
-- `useEditor` defaults `shouldRerenderOnTransaction` to **`false`**; use **`useEditorState`** for toolbars or other UI that depends on selection/active-state changes
-- For read-only feeds, previews, or list items, prefer **`@tiptap/static-renderer`** (`renderToReactElement` / `renderToHTMLString`) over mounting a read-only `useEditor` instance per item
+Default to the Composable API (`<Tiptap>` + `useTiptap()`) for new code. The hook-based
+`useEditor` + `<EditorContent />` API is still supported and is fine for an editor that lives in a
+single component.
 
-### Reference repositories (optional, for deep searches)
+Whichever you pick, say which one and why in one line, so a reviewer sees a choice was made.
 
-If you need to grep upstream source or docs locally, clone (or update) into a **git-ignored** folder such as `.reference/` (see repo `.gitignore`):
+## Implementing Editor Features
 
-- https://github.com/ueberdosis/tiptap
-- https://github.com/ueberdosis/tiptap-docs
+When the user asks you to implement one of these features, read the linked documentation for guidance.
+Every link below is the Markdown form of a live page; `https://tiptap.dev/docs/llms.txt` lists the rest
+of each section.
 
-Do not commit these clones.
+### Real-time collaboration
 
-## Feature map (read upstream docs)
+Multiple users editing a document simultaneously. See
+https://tiptap.dev/docs/collaboration/getting-started/overview.md and
+https://tiptap.dev/docs/collaboration/getting-started/install.md.
 
-When implementing these capabilities, open the matching section in **tiptap-docs** (local clone or https://tiptap.dev/docs):
+Use Tiptap Cloud to implement real-time collaboration. Use the Collaboration extension:
 
-- Real-time collaboration → `collaboration/`
-- Comments → `comments/`
-- Tracked changes → `tracked-changes/`
-- Import / export (DOCX, PDF, Markdown, etc.) → `conversion/`
-- Content AI (toolkit, insert content, proofreader, server AI) → `content-ai/`
-- Version history / snapshot / compare → `collaboration/documents/`
-- Pages (print layout) → `pages/`
+```
+const doc = new Y.Doc()
 
-## Workflow
+const editor = new Editor({
+  extensions: [
+    Collaboration.configure({
+      document: doc,
+    }),
+  ],
+})
+```
 
-1. Open `packages/ui/components/shadcn/rich-text-editor/*` and trace how `extensions` and the toolbar map to the document schema
-2. For new behavior, check Tiptap docs for the correct extension or command API
-3. Add dependencies in `packages/ui` (and align root `@tiptap/*` if those packages are also used at root)
-4. Keep `immediatelyRender: false` for Next.js client editors
-5. Use `useEditorState` for toolbar / bubble-menu state that depends on `editor.isActive(...)`, `editor.can()`, or `editor.getAttributes(...)`
-6. Use `@tiptap/static-renderer` for read-only rendering unless a live editor instance is explicitly required
-7. Run scoped checks: `bunx turbo run lint --filter=@asym/ui` and `bunx turbo run typecheck --filter=@asym/ui`
+Use the TiptapCollabProvider:
 
-## Checklist
+```
+const provider = new TiptapCollabProvider({
+  name: 'unique_document_name',
+  appId: 'APP_ID', // Your document server ID from the Cloud dashboard
+  token: 'JWT_TOKEN', // Your JWT token
+  document: doc,
+})
+```
 
-- [ ] Changes live in `packages/ui` unless an app-only integration is explicitly required
-- [ ] All `@tiptap/*` versions aligned in touched workspaces
-- [ ] Next.js editor options safe for SSR (`immediatelyRender: false` where applicable)
-- [ ] Toolbar / active-state UI uses `useEditorState` when it must track selection or mark changes
-- [ ] Read-only rendering uses `@tiptap/static-renderer` unless a live editor is truly needed
-- [ ] Toolbar/commands and schema stay consistent (no orphaned marks/nodes)
-- [ ] Lint and typecheck pass for `@asym/ui`
+If it's the first time setting up collaboration and the Tiptap Cloud account is not set up, explain
+to the user how to set up a Tiptap Cloud account and obtain the environment variables.
 
-## References
+### Comments
 
-- `references/upstream.md` — attribution and refresh instructions
-- Official agent skill page: https://tiptap.dev/docs/resources/agent-skill
+Implement comments with the Comments extension.
 
-## Common mistakes
+Thread-based inline and document comments. See
+https://tiptap.dev/docs/comments/getting-started/overview.md and
+https://tiptap.dev/docs/comments/getting-started/install.md.
 
-- Omitting `immediatelyRender: false` and breaking hydration in the App Router
-- Mixing mismatched `@tiptap/*` versions across packages
-- Mounting a read-only editor in feeds or lists instead of using `@tiptap/static-renderer`
-- Reading `editor.isActive()` directly in render without `useEditorState`, causing stale toolbar state
-- Duplicating editor code in `apps/*` instead of extending `@asym/ui`
+### Tracked changes
+
+Track, accept, and reject document edits. See
+https://tiptap.dev/docs/tracked-changes/getting-started/overview.md and
+https://tiptap.dev/docs/tracked-changes/getting-started/install.md.
+
+### Import/Export
+
+Convert documents to and from DOCX, PDF, Markdown, and other formats. See
+https://tiptap.dev/docs/conversion/getting-started/overview.md and
+https://tiptap.dev/docs/conversion/getting-started/install.md.
+
+### AI Toolkit
+
+Agentic document work: an AI reading, editing, commenting on, proofreading, and reviewing Tiptap
+documents. Server-side is the default. See https://tiptap.dev/docs/ai/ai-toolkit/overview.md.
+
+Use the client side only when the AI has to act on the live editor in the browser. See
+https://tiptap.dev/docs/ai/ai-toolkit/client/overview.md.
+
+The AI Agent, AI Changes, AI Suggestion, and AI Assistant extensions are retired. Don't recommend
+them, and never implement from any page under `https://tiptap.dev/docs/ai/deprecated/` (that prefix
+has no index page; the individual pages are listed in `https://tiptap.dev/docs/llms.txt`). To move an
+existing integration off them, see
+https://tiptap.dev/docs/ai/ai-toolkit/client/advanced-guides/migration-guides.md.
+
+### Basic AI Generation
+
+Generate and edit text content from one-shot prompts. See https://tiptap.dev/docs/ai/basic/overview.md.
+
+### Version history
+
+Save and restore document snapshots. See https://tiptap.dev/docs/collaboration/documents/snapshot.md.
+
+### Snapshot compare
+
+Highlight differences between document versions. See https://tiptap.dev/docs/collaboration/documents/snapshot-compare.md.
+
+### Pages
+
+Print-ready page layout with headers, footers, and page breaks. See
+https://tiptap.dev/docs/pages/getting-started/overview.md and
+https://tiptap.dev/docs/pages/getting-started/install.md.
+
+## Pro Extensions
+
+Some Tiptap extensions are distributed through a private npm registry. To install pro packages, see
+https://tiptap.dev/docs/guides/pro-extensions.md for setup instructions.
