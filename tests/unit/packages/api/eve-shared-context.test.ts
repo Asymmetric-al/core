@@ -107,6 +107,22 @@ describe("Eve shared run context", () => {
     },
   );
 
+  it("does not treat related claim UUIDs as payment card numbers", () => {
+    const first = prepare(validWrite()).claim;
+    const digitHeavyId = "01234567-8910-4111-8123-456789012345";
+    const related = { ...first, id: digitHeavyId };
+
+    expect(() =>
+      prepare(
+        validWrite({
+          relationship: "supports",
+          relatedClaimIds: [digitHeavyId],
+        }),
+        [related],
+      ),
+    ).not.toThrow();
+  });
+
   it("preserves both claims inside an explicit disagreement", () => {
     const first = prepare(validWrite()).claim;
     const second = prepare(
