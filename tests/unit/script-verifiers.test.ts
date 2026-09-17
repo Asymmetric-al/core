@@ -991,6 +991,43 @@ describe("refresh-upstream-skills", () => {
       "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
     );
     await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      [
+        "4. **asChild** - Render as different element (Radix pattern)",
+        "",
+        "## The `asChild` Pattern",
+        "",
+        "Allow rendering as a different element while preserving behavior:",
+        "",
+        "```jsx",
+        "// Render as button (default)",
+        "<Button>Click me</Button>",
+        "",
+        "// Render as link",
+        "<Button asChild>",
+        '  <a href="/page">Click me</a>',
+        "</Button>",
+        "",
+        "// Render as Next.js Link",
+        "<Button asChild>",
+        '  <Link href="/page">Click me</Link>',
+        "</Button>",
+        "```",
+        "",
+        "Implementation using Radix Slot:",
+        "",
+        "```jsx",
+        'import { Slot } from "@radix-ui/react-slot";',
+        "",
+        "function Button({ asChild, ...props }) {",
+        '  const Comp = asChild ? Slot : "button";',
+        "  return <Comp {...props} />;",
+        "}",
+        "```",
+        "",
+      ].join("\n"),
+    );
 
     const canonicalRoot = path.join(
       tempRoot,
@@ -1022,6 +1059,146 @@ describe("refresh-upstream-skills", () => {
     await expect(
       readFile(path.join(canonicalRoot, "references/upstream.md"), "utf8"),
     ).resolves.toBe("preserve me\n");
+    await expect(
+      readFile(path.join(canonicalRoot, "component-design.md"), "utf8"),
+    ).resolves.not.toContain("asChild");
+    await expect(
+      readFile(path.join(canonicalRoot, "component-design.md"), "utf8"),
+    ).resolves.toContain("buttonVariants");
+  });
+
+  it("restores the backup when a refresh EXDEV copy leaves a partial destination", async () => {
+    const tempRoot = await createTempRepo("refresh-exdev-partial-restore");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const copiedScriptPath = path.join(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+    );
+    const copiedScript = await readFile(copiedScriptPath, "utf8");
+    await writeFile(
+      copiedScriptPath,
+      copiedScript.replace(
+        "    await cp(fromPath, toPath, { recursive: true, force: true });",
+        [
+          "    if (",
+          '      process.env.CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE === "1" &&',
+          '      fromPath.includes(".emil-design-engineering.refresh-staging-")',
+          "    ) {",
+          "      await mkdir(toPath, { recursive: true });",
+          '      await writeFile(path.join(toPath, "PARTIAL.md"), "partial\\n");',
+          '      const error = new Error("simulated staging copy failure");',
+          '      error.code = "EIO";',
+          "      throw error;",
+          "    }",
+          "    await cp(fromPath, toPath, { recursive: true, force: true });",
+        ].join("\n"),
+      ),
+    );
+
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      [
+        "4. **asChild** - Render as different element (Radix pattern)",
+        "",
+        "## The `asChild` Pattern",
+        "",
+        "Allow rendering as a different element while preserving behavior:",
+        "",
+        "```jsx",
+        "// Render as button (default)",
+        "<Button>Click me</Button>",
+        "",
+        "// Render as link",
+        "<Button asChild>",
+        '  <a href="/page">Click me</a>',
+        "</Button>",
+        "",
+        "// Render as Next.js Link",
+        "<Button asChild>",
+        '  <Link href="/page">Click me</Link>',
+        "</Button>",
+        "```",
+        "",
+        "Implementation using Radix Slot:",
+        "",
+        "```jsx",
+        'import { Slot } from "@radix-ui/react-slot";',
+        "",
+        "function Button({ asChild, ...props }) {",
+        '  const Comp = asChild ? Slot : "button";',
+        "  return <Comp {...props} />;",
+        "}",
+        "```",
+        "",
+      ].join("\n"),
+    );
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(canonicalRoot, { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n\n# Existing skill\n",
+    );
+
+    expect(() =>
+      runNodeScript(
+        tempRoot,
+        "scripts/refresh-upstream-skills.mjs",
+        ["--only=animations.dev"],
+        {
+          HOME: tempRoot,
+          CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
+          CORE_SKILLS_FAIL_REFRESH_STAGING_COPY_ONCE: "1",
+        },
+      ),
+    ).toThrow();
+
+    await expect(
+      readFile(path.join(canonicalRoot, "SKILL.md"), "utf8"),
+    ).resolves.toContain("# Existing skill");
+    await expect(
+      access(path.join(canonicalRoot, "PARTIAL.md")),
+    ).rejects.toThrow();
+  });
+
+  it("does not treat destination collisions as cross-device refresh moves", async () => {
+    const refreshScript = await readFile(
+      path.join(repoRoot, "scripts/refresh-upstream-skills.mjs"),
+      "utf8",
+    );
+
+    expect(refreshScript).toContain('getErrorCode(error) !== "EXDEV"');
+    expect(refreshScript).not.toContain('code === "EEXIST"');
+    expect(refreshScript).not.toContain('code === "ENOTEMPTY"');
+  });
+
+  it("re-injects explicit-only invocation flags on interface-review and obra TDD after refresh", async () => {
+    const refreshScript = await readFile(
+      path.join(repoRoot, "scripts/refresh-upstream-skills.mjs"),
+      "utf8",
+    );
+
+    expect(refreshScript).toContain('skillName: "interface-review"');
+    expect(refreshScript).toContain(
+      "name: interface-review\\ndisable-model-invocation: true\\ndescription:",
+    );
+    expect(refreshScript).toContain(
+      "name: test-driven-development\\ndisable-model-invocation: true\\ndescription:",
+    );
   });
 
   it("fails a focused Emil Kowalski refresh before mutation when a source is missing", async () => {

@@ -96,6 +96,7 @@ const explicitOnlySkills = [
   "frontend-design",
   "design-taste-frontend",
   "redesign-existing-projects",
+  "test-driven-development",
 ] as const;
 
 function listFiles(root: string, relativeRoot = ""): string[] {
@@ -215,6 +216,43 @@ describe("jakubkrehel, anthropic, taste, and obra skill packs", () => {
     expect(
       readSkillFile("docs/ai/skills", "better-writing", "SKILL.md"),
     ).toContain("pragma: allowlist secret");
+    const betterWritingRow = readSkillFile(
+      "docs/ai/skills",
+      "better-writing",
+      "SKILL.md",
+    )
+      .split("\n")
+      .find((line) => line.includes("too short"));
+    expect(betterWritingRow?.match(/\|/g)?.length).toBe(3);
+    const accessibilityLoginRow = readSkillFile(
+      "docs/ai/skills",
+      "better-accessibility",
+      "forms.md",
+    )
+      .split("\n")
+      .find((line) => line.includes("username"));
+    expect(accessibilityLoginRow?.match(/\|/g)?.length).toBe(3);
+    expect(
+      readSkillFile(
+        "docs/ai/skills",
+        "emil-design-engineering",
+        "component-design.md",
+      ),
+    ).not.toContain("asChild");
+    expect(
+      readSkillFile(
+        "docs/ai/skills",
+        "emil-design-engineering",
+        "component-design.md",
+      ),
+    ).toContain("buttonVariants");
+    expect(
+      readSkillFile(
+        "docs/ai/skills",
+        "better-accessibility",
+        "references/upstream.md",
+      ),
+    ).toContain("bun run skills:refresh-jakubkrehel");
     expect(
       readSkillFile("docs/ai/skills", "better-interface", "SKILL.md"),
     ).toContain("better-writing");
