@@ -1261,14 +1261,49 @@ function secretScannerComment(filePath) {
   }
 }
 
-function annotateSecretScannerLine(line, filePath) {
+function secretScannerCommentForLanguage(language) {
+  const normalized = language.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  switch (normalized) {
+    case "json":
+      return null;
+    case "py":
+    case "python":
+    case "sh":
+    case "bash":
+    case "zsh":
+    case "shell":
+      return `# ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case "sql":
+      return `-- ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case "js":
+    case "javascript":
+    case "ts":
+    case "typescript":
+    case "tsx":
+    case "jsx":
+    case "mjs":
+    case "cjs":
+      return `// ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    default:
+      return null;
+  }
+}
+
+function annotateSecretScannerLine(
+  line,
+  filePath,
+  comment = secretScannerComment(filePath),
+) {
   if (!line.toLowerCase().includes(SECRET_SCANNER_DEMO_TOKEN)) {
     return line;
   }
   if (line.includes(SECRET_SCANNER_PRAGMA_TOKEN)) {
     return line;
   }
-  const comment = secretScannerComment(filePath);
   if (comment === null) {
     return line;
   }
@@ -1284,9 +1319,38 @@ function annotateSecretScannerLine(line, filePath) {
 }
 
 function annotateSecretScannerMentions(content, filePath = "") {
-  return content
-    .split("\n")
-    .map((line) => annotateSecretScannerLine(line, filePath))
+  const extension = path.extname(filePath).toLowerCase();
+  const isMarkdown = extension === ".md" || extension === ".mdx";
+  const lines = content.split("\n");
+  if (!isMarkdown) {
+    return lines
+      .map((line) => annotateSecretScannerLine(line, filePath))
+      .join("\n");
+  }
+
+  let fenceLanguage = null;
+  return lines
+    .map((line) => {
+      const fence = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
+      if (fence) {
+        if (fenceLanguage === null) {
+          fenceLanguage = fence[3].trim().split(/\s+/u)[0] ?? "";
+        } else {
+          fenceLanguage = null;
+        }
+        return line;
+      }
+
+      if (fenceLanguage !== null) {
+        return annotateSecretScannerLine(
+          line,
+          filePath,
+          secretScannerCommentForLanguage(fenceLanguage),
+        );
+      }
+
+      return annotateSecretScannerLine(line, filePath);
+    })
     .join("\n");
 }
 

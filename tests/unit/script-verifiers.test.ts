@@ -53,6 +53,39 @@ function runNodeScript(
   });
 }
 
+function fencedMarkdownBlock(markdown: string, language: string) {
+  const lines = markdown.split("\n");
+  let inside = false;
+  let capturing = false;
+  const captured: string[] = [];
+
+  for (const line of lines) {
+    const fence = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
+    if (fence) {
+      if (!inside) {
+        inside = true;
+        const info = fence[3].trim().split(/\s+/u)[0] ?? "";
+        capturing = info === language;
+        continue;
+      }
+
+      if (capturing) {
+        return captured.join("\n");
+      }
+
+      inside = false;
+      capturing = false;
+      continue;
+    }
+
+    if (capturing) {
+      captured.push(line);
+    }
+  }
+
+  throw new Error(`Missing markdown fence for ${language || "unlabeled"}`);
+}
+
 async function createWorkspaceContractRepo() {
   const tempRoot = await createTempRepo("workspace-contract");
   await copyScript(tempRoot, "scripts/verify-workspace-contract.mjs");
@@ -683,6 +716,95 @@ describe("sync-agent-skills", () => {
     }
   }, 20_000);
 
+  it("keeps fenced markdown examples executable when allowlisting demo credential-word lines", async () => {
+    const tempRoot = await createTempRepo("sync-skills-fenced-scanner");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/fenced-examples");
+    await mkdir(ecosystemDir, { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      [
+        "---",
+        "name: fenced-examples",
+        "description: Fenced scanner fixture",
+        "---",
+        "",
+        `Prose mentions ${demoCredentialWord} outside fences.`,
+        "",
+        "```js",
+        `const secret = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```typescript",
+        `const secret: string = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```bash",
+        `export SECRET=${demoCredentialWord}`,
+        "```",
+        "",
+        "```sql",
+        `SELECT '${demoCredentialWord}';`,
+        "```",
+        "",
+        "```",
+        `unlabeled ${demoCredentialWord}`,
+        "```",
+        "",
+        "```json",
+        `{"secret":"${demoCredentialWord}"}`,
+        "```",
+        "",
+      ].join("\n"),
+    );
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const copied = await readFile(
+        path.join(tempRoot, runtimeRoot, "fenced-examples/SKILL.md"),
+        "utf8",
+      );
+      const jsFence = fencedMarkdownBlock(copied, "js");
+      const tsFence = fencedMarkdownBlock(copied, "typescript");
+      const bashFence = fencedMarkdownBlock(copied, "bash");
+      const sqlFence = fencedMarkdownBlock(copied, "sql");
+      const unlabeledFence = fencedMarkdownBlock(copied, "");
+      const jsonFence = fencedMarkdownBlock(copied, "json");
+      const proseLine = copied
+        .split("\n")
+        .find((line) => line.includes("outside fences"));
+
+      expect(proseLine).toContain("<!-- pragma: allowlist secret -->");
+      expect(jsFence).toContain("// pragma: allowlist secret");
+      expect(jsFence).not.toContain("<!--");
+      expect(tsFence).toContain("// pragma: allowlist secret");
+      expect(tsFence).not.toContain("<!--");
+      expect(bashFence).toContain("# pragma: allowlist secret");
+      expect(bashFence).not.toContain("<!--");
+      expect(sqlFence).toContain("-- pragma: allowlist secret");
+      expect(sqlFence).not.toContain("<!--");
+      expect(unlabeledFence).not.toContain("pragma: allowlist secret");
+      expect(unlabeledFence).not.toContain("<!--");
+      expect(jsonFence).not.toContain("pragma: allowlist secret");
+      expect(jsonFence).not.toContain("<!--");
+    }
+  }, 20_000);
+
   it("strips macOS Finder junk from ecosystem skill copies", async () => {
     const tempRoot = await createTempRepo("sync-skills-macos-junk");
     await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
@@ -1147,6 +1269,95 @@ describe("refresh-upstream-skills", () => {
     await expect(
       readFile(path.join(canonicalRoot, "references/upstream.md"), "utf8"),
     ).resolves.toBe("preserve me\n");
+  });
+
+  it("keeps fenced markdown examples executable after a paid skill refresh", async () => {
+    const tempRoot = await createTempRepo("refresh-fenced-scanner");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      [
+        "---",
+        "name: emil-design-engineering",
+        "description: refreshed",
+        "---",
+        "",
+        "# Fresh paid skill",
+        "",
+        `Prose mentions ${demoCredentialWord} outside fences.`,
+        "",
+        "```js",
+        `const secret = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```typescript",
+        `const secret: string = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```bash",
+        `export SECRET=${demoCredentialWord}`,
+        "```",
+        "",
+        "```sql",
+        `SELECT '${demoCredentialWord}';`,
+        "```",
+        "",
+      ].join("\n"),
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n",
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "preserve me\n",
+    );
+
+    runNodeScript(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+      ["--only=animations.dev"],
+      { HOME: tempRoot },
+    );
+
+    const refreshed = await readFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "utf8",
+    );
+    const proseLine = refreshed
+      .split("\n")
+      .find((line) => line.includes("outside fences"));
+    expect(proseLine).toContain("<!-- pragma: allowlist secret -->");
+    expect(fencedMarkdownBlock(refreshed, "js")).toContain(
+      "// pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "js")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "typescript")).toContain(
+      "// pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "typescript")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "bash")).toContain(
+      "# pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "bash")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "sql")).toContain(
+      "-- pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "sql")).not.toContain("<!--");
   });
 
   it("fails a focused Emil Kowalski refresh before mutation when a source is missing", async () => {
