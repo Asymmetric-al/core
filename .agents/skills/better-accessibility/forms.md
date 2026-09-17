@@ -46,16 +46,16 @@ The complete pattern:
 
 `autocomplete` with a meaningful `name` fills forms in one tap and is a WCAG requirement (1.3.5) for fields about the user. The common tokens:
 
-| Field          | `autocomplete`                                              |
-| -------------- | ----------------------------------------------------------- | --------------------------- |
-| Name           | `name` (or `given-name` / `family-name`)                    |
-| Email          | `email`                                                     |
-| Phone          | `tel`                                                       |
-| Address        | `street-address`, `address-line1`, `postal-code`, `country` |
-| Card           | `cc-number`, `cc-exp`, `cc-csc`, `cc-name`                  |
-| Login          | `username`, `current-password`                              | // pragma: allowlist secret |
-| Signup / reset | `new-password`                                              | // pragma: allowlist secret |
-| 2FA code       | `one-time-code`                                             |
+| Field          | `autocomplete`                                                   |
+| -------------- | ---------------------------------------------------------------- |
+| Name           | `name` (or `given-name` / `family-name`)                         |
+| Email          | `email`                                                          |
+| Phone          | `tel`                                                            |
+| Address        | `street-address`, `address-line1`, `postal-code`, `country`      |
+| Card           | `cc-number`, `cc-exp`, `cc-csc`, `cc-name`                       |
+| Login          | `username`, `current-password` <!-- pragma: allowlist secret --> |
+| Signup / reset | `new-password` <!-- pragma: allowlist secret -->                 |
+| 2FA code       | `one-time-code`                                                  |
 
 Prefix with a section where relevant: `autocomplete="shipping street-address"`.
 
