@@ -55,27 +55,40 @@ function runNodeScript(
 
 function fencedMarkdownBlock(markdown: string, language: string) {
   const lines = markdown.split("\n");
-  let inside = false;
+  let fence:
+    | {
+        character: string;
+        length: number;
+      }
+    | undefined;
   let capturing = false;
   const captured: string[] = [];
 
   for (const line of lines) {
-    const fence = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
-    if (fence) {
-      if (!inside) {
-        inside = true;
-        const info = fence[3].trim().split(/\s+/u)[0] ?? "";
+    const fenceMatch = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
+    if (fenceMatch) {
+      const marker = fenceMatch[2];
+      const markerCharacter = marker.charAt(0);
+      if (fence === undefined) {
+        fence = { character: markerCharacter, length: marker.length };
+        const info = fenceMatch[3].trim().split(/\s+/u)[0] ?? "";
         capturing = info === language;
         continue;
       }
 
-      if (capturing) {
-        return captured.join("\n");
-      }
+      if (
+        markerCharacter === fence.character &&
+        marker.length >= fence.length &&
+        fenceMatch[3].trim() === ""
+      ) {
+        if (capturing) {
+          return captured.join("\n");
+        }
 
-      inside = false;
-      capturing = false;
-      continue;
+        fence = undefined;
+        capturing = false;
+        continue;
+      }
     }
 
     if (capturing) {
@@ -751,11 +764,29 @@ describe("sync-agent-skills", () => {
         "",
         "```bash",
         `export SECRET=${demoCredentialWord}`,
+        `echo ${demoCredentialWord} |`,
         "```",
         "",
         "```sql",
         `SELECT '${demoCredentialWord}';`,
         "```",
+        "",
+        "```html",
+        `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
+        "```",
+        "",
+        "```graphql",
+        `${demoCredentialWord}: String! # ${demoCredentialWord}`,
+        "```",
+        "",
+        "````markdown",
+        "```css",
+        ".example {",
+        `  content: "${demoCredentialWord}";`,
+        "}",
+        "```",
+        `echo ${demoCredentialWord} |`,
+        "````",
         "",
         "```",
         `unlabeled ${demoCredentialWord}`,
@@ -783,6 +814,9 @@ describe("sync-agent-skills", () => {
       const tsFence = fencedMarkdownBlock(copied, "typescript");
       const bashFence = fencedMarkdownBlock(copied, "bash");
       const sqlFence = fencedMarkdownBlock(copied, "sql");
+      const htmlFence = fencedMarkdownBlock(copied, "html");
+      const graphqlFence = fencedMarkdownBlock(copied, "graphql");
+      const markdownFence = fencedMarkdownBlock(copied, "markdown");
       const unlabeledFence = fencedMarkdownBlock(copied, "");
       const jsonFence = fencedMarkdownBlock(copied, "json");
       const proseLine = copied
@@ -796,8 +830,16 @@ describe("sync-agent-skills", () => {
       expect(tsFence).not.toContain("<!--");
       expect(bashFence).toContain("# pragma: allowlist secret");
       expect(bashFence).not.toContain("<!--");
+      expect(bashFence).toContain(
+        `echo ${demoCredentialWord} | # pragma: allowlist secret`,
+      );
       expect(sqlFence).toContain("-- pragma: allowlist secret");
       expect(sqlFence).not.toContain("<!--");
+      expect(htmlFence).toContain("<!-- pragma: allowlist secret -->");
+      expect(graphqlFence).toContain("# pragma: allowlist secret");
+      expect(markdownFence).toContain(
+        `echo ${demoCredentialWord} | <!-- pragma: allowlist secret -->`,
+      );
       expect(unlabeledFence).not.toContain("pragma: allowlist secret");
       expect(unlabeledFence).not.toContain("<!--");
       expect(jsonFence).not.toContain("pragma: allowlist secret");
@@ -1303,11 +1345,29 @@ describe("refresh-upstream-skills", () => {
         "",
         "```bash",
         `export SECRET=${demoCredentialWord}`,
+        `echo ${demoCredentialWord} |`,
         "```",
         "",
         "```sql",
         `SELECT '${demoCredentialWord}';`,
         "```",
+        "",
+        "```html",
+        `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
+        "```",
+        "",
+        "```graphql",
+        `${demoCredentialWord}: String! # ${demoCredentialWord}`,
+        "```",
+        "",
+        "````markdown",
+        "```css",
+        ".example {",
+        `  content: "${demoCredentialWord}";`,
+        "}",
+        "```",
+        `echo ${demoCredentialWord} |`,
+        "````",
         "",
       ].join("\n"),
     );
@@ -1354,10 +1414,22 @@ describe("refresh-upstream-skills", () => {
       "# pragma: allowlist secret",
     );
     expect(fencedMarkdownBlock(refreshed, "bash")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "bash")).toContain(
+      `echo ${demoCredentialWord} | # pragma: allowlist secret`,
+    );
     expect(fencedMarkdownBlock(refreshed, "sql")).toContain(
       "-- pragma: allowlist secret",
     );
     expect(fencedMarkdownBlock(refreshed, "sql")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "html")).toContain(
+      "<!-- pragma: allowlist secret -->",
+    );
+    expect(fencedMarkdownBlock(refreshed, "graphql")).toContain(
+      "# pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "markdown")).toContain(
+      `echo ${demoCredentialWord} | <!-- pragma: allowlist secret -->`,
+    );
   });
 
   it("fails a focused Emil Kowalski refresh before mutation when a source is missing", async () => {

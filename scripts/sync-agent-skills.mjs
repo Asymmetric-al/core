@@ -835,6 +835,16 @@ function secretScannerCommentForLanguage(language) {
   switch (normalized) {
     case "json":
       return null;
+    case "md":
+    case "mdx":
+    case "markdown":
+    case "html":
+    case "htm":
+    case "svg":
+    case "xml":
+      return `<!-- ${SECRET_SCANNER_PRAGMA_TOKEN} -->`;
+    case "gql":
+    case "graphql":
     case "py":
     case "python":
     case "sh":
@@ -853,6 +863,10 @@ function secretScannerCommentForLanguage(language) {
     case "mjs":
     case "cjs":
       return `// ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case "css":
+    case "scss":
+    case "sass":
+      return `/* ${SECRET_SCANNER_PRAGMA_TOKEN} */`;
     default:
       return null;
   }
@@ -862,6 +876,7 @@ function annotateSecretScannerLine(
   line,
   filePath,
   comment = secretScannerComment(filePath),
+  { preserveMarkdownTable = true } = {},
 ) {
   if (!line.toLowerCase().includes(SECRET_SCANNER_DEMO_TOKEN)) {
     return line;
@@ -874,6 +889,7 @@ function annotateSecretScannerLine(
   }
   const extension = path.extname(filePath).toLowerCase();
   if (
+    preserveMarkdownTable &&
     (extension === ".md" || extension === ".mdx") &&
     line.trimEnd().endsWith("|")
   ) {
@@ -893,24 +909,35 @@ function annotateSecretScannerMentions(content, filePath = "") {
       .join("\n");
   }
 
-  let fenceLanguage = null;
+  let fence = null;
   return lines
     .map((line) => {
-      const fence = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
-      if (fence) {
-        if (fenceLanguage === null) {
-          fenceLanguage = fence[3].trim().split(/\s+/u)[0] ?? "";
-        } else {
-          fenceLanguage = null;
+      const fenceMatch = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
+      if (fenceMatch) {
+        const marker = fenceMatch[2];
+        const markerCharacter = marker[0];
+        if (fence === null) {
+          fence = {
+            character: markerCharacter,
+            length: marker.length,
+            language: fenceMatch[3].trim().split(/\s+/u)[0] ?? "",
+          };
+        } else if (
+          markerCharacter === fence.character &&
+          marker.length >= fence.length &&
+          fenceMatch[3].trim() === ""
+        ) {
+          fence = null;
         }
         return line;
       }
 
-      if (fenceLanguage !== null) {
+      if (fence !== null) {
         return annotateSecretScannerLine(
           line,
           filePath,
-          secretScannerCommentForLanguage(fenceLanguage),
+          secretScannerCommentForLanguage(fence.language),
+          { preserveMarkdownTable: false },
         );
       }
 
