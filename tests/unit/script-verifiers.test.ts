@@ -610,6 +610,7 @@ describe("sync-agent-skills", () => {
     );
 
     const demoCredentialWord = ["pass", "word"].join("");
+    const originalJsonInput = `How do I reset my ${demoCredentialWord}?`;
     const ecosystemDir = path.join(tempRoot, ".agents/skills/claude-handoff");
     await mkdir(ecosystemDir, { recursive: true });
     await writeFile(
@@ -619,7 +620,20 @@ describe("sync-agent-skills", () => {
     await mkdir(path.join(ecosystemDir, "assets"), { recursive: true });
     await writeFile(
       path.join(ecosystemDir, "assets/examples.json"),
-      `{"input":"How do I reset my ${demoCredentialWord}?"}\n`,
+      `{"input":"${originalJsonInput}"}\n`,
+    );
+    await writeFile(
+      path.join(ecosystemDir, "assets/rest-api-template.py"),
+      `${demoCredentialWord}: str = Field(..., min_length=8)\n`,
+    );
+    await writeFile(
+      path.join(ecosystemDir, "assets/table.md"),
+      [
+        "| Bad | Good |",
+        "| --- | --- |",
+        `| That ${demoCredentialWord} is too short | Choose a ${demoCredentialWord} with at least 8 characters |`,
+        "",
+      ].join("\n"),
     );
 
     runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
@@ -644,7 +658,28 @@ describe("sync-agent-skills", () => {
           "utf8",
         ),
       );
-      expect(jsonCopy.input).toContain("pragma: allowlist secret");
+      expect(jsonCopy.input).toBe(originalJsonInput);
+      expect(jsonCopy.input).not.toContain("pragma: allowlist secret");
+
+      const pythonPath = path.join(
+        tempRoot,
+        runtimeRoot,
+        "claude-handoff/assets/rest-api-template.py",
+      );
+      const pythonCopy = await readFile(pythonPath, "utf8");
+      expect(pythonCopy).toContain("# pragma: allowlist secret");
+      expect(pythonCopy).not.toContain("// pragma: allowlist secret");
+      execFileSync("python3", ["-m", "py_compile", pythonPath]);
+
+      const tableCopy = await readFile(
+        path.join(tempRoot, runtimeRoot, "claude-handoff/assets/table.md"),
+        "utf8",
+      );
+      const tableRow = tableCopy
+        .split("\n")
+        .find((line) => line.includes("too short"));
+      expect(tableRow).toContain("pragma: allowlist secret");
+      expect(tableRow?.match(/\|/g)?.length).toBe(3);
     }
   }, 20_000);
 

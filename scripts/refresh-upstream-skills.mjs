@@ -1226,7 +1226,7 @@ function normalizeImproveAnimationsPlanTemplate(content, templatePath) {
 }
 
 const SECRET_SCANNER_DEMO_TOKEN = ["pass", "word"].join("");
-const SECRET_SCANNER_PRAGMA = "// pragma: allowlist secret";
+const SECRET_SCANNER_PRAGMA_TOKEN = "pragma: allowlist secret";
 const SECRET_SCANNER_SKIP_SUFFIXES = new Set([
   ".png",
   ".jpg",
@@ -1244,28 +1244,49 @@ const SECRET_SCANNER_SKIP_SUFFIXES = new Set([
   ".cmd",
 ]);
 
-function annotateSecretScannerLine(line, isJson) {
+function secretScannerComment(filePath) {
+  switch (path.extname(filePath).toLowerCase()) {
+    case ".json":
+      return null;
+    case ".py":
+      return `# ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case ".sql":
+      return `-- ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+    case ".md":
+    case ".mdx":
+    case ".html":
+      return `<!-- ${SECRET_SCANNER_PRAGMA_TOKEN} -->`;
+    default:
+      return `// ${SECRET_SCANNER_PRAGMA_TOKEN}`;
+  }
+}
+
+function annotateSecretScannerLine(line, filePath) {
   if (!line.toLowerCase().includes(SECRET_SCANNER_DEMO_TOKEN)) {
     return line;
   }
-  if (line.includes("pragma: allowlist secret")) {
+  if (line.includes(SECRET_SCANNER_PRAGMA_TOKEN)) {
     return line;
   }
-  if (isJson) {
-    const lastQuote = line.lastIndexOf('"');
-    if (lastQuote === -1) {
-      return line;
-    }
-    return `${line.slice(0, lastQuote)} ${SECRET_SCANNER_PRAGMA}${line.slice(lastQuote)}`;
+  const comment = secretScannerComment(filePath);
+  if (comment === null) {
+    return line;
   }
-  return `${line} ${SECRET_SCANNER_PRAGMA}`;
+  const extension = path.extname(filePath).toLowerCase();
+  if (
+    (extension === ".md" || extension === ".mdx") &&
+    line.trimEnd().endsWith("|")
+  ) {
+    const lastPipe = line.lastIndexOf("|");
+    return `${line.slice(0, lastPipe)}${comment} ${line.slice(lastPipe)}`;
+  }
+  return `${line} ${comment}`;
 }
 
 function annotateSecretScannerMentions(content, filePath = "") {
-  const isJson = filePath.toLowerCase().endsWith(".json");
   return content
     .split("\n")
-    .map((line) => annotateSecretScannerLine(line, isJson))
+    .map((line) => annotateSecretScannerLine(line, filePath))
     .join("\n");
 }
 

@@ -53,4 +53,16 @@ describe("Inngest skill reference verifier", () => {
       ),
     ).toBe(false);
   });
+
+  it("points the rest-api-v2 Insights cross-reference at the vendored CLI companion", async () => {
+    const restApi = await readFile(
+      path.join(skillsRoot, "inngest-api", "references", "rest-api-v2.md"),
+      "utf8",
+    );
+
+    expect(restApi).toContain(
+      "../../inngest-api-cli/references/cli-commands.md#insights-sql-over-execution-data",
+    );
+    expect(restApi).not.toContain("(cli-commands.md");
+  });
 });

@@ -46,7 +46,7 @@ class UserBase(BaseModel):
     status: UserStatus = UserStatus.ACTIVE
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=8) // pragma: allowlist secret
+    password: str = Field(..., min_length=8) # pragma: allowlist secret
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
