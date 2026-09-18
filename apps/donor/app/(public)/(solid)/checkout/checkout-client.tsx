@@ -231,6 +231,66 @@ const createRuntimeConfigFromPublishableKey = (
     : createRuntimeConfigError();
 };
 
+const LOADING_RUNTIME_CONFIG: CheckoutRuntimeConfig = {
+  error: null,
+  publishableKey: null,
+  status: "loading",
+  stripePromise: null,
+};
+
+/**
+ * Load the tenant's checkout runtime config. Resolves to `null` when the
+ * request was aborted so the caller leaves the current state untouched.
+ */
+async function fetchCheckoutRuntimeConfig(
+  signal: AbortSignal,
+): Promise<CheckoutRuntimeConfig | null> {
+  try {
+    const response = await fetch("/api/donate", { method: "GET", signal });
+    const { ok, body: payload } = await readJsonBody<unknown>(response);
+
+    if (signal.aborted) {
+      return null;
+    }
+
+    if (!ok) {
+      const message =
+        payload && typeof payload === "object"
+          ? (payload as Record<string, unknown>).error
+          : null;
+      return {
+        error:
+          typeof message === "string"
+            ? message
+            : "Checkout configuration could not be loaded. Please try again.",
+        publishableKey: null,
+        status: "error",
+        stripePromise: null,
+      };
+    }
+
+    return createRuntimeConfigFromPublishableKey(
+      readRuntimePublishableKey(payload),
+    );
+  } catch (error) {
+    if (signal.aborted) {
+      return null;
+    }
+
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return null;
+    }
+
+    return {
+      error:
+        "Checkout configuration could not be loaded. Please refresh and try again.",
+      publishableKey: null,
+      status: "error",
+      stripePromise: null,
+    };
+  }
+}
+
 const readCheckoutFrequency = (value: SearchParamInput): Frequency | null => {
   return normalizeCheckoutFrequency(readSearchParam(value));
 };
@@ -1154,12 +1214,7 @@ function CheckoutContent({
     () =>
       stripeOverride
         ? createReadyRuntimeConfig(stripeOverride.publishableKey)
-        : {
-            error: null,
-            publishableKey: null,
-            status: "loading",
-            stripePromise: null,
-          },
+        : LOADING_RUNTIME_CONFIG,
   );
   const [checkoutState, setCheckoutState] = useState<CheckoutState>(() => ({
     amount: initialAmount ? Number(initialAmount) : 100,
@@ -1272,6 +1327,23 @@ function CheckoutContent({
   );
   const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
 
+  // Starts (or restarts) the tenant config request. State is written only in
+  // the promise callback, so the mount effect below performs no synchronous
+  // state update; `loadCheckoutRuntimeConfig` adds the loading transition for
+  // user-initiated retries.
+  const requestRuntimeConfig = () => {
+    runtimeConfigRequestedRef.current = true;
+    runtimeConfigAbortRef.current?.abort();
+    const abortController = new AbortController();
+    runtimeConfigAbortRef.current = abortController;
+
+    void fetchCheckoutRuntimeConfig(abortController.signal).then((next) => {
+      if (next) {
+        setRuntimeConfig(next);
+      }
+    });
+  };
+
   const loadCheckoutRuntimeConfig = () => {
     if (stripeOverride) {
       setRuntimeConfig(createReadyRuntimeConfig(stripeOverride.publishableKey));
@@ -1285,76 +1357,17 @@ function CheckoutContent({
       return;
     }
 
-    runtimeConfigRequestedRef.current = true;
-    runtimeConfigAbortRef.current?.abort();
-    const abortController = new AbortController();
-    runtimeConfigAbortRef.current = abortController;
-
-    setRuntimeConfig({
-      error: null,
-      publishableKey: null,
-      status: "loading",
-      stripePromise: null,
-    });
-
-    const loadRuntimeConfig = async () => {
-      try {
-        const response = await fetch("/api/donate", {
-          method: "GET",
-          signal: abortController.signal,
-        });
-        const { ok, body: payload } = await readJsonBody<unknown>(response);
-
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        if (!ok) {
-          const message =
-            payload && typeof payload === "object"
-              ? (payload as Record<string, unknown>).error
-              : null;
-          setRuntimeConfig({
-            error:
-              typeof message === "string"
-                ? message
-                : "Checkout configuration could not be loaded. Please try again.",
-            publishableKey: null,
-            status: "error",
-            stripePromise: null,
-          });
-          return;
-        }
-
-        setRuntimeConfig(
-          createRuntimeConfigFromPublishableKey(
-            readRuntimePublishableKey(payload),
-          ),
-        );
-      } catch (error) {
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-
-        setRuntimeConfig({
-          error:
-            "Checkout configuration could not be loaded. Please refresh and try again.",
-          publishableKey: null,
-          status: "error",
-          stripePromise: null,
-        });
-      }
-    };
-
-    void loadRuntimeConfig();
+    setRuntimeConfig(LOADING_RUNTIME_CONFIG);
+    requestRuntimeConfig();
   };
 
   useEffect(() => {
-    loadCheckoutRuntimeConfig();
+    // Overrides start in the ready state already (see the initializer).
+    if (stripeOverride) {
+      return;
+    }
+
+    requestRuntimeConfig();
 
     return () => {
       // The aborted request leaves `runtimeConfig` stuck on "loading"; clear
@@ -1364,7 +1377,6 @@ function CheckoutContent({
       runtimeConfigRequestedRef.current = false;
       runtimeConfigAbortRef.current?.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO(checkout-runtime-config): Runtime config is keyed by the override object or tenant fetch, not by transient checkout state.
   }, [stripeOverride]);
 
   useEffect(() => {

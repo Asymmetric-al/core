@@ -41,11 +41,25 @@ export const SuggestionList = React.forwardRef<
   { items, command, heading, emptyHint = "No matches." },
   ref,
 ) {
-  const [activeIndex, setActiveIndex] = React.useState(0);
-
-  React.useEffect(() => {
-    setActiveIndex(0);
-  }, [items]);
+  // The highlight is stored together with the list it belongs to, so a new
+  // `items` array derives back to the first row without a reset effect.
+  const [highlight, setHighlight] = React.useState<{
+    items: SuggestionItem[];
+    index: number;
+  }>({ items, index: 0 });
+  const activeIndex = highlight.items === items ? highlight.index : 0;
+  const setActiveIndex = React.useCallback(
+    (update: number | ((current: number) => number)) => {
+      setHighlight((current) => {
+        const base = current.items === items ? current.index : 0;
+        return {
+          items,
+          index: typeof update === "function" ? update(base) : update,
+        };
+      });
+    },
+    [items],
+  );
 
   const select = (index: number) => {
     const item = items[index];
