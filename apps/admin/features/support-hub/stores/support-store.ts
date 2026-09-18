@@ -252,19 +252,15 @@ export const supportStore = {
       enabled: z.boolean().default(true),
       trigger: z.enum(SUPPORT_AUTOMATION_TRIGGERS),
       conditions: z.array(
-        z
-          .object({
-            kind: z.enum(SUPPORT_AUTOMATION_CONDITION_KINDS),
-          })
-          .passthrough(),
+        z.looseObject({
+          kind: z.enum(SUPPORT_AUTOMATION_CONDITION_KINDS),
+        }),
       ),
       actions: z
         .array(
-          z
-            .object({
-              kind: z.enum(SUPPORT_AUTOMATION_ACTION_KINDS),
-            })
-            .passthrough(),
+          z.looseObject({
+            kind: z.enum(SUPPORT_AUTOMATION_ACTION_KINDS),
+          }),
         )
         .min(1),
     }),
