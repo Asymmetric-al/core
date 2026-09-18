@@ -8,7 +8,7 @@ import type { Task } from "@asym/missionary/types";
 const FIXTURE_TIMESTAMP = "2099-04-08T12:00:00.000Z";
 const FIXTURE_FOLLOW_UP_DUE_DATE = "2099-04-15";
 
-export const MISSIONARY_TASKS_BONEYARD_FIXTURE: Task[] = [
+const MISSIONARY_TASKS_BONEYARD_FIXTURE: Task[] = [
   {
     id: "by-fixture-1",
     missionary_id: "m1",
