@@ -147,6 +147,110 @@ describe("useProfilePageView", () => {
     consoleError.mockRestore();
   });
 
+  it("persists a cover photo that is saved in the same tick as the upload", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const coverUrl = "https://cdn.example/new-cover.jpg";
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, { ok: true }));
+
+    // Profile Photos calls updateProfile(field, url); handleSave() in one
+    // event. The save must read that pending edit, not the previous render.
+    await act(async () => {
+      result.current.updateProfile("coverUrl", coverUrl);
+      await result.current.handleSave();
+    });
+
+    const saveCall = fetchMock.mock.calls.find(
+      (call) =>
+        typeof call[1] === "object" &&
+        call[1] !== null &&
+        "method" in call[1] &&
+        call[1].method === "PATCH",
+    );
+    expect(saveCall).toBeDefined();
+    expect(JSON.parse(String(saveCall?.[1]?.body))).toMatchObject({
+      coverUrl,
+      location: "London",
+    });
+    expect(result.current.profile.coverUrl).toBe(coverUrl);
+    expect(result.current.hasChanges).toBe(false);
+    expect(toast.success).toHaveBeenCalledWith("Profile saved");
+  });
+
+  it("keeps a same-tick avatar upload on screen after save", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const avatarUrl = "https://cdn.example/new-avatar.jpg";
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, { ok: true }));
+
+    await act(async () => {
+      result.current.updateProfile("avatarUrl", avatarUrl);
+      await result.current.handleSave();
+    });
+
+    const saveCall = fetchMock.mock.calls.find(
+      (call) =>
+        typeof call[1] === "object" &&
+        call[1] !== null &&
+        "method" in call[1] &&
+        call[1].method === "PATCH",
+    );
+    expect(JSON.parse(String(saveCall?.[1]?.body))).toMatchObject({
+      avatarUrl,
+    });
+    expect(result.current.profile.avatarUrl).toBe(avatarUrl);
+    expect(result.current.hasChanges).toBe(false);
+  });
+
+  it("does not discard edits typed while a save is in flight", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let resolveSave!: (value: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+
+    act(() => {
+      result.current.updateProfile("location", "Paris");
+    });
+
+    let pendingSave!: Promise<void>;
+    act(() => {
+      pendingSave = result.current.handleSave();
+    });
+
+    act(() => {
+      result.current.updateProfile("bio", "typed during save");
+    });
+
+    await act(async () => {
+      resolveSave(jsonResponse(200, { ok: true }));
+      await pendingSave;
+    });
+
+    expect(result.current.profile.location).toBe("Paris");
+    expect(result.current.profile.bio).toBe("typed during save");
+    expect(result.current.hasChanges).toBe(true);
+  });
+
   it("exposes a load failure as fetchError and toasts once", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse(500, { error: "Profile service unavailable" }),
