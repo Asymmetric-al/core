@@ -224,6 +224,9 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
       setFollowerRequests(data.requests || []);
     } catch (err) {
       console.error("Failed to fetch follower requests:", err);
+      toast.error("Could not load follower requests", {
+        id: "worker-feed-follower-requests-load-error",
+      });
     } finally {
       setIsLoadingRequests(false);
     }

@@ -96,7 +96,7 @@ describe("useWorkerFeedPageView initial loads", () => {
     ).toBe(true);
   });
 
-  it("does not report an HTTP error from /api/follower-requests as pending requests", async () => {
+  it("surfaces an HTTP error from /api/follower-requests without showing failed data", async () => {
     fetchMock.mockImplementation(async (input) => {
       const url = String(input);
       if (url.startsWith("/api/posts")) {
@@ -121,8 +121,33 @@ describe("useWorkerFeedPageView initial loads", () => {
       "Failed to fetch follower requests:",
       expect.any(Error),
     );
+    expect(toast.error).toHaveBeenCalledWith(
+      "Could not load follower requests",
+      {
+        id: "worker-feed-follower-requests-load-error",
+      },
+    );
 
     await act(async () => {});
     consoleError.mockRestore();
+  });
+
+  it("keeps a successful empty follower-request response quiet", async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.startsWith("/api/posts")) {
+        return jsonResponse(200, { posts: [] });
+      }
+      if (url.startsWith("/api/follower-requests")) {
+        return jsonResponse(200, { requests: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    const { result } = renderHook(() => useWorkerFeedPageView());
+
+    await waitFor(() => expect(result.current.isLoadingRequests).toBe(false));
+    expect(result.current.pendingRequests).toEqual([]);
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });
