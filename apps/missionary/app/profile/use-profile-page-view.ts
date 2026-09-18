@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import * as React from "react";
 import { useCallback, useEffect, useReducer, useState } from "react";
 import { toast } from "sonner";
 
@@ -22,6 +21,7 @@ import type {
   ProfileData,
   ValidationErrors,
 } from "./profile-model";
+import type * as React from "react";
 
 type ProfilePageUiState = {
   isSaving: boolean;
@@ -179,23 +179,24 @@ export function useProfilePageView(): ProfilePageViewModel {
     refetchOnWindowFocus: false,
   });
 
-  const hasInitializedProfile = React.useRef(false);
+  // State (not a ref) because `isLoading` is derived from it during render.
+  const [hasInitializedProfile, setHasInitializedProfile] = useState(false);
 
   const initializeProfileFromQuery = useCallback(
     (nextProfile: ProfileData) => {
       setFetchError(null);
       setProfile(nextProfile);
       setOriginalProfile(nextProfile);
-      hasInitializedProfile.current = true;
+      setHasInitializedProfile(true);
     },
     [setFetchError],
   );
 
   useEffect(() => {
-    if (hasInitializedProfile.current) return;
+    if (hasInitializedProfile) return;
     if (!profileQuery.data) return;
     initializeProfileFromQuery(profileQuery.data);
-  }, [profileQuery.data, initializeProfileFromQuery]);
+  }, [hasInitializedProfile, profileQuery.data, initializeProfileFromQuery]);
 
   useEffect(() => {
     if (!profileQuery.error) return;
@@ -207,7 +208,7 @@ export function useProfilePageView(): ProfilePageViewModel {
     toast.error(message);
   }, [profileQuery.error, setFetchError]);
 
-  const isLoading = profileQuery.isPending && !hasInitializedProfile.current;
+  const isLoading = profileQuery.isPending && !hasInitializedProfile;
 
   const validateProfile = useCallback((): boolean => {
     const errors: ValidationErrors = {};
