@@ -638,6 +638,7 @@ function ACHNudgeBanner({
           <div className="absolute top-4 right-4 z-20">
             <button
               onClick={onDismiss}
+              aria-label="Dismiss banner"
               className="p-1 rounded-full bg-white/50 hover:bg-white text-emerald-700 transition-colors"
             >
               <X className="size-4" />

@@ -156,6 +156,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
                   size="icon"
                   className="absolute right-1 top-1/2 -translate-y-1/2 size-7"
                   onClick={() => table.getColumn(searchKey)?.setFilterValue("")}
+                  aria-label="Clear search"
                 >
                   <X className="size-3.5" />
                 </Button>
@@ -167,6 +168,8 @@ export function DataTableToolbarResponsive<TData extends RowData>({
               className="sm:hidden size-9 rounded-xl"
               onClick={() => setSearchOpen((prev) => !prev)}
               disabled={urlStatePending}
+              aria-label={searchOpen ? "Close search" : "Open search"}
+              aria-expanded={searchOpen}
             >
               <Search className="size-4" />
             </Button>
@@ -235,6 +238,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
               size="icon"
               onClick={onRefresh}
               disabled={isLoading}
+              aria-label="Refresh"
               className="size-9 rounded-xl"
             >
               <RefreshCw
@@ -323,6 +327,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
                 size="icon"
                 className="absolute right-1 top-1/2 -translate-y-1/2 size-8"
                 onClick={() => table.getColumn(searchKey)?.setFilterValue("")}
+                aria-label="Clear search"
               >
                 <X className="size-4" />
               </Button>

@@ -150,10 +150,6 @@ export function QuickGive({
     setHasDot(dot);
   }
 
-  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") handleGive();
-  }
-
   function handleGive() {
     if (!hasValue) {
       focusInput();
@@ -164,12 +160,17 @@ export function QuickGive({
     push(buildCheckoutHref({ workerId, amount: safeAmount }));
   }
 
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") handleGive();
+  }
+
   return (
     <div className={cn("flex justify-center", className)}>
+      {/* `layout` already animates the pill's size change with transforms;
+          animating `width` on top of it forced layout every frame. */}
       <motion.div
         layout
         onClick={focusInput}
-        animate={{ width: hasValue ? "auto" : undefined }}
         transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
         className={cn(
           "relative flex items-center overflow-hidden rounded-full border bg-background cursor-text",

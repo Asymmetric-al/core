@@ -127,6 +127,7 @@ function DataGridToolbar({
               size="icon"
               onClick={onUndo}
               disabled={!canUndo}
+              aria-label="Undo"
               className="size-9 rounded-xl"
             >
               <Undo className="size-4" />
@@ -136,6 +137,7 @@ function DataGridToolbar({
               size="icon"
               onClick={onRedo}
               disabled={!canRedo}
+              aria-label="Redo"
               className="size-9 rounded-xl"
             >
               <Redo className="size-4" />

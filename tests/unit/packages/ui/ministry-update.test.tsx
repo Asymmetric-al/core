@@ -588,6 +588,25 @@ describe("useEngagement", () => {
     );
   });
 
+  it("seeds the new update's baseline synchronously when the rendered updateId changes", () => {
+    const first = nextUpdateId();
+    const second = nextUpdateId();
+    const transport = createMemoryEngagementTransport();
+
+    const { result, rerender } = renderHook(
+      ({ update }) => useEngagement(update, { transport }),
+      { initialProps: { update: { id: first, like_count: 1 } } },
+    );
+    expect(result.current.snapshot.updateId).toBe(first);
+    expect(result.current.snapshot.love).toEqual({ count: 1, mine: false });
+
+    // The snapshot read during render must already come from the second
+    // update's baseline, not from a stale copy of the first one.
+    rerender({ update: { id: second, like_count: 9, user_liked: true } });
+    expect(result.current.snapshot.updateId).toBe(second);
+    expect(result.current.snapshot.love).toEqual({ count: 9, mine: true });
+  });
+
   it("shares one optimistic state across instances of the same update", async () => {
     const id = nextUpdateId();
     const transport = createMemoryEngagementTransport();

@@ -45,6 +45,17 @@ export type WorkerFeedPageViewModel = {
   handleResolveRequest: (id: string, approved: boolean) => void;
 };
 
+/** `fetch` resolves on HTTP errors; treat them as failed loads, not empty data. */
+async function readJsonOrThrow<T = unknown>(
+  response: Response,
+  what: string,
+): Promise<T> {
+  if (!response.ok) {
+    throw new Error(`Failed to load ${what} (${response.status})`);
+  }
+  return (await response.json()) as T;
+}
+
 export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   const [uiState, setUiState] = useState<WorkerFeedUiState>({
     postType: "Update",
@@ -186,12 +197,15 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     async (status: PostStatus = "published") => {
       try {
         const res = await fetch(`/api/posts?status=${status}`);
-        const data = await res.json();
+        const data = await readJsonOrThrow<{ posts?: Post[] }>(
+          res,
+          `${status} posts`,
+        );
         if (status === "published") setPosts(data.posts || []);
         else setDrafts(data.posts || []);
       } catch (err) {
         console.error("Failed to fetch posts:", err);
-        toast.error("Could not load feed");
+        toast.error("Could not load feed", { id: "worker-feed-load-error" });
       } finally {
         setIsLoading(false);
       }
@@ -203,10 +217,16 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     try {
       setIsLoadingRequests(true);
       const res = await fetch("/api/follower-requests?status=pending");
-      const data = await res.json();
+      const data = await readJsonOrThrow<{ requests?: FollowerRequest[] }>(
+        res,
+        "follower requests",
+      );
       setFollowerRequests(data.requests || []);
     } catch (err) {
       console.error("Failed to fetch follower requests:", err);
+      toast.error("Could not load follower requests", {
+        id: "worker-feed-follower-requests-load-error",
+      });
     } finally {
       setIsLoadingRequests(false);
     }

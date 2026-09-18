@@ -23,7 +23,11 @@ export function MissionBriefing({
   feeds,
   activeSupport,
 }: MissionBriefingProps) {
-  const briefingItems = feeds.filter((f) => activeSupport.includes(f.id));
+  const activeSupportIds = React.useMemo(
+    () => new Set(activeSupport),
+    [activeSupport],
+  );
+  const briefingItems = feeds.filter((f) => activeSupportIds.has(f.id));
 
   return (
     <Card className="bg-zinc-900 border-none shadow-xl overflow-hidden relative group rounded-xl">

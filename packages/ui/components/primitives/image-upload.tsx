@@ -201,6 +201,7 @@ function ImageUploadDefaultContent({
                 e.stopPropagation();
                 onRemove();
               }}
+              aria-label="Remove image"
               className="absolute -top-1 -right-1 bg-rose-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <X className="size-3" />
