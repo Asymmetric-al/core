@@ -395,6 +395,11 @@ type DonorsPageViewModel = {
   };
 };
 
+const EMPTY_TAG_DRAFT: { donorId: string | null; tags: string[] } = {
+  donorId: null,
+  tags: [],
+};
+
 export function useDonorsPageView(): DonorsPageViewModel {
   const { profile, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
@@ -413,7 +418,12 @@ export function useDonorsPageView(): DonorsPageViewModel {
   const [isNoteDialogOpen, setIsNoteDialogOpen] = React.useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = React.useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
-  const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
+  // Tag edits are stored with the partner they belong to and derived below, so
+  // switching partners never needs an effect to copy tags into state.
+  const [tagDraft, setTagDraft] = React.useState<{
+    donorId: string | null;
+    tags: string[];
+  }>(EMPTY_TAG_DRAFT);
   const [isSavingTags, setIsSavingTags] = React.useState(false);
   const [isSavingNote, setIsSavingNote] = React.useState(false);
   const [activityType, setActivityType] = React.useState<
@@ -570,11 +580,15 @@ export function useDonorsPageView(): DonorsPageViewModel {
     [selectedDonorId],
   );
 
-  React.useEffect(() => {
-    if (!selectedDonor) return;
-    setSelectedTags(selectedDonor.tags || []);
-    // Key on id only: refreshing donor rows must not wipe in-progress tag edits for the same partner.
-  }, [selectedDonor?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- sync when selected partner id changes
+  // Refreshing donor rows keeps in-progress tag edits for the same partner;
+  // selecting another partner falls back to that partner's saved tags.
+  const selectedTags = React.useMemo(
+    () =>
+      selectedDonor && tagDraft.donorId === selectedDonor.id
+        ? tagDraft.tags
+        : (selectedDonor?.tags ?? []),
+    [selectedDonor, tagDraft],
+  );
 
   const copyToClipboard = React.useCallback((text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -583,10 +597,12 @@ export function useDonorsPageView(): DonorsPageViewModel {
 
   const selectDonorById = React.useCallback((id: string) => {
     setSelectedDonorId(id);
+    setTagDraft(EMPTY_TAG_DRAFT);
   }, []);
 
   const clearSelectedDonor = React.useCallback(() => {
     setSelectedDonorId(null);
+    setTagDraft(EMPTY_TAG_DRAFT);
   }, []);
 
   const toggleFilterTag = React.useCallback((tagId: string) => {
@@ -664,9 +680,21 @@ export function useDonorsPageView(): DonorsPageViewModel {
     }
   }, [selectedDonor, selectedTags, handleRefreshDonors]);
 
-  const toggleTag = React.useCallback((tagId: string) => {
-    setSelectedTags((prev) => toggleTagSelection(prev, tagId));
-  }, []);
+  const toggleTag = React.useCallback(
+    (tagId: string) => {
+      if (!selectedDonor) return;
+      const donorId = selectedDonor.id;
+      const savedTags = selectedDonor.tags ?? [];
+      setTagDraft((prev) => ({
+        donorId,
+        tags: toggleTagSelection(
+          prev.donorId === donorId ? prev.tags : savedTags,
+          tagId,
+        ),
+      }));
+    },
+    [selectedDonor],
+  );
 
   const openEditDialog = React.useCallback(() => {
     if (!selectedDonor) return;

@@ -114,19 +114,18 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
     stickyHeader = false,
   } = config;
 
-  const [viewMode, setViewMode] = React.useState(defaultViewMode);
+  const [preferredViewMode, setViewMode] = React.useState(defaultViewMode);
   const isMobile = useMediaQuery(`(max-width: ${mobileBreakpoint - 1}px)`);
+  // Narrow viewports always render cards; derive the coercion instead of
+  // writing it back into state so the user's table preference survives a
+  // resize back to desktop.
+  const viewMode: typeof preferredViewMode =
+    isMobile && preferredViewMode === "table" ? "card" : preferredViewMode;
   const resolvedEnableVirtualization =
     enableVirtualization ?? configVirtualizationEnabled;
   const [advancedFilter, setAdvancedFilter] = React.useState(
     initialState.advancedFilter ?? createEmptyFilterState(),
   );
-
-  React.useEffect(() => {
-    if (isMobile && viewMode === "table") {
-      setViewMode("card");
-    }
-  }, [isMobile, viewMode]);
 
   const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(
     () => ({
