@@ -40,6 +40,18 @@ const STYLES = {
   light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
 };
 
+const MAPLIBRE_PUBLIC_WORKER_URL = "/maplibre/maplibre-gl-worker.mjs";
+
+function ensureMaplibreWorkerUrl() {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (maplibregl.getWorkerUrl()) {
+    return;
+  }
+  maplibregl.setWorkerUrl(MAPLIBRE_PUBLIC_WORKER_URL);
+}
+
 type InitialViewState = {
   longitude: number;
   latitude: number;
@@ -141,6 +153,7 @@ export function Map({
     const initialZoom = initialViewState?.zoom ?? zoom ?? 2;
 
     try {
+      ensureMaplibreWorkerUrl();
       const map = new maplibregl.Map({
         container: containerRef.current,
         style: initialStyle,
