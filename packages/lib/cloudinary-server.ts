@@ -49,9 +49,11 @@ export function generateCloudinarySignature(
       .map((key) => `${key}=${String(signatureParams[key])}`)
       .join("&") + apiSecret;
 
-  // Generate SHA-1 hash
+  // Cloudinary validates SHA-1 and SHA-256 digests interchangeably
+  // (https://cloudinary.com/documentation/authentication_signatures); use the
+  // collision-resistant one.
   const signature = crypto
-    .createHash("sha1")
+    .createHash("sha256")
     .update(signatureString)
     .digest("hex");
 
