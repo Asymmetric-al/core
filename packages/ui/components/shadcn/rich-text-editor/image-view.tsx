@@ -89,6 +89,28 @@ function ResizableImageView({
     };
   }
 
+  /** Keyboard alternative to dragging: arrow keys nudge the width by 10px (50px with Shift). */
+  function handleResizeKeyDown(
+    event: React.KeyboardEvent<HTMLDivElement>,
+    side: "left" | "right",
+  ) {
+    const grows =
+      (side === "right" && event.key === "ArrowRight") ||
+      (side === "left" && event.key === "ArrowLeft");
+    const shrinks =
+      (side === "right" && event.key === "ArrowLeft") ||
+      (side === "left" && event.key === "ArrowRight");
+    if (!grows && !shrinks) return;
+
+    event.preventDefault();
+    const step = (event.shiftKey ? 50 : 10) * (grows ? 1 : -1);
+    const parentWidth =
+      containerRef.current?.parentElement?.offsetWidth ?? Infinity;
+    const startWidth = imgRef.current?.offsetWidth ?? 0;
+    const newWidth = Math.max(150, Math.min(startWidth + step, parentWidth));
+    updateAttributes({ width: `${newWidth}px` });
+  }
+
   useEffect(() => {
     if (!resizing) return;
 
@@ -154,6 +176,8 @@ function ResizableImageView({
               role="separator"
               aria-label="Resize image from the left"
               aria-orientation="vertical"
+              tabIndex={0}
+              onKeyDown={(e) => handleResizeKeyDown(e, "left")}
               className="absolute inset-y-0 left-0 z-20 flex w-6 cursor-col-resize items-center justify-start pl-1.5"
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -171,6 +195,8 @@ function ResizableImageView({
               role="separator"
               aria-label="Resize image from the right"
               aria-orientation="vertical"
+              tabIndex={0}
+              onKeyDown={(e) => handleResizeKeyDown(e, "right")}
               className="absolute inset-y-0 right-0 z-20 flex w-6 cursor-col-resize items-center justify-end pr-2"
               onMouseDown={(e) => {
                 e.preventDefault();

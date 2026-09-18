@@ -158,18 +158,32 @@ export function useColumnResizing(
 
 export function ColumnResizeHandle({
   onResize,
+  onKeyboardResize,
   className,
 }: {
   onResize: (e: React.MouseEvent | React.TouchEvent) => void;
+  /**
+   * Keyboard alternative to dragging; receives the width delta in px
+   * (ArrowLeft/ArrowRight move by 10px, 50px with Shift).
+   */
+  onKeyboardResize?: (deltaPx: number) => void;
   className?: string;
 }) {
   return (
     <div
       onMouseDown={onResize}
       onTouchStart={onResize}
+      onKeyDown={(e) => {
+        if (!onKeyboardResize) return;
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        const step = e.shiftKey ? 50 : 10;
+        onKeyboardResize(e.key === "ArrowRight" ? step : -step);
+      }}
       role="separator"
       aria-label="Resize column"
       aria-orientation="vertical"
+      tabIndex={0}
       className={
         className ??
         "absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none bg-transparent hover:bg-primary/50 active:bg-primary transition-colors"

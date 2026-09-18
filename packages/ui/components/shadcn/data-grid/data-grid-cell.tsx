@@ -91,20 +91,13 @@ export function DataGridCell({
     if (!isEditing && !isSelected) {
       const selectedOption = options.find((opt) => opt.value === value);
       return (
-        <div
-          className={cn(cellClassName, "cursor-pointer")}
+        <button
+          type="button"
+          className={cn(cellClassName, "block cursor-pointer text-left")}
           onClick={onStartEdit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onStartEdit();
-            }
-          }}
-          role="button"
-          tabIndex={0}
         >
           {selectedOption?.label ?? String(value ?? "")}
-        </div>
+        </button>
       );
     }
 
@@ -138,25 +131,25 @@ export function DataGridCell({
 
   if (!isEditing) {
     return (
-      <div
-        className={cn(cellClassName, "cursor-cell truncate")}
+      <button
+        type="button"
+        className={cn(cellClassName, "block cursor-cell truncate text-left")}
         onDoubleClick={onStartEdit}
         onClick={isSelected ? onStartEdit : undefined}
         onKeyDown={(e) => {
+          // Enter/Space start editing even before the cell is selected.
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             onStartEdit();
           }
         }}
-        role="button"
-        tabIndex={0}
       >
         {cellType === "number" && typeof value === "number"
           ? value.toLocaleString()
           : cellType === "date" && value
             ? formatDate(String(value))
             : String(value ?? "")}
-      </div>
+      </button>
     );
   }
 

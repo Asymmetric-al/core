@@ -14,7 +14,11 @@ export default function HeroPublicLayout({
   return (
     <>
       <Navbar variant="hero" />
-      {children}
+      {/* Target of the navbar's "Skip to main content" link on every public
+          route; pages keep their own <main> landmark inside. */}
+      <div id="main-content" tabIndex={-1} className="outline-none">
+        {children}
+      </div>
     </>
   );
 }
