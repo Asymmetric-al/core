@@ -7,6 +7,7 @@ import { useTanStackTableDevtools } from "@tanstack/react-table-devtools";
 import * as React from "react";
 
 import { createEmptyFilterState, createAdvancedFilterFn } from "../filters";
+import { useNotifyingState } from "./use-notifying-state";
 import {
   type ColumnFiltersState,
   type SortingState,
@@ -114,23 +115,28 @@ export function useDataTableWithLiveQuery<
   TContext
 >): UseDataTableWithLiveQueryReturn<TData> {
   const queryClient = useQueryClient();
-  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
+  const [rowSelection, setRowSelection] = useNotifyingState<RowSelectionState>(
     initialState.rowSelection ?? {},
+    onRowSelectionChange,
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>(initialState.columnVisibility ?? {});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    initialState.columnFilters ?? [],
-  );
-  const [sorting, setSorting] = React.useState<SortingState>(
+  const [columnFilters, setColumnFilters] =
+    useNotifyingState<ColumnFiltersState>(
+      initialState.columnFilters ?? [],
+      onFiltersChange,
+    );
+  const [sorting, setSorting] = useNotifyingState<SortingState>(
     initialState.sorting ?? [],
+    onSortingChange,
   );
   const [pagination, setPagination] = React.useState<PaginationState>(
     initialState.pagination ?? { pageIndex: 0, pageSize },
   );
   const [advancedFilter, setAdvancedFilter] =
-    React.useState<AdvancedFilterState>(
+    useNotifyingState<AdvancedFilterState>(
       initialState.advancedFilter ?? createEmptyFilterState(),
+      onAdvancedFilterChange,
     );
 
   // `readonly string[]` from `queryKey` is not inferred as `unknown[]`; without a mutable
@@ -174,22 +180,6 @@ export function useDataTableWithLiveQuery<
       }),
     );
   }, [rawData, advancedFilterFn]);
-
-  React.useEffect(() => {
-    onRowSelectionChange?.(rowSelection);
-  }, [rowSelection, onRowSelectionChange]);
-
-  React.useEffect(() => {
-    onSortingChange?.(sorting);
-  }, [sorting, onSortingChange]);
-
-  React.useEffect(() => {
-    onFiltersChange?.(columnFilters);
-  }, [columnFilters, onFiltersChange]);
-
-  React.useEffect(() => {
-    onAdvancedFilterChange?.(advancedFilter);
-  }, [advancedFilter, onAdvancedFilterChange]);
 
   const tableOptions: TableOptions<TData> = {
     features: dataTableFeatures,
@@ -236,7 +226,7 @@ export function useDataTableWithLiveQuery<
 
   const clearSelection = React.useCallback(() => {
     setRowSelection({});
-  }, []);
+  }, [setRowSelection]);
 
   const refetch = React.useCallback(() => {
     if (queryKey?.length) {
