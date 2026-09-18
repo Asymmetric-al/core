@@ -205,7 +205,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         else setDrafts(data.posts || []);
       } catch (err) {
         console.error("Failed to fetch posts:", err);
-        toast.error("Could not load feed");
+        toast.error("Could not load feed", { id: "worker-feed-load-error" });
       } finally {
         setIsLoading(false);
       }
@@ -224,6 +224,9 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
       setFollowerRequests(data.requests || []);
     } catch (err) {
       console.error("Failed to fetch follower requests:", err);
+      toast.error("Could not load follower requests", {
+        id: "worker-feed-follower-requests-load-error",
+      });
     } finally {
       setIsLoadingRequests(false);
     }
