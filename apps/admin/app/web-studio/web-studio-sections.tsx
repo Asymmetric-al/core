@@ -529,6 +529,8 @@ export function WebStudioPreviewRail({
           <button
             type="button"
             onClick={() => onPreviewModeChange("mobile")}
+            aria-label="Mobile preview"
+            aria-pressed={previewMode === "mobile"}
             className={cn(
               "p-1.5 rounded-md transition-[color,background-color,box-shadow]",
               previewMode === "mobile"
@@ -541,6 +543,8 @@ export function WebStudioPreviewRail({
           <button
             type="button"
             onClick={() => onPreviewModeChange("desktop")}
+            aria-label="Desktop preview"
+            aria-pressed={previewMode === "desktop"}
             className={cn(
               "p-1.5 rounded-md transition-[color,background-color,box-shadow]",
               previewMode === "desktop"

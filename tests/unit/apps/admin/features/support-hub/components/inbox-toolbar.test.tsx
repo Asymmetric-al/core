@@ -56,7 +56,9 @@ describe("SupportFailureBanner", () => {
     const banner = screen.getByRole("status");
     expect(banner.textContent).toContain("Reply failed");
     expect(banner.textContent).toContain("Network down");
-    expect(banner.getAttribute("aria-live")).toBe("assertive");
+    // The failing mutation already raises an error toast; the persistent
+    // banner is a recovery affordance, so it must not interrupt speech.
+    expect(banner.getAttribute("aria-live")).toBe("polite");
     expect(screen.getByRole("button", { name: /retry/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /dismiss/i })).toBeTruthy();
   });

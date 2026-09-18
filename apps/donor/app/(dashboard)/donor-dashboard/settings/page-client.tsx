@@ -104,6 +104,8 @@ const PasswordInput = ({
         <button
           type="button"
           onClick={() => setIsVisible(!isVisible)}
+          aria-label={`${isVisible ? "Hide" : "Show"} ${label}`}
+          aria-pressed={isVisible}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors focus:outline-none"
         >
           {isVisible ? (

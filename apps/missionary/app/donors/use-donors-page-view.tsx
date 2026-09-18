@@ -1197,6 +1197,7 @@ export function DonorsPageContent({
                           {statusFilter}
                           <button
                             onClick={() => setStatusFilter("All")}
+                            aria-label={`Remove ${statusFilter} filter`}
                             className="ml-1 hover:text-zinc-900"
                           >
                             <X className="size-2.5" />
@@ -1219,6 +1220,7 @@ export function DonorsPageContent({
                             : "No Recurring"}
                           <button
                             onClick={() => setPledgeFilter("All")}
+                            aria-label={`Remove ${pledgeFilter === "Active" ? "Recurring" : "No Recurring"} filter`}
                             className="ml-1 hover:text-blue-900"
                           >
                             <X className="size-2.5" />
@@ -1243,6 +1245,7 @@ export function DonorsPageContent({
                           {getTagLabel(tag)}
                           <button
                             onClick={() => removeFilterTag(tag)}
+                            aria-label={`Remove ${getTagLabel(tag)} filter`}
                             className="ml-1"
                           >
                             <X className="size-2.5" />
@@ -2107,6 +2110,7 @@ export function DonorsPageContent({
                                         }
                                         target="_blank"
                                         rel="noopener noreferrer"
+                                        aria-label="Open website in new tab"
                                         className={cn(
                                           buttonVariants({
                                             variant: "ghost",
@@ -2176,6 +2180,7 @@ export function DonorsPageContent({
                                           href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.address).join(", "))}`}
                                           target="_blank"
                                           rel="noopener noreferrer"
+                                          aria-label="Open address in Google Maps"
                                           className={cn(
                                             buttonVariants({
                                               variant: "ghost",

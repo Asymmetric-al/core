@@ -356,6 +356,7 @@ export function ActiveFilters({
             <button
               type="button"
               onClick={() => removeCondition(condition.id)}
+              aria-label={`Remove ${field.label} filter`}
               className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5"
             >
               <XIcon className="size-3" />
