@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { fetchResult, readErrorMessage } from "@asym/lib/http/fetch-result";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useReducer, useState } from "react";
 import { toast } from "sonner";
 
@@ -28,7 +29,6 @@ type ProfilePageUiState = {
   previewMode: PreviewMode;
   saveSuccess: boolean;
   copiedLink: boolean;
-  fetchError: string | null;
   validationErrors: ValidationErrors;
 };
 
@@ -40,7 +40,6 @@ type ProfilePageUiAction =
     }
   | { type: "SET_SAVE_SUCCESS"; payload: boolean }
   | { type: "SET_COPIED_LINK"; payload: boolean }
-  | { type: "SET_FETCH_ERROR"; payload: string | null }
   | {
       type: "SET_VALIDATION_ERRORS";
       payload:
@@ -66,8 +65,6 @@ function profilePageUiReducer(
       return { ...state, saveSuccess: action.payload };
     case "SET_COPIED_LINK":
       return { ...state, copiedLink: action.payload };
-    case "SET_FETCH_ERROR":
-      return { ...state, fetchError: action.payload };
     case "SET_VALIDATION_ERRORS": {
       const next =
         typeof action.payload === "function"
@@ -85,7 +82,6 @@ const initialUiState: ProfilePageUiState = {
   previewMode: "mobile",
   saveSuccess: false,
   copiedLink: false,
-  fetchError: null,
   validationErrors: {},
 };
 
@@ -110,14 +106,8 @@ export type ProfilePageViewModel = {
 
 export function useProfilePageView(): ProfilePageViewModel {
   const [uiState, dispatch] = useReducer(profilePageUiReducer, initialUiState);
-  const {
-    isSaving,
-    previewMode,
-    saveSuccess,
-    copiedLink,
-    fetchError,
-    validationErrors,
-  } = uiState;
+  const { isSaving, previewMode, saveSuccess, copiedLink, validationErrors } =
+    uiState;
 
   const setIsSaving = useCallback((value: boolean) => {
     dispatch({ type: "SET_IS_SAVING", payload: value });
@@ -134,9 +124,6 @@ export function useProfilePageView(): ProfilePageViewModel {
   const setCopiedLink = useCallback((value: boolean) => {
     dispatch({ type: "SET_COPIED_LINK", payload: value });
   }, []);
-  const setFetchError = useCallback((value: string | null) => {
-    dispatch({ type: "SET_FETCH_ERROR", payload: value });
-  }, []);
   const setValidationErrors = useCallback(
     (value: React.SetStateAction<ValidationErrors>) => {
       dispatch({ type: "SET_VALIDATION_ERRORS", payload: value });
@@ -144,15 +131,7 @@ export function useProfilePageView(): ProfilePageViewModel {
     [],
   );
 
-  const [profile, setProfile] = useState<ProfileData>(initialProfile);
-  const [originalProfile, setOriginalProfile] =
-    useState<ProfileData>(initialProfile);
-
-  const initials =
-    (profile.firstName?.[0] || "") + (profile.lastName?.[0] || "");
-  const bioWordCount = countWords(profile.bio);
-  const hasChanges = hasProfileChanges(profile, originalProfile);
-
+  const queryClient = useQueryClient();
   const profileQuery = useQuery<ProfileData | null>({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -179,36 +158,28 @@ export function useProfilePageView(): ProfilePageViewModel {
     refetchOnWindowFocus: false,
   });
 
-  // State (not a ref) because `isLoading` is derived from it during render.
-  const [hasInitializedProfile, setHasInitializedProfile] = useState(false);
+  // The query cache is the saved baseline; `draft` holds only the user's
+  // unsaved edits, so nothing has to be copied into state when data arrives.
+  const originalProfile = profileQuery.data ?? initialProfile;
+  const [draft, setDraft] = useState<ProfileData | null>(null);
+  const profile = draft ?? originalProfile;
 
-  const initializeProfileFromQuery = useCallback(
-    (nextProfile: ProfileData) => {
-      setFetchError(null);
-      setProfile(nextProfile);
-      setOriginalProfile(nextProfile);
-      setHasInitializedProfile(true);
-    },
-    [setFetchError],
-  );
+  const initials =
+    (profile.firstName?.[0] || "") + (profile.lastName?.[0] || "");
+  const bioWordCount = countWords(profile.bio);
+  const hasChanges = hasProfileChanges(profile, originalProfile);
 
-  useEffect(() => {
-    if (hasInitializedProfile) return;
-    if (!profileQuery.data) return;
-    initializeProfileFromQuery(profileQuery.data);
-  }, [hasInitializedProfile, profileQuery.data, initializeProfileFromQuery]);
+  const fetchError = profileQuery.error
+    ? profileQuery.error instanceof Error
+      ? profileQuery.error.message
+      : "Failed to load profile"
+    : null;
 
   useEffect(() => {
-    if (!profileQuery.error) return;
-    const message =
-      profileQuery.error instanceof Error
-        ? profileQuery.error.message
-        : "Failed to load profile";
-    setFetchError(message);
-    toast.error(message);
-  }, [profileQuery.error, setFetchError]);
+    if (fetchError) toast.error(fetchError);
+  }, [fetchError]);
 
-  const isLoading = profileQuery.isPending && !hasInitializedProfile;
+  const isLoading = profileQuery.isPending;
 
   const validateProfile = useCallback((): boolean => {
     const errors: ValidationErrors = {};
@@ -256,12 +227,12 @@ export function useProfilePageView(): ProfilePageViewModel {
 
   const updateProfile = useCallback(
     (field: keyof ProfileData, value: string) => {
-      setProfile((prev) => ({ ...prev, [field]: value }));
+      setDraft((prev) => ({ ...(prev ?? originalProfile), [field]: value }));
       if (validationErrors[field as keyof ValidationErrors]) {
         setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
       }
     },
-    [validationErrors, setValidationErrors],
+    [originalProfile, validationErrors, setValidationErrors],
   );
 
   const handleSave = useCallback(async () => {
@@ -271,51 +242,52 @@ export function useProfilePageView(): ProfilePageViewModel {
     }
 
     setIsSaving(true);
-    try {
-      const res = await fetch("/api/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          bio: profile.bio,
-          tagline: profile.ministryFocus,
-          location: profile.location,
-          phone: profile.phone,
-          coverUrl: profile.coverUrl,
-          socialLinks: {
-            facebook: profile.facebook,
-            instagram: profile.instagram,
-            twitter: profile.twitter,
-            youtube: profile.youtube,
-            website: profile.website,
-          },
-        }),
-      });
-      if (res.ok) {
-        setOriginalProfile(profile);
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
-        toast.success("Profile saved");
-      } else {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to save profile");
-      }
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to save profile";
-      console.error("Failed to save profile:", error);
-      toast.error(errorMessage);
-    } finally {
-      setIsSaving(false);
+    // fetchResult never throws, so no try/finally is needed here (the React
+    // Compiler cannot lower those yet); HTTP error payloads arrive as data.
+    const result = await fetchResult("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        bio: profile.bio,
+        tagline: profile.ministryFocus,
+        location: profile.location,
+        phone: profile.phone,
+        coverUrl: profile.coverUrl,
+        socialLinks: {
+          facebook: profile.facebook,
+          instagram: profile.instagram,
+          twitter: profile.twitter,
+          youtube: profile.youtube,
+          website: profile.website,
+        },
+      }),
+    });
+    setIsSaving(false);
+
+    if (result.ok) {
+      queryClient.setQueryData<ProfileData | null>(["profile"], profile);
+      setDraft(null);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+      toast.success("Profile saved");
+      return;
     }
-  }, [profile, setIsSaving, setSaveSuccess, validateProfile]);
+
+    const errorMessage =
+      (result.error.kind === "http" &&
+        readErrorMessage(result.error.payload)) ||
+      "Failed to save profile";
+    console.error("Failed to save profile:", result.error);
+    toast.error(errorMessage);
+  }, [profile, queryClient, setIsSaving, setSaveSuccess, validateProfile]);
 
   const handleDiscard = useCallback(() => {
-    setProfile(originalProfile);
+    setDraft(null);
     setValidationErrors({});
     toast.info("Changes discarded");
-  }, [originalProfile, setValidationErrors]);
+  }, [setValidationErrors]);
 
   const handleCopyLink = useCallback(async () => {
     const link = `${window.location.origin}/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`;
