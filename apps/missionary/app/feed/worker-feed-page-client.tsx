@@ -2,6 +2,7 @@
 "use no memo";
 
 import { TimeAgo } from "@asym/lib/hooks";
+import { fetchResult } from "@asym/lib/http/fetch-result";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import { ReactionBar } from "@asym/ui/components/ministry-update";
 import { PageHeader } from "@asym/ui/components/page-header";
@@ -143,32 +144,34 @@ function FollowerRequestItem({
   const handleAction = async (action: "approve" | "ignore") => {
     setStatus("processing");
 
-    try {
-      const res = await fetch(`/api/follower-requests/${request.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: action === "approve" ? "approved" : "rejected",
-        }),
-      });
+    const result = await fetchResult(`/api/follower-requests/${request.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: action === "approve" ? "approved" : "rejected",
+      }),
+    });
 
-      if (!res.ok) throw new Error("Failed to update request");
-
-      setStatus(action === "approve" ? "approved" : "ignored");
-
-      setTimeout(() => {
-        if (!mountedRef.current) return;
-        setStatus("collapsing");
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          onResolve(request.id, action === "approve");
-        }, 400);
-      }, 1500);
-    } catch (error) {
-      console.error("Error resolving request:", error);
+    if (!result.ok) {
+      console.error(
+        "Error resolving request:",
+        new Error("Failed to update request", { cause: result.error }),
+      );
       setStatus("pending");
       toast.error("Failed to update request");
+      return;
     }
+
+    setStatus(action === "approve" ? "approved" : "ignored");
+
+    setTimeout(() => {
+      if (!mountedRef.current) return;
+      setStatus("collapsing");
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        onResolve(request.id, action === "approve");
+      }, 400);
+    }, 1500);
   };
 
   return (

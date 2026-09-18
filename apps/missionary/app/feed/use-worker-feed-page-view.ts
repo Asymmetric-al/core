@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchJsonResult, fetchResult } from "@asym/lib/http/fetch-result";
 import { isPostContentEmpty } from "@asym/ui/components/shadcn/rich-text-editor";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -13,7 +14,16 @@ import type {
   WorkerFeedUiState,
 } from "./feed-model";
 import type { MediaItem } from "@asym/database/types";
+import type { FetchFailure } from "@asym/lib/http/fetch-result";
 import type { SetStateAction } from "react";
+
+/** Keep console output an Error instance regardless of the failure kind. */
+function toError(failure: FetchFailure): Error {
+  if (failure.kind !== "http" && failure.cause instanceof Error) {
+    return failure.cause;
+  }
+  return new Error(failure.message);
+}
 
 export type WorkerFeedPageViewModel = {
   postType: string;
@@ -44,17 +54,6 @@ export type WorkerFeedPageViewModel = {
   handleDeletePost: (postId: string) => Promise<void>;
   handleResolveRequest: (id: string, approved: boolean) => void;
 };
-
-/** `fetch` resolves on HTTP errors; treat them as failed loads, not empty data. */
-async function readJsonOrThrow<T = unknown>(
-  response: Response,
-  what: string,
-): Promise<T> {
-  if (!response.ok) {
-    throw new Error(`Failed to load ${what} (${response.status})`);
-  }
-  return (await response.json()) as T;
-}
 
 export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   const [uiState, setUiState] = useState<WorkerFeedUiState>({
@@ -193,74 +192,75 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     toast.success("Image uploaded successfully!");
   };
 
-  const fetchPosts = useCallback(
-    async (status: PostStatus = "published") => {
-      try {
-        const res = await fetch(`/api/posts?status=${status}`);
-        const data = await readJsonOrThrow<{ posts?: Post[] }>(
-          res,
-          `${status} posts`,
-        );
-        if (status === "published") setPosts(data.posts || []);
-        else setDrafts(data.posts || []);
-      } catch (err) {
-        console.error("Failed to fetch posts:", err);
-        toast.error("Could not load feed");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [setIsLoading],
-  );
-
-  const fetchFollowerRequests = useCallback(async () => {
-    try {
-      setIsLoadingRequests(true);
-      const res = await fetch("/api/follower-requests?status=pending");
-      const data = await readJsonOrThrow<{ requests?: FollowerRequest[] }>(
-        res,
-        "follower requests",
-      );
-      setFollowerRequests(data.requests || []);
-    } catch (err) {
-      console.error("Failed to fetch follower requests:", err);
-    } finally {
-      setIsLoadingRequests(false);
-    }
-  }, [setIsLoadingRequests]);
-
+  // Initial loads. Requests go through the never-throwing fetch helpers, so
+  // no try/finally is needed (the React Compiler cannot lower those yet), and
+  // every state update happens after an await. `isLoading` and
+  // `isLoadingRequests` start as true, so nothing is set synchronously here.
   useEffect(() => {
-    fetchPosts("published");
-    fetchPosts("draft");
-    fetchFollowerRequests();
-  }, [fetchPosts, fetchFollowerRequests]);
+    let cancelled = false;
+
+    const loadPosts = async (status: PostStatus) => {
+      const result = await fetchJsonResult<{ posts?: Post[] }>(
+        `/api/posts?status=${status}`,
+      );
+      if (cancelled) return;
+      if (result.ok) {
+        if (status === "published") setPosts(result.data.posts || []);
+        else setDrafts(result.data.posts || []);
+      } else {
+        console.error("Failed to fetch posts:", toError(result.error));
+        toast.error("Could not load feed");
+      }
+      setIsLoading(false);
+    };
+
+    const loadFollowerRequests = async () => {
+      const result = await fetchJsonResult<{ requests?: FollowerRequest[] }>(
+        "/api/follower-requests?status=pending",
+      );
+      if (cancelled) return;
+      if (result.ok) {
+        setFollowerRequests(result.data.requests || []);
+      } else {
+        console.error(
+          "Failed to fetch follower requests:",
+          toError(result.error),
+        );
+      }
+      setIsLoadingRequests(false);
+    };
+
+    void loadPosts("published");
+    void loadPosts("draft");
+    void loadFollowerRequests();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [setIsLoading, setIsLoadingRequests]);
 
   const handlePost = useCallback(
     async (status: PostStatus = "published") => {
       if (isPostContentEmpty(postContent)) return;
 
       setIsSaving(true);
-      try {
-        const method = editingPostId ? "PATCH" : "POST";
-        const url = editingPostId
-          ? `/api/posts/${editingPostId}`
-          : "/api/posts";
+      const method = editingPostId ? "PATCH" : "POST";
+      const url = editingPostId ? `/api/posts/${editingPostId}` : "/api/posts";
 
-        const res = await fetch(url, {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            content: postContent,
-            post_type: postType,
-            visibility: postPrivacy,
-            status,
-            media: selectedMedia,
-          }),
-        });
+      const result = await fetchJsonResult<{ post: Post }>(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: postContent,
+          post_type: postType,
+          visibility: postPrivacy,
+          status,
+          media: selectedMedia,
+        }),
+      });
 
-        if (!res.ok) throw new Error("Failed to save post");
-
-        const { post } = await res.json();
+      if (result.ok) {
+        const { post } = result.data;
 
         if (status === "published") {
           if (editingPostId && activeTab === "draft") {
@@ -290,11 +290,10 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         setEditingPostId(null);
         setPostType("Update");
         setSelectedMedia([]);
-      } catch (_err) {
+      } else {
         toast.error("Failed to save");
-      } finally {
-        setIsSaving(false);
       }
+      setIsSaving(false);
     },
     [
       activeTab,
@@ -339,16 +338,17 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   const handleDeletePost = async (postId: string) => {
     if (!confirm("Are you sure you want to delete this?")) return;
 
-    try {
-      const res = await fetch(`/api/posts/${postId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete");
-
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
-      setDrafts((prev) => prev.filter((p) => p.id !== postId));
-      toast.success("Post deleted");
-    } catch (_err) {
+    const result = await fetchResult(`/api/posts/${postId}`, {
+      method: "DELETE",
+    });
+    if (!result.ok) {
       toast.error("Failed to delete");
+      return;
     }
+
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+    setDrafts((prev) => prev.filter((p) => p.id !== postId));
+    toast.success("Post deleted");
   };
 
   const handleResolveRequest = (id: string, approved: boolean) => {

@@ -628,23 +628,21 @@ export function useDonorsPageView(): DonorsPageViewModel {
     if (!selectedDonor || !noteInput.trim()) return;
 
     setIsSavingNote(true);
-    try {
-      const outcome = await insertDonorActivity({
-        donorId: selectedDonor.id,
-        activityType,
-        note: noteInput.trim(),
-      });
-      if (outcome.ok) {
-        toast.success("Activity logged successfully");
-        setNoteInput("");
-        setIsNoteDialogOpen(false);
-        handleRefreshDonors();
-      } else {
-        toast.error("Failed to add activity");
-        console.error(outcome.error);
-      }
-    } finally {
-      setIsSavingNote(false);
+    // Promise#finally clears the flag on every path without a try/finally
+    // clause, which the React Compiler cannot lower yet.
+    const outcome = await insertDonorActivity({
+      donorId: selectedDonor.id,
+      activityType,
+      note: noteInput.trim(),
+    }).finally(() => setIsSavingNote(false));
+    if (outcome.ok) {
+      toast.success("Activity logged successfully");
+      setNoteInput("");
+      setIsNoteDialogOpen(false);
+      handleRefreshDonors();
+    } else {
+      toast.error("Failed to add activity");
+      console.error(outcome.error);
     }
   }, [selectedDonor, noteInput, activityType, handleRefreshDonors]);
 
@@ -652,21 +650,17 @@ export function useDonorsPageView(): DonorsPageViewModel {
     if (!selectedDonor) return;
 
     setIsSavingTags(true);
-    try {
-      const outcome = await updateDonorTags({
-        donorId: selectedDonor.id,
-        tags: selectedTags,
-      });
-      if (outcome.ok) {
-        toast.success("Tags updated successfully");
-        setIsTagDialogOpen(false);
-        handleRefreshDonors();
-      } else {
-        toast.error("Failed to update tags");
-        console.error(outcome.error);
-      }
-    } finally {
-      setIsSavingTags(false);
+    const outcome = await updateDonorTags({
+      donorId: selectedDonor.id,
+      tags: selectedTags,
+    }).finally(() => setIsSavingTags(false));
+    if (outcome.ok) {
+      toast.success("Tags updated successfully");
+      setIsTagDialogOpen(false);
+      handleRefreshDonors();
+    } else {
+      toast.error("Failed to update tags");
+      console.error(outcome.error);
     }
   }, [selectedDonor, selectedTags, handleRefreshDonors]);
 

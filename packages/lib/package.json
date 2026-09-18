@@ -15,6 +15,7 @@
     "./monitoring": "./monitoring/index.ts",
     "./seo": "./seo/index.ts",
     "./html/sanitize": "./html/sanitize.ts",
+    "./http/fetch-result": "./http/fetch-result.ts",
     "./components/safe-html": "./components/safe-html.tsx",
     "./motion": "./motion.tsx",
     "./motion-presets": "./motion-presets.ts",
