@@ -12,6 +12,7 @@ import {
   formatSharedContributionAmount,
   SHARED_CRM_POST_STATUS_LABELS,
 } from "@asym/api/admin/contribution-shared";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { getInitials } from "@asym/lib/utils";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
@@ -61,6 +62,18 @@ import type {
   ContributionDesignationSet,
   SharedContributionCrmPostStatus,
 } from "@asym/database/types";
+
+const SHORT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+};
+
+const AUDIT_TIMESTAMP_FORMAT: Intl.DateTimeFormatOptions = {
+  ...SHORT_DATE_FORMAT,
+  hour: "numeric",
+  minute: "2-digit",
+};
 
 function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
@@ -350,6 +363,7 @@ export function ContributionDetailSheet({
   receiptDelivery,
   onDecided,
 }: ContributionDetailSheetProps) {
+  const { formatDate, formatDateTime } = useLocaleFormat();
   const open = isOpen ?? Boolean(contribution);
   const donorDisplayName = contribution
     ? contribution.isAnonymous
@@ -598,7 +612,7 @@ export function ContributionDetailSheet({
         {/* ---- Details grid ---- */}
         <div className="grid grid-cols-2 gap-6">
           <DetailField label="Date">
-            {date.toLocaleDateString("en-US", {
+            {formatDate(date, {
               weekday: "short",
               month: "short",
               day: "numeric",
@@ -1112,26 +1126,20 @@ export function ContributionDetailSheet({
                     {" · "}
                     {recurring.agreement.status ?? "active"}
                     {recurring.agreement.nextExpectedGiftAt
-                      ? ` · Next expected ${makeDisplayDate(
+                      ? ` · Next expected ${formatDate(
                           recurring.agreement.nextExpectedGiftAt,
-                        ).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}`
+                          SHORT_DATE_FORMAT,
+                        )}`
                       : null}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Gifts under this agreement:{" "}
                     {recurring.agreement.linkedGiftCount}
                     {recurring.agreement.lastLinkedGiftAt
-                      ? ` · Last gift ${makeDisplayDate(
+                      ? ` · Last gift ${formatDate(
                           recurring.agreement.lastLinkedGiftAt,
-                        ).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}`
+                          SHORT_DATE_FORMAT,
+                        )}`
                       : null}
                   </p>
                   {recurring.agreement.stripeSubscriptionId && (
@@ -1197,24 +1205,12 @@ export function ContributionDetailSheet({
         <div className="pt-2 space-y-1">
           <p className="text-[10px] text-muted-foreground font-semibold">
             Created{" "}
-            {makeDisplayDate(contribution.createdAt).toLocaleString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            })}
+            {formatDateTime(contribution.createdAt, AUDIT_TIMESTAMP_FORMAT)}
           </p>
           {contribution.updatedAt !== contribution.createdAt && (
             <p className="text-[10px] text-muted-foreground font-semibold">
               Updated{" "}
-              {makeDisplayDate(contribution.updatedAt).toLocaleString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })}
+              {formatDateTime(contribution.updatedAt, AUDIT_TIMESTAMP_FORMAT)}
             </p>
           )}
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
@@ -15,12 +16,6 @@ import {
 } from "../select";
 
 import type { DataGridCellType, DataGridColumnOption } from "./types";
-
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
 
 interface DataGridCellProps {
   value: unknown;
@@ -48,6 +43,7 @@ export function DataGridCell({
   className,
 }: DataGridCellProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const { formatDate } = useLocaleFormat();
 
   React.useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -158,7 +154,7 @@ export function DataGridCell({
         {cellType === "number" && typeof value === "number"
           ? value.toLocaleString()
           : cellType === "date" && value
-            ? makeDisplayDate(String(value)).toLocaleDateString()
+            ? formatDate(String(value))
             : String(value ?? "")}
       </div>
     );

@@ -1,6 +1,7 @@
 "use client";
 
 import { EVE_POLICY_ACTION_IDS } from "@asym/api/eve/approval-budget";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import {
   Alert,
@@ -112,6 +113,7 @@ function formatNumber(value: number) {
 
 export function EveApprovalBudgetPanel() {
   const client = useQueryClient();
+  const { formatDateTime } = useLocaleFormat();
   const [actionId, setActionId] = useState<EvePolicyActionId>(
     "engineering.review_artifact.write",
   );
@@ -373,7 +375,7 @@ export function EveApprovalBudgetPanel() {
                     <p className="text-xs text-muted-foreground">
                       {approval.targetKey} · {approval.trustZone} ·{" "}
                       {approval.approvalLevel} · expires{" "}
-                      {new Date(approval.expiresAt).toLocaleString()}
+                      {formatDateTime(approval.expiresAt)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

@@ -6,6 +6,7 @@ import {
   type EveKillSwitchKey,
   type EveKillSwitchMutationResult,
 } from "@asym/api/eve/governance/types";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Alert,
@@ -167,12 +168,10 @@ function formatPolicyStatus(status: string): string {
   return `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}`;
 }
 
-function formatTimestamp(timestamp: string): string {
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(timestamp));
-}
+const TIMESTAMP_FORMAT: Intl.DateTimeFormatOptions = {
+  dateStyle: "medium",
+  timeStyle: "short",
+};
 
 function StatusCard({
   description,
@@ -308,6 +307,7 @@ export function EveGovernanceView({
   onConfirmKillSwitch?: (request: KillSwitchConfirmationRequest) => void;
   onSetKillSwitch?: (switchKey: EveKillSwitchKey, enabled: boolean) => void;
 }) {
+  const { formatDateTime } = useLocaleFormat();
   if (isLoading) {
     return (
       <div
@@ -540,7 +540,7 @@ export function EveGovernanceView({
                   <div className="text-right">
                     <Badge variant="destructive">Failed</Badge>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {formatTimestamp(failure.timestamp)}
+                      {formatDateTime(failure.timestamp, TIMESTAMP_FORMAT)}
                     </p>
                   </div>
                 </li>
@@ -583,7 +583,7 @@ export function EveGovernanceView({
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           {event.actorId} · {event.identityMode} ·{" "}
-                          {formatTimestamp(event.createdAt)}
+                          {formatDateTime(event.createdAt, TIMESTAMP_FORMAT)}
                         </p>
                       </div>
                       <Badge

@@ -1,6 +1,7 @@
 "use client";
 
 import { EVE_LAUNCH_CANARY_IDS } from "@asym/api/eve/launch-readiness";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
@@ -103,6 +104,7 @@ function launchStatusVariant(status: string) {
 
 export function EveLaunchReadinessPanel() {
   const queryClient = useQueryClient();
+  const { formatDateTime } = useLocaleFormat();
   const [manifestJson, setManifestJson] = useState("");
   const [profileId, setProfileId] = useState("");
   const [reason, setReason] = useState("");
@@ -472,7 +474,7 @@ export function EveLaunchReadinessPanel() {
               Active 15-minute canary
             </h3>
             <p className="text-xs text-muted-foreground">
-              Deadline: {new Date(launch.canaryDeadline).toLocaleString()}
+              Deadline: {formatDateTime(launch.canaryDeadline)}
             </p>
             <div className="flex flex-wrap gap-2">
               <Button
