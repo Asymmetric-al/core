@@ -1130,6 +1130,9 @@ function NativePdfDocumentBuilderSection({
         <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto]">
           <iframe
             title="Native PDF authoring preview"
+            // The print document is static markup plus inline CSS (no
+            // scripts), so the same sandbox as the email preview applies.
+            sandbox="allow-same-origin"
             srcDoc={preview.html}
             className="h-full w-full bg-white"
           />
@@ -1487,7 +1490,7 @@ function usePDFStudioController() {
     const result = await runExportPdf(editorRef.current);
     if (result.ok) {
       if (result.url) {
-        window.open(result.url, "_blank");
+        window.open(result.url, "_blank", "noopener,noreferrer");
         toast.success("PDF exported successfully", {
           description: "Your PDF is ready for download",
           duration: 4000,
