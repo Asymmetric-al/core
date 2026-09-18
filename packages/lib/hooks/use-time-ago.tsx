@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 
+import { useIsHydrated, useLocaleFormat } from "./use-locale-format";
+
 export interface TimeAgoOptions {
   updateInterval?: number;
   shortFormat?: boolean;
@@ -45,8 +47,6 @@ export function formatDate(
   );
 }
 
-const emptySubscribe = () => () => {};
-
 function useNow(updateInterval?: number): number {
   const intervalMs = updateInterval && updateInterval > 0 ? updateInterval : 0;
 
@@ -69,20 +69,12 @@ function useNow(updateInterval?: number): number {
   );
 }
 
-function useIsClient(): boolean {
-  return useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false,
-  );
-}
-
 export function useTimeAgo(
   dateString: string,
   options?: TimeAgoOptions,
 ): string {
   const { updateInterval, shortFormat = false } = options ?? {};
-  const isClient = useIsClient();
+  const isClient = useIsHydrated();
   const now = useNow(updateInterval);
 
   return useMemo(() => {
@@ -112,16 +104,13 @@ export function TimeAgo({
 }
 
 export function useLastSynced(): string {
-  const isClient = useIsClient();
+  const { hydrated, formatTime } = useLocaleFormat();
 
   return useMemo(() => {
-    if (!isClient) {
+    if (!hydrated) {
       return "";
     }
 
-    return new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }, [isClient]);
+    return formatTime(new Date(), { hour: "2-digit", minute: "2-digit" });
+  }, [formatTime, hydrated]);
 }

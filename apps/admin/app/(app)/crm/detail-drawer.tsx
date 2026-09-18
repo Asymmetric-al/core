@@ -4,6 +4,7 @@ import {
   useAdminCrmRecordDetail,
   useCreateLinkedCrmNote,
 } from "@asym/database/hooks";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import {
@@ -43,7 +44,7 @@ import { FileText, History, Paperclip, User, X } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
-import { EMPTY_CELL_VALUE, makeDisplayDate } from "./crm-detail-shared";
+import { EMPTY_CELL_VALUE } from "./crm-detail-shared";
 import { GiftHistorySection } from "./gift-history-section";
 import { PORTAL_BADGE_CLASS } from "./types";
 
@@ -61,6 +62,7 @@ export function DetailDrawer({
   /** Notifies the host after an inline operation refreshes shared row data. */
   onRowRefresh?: () => void;
 }) {
+  const { formatDate } = useLocaleFormat();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [noteBody, setNoteBody] = useState("");
   const noteFieldId = useId();
@@ -408,9 +410,7 @@ export function DetailDrawer({
                                 {act.title}
                               </span>
                               <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">
-                                {makeDisplayDate(
-                                  act.occurredAt,
-                                ).toLocaleDateString()}
+                                {formatDate(act.occurredAt)}
                               </span>
                             </div>
                             {act.description && (
