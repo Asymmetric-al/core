@@ -1,5 +1,6 @@
 "use client";
 
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
@@ -110,19 +111,21 @@ function StandardPageFromTemplateViewContent() {
         }),
       });
 
-      const body = (await res.json().catch(() => ({}))) as {
+      // Read the payload for both branches (error responses carry data) with
+      // the status check made before the body is consumed.
+      const { ok, body } = await readJsonBody<{
         id?: string;
         collectionSlug?: string;
         error?: string;
         existingId?: string;
-      };
+      }>(res);
 
-      if (!res.ok) {
-        setSubmitError(body.error ?? "Create failed");
+      if (!ok) {
+        setSubmitError(body?.error ?? "Create failed");
         return;
       }
 
-      if (body.id && body.collectionSlug) {
+      if (body?.id && body.collectionSlug) {
         const editPath = formatAdminURL({
           adminRoute: routes.admin,
           path: `/collections/${body.collectionSlug}/${body.id}`,

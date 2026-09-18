@@ -1,6 +1,7 @@
 "use client";
 
 import { EVE_POLICY_ACTION_IDS } from "@asym/api/eve/approval-budget";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import {
   Alert,
   AlertDescription,
@@ -93,10 +94,10 @@ async function requestPolicy(body?: MutationBody): Promise<ResponseBody> {
         }
       : { credentials: "same-origin", headers: { accept: "application/json" } },
   );
-  const data = (await response.json().catch(() => null)) as
-    | (ResponseBody & { error?: string })
-    | null;
-  if (!response.ok)
+  const { ok, body: data } = await readJsonBody<
+    ResponseBody & { error?: string }
+  >(response);
+  if (!ok)
     throw new Error(
       data?.error ?? "Could not apply Eve approval and budget policy.",
     );

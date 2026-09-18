@@ -1,3 +1,4 @@
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Field,
@@ -79,12 +80,12 @@ async function postCorrectionRequestDecision(input: {
     },
   );
 
-  const body = (await response.json().catch(() => null)) as {
+  const { ok, body } = await readJsonBody<{
     result?: { receiptOutcome?: ReceiptDeliveryOutcome | null } | null;
     error?: string;
-  } | null;
+  }>(response);
 
-  if (!response.ok) {
+  if (!ok) {
     throw new Error(body?.error ?? "The correction decision failed.");
   }
 

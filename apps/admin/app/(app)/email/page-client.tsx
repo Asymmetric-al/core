@@ -11,6 +11,7 @@ import {
   type EmailStudioEditorHandle,
   type EmailStudioExportResult,
 } from "@asym/email/email-builder-types";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
@@ -830,13 +831,13 @@ async function fetchEmailTemplates(): Promise<EmailTemplateListEntry[]> {
   const response = await fetch("/api/email/templates", {
     method: "GET",
   });
-  const body = (await response.json().catch(() => null)) as {
+  const { ok, body } = await readJsonBody<{
     success?: boolean;
     templates?: EmailTemplateListEntry[];
     error?: string;
-  } | null;
+  }>(response);
 
-  if (!response.ok || !body?.success) {
+  if (!ok || !body?.success) {
     throw new Error(body?.error ?? "Failed to load templates");
   }
 
@@ -874,11 +875,9 @@ async function persistEmailTemplate(
     },
   );
 
-  const body = (await response
-    .json()
-    .catch(() => null)) as PersistTemplateResponse | null;
+  const { ok, body } = await readJsonBody<PersistTemplateResponse>(response);
 
-  if (!response.ok || !body?.success) {
+  if (!ok || !body?.success) {
     throw new Error(body?.error ?? "Failed to save template");
   }
 
@@ -910,13 +909,13 @@ async function sendTemplateTestEmail(input: {
     },
   );
 
-  const body = (await response.json().catch(() => null)) as {
+  const { ok, body } = await readJsonBody<{
     success?: boolean;
     error?: string;
     messageId?: string | null;
-  } | null;
+  }>(response);
 
-  if (!response.ok || !body?.success) {
+  if (!ok || !body?.success) {
     throw new Error(body?.error ?? "Failed to send test email");
   }
 

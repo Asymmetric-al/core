@@ -22,17 +22,17 @@ function normalizeSignOutMessage(payload: unknown) {
 export async function signOutOnServer(): Promise<ServerSignOutResult> {
   try {
     const response = await fetch("/api/auth/signout", { method: "POST" });
-    if (response.ok) {
-      return { ok: true };
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      const message = normalizeSignOutMessage(payload);
+      console.error("[auth] server signout failed", {
+        status: response.status,
+        message,
+      });
+      return { ok: false, message };
     }
 
-    const payload = await response.json().catch(() => null);
-    const message = normalizeSignOutMessage(payload);
-    console.error("[auth] server signout failed", {
-      status: response.status,
-      message,
-    });
-    return { ok: false, message };
+    return { ok: true };
   } catch (error) {
     console.error("[auth] server signout request failed", error);
     return { ok: false, message: "Unable to sign out. Please try again." };
