@@ -131,9 +131,10 @@ export function QuickGiveInput({
         <AnimatePresence>
           {isExpanded && (
             <motion.button
-              initial={{ width: 0, x: 20, opacity: 0 }}
-              animate={{ width: "auto", x: 0, opacity: 1 }}
-              exit={{ width: 0, x: 20, opacity: 0 }}
+              // The container's `layout` prop owns the width morph.
+              initial={{ x: 20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 20, opacity: 0 }}
               transition={{
                 type: "spring",
                 stiffness: 400,

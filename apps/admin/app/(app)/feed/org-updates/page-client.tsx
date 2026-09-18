@@ -800,9 +800,9 @@ function ComposeCardActions({
       <AnimatePresence>
         {selectedMedia.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
             className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
           >
             {selectedMedia.map((item) => (

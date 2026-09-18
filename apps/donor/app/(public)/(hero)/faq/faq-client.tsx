@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { cn } from "@asym/ui/lib/utils";
@@ -154,6 +155,9 @@ const AccordionItem = ({
 }) => {
   return (
     <motion.div
+      // Siblings below an opening panel slide to their new position with a
+      // transform; the panel itself fades and rises instead of sweeping height.
+      layout="position"
       initial={false}
       className={cn(
         "border rounded-2xl overflow-hidden transition-[border-color,background-color,box-shadow] duration-300",
@@ -196,10 +200,10 @@ const AccordionItem = ({
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={transitionStandard}
           >
             <div className="px-6 pb-6 pl-[3.5rem] pr-8 text-zinc-600 leading-relaxed font-light">
               {typeof item.answer === "string" ? (

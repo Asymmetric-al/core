@@ -11,6 +11,10 @@
  *      wrapped in `@media (hover: hover) and (pointer: fine)`. Easiest
  *      path: use the shared `.hover-lift` / `.hover-scale-subtle`
  *      utilities.
+ *   3. motion/react props (`initial`, `animate`, `exit`, `while*`,
+ *      `variants`) that animate a layout property such as `height`,
+ *      `width`, margins, padding, or offsets — these re-run layout every
+ *      frame. Use opacity + transform (or the `layout` prop) instead.
  *
  * Usage:
  *   node scripts/check-motion-patterns.mjs              # scan the whole repo (apps/**, packages/**)
@@ -55,6 +59,10 @@ const UNGATED_HOVER_SCALE =
 const HOVER_GATE_LITERAL = "hover:hover";
 const HOVER_GATE_REGEX =
   /@media\s*\(hover:\s*hover\)\s*and\s*\(pointer:\s*fine\)/;
+const MOTION_LAYOUT_PROP =
+  /\b(?:initial|animate|exit|whileHover|whileTap|whileFocus|whileInView|variants)=\{\{([\s\S]*?)\}\}/g;
+const LAYOUT_PROPERTY =
+  /(?:^|[\s,{])(height|width|minHeight|maxHeight|minWidth|maxWidth|margin(?:Top|Bottom|Left|Right)?|padding(?:Top|Bottom|Left|Right)?|top|right|bottom|left|inset)\s*:/;
 
 function shouldScan(rel) {
   return !IGNORE_PREFIXES.some((p) => rel.startsWith(p));
@@ -139,6 +147,23 @@ async function scanFile(rel) {
         "is the shared .hover-scale-subtle / .hover-lift utility, or " +
         "[@media(hover:hover)_and_(pointer:fine)]: prefix on the Tailwind class.",
     });
+  }
+
+  // 3. motion props animating layout properties
+  if (rel.endsWith(".tsx") || rel.endsWith(".jsx")) {
+    while ((m = MOTION_LAYOUT_PROP.exec(text)) !== null) {
+      const layoutProperty = m[1].match(LAYOUT_PROPERTY)?.[1];
+      if (!layoutProperty) continue;
+      violations.push({
+        file: rel,
+        line: lineNumberFor(text, m.index),
+        kind: "motion-layout-property",
+        hint:
+          `Animating \`${layoutProperty}\` forces layout every frame. Reveal with ` +
+          "opacity + y/scale, collapse siblings with the `layout` prop, and keep " +
+          'height/width sweeps to and from "auto" out of motion props.',
+      });
+    }
   }
 
   return violations;

@@ -1179,10 +1179,10 @@ export function DonorsPageContent({
               <AnimatePresence mode="popLayout">
                 {hasActiveFilters && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="flex flex-wrap gap-1.5 overflow-hidden"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    className="flex flex-wrap gap-1.5"
                   >
                     {statusFilter !== "All" && (
                       <motion.div
@@ -2787,10 +2787,10 @@ export function DonorsPageContent({
                   <AnimatePresence mode="wait">
                     {tagEditor.selectedTags.includes(tag.id) && (
                       <motion.span
-                        initial={{ width: 0, opacity: 0 }}
-                        animate={{ width: "auto", opacity: 1 }}
-                        exit={{ width: 0, opacity: 0 }}
-                        className="inline-flex overflow-hidden"
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.5, opacity: 0 }}
+                        className="inline-flex"
                       >
                         <Check className="size-3 mr-1" />
                       </motion.span>
