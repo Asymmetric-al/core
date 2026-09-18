@@ -2541,22 +2541,31 @@ export function DonorsPageContent({
                                           </span>
                                         </div>
                                         <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
+                                          {/* Full-width bar scaled on X (transform, no layout) instead of animating width. */}
                                           <motion.div
-                                            initial={{ width: 0 }}
+                                            initial={{ scaleX: 0 }}
                                             animate={{
-                                              width:
+                                              scaleX:
                                                 Number(
                                                   recurring.total_expected,
                                                 ) > 0
-                                                  ? `${Math.min((Number(recurring.total_paid) / Number(recurring.total_expected)) * 100, 100)}%`
-                                                  : "100%",
+                                                  ? Math.min(
+                                                      Number(
+                                                        recurring.total_paid,
+                                                      ) /
+                                                        Number(
+                                                          recurring.total_expected,
+                                                        ),
+                                                      1,
+                                                    )
+                                                  : 1,
                                             }}
                                             transition={{
                                               duration: 0.8,
                                               ease: "easeOut",
                                             }}
                                             className={cn(
-                                              "h-full rounded-full",
+                                              "h-full w-full origin-left rounded-full",
                                               recurring.status === "active"
                                                 ? "bg-emerald-500"
                                                 : recurring.status ===

@@ -139,10 +139,14 @@ export function FilterMultiSelectInput({
 
   const options = useMemo(() => field.options ?? [], [field.options]);
   const selectedValues = useMemo(() => (value as string[]) ?? [], [value]);
+  const selectedValueSet = useMemo(
+    () => new Set(selectedValues),
+    [selectedValues],
+  );
 
   const selectedOptions = useMemo(() => {
-    return options.filter((opt) => selectedValues.includes(opt.value));
-  }, [options, selectedValues]);
+    return options.filter((opt) => selectedValueSet.has(opt.value));
+  }, [options, selectedValueSet]);
 
   const toggleOption = useCallback(
     (optionValue: string) => {
@@ -229,7 +233,7 @@ export function FilterMultiSelectInput({
             </CommandEmpty>
             <CommandGroup className="p-2">
               {options.map((option) => {
-                const isSelected = selectedValues.includes(option.value);
+                const isSelected = selectedValueSet.has(option.value);
                 return (
                   <CommandItem
                     key={option.value}

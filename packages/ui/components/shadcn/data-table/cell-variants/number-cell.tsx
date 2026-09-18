@@ -31,7 +31,7 @@ function NumberCellEditor<TData extends RowData>({
   | "max"
   | "step"
 >) {
-  const [localValue, setLocalValue] = useState(value?.toString() ?? "");
+  const [localValue, setLocalValue] = useState(() => value?.toString() ?? "");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useLayoutEffect(() => {
