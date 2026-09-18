@@ -1,6 +1,7 @@
 "use client";
 
 import { EVE_LAUNCH_CANARY_IDS } from "@asym/api/eve/launch-readiness";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
   AlertDialog,
@@ -57,11 +58,10 @@ async function loadReadiness(): Promise<LaunchReadinessResponse> {
     credentials: "same-origin",
     headers: { accept: "application/json" },
   });
-  const body = (await response.json().catch(() => null)) as
-    | LaunchReadinessResponse
-    | { error?: string }
-    | null;
-  if (!response.ok) {
+  const { ok, body } = await readJsonBody<
+    LaunchReadinessResponse | { error?: string }
+  >(response);
+  if (!ok) {
     throw new Error(
       body && "error" in body
         ? body.error
@@ -80,11 +80,10 @@ async function mutateReadiness(
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
-  const result = (await response.json().catch(() => null)) as
-    | LaunchReadinessResponse
-    | { error?: string }
-    | null;
-  if (!response.ok) {
+  const { ok, body: result } = await readJsonBody<
+    LaunchReadinessResponse | { error?: string }
+  >(response);
+  if (!ok) {
     throw new Error(
       result && "error" in result
         ? result.error

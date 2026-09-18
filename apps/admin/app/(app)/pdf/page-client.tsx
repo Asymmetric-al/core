@@ -2,6 +2,7 @@
 
 import { type EmailStudioFullConfig } from "@asym/config/email-studio";
 import { type PDFStudioFullConfig } from "@asym/config/pdf-studio";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import {
   DocumentTemplateV1Schema,
   starterPdfTemplateFixtureByCategory,
@@ -1190,13 +1191,13 @@ async function fetchPdfTemplates(): Promise<PDFTemplateListEntry[]> {
   const response = await fetch("/api/pdf-templates", {
     method: "GET",
   });
-  const body = (await response.json().catch(() => null)) as {
+  const { ok, body } = await readJsonBody<{
     success?: boolean;
     templates?: PDFTemplateListEntry[];
     error?: string;
-  } | null;
+  }>(response);
 
-  if (!response.ok || !body?.success) {
+  if (!ok || !body?.success) {
     throw new Error(body?.error ?? "Failed to load PDF templates");
   }
 
@@ -1346,7 +1347,7 @@ async function runNativePreview(template: DocumentTemplateV1) {
       template,
     }),
   });
-  const body = (await response.json().catch(() => null)) as {
+  const { ok, body } = await readJsonBody<{
     success?: boolean;
     preflight?: {
       diagnostics?: NativePreviewState["diagnostics"];
@@ -1358,9 +1359,9 @@ async function runNativePreview(template: DocumentTemplateV1) {
       };
     };
     error?: string;
-  } | null;
+  }>(response);
 
-  if (!response.ok || !body?.success) {
+  if (!ok || !body?.success) {
     throw new Error(body?.error ?? "Failed to preview native template");
   }
 
@@ -1458,13 +1459,13 @@ function usePDFStudioController() {
             template,
           }),
         });
-        const body = (await response.json().catch(() => null)) as {
+        const { ok, body } = await readJsonBody<{
           render?: { status?: string; errors?: Array<{ message: string }> };
           error?: string;
-        } | null;
+        }>(response);
         const renderStatus = body?.render?.status;
 
-        if (!response.ok || renderStatus === "error") {
+        if (!ok || renderStatus === "error") {
           toast.error("Native render unavailable", {
             description:
               body?.render?.errors?.[0]?.message ??

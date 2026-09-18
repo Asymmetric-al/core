@@ -13,6 +13,7 @@ import {
 } from "@asym/api/admin/contribution-operations/crm-retry-support";
 import { isFailedProviderOutcomeStatus } from "@asym/api/admin/contribution-operations/types";
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Checkbox } from "@asym/ui/components/shadcn/checkbox";
@@ -361,15 +362,15 @@ async function submitOperation(input: {
     method: "POST",
   });
 
-  const body = (await response.json().catch(() => null)) as {
+  const { ok, status, body } = await readJsonBody<{
     result?: ContributionActionResult;
     error?: string;
-  } | null;
+  }>(response);
 
-  if (!response.ok || !body?.result) {
+  if (!ok || !body?.result) {
     throw new ContributionOperationRequestError(
       body?.error ?? "The operation failed.",
-      response.status,
+      status,
     );
   }
 

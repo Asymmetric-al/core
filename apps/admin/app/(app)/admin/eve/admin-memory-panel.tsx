@@ -1,6 +1,7 @@
 "use client";
 
 import { EVE_ADMIN_MEMORY_CATEGORIES } from "@asym/api/eve/admin-memory";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import {
   Alert,
   AlertDescription,
@@ -99,10 +100,10 @@ async function requestMemory(input?: Mutation): Promise<ResponseBody> {
         }
       : { credentials: "same-origin", headers: { accept: "application/json" } },
   );
-  const body = (await response.json().catch(() => null)) as
-    | (ResponseBody & { error?: string; mutation?: { exclusions?: string[] } })
-    | null;
-  if (!response.ok) {
+  const { ok, body } = await readJsonBody<
+    ResponseBody & { error?: string; mutation?: { exclusions?: string[] } }
+  >(response);
+  if (!ok) {
     const exclusions = body?.mutation?.exclusions?.join(", ");
     throw new Error(
       exclusions

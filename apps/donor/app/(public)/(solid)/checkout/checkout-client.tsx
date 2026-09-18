@@ -1,5 +1,6 @@
 "use client";
 
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
   isGeneralCheckoutAlias,
@@ -1302,13 +1303,13 @@ function CheckoutContent({
           method: "GET",
           signal: abortController.signal,
         });
-        const payload = await response.json().catch(() => null);
+        const { ok, body: payload } = await readJsonBody<unknown>(response);
 
         if (abortController.signal.aborted) {
           return;
         }
 
-        if (!response.ok) {
+        if (!ok) {
           const message =
             payload && typeof payload === "object"
               ? (payload as Record<string, unknown>).error
@@ -1617,14 +1618,16 @@ function CheckoutContent({
         return;
       }
 
-      const payload = await response.json().catch(() => null);
+      // The donate API returns interpretable JSON on every status, so the
+      // payload is read for both branches with the status checked first.
+      const { status, body: payload } = await readJsonBody<unknown>(response);
 
       if (!isPaymentAttemptActive(paymentAttempt)) {
         exitStalePaymentAttempt(paymentAttempt);
         return;
       }
 
-      const result = interpretDonateResponse(response.status, payload);
+      const result = interpretDonateResponse(status, payload);
 
       if (isDonationInitialized(result)) {
         const trimmedPostalCode = postalCode.trim();
