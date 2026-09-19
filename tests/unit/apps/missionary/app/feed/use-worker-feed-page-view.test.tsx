@@ -65,6 +65,63 @@ describe("useWorkerFeedPageView initial loads", () => {
       }),
     );
     expect(result.current.posts).toEqual([]);
+    expect(result.current.feedError).toMatch(/failed to load published posts/i);
+  });
+
+  it("treats a successful empty feed as empty without feedError", async () => {
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.startsWith("/api/posts")) {
+        return jsonResponse(200, { posts: [] });
+      }
+      if (url.startsWith("/api/follower-requests")) {
+        return jsonResponse(200, { requests: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    const { result } = renderHook(() => useWorkerFeedPageView());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.posts).toEqual([]);
+    expect(result.current.feedError).toBeNull();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("keeps last-good posts and records feedError when a refetch fails", async () => {
+    const publishedPost = {
+      id: "post-1",
+      content: "Hello partners",
+      created_at: "2026-01-01T00:00:00.000Z",
+      post_type: "Update",
+      status: "published",
+      visibility: "public",
+    };
+    fetchMock
+      .mockImplementationOnce(async () =>
+        jsonResponse(200, { posts: [publishedPost] }),
+      )
+      .mockImplementationOnce(async () => jsonResponse(200, { posts: [] }))
+      .mockImplementationOnce(async () => jsonResponse(200, { requests: [] }))
+      .mockImplementationOnce(async () =>
+        jsonResponse(500, { error: "database unavailable" }),
+      );
+
+    const { result } = renderHook(() => useWorkerFeedPageView());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.posts).toEqual([publishedPost]);
+    expect(result.current.feedError).toBeNull();
+
+    await act(async () => {
+      await result.current.reloadPosts();
+    });
+
+    expect(result.current.posts).toEqual([publishedPost]);
+    expect(result.current.feedError).toMatch(/failed to load published posts/i);
+    expect(toast.error).toHaveBeenCalledWith("Could not load feed", {
+      id: "worker-feed-load-error",
+    });
   });
 
   it("uses one stable notification for concurrent post failures in StrictMode", async () => {
