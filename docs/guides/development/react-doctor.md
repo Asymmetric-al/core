@@ -85,18 +85,41 @@ Fixed in source:
 - Accessibility: icon-only buttons and symbol-only controls in shared data tables, data grid, filter bar, image upload, rating cell, Web Studio preview toggles, donor settings/wallet/map, and missionary donor filters have `aria-label`s (plus `aria-pressed`/`aria-expanded` for toggles). `SupportFailureBanner` keeps `role="status"` but announces politely because the failing mutation already raises an error toast.
 - Motion: the recurring-gift progress bar in `use-donors-page-view.tsx` scales on X instead of animating `width`; `quick-give.tsx` relies on `layout` instead of also animating `width`.
 
-Confirmed false positives (left as-is, no config change):
+Confirmed false positives (left as-is at this inventory, no config change):
 
-- `no-fetch-response-used-without-status-check` (25 remaining): the repo convention reads the JSON body first to surface the API error payload, then checks `response.ok`. The rule text carves this out.
-- `no-set-state-after-await-in-effect` (4) and `no-create-object-url-without-revoke` (1): each site already guards with a cancellation flag (`cancelled`/`isMounted`) or revokes in `removeMedia`, `handleClose`, and an unmount effect.
-- `effect-needs-cleanup` in `use-supabase-realtime.ts` (suppressed inline with a reason: cleanup runs through `channelRef`) and `UnlayerEmailEditor.tsx` (legacy editor listener lives on the editor instance, not in an effect).
+- `no-fetch-response-used-without-status-check` (25 remaining at inventory): the repo convention at the time read the JSON body first to surface the API error payload, then checked `response.ok`. The 2026-09-19 pass later checked `response.ok` before reading the body at the remaining first-party sites.
+- `no-set-state-after-await-in-effect` (4) and `no-create-object-url-without-revoke` (1): each site already guarded with a cancellation flag (`cancelled`/`isMounted`) or revoked in `removeMedia`, `handleClose`, and an unmount effect.
+- `effect-needs-cleanup` in `use-supabase-realtime.ts` (suppressed inline with a reason: cleanup runs through `channelRef`) and `UnlayerEmailEditor.tsx` (the inventory treated the legacy editor listener as living on the editor instance, not in an effect; the 2026-09-19 pass later added explicit cleanup on that instance).
 - `anchor-has-content` in `menu-dropdown.tsx`: Base UI's `render` prop merges the visible item title into the rendered link.
 - `query-mutation-missing-invalidation` in `hooks/donor-portal.ts`: the billing-portal session mutation returns a redirect URL and owns no cached data.
-- `insecure-crypto-risk` in `packages/lib/cloudinary-server.ts`: the SHA-1 digest is Cloudinary's default signed-upload signature, not a credential hash. Moving to Cloudinary's SHA-256 option is possible but must be verified against a live Cloudinary account first.
+- `insecure-crypto-risk` in `packages/lib/cloudinary-server.ts`: the SHA-1 digest was Cloudinary's default signed-upload signature, not a credential hash. The 2026-09-19 pass later switched signed uploads to Cloudinary's SHA-256 option.
 
-Deferred with owners:
+Deferred with owners (pre-pass inventory; closed in the 2026-09-19 source pass below):
 
-- `no-layout-property-animation` (29 errors, 8 files): `height: 0 -> "auto"` reveals and `width: 0 -> "auto"` button reveals in the donor FAQ accordion, wallet banner, `QuickGiveInput`, missionary donor filters/tag chips/profile field messages, feed media strips, and admin flag banners. The repo motion rules forbid layout animation, but replacing these with fade + translate changes visible motion on public surfaces (FAQ) and needs a real-screen motion pass. Recipe: `opacity` + `y` for reveals (`docs/ai/skills/anim/SKILL.md` rule 25), `layout` on siblings for collapse, or the shared Base UI `Accordion` for the FAQ. Owner: frontend/design.
-- `react-hooks-js/todo` (10 errors): React Compiler cannot yet lower `try`/`finally` or `throw` inside `try`/`catch` in a few missionary hooks. The apps compile in `annotation` mode and these hooks carry no `"use memo"`, so nothing regresses; do not contort the error handling to satisfy the linter. Owner: missionary app.
-- `socket/low-supply-chain-score`: `maplibre-gl@5.x` (locked at 5.23.0) is covered by GHSA-jrc7-96c5-q579 (`DOM.sanitize()` XSS, fixed in 6.4.1+). First-party code uses `Popup.setDOMContent` and disables the attribution control, so the vulnerable HTML path is not reachable today, but the major upgrade should land in a dedicated PR with the where-we-work map verified in a browser. Owner: donor app.
-- Maintainability families (`only-export-components` 57, `no-high-complexity-react-function` 31, `duplicate-jsx-subtree` 9), `no-locale-format-in-render` (27, hydration risk only where the formatted text is server-rendered), `no-adjust-state-on-prop-change`/`no-reset-all-state-on-prop-change` (9), `no-pass-live-state-to-parent`/`no-pass-data-to-parent` (7, `carousel` `setApi` contract and `use-data-table-live-query`), `prefer-tag-over-role` (7), and the remaining focus/nesting a11y items stay per-slice work for their route owners.
+- `no-layout-property-animation` (29 errors, 8 files at inventory): `height: 0 -> "auto"` reveals and `width: 0 -> "auto"` button reveals lived in the donor FAQ accordion, wallet banner, `QuickGiveInput`, missionary donor filters/tag chips/profile field messages, feed media strips, and admin flag banners. The 2026-09-19 pass later replaced those with transform-only motion.
+- `react-hooks-js/todo` (10 errors at inventory): React Compiler could not yet lower `try`/`finally` or `throw` inside `try`/`catch` in a few missionary hooks. Those hooks later landed in the 2026-09-19 source pass under annotation mode.
+- `socket/low-supply-chain-score`: `maplibre-gl@5.x` was locked at 5.23.0 and covered by GHSA-jrc7-96c5-q579 (`DOM.sanitize()` XSS, fixed in 6.4.1+). First-party code used `Popup.setDOMContent` and disabled the attribution control. The 2026-09-19 pass later upgraded the donor where-we-work map to `maplibre-gl` 6.x.
+- Maintainability families (`only-export-components` 57, `no-high-complexity-react-function` 31, `duplicate-jsx-subtree` 9), `no-locale-format-in-render` (27), `no-adjust-state-on-prop-change`/`no-reset-all-state-on-prop-change` (9), `no-pass-live-state-to-parent`/`no-pass-data-to-parent` (7, `carousel` `setApi` contract and `use-data-table-live-query`), `prefer-tag-over-role` (7), and the remaining focus/nesting a11y items were later closed in the 2026-09-19 source pass below.
+
+## 2026-09-19 Cleanup Decisions
+
+React Doctor passes for the configured first-party audit. Command: `bun run react-doctor:first-party -- --full --offline --fail-on none` (React Doctor 0.9.14, `blocking` still `none`). Every wrapper target reported no issues: `@asym/admin`, `@asym/donor`, `@asym/missionary-app`, `@asym/auth`, `@asym/database`, `@asym/lib`, `@asym/missionary`, `@asym/ui`. `doctor.config.json` ignore rules were not expanded.
+
+This is not a claim that every React Doctor rule is enabled. Known ignores stay in `doctor.config.json` and in Configured Ignores above (`no-giant-component`, knip, jsx-a11y, design, micro-optimization, and the other temporary families). Do not add rules to the ignore list to keep this audit green. Re-enable one ignored family at a time with route-owner coverage.
+
+Closed in source from the 2026-09-18 remaining inventory:
+
+- `maplibre-gl` 6.x (GHSA-jrc7-96c5-q579 floor) on the donor where-we-work map.
+- Transform-only motion for the previous `no-layout-property-animation` sites.
+- Missionary hooks that tripped `react-hooks-js/todo` under React Compiler annotation mode.
+- Unlayer editor listener cleanup on the editor instance.
+- Fetch `response.ok` before reading the body at the remaining first-party sites.
+- Hydration-safe locale formatting (`no-locale-format-in-render`).
+- Derive or key state instead of syncing props in effects.
+- Notify parents from events, not effects (`carousel` `setApi` and live-query seams kept).
+- Async effect cancellation guards and external-store email drafts.
+- First-party a11y semantics (`prefer-tag-over-role` and related).
+- Cloudinary signed uploads use SHA-256 instead of SHA-1.
+- Non-component exports moved out of component files (`only-export-components`).
+- Duplicated JSX subtrees extracted to shared siblings.
+- High-complexity React functions extracted in `@asym/admin`, `@asym/donor`, `@asym/missionary-app`, `@asym/missionary`, and `@asym/ui` so each stays under the cyclomatic/cognitive threshold. Public APIs, `base-maia` styling, and upload/donate/Stripe handlers were not restyled or rewritten for score.

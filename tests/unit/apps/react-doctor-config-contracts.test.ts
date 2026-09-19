@@ -71,4 +71,55 @@ describe("React Doctor config contracts", () => {
       "Intentional raw img: TipTap needs a DOM ref",
     );
   });
+
+  it("records the 2026-09-19 configured first-party audit as passing without expanding ignores", () => {
+    const docs = readRepoFile("docs/guides/development/react-doctor.md");
+    const config = JSON.parse(readRepoFile("doctor.config.json")) as {
+      ignore?: { rules?: string[] };
+    };
+
+    expect(docs).toContain("## 2026-09-19 Cleanup Decisions");
+    expect(docs).toContain(
+      "React Doctor passes for the configured first-party audit",
+    );
+    expect(docs).toContain(
+      "`doctor.config.json` ignore rules were not expanded",
+    );
+
+    for (const target of [
+      "@asym/admin",
+      "@asym/donor",
+      "@asym/missionary-app",
+      "@asym/auth",
+      "@asym/database",
+      "@asym/lib",
+      "@asym/missionary",
+      "@asym/ui",
+    ]) {
+      expect(docs).toContain(target);
+    }
+
+    expect(config.ignore?.rules ?? []).not.toContain(
+      "react-doctor/no-high-complexity-react-function",
+    );
+    expect(config.ignore?.rules ?? []).not.toContain(
+      "react-doctor/only-export-components",
+    );
+    expect(config.ignore?.rules ?? []).not.toContain(
+      "react-doctor/duplicate-jsx-subtree",
+    );
+
+    expect(docs).toContain("`maplibre-gl@5.x` was locked at 5.23.0");
+    expect(docs).toContain(
+      "The 2026-09-19 pass later switched signed uploads to Cloudinary's SHA-256 option.",
+    );
+    expect(docs).toContain(
+      "The 2026-09-19 pass later checked `response.ok` before reading the body at the remaining first-party sites.",
+    );
+    expect(docs).not.toContain("`maplibre-gl@5.x` (locked at 5.23.0)");
+    expect(docs).not.toContain(
+      "Moving to Cloudinary's SHA-256 option is possible",
+    );
+    expect(docs).not.toContain("the repo convention reads the JSON body first");
+  });
 });
