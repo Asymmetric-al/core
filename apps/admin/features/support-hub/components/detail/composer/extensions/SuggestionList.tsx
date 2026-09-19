@@ -106,9 +106,12 @@ export const SuggestionList = React.forwardRef<
           {items.map((item, index) => {
             const isActive = index === activeIndex;
             return (
-              <li key={item.id} role="option" aria-selected={isActive}>
+              <li key={item.id} role="presentation">
                 <button
                   type="button"
+                  role="option"
+                  aria-selected={isActive}
+                  tabIndex={-1}
                   className={cn(
                     "flex w-full items-start gap-2 px-3 py-1.5 text-left",
                     isActive

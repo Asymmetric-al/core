@@ -388,69 +388,65 @@ export function HomeFeatured() {
           </Link>
         </header>
 
-        <div
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12"
-          role="list"
-        >
+        <ul className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 list-none p-0 m-0">
           {projects.map((item) => (
-            <article
-              key={`${item.title}-${item.loc}`}
-              className="group cursor-pointer"
-              role="listitem"
-            >
-              <Link href="/workers" className="block">
-                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-zinc-200 shadow-xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-zinc-500/10 transition-[box-shadow] duration-300 ease-out">
-                  <Image
-                    src={item.img}
-                    alt={`${item.title} project - ${item.loc}`}
-                    fill
-                    className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    loading="lazy"
-                    quality={75}
-                  />
-                  <div className="absolute inset-0 bg-zinc-950/20 group-hover:bg-zinc-950/0 transition-colors duration-300 ease-out" />
-                  <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-xl text-[9px] font-semibold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg border border-white/50">
-                    {item.raised} Deployed
-                  </div>
-
-                  <div className="absolute bottom-8 left-8 right-8">
-                    <div className="flex items-center gap-2 text-[9px] font-semibold text-white/70 uppercase tracking-[0.2em] mb-3">
-                      <Globe className="size-3" aria-hidden="true" /> {item.loc}
+            <li key={`${item.title}-${item.loc}`}>
+              <article className="group cursor-pointer">
+                <Link href="/workers" className="block">
+                  <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-zinc-200 shadow-xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-zinc-500/10 transition-[box-shadow] duration-300 ease-out">
+                    <Image
+                      src={item.img}
+                      alt={`${item.title} project - ${item.loc}`}
+                      fill
+                      className="object-cover saturate-[0.8] contrast-[1.1] transition-transform duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      loading="lazy"
+                      quality={75}
+                    />
+                    <div className="absolute inset-0 bg-zinc-950/20 group-hover:bg-zinc-950/0 transition-colors duration-300 ease-out" />
+                    <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-xl text-[9px] font-semibold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg border border-white/50">
+                      {item.raised} Deployed
                     </div>
-                    <h3 className="text-2xl sm:text-3xl font-semibold text-white font-syne leading-none mb-4 group-hover:translate-x-1 transition-transform duration-200 ease-out">
-                      {item.title}
-                    </h3>
-                    <div
-                      className="h-1 w-full bg-white/20 rounded-full overflow-hidden"
-                      role="progressbar"
-                      aria-label={`${item.title} deployed`}
-                      aria-valuenow={parseInt(item.raised)}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                    >
-                      {/*
+
+                    <div className="absolute bottom-8 left-8 right-8">
+                      <div className="flex items-center gap-2 text-[9px] font-semibold text-white/70 uppercase tracking-[0.2em] mb-3">
+                        <Globe className="size-3" aria-hidden="true" />{" "}
+                        {item.loc}
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-semibold text-white font-syne leading-none mb-4 group-hover:translate-x-1 transition-transform duration-200 ease-out">
+                        {item.title}
+                      </h3>
+                      <div
+                        className="h-1 w-full bg-white/20 rounded-full overflow-hidden"
+                        role="progressbar"
+                        aria-label={`${item.title} deployed`}
+                        aria-valuenow={parseInt(item.raised)}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      >
+                        {/*
                         Animate transform: scaleX (GPU, no layout) instead
                         of width (paint + layout). Keep the bar at full
                         width and scale it horizontally based on raised %.
                       */}
-                      <div
-                        className="size-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
-                        style={{
-                          transform: `scaleX(${parseInt(item.raised) / 100})`,
-                        }}
-                      />
+                        <div
+                          className="size-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
+                          style={{
+                            transform: `scaleX(${parseInt(item.raised) / 100})`,
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center text-[10px] font-semibold text-zinc-900 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-200 ease-out uppercase tracking-[0.2em]">
-                  Join the Mission{" "}
-                  <ArrowRight className="size-3 ml-2" aria-hidden="true" />
-                </div>
-              </Link>
-            </article>
+                  <div className="flex items-center text-[10px] font-semibold text-zinc-900 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-200 ease-out uppercase tracking-[0.2em]">
+                    Join the Mission{" "}
+                    <ArrowRight className="size-3 ml-2" aria-hidden="true" />
+                  </div>
+                </Link>
+              </article>
+            </li>
           ))}
-        </div>
+        </ul>
 
         <div className="mt-16 md:mt-20 text-center md:hidden">
           <Link
