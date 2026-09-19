@@ -173,6 +173,211 @@ function getDueDateStatus(dueDate: string | null | undefined) {
   };
 }
 
+type TaskTypeVisual = (typeof TASK_TYPE_CONFIG)[TaskType];
+type TaskPriorityVisual = (typeof PRIORITY_CONFIG)[TaskPriority];
+type TaskStatusVisual = (typeof STATUS_CONFIG)[TaskStatus];
+type DueDateStatus = ReturnType<typeof getDueDateStatus>;
+
+function TaskRowTypeIcon({
+  Icon,
+  isCompleted,
+  bgColor,
+  color,
+}: {
+  Icon: React.ElementType;
+  isCompleted: boolean;
+  bgColor: string;
+  color: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex size-10 items-center justify-center rounded-xl shrink-0",
+        isCompleted ? "opacity-50" : "",
+        bgColor,
+        color,
+      )}
+    >
+      <Icon className="size-4" />
+    </div>
+  );
+}
+
+function TaskRowTitle({
+  task,
+  isCompleted,
+  priorityConfig,
+}: {
+  task: Task;
+  isCompleted: boolean;
+  priorityConfig: TaskPriorityVisual;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p
+            className={cn(
+              "font-bold text-sm tracking-tight",
+              isCompleted ? "line-through text-zinc-400" : "text-zinc-900",
+            )}
+          >
+            {task.title}
+          </p>
+          {task.priority !== "none" && !isCompleted && (
+            <Badge
+              className={cn(
+                "border text-[9px] font-black uppercase tracking-widest px-1.5 h-4",
+                priorityConfig.badgeColor,
+              )}
+            >
+              {priorityConfig.label}
+            </Badge>
+          )}
+          {task.is_auto_generated && !isCompleted && (
+            <Badge className="bg-violet-50 text-violet-700 border border-violet-200 text-[9px] font-black uppercase tracking-widest px-1.5 h-4 gap-1">
+              <Sparkles className="size-2.5" />
+              Auto
+            </Badge>
+          )}
+        </div>
+        {task.description && !isCompleted && (
+          <p className="text-xs font-medium text-zinc-500 mt-1 line-clamp-2">
+            {task.description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TaskRowMeta({
+  task,
+  isCompleted,
+  dueDateStatus,
+  statusConfig,
+}: {
+  task: Task;
+  isCompleted: boolean;
+  dueDateStatus: DueDateStatus;
+  statusConfig: TaskStatusVisual;
+}) {
+  return (
+    <div className="flex items-center gap-2 mt-3 flex-wrap">
+      {task.donor && (
+        <Link href={`/donors?selected=${task.donor.id}`}>
+          <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-zinc-100 border border-zinc-200 hover:border-zinc-300 transition-colors cursor-pointer">
+            <Avatar className="size-4">
+              <AvatarImage src={task.donor.avatar_url || undefined} />
+              <AvatarFallback className="text-[8px] font-bold bg-zinc-200 text-zinc-600">
+                {task.donor.name
+                  .split(" ")
+                  .map((n: string) => n[0])
+                  .join("")
+                  .slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">
+              {task.donor.name}
+            </span>
+          </div>
+        </Link>
+      )}
+      {dueDateStatus && !isCompleted && (
+        <div
+          className={cn(
+            "flex items-center gap-1.5 px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider",
+            dueDateStatus.color,
+          )}
+        >
+          <Clock className="size-3" />
+          {dueDateStatus.label}
+        </div>
+      )}
+      {task.reminder_date && !isCompleted && (
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-[10px] font-bold uppercase tracking-wider">
+          <Bell className="size-3" />
+          {format(makeDisplayDate(task.reminder_date), "MMM d")}
+        </div>
+      )}
+      <Badge
+        className={cn(
+          "border text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
+          statusConfig.color,
+        )}
+      >
+        {statusConfig.label}
+      </Badge>
+    </div>
+  );
+}
+
+function TaskRowMenu({
+  task,
+  isCompleted,
+  onEdit,
+  onComplete,
+  onDelete,
+}: {
+  task: Task;
+  isCompleted: boolean;
+  onEdit: () => void;
+  onComplete: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 shrink-0 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
+          >
+            <MoreHorizontal className="size-4" />
+          </Button>
+        }
+      />
+      <DropdownMenuContent
+        align="end"
+        className="rounded-xl border-zinc-200 p-1.5 shadow-xl min-w-[160px]"
+      >
+        <DropdownMenuItem
+          onClick={onEdit}
+          className="rounded-lg text-xs font-medium py-2 cursor-pointer"
+        >
+          <Pencil className="mr-2 size-3.5 text-zinc-400" />
+          Edit Task
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={onComplete}
+          className="rounded-lg text-xs font-medium py-2 cursor-pointer"
+        >
+          <CheckCircle2 className="mr-2 size-3.5 text-zinc-400" />
+          {isCompleted ? "Reopen Task" : "Mark Complete"}
+        </DropdownMenuItem>
+        {task.donor && (
+          <DropdownMenuItem
+            render={<Link href={`/donors?selected=${task.donor.id}`} />}
+            className="rounded-lg text-xs font-medium py-2 cursor-pointer"
+          >
+            <User className="mr-2 size-3.5 text-zinc-400" />
+            View Partner
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator className="my-1 bg-zinc-100" />
+        <DropdownMenuItem
+          onClick={onDelete}
+          className="rounded-lg text-xs font-medium py-2 text-rose-600 focus:text-rose-600 focus:bg-rose-50 cursor-pointer"
+        >
+          <Trash2 className="mr-2 size-3.5" />
+          Delete Task
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function TaskRow({
   task,
   onComplete,
@@ -187,9 +392,12 @@ export function TaskRow({
   index: number;
 }) {
   const reduceMotion = useReducedMotion();
-  const typeConfig = TASK_TYPE_CONFIG[task.task_type] ?? TASK_TYPE_CONFIG.to_do;
-  const priorityConfig = PRIORITY_CONFIG[task.priority] ?? PRIORITY_CONFIG.none;
-  const statusConfig = STATUS_CONFIG[task.status] ?? STATUS_CONFIG.not_started;
+  const typeConfig: TaskTypeVisual =
+    TASK_TYPE_CONFIG[task.task_type] ?? TASK_TYPE_CONFIG.to_do;
+  const priorityConfig: TaskPriorityVisual =
+    PRIORITY_CONFIG[task.priority] ?? PRIORITY_CONFIG.none;
+  const statusConfig: TaskStatusVisual =
+    STATUS_CONFIG[task.status] ?? STATUS_CONFIG.not_started;
   const dueDateStatus = getDueDateStatus(task.due_date);
   const isCompleted = task.status === "completed";
   const Icon = typeConfig.icon;
@@ -223,151 +431,34 @@ export function TaskRow({
         />
       </div>
 
-      <div
-        className={cn(
-          "flex size-10 items-center justify-center rounded-xl shrink-0",
-          isCompleted ? "opacity-50" : "",
-          typeConfig.bgColor,
-          typeConfig.color,
-        )}
-      >
-        <Icon className="size-4" />
-      </div>
+      <TaskRowTypeIcon
+        Icon={Icon}
+        isCompleted={isCompleted}
+        bgColor={typeConfig.bgColor}
+        color={typeConfig.color}
+      />
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p
-                className={cn(
-                  "font-bold text-sm tracking-tight",
-                  isCompleted ? "line-through text-zinc-400" : "text-zinc-900",
-                )}
-              >
-                {task.title}
-              </p>
-              {task.priority !== "none" && !isCompleted && (
-                <Badge
-                  className={cn(
-                    "border text-[9px] font-black uppercase tracking-widest px-1.5 h-4",
-                    priorityConfig.badgeColor,
-                  )}
-                >
-                  {priorityConfig.label}
-                </Badge>
-              )}
-              {task.is_auto_generated && !isCompleted && (
-                <Badge className="bg-violet-50 text-violet-700 border border-violet-200 text-[9px] font-black uppercase tracking-widest px-1.5 h-4 gap-1">
-                  <Sparkles className="size-2.5" />
-                  Auto
-                </Badge>
-              )}
-            </div>
-            {task.description && !isCompleted && (
-              <p className="text-xs font-medium text-zinc-500 mt-1 line-clamp-2">
-                {task.description}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 mt-3 flex-wrap">
-          {task.donor && (
-            <Link href={`/donors?selected=${task.donor.id}`}>
-              <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-zinc-100 border border-zinc-200 hover:border-zinc-300 transition-colors cursor-pointer">
-                <Avatar className="size-4">
-                  <AvatarImage src={task.donor.avatar_url || undefined} />
-                  <AvatarFallback className="text-[8px] font-bold bg-zinc-200 text-zinc-600">
-                    {task.donor.name
-                      .split(" ")
-                      .map((n: string) => n[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider">
-                  {task.donor.name}
-                </span>
-              </div>
-            </Link>
-          )}
-          {dueDateStatus && !isCompleted && (
-            <div
-              className={cn(
-                "flex items-center gap-1.5 px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider",
-                dueDateStatus.color,
-              )}
-            >
-              <Clock className="size-3" />
-              {dueDateStatus.label}
-            </div>
-          )}
-          {task.reminder_date && !isCompleted && (
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 text-[10px] font-bold uppercase tracking-wider">
-              <Bell className="size-3" />
-              {format(makeDisplayDate(task.reminder_date), "MMM d")}
-            </div>
-          )}
-          <Badge
-            className={cn(
-              "border text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
-              statusConfig.color,
-            )}
-          >
-            {statusConfig.label}
-          </Badge>
-        </div>
+        <TaskRowTitle
+          task={task}
+          isCompleted={isCompleted}
+          priorityConfig={priorityConfig}
+        />
+        <TaskRowMeta
+          task={task}
+          isCompleted={isCompleted}
+          dueDateStatus={dueDateStatus}
+          statusConfig={statusConfig}
+        />
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 shrink-0 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          }
-        />
-        <DropdownMenuContent
-          align="end"
-          className="rounded-xl border-zinc-200 p-1.5 shadow-xl min-w-[160px]"
-        >
-          <DropdownMenuItem
-            onClick={onEdit}
-            className="rounded-lg text-xs font-medium py-2 cursor-pointer"
-          >
-            <Pencil className="mr-2 size-3.5 text-zinc-400" />
-            Edit Task
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={onComplete}
-            className="rounded-lg text-xs font-medium py-2 cursor-pointer"
-          >
-            <CheckCircle2 className="mr-2 size-3.5 text-zinc-400" />
-            {isCompleted ? "Reopen Task" : "Mark Complete"}
-          </DropdownMenuItem>
-          {task.donor && (
-            <DropdownMenuItem
-              render={<Link href={`/donors?selected=${task.donor.id}`} />}
-              className="rounded-lg text-xs font-medium py-2 cursor-pointer"
-            >
-              <User className="mr-2 size-3.5 text-zinc-400" />
-              View Partner
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuSeparator className="my-1 bg-zinc-100" />
-          <DropdownMenuItem
-            onClick={onDelete}
-            className="rounded-lg text-xs font-medium py-2 text-rose-600 focus:text-rose-600 focus:bg-rose-50 cursor-pointer"
-          >
-            <Trash2 className="mr-2 size-3.5" />
-            Delete Task
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <TaskRowMenu
+        task={task}
+        isCompleted={isCompleted}
+        onEdit={onEdit}
+        onComplete={onComplete}
+        onDelete={onDelete}
+      />
     </motion.div>
   );
 }
