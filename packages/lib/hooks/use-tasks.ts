@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "./use-auth";
+import { parseJsonResponse } from "../http/fetch-result";
 
 // Local type definitions (should match missionary app types)
 export type TaskStatus =
@@ -105,24 +106,6 @@ interface UseTasksReturn {
   completeTask: (id: string) => Promise<boolean>;
   reopenTask: (id: string) => Promise<boolean>;
   refresh: () => Promise<void>;
-}
-
-async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const payload = (await response.json().catch(() => null)) as
-    | (T & { error?: string })
-    | null;
-
-  if (!response.ok) {
-    throw new Error(
-      payload?.error || `Request failed with status ${response.status}`,
-    );
-  }
-
-  if (!payload) {
-    throw new Error("Request returned an empty response.");
-  }
-
-  return payload;
 }
 
 function taskPayloadFromFormData(

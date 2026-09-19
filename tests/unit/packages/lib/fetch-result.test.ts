@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   fetchJsonResult,
   fetchResult,
+  parseJsonResponse,
   readErrorMessage,
   readJsonBody,
 } from "../../../../packages/lib/http/fetch-result";
@@ -120,6 +121,58 @@ describe("fetchJsonResult", () => {
       status: 500,
       message: "boom",
     });
+  });
+});
+
+describe("parseJsonResponse", () => {
+  it("checks response.ok before reading the body", async () => {
+    const events: string[] = [];
+    const response = {
+      get ok() {
+        events.push("ok");
+        return false;
+      },
+      status: 403,
+      async json() {
+        events.push("json");
+        return { error: "Nope" };
+      },
+    } as Response;
+
+    await expect(parseJsonResponse(response)).rejects.toThrow("Nope");
+    expect(events).toEqual(["ok", "json"]);
+  });
+
+  it("returns the parsed payload on success", async () => {
+    await expect(
+      parseJsonResponse<{ portal: { id: string } }>(
+        jsonResponse(200, { portal: { id: "d1" } }),
+      ),
+    ).resolves.toEqual({ portal: { id: "d1" } });
+  });
+
+  it("throws the payload error on HTTP failure and a status fallback otherwise", async () => {
+    await expect(
+      parseJsonResponse(
+        jsonResponse(422, { error: "Amount must be positive" }),
+      ),
+    ).rejects.toThrow("Amount must be positive");
+
+    await expect(
+      parseJsonResponse(new Response("<html>gateway</html>", { status: 502 })),
+    ).rejects.toThrow("Request failed with status 502");
+  });
+
+  it("does not treat a message field as the thrown error", async () => {
+    await expect(
+      parseJsonResponse(jsonResponse(500, { message: "boom" })),
+    ).rejects.toThrow("Request failed with status 500");
+  });
+
+  it("throws when a success body is empty", async () => {
+    await expect(
+      parseJsonResponse(new Response(null, { status: 204 })),
+    ).rejects.toThrow("Request returned an empty response.");
   });
 });
 

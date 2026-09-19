@@ -114,6 +114,9 @@ describe("React Doctor config contracts", () => {
       "the live email uploader still SHA-1s in `packages/api/src/email/assets.ts`",
     );
     expect(docs).toContain(
+      "Remaining `parseJsonResponse` clones in portal hooks check `response.ok` before reading the JSON body.",
+    );
+    expect(docs).not.toContain(
       "remaining `parseJsonResponse` clones in portal hooks still json-then-ok",
     );
     expect(docs).not.toContain("`maplibre-gl@5.x` (locked at 5.23.0)");
@@ -132,5 +135,20 @@ describe("React Doctor config contracts", () => {
     expect(docs).not.toContain(
       "Cloudinary signed uploads use SHA-256 instead of SHA-1.",
     );
+
+    const remainingCloneFiles = [
+      "packages/database/collections/admin-locations.ts",
+      "packages/database/hooks/admin-locations.ts",
+      "packages/database/hooks/donor-portal.ts",
+      "packages/database/hooks/member-care.ts",
+      "packages/database/hooks/missionary-portal.ts",
+      "packages/lib/hooks/use-tasks.ts",
+    ];
+
+    for (const path of remainingCloneFiles) {
+      const source = readRepoFile(path);
+      expect(source).not.toMatch(/async function parseJsonResponse/);
+      expect(source).toContain("parseJsonResponse");
+    }
   });
 });

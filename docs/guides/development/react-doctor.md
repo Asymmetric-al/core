@@ -87,7 +87,7 @@ Fixed in source:
 
 Confirmed false positives (left as-is at this inventory, no config change):
 
-- `no-fetch-response-used-without-status-check` (25 remaining at inventory): the repo convention at the time read the JSON body first to surface the API error payload, then checked `response.ok`. The remaining `parseJsonResponse` clones in portal hooks still json-then-ok.
+- `no-fetch-response-used-without-status-check` (25 remaining at inventory): the repo convention at the time read the JSON body first to surface the API error payload, then checked `response.ok`. Remaining `parseJsonResponse` clones in portal hooks later started checking `response.ok` before reading the JSON body.
 - `no-set-state-after-await-in-effect` (4) and `no-create-object-url-without-revoke` (1): each site already guarded with a cancellation flag (`cancelled`/`isMounted`) or revoked in `removeMedia`, `handleClose`, and an unmount effect.
 - `effect-needs-cleanup` in `use-supabase-realtime.ts` (suppressed inline with a reason: cleanup runs through `channelRef`) and `UnlayerEmailEditor.tsx` (the inventory treated the legacy editor listener as living on the editor instance, not in an effect; the 2026-09-19 pass later added explicit cleanup on that instance).
 - `anchor-has-content` in `menu-dropdown.tsx`: Base UI's `render` prop merges the visible item title into the rendered link.
@@ -113,6 +113,7 @@ Closed in source from the 2026-09-18 remaining inventory:
 - Transform-only motion for the previous `no-layout-property-animation` sites.
 - Missionary hooks that tripped `react-hooks-js/todo` under React Compiler annotation mode.
 - Unlayer editor listener cleanup on the editor instance.
+- Remaining `parseJsonResponse` clones in portal hooks check `response.ok` before reading the JSON body.
 - Hydration-safe locale formatting (`no-locale-format-in-render`).
 - Derive or key state instead of syncing props in effects.
 - Notify parents from events, not effects (`carousel` `setApi` and live-query seams kept).
