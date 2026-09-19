@@ -93,4 +93,31 @@ describe("useEmailTemplates", () => {
     first.unmount();
     second.unmount();
   });
+
+  it("appends concurrent same-tab creates onto the latest stored list", async () => {
+    const { renderHook } = await import("@testing-library/react");
+    const first = renderHook(() => useEmailTemplates());
+    const second = renderHook(() => useEmailTemplates());
+
+    const createFirst = first.result.current.createTemplate;
+    const createSecond = second.result.current.createTemplate;
+
+    await act(async () => {
+      await Promise.all([
+        createFirst("Welcome", { blocks: [] }),
+        createSecond("Receipt", { blocks: [] }),
+      ]);
+    });
+
+    const stored = JSON.parse(
+      localStorage.getItem("email_studio_draft_templates") ?? "[]",
+    ) as { name: string }[];
+    expect(stored.map((template) => template.name).toSorted()).toEqual([
+      "Receipt",
+      "Welcome",
+    ]);
+
+    first.unmount();
+    second.unmount();
+  });
 });

@@ -103,7 +103,10 @@ export function useEmailTemplates() {
           ...options,
         };
 
-        const updated = [...templates, newTemplate];
+        const updated = [
+          ...readStoredItems<EmailTemplate>(STORAGE_KEY),
+          newTemplate,
+        ];
         saveToStorage(updated);
 
         return newTemplate;
@@ -111,7 +114,7 @@ export function useEmailTemplates() {
         setIsLoading(false);
       }
     },
-    [templates, saveToStorage],
+    [saveToStorage],
   );
 
   const updateTemplate = useCallback(
@@ -121,10 +124,11 @@ export function useEmailTemplates() {
     ): Promise<EmailTemplate | null> => {
       setIsLoading(true);
       try {
-        const index = templates.findIndex((t) => t.id === id);
+        const current = readStoredItems<EmailTemplate>(STORAGE_KEY);
+        const index = current.findIndex((t) => t.id === id);
         if (index === -1) return null;
 
-        const updated = [...templates];
+        const updated = [...current];
         const currentTemplate = updated[index];
         if (!currentTemplate) return null;
 
@@ -142,21 +146,23 @@ export function useEmailTemplates() {
         setIsLoading(false);
       }
     },
-    [templates, saveToStorage],
+    [saveToStorage],
   );
 
   const deleteTemplate = useCallback(
     async (id: string): Promise<boolean> => {
       setIsLoading(true);
       try {
-        const updated = templates.filter((t) => t.id !== id);
+        const updated = readStoredItems<EmailTemplate>(STORAGE_KEY).filter(
+          (t) => t.id !== id,
+        );
         saveToStorage(updated);
         return true;
       } finally {
         setIsLoading(false);
       }
     },
-    [templates, saveToStorage],
+    [saveToStorage],
   );
 
   const getTemplate = useCallback(
@@ -228,7 +234,10 @@ export function useEmailCampaigns() {
           ...options,
         };
 
-        const updated = [...campaigns, newCampaign];
+        const updated = [
+          ...readStoredItems<EmailCampaign>(CAMPAIGNS_KEY),
+          newCampaign,
+        ];
         saveToStorage(updated);
 
         return newCampaign;
@@ -236,7 +245,7 @@ export function useEmailCampaigns() {
         setIsLoading(false);
       }
     },
-    [campaigns, saveToStorage],
+    [saveToStorage],
   );
 
   const updateCampaign = useCallback(
@@ -246,10 +255,11 @@ export function useEmailCampaigns() {
     ): Promise<EmailCampaign | null> => {
       setIsLoading(true);
       try {
-        const index = campaigns.findIndex((c) => c.id === id);
+        const current = readStoredItems<EmailCampaign>(CAMPAIGNS_KEY);
+        const index = current.findIndex((c) => c.id === id);
         if (index === -1) return null;
 
-        const updated = [...campaigns];
+        const updated = [...current];
         const currentCampaign = updated[index];
         if (!currentCampaign) return null;
 
@@ -267,21 +277,23 @@ export function useEmailCampaigns() {
         setIsLoading(false);
       }
     },
-    [campaigns, saveToStorage],
+    [saveToStorage],
   );
 
   const deleteCampaign = useCallback(
     async (id: string): Promise<boolean> => {
       setIsLoading(true);
       try {
-        const updated = campaigns.filter((c) => c.id !== id);
+        const updated = readStoredItems<EmailCampaign>(CAMPAIGNS_KEY).filter(
+          (c) => c.id !== id,
+        );
         saveToStorage(updated);
         return true;
       } finally {
         setIsLoading(false);
       }
     },
-    [campaigns, saveToStorage],
+    [saveToStorage],
   );
 
   const getCampaign = useCallback(
