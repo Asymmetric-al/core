@@ -11,7 +11,7 @@ const cellSource = readFileSync(
       "../../../../packages/ui/components/shadcn/data-grid/data-grid-cell.tsx",
       import.meta.url,
     ),
-    ),
+  ),
   "utf8",
 );
 
@@ -19,10 +19,10 @@ describe("DataGridCell nested interactives", () => {
   it("keeps display cells non-interactive so the gridcell is the only tab stop", () => {
     expect(cellSource).not.toMatch(/<button\b/);
     expect(cellSource).toMatch(/onDoubleClick=\{onStartEdit\}/);
-    expect(cellSource).toMatch(/onClick=\{isSelected \? onStartEdit : undefined\}/);
     expect(cellSource).toMatch(
-      /if \(!isEditing\) \{\s*const selectedOption/,
+      /onClick=\{isSelected \? onStartEdit : undefined\}/,
     );
+    expect(cellSource).toMatch(/if \(!isEditing\) \{\s*const selectedOption/);
   });
 });
 

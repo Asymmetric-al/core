@@ -198,10 +198,10 @@ function ResizableImageView({
       updateAttributes({ width: `${newWidth}px` });
     }
 
-    function handleMouseMove(e: MouseEvent) {
+    function handleMouseMove(e: globalThis.MouseEvent) {
       onMove(e.clientX);
     }
-    function handleTouchMove(e: TouchEvent) {
+    function handleTouchMove(e: globalThis.TouchEvent) {
       if (e.touches[0]) onMove(e.touches[0].clientX);
     }
     function handleEnd() {

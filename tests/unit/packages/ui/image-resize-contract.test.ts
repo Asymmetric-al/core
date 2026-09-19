@@ -21,4 +21,13 @@ describe("image resize source contract", () => {
     expect(source).toMatch(/aria-valuemax/);
     expect(source).toMatch(/aria-valuenow/);
   });
+
+  it("types window drag listeners as DOM events, not React synthetic events", () => {
+    expect(source).toMatch(
+      /function handleMouseMove\(e: globalThis\.MouseEvent\)/,
+    );
+    expect(source).toMatch(
+      /function handleTouchMove\(e: globalThis\.TouchEvent\)/,
+    );
+  });
 });
