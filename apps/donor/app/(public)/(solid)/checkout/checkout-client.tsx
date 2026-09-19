@@ -1338,6 +1338,9 @@ function CheckoutContent({
     runtimeConfigAbortRef.current = abortController;
 
     void fetchCheckoutRuntimeConfig(abortController.signal).then((next) => {
+      if (runtimeConfigAbortRef.current !== abortController) {
+        return;
+      }
       if (next) {
         setRuntimeConfig(next);
       }
