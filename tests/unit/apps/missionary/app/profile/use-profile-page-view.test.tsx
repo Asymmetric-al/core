@@ -384,6 +384,144 @@ describe("useProfilePageView", () => {
     expect(toast.success).not.toHaveBeenCalledWith("Profile saved");
   });
 
+  it("does not toast Profile saved when discard aborts a queued follow-up PATCH", async () => {
+    const existingAvatar = "https://cdn.example/old-avatar.jpg";
+    const existingCover = "https://cdn.example/old-cover.jpg";
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(200, {
+        profile: {
+          ...apiProfile.profile,
+          avatar_url: existingAvatar,
+          missionary: {
+            ...apiProfile.profile.missionary,
+            cover_url: existingCover,
+          },
+        },
+      }),
+    );
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const avatarUrl = "https://cdn.example/new-avatar.jpg";
+    const coverUrl = "https://cdn.example/new-cover.jpg";
+    const patchResolvers: Array<(value: Response) => void> = [];
+    fetchMock.mockImplementation((input, init) => {
+      if (
+        typeof init === "object" &&
+        init !== null &&
+        "method" in init &&
+        init.method === "PATCH"
+      ) {
+        return new Promise<Response>((resolve) => {
+          patchResolvers.push(resolve);
+        });
+      }
+      return Promise.resolve(jsonResponse(200, apiProfile));
+    });
+
+    let drainSave!: Promise<void>;
+    act(() => {
+      result.current.updateProfile("avatarUrl", avatarUrl);
+      drainSave = result.current.handleSave();
+    });
+
+    act(() => {
+      result.current.updateProfile("coverUrl", coverUrl);
+      void result.current.handleSave();
+    });
+
+    await act(async () => {
+      patchResolvers[0](jsonResponse(200, { ok: true }));
+      await waitFor(() => expect(patchResolvers).toHaveLength(2));
+    });
+
+    act(() => {
+      result.current.handleDiscard();
+    });
+
+    expect(patchInits()[1]?.signal?.aborted).toBe(true);
+    // PATCH 1 already committed the avatar; discard only drops unsaved cover.
+    expect(result.current.profile.avatarUrl).toBe(avatarUrl);
+    expect(result.current.profile.coverUrl).toBe(existingCover);
+
+    await act(async () => {
+      patchResolvers[1](jsonResponse(200, { ok: true }));
+      await drainSave;
+    });
+
+    expect(patchResolvers).toHaveLength(2);
+    expect(toast.success).not.toHaveBeenCalledWith("Profile saved");
+    expect(result.current.profile.avatarUrl).toBe(avatarUrl);
+    expect(result.current.profile.coverUrl).toBe(existingCover);
+    expect(result.current.isSaving).toBe(false);
+  });
+
+  it("does not resume a discarded drain when a later save is queued during abort", async () => {
+    const existingAvatar = "https://cdn.example/old-avatar.jpg";
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(200, {
+        profile: {
+          ...apiProfile.profile,
+          avatar_url: existingAvatar,
+        },
+      }),
+    );
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const firstAvatar = "https://cdn.example/first-avatar.jpg";
+    const secondAvatar = "https://cdn.example/second-avatar.jpg";
+    const patchResolvers: Array<(value: Response) => void> = [];
+    fetchMock.mockImplementation((input, init) => {
+      if (
+        typeof init === "object" &&
+        init !== null &&
+        "method" in init &&
+        init.method === "PATCH"
+      ) {
+        return new Promise<Response>((resolve) => {
+          patchResolvers.push(resolve);
+        });
+      }
+      return Promise.resolve(jsonResponse(200, apiProfile));
+    });
+
+    let drainSave!: Promise<void>;
+    act(() => {
+      result.current.updateProfile("avatarUrl", firstAvatar);
+      drainSave = result.current.handleSave();
+    });
+
+    act(() => {
+      result.current.handleDiscard();
+      result.current.updateProfile("avatarUrl", secondAvatar);
+      void result.current.handleSave();
+    });
+
+    await act(async () => {
+      patchResolvers[0](jsonResponse(200, { ok: true }));
+      await drainSave;
+      await waitFor(() => expect(patchResolvers.length).toBeGreaterThanOrEqual(2));
+    });
+
+    expect(patchBodies()[1]).toMatchObject({ avatarUrl: secondAvatar });
+    expect(patchBodies()[1]).not.toMatchObject({ avatarUrl: firstAvatar });
+
+    await act(async () => {
+      patchResolvers[1](jsonResponse(200, { ok: true }));
+      await waitFor(() => expect(result.current.isSaving).toBe(false));
+    });
+
+    expect(result.current.profile.avatarUrl).toBe(secondAvatar);
+    expect(toast.success).toHaveBeenCalledWith("Profile saved");
+  });
+
   it("retries a queued photo save after the in-flight PATCH fails", async () => {
     const existingAvatar = "https://cdn.example/old-avatar.jpg";
     const existingCover = "https://cdn.example/old-cover.jpg";

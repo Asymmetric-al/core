@@ -198,6 +198,7 @@ export function useProfilePageView(): ProfilePageViewModel {
   const saveAbortRef = useRef<AbortController | null>(null);
   const saveInFlightRef = useRef(false);
   const saveQueuedRef = useRef(false);
+  const saveCancelledRef = useRef(false);
   useLayoutEffect(() => {
     draftRef.current = draft;
     originalProfileRef.current = originalProfile;
@@ -284,6 +285,7 @@ export function useProfilePageView(): ProfilePageViewModel {
     }
 
     saveInFlightRef.current = true;
+    saveCancelledRef.current = false;
     setIsSaving(true);
 
     let savedAny = false;
@@ -326,10 +328,9 @@ export function useProfilePageView(): ProfilePageViewModel {
         }),
       });
 
+      // Discard (and any other generation bump) always ends this drain.
+      // Continuing here would flush a save the user just cancelled.
       if (requestId !== saveRequestIdRef.current) {
-        if (saveQueuedRef.current) {
-          continue;
-        }
         break;
       }
 
@@ -368,22 +369,31 @@ export function useProfilePageView(): ProfilePageViewModel {
       }
     }
 
+    const restartQueued = saveCancelledRef.current && saveQueuedRef.current;
     saveInFlightRef.current = false;
     saveAbortRef.current = null;
     setIsSaving(false);
 
-    if (savedAny && !saveFailed) {
+    if (savedAny && !saveFailed && !saveCancelledRef.current) {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
       toast.success("Profile saved");
     }
+
+    if (restartQueued) {
+      saveCancelledRef.current = false;
+      void handleSave();
+    }
   }, [queryClient, setIsSaving, setSaveSuccess, validateProfile]);
 
   const handleDiscard = useCallback(() => {
+    saveCancelledRef.current = true;
     saveQueuedRef.current = false;
+    // Bump generation before abort so the in-flight PATCH cannot continue
+    // this drain even if a later handleSave queues work during the abort.
+    saveRequestIdRef.current += 1;
     saveAbortRef.current?.abort();
     saveAbortRef.current = null;
-    saveRequestIdRef.current += 1;
     setIsSaving(false);
     draftRef.current = null;
     profileRef.current = originalProfileRef.current;
