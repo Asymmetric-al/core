@@ -199,7 +199,6 @@ export function useProfilePageView(): ProfilePageViewModel {
   const saveInFlightRef = useRef(false);
   const saveQueuedRef = useRef(false);
   const saveCancelledRef = useRef(false);
-  const handleSaveRef = useRef<() => Promise<void>>(async () => {});
   useLayoutEffect(() => {
     draftRef.current = draft;
     originalProfileRef.current = originalProfile;
@@ -269,124 +268,126 @@ export function useProfilePageView(): ProfilePageViewModel {
     [validationErrors, setValidationErrors],
   );
 
-  const handleSave = useCallback(async () => {
-    // Photo widgets call handleSave on upload without checking isSaving, so a
-    // second save can start while the first PATCH is still in flight. The API
-    // applies every truthy avatar/cover URL, so the slower first request can
-    // write the previous photo after the UI has already toasted success.
-    if (saveInFlightRef.current) {
-      saveQueuedRef.current = true;
-      return;
-    }
+  const handleSave = useCallback(
+    async function persistProfile() {
+      // Photo widgets call handleSave on upload without checking isSaving, so a
+      // second save can start while the first PATCH is still in flight. The API
+      // applies every truthy avatar/cover URL, so the slower first request can
+      // write the previous photo after the UI has already toasted success.
+      if (saveInFlightRef.current) {
+        saveQueuedRef.current = true;
+        return;
+      }
 
-    const initialSnapshot = profileRef.current;
-    if (!validateProfile(initialSnapshot)) {
-      toast.error("Please fix the errors before saving");
-      return;
-    }
-
-    saveInFlightRef.current = true;
-    saveCancelledRef.current = false;
-    setIsSaving(true);
-
-    let savedAny = false;
-    let saveFailed = false;
-
-    while (true) {
-      saveQueuedRef.current = false;
-      const snapshot = profileRef.current;
-      if (!validateProfile(snapshot)) {
+      const initialSnapshot = profileRef.current;
+      if (!validateProfile(initialSnapshot)) {
         toast.error("Please fix the errors before saving");
-        saveFailed = true;
-        break;
+        return;
       }
 
-      const controller = new AbortController();
-      saveAbortRef.current = controller;
-      const requestId = ++saveRequestIdRef.current;
-      // fetchResult never throws, so no try/finally is needed here (the React
-      // Compiler cannot lower those yet); HTTP error payloads arrive as data.
-      const result = await fetchResult("/api/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({
-          firstName: snapshot.firstName,
-          lastName: snapshot.lastName,
-          bio: snapshot.bio,
-          tagline: snapshot.ministryFocus,
-          location: snapshot.location,
-          phone: snapshot.phone,
-          ...(snapshot.coverUrl ? { coverUrl: snapshot.coverUrl } : {}),
-          ...(snapshot.avatarUrl ? { avatarUrl: snapshot.avatarUrl } : {}),
-          socialLinks: {
-            facebook: snapshot.facebook,
-            instagram: snapshot.instagram,
-            twitter: snapshot.twitter,
-            youtube: snapshot.youtube,
-            website: snapshot.website,
-          },
-        }),
-      });
+      saveInFlightRef.current = true;
+      saveCancelledRef.current = false;
+      setIsSaving(true);
 
-      // Discard (and any other generation bump) always ends this drain.
-      // Continuing here would flush a save the user just cancelled.
-      if (requestId !== saveRequestIdRef.current) {
-        break;
-      }
+      let savedAny = false;
+      let saveFailed = false;
 
-      if (!result.ok) {
-        if (
-          result.error.kind === "network" &&
-          result.error.cause instanceof Error &&
-          result.error.cause.name === "AbortError"
-        ) {
+      while (true) {
+        saveQueuedRef.current = false;
+        const snapshot = profileRef.current;
+        if (!validateProfile(snapshot)) {
+          toast.error("Please fix the errors before saving");
+          saveFailed = true;
           break;
         }
-        // Photo auto-save queues a follow-up instead of overlapping PATCHes.
-        // If this attempt failed, still flush the latest snapshot so a later
-        // cover/avatar upload is not dropped with the failed request.
-        if (saveQueuedRef.current) {
-          continue;
+
+        const controller = new AbortController();
+        saveAbortRef.current = controller;
+        const requestId = ++saveRequestIdRef.current;
+        // fetchResult never throws, so no try/finally is needed here (the React
+        // Compiler cannot lower those yet); HTTP error payloads arrive as data.
+        const result = await fetchResult("/api/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            firstName: snapshot.firstName,
+            lastName: snapshot.lastName,
+            bio: snapshot.bio,
+            tagline: snapshot.ministryFocus,
+            location: snapshot.location,
+            phone: snapshot.phone,
+            ...(snapshot.coverUrl ? { coverUrl: snapshot.coverUrl } : {}),
+            ...(snapshot.avatarUrl ? { avatarUrl: snapshot.avatarUrl } : {}),
+            socialLinks: {
+              facebook: snapshot.facebook,
+              instagram: snapshot.instagram,
+              twitter: snapshot.twitter,
+              youtube: snapshot.youtube,
+              website: snapshot.website,
+            },
+          }),
+        });
+
+        // Discard (and any other generation bump) always ends this drain.
+        // Continuing here would flush a save the user just cancelled.
+        if (requestId !== saveRequestIdRef.current) {
+          break;
         }
-        const errorMessage =
-          (result.error.kind === "http" &&
-            readErrorMessage(result.error.payload)) ||
-          "Failed to save profile";
-        console.error("Failed to save profile:", result.error);
-        toast.error(errorMessage);
-        saveFailed = true;
-        break;
+
+        if (!result.ok) {
+          if (
+            result.error.kind === "network" &&
+            result.error.cause instanceof Error &&
+            result.error.cause.name === "AbortError"
+          ) {
+            break;
+          }
+          // Photo auto-save queues a follow-up instead of overlapping PATCHes.
+          // If this attempt failed, still flush the latest snapshot so a later
+          // cover/avatar upload is not dropped with the failed request.
+          if (saveQueuedRef.current) {
+            continue;
+          }
+          const errorMessage =
+            (result.error.kind === "http" &&
+              readErrorMessage(result.error.payload)) ||
+            "Failed to save profile";
+          console.error("Failed to save profile:", result.error);
+          toast.error(errorMessage);
+          saveFailed = true;
+          break;
+        }
+
+        queryClient.setQueryData<ProfileData | null>(["profile"], snapshot);
+        setDraft((current) =>
+          current && hasProfileChanges(current, snapshot) ? current : null,
+        );
+        savedAny = true;
+
+        if (!saveQueuedRef.current) {
+          break;
+        }
       }
 
-      queryClient.setQueryData<ProfileData | null>(["profile"], snapshot);
-      setDraft((current) =>
-        current && hasProfileChanges(current, snapshot) ? current : null,
-      );
-      savedAny = true;
+      const restartQueued = saveCancelledRef.current && saveQueuedRef.current;
+      saveInFlightRef.current = false;
+      saveAbortRef.current = null;
+      setIsSaving(false);
 
-      if (!saveQueuedRef.current) {
-        break;
+      if (savedAny && !saveFailed && !saveCancelledRef.current) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2000);
+        toast.success("Profile saved");
       }
-    }
 
-    const restartQueued = saveCancelledRef.current && saveQueuedRef.current;
-    saveInFlightRef.current = false;
-    saveAbortRef.current = null;
-    setIsSaving(false);
-
-    if (savedAny && !saveFailed && !saveCancelledRef.current) {
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2000);
-      toast.success("Profile saved");
-    }
-
-    if (restartQueued) {
-      saveCancelledRef.current = false;
-      void handleSaveRef.current();
-    }
-  }, [queryClient, setIsSaving, setSaveSuccess, validateProfile]);
-  handleSaveRef.current = handleSave;
+      if (restartQueued) {
+        saveCancelledRef.current = false;
+        void persistProfile();
+      }
+    },
+    [queryClient, setIsSaving, setSaveSuccess, validateProfile],
+  );
 
   const handleDiscard = useCallback(() => {
     saveCancelledRef.current = true;
