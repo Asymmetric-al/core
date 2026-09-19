@@ -3,6 +3,7 @@
 
 import { useMissionaryDonorRows } from "@asym/database/hooks";
 import { invalidateSupabaseTableQuery } from "@asym/database/query-keys";
+import type { Profile } from "@asym/database/types";
 import { useAuth } from "@asym/lib/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
@@ -129,7 +130,7 @@ import type {
   Donor,
   RecurringStatus,
 } from "./donor-types";
-import type { Profile } from "@asym/database/types";
+import { EMPTY_TAG_DRAFT, nextTagDraftOnDonorSelect } from "./tag-draft";
 
 function currentDisplayDate(): Date {
   return new globalThis.Date();
@@ -395,11 +396,6 @@ type DonorsPageViewModel = {
   };
 };
 
-const EMPTY_TAG_DRAFT: { donorId: string | null; tags: string[] } = {
-  donorId: null,
-  tags: [],
-};
-
 export function useDonorsPageView(): DonorsPageViewModel {
   const { profile, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
@@ -597,7 +593,7 @@ export function useDonorsPageView(): DonorsPageViewModel {
 
   const selectDonorById = React.useCallback((id: string) => {
     setSelectedDonorId(id);
-    setTagDraft(EMPTY_TAG_DRAFT);
+    setTagDraft((previous) => nextTagDraftOnDonorSelect(previous, id));
   }, []);
 
   const clearSelectedDonor = React.useCallback(() => {
