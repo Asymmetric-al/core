@@ -1,5 +1,6 @@
+import { createHash } from "node:crypto";
 import { type NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   getAuthContextMock,
@@ -8,6 +9,8 @@ const {
   uploadMock,
   getPublicUrlMock,
   storageFromMock,
+  serverEnv,
+  clientEnv,
 } = vi.hoisted(() => {
   const upload = vi.fn().mockResolvedValue({ data: null, error: null });
   const getPublicUrl = vi.fn(() => ({
@@ -21,6 +24,17 @@ const {
     uploadMock: upload,
     getPublicUrlMock: getPublicUrl,
     storageFromMock: storageFrom,
+    serverEnv: {
+      NEXT_PUBLIC_CLOUDINARY_ENABLED: false as boolean,
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: "demo",
+      NEXT_PUBLIC_CLOUDINARY_API_KEY: "1234",
+      CLOUDINARY_API_SECRET: "abcd",
+    },
+    clientEnv: {
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: "demo",
+      NEXT_PUBLIC_CLOUDINARY_API_KEY: "1234",
+      NEXT_PUBLIC_CLOUDINARY_ENABLED: true,
+    },
   };
 });
 
@@ -34,9 +48,8 @@ vi.mock("@asym/database/supabase/admin", () => ({
 }));
 
 vi.mock("@asym/env", () => ({
-  serverEnv: {
-    NEXT_PUBLIC_CLOUDINARY_ENABLED: false,
-  },
+  serverEnv,
+  clientEnv,
 }));
 
 import { POST } from "../../../../../packages/api/src/email/assets";
@@ -58,6 +71,7 @@ function createUploadRequest(
 describe("api/email/assets/upload", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    serverEnv.NEXT_PUBLIC_CLOUDINARY_ENABLED = false;
     vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue("uuid-1234");
     getAuthContextMock.mockResolvedValue({
       tenantId: "tenant_1",
@@ -111,5 +125,52 @@ describe("api/email/assets/upload", () => {
     expect(getPublicUrlMock).toHaveBeenCalledWith(
       "email-assets/tenant_1/template_9/uuid-1234.png",
     );
+  });
+});
+
+describe("api/email/assets/upload Cloudinary signature", () => {
+  afterEach(() => {
+    serverEnv.NEXT_PUBLIC_CLOUDINARY_ENABLED = false;
+    vi.useRealTimers();
+  });
+
+  it("signs live Cloudinary uploads with SHA-256 and signature_algorithm", async () => {
+    serverEnv.NEXT_PUBLIC_CLOUDINARY_ENABLED = true;
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(1315060510 * 1000));
+    vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue("uuid-1234");
+    getAuthContextMock.mockResolvedValue({
+      tenantId: "tenant_1",
+      profileId: "profile_1",
+      role: "admin",
+    });
+    requireRoleMock.mockReturnValue(undefined);
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        secure_url:
+          "https://res.cloudinary.com/demo/image/upload/uuid-1234.png",
+        public_id: "email-assets/tenant_1/template_1/uuid-1234",
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(
+      createUploadRequest(new File(["png"], "hero.png", { type: "image/png" })),
+    );
+
+    expect(response.status).toBe(201);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [, init] = fetchMock.mock.calls[0] as [string, { body: FormData }];
+    const uploaded = init.body;
+    expect(uploaded.get("signature_algorithm")).toBe("sha256");
+
+    const stringToSign =
+      "folder=email-assets/tenant_1/template_1&public_id=uuid-1234&signature_algorithm=sha256&timestamp=1315060510abcd";
+    expect(uploaded.get("signature")).toBe(
+      createHash("sha256").update(stringToSign).digest("hex"),
+    );
+    expect(String(uploaded.get("signature"))).toHaveLength(64);
   });
 });

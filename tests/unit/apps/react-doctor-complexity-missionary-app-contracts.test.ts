@@ -74,5 +74,16 @@ describe("missionary-app high-complexity extraction contracts", () => {
     expect(selectedCard).toContain("<DonorsPartnerRecurringTab");
     expect(selectedCard).toContain("<DonorsPartnerGivingTab");
     expect(selectedCard).not.toContain("selected: selectedDonor");
+
+    const detailPane = source.slice(
+      source.indexOf("function DonorsPartnerDetailPane("),
+      source.indexOf("function DonorsNoteComposerDialog("),
+    );
+    expect(detailPane).toContain(
+      "<DonorsSelectedPartnerCard\n            key={selectedDonor.id}",
+    );
+    expect(detailPane).toContain(
+      '<DonorsEmptySelectionPanel key="empty" model={model} />',
+    );
   });
 });
