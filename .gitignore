@@ -78,3 +78,7 @@ __pycache__/
 
 # Phase 18 document-cutover proofs (operator artifacts, per-environment)
 /var/document-cutover-proofs/
+
+# MapLibre 6 worker + shared ESM files copied from node_modules at Next config load
+/apps/donor/public/maplibre/
+/apps/admin/public/maplibre/
