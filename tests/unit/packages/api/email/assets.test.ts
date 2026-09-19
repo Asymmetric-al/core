@@ -166,11 +166,15 @@ describe("api/email/assets/upload Cloudinary signature", () => {
     const uploaded = init.body;
     expect(uploaded.get("signature_algorithm")).toBe("sha256");
 
+    // Cloudinary reconstructs the string-to-sign from signed upload params.
+    // `signature_algorithm` is request metadata (which digest to verify), not a
+    // signed param — including it here 502s against Cloudinary's canonical check.
     const stringToSign =
-      "folder=email-assets/tenant_1/template_1&public_id=uuid-1234&signature_algorithm=sha256&timestamp=1315060510abcd";
+      "folder=email-assets/tenant_1/template_1&public_id=uuid-1234&timestamp=1315060510abcd";
     expect(uploaded.get("signature")).toBe(
       createHash("sha256").update(stringToSign).digest("hex"),
     );
+    expect(stringToSign).not.toContain("signature_algorithm");
     expect(String(uploaded.get("signature"))).toHaveLength(64);
   });
 });

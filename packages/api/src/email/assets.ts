@@ -110,7 +110,6 @@ async function uploadToCloudinary(input: {
   const signature = getCloudinarySignature({
     folder,
     public_id: publicId,
-    signature_algorithm: "sha256",
     timestamp,
   });
   const formData = new FormData();
