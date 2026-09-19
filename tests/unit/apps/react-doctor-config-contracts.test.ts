@@ -168,4 +168,14 @@ describe("React Doctor config contracts", () => {
       expect(source).toContain("parseJsonResponse");
     }
   });
+
+  it("does not let packages/database import @asym/lib", () => {
+    const databaseLibImports = sourceFiles().filter((path) => {
+      if (!path.startsWith("packages/database/")) {
+        return false;
+      }
+      return /(?:from|import)\s*\(?\s*["']@asym\/lib/.test(readRepoFile(path));
+    });
+    expect(databaseLibImports).toEqual([]);
+  });
 });
