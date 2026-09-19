@@ -1,6 +1,7 @@
 "use client";
 
 // maplibre-gl 6 ships ESM only and no default export.
+import { AlertCircle } from "lucide-react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useTheme } from "next-themes";
@@ -23,6 +24,7 @@ import { cn } from "@asym/ui/lib/utils";
 type MapContextValue = {
   map: maplibregl.Map | null;
   isLoaded: boolean;
+  initializationFailed: boolean;
 };
 
 const MapContext = createContext<MapContextValue | null>(null);
@@ -93,6 +95,32 @@ function Loader() {
   );
 }
 
+function InitializationFailed() {
+  return (
+    <div
+      role="alert"
+      className="bg-background/80 absolute inset-0 z-50 flex flex-col items-center justify-center px-6 backdrop-blur-md"
+    >
+      <div className="bg-destructive/10 mb-4 flex size-12 items-center justify-center rounded-full">
+        <AlertCircle className="size-6 text-destructive" aria-hidden="true" />
+      </div>
+      <p className="text-foreground text-sm font-medium">
+        Unable to initialize the map
+      </p>
+      <p className="text-muted-foreground mt-1 max-w-xs text-center text-sm">
+        This browser cannot start the map. WebGL2 support is required.
+      </p>
+    </div>
+  );
+}
+
+function isGpuInitializationError(error: unknown): boolean {
+  return (
+    error instanceof maplibregl.GPUInitializationError ||
+    (error instanceof Error && error.name === "GPUInitializationError")
+  );
+}
+
 export function Map({
   children,
   styles,
@@ -111,28 +139,61 @@ export function Map({
   const [mapState, setMapState] = useState<MapContextValue>({
     map: null,
     isLoaded: false,
+    initializationFailed: false,
   });
   const { resolvedTheme } = useTheme();
 
   const lightStyle = styles?.light ?? STYLES.light;
   const darkStyle = styles?.dark ?? STYLES.dark;
-  const mapLoaded = mapState.isLoaded;
+  const mapLoaded = mapState.isLoaded && mapState.map !== null;
 
   const markMapReady = useCallback(() => {
     setMapState((previous) => {
       const currentMap = mapInstanceRef.current;
-      if (previous.isLoaded && previous.map === currentMap) {
+      if (!currentMap) {
+        if (
+          !previous.isLoaded &&
+          previous.map === null &&
+          previous.initializationFailed === false
+        ) {
+          return previous;
+        }
+        return {
+          map: null,
+          isLoaded: false,
+          initializationFailed: previous.initializationFailed,
+        };
+      }
+      if (
+        previous.isLoaded &&
+        previous.map === currentMap &&
+        !previous.initializationFailed
+      ) {
         return previous;
       }
       return {
         map: currentMap,
         isLoaded: true,
+        initializationFailed: false,
       };
     });
   }, []);
 
+  const markMapInitializationFailed = useCallback(() => {
+    mapInstanceRef.current = null;
+    setMapState({
+      map: null,
+      isLoaded: false,
+      initializationFailed: true,
+    });
+  }, []);
+
   const resetMapState = useCallback(() => {
-    setMapState({ map: null, isLoaded: false });
+    setMapState({
+      map: null,
+      isLoaded: false,
+      initializationFailed: false,
+    });
   }, []);
 
   useEffect(() => {
@@ -173,7 +234,9 @@ export function Map({
 
       const onMapError = (e: maplibregl.ErrorEvent) => {
         console.error("MapLibre error:", e);
-        markMapReady();
+        if (mapInstanceRef.current) {
+          markMapReady();
+        }
       };
 
       const onMapClick = (e: maplibregl.MapMouseEvent) => {
@@ -199,14 +262,21 @@ export function Map({
         resetMapState();
       };
     } catch (error) {
-      console.error("Failed to initialize map:", error);
-      markMapReady();
+      hasInitializedRef.current = true;
+      console.error(
+        isGpuInitializationError(error)
+          ? "MapLibre GPUInitializationError: WebGL2 is unavailable."
+          : "Failed to initialize map:",
+        error,
+      );
+      markMapInitializationFailed();
     }
   }, [
     center,
     darkStyle,
     initialViewState,
     lightStyle,
+    markMapInitializationFailed,
     markMapReady,
     resetMapState,
     resolvedTheme,
@@ -246,7 +316,11 @@ export function Map({
           className,
         )}
       >
-        {!mapLoaded && <Loader />}
+        {mapState.initializationFailed ? (
+          <InitializationFailed />
+        ) : !mapLoaded ? (
+          <Loader />
+        ) : null}
         {mapLoaded && children}
       </div>
     </MapContext.Provider>
@@ -616,7 +690,7 @@ export function MapControls({
     el.requestFullscreen();
   }, [map]);
 
-  if (!isLoaded) return null;
+  if (!isLoaded || !map) return null;
 
   return (
     <MapOverlay
@@ -677,9 +751,9 @@ export function MapStyleToggle({
   className?: string;
 }) {
   const { resolvedTheme, setTheme } = useTheme();
-  const { isLoaded } = useMap();
+  const { map, isLoaded } = useMap();
 
-  if (!isLoaded) return null;
+  if (!isLoaded || !map) return null;
 
   return (
     <MapOverlay position={position} className={cn(className)}>
@@ -706,8 +780,8 @@ export function MapLegend({
   title?: string;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
 }) {
-  const { isLoaded } = useMap();
-  if (!isLoaded) return null;
+  const { map, isLoaded } = useMap();
+  if (!isLoaded || !map) return null;
 
   return (
     <MapOverlay
