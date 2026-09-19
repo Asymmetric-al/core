@@ -194,6 +194,7 @@ export function useProfilePageView(): ProfilePageViewModel {
   const draftRef = useRef(draft);
   const originalProfileRef = useRef(originalProfile);
   const profileRef = useRef(profile);
+  const saveRequestIdRef = useRef(0);
   useLayoutEffect(() => {
     draftRef.current = draft;
     originalProfileRef.current = originalProfile;
@@ -270,6 +271,7 @@ export function useProfilePageView(): ProfilePageViewModel {
       return;
     }
 
+    const requestId = ++saveRequestIdRef.current;
     setIsSaving(true);
     // fetchResult never throws, so no try/finally is needed here (the React
     // Compiler cannot lower those yet); HTTP error payloads arrive as data.
@@ -283,7 +285,7 @@ export function useProfilePageView(): ProfilePageViewModel {
         tagline: snapshot.ministryFocus,
         location: snapshot.location,
         phone: snapshot.phone,
-        coverUrl: snapshot.coverUrl,
+        ...(snapshot.coverUrl ? { coverUrl: snapshot.coverUrl } : {}),
         ...(snapshot.avatarUrl ? { avatarUrl: snapshot.avatarUrl } : {}),
         socialLinks: {
           facebook: snapshot.facebook,
@@ -294,6 +296,11 @@ export function useProfilePageView(): ProfilePageViewModel {
         },
       }),
     });
+
+    if (requestId !== saveRequestIdRef.current) {
+      return;
+    }
+
     setIsSaving(false);
 
     if (result.ok) {
