@@ -114,7 +114,6 @@ function DataGridSelectCell({
   options,
   placeholder,
   isEditing,
-  isSelected,
   onChange,
   onStartEdit,
   onEndEdit,
@@ -124,22 +123,21 @@ function DataGridSelectCell({
   options: DataGridColumnOption[];
   placeholder?: string;
   isEditing: boolean;
-  isSelected: boolean;
   onChange: (value: unknown) => void;
   onStartEdit: () => void;
   onEndEdit: () => void;
   className: string;
 }) {
-  if (!isEditing && !isSelected) {
+  if (!isEditing) {
     const selectedOption = options.find((opt) => opt.value === value);
     return (
-      <button
-        type="button"
+      <div
         className={cn(className, "block cursor-pointer text-left")}
         onClick={onStartEdit}
+        onDoubleClick={onStartEdit}
       >
         {selectedOption?.label ?? String(value ?? "")}
-      </button>
+      </div>
     );
   }
 
@@ -187,21 +185,13 @@ function DataGridDisplayCell({
   const { formatDate } = useLocaleFormat();
 
   return (
-    <button
-      type="button"
+    <div
       className={cn(className, "block cursor-cell truncate text-left")}
       onDoubleClick={onStartEdit}
       onClick={isSelected ? onStartEdit : undefined}
-      onKeyDown={(e) => {
-        // Enter/Space start editing even before the cell is selected.
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onStartEdit();
-        }
-      }}
     >
       {formatDataGridDisplayValue(cellType, value, formatDate)}
-    </button>
+    </div>
   );
 }
 
@@ -302,7 +292,6 @@ export function DataGridCell({
         options={options}
         placeholder={placeholder}
         isEditing={isEditing}
-        isSelected={isSelected}
         onChange={onChange}
         onStartEdit={onStartEdit}
         onEndEdit={onEndEdit}

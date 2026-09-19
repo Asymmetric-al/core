@@ -175,7 +175,7 @@ export function ColumnResizeHandle({
       role="separator"
       aria-label="Resize column"
       aria-orientation="vertical"
-      tabIndex={0}
+      tabIndex={onKeyboardResize ? 0 : -1}
       className={
         className ??
         "absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none bg-transparent hover:bg-primary/50 active:bg-primary transition-colors"
