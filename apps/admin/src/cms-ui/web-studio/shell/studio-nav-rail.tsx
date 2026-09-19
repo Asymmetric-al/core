@@ -82,7 +82,8 @@ export function StudioNavRail({ className }: { className?: string }) {
         const pref = await getPreference<{ collapsed?: boolean }>(
           WEB_STUDIO_PREF_KEYS.navCollapsed,
         );
-        if (!cancelled && pref && typeof pref.collapsed === "boolean") {
+        if (cancelled) return;
+        if (pref && typeof pref.collapsed === "boolean") {
           setCollapsed(pref.collapsed);
         }
       } catch {

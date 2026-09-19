@@ -68,4 +68,29 @@ describe("useEmailTemplates", () => {
       root?.unmount();
     });
   });
+
+  it("shares writes across hook instances without an effect round-trip", async () => {
+    const { renderHook } = await import("@testing-library/react");
+    const first = renderHook(() => useEmailTemplates());
+    const second = renderHook(() => useEmailTemplates());
+
+    expect(first.result.current.templates).toEqual([]);
+
+    await act(async () => {
+      await first.result.current.createTemplate("Welcome", { blocks: [] });
+    });
+
+    expect(first.result.current.templates.map((t) => t.name)).toEqual([
+      "Welcome",
+    ]);
+    expect(second.result.current.templates.map((t) => t.name)).toEqual([
+      "Welcome",
+    ]);
+    expect(
+      JSON.parse(localStorage.getItem("email_studio_draft_templates") ?? "[]"),
+    ).toHaveLength(1);
+
+    first.unmount();
+    second.unmount();
+  });
 });
