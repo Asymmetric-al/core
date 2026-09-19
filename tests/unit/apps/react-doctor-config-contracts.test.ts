@@ -140,7 +140,8 @@ describe("React Doctor config contracts", () => {
     const assets = readRepoFile("packages/api/src/email/assets.ts");
 
     expect(assets).toContain('createHash("sha256")');
-    expect(assets).toContain('signature_algorithm: "sha256"');
+    expect(assets).toContain('formData.set("signature_algorithm", "sha256")');
+    expect(assets).not.toContain('signature_algorithm: "sha256"');
     expect(docs).toContain(
       "the live email uploader in `packages/api/src/email/assets.ts` SHA-256s and sends `signature_algorithm=sha256`",
     );
