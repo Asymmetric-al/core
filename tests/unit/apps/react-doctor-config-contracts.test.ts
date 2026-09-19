@@ -111,15 +111,26 @@ describe("React Doctor config contracts", () => {
 
     expect(docs).toContain("`maplibre-gl@5.x` was locked at 5.23.0");
     expect(docs).toContain(
-      "The 2026-09-19 pass later switched signed uploads to Cloudinary's SHA-256 option.",
+      "the live email uploader still SHA-1s in `packages/api/src/email/assets.ts`",
     );
     expect(docs).toContain(
-      "The 2026-09-19 pass later checked `response.ok` before reading the body at the remaining first-party sites.",
+      "remaining `parseJsonResponse` clones in portal hooks still json-then-ok",
     );
     expect(docs).not.toContain("`maplibre-gl@5.x` (locked at 5.23.0)");
     expect(docs).not.toContain(
       "Moving to Cloudinary's SHA-256 option is possible",
     );
-    expect(docs).not.toContain("the repo convention reads the JSON body first");
+    expect(docs).not.toContain(
+      "The 2026-09-19 pass later switched signed uploads to Cloudinary's SHA-256 option.",
+    );
+    expect(docs).not.toContain(
+      "The 2026-09-19 pass later checked `response.ok` before reading the body at the remaining first-party sites.",
+    );
+    expect(docs).not.toContain(
+      "Fetch `response.ok` before reading the body at the remaining first-party sites.",
+    );
+    expect(docs).not.toContain(
+      "Cloudinary signed uploads use SHA-256 instead of SHA-1.",
+    );
   });
 });

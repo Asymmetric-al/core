@@ -87,12 +87,12 @@ Fixed in source:
 
 Confirmed false positives (left as-is at this inventory, no config change):
 
-- `no-fetch-response-used-without-status-check` (25 remaining at inventory): the repo convention at the time read the JSON body first to surface the API error payload, then checked `response.ok`. The 2026-09-19 pass later checked `response.ok` before reading the body at the remaining first-party sites.
+- `no-fetch-response-used-without-status-check` (25 remaining at inventory): the repo convention at the time read the JSON body first to surface the API error payload, then checked `response.ok`. The remaining `parseJsonResponse` clones in portal hooks still json-then-ok.
 - `no-set-state-after-await-in-effect` (4) and `no-create-object-url-without-revoke` (1): each site already guarded with a cancellation flag (`cancelled`/`isMounted`) or revoked in `removeMedia`, `handleClose`, and an unmount effect.
 - `effect-needs-cleanup` in `use-supabase-realtime.ts` (suppressed inline with a reason: cleanup runs through `channelRef`) and `UnlayerEmailEditor.tsx` (the inventory treated the legacy editor listener as living on the editor instance, not in an effect; the 2026-09-19 pass later added explicit cleanup on that instance).
 - `anchor-has-content` in `menu-dropdown.tsx`: Base UI's `render` prop merges the visible item title into the rendered link.
 - `query-mutation-missing-invalidation` in `hooks/donor-portal.ts`: the billing-portal session mutation returns a redirect URL and owns no cached data.
-- `insecure-crypto-risk` in `packages/lib/cloudinary-server.ts`: the SHA-1 digest was Cloudinary's default signed-upload signature, not a credential hash. The 2026-09-19 pass later switched signed uploads to Cloudinary's SHA-256 option.
+- `insecure-crypto-risk` in `packages/lib/cloudinary-server.ts`: the helper SHA-256s Cloudinary's official sorted string-to-sign (not a credential hash). The helper is unused today; the live email uploader still SHA-1s in `packages/api/src/email/assets.ts`.
 
 Deferred with owners (pre-pass inventory; closed in the 2026-09-19 source pass below):
 
@@ -113,13 +113,11 @@ Closed in source from the 2026-09-18 remaining inventory:
 - Transform-only motion for the previous `no-layout-property-animation` sites.
 - Missionary hooks that tripped `react-hooks-js/todo` under React Compiler annotation mode.
 - Unlayer editor listener cleanup on the editor instance.
-- Fetch `response.ok` before reading the body at the remaining first-party sites.
 - Hydration-safe locale formatting (`no-locale-format-in-render`).
 - Derive or key state instead of syncing props in effects.
 - Notify parents from events, not effects (`carousel` `setApi` and live-query seams kept).
 - Async effect cancellation guards and external-store email drafts.
 - First-party a11y semantics (`prefer-tag-over-role` and related).
-- Cloudinary signed uploads use SHA-256 instead of SHA-1.
 - Non-component exports moved out of component files (`only-export-components`).
 - Duplicated JSX subtrees extracted to shared siblings.
 - High-complexity React functions extracted in `@asym/admin`, `@asym/donor`, `@asym/missionary-app`, `@asym/missionary`, and `@asym/ui` so each stays under the cyclomatic/cognitive threshold. Public APIs, `base-maia` styling, and upload/donate/Stripe handlers were not restyled or rewritten for score.
