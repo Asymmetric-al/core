@@ -65,7 +65,7 @@ export default function SignStudioPublicSigningPage() {
       </header>
 
       {/* Main Area */}
-      <main className="flex-1 flex justify-center p-4 md:p-8 overflow-y-auto">
+      <div className="flex-1 flex justify-center p-4 md:p-8 overflow-y-auto">
         {step === "completed" ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -169,7 +169,7 @@ export default function SignStudioPublicSigningPage() {
             </div>
           </div>
         )}
-      </main>
+      </div>
 
       {/* Signature Modal */}
       <Dialog
