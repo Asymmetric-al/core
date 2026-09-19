@@ -1732,9 +1732,9 @@ function ModerationQueuePostCard({
               <AnimatePresence>
                 {post.flagReason && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
                     className="flex items-center gap-2 px-3 py-2.5 bg-amber-50 rounded-xl text-amber-800 border border-amber-200"
                   >
                     <AlertCircle className="size-4 shrink-0" />

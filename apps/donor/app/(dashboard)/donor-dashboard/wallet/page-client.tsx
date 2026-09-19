@@ -624,11 +624,10 @@ function ACHNudgeBanner({
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={{ opacity: 0, height: 0, scale: 0.96 }}
-          animate={{ opacity: 1, height: "auto", scale: 1 }}
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
           exit={{
             opacity: 0,
-            height: 0,
             scale: 0.96,
             transition: { duration: DURATION_MICRO, ease: EASE_IN_SOFT },
           }}
