@@ -8,6 +8,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import { flushSync } from "react-dom";
 import React from "react";
 import {
   afterEach,
@@ -555,6 +556,93 @@ describe("CheckoutPageClient live card confirmation", () => {
       expect(configurationError.textContent).toMatch(/configuration/i);
     },
   );
+
+  it("uses a remounted publishable key mid-flight without resetting checkout when the returned key matches", async () => {
+    let resolveDonation: ((value: Response) => void) | null = null;
+    const donationPromise = new Promise<Response>((resolve) => {
+      resolveDonation = resolve;
+    });
+    fetchMock().mockReturnValue(donationPromise);
+    stripeState.stripe.confirmCardPayment.mockResolvedValue({
+      paymentIntent: { status: "succeeded" },
+    });
+
+    const searchParams = {
+      amount: "100",
+      missionary_id: TEST_MISSIONARY_ID,
+      workerId: TEST_WORKER_ID,
+    };
+    const view = render(
+      <CheckoutPageClient
+        searchParams={searchParams}
+        stripeOverride={{
+          cardElement: <div data-testid="stripe-card-element" />,
+          elements: stripeState.elements,
+          mode: "live",
+          publishableKey: "pk_test_initial",
+          stripe: stripeState.stripe,
+        }}
+      />,
+    );
+    advanceToPayment();
+    confirmPayment();
+
+    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
+    expect(
+      (
+        screen.getByRole("button", {
+          name: /processing payment/i,
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+
+    flushSync(() => {
+      view.rerender(
+        <CheckoutPageClient
+          searchParams={searchParams}
+          stripeOverride={{
+            cardElement: <div data-testid="stripe-card-element" />,
+            elements: stripeState.elements,
+            mode: "live",
+            publishableKey: "pk_test_rotated",
+            stripe: stripeState.stripe,
+          }}
+        />,
+      );
+    });
+
+    expect(
+      (
+        screen.getByRole("button", {
+          name: /processing payment/i,
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+
+    await act(async () => {
+      resolveDonation?.(
+        new Response(
+          JSON.stringify({
+            clientSecret: "cs_test_123",
+            donationId: "don_123",
+            paymentIntentId: "pi_123",
+            publishableKey: "pk_test_rotated",
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200,
+          },
+        ),
+      );
+      await donationPromise;
+    });
+
+    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByRole("heading", { name: /contribution confirmed/i }),
+    ).toBeTruthy();
+    expect(screen.queryByText(/configuration changed/i)).toBeNull();
+  });
 
   it("does not show success for /api/donate initialization until Stripe confirms the PaymentIntent", async () => {
     let resolveConfirmation:
