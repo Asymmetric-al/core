@@ -3,15 +3,7 @@
 import { useCallback, useState, useEffect } from "react";
 
 import type { ColumnSizingState, RowData, Header } from "../tanstack";
-
-export interface ColumnResizingOptions {
-  enabled?: boolean;
-  defaultColumnSize?: number;
-  minColumnSize?: number;
-  maxColumnSize?: number;
-  persistKey?: string;
-  onColumnSizeChange?: (sizing: ColumnSizingState) => void;
-}
+import type { ColumnResizingOptions } from "./column-resizing-options";
 
 export interface UseColumnResizingReturn {
   columnSizing: ColumnSizingState;
@@ -193,25 +185,4 @@ export function ColumnResizeHandle({
       }}
     />
   );
-}
-
-export function getColumnResizingTableOptions(
-  options: ColumnResizingOptions = {},
-) {
-  const {
-    enabled = true,
-    defaultColumnSize = 150,
-    minColumnSize = 50,
-    maxColumnSize = 500,
-  } = options;
-
-  return {
-    enableColumnResizing: enabled,
-    columnResizeMode: "onChange" as const,
-    defaultColumn: {
-      size: defaultColumnSize,
-      minSize: minColumnSize,
-      maxSize: maxColumnSize,
-    },
-  };
 }

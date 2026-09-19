@@ -10,15 +10,14 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { AlertCircle } from "lucide-react";
 
 import { ProfileFormColumn } from "./profile-form-column";
-import { ProfilePreviewColumn } from "./profile-preview";
 import {
   fadeInUp,
   gentleTransition,
-  ProfileHeaderActions,
-  ProfileSkeleton,
   springTransition,
   staggerContainer,
-} from "./profile-primitives";
+} from "./profile-motion";
+import { ProfilePreviewColumn } from "./profile-preview";
+import { ProfileHeaderActions, ProfileSkeleton } from "./profile-primitives";
 import { useProfilePageView } from "./use-profile-page-view";
 
 export function ProfilePageClient() {
