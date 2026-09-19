@@ -19,18 +19,25 @@ function readRepo(...parts: string[]): string {
 
 function openingTagBefore(source: string, marker: string): string {
   const markerIndex = source.indexOf(marker);
-  expect(markerIndex, `missing marker ${JSON.stringify(marker)}`).toBeGreaterThan(
-    -1,
-  );
+  expect(
+    markerIndex,
+    `missing marker ${JSON.stringify(marker)}`,
+  ).toBeGreaterThan(-1);
   const tagStart = source.lastIndexOf("<", markerIndex);
-  expect(tagStart, `no opening tag before ${JSON.stringify(marker)}`).toBeGreaterThan(
-    -1,
-  );
+  expect(
+    tagStart,
+    `no opening tag before ${JSON.stringify(marker)}`,
+  ).toBeGreaterThan(-1);
   const tagEnd = source.indexOf(">", tagStart);
   return source.slice(tagStart, tagEnd + 1);
 }
 
-function matchPair(source: string, openIndex: number, open: string, close: string): number {
+function matchPair(
+  source: string,
+  openIndex: number,
+  open: string,
+  close: string,
+): number {
   let depth = 0;
   for (let index = openIndex; index < source.length; index += 1) {
     const char = source[index];
@@ -193,7 +200,9 @@ describe("stable tag-check slot", () => {
   const tagEditor = extractFunction(source, "DonorsPageContent");
 
   it("reserves the check column so selecting a tag does not shift the label", () => {
-    expect(tagEditor).toMatch(/className="inline-flex w-3 mr-1 justify-center"/);
+    expect(tagEditor).toMatch(
+      /className="inline-flex w-3 mr-1 justify-center"/,
+    );
     expect(tagEditor).toMatch(/<Check className="size-3"/);
     expect(tagEditor).not.toMatch(/<Check className="size-3 mr-1"/);
   });

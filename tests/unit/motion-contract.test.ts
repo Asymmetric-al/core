@@ -146,9 +146,7 @@ describe("motion contract", () => {
       const raw = readFileSync(join(REPO_ROOT, rel), "utf8");
       for (const violation of scanMotionSource(rel, raw)) {
         if (violation.kind !== "motion-layout-property") continue;
-        findings.push(
-          `${violation.file}:${violation.line}  ${violation.hint}`,
-        );
+        findings.push(`${violation.file}:${violation.line}  ${violation.hint}`);
       }
     }
 
