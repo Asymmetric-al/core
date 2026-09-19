@@ -2,7 +2,14 @@
 
 import { fetchResult, readErrorMessage } from "@asym/lib/http/fetch-result";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 import { hasProfileChanges } from "./profile-dirty-state";
@@ -187,9 +194,11 @@ export function useProfilePageView(): ProfilePageViewModel {
   const draftRef = useRef(draft);
   const originalProfileRef = useRef(originalProfile);
   const profileRef = useRef(profile);
-  draftRef.current = draft;
-  originalProfileRef.current = originalProfile;
-  profileRef.current = profile;
+  useLayoutEffect(() => {
+    draftRef.current = draft;
+    originalProfileRef.current = originalProfile;
+    profileRef.current = profile;
+  }, [draft, originalProfile, profile]);
 
   const validateProfile = useCallback(
     (data: ProfileData): boolean => {
