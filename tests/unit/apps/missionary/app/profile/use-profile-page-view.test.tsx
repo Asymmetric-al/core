@@ -312,6 +312,7 @@ describe("useProfilePageView", () => {
       await waitFor(() => expect(patchResolvers).toHaveLength(2));
     });
 
+    expect(toast.success).not.toHaveBeenCalled();
     expect(patchBodies()[1]).toMatchObject({
       avatarUrl,
       coverUrl,
@@ -330,6 +331,8 @@ describe("useProfilePageView", () => {
     expect(result.current.hasChanges).toBe(false);
     expect(patchInits()[0]?.signal?.aborted).toBe(false);
     expect(patchInits()[1]?.signal?.aborted).toBe(false);
+    expect(toast.success).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledWith("Profile saved");
   });
 
   it("aborts an in-flight save and restores the original profile on discard", async () => {
@@ -379,6 +382,86 @@ describe("useProfilePageView", () => {
     expect(result.current.profile.location).toBe("London");
     expect(result.current.hasChanges).toBe(false);
     expect(toast.success).not.toHaveBeenCalledWith("Profile saved");
+  });
+
+  it("retries a queued photo save after the in-flight PATCH fails", async () => {
+    const existingAvatar = "https://cdn.example/old-avatar.jpg";
+    const existingCover = "https://cdn.example/old-cover.jpg";
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(200, {
+        profile: {
+          ...apiProfile.profile,
+          avatar_url: existingAvatar,
+          missionary: {
+            ...apiProfile.profile.missionary,
+            cover_url: existingCover,
+          },
+        },
+      }),
+    );
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const avatarUrl = "https://cdn.example/new-avatar.jpg";
+    const coverUrl = "https://cdn.example/new-cover.jpg";
+    const patchResolvers: Array<(value: Response) => void> = [];
+    fetchMock.mockImplementation((input, init) => {
+      if (
+        typeof init === "object" &&
+        init !== null &&
+        "method" in init &&
+        init.method === "PATCH"
+      ) {
+        return new Promise<Response>((resolve) => {
+          patchResolvers.push(resolve);
+        });
+      }
+      return Promise.resolve(jsonResponse(200, apiProfile));
+    });
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    let olderSave!: Promise<void>;
+    act(() => {
+      result.current.updateProfile("avatarUrl", avatarUrl);
+      olderSave = result.current.handleSave();
+    });
+
+    act(() => {
+      result.current.updateProfile("coverUrl", coverUrl);
+      void result.current.handleSave();
+    });
+
+    expect(patchResolvers).toHaveLength(1);
+
+    await act(async () => {
+      patchResolvers[0](jsonResponse(500, { error: "Save interrupted" }));
+      await waitFor(() => expect(patchResolvers).toHaveLength(2));
+    });
+
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(patchBodies()[1]).toMatchObject({
+      avatarUrl,
+      coverUrl,
+    });
+
+    await act(async () => {
+      patchResolvers[1](jsonResponse(200, { ok: true }));
+      await olderSave;
+    });
+
+    const cached = getQueryClient().getQueryData<ProfileData>(["profile"]);
+    expect(cached?.avatarUrl).toBe(avatarUrl);
+    expect(cached?.coverUrl).toBe(coverUrl);
+    expect(result.current.profile.coverUrl).toBe(coverUrl);
+    expect(result.current.hasChanges).toBe(false);
+    expect(toast.success).toHaveBeenCalledWith("Profile saved");
+    expect(toast.error).not.toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 
   it("does not discard edits typed while a save is in flight", async () => {
