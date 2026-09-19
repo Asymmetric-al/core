@@ -92,7 +92,7 @@ Confirmed false positives (left as-is at this inventory, no config change):
 - `effect-needs-cleanup` in `use-supabase-realtime.ts` (suppressed inline with a reason: cleanup runs through `channelRef`) and `UnlayerEmailEditor.tsx` (the inventory treated the legacy editor listener as living on the editor instance, not in an effect; the 2026-09-19 pass later added explicit cleanup on that instance).
 - `anchor-has-content` in `menu-dropdown.tsx`: Base UI's `render` prop merges the visible item title into the rendered link.
 - `query-mutation-missing-invalidation` in `hooks/donor-portal.ts`: the billing-portal session mutation returns a redirect URL and owns no cached data.
-- `insecure-crypto-risk` in `packages/lib/cloudinary-server.ts`: the helper SHA-256s Cloudinary's official sorted string-to-sign (not a credential hash). The helper is unused today; the live email uploader still SHA-1s in `packages/api/src/email/assets.ts`.
+- `insecure-crypto-risk` in `packages/lib/cloudinary-server.ts`: the helper SHA-256s Cloudinary's official sorted string-to-sign (not a credential hash). The live email uploader in `packages/api/src/email/assets.ts` now uses this helper. Cloudinary signed uploads use SHA-256 instead of SHA-1.
 
 Deferred with owners (pre-pass inventory; closed in the 2026-09-19 source pass below):
 
@@ -114,6 +114,7 @@ Closed in source from the 2026-09-18 remaining inventory:
 - Missionary hooks that tripped `react-hooks-js/todo` under React Compiler annotation mode.
 - Unlayer editor listener cleanup on the editor instance.
 - Remaining `parseJsonResponse` clones in portal hooks check `response.ok` before reading the JSON body.
+- Cloudinary signed uploads use SHA-256 instead of SHA-1.
 - Hydration-safe locale formatting (`no-locale-format-in-render`).
 - Derive or key state instead of syncing props in effects.
 - Notify parents from events, not effects (`carousel` `setApi` and live-query seams kept).
