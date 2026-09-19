@@ -341,6 +341,12 @@ export function useProfilePageView(): ProfilePageViewModel {
         ) {
           break;
         }
+        // Photo auto-save queues a follow-up instead of overlapping PATCHes.
+        // If this attempt failed, still flush the latest snapshot so a later
+        // cover/avatar upload is not dropped with the failed request.
+        if (saveQueuedRef.current) {
+          continue;
+        }
         const errorMessage =
           (result.error.kind === "http" &&
             readErrorMessage(result.error.payload)) ||
