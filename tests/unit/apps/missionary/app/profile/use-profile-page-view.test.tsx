@@ -50,18 +50,23 @@ function isSchemaValidPhotoPatch(body: unknown): boolean {
   );
 }
 
+function patchInits(): RequestInit[] {
+  return fetchMock.mock.calls.flatMap((call) => {
+    const init = call[1];
+    if (
+      typeof init === "object" &&
+      init !== null &&
+      "method" in init &&
+      init.method === "PATCH"
+    ) {
+      return [init];
+    }
+    return [];
+  });
+}
+
 function patchBodies(): unknown[] {
-  return fetchMock.mock.calls
-    .filter((call) => {
-      const init = call[1];
-      return (
-        typeof init === "object" &&
-        init !== null &&
-        "method" in init &&
-        init.method === "PATCH"
-      );
-    })
-    .map((call) => JSON.parse(String(call[1]?.body)));
+  return patchInits().map((init) => JSON.parse(String(init.body)));
 }
 
 const apiProfile = {
@@ -297,6 +302,57 @@ describe("useProfilePageView", () => {
     expect(result.current.profile.avatarUrl).toBe(avatarUrl);
     expect(result.current.profile.coverUrl).toBe(coverUrl);
     expect(result.current.hasChanges).toBe(false);
+    expect(patchInits()[0]?.signal?.aborted).toBe(true);
+    expect(patchInits()[1]?.signal?.aborted).toBe(false);
+  });
+
+  it("aborts an in-flight save and restores the original profile on discard", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let resolveSave!: (value: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+
+    act(() => {
+      result.current.updateProfile("location", "Paris");
+    });
+
+    let pendingSave!: Promise<void>;
+    act(() => {
+      pendingSave = result.current.handleSave();
+    });
+
+    expect(result.current.isSaving).toBe(true);
+
+    act(() => {
+      result.current.handleDiscard();
+    });
+
+    expect(patchInits()[0]?.signal?.aborted).toBe(true);
+    expect(result.current.isSaving).toBe(false);
+    expect(result.current.profile.location).toBe("London");
+    expect(result.current.hasChanges).toBe(false);
+
+    await act(async () => {
+      resolveSave(jsonResponse(200, { ok: true }));
+      await pendingSave;
+    });
+
+    expect(getQueryClient().getQueryData<ProfileData>(["profile"])).toEqual(
+      result.current.profile,
+    );
+    expect(result.current.profile.location).toBe("London");
+    expect(result.current.hasChanges).toBe(false);
+    expect(toast.success).not.toHaveBeenCalledWith("Profile saved");
   });
 
   it("does not discard edits typed while a save is in flight", async () => {

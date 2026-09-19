@@ -195,6 +195,7 @@ export function useProfilePageView(): ProfilePageViewModel {
   const originalProfileRef = useRef(originalProfile);
   const profileRef = useRef(profile);
   const saveRequestIdRef = useRef(0);
+  const saveAbortRef = useRef<AbortController | null>(null);
   useLayoutEffect(() => {
     draftRef.current = draft;
     originalProfileRef.current = originalProfile;
@@ -271,6 +272,9 @@ export function useProfilePageView(): ProfilePageViewModel {
       return;
     }
 
+    saveAbortRef.current?.abort();
+    const controller = new AbortController();
+    saveAbortRef.current = controller;
     const requestId = ++saveRequestIdRef.current;
     setIsSaving(true);
     // fetchResult never throws, so no try/finally is needed here (the React
@@ -278,6 +282,7 @@ export function useProfilePageView(): ProfilePageViewModel {
     const result = await fetchResult("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
       body: JSON.stringify({
         firstName: snapshot.firstName,
         lastName: snapshot.lastName,
@@ -298,6 +303,15 @@ export function useProfilePageView(): ProfilePageViewModel {
     });
 
     if (requestId !== saveRequestIdRef.current) {
+      return;
+    }
+
+    if (
+      !result.ok &&
+      result.error.kind === "network" &&
+      result.error.cause instanceof Error &&
+      result.error.cause.name === "AbortError"
+    ) {
       return;
     }
 
@@ -323,12 +337,16 @@ export function useProfilePageView(): ProfilePageViewModel {
   }, [queryClient, setIsSaving, setSaveSuccess, validateProfile]);
 
   const handleDiscard = useCallback(() => {
+    saveAbortRef.current?.abort();
+    saveAbortRef.current = null;
+    saveRequestIdRef.current += 1;
+    setIsSaving(false);
     draftRef.current = null;
     profileRef.current = originalProfileRef.current;
     setDraft(null);
     setValidationErrors({});
     toast.info("Changes discarded");
-  }, [setValidationErrors]);
+  }, [setIsSaving, setValidationErrors]);
 
   const handleCopyLink = useCallback(async () => {
     const link = `${window.location.origin}/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`;
