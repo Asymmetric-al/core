@@ -196,6 +196,8 @@ export function useProfilePageView(): ProfilePageViewModel {
   const profileRef = useRef(profile);
   const saveRequestIdRef = useRef(0);
   const saveAbortRef = useRef<AbortController | null>(null);
+  const saveInFlightRef = useRef(false);
+  const saveQueuedRef = useRef(false);
   useLayoutEffect(() => {
     draftRef.current = draft;
     originalProfileRef.current = originalProfile;
@@ -266,77 +268,113 @@ export function useProfilePageView(): ProfilePageViewModel {
   );
 
   const handleSave = useCallback(async () => {
-    const snapshot = profileRef.current;
-    if (!validateProfile(snapshot)) {
+    // Photo widgets call handleSave on upload without checking isSaving, so a
+    // second save can start while the first PATCH is still in flight. The API
+    // applies every truthy avatar/cover URL, so the slower first request can
+    // write the previous photo after the UI has already toasted success.
+    if (saveInFlightRef.current) {
+      saveQueuedRef.current = true;
+      return;
+    }
+
+    const initialSnapshot = profileRef.current;
+    if (!validateProfile(initialSnapshot)) {
       toast.error("Please fix the errors before saving");
       return;
     }
 
-    saveAbortRef.current?.abort();
-    const controller = new AbortController();
-    saveAbortRef.current = controller;
-    const requestId = ++saveRequestIdRef.current;
+    saveInFlightRef.current = true;
     setIsSaving(true);
-    // fetchResult never throws, so no try/finally is needed here (the React
-    // Compiler cannot lower those yet); HTTP error payloads arrive as data.
-    const result = await fetchResult("/api/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      signal: controller.signal,
-      body: JSON.stringify({
-        firstName: snapshot.firstName,
-        lastName: snapshot.lastName,
-        bio: snapshot.bio,
-        tagline: snapshot.ministryFocus,
-        location: snapshot.location,
-        phone: snapshot.phone,
-        ...(snapshot.coverUrl ? { coverUrl: snapshot.coverUrl } : {}),
-        ...(snapshot.avatarUrl ? { avatarUrl: snapshot.avatarUrl } : {}),
-        socialLinks: {
-          facebook: snapshot.facebook,
-          instagram: snapshot.instagram,
-          twitter: snapshot.twitter,
-          youtube: snapshot.youtube,
-          website: snapshot.website,
-        },
-      }),
-    });
 
-    if (requestId !== saveRequestIdRef.current) {
-      return;
-    }
+    let savedAny = false;
+    let saveFailed = false;
 
-    if (
-      !result.ok &&
-      result.error.kind === "network" &&
-      result.error.cause instanceof Error &&
-      result.error.cause.name === "AbortError"
-    ) {
-      return;
-    }
+    while (true) {
+      saveQueuedRef.current = false;
+      const snapshot = profileRef.current;
+      if (!validateProfile(snapshot)) {
+        toast.error("Please fix the errors before saving");
+        saveFailed = true;
+        break;
+      }
 
-    setIsSaving(false);
+      const controller = new AbortController();
+      saveAbortRef.current = controller;
+      const requestId = ++saveRequestIdRef.current;
+      // fetchResult never throws, so no try/finally is needed here (the React
+      // Compiler cannot lower those yet); HTTP error payloads arrive as data.
+      const result = await fetchResult("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          firstName: snapshot.firstName,
+          lastName: snapshot.lastName,
+          bio: snapshot.bio,
+          tagline: snapshot.ministryFocus,
+          location: snapshot.location,
+          phone: snapshot.phone,
+          ...(snapshot.coverUrl ? { coverUrl: snapshot.coverUrl } : {}),
+          ...(snapshot.avatarUrl ? { avatarUrl: snapshot.avatarUrl } : {}),
+          socialLinks: {
+            facebook: snapshot.facebook,
+            instagram: snapshot.instagram,
+            twitter: snapshot.twitter,
+            youtube: snapshot.youtube,
+            website: snapshot.website,
+          },
+        }),
+      });
 
-    if (result.ok) {
+      if (requestId !== saveRequestIdRef.current) {
+        if (saveQueuedRef.current) {
+          continue;
+        }
+        break;
+      }
+
+      if (!result.ok) {
+        if (
+          result.error.kind === "network" &&
+          result.error.cause instanceof Error &&
+          result.error.cause.name === "AbortError"
+        ) {
+          break;
+        }
+        const errorMessage =
+          (result.error.kind === "http" &&
+            readErrorMessage(result.error.payload)) ||
+          "Failed to save profile";
+        console.error("Failed to save profile:", result.error);
+        toast.error(errorMessage);
+        saveFailed = true;
+        break;
+      }
+
       queryClient.setQueryData<ProfileData | null>(["profile"], snapshot);
       setDraft((current) =>
         current && hasProfileChanges(current, snapshot) ? current : null,
       );
+      savedAny = true;
+
+      if (!saveQueuedRef.current) {
+        break;
+      }
+    }
+
+    saveInFlightRef.current = false;
+    saveAbortRef.current = null;
+    setIsSaving(false);
+
+    if (savedAny && !saveFailed) {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
       toast.success("Profile saved");
-      return;
     }
-
-    const errorMessage =
-      (result.error.kind === "http" &&
-        readErrorMessage(result.error.payload)) ||
-      "Failed to save profile";
-    console.error("Failed to save profile:", result.error);
-    toast.error(errorMessage);
   }, [queryClient, setIsSaving, setSaveSuccess, validateProfile]);
 
   const handleDiscard = useCallback(() => {
+    saveQueuedRef.current = false;
     saveAbortRef.current?.abort();
     saveAbortRef.current = null;
     saveRequestIdRef.current += 1;
