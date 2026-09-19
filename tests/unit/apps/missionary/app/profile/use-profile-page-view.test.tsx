@@ -249,7 +249,20 @@ describe("useProfilePageView", () => {
   });
 
   it("does not let an older overlapping photo save overwrite a newer one", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+    const existingAvatar = "https://cdn.example/old-avatar.jpg";
+    const existingCover = "https://cdn.example/old-cover.jpg";
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(200, {
+        profile: {
+          ...apiProfile.profile,
+          avatar_url: existingAvatar,
+          missionary: {
+            ...apiProfile.profile.missionary,
+            cover_url: existingCover,
+          },
+        },
+      }),
+    );
 
     const { result } = renderHook(() => useProfilePageView(), {
       wrapper: createWrapper(),
@@ -258,21 +271,20 @@ describe("useProfilePageView", () => {
 
     const avatarUrl = "https://cdn.example/new-avatar.jpg";
     const coverUrl = "https://cdn.example/new-cover.jpg";
-    let resolveOlderSave!: (value: Response) => void;
-    let resolveNewerSave!: (value: Response) => void;
-    fetchMock
-      .mockImplementationOnce(
-        () =>
-          new Promise<Response>((resolve) => {
-            resolveOlderSave = resolve;
-          }),
-      )
-      .mockImplementationOnce(
-        () =>
-          new Promise<Response>((resolve) => {
-            resolveNewerSave = resolve;
-          }),
-      );
+    const patchResolvers: Array<(value: Response) => void> = [];
+    fetchMock.mockImplementation((input, init) => {
+      if (
+        typeof init === "object" &&
+        init !== null &&
+        "method" in init &&
+        init.method === "PATCH"
+      ) {
+        return new Promise<Response>((resolve) => {
+          patchResolvers.push(resolve);
+        });
+      }
+      return Promise.resolve(jsonResponse(200, apiProfile));
+    });
 
     let olderSave!: Promise<void>;
     act(() => {
@@ -280,19 +292,33 @@ describe("useProfilePageView", () => {
       olderSave = result.current.handleSave();
     });
 
-    let newerSave!: Promise<void>;
     act(() => {
       result.current.updateProfile("coverUrl", coverUrl);
-      newerSave = result.current.handleSave();
+      void result.current.handleSave();
+    });
+
+    // The older PATCH still includes the previous cover URL. If it were allowed
+    // to stay in flight, a slower first response would restore that cover on
+    // the server after the UI had already toasted the newer save.
+    expect(patchResolvers).toHaveLength(1);
+    expect(patchBodies()).toHaveLength(1);
+    expect(patchBodies()[0]).toMatchObject({
+      avatarUrl,
+      coverUrl: existingCover,
     });
 
     await act(async () => {
-      resolveNewerSave(jsonResponse(200, { ok: true }));
-      await newerSave;
+      patchResolvers[0](jsonResponse(200, { ok: true }));
+      await waitFor(() => expect(patchResolvers).toHaveLength(2));
+    });
+
+    expect(patchBodies()[1]).toMatchObject({
+      avatarUrl,
+      coverUrl,
     });
 
     await act(async () => {
-      resolveOlderSave(jsonResponse(200, { ok: true }));
+      patchResolvers[1](jsonResponse(200, { ok: true }));
       await olderSave;
     });
 
@@ -302,7 +328,7 @@ describe("useProfilePageView", () => {
     expect(result.current.profile.avatarUrl).toBe(avatarUrl);
     expect(result.current.profile.coverUrl).toBe(coverUrl);
     expect(result.current.hasChanges).toBe(false);
-    expect(patchInits()[0]?.signal?.aborted).toBe(true);
+    expect(patchInits()[0]?.signal?.aborted).toBe(false);
     expect(patchInits()[1]?.signal?.aborted).toBe(false);
   });
 
