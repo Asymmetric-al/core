@@ -12,8 +12,13 @@ export interface CloudinarySignature {
 type CloudinarySignatureParam = string | number | boolean | null | undefined;
 
 /**
- * Generates a SHA-1 signature for Cloudinary signed uploads.
+ * Generates a SHA-256 signature for Cloudinary signed uploads.
  * Follows Cloudinary's alphabetical sorting requirement.
+ *
+ * Cloudinary accepts SHA-1 and SHA-256 hex digests interchangeably
+ * (https://cloudinary.com/documentation/authentication_signatures).
+ * This helper is currently unused: no production caller imports it, and the
+ * live email uploader still SHA-1s in `packages/api/src/email/assets.ts`.
  */
 export function generateCloudinarySignature(
   params: Record<string, CloudinarySignatureParam>,
