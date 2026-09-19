@@ -13,11 +13,11 @@ export default function SolidPublicLayout({
   return (
     <>
       <Navbar variant="solid" />
-      {/* Target of the navbar's "Skip to main content" link on every public
-          route; pages keep their own <main> landmark inside. */}
-      <div id="main-content" tabIndex={-1} className="outline-none">
+      {/* Skip-link target and the page's only main landmark. Nested routes
+          must not render another <main>. */}
+      <main id="main-content" tabIndex={-1} className="outline-none">
         {children}
-      </div>
+      </main>
     </>
   );
 }

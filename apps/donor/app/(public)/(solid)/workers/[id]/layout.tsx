@@ -5,5 +5,5 @@ export default function WorkerDetailLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <main className="flex-1">{children}</main>;
+  return <div className="flex-1">{children}</div>;
 }
