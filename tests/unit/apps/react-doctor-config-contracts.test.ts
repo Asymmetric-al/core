@@ -71,4 +71,43 @@ describe("React Doctor config contracts", () => {
       "Intentional raw img: TipTap needs a DOM ref",
     );
   });
+
+  it("records the 2026-09-19 configured first-party audit as passing without expanding ignores", () => {
+    const docs = readRepoFile("docs/guides/development/react-doctor.md");
+    const config = JSON.parse(readRepoFile("doctor.config.json")) as {
+      ignore?: { rules?: string[] };
+    };
+
+    expect(docs).toContain("## 2026-09-19 Cleanup Decisions");
+    expect(docs).toContain(
+      "React Doctor passes for the configured first-party audit",
+    );
+    expect(docs).toContain(
+      "`doctor.config.json` ignore rules were not expanded",
+    );
+
+    for (const target of [
+      "@asym/admin",
+      "@asym/donor",
+      "@asym/missionary-app",
+      "@asym/auth",
+      "@asym/database",
+      "@asym/lib",
+      "@asym/missionary",
+      "@asym/ui",
+    ]) {
+      expect(docs).toContain(target);
+    }
+
+    expect(config.ignore?.rules ?? []).toHaveLength(56);
+    expect(config.ignore?.rules ?? []).not.toContain(
+      "react-doctor/no-high-complexity-react-function",
+    );
+    expect(config.ignore?.rules ?? []).not.toContain(
+      "react-doctor/only-export-components",
+    );
+    expect(config.ignore?.rules ?? []).not.toContain(
+      "react-doctor/duplicate-jsx-subtree",
+    );
+  });
 });

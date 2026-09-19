@@ -94,9 +94,32 @@ Confirmed false positives (left as-is, no config change):
 - `query-mutation-missing-invalidation` in `hooks/donor-portal.ts`: the billing-portal session mutation returns a redirect URL and owns no cached data.
 - `insecure-crypto-risk` in `packages/lib/cloudinary-server.ts`: the SHA-1 digest is Cloudinary's default signed-upload signature, not a credential hash. Moving to Cloudinary's SHA-256 option is possible but must be verified against a live Cloudinary account first.
 
-Deferred with owners:
+Deferred with owners (pre-pass inventory; closed in the 2026-09-19 source pass below):
 
 - `no-layout-property-animation` (29 errors, 8 files): `height: 0 -> "auto"` reveals and `width: 0 -> "auto"` button reveals in the donor FAQ accordion, wallet banner, `QuickGiveInput`, missionary donor filters/tag chips/profile field messages, feed media strips, and admin flag banners. The repo motion rules forbid layout animation, but replacing these with fade + translate changes visible motion on public surfaces (FAQ) and needs a real-screen motion pass. Recipe: `opacity` + `y` for reveals (`docs/ai/skills/anim/SKILL.md` rule 25), `layout` on siblings for collapse, or the shared Base UI `Accordion` for the FAQ. Owner: frontend/design.
 - `react-hooks-js/todo` (10 errors): React Compiler cannot yet lower `try`/`finally` or `throw` inside `try`/`catch` in a few missionary hooks. The apps compile in `annotation` mode and these hooks carry no `"use memo"`, so nothing regresses; do not contort the error handling to satisfy the linter. Owner: missionary app.
 - `socket/low-supply-chain-score`: `maplibre-gl@5.x` (locked at 5.23.0) is covered by GHSA-jrc7-96c5-q579 (`DOM.sanitize()` XSS, fixed in 6.4.1+). First-party code uses `Popup.setDOMContent` and disables the attribution control, so the vulnerable HTML path is not reachable today, but the major upgrade should land in a dedicated PR with the where-we-work map verified in a browser. Owner: donor app.
 - Maintainability families (`only-export-components` 57, `no-high-complexity-react-function` 31, `duplicate-jsx-subtree` 9), `no-locale-format-in-render` (27, hydration risk only where the formatted text is server-rendered), `no-adjust-state-on-prop-change`/`no-reset-all-state-on-prop-change` (9), `no-pass-live-state-to-parent`/`no-pass-data-to-parent` (7, `carousel` `setApi` contract and `use-data-table-live-query`), `prefer-tag-over-role` (7), and the remaining focus/nesting a11y items stay per-slice work for their route owners.
+
+## 2026-09-19 Cleanup Decisions
+
+React Doctor passes for the configured first-party audit. Command: `bun run react-doctor:first-party -- --full --offline --fail-on none` (React Doctor 0.9.14, `blocking` still `none`). Every wrapper target reported no issues: `@asym/admin`, `@asym/donor`, `@asym/missionary-app`, `@asym/auth`, `@asym/database`, `@asym/lib`, `@asym/missionary`, `@asym/ui`. `doctor.config.json` ignore rules were not expanded.
+
+This is not a claim that every React Doctor rule is enabled. Known ignores stay in `doctor.config.json` and in Configured Ignores above (`no-giant-component`, knip, jsx-a11y, design, micro-optimization, and the other temporary families). Do not add rules to the ignore list to keep this audit green. Re-enable one ignored family at a time with route-owner coverage.
+
+Closed in source from the 2026-09-18 remaining inventory:
+
+- `maplibre-gl` 6.x (GHSA-jrc7-96c5-q579 floor) on the donor where-we-work map.
+- Transform-only motion for the previous `no-layout-property-animation` sites.
+- Missionary hooks that tripped `react-hooks-js/todo` under React Compiler annotation mode.
+- Unlayer editor listener cleanup on the editor instance.
+- Fetch `response.ok` before reading the body at the remaining first-party sites.
+- Hydration-safe locale formatting (`no-locale-format-in-render`).
+- Derive or key state instead of syncing props in effects.
+- Notify parents from events, not effects (`carousel` `setApi` and live-query seams kept).
+- Async effect cancellation guards and external-store email drafts.
+- First-party a11y semantics (`prefer-tag-over-role` and related).
+- Cloudinary signed uploads use SHA-256 instead of SHA-1.
+- Non-component exports moved out of component files (`only-export-components`).
+- Duplicated JSX subtrees extracted to shared siblings.
+- High-complexity React functions extracted in `@asym/admin`, `@asym/donor`, `@asym/missionary-app`, `@asym/missionary`, and `@asym/ui` so each stays under the cyclomatic/cognitive threshold. Public APIs, `base-maia` styling, and upload/donate/Stripe handlers were not restyled or rewritten for score.
