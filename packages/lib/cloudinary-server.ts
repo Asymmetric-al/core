@@ -15,11 +15,11 @@ type CloudinarySignatureParam = string | number | boolean | null | undefined;
  * Generates a SHA-256 signature for Cloudinary signed uploads.
  * Follows Cloudinary's alphabetical sorting requirement.
  *
- * Cloudinary accepts SHA-1 and SHA-256 hex digests interchangeably
+ * Cloudinary accepts SHA-1 and SHA-256 hex digests; SHA-256 requires
+ * `signature_algorithm=sha256` on the upload body, not in the signed string
  * (https://cloudinary.com/documentation/authentication_signatures).
- * Digest length is how Cloudinary distinguishes the algorithm; this helper
- * does not send `signature_algorithm`. The live email uploader in
- * `packages/api/src/email/assets.ts` uses this helper for signed uploads.
+ * The live email uploader in `packages/api/src/email/assets.ts` uses this
+ * helper for signed uploads and sends `signature_algorithm=sha256` on the body.
  */
 export function generateCloudinarySignature(
   params: Record<string, CloudinarySignatureParam>,

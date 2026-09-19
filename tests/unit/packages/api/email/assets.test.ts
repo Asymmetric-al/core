@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-
 import { type NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -207,7 +206,7 @@ describe("api/email/assets/upload", () => {
     expect(uploaded.get("timestamp")).toBe(String(expected.timestamp));
     expect(uploaded.get("folder")).toBe("email-assets/tenant_1/template_1");
     expect(uploaded.get("public_id")).toBe("uuid-1234");
-    expect(uploaded.get("signature_algorithm")).toBeNull();
+    expect(uploaded.get("signature_algorithm")).toBe("sha256");
     expect(uploadMock).not.toHaveBeenCalled();
   });
 });

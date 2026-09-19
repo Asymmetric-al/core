@@ -2733,11 +2733,12 @@ function DonorsPartnerDetailPane({ model }: { model: DonorsPageViewModel }) {
       <AnimatePresence mode="wait">
         {selectedDonor ? (
           <DonorsSelectedPartnerCard
+            key={selectedDonor.id}
             model={model}
             selectedDonor={selectedDonor}
           />
         ) : (
-          <DonorsEmptySelectionPanel model={model} />
+          <DonorsEmptySelectionPanel key="empty" model={model} />
         )}
       </AnimatePresence>
     </motion.div>
