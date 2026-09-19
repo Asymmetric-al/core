@@ -74,8 +74,8 @@ export function NavbarClient({
 
   return (
     <header>
-      {/* The target lives in the donor public route-group layouts
-          (apps/donor/app/(public)/(hero|solid)/layout.tsx), outside this file. */}
+      {/* The target is a <main id="main-content"> in every live Navbar
+          consumer: public (hero)/(solid) layouts and the donor dashboard. */}
       {/* react-doctor-disable-next-line react-doctor/anchor-target-exists */}
       <a
         href="#main-content"
