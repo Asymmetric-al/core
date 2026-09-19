@@ -507,7 +507,9 @@ describe("useProfilePageView", () => {
     await act(async () => {
       patchResolvers[0](jsonResponse(200, { ok: true }));
       await drainSave;
-      await waitFor(() => expect(patchResolvers.length).toBeGreaterThanOrEqual(2));
+      await waitFor(() =>
+        expect(patchResolvers.length).toBeGreaterThanOrEqual(2),
+      );
     });
 
     expect(patchBodies()[1]).toMatchObject({ avatarUrl: secondAvatar });

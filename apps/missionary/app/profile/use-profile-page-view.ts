@@ -199,6 +199,7 @@ export function useProfilePageView(): ProfilePageViewModel {
   const saveInFlightRef = useRef(false);
   const saveQueuedRef = useRef(false);
   const saveCancelledRef = useRef(false);
+  const handleSaveRef = useRef<() => Promise<void>>(async () => {});
   useLayoutEffect(() => {
     draftRef.current = draft;
     originalProfileRef.current = originalProfile;
@@ -382,9 +383,10 @@ export function useProfilePageView(): ProfilePageViewModel {
 
     if (restartQueued) {
       saveCancelledRef.current = false;
-      void handleSave();
+      void handleSaveRef.current();
     }
   }, [queryClient, setIsSaving, setSaveSuccess, validateProfile]);
+  handleSaveRef.current = handleSave;
 
   const handleDiscard = useCallback(() => {
     saveCancelledRef.current = true;
