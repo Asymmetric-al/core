@@ -98,6 +98,28 @@ function toDate(value: DateInput): Date {
   return value instanceof Date ? value : new Date(value);
 }
 
+/** Calendar-only ISO dates must not inherit the visitor time zone. */
+const DATE_ONLY_ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+function isDateOnlyIso(value: DateInput): value is string {
+  return typeof value === "string" && DATE_ONLY_ISO.test(value);
+}
+
+/**
+ * `YYYY-MM-DD` is a calendar day, not a UTC-midnight instant. Force UTC unless
+ * the caller already chose a time zone, so visitor-TZ formatters keep Jan 5
+ * instead of rolling it back to Jan 4 in America/Los_Angeles.
+ */
+function resolveDateOptions(
+  value: DateInput,
+  options: Intl.DateTimeFormatOptions,
+): Intl.DateTimeFormatOptions {
+  if (isDateOnlyIso(value) && options.timeZone === undefined) {
+    return { ...options, timeZone: "UTC" };
+  }
+  return options;
+}
+
 function formatWith(
   environment: LocaleFormatEnvironment,
   value: DateInput,
@@ -119,7 +141,11 @@ export function createLocaleFormatters(
   return {
     hydrated,
     formatDate: (value, options) =>
-      formatWith(environment, value, options ?? DATE_DEFAULTS),
+      formatWith(
+        environment,
+        value,
+        resolveDateOptions(value, options ?? DATE_DEFAULTS),
+      ),
     formatDateTime: (value, options) =>
       formatWith(environment, value, options ?? DATE_TIME_DEFAULTS),
     formatTime: (value, options) =>
