@@ -69,6 +69,7 @@ function Item({
     props: mergeProps<"div">(
       {
         className: cn(itemVariants({ variant, size, className })),
+        ...(!render ? { role: "listitem" } : {}),
       },
       props,
     ),
