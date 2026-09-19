@@ -16,7 +16,7 @@ type CloudinarySignatureParam = string | number | boolean | null | undefined;
  * Follows Cloudinary's alphabetical sorting requirement.
  *
  * Cloudinary accepts SHA-1 and SHA-256 hex digests; SHA-256 requires
- * `signature_algorithm=sha256` in both the signed string and the upload body
+ * `signature_algorithm=sha256` on the upload body, not in the signed string
  * (https://cloudinary.com/documentation/authentication_signatures).
  * Live email uploads sign with SHA-256 in `packages/api/src/email/assets.ts`.
  * This helper is currently unused by production callers.
