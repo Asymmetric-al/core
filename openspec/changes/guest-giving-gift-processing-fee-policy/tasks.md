@@ -37,3 +37,7 @@
 - [x] 4.4 ADR-0118, runbook Guest Giving charged-amount section, and
       `docs/guides/features/guest-giving-cover-fees.md` document recovery
       extras and the staff-path exclusion.
+- [x] 4.5 HTTP donate replay unit tests lock matching charged cents + empty
+      or legacy `{}` continues (200) and persists current extras; matching
+      charged cents + a different stored full quote `409`s with no rewrite;
+      malformed stored extras `500`.

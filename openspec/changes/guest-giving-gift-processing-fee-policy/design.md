@@ -90,6 +90,10 @@ is Guest Giving Gift intake only.
 - ACH/wallet quotes can appear on the payment step while live confirm stays
   blocked. Tests lock the reject-before-POST behavior.
 - Estimated fee ≠ Stripe settlement. Copy must stay “estimated.”
+- Persist-onto-empty HTTP donate replay is a first-write window, not CAS:
+  concurrent first quotes onto stored `{}` can race until one full quote
+  lands; later colliding full quotes `409`. Do not treat empty `{}` as an
+  immutable “no cover-fees” quote.
 
 ## Verification
 
