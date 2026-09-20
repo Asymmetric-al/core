@@ -67,6 +67,37 @@ and does not reopen tenant processor-cost attribution.
   extras including `payment_method` because charged cents in
   `begin_donation_saga` `p_amount` do not preserve method
 
+#### Scenario: Matching charged cents replay continues when stored fee extras are empty or legacy
+
+- GIVEN HTTP `POST /api/donate` replays an idempotency key whose stored Gift
+  charged cents match the current fee quote
+- AND stored `donation_saga_outbox.fee_extras` is empty or the legacy `{}`
+  default
+- WHEN Gift intake evaluates the replay
+- THEN the request MUST continue instead of colliding
+- AND the current extras MUST be passed so the saga can persist them onto
+  empty before claim
+
+#### Scenario: Matching charged cents replay 409s when a stored full fee quote differs
+
+- GIVEN HTTP `POST /api/donate` replays an idempotency key whose stored Gift
+  charged cents match the current fee quote
+- AND stored `donation_saga_outbox.fee_extras` already holds a full Gift
+  processing-fee quote that differs from the current extras
+- WHEN Gift intake evaluates the replay
+- THEN the request MUST return `409`
+- AND MUST NOT rewrite the stored quote
+
+#### Scenario: HTTP donate replay fails closed on malformed stored fee extras
+
+- GIVEN HTTP `POST /api/donate` replays an idempotency key with matching Gift
+  charged cents
+- AND stored `donation_saga_outbox.fee_extras` is present but not a canonical
+  Gift processing-fee quote
+- WHEN Gift intake loads those extras
+- THEN the request MUST return `500`
+- AND MUST NOT continue checkout or rewrite extras
+
 #### Scenario: Staff donations path does not apply cover-fees
 
 - GIVEN Mission Control staff gift entry via `POST /api/donations`
