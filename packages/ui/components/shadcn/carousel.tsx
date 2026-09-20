@@ -89,8 +89,12 @@ function Carousel({
     [scrollPrev, scrollNext],
   );
 
+  // shadcn's `setApi` contract hands the parent the Embla instance once it
+  // exists. Embla only exposes it after mount, so this is a one-time handoff
+  // of an imperative object rather than live state being mirrored upward.
   React.useEffect(() => {
     if (!api || !setApi) return;
+    // react-doctor-disable-next-line react-doctor/no-pass-live-state-to-parent, react-doctor/no-pass-data-to-parent
     setApi(api);
   }, [api, setApi]);
 

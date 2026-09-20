@@ -1,6 +1,7 @@
 "use client";
 
 import { EVE_LAUNCH_CANARY_IDS } from "@asym/api/eve/launch-readiness";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
@@ -39,6 +40,7 @@ import type {
   EveLaunchManifestDocument,
   EveLaunchPermission,
 } from "@asym/api/eve/launch-readiness";
+import type { LocaleFormatters } from "@asym/lib/hooks/use-locale-format";
 
 interface LaunchReadinessResponse extends EveLaunchAdminView {
   governance: EveGovernanceSnapshot | null;
@@ -101,8 +103,429 @@ function launchStatusVariant(status: string) {
       : "secondary";
 }
 
+type LaunchManifest = LaunchReadinessResponse["manifests"][number];
+type LaunchRecord = NonNullable<LaunchReadinessResponse["latestLaunch"]>;
+
+function LaunchReadinessStatusGrid({
+  governance,
+  isLoading,
+  manifest,
+  runtimeTarget,
+}: {
+  governance: EveGovernanceSnapshot | null | undefined;
+  isLoading: boolean;
+  manifest: LaunchManifest | undefined;
+  runtimeTarget: LaunchReadinessResponse["runtimeTarget"];
+}) {
+  if (isLoading) {
+    return <Skeleton className="h-44" />;
+  }
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="rounded-lg border p-3">
+        <p className="text-xs text-muted-foreground">Release</p>
+        <Badge
+          className="mt-2"
+          variant={governance?.releaseEnabled ? "destructive" : "secondary"}
+        >
+          {governance?.releaseEnabled ? "Enabled" : "Off"}
+        </Badge>
+      </div>
+      <div className="rounded-lg border p-3">
+        <p className="text-xs text-muted-foreground">Emergency</p>
+        <Badge
+          className="mt-2"
+          variant={governance?.emergencyOff ? "destructive" : "outline"}
+        >
+          {governance?.emergencyOff ? "Engaged" : "Clear"}
+        </Badge>
+      </div>
+      <div className="rounded-lg border p-3">
+        <p className="text-xs text-muted-foreground">Runtime target</p>
+        <Badge className="mt-2" variant="outline">
+          {runtimeTarget ? "Configured" : "Incomplete"}
+        </Badge>
+      </div>
+      <div className="rounded-lg border p-3">
+        <p className="text-xs text-muted-foreground">Latest manifest</p>
+        <Badge
+          className="mt-2"
+          variant={manifest ? launchStatusVariant(manifest.status) : "outline"}
+        >
+          {manifest?.status ?? "None"}
+        </Badge>
+      </div>
+    </div>
+  );
+}
+
+function LaunchManifestImportSection({
+  isPending,
+  manifestJson,
+  onManifestJsonChange,
+  onSubmit,
+}: {
+  isPending: boolean;
+  manifestJson: string;
+  onManifestJsonChange: (value: string) => void;
+  onSubmit: () => void;
+}) {
+  return (
+    <section aria-labelledby="eve-launch-manifest-title">
+      <Label id="eve-launch-manifest-title" htmlFor="eve-launch-manifest">
+        Signed-off launch evidence manifest
+      </Label>
+      <Textarea
+        id="eve-launch-manifest"
+        className="mt-2 min-h-32 font-mono text-xs"
+        value={manifestJson}
+        placeholder='{"schemaVersion":"eve-launch-manifest-v1", ...}'
+        onChange={(event) => onManifestJsonChange(event.target.value)}
+      />
+      <Button
+        className="mt-2"
+        size="sm"
+        variant="outline"
+        disabled={isPending || manifestJson.trim().length === 0}
+        onClick={onSubmit}
+      >
+        Validate and import
+      </Button>
+    </section>
+  );
+}
+
+function LaunchReasonSection({
+  reason,
+  onReasonChange,
+}: {
+  reason: string;
+  onReasonChange: (value: string) => void;
+}) {
+  return (
+    <section aria-labelledby="eve-launch-reason-title">
+      <Label id="eve-launch-reason-title" htmlFor="eve-launch-reason">
+        Review or control reason
+      </Label>
+      <Input
+        id="eve-launch-reason"
+        className="mt-2"
+        value={reason}
+        onChange={(event) => onReasonChange(event.target.value)}
+        placeholder="Concise, non-sensitive operator rationale"
+      />
+      <p className="mt-2 text-xs text-muted-foreground">
+        Required for every review, permission, release, and canary control
+        below, including the first-run state with no imported manifest.
+      </p>
+    </section>
+  );
+}
+
+function LaunchIndependentReviewSection({
+  canReview,
+  explanation,
+  isPending,
+  manifest,
+  onReview,
+}: {
+  canReview: boolean;
+  explanation: string;
+  isPending: boolean;
+  manifest: LaunchManifest;
+  onReview: (input: {
+    decision: "approved" | "rejected";
+    reviewerRole: "release" | "security";
+  }) => void;
+}) {
+  return (
+    <section className="space-y-3" aria-labelledby="eve-launch-review-title">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 id="eve-launch-review-title" className="text-sm font-medium">
+          Independent review
+        </h3>
+        <span className="text-xs text-muted-foreground">
+          {manifest.reviews.length} recorded review(s)
+        </span>
+      </div>
+      {manifest.evaluation.blockers.length > 0 ? (
+        <p className="text-xs text-destructive">
+          {manifest.evaluation.blockers.length} readiness blocker(s):{" "}
+          {manifest.evaluation.blockers.slice(0, 3).join(", ")}
+        </p>
+      ) : null}
+      <details className="rounded-lg border p-3">
+        <summary className="cursor-pointer text-sm font-medium">
+          Inspect exact manifest and content hash
+        </summary>
+        <p className="mt-2 break-all text-xs text-muted-foreground">
+          SHA-256: {manifest.contentHash}
+        </p>
+        <pre className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap break-words text-xs">
+          {JSON.stringify(manifest.document, null, 2)}
+        </pre>
+      </details>
+      <div className="flex flex-wrap gap-2">
+        {(["release", "security"] as const).flatMap((reviewerRole) =>
+          (["approved", "rejected"] as const).map((decision) => (
+            <Button
+              key={`${reviewerRole}:${decision}`}
+              size="sm"
+              variant={decision === "approved" ? "outline" : "destructive"}
+              disabled={isPending || !canReview || explanation.length === 0}
+              onClick={() => onReview({ decision, reviewerRole })}
+            >
+              {decision === "approved" ? "Approve" : "Reject"} as {reviewerRole}
+            </Button>
+          )),
+        )}
+      </div>
+    </section>
+  );
+}
+
+function LaunchPermissionsSection({
+  explanation,
+  isPending,
+  profileId,
+  onProfileIdChange,
+  onSetPermission,
+}: {
+  explanation: string;
+  isPending: boolean;
+  profileId: string;
+  onProfileIdChange: (value: string) => void;
+  onSetPermission: (permission: EveLaunchPermission, enabled: boolean) => void;
+}) {
+  return (
+    <section
+      className="space-y-3"
+      aria-labelledby="eve-launch-permissions-title"
+    >
+      <h3 id="eve-launch-permissions-title" className="text-sm font-medium">
+        Dedicated launch permissions
+      </h3>
+      <Label htmlFor="eve-launch-profile">Platform-owner profile ID</Label>
+      <Input
+        id="eve-launch-profile"
+        value={profileId}
+        onChange={(event) => onProfileIdChange(event.target.value)}
+        placeholder="00000000-0000-4000-8000-000000000000"
+      />
+      <div className="flex flex-wrap gap-2">
+        {(["release.review", "release.activate"] as const).flatMap(
+          (permission) =>
+            ([true, false] as const).map((enabled) => (
+              <Button
+                key={`${permission}:${enabled}`}
+                size="sm"
+                variant="outline"
+                disabled={
+                  isPending ||
+                  profileId.length === 0 ||
+                  explanation.length === 0
+                }
+                onClick={() => onSetPermission(permission, enabled)}
+              >
+                {enabled ? "Grant" : "Revoke"} {permission}
+              </Button>
+            )),
+        )}
+      </div>
+    </section>
+  );
+}
+
+function LaunchReleaseControlsSection({
+  canActivate,
+  explanation,
+  governance,
+  isPending,
+  manifest,
+  onMutate,
+  runtimeTarget,
+}: {
+  canActivate: boolean;
+  explanation: string;
+  governance: EveGovernanceSnapshot | null | undefined;
+  isPending: boolean;
+  manifest: LaunchManifest | undefined;
+  onMutate: (body: Record<string, unknown>) => void;
+  runtimeTarget: LaunchReadinessResponse["runtimeTarget"];
+}) {
+  return (
+    <section
+      className="rounded-lg border border-destructive/40 p-4"
+      aria-labelledby="eve-release-control-title"
+    >
+      <h3
+        id="eve-release-control-title"
+        className="flex items-center gap-2 text-sm font-medium"
+      >
+        <ShieldAlert aria-hidden="true" className="size-4 text-destructive" />
+        Release and emergency controls
+      </h3>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <AlertDialog>
+          <AlertDialogTrigger
+            disabled={
+              isPending ||
+              !manifest ||
+              manifest.status !== "ready" ||
+              !canActivate ||
+              !runtimeTarget ||
+              !governance ||
+              explanation.length === 0
+            }
+            render={<Button size="sm">Activate exact target</Button>}
+          />
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Activate Eve for this exact deployment?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This is the only control here that can enable Eve. The server
+                will re-check the target, manifest hash, reviews, governance
+                version, policy, and kill switches atomically.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() =>
+                  onMutate({
+                    kind: "activate",
+                    expectedStateVersion: governance?.stateVersion,
+                    justification: explanation,
+                    manifestId: manifest?.id,
+                  })
+                }
+              >
+                Activate and start canary
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        {governance?.releaseEnabled ? (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={isPending || explanation.length === 0}
+            onClick={() =>
+              onMutate({
+                kind: "safety_control",
+                expectedStateVersion: governance.stateVersion,
+                mode: "disable",
+                reason: explanation,
+              })
+            }
+          >
+            Disable release (no emergency)
+          </Button>
+        ) : null}
+        <Button
+          size="sm"
+          variant="destructive"
+          disabled={isPending || !governance || explanation.length === 0}
+          onClick={() =>
+            onMutate({
+              kind: "safety_control",
+              expectedStateVersion: governance?.stateVersion,
+              mode: "emergency_off",
+              reason: explanation,
+            })
+          }
+        >
+          Emergency off
+        </Button>
+        {governance?.emergencyOff ? (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={isPending || explanation.length === 0}
+            onClick={() =>
+              onMutate({
+                kind: "safety_control",
+                expectedStateVersion: governance.stateVersion,
+                mode: "clear_emergency",
+                reason: explanation,
+              })
+            }
+          >
+            Clear emergency (keep release off)
+          </Button>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function LaunchCanarySection({
+  explanation,
+  formatDateTime,
+  isPending,
+  launch,
+  onMutate,
+}: {
+  explanation: string;
+  formatDateTime: LocaleFormatters["formatDateTime"];
+  isPending: boolean;
+  launch: LaunchRecord;
+  onMutate: (body: Record<string, unknown>) => void;
+}) {
+  return (
+    <section
+      className="space-y-3 rounded-lg border p-4"
+      aria-labelledby="eve-launch-canary-title"
+    >
+      <h3 id="eve-launch-canary-title" className="text-sm font-medium">
+        Active 15-minute canary
+      </h3>
+      <p className="text-xs text-muted-foreground">
+        Deadline: {formatDateTime(launch.canaryDeadline)}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          disabled={isPending || explanation.length === 0}
+          onClick={() =>
+            onMutate({
+              kind: "canary",
+              launchId: launch.id,
+              reason: explanation,
+              results: COMPLETE_CANARY_RESULTS,
+              status: "completed",
+            })
+          }
+        >
+          Record all canaries passed
+        </Button>
+        <Button
+          size="sm"
+          variant="destructive"
+          disabled={isPending || explanation.length === 0}
+          onClick={() =>
+            onMutate({
+              kind: "canary",
+              launchId: launch.id,
+              reason: explanation,
+              results: FAILED_CANARY_RESULTS,
+              status: "failed",
+            })
+          }
+        >
+          Fail canary and roll back
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 export function EveLaunchReadinessPanel() {
   const queryClient = useQueryClient();
+  const { formatDateTime } = useLocaleFormat();
   const [manifestJson, setManifestJson] = useState("");
   const [profileId, setProfileId] = useState("");
   const [reason, setReason] = useState("");
@@ -171,343 +594,66 @@ export function EveLaunchReadinessPanel() {
             </AlertDescription>
           </Alert>
         ) : null}
-        {query.isLoading ? (
-          <Skeleton className="h-44" />
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Release</p>
-              <Badge
-                className="mt-2"
-                variant={
-                  governance?.releaseEnabled ? "destructive" : "secondary"
-                }
-              >
-                {governance?.releaseEnabled ? "Enabled" : "Off"}
-              </Badge>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Emergency</p>
-              <Badge
-                className="mt-2"
-                variant={governance?.emergencyOff ? "destructive" : "outline"}
-              >
-                {governance?.emergencyOff ? "Engaged" : "Clear"}
-              </Badge>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Runtime target</p>
-              <Badge className="mt-2" variant="outline">
-                {query.data?.runtimeTarget ? "Configured" : "Incomplete"}
-              </Badge>
-            </div>
-            <div className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">Latest manifest</p>
-              <Badge
-                className="mt-2"
-                variant={
-                  manifest ? launchStatusVariant(manifest.status) : "outline"
-                }
-              >
-                {manifest?.status ?? "None"}
-              </Badge>
-            </div>
-          </div>
-        )}
+        <LaunchReadinessStatusGrid
+          governance={governance}
+          isLoading={query.isLoading}
+          manifest={manifest}
+          runtimeTarget={query.data?.runtimeTarget}
+        />
 
-        <section aria-labelledby="eve-launch-manifest-title">
-          <Label id="eve-launch-manifest-title" htmlFor="eve-launch-manifest">
-            Signed-off launch evidence manifest
-          </Label>
-          <Textarea
-            id="eve-launch-manifest"
-            className="mt-2 min-h-32 font-mono text-xs"
-            value={manifestJson}
-            placeholder='{"schemaVersion":"eve-launch-manifest-v1", ...}'
-            onChange={(event) => setManifestJson(event.target.value)}
-          />
-          <Button
-            className="mt-2"
-            size="sm"
-            variant="outline"
-            disabled={mutation.isPending || manifestJson.trim().length === 0}
-            onClick={submitManifest}
-          >
-            Validate and import
-          </Button>
-        </section>
+        <LaunchManifestImportSection
+          isPending={mutation.isPending}
+          manifestJson={manifestJson}
+          onManifestJsonChange={setManifestJson}
+          onSubmit={submitManifest}
+        />
 
-        <section aria-labelledby="eve-launch-reason-title">
-          <Label id="eve-launch-reason-title" htmlFor="eve-launch-reason">
-            Review or control reason
-          </Label>
-          <Input
-            id="eve-launch-reason"
-            className="mt-2"
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-            placeholder="Concise, non-sensitive operator rationale"
-          />
-          <p className="mt-2 text-xs text-muted-foreground">
-            Required for every review, permission, release, and canary control
-            below, including the first-run state with no imported manifest.
-          </p>
-        </section>
+        <LaunchReasonSection reason={reason} onReasonChange={setReason} />
 
         {manifest ? (
-          <section
-            className="space-y-3"
-            aria-labelledby="eve-launch-review-title"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 id="eve-launch-review-title" className="text-sm font-medium">
-                Independent review
-              </h3>
-              <span className="text-xs text-muted-foreground">
-                {manifest.reviews.length} recorded review(s)
-              </span>
-            </div>
-            {manifest.evaluation.blockers.length > 0 ? (
-              <p className="text-xs text-destructive">
-                {manifest.evaluation.blockers.length} readiness blocker(s):{" "}
-                {manifest.evaluation.blockers.slice(0, 3).join(", ")}
-              </p>
-            ) : null}
-            <details className="rounded-lg border p-3">
-              <summary className="cursor-pointer text-sm font-medium">
-                Inspect exact manifest and content hash
-              </summary>
-              <p className="mt-2 break-all text-xs text-muted-foreground">
-                SHA-256: {manifest.contentHash}
-              </p>
-              <pre className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap break-words text-xs">
-                {JSON.stringify(manifest.document, null, 2)}
-              </pre>
-            </details>
-            <div className="flex flex-wrap gap-2">
-              {(["release", "security"] as const).flatMap((reviewerRole) =>
-                (["approved", "rejected"] as const).map((decision) => (
-                  <Button
-                    key={`${reviewerRole}:${decision}`}
-                    size="sm"
-                    variant={
-                      decision === "approved" ? "outline" : "destructive"
-                    }
-                    disabled={
-                      mutation.isPending ||
-                      !query.data?.canReview ||
-                      explanation.length === 0
-                    }
-                    onClick={() =>
-                      mutation.mutate({
-                        kind: "review",
-                        decision,
-                        manifestId: manifest.id,
-                        reviewerRole,
-                        summary: explanation,
-                      })
-                    }
-                  >
-                    {decision === "approved" ? "Approve" : "Reject"} as{" "}
-                    {reviewerRole}
-                  </Button>
-                )),
-              )}
-            </div>
-          </section>
+          <LaunchIndependentReviewSection
+            canReview={Boolean(query.data?.canReview)}
+            explanation={explanation}
+            isPending={mutation.isPending}
+            manifest={manifest}
+            onReview={({ decision, reviewerRole }) =>
+              mutation.mutate({
+                kind: "review",
+                decision,
+                manifestId: manifest.id,
+                reviewerRole,
+                summary: explanation,
+              })
+            }
+          />
         ) : null}
 
-        <section
-          className="space-y-3"
-          aria-labelledby="eve-launch-permissions-title"
-        >
-          <h3 id="eve-launch-permissions-title" className="text-sm font-medium">
-            Dedicated launch permissions
-          </h3>
-          <Label htmlFor="eve-launch-profile">Platform-owner profile ID</Label>
-          <Input
-            id="eve-launch-profile"
-            value={profileId}
-            onChange={(event) => setProfileId(event.target.value)}
-            placeholder="00000000-0000-4000-8000-000000000000"
-          />
-          <div className="flex flex-wrap gap-2">
-            {(["release.review", "release.activate"] as const).flatMap(
-              (permission) =>
-                ([true, false] as const).map((enabled) => (
-                  <Button
-                    key={`${permission}:${enabled}`}
-                    size="sm"
-                    variant="outline"
-                    disabled={
-                      mutation.isPending ||
-                      profileId.length === 0 ||
-                      explanation.length === 0
-                    }
-                    onClick={() => setPermission(permission, enabled)}
-                  >
-                    {enabled ? "Grant" : "Revoke"} {permission}
-                  </Button>
-                )),
-            )}
-          </div>
-        </section>
+        <LaunchPermissionsSection
+          explanation={explanation}
+          isPending={mutation.isPending}
+          profileId={profileId}
+          onProfileIdChange={setProfileId}
+          onSetPermission={setPermission}
+        />
 
-        <section
-          className="rounded-lg border border-destructive/40 p-4"
-          aria-labelledby="eve-release-control-title"
-        >
-          <h3
-            id="eve-release-control-title"
-            className="flex items-center gap-2 text-sm font-medium"
-          >
-            <ShieldAlert
-              aria-hidden="true"
-              className="size-4 text-destructive"
-            />
-            Release and emergency controls
-          </h3>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <AlertDialog>
-              <AlertDialogTrigger
-                disabled={
-                  mutation.isPending ||
-                  !manifest ||
-                  manifest.status !== "ready" ||
-                  !query.data?.canActivate ||
-                  !query.data.runtimeTarget ||
-                  !governance ||
-                  explanation.length === 0
-                }
-                render={<Button size="sm">Activate exact target</Button>}
-              />
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Activate Eve for this exact deployment?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This is the only control here that can enable Eve. The
-                    server will re-check the target, manifest hash, reviews,
-                    governance version, policy, and kill switches atomically.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() =>
-                      mutation.mutate({
-                        kind: "activate",
-                        expectedStateVersion: governance?.stateVersion,
-                        justification: explanation,
-                        manifestId: manifest?.id,
-                      })
-                    }
-                  >
-                    Activate and start canary
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            {governance?.releaseEnabled ? (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={mutation.isPending || explanation.length === 0}
-                onClick={() =>
-                  mutation.mutate({
-                    kind: "safety_control",
-                    expectedStateVersion: governance.stateVersion,
-                    mode: "disable",
-                    reason: explanation,
-                  })
-                }
-              >
-                Disable release (no emergency)
-              </Button>
-            ) : null}
-            <Button
-              size="sm"
-              variant="destructive"
-              disabled={
-                mutation.isPending || !governance || explanation.length === 0
-              }
-              onClick={() =>
-                mutation.mutate({
-                  kind: "safety_control",
-                  expectedStateVersion: governance?.stateVersion,
-                  mode: "emergency_off",
-                  reason: explanation,
-                })
-              }
-            >
-              Emergency off
-            </Button>
-            {governance?.emergencyOff ? (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={mutation.isPending || explanation.length === 0}
-                onClick={() =>
-                  mutation.mutate({
-                    kind: "safety_control",
-                    expectedStateVersion: governance.stateVersion,
-                    mode: "clear_emergency",
-                    reason: explanation,
-                  })
-                }
-              >
-                Clear emergency (keep release off)
-              </Button>
-            ) : null}
-          </div>
-        </section>
+        <LaunchReleaseControlsSection
+          canActivate={Boolean(query.data?.canActivate)}
+          explanation={explanation}
+          governance={governance}
+          isPending={mutation.isPending}
+          manifest={manifest}
+          onMutate={(body) => mutation.mutate(body)}
+          runtimeTarget={query.data?.runtimeTarget}
+        />
 
         {launch?.status === "active" ? (
-          <section
-            className="space-y-3 rounded-lg border p-4"
-            aria-labelledby="eve-launch-canary-title"
-          >
-            <h3 id="eve-launch-canary-title" className="text-sm font-medium">
-              Active 15-minute canary
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Deadline: {new Date(launch.canaryDeadline).toLocaleString()}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                size="sm"
-                disabled={mutation.isPending || explanation.length === 0}
-                onClick={() =>
-                  mutation.mutate({
-                    kind: "canary",
-                    launchId: launch.id,
-                    reason: explanation,
-                    results: COMPLETE_CANARY_RESULTS,
-                    status: "completed",
-                  })
-                }
-              >
-                Record all canaries passed
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                disabled={mutation.isPending || explanation.length === 0}
-                onClick={() =>
-                  mutation.mutate({
-                    kind: "canary",
-                    launchId: launch.id,
-                    reason: explanation,
-                    results: FAILED_CANARY_RESULTS,
-                    status: "failed",
-                  })
-                }
-              >
-                Fail canary and roll back
-              </Button>
-            </div>
-          </section>
+          <LaunchCanarySection
+            explanation={explanation}
+            formatDateTime={formatDateTime}
+            isPending={mutation.isPending}
+            launch={launch}
+            onMutate={(body) => mutation.mutate(body)}
+          />
         ) : null}
       </CardContent>
     </Card>
