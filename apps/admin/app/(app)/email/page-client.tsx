@@ -334,6 +334,9 @@ export default function EmailStudio() {
       setShowTemplatePicker(false);
       setShowTestSendDialog(false);
       dispatch({ type: "set_show_save_dialog", open: false });
+      if (template.builder === "react_email" && template.id === metadata.id) {
+        return;
+      }
       const preview = previewFromTemplate(template);
       setMetadata({
         id: template.id,
@@ -358,16 +361,11 @@ export default function EmailStudio() {
       setLegacyPreviewResult(null);
       setPreviewResult(null);
       setInitialDesign(design);
-      const remountEditor = isLegacyReadOnly || metadata.id !== template.id;
-      if (remountEditor) {
-        pendingDesignRef.current = null;
-        dispatch({ type: "editor_unmounted" });
-      } else {
-        loadEditorDesign(design);
-      }
+      pendingDesignRef.current = null;
+      dispatch({ type: "editor_unmounted" });
       dispatch({ type: "set_unsaved_changes", unsaved: false });
     },
-    [isLegacyReadOnly, loadEditorDesign, metadata.id],
+    [metadata.id],
   );
 
   const handleConfirmTestSend = useCallback(async () => {

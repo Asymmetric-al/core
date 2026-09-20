@@ -693,7 +693,7 @@ describe("EmailStudio page", () => {
       "react-welcome",
     );
     expect(editorMount.count).toBe(mountsBeforeReselect);
-    expect(screen.queryByText("Unsaved")).toBeNull();
+    expect(screen.getByText("Unsaved")).toBeTruthy();
     expect(
       (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
         .disabled,
@@ -724,9 +724,7 @@ describe("EmailStudio page", () => {
       (screen.getByRole("button", { name: /merge tags/i }) as HTMLButtonElement)
         .disabled,
     ).toBe(false);
-    expect(editorHandle.loadDesign).toHaveBeenCalledWith(
-      reactWelcomeTemplate.design_json,
-    );
+    expect(editorHandle.loadDesign).not.toHaveBeenCalled();
 
     fireEvent.keyDown(window, { key: "s", metaKey: true });
     expect(await screen.findByText("Save Email Template")).toBeTruthy();
