@@ -48,7 +48,11 @@ On idempotent replay (`begin_donation_saga.replayed`), Gift intake loads the
 stored `donations.amount` and `donation_saga_outbox.fee_extras` and:
 
 - returns `409` when charged cents do not match the recomputed quote
-- returns `409` when charged cents match but stored fee extras do not
+- returns `409` when charged cents match but a stored full fee quote differs
+  from the current quote
+- continues when charged cents match and stored extras are empty/legacy `{}`
+  (or otherwise absent), passing the current quote extras so the saga can
+  persist onto empty before claim
 - returns `500` when stored extras cannot be loaded or are malformed
 - processes the existing outbox without rewriting matching stored extras
 
@@ -59,10 +63,12 @@ Verification:
    `409`.
 3. POST the same key with matching charged cents and matching extras → `200`
    and no rewrite of stored extras.
-4. POST `currency=eur` → `400` before `begin_donation_saga`.
-5. First-shot card Gift PaymentIntents use `payment_method_types: ["card"]`
+4. POST the same key with matching charged cents and stored `fee_extras: {}`
+   → `200` and saga called with the current quote extras.
+5. POST `currency=eur` → `400` before `begin_donation_saga`.
+6. First-shot card Gift PaymentIntents use `payment_method_types: ["card"]`
    and omit `automatic_payment_methods`.
-6. Recovery of stored ACH extras binds `payment_method_types: ["us_bank_account"]`
+7. Recovery of stored ACH extras binds `payment_method_types: ["us_bank_account"]`
    even when the worker omits extras.
 
 Staff `POST /api/donations` does not run Gift processing-fee policy. That path

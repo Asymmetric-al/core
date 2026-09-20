@@ -181,7 +181,7 @@ export const POST = withOperation(
         throw error;
       }
       if (
-        storedFeeExtras == null ||
+        storedFeeExtras != null &&
         !giftProcessingFeeStripeMetadataEquals(
           storedFeeExtras,
           extraPaymentIntentMetadata,
