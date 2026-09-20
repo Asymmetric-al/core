@@ -74,12 +74,18 @@ export const baseConfig = [
   },
   {
     // Exception zones for the motion/react import restriction:
-    // - packages/lib/motion.tsx IS the re-export module.
+    // - packages/lib/motion.ts IS the re-export module, and
+    //   packages/lib/motion-provider.tsx mounts LazyMotion/MotionConfig.
     // - apps/admin/src/cms-ui renders inside the Payload admin React tree,
     //   which does not mount MotionProvider/LazyMotion, so the `m`-based
     //   re-export would silently break its animations.
     // Patterns cover both repo-root and per-package eslint working dirs.
-    files: ["motion.tsx", "**/packages/lib/motion.tsx"],
+    files: [
+      "motion.ts",
+      "motion-provider.tsx",
+      "**/packages/lib/motion.ts",
+      "**/packages/lib/motion-provider.tsx",
+    ],
     rules: {
       "no-restricted-imports": "off",
     },

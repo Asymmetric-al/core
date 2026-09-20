@@ -12,16 +12,18 @@ import { CircleCheck, LoaderCircle } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
-import { invalidateContributionOperationQueries } from "./contribution-detail-overlay";
+import { invalidateContributionOperationQueries } from "./contribution-detail-model";
 import {
   ReceiptDeliveryChoiceField,
-  receiptSnapshotPdfUrl,
-  resolveInitialReceiptDeliveryValue,
-  resolveReceiptDeliveryError,
   type ContributionReceiptDeliveryContext,
   type ReceiptDeliveryProposal,
   type ReceiptDeliveryValue,
 } from "./receipt-delivery-choice";
+import {
+  receiptSnapshotPdfUrl,
+  resolveInitialReceiptDeliveryValue,
+  resolveReceiptDeliveryError,
+} from "./receipt-delivery-model";
 
 import type { ReceiptDeliveryOutcome } from "@asym/api/admin/contribution-operations";
 

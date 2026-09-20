@@ -48,4 +48,7 @@ function Badge({
   });
 }
 
+// shadcn registry component: the cva variants are exported alongside the
+// component per the registry convention, and consumers import them from here.
+// react-doctor-disable-next-line react-doctor/only-export-components
 export { Badge, badgeVariants };

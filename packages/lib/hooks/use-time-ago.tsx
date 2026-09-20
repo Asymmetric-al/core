@@ -36,7 +36,7 @@ function calculateTimeAgo(
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export function formatDate(
+function formatDate(
   dateString: string,
   options?: Intl.DateTimeFormatOptions,
 ): string {

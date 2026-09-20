@@ -184,5 +184,7 @@ export {
   NavigationMenuIndicator,
   NavigationMenuPositioner,
   NavigationMenuViewport,
+  // shadcn registry convention: variants ship next to the component.
+  // react-doctor-disable-next-line react-doctor/only-export-components
   navigationMenuTriggerStyle,
 };
