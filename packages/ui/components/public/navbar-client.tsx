@@ -74,6 +74,9 @@ export function NavbarClient({
 
   return (
     <header>
+      {/* The target is a <main id="main-content"> in every live Navbar
+          consumer: public (hero)/(solid) layouts and the donor dashboard. */}
+      {/* react-doctor-disable-next-line react-doctor/anchor-target-exists */}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:bg-white focus:text-zinc-900 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"

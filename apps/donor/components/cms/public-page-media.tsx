@@ -1,13 +1,9 @@
-import { resolveRenderablePublicCmsImage } from "@asym/lib/cms/public-media";
 import {
   PublicCmsImage,
   PublicCmsMediaFigure,
 } from "@asym/ui/components/public/cms-media";
 
-import type {
-  SerializedPublicHeroBlock,
-  SerializedPublicMediaFeatureBlock,
-} from "@asym/api/cms/public";
+import { readMediaBearingBlocks } from "./public-page-media-blocks";
 
 /**
  * Renders the media of a published CMS page's layout blocks (Phase 5 (Public
@@ -25,50 +21,6 @@ import type {
  */
 
 const PAGE_MEDIA_SIZES = "(min-width: 1024px) 896px, 100vw";
-
-type MediaBearingBlock =
-  | { kind: "hero-image"; key: string; block: SerializedPublicHeroBlock }
-  | {
-      kind: "media-figure";
-      key: string;
-      block: SerializedPublicMediaFeatureBlock;
-    };
-
-export function readMediaBearingBlocks(
-  layout: unknown,
-  cmsBaseUrl: string | null | undefined,
-): MediaBearingBlock[] {
-  if (!Array.isArray(layout)) {
-    return [];
-  }
-
-  const blocks: MediaBearingBlock[] = [];
-  layout.forEach((value, index) => {
-    if (!value || typeof value !== "object") {
-      return;
-    }
-
-    const block = value as { blockType?: unknown; id?: unknown };
-    const key = typeof block.id === "string" ? block.id : `block-${index}`;
-
-    if (block.blockType === "hero") {
-      const hero = block as SerializedPublicHeroBlock;
-      if (resolveRenderablePublicCmsImage(hero.backgroundImage, cmsBaseUrl)) {
-        blocks.push({ kind: "hero-image", key, block: hero });
-      }
-      return;
-    }
-
-    if (block.blockType === "media-feature") {
-      const feature = block as SerializedPublicMediaFeatureBlock;
-      if (resolveRenderablePublicCmsImage(feature.media, cmsBaseUrl)) {
-        blocks.push({ kind: "media-figure", key, block: feature });
-      }
-    }
-  });
-
-  return blocks;
-}
 
 type PublicCmsPageMediaProps = {
   layout: unknown;

@@ -110,8 +110,9 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
         const pref = await getPreference<{ filterExpanded?: boolean }>(
           studioConfig.preferences.listUi,
         );
+        if (cancelled) return;
 
-        if (!cancelled && pref && typeof pref.filterExpanded === "boolean") {
+        if (pref && typeof pref.filterExpanded === "boolean") {
           setFilterExpanded(pref.filterExpanded);
         }
       } catch {

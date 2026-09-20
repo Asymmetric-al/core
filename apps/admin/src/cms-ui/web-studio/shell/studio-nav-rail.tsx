@@ -56,8 +56,7 @@ function isRecentDocLink(value: unknown): value is RecentDocLink {
   );
 }
 
-export function StudioNavRail({ className }: { className?: string }) {
-  const pathname = usePathname();
+function useStudioNavRailState() {
   const { getPreference, setPreference } = usePreferences();
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -82,7 +81,8 @@ export function StudioNavRail({ className }: { className?: string }) {
         const pref = await getPreference<{ collapsed?: boolean }>(
           WEB_STUDIO_PREF_KEYS.navCollapsed,
         );
-        if (!cancelled && pref && typeof pref.collapsed === "boolean") {
+        if (cancelled) return;
+        if (pref && typeof pref.collapsed === "boolean") {
           setCollapsed(pref.collapsed);
         }
       } catch {
@@ -155,6 +155,101 @@ export function StudioNavRail({ className }: { className?: string }) {
     };
   }, [enabledCollections, getPreference, recentDocsPreferenceKeys]);
 
+  return {
+    collapsed,
+    enabledCollections,
+    hydrated,
+    persistCollapsed,
+    recentDocs,
+  };
+}
+
+function StudioNavRailHeader({
+  collapsed,
+  persistCollapsed,
+}: {
+  collapsed: boolean;
+  persistCollapsed: (next: boolean) => Promise<void>;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-1 border-border border-b p-2">
+      {!collapsed ? (
+        <span className="px-2 font-semibold text-[10px] text-muted-foreground uppercase tracking-wide">
+          Studio
+        </span>
+      ) : (
+        <span className="sr-only">Web Studio navigation</span>
+      )}
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0"
+              onClick={() => void persistCollapsed(!collapsed)}
+              aria-pressed={collapsed}
+              aria-label={
+                collapsed
+                  ? "Expand studio navigation"
+                  : "Collapse studio navigation"
+              }
+            >
+              {collapsed ? (
+                <PanelLeft className="size-4" />
+              ) : (
+                <PanelLeftClose className="size-4" />
+              )}
+            </Button>
+          }
+        />
+        <TooltipContent side="right">
+          {collapsed ? "Expand navigation" : "Collapse navigation"}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
+
+function StudioNavRailRecentDocs({
+  recentDocs,
+}: {
+  recentDocs: RecentDocLink[];
+}) {
+  return (
+    <div className="border-border border-t px-2 py-3">
+      <div className="mb-2 flex items-center gap-2 px-2 text-muted-foreground text-[10px] font-semibold uppercase tracking-wide">
+        <Clock3 className="size-3.5" />
+        Recent
+      </div>
+      <div className="flex flex-col gap-1">
+        {recentDocs.map((doc) => (
+          <Button
+            key={`${doc.id}-${doc.href}`}
+            variant="ghost"
+            size="sm"
+            className="justify-start overflow-hidden text-left text-xs"
+            render={<Link href={doc.href} title={doc.title} />}
+          >
+            <span className="truncate">{doc.title}</span>
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function StudioNavRail({ className }: { className?: string }) {
+  const pathname = usePathname();
+  const {
+    collapsed,
+    enabledCollections,
+    hydrated,
+    persistCollapsed,
+    recentDocs,
+  } = useStudioNavRailState();
+
   return (
     <aside
       className={cn(
@@ -166,43 +261,10 @@ export function StudioNavRail({ className }: { className?: string }) {
       data-hydrated={hydrated ? "true" : "false"}
     >
       <TooltipProvider delay={200}>
-        <div className="flex items-center justify-between gap-1 border-border border-b p-2">
-          {!collapsed ? (
-            <span className="px-2 font-semibold text-[10px] text-muted-foreground uppercase tracking-wide">
-              Studio
-            </span>
-          ) : (
-            <span className="sr-only">Web Studio navigation</span>
-          )}
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 shrink-0"
-                  onClick={() => void persistCollapsed(!collapsed)}
-                  aria-pressed={collapsed}
-                  aria-label={
-                    collapsed
-                      ? "Expand studio navigation"
-                      : "Collapse studio navigation"
-                  }
-                >
-                  {collapsed ? (
-                    <PanelLeft className="size-4" />
-                  ) : (
-                    <PanelLeftClose className="size-4" />
-                  )}
-                </Button>
-              }
-            />
-            <TooltipContent side="right">
-              {collapsed ? "Expand navigation" : "Collapse navigation"}
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        <StudioNavRailHeader
+          collapsed={collapsed}
+          persistCollapsed={persistCollapsed}
+        />
         <nav className="flex flex-col gap-1 p-2">
           <NavRailLink
             active={pathname.startsWith("/web-studio/templates")}
@@ -243,25 +305,7 @@ export function StudioNavRail({ className }: { className?: string }) {
         </nav>
       </TooltipProvider>
       {!collapsed && recentDocs.length > 0 ? (
-        <div className="border-border border-t px-2 py-3">
-          <div className="mb-2 flex items-center gap-2 px-2 text-muted-foreground text-[10px] font-semibold uppercase tracking-wide">
-            <Clock3 className="size-3.5" />
-            Recent
-          </div>
-          <div className="flex flex-col gap-1">
-            {recentDocs.map((doc) => (
-              <Button
-                key={`${doc.id}-${doc.href}`}
-                variant="ghost"
-                size="sm"
-                className="justify-start overflow-hidden text-left text-xs"
-                render={<Link href={doc.href} title={doc.title} />}
-              >
-                <span className="truncate">{doc.title}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
+        <StudioNavRailRecentDocs recentDocs={recentDocs} />
       ) : null}
     </aside>
   );

@@ -11,7 +11,6 @@ import {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 
-import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
 import {
   Card,
   CardContent,
@@ -25,6 +24,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@asym/ui/components/shadcn/chart";
+import {
+  MetricHighlightPair,
+  MetricTileGrid,
+} from "@asym/ui/components/shadcn-studio/blocks/metrics-card-parts";
 
 import type { FC } from "react";
 
@@ -166,26 +169,7 @@ const SalesMetricsCard = ({ className }: { className?: string }) => {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {MetricsData.map((metric) => (
-                <div
-                  key={metric.title}
-                  className="flex items-center gap-3 rounded-md border px-4 py-2"
-                >
-                  <Avatar className="size-8.5 rounded-sm">
-                    <AvatarFallback className="bg-primary/10 text-primary shrink-0 rounded-sm">
-                      {metric.icons}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-muted-foreground text-sm font-medium">
-                      {metric.title}
-                    </span>
-                    <span className="text-lg font-medium">{metric.value}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <MetricTileGrid metrics={MetricsData} />
           </div>
           <Card className="gap-4 py-4 shadow-none lg:col-span-2">
             <CardHeader className="gap-1">
@@ -278,16 +262,18 @@ const SalesMetricsCard = ({ className }: { className?: string }) => {
                 Analyzes the behaviour of a group of users who joined a
                 product/service at the same time. over a certain period.
               </span>
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="flex items-center gap-2">
-                  <ChartNoAxesCombinedIcon className="size-6" />
-                  <span className="text-lg font-medium">Open Statistics</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CirclePercentIcon className="size-6" />
-                  <span className="text-lg font-medium">Percentage Change</span>
-                </div>
-              </div>
+              <MetricHighlightPair
+                highlights={[
+                  {
+                    icon: <ChartNoAxesCombinedIcon className="size-6" />,
+                    label: "Open Statistics",
+                  },
+                  {
+                    icon: <CirclePercentIcon className="size-6" />,
+                    label: "Percentage Change",
+                  },
+                ]}
+              />
 
               <ChartContainer
                 config={salesChartConfig}
