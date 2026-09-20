@@ -37,6 +37,7 @@ import dynamicIconImports from "lucide-react/dynamicIconImports";
 import React, { lazy, Suspense, useMemo } from "react";
 
 import { resolveDynamicIconKebabName } from "./dynamic-icon-name";
+import { isLucideIconComponent } from "./icon-map";
 
 export interface DynamicIconProps extends Omit<LucideProps, "ref" | "name"> {
   name: string | LucideIcon;
@@ -53,11 +54,6 @@ const LAZY_ICON_MAP = new Map<
     lazy(dynamicIconImports[iconName]),
   ]),
 );
-
-function isLucideIconComponent(name: string | LucideIcon): name is LucideIcon {
-  if (name == null) return false;
-  return typeof name !== "string";
-}
 
 export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
   const kebabName = useMemo(() => {
@@ -93,47 +89,6 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
 }
 
 // Map icon names to components
-const iconMap: Record<string, React.ComponentType<LucideProps>> = {
-  LayoutDashboard,
-  Globe,
-  Users,
-  DollarSign,
-  Mail,
-  FileText,
-  PenTool,
-  Rocket,
-  BarChart3,
-  HelpCircle,
-  Zap,
-  Settings,
-  Heart,
-  CalendarDays,
-  Plus,
-  ChevronRight,
-  ChevronLeft,
-  ChevronDown,
-  Menu,
-  Bell,
-  Command,
-  LogOut,
-  Building2,
-  ChevronsUpDown,
-  Check,
-  Search,
-  User,
-  ArrowRight,
-};
-
-export function getIcon(
-  name: string | LucideIcon,
-): React.ComponentType<LucideProps> {
-  if (isLucideIconComponent(name)) {
-    return name;
-  }
-
-  return iconMap[name] || Settings;
-}
-
 export {
   LayoutDashboard,
   Globe,

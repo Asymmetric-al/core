@@ -92,7 +92,7 @@ Confirmed false positives (left as-is, no config change):
 - `effect-needs-cleanup` in `use-supabase-realtime.ts` (suppressed inline with a reason: cleanup runs through `channelRef`) and `UnlayerEmailEditor.tsx` (legacy editor listener lives on the editor instance, not in an effect).
 - `anchor-has-content` in `menu-dropdown.tsx`: Base UI's `render` prop merges the visible item title into the rendered link.
 - `query-mutation-missing-invalidation` in `hooks/donor-portal.ts`: the billing-portal session mutation returns a redirect URL and owns no cached data.
-- `insecure-crypto-risk` in `packages/lib/cloudinary-server.ts`: the SHA-1 digest is Cloudinary's default signed-upload signature, not a credential hash. Moving to Cloudinary's SHA-256 option is possible but must be verified against a live Cloudinary account first.
+- `insecure-crypto-risk` in `packages/lib/cloudinary-server.ts`: the helper SHA-256s Cloudinary's official sorted string-to-sign (not a credential hash). Cloudinary accepts SHA-1 and SHA-256 hex digests interchangeably. The helper is unused today; the live email uploader in `packages/api/src/email/assets.ts` SHA-256s and sends `signature_algorithm=sha256`.
 
 Deferred with owners:
 

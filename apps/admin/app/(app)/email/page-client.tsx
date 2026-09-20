@@ -11,6 +11,7 @@ import {
   type EmailStudioEditorHandle,
   type EmailStudioExportResult,
 } from "@asym/email/email-builder-types";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
@@ -34,10 +35,6 @@ import { Label } from "@asym/ui/components/shadcn/label";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@asym/ui/components/shadcn/toggle-group";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -51,8 +48,6 @@ import {
   Mail,
   Save,
   Download,
-  Smartphone,
-  Monitor,
   ChevronRight,
   Settings,
   FileCode,
@@ -71,7 +66,6 @@ import {
   Minimize2,
   Sparkles,
   History,
-  Layers,
 } from "lucide-react";
 import React, {
   useRef,
@@ -84,7 +78,15 @@ import React, {
 } from "react";
 import { toast } from "sonner";
 
-type PreviewDevice = "desktop" | "mobile";
+import {
+  StudioExportedHtmlPreview,
+  type StudioPreviewDevice,
+  StudioPreviewDeviceToggle,
+  StudioSaveButton,
+  StudioTemplateBreadcrumb,
+} from "@/components/studio/studio-chrome";
+
+type PreviewDevice = StudioPreviewDevice;
 
 interface EmailMetadata {
   id: string | null;
@@ -238,25 +240,10 @@ function EmailStudioHeader({
 
         <Separator orientation="vertical" className="h-5 hidden md:block" />
 
-        <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground min-w-0">
-          <span className="shrink-0">Templates</span>
-          <ChevronRight className="size-3 shrink-0" />
-          <span className="font-medium text-foreground truncate max-w-[180px]">
-            {metadata.name}
-          </span>
-          {hasUnsavedChanges && (
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
-                }
-              />
-              <TooltipContent side="bottom">
-                <p>Unsaved changes</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </div>
+        <StudioTemplateBreadcrumb
+          name={metadata.name}
+          hasUnsavedChanges={hasUnsavedChanges}
+        />
       </div>
 
       <div className="flex items-center gap-1.5 md:gap-2">
@@ -304,51 +291,11 @@ function EmailStudioHeader({
         </div>
 
         <div className="hidden md:block">
-          <ToggleGroup
-            value={[previewDevice]}
-            onValueChange={(groupValue) => {
-              const next = groupValue[0];
-              if (next) {
-                onPreview(next as PreviewDevice);
-              }
-            }}
+          <StudioPreviewDeviceToggle
+            value={previewDevice}
+            onChange={onPreview}
             disabled={!isEditorReady}
-            variant="outline"
-            size="sm"
-          >
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <ToggleGroupItem
-                    value="desktop"
-                    className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
-                  >
-                    <Monitor className="size-3.5" />
-                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                      Desktop
-                    </span>
-                  </ToggleGroupItem>
-                }
-              />
-              <TooltipContent side="bottom">Desktop preview</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <ToggleGroupItem
-                    value="mobile"
-                    className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
-                  >
-                    <Smartphone className="size-3.5" />
-                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                      Mobile
-                    </span>
-                  </ToggleGroupItem>
-                }
-              />
-              <TooltipContent side="bottom">Mobile preview</TooltipContent>
-            </Tooltip>
-          </ToggleGroup>
+          />
         </div>
 
         <Separator orientation="vertical" className="h-5 hidden md:block" />
@@ -403,26 +350,11 @@ function EmailStudioHeader({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button
-          size="sm"
+        <StudioSaveButton
           onClick={onSaveClick}
           disabled={!isEditorReady || isSaving}
-          className="h-8 px-3 md:px-4 gap-1.5"
-        >
-          {isSaving ? (
-            <>
-              <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              <span className="hidden sm:inline text-xs font-medium">
-                Saving…
-              </span>
-            </>
-          ) : (
-            <>
-              <Save className="size-3.5" />
-              <span className="hidden sm:inline text-xs font-medium">Save</span>
-            </>
-          )}
-        </Button>
+          isSaving={isSaving}
+        />
 
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -631,40 +563,12 @@ function EmailExportDialog({
             )}
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <div className="relative group">
-            <div className="absolute top-3 right-3 z-10">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={onCopyHtml}
-              >
-                {copiedHtml ? (
-                  <Check className="size-3.5 mr-1 text-emerald-600" />
-                ) : (
-                  <Copy className="size-3.5 mr-1" />
-                )}
-                {copiedHtml ? "Copied!" : "Copy"}
-              </Button>
-            </div>
-            <pre className="bg-zinc-950 text-zinc-100 p-4 rounded-xl text-xs overflow-auto max-h-[320px] font-mono leading-relaxed">
-              {exportedHtml.slice(0, 3000)}
-              {exportedHtml.length > 3000 && (
-                <span className="text-zinc-500">
-                  {`\n\n… truncated (${(exportedHtml.length - 3000).toLocaleString()} more characters)`}
-                </span>
-              )}
-            </pre>
-          </div>
-          <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-            <span>{exportedHtml.length.toLocaleString()} characters</span>
-            <span className="flex items-center gap-1">
-              <Layers className="size-3" />
-              Ready for email clients
-            </span>
-          </div>
-        </div>
+        <StudioExportedHtmlPreview
+          html={exportedHtml}
+          copied={copiedHtml}
+          onCopy={onCopyHtml}
+          readyLabel="Ready for email clients"
+        />
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
@@ -830,13 +734,13 @@ async function fetchEmailTemplates(): Promise<EmailTemplateListEntry[]> {
   const response = await fetch("/api/email/templates", {
     method: "GET",
   });
-  const body = (await response.json().catch(() => null)) as {
+  const { ok, body } = await readJsonBody<{
     success?: boolean;
     templates?: EmailTemplateListEntry[];
     error?: string;
-  } | null;
+  }>(response);
 
-  if (!response.ok || !body?.success) {
+  if (!ok || !body?.success) {
     throw new Error(body?.error ?? "Failed to load templates");
   }
 
@@ -874,11 +778,9 @@ async function persistEmailTemplate(
     },
   );
 
-  const body = (await response
-    .json()
-    .catch(() => null)) as PersistTemplateResponse | null;
+  const { ok, body } = await readJsonBody<PersistTemplateResponse>(response);
 
-  if (!response.ok || !body?.success) {
+  if (!ok || !body?.success) {
     throw new Error(body?.error ?? "Failed to save template");
   }
 
@@ -910,13 +812,13 @@ async function sendTemplateTestEmail(input: {
     },
   );
 
-  const body = (await response.json().catch(() => null)) as {
+  const { ok, body } = await readJsonBody<{
     success?: boolean;
     error?: string;
     messageId?: string | null;
-  } | null;
+  }>(response);
 
-  if (!response.ok || !body?.success) {
+  if (!ok || !body?.success) {
     throw new Error(body?.error ?? "Failed to send test email");
   }
 

@@ -23,9 +23,9 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { ImageCropper } from "./image-cropper";
 import {
-  composeEventHandlers,
-  isKeyboardClickKey,
-  resolveButtonTriggerType,
+  imageUploadClonedTriggerProps,
+  isImageUploadButtonLike,
+  type ImageUploadTriggerProps,
 } from "./image-upload-helpers";
 import { Button } from "../shadcn/button";
 
@@ -94,10 +94,6 @@ function ImageUploadCustomTrigger({
     (disabled || isUploading) && "cursor-not-allowed opacity-50",
   );
   const isSingleElement = React.isValidElement(content);
-  const elementType = isSingleElement ? content.type : null;
-  const isButtonLike =
-    (typeof elementType === "string" && elementType === "button") ||
-    elementType === Button;
 
   if (isSingleElement) {
     const element = content as React.ReactElement<{
@@ -111,43 +107,19 @@ function ImageUploadCustomTrigger({
       "aria-disabled"?: boolean;
       "aria-label"?: string;
     }>;
+    const isButtonLike = isImageUploadButtonLike(element.type, Button);
 
-    return React.cloneElement(element, {
-      onClick: composeEventHandlers(
-        element.props.onClick,
-        isInteractive
-          ? () => {
-              openFilePicker();
-            }
-          : undefined,
-      ),
-      onKeyDown: isButtonLike
-        ? element.props.onKeyDown
-        : composeEventHandlers(
-            element.props.onKeyDown,
-            (e: React.KeyboardEvent) => {
-              if (!isInteractive || !isKeyboardClickKey(e.key)) {
-                return;
-              }
-
-              e.preventDefault();
-              openFilePicker();
-            },
-          ),
-      role: isButtonLike
-        ? element.props.role
-        : (element.props.role ?? "button"),
-      tabIndex: isButtonLike
-        ? element.props.tabIndex
-        : (element.props.tabIndex ?? (isInteractive ? 0 : -1)),
-      "aria-disabled": isInteractive ? undefined : true,
-      "aria-label": isButtonLike ? undefined : triggerAriaLabel,
-      type: isButtonLike
-        ? resolveButtonTriggerType(element.props.type)
-        : undefined,
-      disabled: isButtonLike ? !isInteractive : undefined,
-      className: cn(element.props.className, sharedClassName),
-    });
+    return React.cloneElement(
+      element,
+      imageUploadClonedTriggerProps({
+        elementProps: element.props as ImageUploadTriggerProps,
+        isInteractive,
+        isButtonLike,
+        openFilePicker,
+        triggerAriaLabel,
+        className: cn(element.props.className, sharedClassName),
+      }),
+    );
   }
 
   return (

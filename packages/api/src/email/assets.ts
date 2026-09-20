@@ -81,7 +81,7 @@ function getCloudinarySignature(params: Record<string, string>) {
     .map(([key, value]) => `${key}=${value}`)
     .join("&");
 
-  return createHash("sha1")
+  return createHash("sha256")
     .update(`${payload}${serverEnv.CLOUDINARY_API_SECRET ?? ""}`)
     .digest("hex");
 }
@@ -119,6 +119,7 @@ async function uploadToCloudinary(input: {
   formData.set("folder", folder);
   formData.set("public_id", publicId);
   formData.set("signature", signature);
+  formData.set("signature_algorithm", "sha256");
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,

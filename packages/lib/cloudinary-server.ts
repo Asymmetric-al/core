@@ -12,8 +12,14 @@ export interface CloudinarySignature {
 type CloudinarySignatureParam = string | number | boolean | null | undefined;
 
 /**
- * Generates a SHA-1 signature for Cloudinary signed uploads.
+ * Generates a SHA-256 signature for Cloudinary signed uploads.
  * Follows Cloudinary's alphabetical sorting requirement.
+ *
+ * Cloudinary accepts SHA-1 and SHA-256 hex digests; SHA-256 requires
+ * `signature_algorithm=sha256` on the upload body, not in the signed string
+ * (https://cloudinary.com/documentation/authentication_signatures).
+ * Live email uploads sign with SHA-256 in `packages/api/src/email/assets.ts`.
+ * This helper is currently unused by production callers.
  */
 export function generateCloudinarySignature(
   params: Record<string, CloudinarySignatureParam>,
@@ -49,9 +55,11 @@ export function generateCloudinarySignature(
       .map((key) => `${key}=${String(signatureParams[key])}`)
       .join("&") + apiSecret;
 
-  // Generate SHA-1 hash
+  // Cloudinary validates SHA-1 and SHA-256 digests interchangeably
+  // (https://cloudinary.com/documentation/authentication_signatures); use the
+  // collision-resistant one.
   const signature = crypto
-    .createHash("sha1")
+    .createHash("sha256")
     .update(signatureString)
     .digest("hex");
 

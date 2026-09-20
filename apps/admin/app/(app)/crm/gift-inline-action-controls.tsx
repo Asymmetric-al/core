@@ -29,7 +29,7 @@ import {
   OPERATION_DEFINITIONS,
   type OperationCategory,
   type OperationDefinition,
-} from "../contributions/operation-shell";
+} from "../contributions/operation-definitions";
 
 import type {
   CrmGiftInlineActionEntry,
