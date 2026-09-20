@@ -71,7 +71,12 @@ vi.mock("next/dynamic", async () => {
       extensionManager: { extensions: [] },
       schema: { marks: {} },
       commands: {
-        setContent: editorState.setContentMock,
+        setContent: (content: unknown, options?: { emitUpdate?: boolean }) => {
+          editorState.setContentMock(content, options);
+          if (options?.emitUpdate !== false) {
+            props.onUpdate?.({ getJSON: editorState.getJSONMock });
+          }
+        },
         undo: editorState.undoMock,
         redo: editorState.redoMock,
         focus: editorState.focusMock,
@@ -200,6 +205,37 @@ function LoadBeforeReadyHarness() {
   );
 }
 
+function LoadAfterReadyHarness({
+  onReady,
+  onDesignUpdate,
+}: {
+  onReady?: () => void;
+  onDesignUpdate?: (design: Record<string, unknown>) => void;
+}) {
+  const editorRef = useRef<EmailStudioEditorHandle>(null);
+
+  return (
+    <>
+      <ReactEmailEditor
+        ref={editorRef}
+        initialDesign={{ type: "doc", content: [] }}
+        onReady={onReady}
+        onDesignUpdate={onDesignUpdate}
+      />
+      <button
+        type="button"
+        onClick={() =>
+          editorRef.current?.loadDesign({
+            body: { rows: [{ id: "welcome" }] },
+          })
+        }
+      >
+        load design
+      </button>
+    </>
+  );
+}
+
 describe("@asym/ui ReactEmailEditor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -322,9 +358,33 @@ describe("@asym/ui ReactEmailEditor", () => {
     editorState.fireReady?.();
 
     await waitFor(() => {
-      expect(editorState.setContentMock).toHaveBeenCalledWith({
-        body: { rows: [{ id: "hero" }] },
-      });
+      expect(editorState.setContentMock).toHaveBeenCalledWith(
+        { body: { rows: [{ id: "hero" }] } },
+        { emitUpdate: false },
+      );
     });
+  });
+
+  it("does not notify onDesignUpdate when loadDesign applies stored template content", async () => {
+    const onReady = vi.fn();
+    const onDesignUpdate = vi.fn();
+
+    render(
+      <LoadAfterReadyHarness
+        onReady={onReady}
+        onDesignUpdate={onDesignUpdate}
+      />,
+    );
+
+    await waitFor(() => expect(onReady).toHaveBeenCalled());
+    onDesignUpdate.mockClear();
+
+    fireEvent.click(screen.getByRole("button", { name: "load design" }));
+
+    expect(editorState.setContentMock).toHaveBeenCalledWith(
+      { body: { rows: [{ id: "welcome" }] } },
+      { emitUpdate: false },
+    );
+    expect(onDesignUpdate).not.toHaveBeenCalled();
   });
 });

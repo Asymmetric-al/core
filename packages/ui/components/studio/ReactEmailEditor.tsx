@@ -68,12 +68,16 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function applyLoadedDesign(
-  editor: { commands: { setContent: (content: never) => void } },
+  editor: {
+    commands: {
+      setContent: (content: never, options?: { emitUpdate?: boolean }) => void;
+    };
+  },
   design: Record<string, unknown> | string,
 ) {
   const nextDesign =
     typeof design === "string" ? normalizeInitialDesign(design) : design;
-  editor.commands.setContent(nextDesign as never);
+  editor.commands.setContent(nextDesign as never, { emitUpdate: false });
 }
 
 export const ReactEmailEditor = forwardRef<
