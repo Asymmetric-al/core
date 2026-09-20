@@ -111,9 +111,18 @@ describe("React Doctor config contracts", () => {
 
     expect(docs).toContain("`maplibre-gl@5.x` was locked at 5.23.0");
     expect(docs).toContain(
+      "Remaining `parseJsonResponse` clones in portal hooks check `response.ok` before reading the JSON body.",
+    );
+    expect(docs).toContain(
       "the live email uploader in `packages/api/src/email/assets.ts` SHA-256s and sends `signature_algorithm=sha256`",
     );
     expect(docs).toContain(
+      "Cloudinary signed uploads use SHA-256 instead of SHA-1.",
+    );
+    expect(docs).not.toContain(
+      "the live email uploader still SHA-1s in `packages/api/src/email/assets.ts`",
+    );
+    expect(docs).not.toContain(
       "remaining `parseJsonResponse` clones in portal hooks still json-then-ok",
     );
     expect(docs).not.toContain("`maplibre-gl@5.x` (locked at 5.23.0)");
@@ -130,17 +139,64 @@ describe("React Doctor config contracts", () => {
       "Fetch `response.ok` before reading the body at the remaining first-party sites.",
     );
     expect(docs).not.toContain(
-      "Cloudinary signed uploads use SHA-256 instead of SHA-1.",
+      "This helper is currently unused: no production caller imports it",
+    );
+
+    const emailAssetsSource = readRepoFile("packages/api/src/email/assets.ts");
+    expect(emailAssetsSource).toContain("generateCloudinarySignature");
+    expect(emailAssetsSource).not.toMatch(/createHash\(["']sha1["']\)/);
+
+    const cloudinaryServerSource = readRepoFile(
+      "packages/lib/cloudinary-server.ts",
+    );
+    expect(cloudinaryServerSource).not.toContain(
+      "This helper is currently unused: no production caller imports it",
     );
     expect(docs).not.toContain("the live email uploader still SHA-1s");
+
+    const remainingPortalFiles = [
+      "packages/database/collections/admin-locations.ts",
+      "packages/database/hooks/admin-locations.ts",
+      "packages/database/hooks/donor-portal.ts",
+      "packages/database/hooks/member-care.ts",
+      "packages/database/hooks/missionary-portal.ts",
+    ];
+
+    for (const path of remainingPortalFiles) {
+      const source = readRepoFile(path);
+      expect(source).not.toMatch(/async function parseJsonResponse/);
+      expect(source).toContain('from "../http/parse-json-response"');
+    }
+
+    const tasks = readRepoFile("packages/lib/hooks/use-tasks.ts");
+    expect(tasks).not.toMatch(/async function parseJsonResponse/);
+    expect(tasks).not.toContain("parseJsonResponse");
+    expect(tasks).toContain("fetchJsonResult");
+    expect(tasks).toContain('from "../http/fetch-result"');
+  });
+
+  it("does not let packages/database import @asym/lib", () => {
+    const databaseLibImports = sourceFiles().filter((path) => {
+      if (!path.startsWith("packages/database/")) {
+        return false;
+      }
+      return /(?:from|import)\s*\(?\s*["']@asym\/lib/.test(readRepoFile(path));
+    });
+    expect(databaseLibImports).toEqual([]);
   });
 
   it("records live Cloudinary email uploads as SHA-256", () => {
     const docs = readRepoFile("docs/guides/development/react-doctor.md");
     const assets = readRepoFile("packages/api/src/email/assets.ts");
 
-    expect(assets).toContain('createHash("sha256")');
-    expect(assets).toContain('formData.set("signature_algorithm", "sha256")');
+    expect(assets).toContain("generateCloudinarySignature");
+    expect(assets).toContain(
+      'formData.set("signature_algorithm", signed.signatureAlgorithm)',
+    );
+    expect(assets).not.toContain('createHash("sha256")');
+    expect(assets).not.toContain(
+      'formData.set("signature_algorithm", "sha256")',
+    );
     expect(assets).not.toContain('signature_algorithm: "sha256"');
     expect(docs).toContain(
       "the live email uploader in `packages/api/src/email/assets.ts` SHA-256s and sends `signature_algorithm=sha256`",
