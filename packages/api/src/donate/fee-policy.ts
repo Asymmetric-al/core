@@ -243,15 +243,21 @@ export function parseGiftProcessingFeeStripeMetadata(
     return undefined;
   }
 
-  const giftAmountCents = record.gift_amount_cents;
+  const giftAmountCents = parseStoredFeeExtrasCentString(
+    record.gift_amount_cents,
+  );
   const coverFees = record.cover_fees;
-  const coverAmountCents = record.cover_amount_cents;
-  const estimatedFeeCents = record.estimated_fee_cents;
+  const coverAmountCents = parseStoredFeeExtrasCentString(
+    record.cover_amount_cents,
+  );
+  const estimatedFeeCents = parseStoredFeeExtrasCentString(
+    record.estimated_fee_cents,
+  );
   if (
-    typeof giftAmountCents !== "string" ||
-    typeof coverFees !== "string" ||
-    typeof coverAmountCents !== "string" ||
-    typeof estimatedFeeCents !== "string"
+    giftAmountCents == null ||
+    (coverFees !== "true" && coverFees !== "false") ||
+    coverAmountCents == null ||
+    estimatedFeeCents == null
   ) {
     return undefined;
   }
@@ -263,6 +269,19 @@ export function parseGiftProcessingFeeStripeMetadata(
     cover_amount_cents: coverAmountCents,
     estimated_fee_cents: estimatedFeeCents,
   };
+}
+
+function parseStoredFeeExtrasCentString(value: unknown): string | undefined {
+  if (typeof value !== "string" || !/^(0|[1-9]\d*)$/.test(value)) {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed < 0) {
+    return undefined;
+  }
+
+  return value;
 }
 
 function isEmptyStoredFeeExtras(value: unknown): boolean {

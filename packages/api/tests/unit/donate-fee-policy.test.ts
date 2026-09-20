@@ -245,6 +245,41 @@ describe("readStoredGiftProcessingFeeStripeMetadata", () => {
       readStoredGiftProcessingFeeStripeMetadata([{ payment_method: "ach" }]),
     ).toThrow(/malformed/i);
   });
+
+  it("fails closed when stored cent or cover_fees fields are not canonical", () => {
+    const extras = toGiftProcessingFeeStripeMetadata(
+      resolveGiftIntakeCharge({
+        amount: 100,
+        coverFees: true,
+        paymentMethod: "ach",
+      }),
+    );
+
+    expect(() =>
+      readStoredGiftProcessingFeeStripeMetadata({
+        ...extras,
+        gift_amount_cents: "abc",
+      }),
+    ).toThrow(GiftProcessingFeePolicyError);
+    expect(() =>
+      readStoredGiftProcessingFeeStripeMetadata({
+        ...extras,
+        cover_fees: "yes",
+      }),
+    ).toThrow(GiftProcessingFeePolicyError);
+    expect(() =>
+      readStoredGiftProcessingFeeStripeMetadata({
+        ...extras,
+        cover_amount_cents: "-1",
+      }),
+    ).toThrow(GiftProcessingFeePolicyError);
+    expect(() =>
+      readStoredGiftProcessingFeeStripeMetadata({
+        ...extras,
+        estimated_fee_cents: "0100",
+      }),
+    ).toThrow(GiftProcessingFeePolicyError);
+  });
 });
 
 describe("giftProcessingFeeStripeMetadataEquals", () => {
