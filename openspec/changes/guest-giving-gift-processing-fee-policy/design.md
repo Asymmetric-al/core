@@ -72,8 +72,11 @@ An empty stored `{}` (GraphQL or legacy begin without a Gift quote) still omits
 `payment_method_types`. HTTP donate replay with matching charged cents treats
 that empty/legacy default as absent, not as a colliding quote, so the saga can
 persist the current extras onto empty before claim. A stored full quote that
-differs from the current extras still `409`s. Charged cents already live in
-`p_amount`. Documented in the donation-saga-outbox runbook.
+differs from the current extras still `409`s. Recovery and batch first-shot
+PaymentIntents MAY omit extras only for that empty/legacy `{}`; newly quoted
+Guest Giving rows keep stored extras including `payment_method` because
+`p_amount` does not preserve method. Documented in the donation-saga-outbox
+runbook.
 
 ### Staff path
 

@@ -35,8 +35,10 @@ replay) load stored `fee_extras` before PaymentIntent create. A lookup or
 parse failure MUST fail closed (no Stripe create). Stored extras bind
 `payment_method_types` even when the caller omits extras. An empty stored
 `{}` (GraphQL or legacy begin without a Gift quote) still omits
-`payment_method_types` and keeps `automatic_payment_methods`. Charged cents
-already live in `p_amount`. Stored Gift extras are immutable: a colliding
+`payment_method_types` and keeps `automatic_payment_methods`. Recovery MAY
+omit extras only for that empty/legacy `{}`; newly quoted Guest Giving rows
+keep stored extras including `payment_method` because `p_amount` does not
+preserve method. Stored Gift extras are immutable: a colliding
 caller quote is rejected before claim; a matching quote is not rewritten.
 
 Gift intake is USD-only. Non-USD `currency` values fail validation before

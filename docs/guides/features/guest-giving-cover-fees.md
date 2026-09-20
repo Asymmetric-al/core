@@ -39,6 +39,17 @@ one-time.
 
 Staff `POST /api/donations` does not apply this policy.
 
+## Recovery extras
+
+Recovery and batch first-shot PaymentIntents MAY omit fee extras only for
+legacy or never-quoted rows (`fee_extras` empty `{}`). Newly quoted Guest
+Giving rows keep stored extras, including `payment_method`, because charged
+cents in `p_amount` do not preserve method.
+
+HTTP `POST /api/donate` replay of empty/legacy `{}` with matching charged
+cents continues so the saga can persist the current extras onto empty. A
+stored full quote that differs still returns `409`.
+
 ## Related
 
 - [ADR-0118](../../adr/0118-gift-processing-fee-policy-lives-in-core.md)
