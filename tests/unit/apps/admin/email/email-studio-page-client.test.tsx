@@ -933,6 +933,57 @@ describe("EmailStudio page", () => {
     });
   });
 
+  it("keeps editor-gated controls enabled when reselecting the open React Email template", async () => {
+    stubStudioFetch((url, method) => {
+      if (method === "GET" && url === "/api/email/templates") {
+        return mixedTemplatesResponse();
+      }
+      return null;
+    });
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /react welcome/i }),
+    );
+
+    await waitFor(() => {
+      expect(
+        (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(false);
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /simulate design update/i }),
+    );
+    expect(screen.getByText("Unsaved")).toBeTruthy();
+    const mountsAfterOpen = editorMount.count;
+
+    fireEvent.click(screen.getByRole("button", { name: /load template/i }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /react welcome/i }),
+    );
+
+    expect(screen.getByTestId("react-email-editor")).toBeTruthy();
+    expect(editorMount.count).toBe(mountsAfterOpen);
+    expect(
+      (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(false);
+    expect(screen.getByText("Unsaved")).toBeTruthy();
+    expect(
+      (screen.getByRole("button", { name: /merge tags/i }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(false);
+  });
+
   it("replays a selected React Email design after the nested editor becomes ready", async () => {
     editorReadyControl.defer = true;
     const fetchMock = stubStudioFetch((url, method) => {
