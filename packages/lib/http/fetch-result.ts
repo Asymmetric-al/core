@@ -114,30 +114,6 @@ export async function fetchResult(
   return { ok: true, response };
 }
 
-/**
- * Throwing variant used by portal/task hooks: check `response.ok` first,
- * then read the body. Error payloads still surface `error` when present.
- */
-export async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const { ok, status, body } = await readJsonBody<T & { error?: string }>(
-    response,
-  );
-
-  if (!ok) {
-    const error =
-      body && typeof body === "object" && typeof body.error === "string"
-        ? body.error
-        : "";
-    throw new Error(error || `Request failed with status ${status}`);
-  }
-
-  if (!body) {
-    throw new Error("Request returned an empty response.");
-  }
-
-  return body;
-}
-
 /** `fetchResult` plus a JSON body parse on success. */
 export async function fetchJsonResult<T>(
   input: RequestInfo | URL,
