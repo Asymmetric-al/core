@@ -3,7 +3,6 @@
 import { useAdminCrmReport } from "@asym/database/hooks";
 import { SafeHtml } from "@asym/lib/components/safe-html";
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { formatCurrency } from "@asym/lib/utils";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Alert,
@@ -11,127 +10,19 @@ import {
   AlertTitle,
 } from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
-import {
-  TrendingUp,
-  DollarSign,
-  Users,
-  Receipt,
-  FileText,
-  X,
-  ClipboardList,
-  AlertTriangle,
-} from "lucide-react";
+import { FileText, X, ClipboardList, AlertTriangle } from "lucide-react";
 import React, { useMemo, useState } from "react";
 
 import {
-  ReportsCharts,
-  type DonorsByFundPoint,
-  type GivingByFundPoint,
-} from "./reports-charts";
+  deriveReportKpis,
+  deriveGivingByFund,
+  deriveDonorsByFund,
+  buildReportSummary,
+} from "./report-model";
+import { ReportsCharts } from "./reports-charts";
 
+import type { ReportKpi } from "./report-model";
 import type { AdminCrmReportResponse } from "@asym/database/types";
-
-/** Cap chart series so long fund lists stay legible; the endpoint already sorts by amount desc. */
-const TOP_FUNDS = 8;
-
-interface ReportKpi {
-  label: string;
-  value: string;
-  context: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-function toDollars(amountCents: number): number {
-  return amountCents / 100;
-}
-
-/** All KPI figures come from the report totals — no fabricated benchmarks. */
-export function deriveReportKpis(
-  report: AdminCrmReportResponse | null,
-): ReportKpi[] {
-  const totals = report?.totals;
-  const amount = toDollars(totals?.amountCents ?? 0);
-  const gifts = totals?.giftCount ?? 0;
-  const donors = totals?.donorCount ?? 0;
-  const average = gifts > 0 ? amount / gifts : 0;
-
-  return [
-    {
-      context: "Across all completed gifts",
-      icon: DollarSign,
-      label: "Completed Giving",
-      value: formatCurrency(amount),
-    },
-    {
-      context: "Completed gift count",
-      icon: Receipt,
-      label: "Total Gifts",
-      value: gifts.toLocaleString("en-US"),
-    },
-    {
-      context: "Per completed gift",
-      icon: TrendingUp,
-      label: "Average Gift",
-      value: formatCurrency(average),
-    },
-    {
-      context: "Unique giving donors",
-      icon: Users,
-      label: "Donors",
-      value: donors.toLocaleString("en-US"),
-    },
-  ];
-}
-
-export function deriveGivingByFund(
-  report: AdminCrmReportResponse | null,
-): GivingByFundPoint[] {
-  return (report?.rows ?? []).slice(0, TOP_FUNDS).map((row) => ({
-    amount: toDollars(row.amountCents),
-    label: row.label,
-  }));
-}
-
-export function deriveDonorsByFund(
-  report: AdminCrmReportResponse | null,
-): DonorsByFundPoint[] {
-  return (report?.rows ?? []).slice(0, TOP_FUNDS).map((row) => ({
-    donors: row.donorCount,
-    label: row.label,
-  }));
-}
-
-/** Deterministic executive summary computed from the loaded report — no LLM, no fake latency. */
-export function buildReportSummary(
-  report: AdminCrmReportResponse | null,
-): string | null {
-  const totals = report?.totals;
-  if (!totals || totals.rowCount === 0 || totals.amountCents === 0) {
-    return null;
-  }
-
-  const amount = toDollars(totals.amountCents);
-  const average = totals.giftCount > 0 ? amount / totals.giftCount : 0;
-  const topFund = report?.rows[0];
-
-  const lines = [
-    "### Giving Summary",
-    `*   **Completed giving:** ${formatCurrency(amount)} across ${totals.giftCount.toLocaleString(
-      "en-US",
-    )} gifts from ${totals.donorCount.toLocaleString("en-US")} donors.`,
-    `*   **Average gift:** ${formatCurrency(average)}.`,
-  ];
-
-  if (topFund) {
-    lines.push(
-      `*   **Top fund:** ${topFund.label} — ${formatCurrency(
-        toDollars(topFund.amountCents),
-      )}.`,
-    );
-  }
-
-  return lines.join("\n");
-}
 
 function ReportsErrorAlert({ message }: { message: string }) {
   return (

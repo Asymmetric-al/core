@@ -2,15 +2,23 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 
+import { useLocaleFormat, type LocaleFormatters } from "./use-locale-format";
+
 export interface TimeAgoOptions {
   updateInterval?: number;
   shortFormat?: boolean;
 }
 
+const TIME_AGO_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+};
+
 function calculateTimeAgo(
   dateString: string,
-  shortFormat = false,
-  nowMs = Date.now(),
+  shortFormat: boolean,
+  nowMs: number,
+  formatCalendarDate: LocaleFormatters["formatDate"],
 ): string {
   const date = new Date(dateString);
   const diffMs = nowMs - date.getTime();
@@ -31,10 +39,10 @@ function calculateTimeAgo(
     if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
   }
 
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return formatCalendarDate(dateString, TIME_AGO_DATE_OPTIONS);
 }
 
-export function formatDate(
+function formatDate(
   dateString: string,
   options?: Intl.DateTimeFormatOptions,
 ): string {
@@ -44,8 +52,6 @@ export function formatDate(
     options ?? { month: "short", day: "numeric", year: "numeric" },
   );
 }
-
-const emptySubscribe = () => () => {};
 
 function useNow(updateInterval?: number): number {
   const intervalMs = updateInterval && updateInterval > 0 ? updateInterval : 0;
@@ -69,29 +75,21 @@ function useNow(updateInterval?: number): number {
   );
 }
 
-function useIsClient(): boolean {
-  return useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false,
-  );
-}
-
 export function useTimeAgo(
   dateString: string,
   options?: TimeAgoOptions,
 ): string {
   const { updateInterval, shortFormat = false } = options ?? {};
-  const isClient = useIsClient();
+  const { formatDate: formatHydrationDate, hydrated } = useLocaleFormat();
   const now = useNow(updateInterval);
 
   return useMemo(() => {
-    if (!isClient) {
-      return formatDate(dateString, { month: "short", day: "numeric" });
+    if (!hydrated) {
+      return formatHydrationDate(dateString, TIME_AGO_DATE_OPTIONS);
     }
 
-    return calculateTimeAgo(dateString, shortFormat, now);
-  }, [dateString, isClient, now, shortFormat]);
+    return calculateTimeAgo(dateString, shortFormat, now, formatHydrationDate);
+  }, [dateString, formatHydrationDate, hydrated, now, shortFormat]);
 }
 
 export interface TimeAgoProps {
@@ -112,16 +110,13 @@ export function TimeAgo({
 }
 
 export function useLastSynced(): string {
-  const isClient = useIsClient();
+  const { hydrated, formatTime } = useLocaleFormat();
 
   return useMemo(() => {
-    if (!isClient) {
+    if (!hydrated) {
       return "";
     }
 
-    return new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }, [isClient]);
+    return formatTime(new Date(), { hour: "2-digit", minute: "2-digit" });
+  }, [formatTime, hydrated]);
 }

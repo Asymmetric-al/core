@@ -197,7 +197,7 @@ describe("stable tag-check slot", () => {
     "donors",
     "use-donors-page-view.tsx",
   );
-  const tagEditor = extractFunction(source, "DonorsPageContent");
+  const tagEditor = extractFunction(source, "DonorsTagEditorDialog");
 
   it("reserves the check column so selecting a tag does not shift the label", () => {
     expect(tagEditor).toMatch(

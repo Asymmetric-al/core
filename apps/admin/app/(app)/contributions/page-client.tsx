@@ -11,10 +11,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
 import {
-  ContributionDetailOverlay,
-  isContributionGiftParam,
   invalidateContributionOperationQueries,
-} from "./contribution-detail-overlay";
+  isContributionGiftParam,
+} from "./contribution-detail-model";
+import { ContributionDetailOverlay } from "./contribution-detail-overlay";
 import { boneyardContributionsFixture, mockContributions } from "./data";
 import {
   ContributionFreshnessIndicator,
@@ -28,7 +28,7 @@ import { CONTRIBUTIONS_PAGE_META } from "../../../components/table-page-meta";
  * Re-exported so existing consumers (tests, sibling surfaces) keep one import
  * path for the shared freshness helper that lives with the overlay.
  */
-export { invalidateContributionOperationQueries } from "./contribution-detail-overlay";
+export { invalidateContributionOperationQueries } from "./contribution-detail-model";
 
 /** When `"1"`, table data comes from `mockContributions` (local dev only). */
 const USE_MOCK_CONTRIBUTIONS_UI =

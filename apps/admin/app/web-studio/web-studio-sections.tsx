@@ -52,34 +52,11 @@ interface PreviewContentProps {
   projects: ProjectPage[];
 }
 
-export const INITIAL_PROJECTS: ProjectPage[] = [
-  {
-    id: "1",
-    title: "Vehicle Fund",
-    slug: "vehicle-2024",
-    status: "Public",
-    goal: "12000",
-    description:
-      "Help us purchase a reliable 4x4 vehicle to reach remote villages.",
-  },
-  {
-    id: "2",
-    title: "Fall Outreach Event",
-    slug: "outreach-fall",
-    status: "Draft",
-    goal: "2500",
-    description: "Funding for the community harvest festival.",
-  },
-];
-
 export const DEFAULT_PROFILE_IMAGE =
   "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop";
 
 export const DEFAULT_COVER_IMAGE =
   "https://images.unsplash.com/photo-1528181304800-259b08848526?w=800&h=400&fit=crop";
-
-export const isWebStudioView = (value: string): value is WebStudioView =>
-  value === "content" || value === "projects" || value === "updates";
 
 const PREVIEW_UPDATES = [
   {

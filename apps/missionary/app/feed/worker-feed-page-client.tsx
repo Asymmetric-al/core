@@ -1,7 +1,8 @@
 "use client";
 "use no memo";
 
-import { TimeAgo } from "@asym/lib/hooks";
+import { TimeAgo, useLocaleFormat } from "@asym/lib/hooks";
+import { fetchResult } from "@asym/lib/http/fetch-result";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import { ReactionBar } from "@asym/ui/components/ministry-update";
 import { PageHeader } from "@asym/ui/components/page-header";
@@ -147,32 +148,34 @@ function FollowerRequestItem({
   const handleAction = async (action: "approve" | "ignore") => {
     setStatus("processing");
 
-    try {
-      const res = await fetch(`/api/follower-requests/${request.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: action === "approve" ? "approved" : "rejected",
-        }),
-      });
+    const result = await fetchResult(`/api/follower-requests/${request.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: action === "approve" ? "approved" : "rejected",
+      }),
+    });
 
-      if (!res.ok) throw new Error("Failed to update request");
-
-      setStatus(action === "approve" ? "approved" : "ignored");
-
-      setTimeout(() => {
-        if (!mountedRef.current) return;
-        setStatus("collapsing");
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          onResolve(request.id, action === "approve");
-        }, 400);
-      }, 1500);
-    } catch (error) {
-      console.error("Error resolving request:", error);
+    if (!result.ok) {
+      console.error(
+        "Error resolving request:",
+        new Error("Failed to update request", { cause: result.error }),
+      );
       setStatus("pending");
       toast.error("Failed to update request");
+      return;
     }
+
+    setStatus(action === "approve" ? "approved" : "ignored");
+
+    setTimeout(() => {
+      if (!mountedRef.current) return;
+      setStatus("collapsing");
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        onResolve(request.id, action === "approve");
+      }, 400);
+    }, 1500);
   };
 
   return (
@@ -357,6 +360,7 @@ function PostCard({
   onDelete: () => void;
   index: number;
 }) {
+  const { formatDate } = useLocaleFormat();
   const authorName = post.author
     ? `${post.author.first_name} ${post.author.last_name}`
     : "Marcus Miller";
@@ -408,7 +412,7 @@ function PostCard({
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                  {new Date(post.created_at).toLocaleDateString()}
+                  {formatDate(post.created_at)}
                 </span>
                 <span className="text-border">•</span>
                 <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
@@ -872,6 +876,7 @@ function PostComposerActions({
   simulateUpload,
   handlePost,
 }: PostComposerActionsProps) {
+  const { formatTime } = useLocaleFormat();
   return (
     <div className="flex flex-col gap-3 w-full">
       <AnimatePresence mode="popLayout">
@@ -924,10 +929,7 @@ function PostComposerActions({
               className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider hidden md:inline-block"
             >
               Saved{" "}
-              {lastSaved.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {formatTime(lastSaved, { hour: "2-digit", minute: "2-digit" })}
             </motion.span>
           )}
         </AnimatePresence>
@@ -1216,6 +1218,7 @@ function FeedPostsTabsSection({
   handleEditDraft,
   handleDeletePost,
 }: FeedPostsTabsSectionProps) {
+  const { formatDate } = useLocaleFormat();
   return (
     <div className="space-y-6 sm:space-y-8 lg:space-y-10">
       <Tabs
@@ -1322,10 +1325,7 @@ function FeedPostsTabsSection({
                                 </Badge>
                               </motion.div>
                               <span className="text-[10px] text-muted-foreground font-medium">
-                                Saved{" "}
-                                {new Date(
-                                  draft.created_at,
-                                ).toLocaleDateString()}
+                                Saved {formatDate(draft.created_at)}
                               </span>
                             </div>
                             <PostContent
