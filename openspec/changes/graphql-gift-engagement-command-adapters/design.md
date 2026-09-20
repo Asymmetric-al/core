@@ -25,8 +25,12 @@ id, and replayed. It does not process the outbox and does not import
 
 Amount units stay adapter-owned:
 
-- HTTP donate converts dollars to cents (`Math.round(amount * 100)`).
-- HTTP donations and GraphQL pass stored cents as `amountCents`.
+- HTTP donate quotes charged cents through `resolveGiftIntakeCharge().chargedAmountCents`
+  (Guest Giving cover-fees / payment method) and may pass `feeExtras` into
+  `beginGiftIntake`. That quote lives in `guest-giving-gift-processing-fee-policy`,
+  not this change.
+- HTTP donations and GraphQL pass stored cents as `amountCents` and omit
+  `feeExtras` so the RPC default `'{}'::jsonb` applies.
 
 HTTP donate and donations still resolve Stripe before begin and still call
 `processDonationSagaOutboxEvent` after a successful begin. GraphQL Gift intake

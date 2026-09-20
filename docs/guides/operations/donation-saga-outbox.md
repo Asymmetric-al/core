@@ -25,34 +25,45 @@ dollars. Gift processing-fee policy recomputes charged cents from `cover_fees`
 and `payment_method` before `begin_donation_saga`. `p_amount` is still charged
 cents.
 
-First-shot processing from that POST may attach quote extras to PaymentIntent
+First-shot processing from that POST persists quote extras onto
+`donation_saga_outbox.fee_extras` and may attach them to PaymentIntent
 metadata (`gift_amount_cents`, `cover_fees`, `payment_method`,
 `cover_amount_cents`, `estimated_fee_cents`) without overriding `donation_id`.
 
 Recovery and batch workers (`processDueDonationSagaOutboxEvents`, admin
-replay) may create a first-shot PaymentIntent without those extras. That is
-acceptable: charged cents already live in `p_amount`. Do not treat missing fee
-metadata on a recovered intent as a failed donation.
+replay) load stored `fee_extras` before PaymentIntent create. A lookup or
+parse failure MUST fail closed (no Stripe create). Stored extras bind
+`payment_method_types` even when the caller omits extras. An empty stored
+`{}` (GraphQL or legacy begin without a Gift quote) still omits
+`payment_method_types` and keeps `automatic_payment_methods`. Charged cents
+already live in `p_amount`. Stored Gift extras are immutable: a colliding
+caller quote is rejected before claim; a matching quote is not rewritten.
 
 Gift intake is USD-only. Non-USD `currency` values fail validation before
 `begin_donation_saga`. First-shot Gift intake binds the PaymentIntent to the
 quoted method (`card`/`wallet` → `payment_method_types: ["card"]`, `ach` →
-`["us_bank_account"]`). Recovery and batch workers without extras keep
-`automatic_payment_methods`.
+`["us_bank_account"]`).
 
 On idempotent replay (`begin_donation_saga.replayed`), Gift intake loads the
-stored `donations.amount` and:
+stored `donations.amount` and `donation_saga_outbox.fee_extras` and:
 
-- returns `409` when it does not match the recomputed charged cents
-- processes the existing outbox without attaching a new fee-quote extra
+- returns `409` when charged cents do not match the recomputed quote
+- returns `409` when charged cents match but stored fee extras do not
+- returns `500` when stored extras cannot be loaded or are malformed
+- processes the existing outbox without rewriting matching stored extras
 
 Verification:
 
 1. POST the same idempotency key with a different charged amount → `409`.
-2. POST the same key with matching charged cents → `200` and no new fee extras.
-3. POST `currency=eur` → `400` before `begin_donation_saga`.
-4. First-shot card Gift PaymentIntents use `payment_method_types: ["card"]`
+2. POST the same key with matching charged cents but different fee extras →
+   `409`.
+3. POST the same key with matching charged cents and matching extras → `200`
+   and no rewrite of stored extras.
+4. POST `currency=eur` → `400` before `begin_donation_saga`.
+5. First-shot card Gift PaymentIntents use `payment_method_types: ["card"]`
    and omit `automatic_payment_methods`.
+6. Recovery of stored ACH extras binds `payment_method_types: ["us_bank_account"]`
+   even when the worker omits extras.
 
 Staff `POST /api/donations` does not run Gift processing-fee policy. That path
 already sends charged cents as `p_amount`.

@@ -1,12 +1,8 @@
 import { parseRpcObject } from "../shared/parse-rpc-object";
 
-export type GiftIntakeFeeExtras = {
-  gift_amount_cents: string;
-  cover_fees: string;
-  payment_method: string;
-  cover_amount_cents: string;
-  estimated_fee_cents: string;
-};
+import type { GiftProcessingFeeStripeMetadata } from "./fee-policy";
+
+export type GiftIntakeFeeExtras = GiftProcessingFeeStripeMetadata;
 
 export type GiftIntakeRpcInvoker = (
   fn: "begin_donation_saga",

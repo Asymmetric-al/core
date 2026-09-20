@@ -175,7 +175,7 @@ describe("beginGiftIntake", () => {
     const feeExtras = {
       gift_amount_cents: "2500",
       cover_fees: "true",
-      payment_method: "card",
+      payment_method: "card" as const,
       cover_amount_cents: "103",
       estimated_fee_cents: "103",
     };
