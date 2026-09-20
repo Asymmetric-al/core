@@ -66,3 +66,7 @@ vendor/react-pdf-packages/*/
 
 # Local Supabase CLI temp state
 supabase/.temp/
+
+# MapLibre 6 worker + shared ESM files copied from node_modules at Next config load
+/apps/donor/public/maplibre/
+/apps/admin/public/maplibre/

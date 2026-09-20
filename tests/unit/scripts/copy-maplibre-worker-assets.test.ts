@@ -73,3 +73,23 @@ describe("copyMaplibreWorkerAssets", () => {
     ).toThrow(/maplibre-gl-shared\.mjs/);
   });
 });
+
+describe("generated MapLibre public assets stay out of repo gates", () => {
+  const gitignore = readFileSync(".gitignore", "utf8");
+  const prettierignore = readFileSync(".prettierignore", "utf8");
+  const eslintBase = readFileSync("tooling/eslint-config/base.mjs", "utf8");
+
+  it("gitignores the donor and admin copies Next config writes", () => {
+    expect(gitignore).toContain("/apps/donor/public/maplibre/");
+    expect(gitignore).toContain("/apps/admin/public/maplibre/");
+  });
+
+  it("does not let Prettier rewrite the copied MapLibre ESM after a local build", () => {
+    expect(prettierignore).toContain("/apps/donor/public/maplibre/");
+    expect(prettierignore).toContain("/apps/admin/public/maplibre/");
+  });
+
+  it("does not let app ESLint scan the copied MapLibre ESM after a local build", () => {
+    expect(eslintBase).toContain('"**/public/maplibre/**"');
+  });
+});

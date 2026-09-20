@@ -1,6 +1,8 @@
 "use client";
 
 import { EVE_ADMIN_MEMORY_CATEGORIES } from "@asym/api/eve/admin-memory";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import {
   Alert,
   AlertDescription,
@@ -99,10 +101,10 @@ async function requestMemory(input?: Mutation): Promise<ResponseBody> {
         }
       : { credentials: "same-origin", headers: { accept: "application/json" } },
   );
-  const body = (await response.json().catch(() => null)) as
-    | (ResponseBody & { error?: string; mutation?: { exclusions?: string[] } })
-    | null;
-  if (!response.ok) {
+  const { ok, body } = await readJsonBody<
+    ResponseBody & { error?: string; mutation?: { exclusions?: string[] } }
+  >(response);
+  if (!ok) {
     const exclusions = body?.mutation?.exclusions?.join(", ");
     throw new Error(
       exclusions
@@ -114,12 +116,10 @@ async function requestMemory(input?: Mutation): Promise<ResponseBody> {
   return body;
 }
 
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
+const TIMESTAMP_FORMAT: Intl.DateTimeFormatOptions = {
+  dateStyle: "medium",
+  timeStyle: "short",
+};
 
 function EntryEditor({
   entry,
@@ -195,6 +195,7 @@ function EntryEditor({
 
 export function EveAdminMemoryPanel() {
   const client = useQueryClient();
+  const { formatDateTime } = useLocaleFormat();
   const [queryText, setQueryText] = useState("");
   const [showDeleted, setShowDeleted] = useState(true);
   const [title, setTitle] = useState("");
@@ -454,7 +455,7 @@ export function EveAdminMemoryPanel() {
                         <p className="mt-2 text-xs text-muted-foreground">
                           Version {entry.version} ·{" "}
                           {entry.source.replace("_", " ")} ·{" "}
-                          {formatTime(entry.updatedAt)}
+                          {formatDateTime(entry.updatedAt, TIMESTAMP_FORMAT)}
                         </p>
                       </div>
                       {!entry.isDeleted ? (
@@ -564,7 +565,8 @@ export function EveAdminMemoryPanel() {
                     {record.content}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {LABELS[record.category]} · {formatTime(record.changedAt)}
+                    {LABELS[record.category]} ·{" "}
+                    {formatDateTime(record.changedAt, TIMESTAMP_FORMAT)}
                   </p>
                 </li>
               ))}

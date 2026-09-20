@@ -1,5 +1,6 @@
 "use client";
 
+import { readJsonBody } from "@asym/lib/http/fetch-result";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
   isGeneralCheckoutAlias,
@@ -235,6 +236,66 @@ const createRuntimeConfigFromPublishableKey = (
     ? createReadyRuntimeConfig(normalizedPublishableKey)
     : createRuntimeConfigError();
 };
+
+const LOADING_RUNTIME_CONFIG: CheckoutRuntimeConfig = {
+  error: null,
+  publishableKey: null,
+  status: "loading",
+  stripePromise: null,
+};
+
+/**
+ * Load the tenant's checkout runtime config. Resolves to `null` when the
+ * request was aborted so the caller leaves the current state untouched.
+ */
+async function fetchCheckoutRuntimeConfig(
+  signal: AbortSignal,
+): Promise<CheckoutRuntimeConfig | null> {
+  try {
+    const response = await fetch("/api/donate", { method: "GET", signal });
+    const { ok, body: payload } = await readJsonBody<unknown>(response);
+
+    if (signal.aborted) {
+      return null;
+    }
+
+    if (!ok) {
+      const message =
+        payload && typeof payload === "object"
+          ? (payload as Record<string, unknown>).error
+          : null;
+      return {
+        error:
+          typeof message === "string"
+            ? message
+            : "Checkout configuration could not be loaded. Please try again.",
+        publishableKey: null,
+        status: "error",
+        stripePromise: null,
+      };
+    }
+
+    return createRuntimeConfigFromPublishableKey(
+      readRuntimePublishableKey(payload),
+    );
+  } catch (error) {
+    if (signal.aborted) {
+      return null;
+    }
+
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return null;
+    }
+
+    return {
+      error:
+        "Checkout configuration could not be loaded. Please refresh and try again.",
+      publishableKey: null,
+      status: "error",
+      stripePromise: null,
+    };
+  }
+}
 
 const readCheckoutFrequency = (value: SearchParamInput): Frequency | null => {
   return normalizeCheckoutFrequency(readSearchParam(value));
@@ -1139,6 +1200,240 @@ function CheckoutConfigurationError({ message }: { message: string | null }) {
   );
 }
 
+function resolveMountedPublishableKey(
+  runtimeConfig: CheckoutRuntimeConfig,
+  stripeOverride: CheckoutStripeOverride | undefined,
+): string | null {
+  if (stripeOverride) {
+    return normalizePublishableKey(stripeOverride.publishableKey);
+  }
+
+  if (runtimeConfig.status === "ready") {
+    return runtimeConfig.publishableKey;
+  }
+
+  return null;
+}
+
+function resolveCheckoutSummaryWorkerTitle({
+  hasGeneralGivingTarget,
+  missionaryId,
+}: {
+  hasGeneralGivingTarget: boolean;
+  missionaryId: string | null;
+}): string {
+  if (hasGeneralGivingTarget) {
+    return "General Mission Fund";
+  }
+
+  if (missionaryId) {
+    return "Missionary Support";
+  }
+
+  return "Urgent Needs";
+}
+
+function CheckoutMissingTargetState() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="text-center space-y-6">
+        <div className="size-20 bg-zinc-50 rounded-3xl flex items-center justify-center mx-auto border border-zinc-100 shadow-xl">
+          <Activity className="size-8 text-zinc-300" />
+        </div>
+        <h2 className="text-3xl font-semibold text-zinc-950 font-syne">
+          Target Unspecified
+        </h2>
+        <Link
+          href="/workers"
+          className={cn(
+            buttonVariants(),
+            "rounded-full px-8 h-12 font-semibold font-syne text-[10px] uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800",
+          )}
+        >
+          View Missionaries
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function CheckoutPaymentPane({
+  checkoutMode,
+  error,
+  isProcessing,
+  onBack,
+  onConfirmPayment,
+  onPaymentMethodChange,
+  onPostalCodeChange,
+  paymentMethod,
+  postalCode,
+  runtimeConfig,
+  stripeOverride,
+  total,
+}: {
+  checkoutMode: CheckoutMode;
+  error: string | null;
+  isProcessing: boolean;
+  onBack: () => void;
+  onConfirmPayment: (
+    stripe: Stripe | null,
+    elements: StripeElements | null,
+  ) => void;
+  onPaymentMethodChange: (value: PaymentMethod) => void;
+  onPostalCodeChange: (value: string) => void;
+  paymentMethod: PaymentMethod;
+  postalCode: string;
+  runtimeConfig: CheckoutRuntimeConfig;
+  stripeOverride?: CheckoutStripeOverride;
+  total: number;
+}) {
+  const sharedPaymentProps = {
+    error,
+    isProcessing,
+    mode: checkoutMode,
+    onBack,
+    onConfirmPayment,
+    onPaymentMethodChange,
+    onPostalCodeChange,
+    paymentMethod,
+    postalCode,
+    total,
+  };
+
+  if (stripeOverride) {
+    return (
+      <PaymentStep
+        {...sharedPaymentProps}
+        cardElement={stripeOverride.cardElement}
+        elements={stripeOverride.elements}
+        stripe={stripeOverride.stripe}
+      />
+    );
+  }
+
+  if (runtimeConfig.status === "loading") {
+    return (
+      <CheckoutConfigurationState
+        title="Preparing secure checkout"
+        message="Loading this organization's payment configuration."
+      />
+    );
+  }
+
+  if (runtimeConfig.status === "error") {
+    return <CheckoutConfigurationError message={runtimeConfig.error} />;
+  }
+
+  if (checkoutMode === "live" && runtimeConfig.stripePromise) {
+    return (
+      <Elements
+        key={runtimeConfig.publishableKey}
+        stripe={runtimeConfig.stripePromise}
+      >
+        <StripePaymentStep {...sharedPaymentProps} />
+      </Elements>
+    );
+  }
+
+  return <PaymentStep {...sharedPaymentProps} elements={null} stripe={null} />;
+}
+
+function CheckoutActiveFlow({
+  amount,
+  calculatedFees,
+  coverFees,
+  customAmount,
+  donorInfo,
+  frequency,
+  hasGeneralGivingTarget,
+  missionaryId,
+  onAmountSelect,
+  onBack,
+  onCoverFeesChange,
+  onCustomAmountChange,
+  onDonorInfoChange,
+  onNext,
+  paymentPane,
+  step,
+  total,
+  worker,
+}: {
+  amount: number;
+  calculatedFees: number;
+  coverFees: boolean;
+  customAmount: string;
+  donorInfo: DonorInfo;
+  frequency: Frequency;
+  hasGeneralGivingTarget: boolean;
+  missionaryId: string | null;
+  onAmountSelect: (value: number) => void;
+  onBack: () => void;
+  onCoverFeesChange: (value: boolean) => void;
+  onCustomAmountChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onDonorInfoChange: (patch: Partial<DonorInfo>) => void;
+  onNext: () => void;
+  paymentPane: React.ReactNode;
+  step: Step;
+  total: number;
+  worker: { image?: string; title?: string } | null;
+}) {
+  const summaryWorker = worker || {
+    title: resolveCheckoutSummaryWorkerTitle({
+      hasGeneralGivingTarget,
+      missionaryId,
+    }),
+  };
+
+  return (
+    <div className="min-h-screen bg-white font-sans pb-32 pt-24 selection:bg-zinc-900/10">
+      <div className="container mx-auto px-6 max-w-7xl">
+        <StepIndicator currentStep={step} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
+          <div className="lg:col-span-7 space-y-16">
+            <AnimatePresence mode="wait">
+              {step === "config" ? (
+                <ConfigStep
+                  amount={amount}
+                  calculatedFees={calculatedFees}
+                  coverFees={coverFees}
+                  customAmount={customAmount}
+                  onAmountSelect={onAmountSelect}
+                  onCoverFeesChange={onCoverFeesChange}
+                  onCustomAmountChange={onCustomAmountChange}
+                  onNext={onNext}
+                />
+              ) : null}
+
+              {step === "details" ? (
+                <DetailsStep
+                  donorInfo={donorInfo}
+                  onBack={onBack}
+                  onDonorInfoChange={onDonorInfoChange}
+                  onNext={onNext}
+                />
+              ) : null}
+
+              {step === "payment" ? paymentPane : null}
+            </AnimatePresence>
+          </div>
+
+          <aside className="lg:col-span-5 hidden lg:block">
+            <SummaryCard
+              worker={summaryWorker}
+              amount={amount}
+              frequency={frequency}
+              coverFees={coverFees}
+              fees={calculatedFees}
+              total={total}
+            />
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CheckoutContent({
   searchParams,
   stripeOverride,
@@ -1159,12 +1454,7 @@ function CheckoutContent({
     () =>
       stripeOverride
         ? createReadyRuntimeConfig(stripeOverride.publishableKey)
-        : {
-            error: null,
-            publishableKey: null,
-            status: "loading",
-            stripePromise: null,
-          },
+        : LOADING_RUNTIME_CONFIG,
   );
   const [checkoutState, setCheckoutState] = useState<CheckoutState>(() => ({
     amount: initialAmount ? Number(initialAmount) : 100,
@@ -1234,15 +1524,13 @@ function CheckoutContent({
   }, [amount]);
 
   const total = coverFees ? amount + calculatedFees : amount;
-  const mountedPublishableKey = stripeOverride
-    ? normalizePublishableKey(stripeOverride.publishableKey)
-    : runtimeConfig.status === "ready"
-      ? runtimeConfig.publishableKey
-      : null;
+  const mountedPublishableKey = resolveMountedPublishableKey(
+    runtimeConfig,
+    stripeOverride,
+  );
   const checkoutMode =
     stripeOverride?.mode ?? resolveCheckoutMode(mountedPublishableKey);
   const mountedPublishableKeyRef = useRef(mountedPublishableKey);
-  mountedPublishableKeyRef.current = mountedPublishableKey;
   const currentRequestFingerprint = useMemo(
     () =>
       buildCheckoutRequestFingerprint({
@@ -1278,6 +1566,26 @@ function CheckoutContent({
   );
   const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
 
+  // Starts (or restarts) the tenant config request. State is written only in
+  // the promise callback, so the mount effect below performs no synchronous
+  // state update; `loadCheckoutRuntimeConfig` adds the loading transition for
+  // user-initiated retries.
+  const requestRuntimeConfig = () => {
+    runtimeConfigRequestedRef.current = true;
+    runtimeConfigAbortRef.current?.abort();
+    const abortController = new AbortController();
+    runtimeConfigAbortRef.current = abortController;
+
+    void fetchCheckoutRuntimeConfig(abortController.signal).then((next) => {
+      if (runtimeConfigAbortRef.current !== abortController) {
+        return;
+      }
+      if (next) {
+        setRuntimeConfig(next);
+      }
+    });
+  };
+
   const loadCheckoutRuntimeConfig = () => {
     if (stripeOverride) {
       setRuntimeConfig(createReadyRuntimeConfig(stripeOverride.publishableKey));
@@ -1291,76 +1599,17 @@ function CheckoutContent({
       return;
     }
 
-    runtimeConfigRequestedRef.current = true;
-    runtimeConfigAbortRef.current?.abort();
-    const abortController = new AbortController();
-    runtimeConfigAbortRef.current = abortController;
-
-    setRuntimeConfig({
-      error: null,
-      publishableKey: null,
-      status: "loading",
-      stripePromise: null,
-    });
-
-    const loadRuntimeConfig = async () => {
-      try {
-        const response = await fetch("/api/donate", {
-          method: "GET",
-          signal: abortController.signal,
-        });
-        const payload = await response.json().catch(() => null);
-
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        if (!response.ok) {
-          const message =
-            payload && typeof payload === "object"
-              ? (payload as Record<string, unknown>).error
-              : null;
-          setRuntimeConfig({
-            error:
-              typeof message === "string"
-                ? message
-                : "Checkout configuration could not be loaded. Please try again.",
-            publishableKey: null,
-            status: "error",
-            stripePromise: null,
-          });
-          return;
-        }
-
-        setRuntimeConfig(
-          createRuntimeConfigFromPublishableKey(
-            readRuntimePublishableKey(payload),
-          ),
-        );
-      } catch (error) {
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-
-        setRuntimeConfig({
-          error:
-            "Checkout configuration could not be loaded. Please refresh and try again.",
-          publishableKey: null,
-          status: "error",
-          stripePromise: null,
-        });
-      }
-    };
-
-    void loadRuntimeConfig();
+    setRuntimeConfig(LOADING_RUNTIME_CONFIG);
+    requestRuntimeConfig();
   };
 
   useEffect(() => {
-    loadCheckoutRuntimeConfig();
+    // Overrides start in the ready state already (see the initializer).
+    if (stripeOverride) {
+      return;
+    }
+
+    requestRuntimeConfig();
 
     return () => {
       // The aborted request leaves `runtimeConfig` stuck on "loading"; clear
@@ -1370,13 +1619,13 @@ function CheckoutContent({
       runtimeConfigRequestedRef.current = false;
       runtimeConfigAbortRef.current?.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO(checkout-runtime-config): Runtime config is keyed by the override object or tenant fetch, not by transient checkout state.
   }, [stripeOverride]);
 
   useEffect(() => {
     checkoutStateRef.current = checkoutState;
     currentRequestFingerprintRef.current = currentRequestFingerprint;
-  }, [checkoutState, currentRequestFingerprint]);
+    mountedPublishableKeyRef.current = mountedPublishableKey;
+  }, [checkoutState, currentRequestFingerprint, mountedPublishableKey]);
 
   const paymentAttemptRefs = {
     activePaymentAttemptRef,
@@ -1548,14 +1797,16 @@ function CheckoutContent({
         return;
       }
 
-      const payload = await response.json().catch(() => null);
+      // The donate API returns interpretable JSON on every status, so the
+      // payload is read for both branches with the status checked first.
+      const { status, body: payload } = await readJsonBody<unknown>(response);
 
       if (!isPaymentAttemptActive(paymentAttempt)) {
         exitStalePaymentAttempt(paymentAttempt);
         return;
       }
 
-      const result = interpretDonateResponse(response.status, payload);
+      const result = interpretDonateResponse(status, payload);
 
       if (isDonationInitialized(result)) {
         const trimmedPostalCode = postalCode.trim();
@@ -1742,27 +1993,7 @@ function CheckoutContent({
   };
 
   if (step !== "success" && !hasGivingTarget) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center space-y-6">
-          <div className="size-20 bg-zinc-50 rounded-3xl flex items-center justify-center mx-auto border border-zinc-100 shadow-xl">
-            <Activity className="size-8 text-zinc-300" />
-          </div>
-          <h2 className="text-3xl font-semibold text-zinc-950 font-syne">
-            Target Unspecified
-          </h2>
-          <Link
-            href="/workers"
-            className={cn(
-              buttonVariants(),
-              "rounded-full px-8 h-12 font-semibold font-syne text-[10px] uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800",
-            )}
-          >
-            View Missionaries
-          </Link>
-        </div>
-      </div>
-    );
+    return <CheckoutMissingTargetState />;
   }
 
   // Success renders ONLY when Stripe confirmation has accepted the initialized
@@ -1780,122 +2011,41 @@ function CheckoutContent({
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans pb-32 pt-24 selection:bg-zinc-900/10">
-      <div className="container mx-auto px-6 max-w-7xl">
-        <StepIndicator currentStep={step} />
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-start">
-          <div className="lg:col-span-7 space-y-16">
-            <AnimatePresence mode="wait">
-              {step === "config" && (
-                <ConfigStep
-                  amount={amount}
-                  calculatedFees={calculatedFees}
-                  coverFees={coverFees}
-                  customAmount={customAmount}
-                  onAmountSelect={handleAmountSelect}
-                  onCoverFeesChange={setCoverFees}
-                  onCustomAmountChange={handleCustomAmountChange}
-                  onNext={handleNext}
-                />
-              )}
-
-              {step === "details" && (
-                <DetailsStep
-                  donorInfo={donorInfo}
-                  onBack={handleBack}
-                  onDonorInfoChange={(patch) =>
-                    setDonorInfo({ ...donorInfo, ...patch })
-                  }
-                  onNext={handleNext}
-                />
-              )}
-
-              {step === "payment" && (
-                <>
-                  {stripeOverride ? (
-                    <PaymentStep
-                      cardElement={stripeOverride.cardElement}
-                      elements={stripeOverride.elements}
-                      error={error}
-                      isProcessing={isProcessing}
-                      mode={checkoutMode}
-                      onBack={handleBack}
-                      onConfirmPayment={handlePayment}
-                      onPaymentMethodChange={setPaymentMethod}
-                      paymentMethod={paymentMethod}
-                      postalCode={postalCode}
-                      onPostalCodeChange={setPostalCode}
-                      stripe={stripeOverride.stripe}
-                      total={total}
-                    />
-                  ) : runtimeConfig.status === "loading" ? (
-                    <CheckoutConfigurationState
-                      title="Preparing secure checkout"
-                      message="Loading this organization's payment configuration."
-                    />
-                  ) : runtimeConfig.status === "error" ? (
-                    <CheckoutConfigurationError message={runtimeConfig.error} />
-                  ) : checkoutMode === "live" && runtimeConfig.stripePromise ? (
-                    <Elements
-                      key={runtimeConfig.publishableKey}
-                      stripe={runtimeConfig.stripePromise}
-                    >
-                      <StripePaymentStep
-                        error={error}
-                        isProcessing={isProcessing}
-                        mode={checkoutMode}
-                        onBack={handleBack}
-                        onConfirmPayment={handlePayment}
-                        onPaymentMethodChange={setPaymentMethod}
-                        paymentMethod={paymentMethod}
-                        postalCode={postalCode}
-                        onPostalCodeChange={setPostalCode}
-                        total={total}
-                      />
-                    </Elements>
-                  ) : (
-                    <PaymentStep
-                      elements={null}
-                      error={error}
-                      isProcessing={isProcessing}
-                      mode={checkoutMode}
-                      onBack={handleBack}
-                      onConfirmPayment={handlePayment}
-                      onPaymentMethodChange={setPaymentMethod}
-                      paymentMethod={paymentMethod}
-                      postalCode={postalCode}
-                      onPostalCodeChange={setPostalCode}
-                      stripe={null}
-                      total={total}
-                    />
-                  )}
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <aside className="lg:col-span-5 hidden lg:block">
-            <SummaryCard
-              worker={
-                worker || {
-                  title: hasGeneralGivingTarget
-                    ? "General Mission Fund"
-                    : searchParams.missionaryId
-                      ? "Missionary Support"
-                      : "Urgent Needs",
-                }
-              }
-              amount={amount}
-              frequency={frequency}
-              coverFees={coverFees}
-              fees={calculatedFees}
-              total={total}
-            />
-          </aside>
-        </div>
-      </div>
-    </div>
+    <CheckoutActiveFlow
+      amount={amount}
+      calculatedFees={calculatedFees}
+      coverFees={coverFees}
+      customAmount={customAmount}
+      donorInfo={donorInfo}
+      frequency={frequency}
+      hasGeneralGivingTarget={hasGeneralGivingTarget}
+      missionaryId={missionaryId}
+      onAmountSelect={handleAmountSelect}
+      onBack={handleBack}
+      onCoverFeesChange={setCoverFees}
+      onCustomAmountChange={handleCustomAmountChange}
+      onDonorInfoChange={(patch) => setDonorInfo({ ...donorInfo, ...patch })}
+      onNext={handleNext}
+      paymentPane={
+        <CheckoutPaymentPane
+          checkoutMode={checkoutMode}
+          error={error}
+          isProcessing={isProcessing}
+          onBack={handleBack}
+          onConfirmPayment={handlePayment}
+          onPaymentMethodChange={setPaymentMethod}
+          onPostalCodeChange={setPostalCode}
+          paymentMethod={paymentMethod}
+          postalCode={postalCode}
+          runtimeConfig={runtimeConfig}
+          stripeOverride={stripeOverride}
+          total={total}
+        />
+      }
+      step={step}
+      total={total}
+      worker={worker ?? null}
+    />
   );
 }
 

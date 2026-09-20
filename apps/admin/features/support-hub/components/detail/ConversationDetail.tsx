@@ -130,7 +130,13 @@ function DetailBody({ conversation, isLoading, onClose }: DetailBodyProps) {
         <ConversationTimeline conversationId={conversation.id} />
       </div>
       <div className="border-t border-zinc-100 bg-zinc-50/40 p-3">
-        <ConversationComposer conversation={conversation} agent={agent} />
+        {/* Keyed per conversation so drafts, attachments, and mode start fresh
+            when the agent switches threads instead of being reset in an effect. */}
+        <ConversationComposer
+          key={conversation.id}
+          conversation={conversation}
+          agent={agent}
+        />
       </div>
     </div>
   );

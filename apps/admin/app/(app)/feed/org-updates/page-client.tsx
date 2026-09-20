@@ -1,13 +1,10 @@
 "use client";
 
+import { brandConfig } from "@asym/config/site-client";
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
-import {
-  BrandAvatar,
-  BrandLogo,
-  brandConfig,
-} from "@asym/ui/components/brand-logo";
+import { BrandAvatar, BrandLogo } from "@asym/ui/components/brand-logo";
 import { ReactionBar } from "@asym/ui/components/ministry-update";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {

@@ -4,6 +4,7 @@ import {
   fetchJsonResult,
   fetchResult,
   readErrorMessage,
+  readJsonBody,
 } from "../../../../packages/lib/http/fetch-result";
 
 const fetchMock = vi.fn<typeof fetch>();
@@ -119,6 +120,38 @@ describe("fetchJsonResult", () => {
       status: 500,
       message: "boom",
     });
+  });
+
+  it("falls back to the status message when error is not a string", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(503, { error: { code: 1 } }));
+
+    const result = await fetchJsonResult("/api/posts");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("expected failure");
+    expect(result.error.message).toBe("Request failed with status 503");
+  });
+});
+
+describe("readJsonBody", () => {
+  it("returns the parsed body with the status flag for both success and error responses", async () => {
+    await expect(
+      readJsonBody<{ id: number }>(jsonResponse(200, { id: 7 })),
+    ).resolves.toEqual({ ok: true, status: 200, body: { id: 7 } });
+
+    await expect(
+      readJsonBody<{ error: string }>(jsonResponse(409, { error: "taken" })),
+    ).resolves.toEqual({ ok: false, status: 409, body: { error: "taken" } });
+  });
+
+  it("yields a null body when the response is not JSON", async () => {
+    await expect(
+      readJsonBody(new Response("<html>oops</html>", { status: 500 })),
+    ).resolves.toEqual({ ok: false, status: 500, body: null });
+
+    await expect(
+      readJsonBody(new Response(null, { status: 204 })),
+    ).resolves.toEqual({ ok: true, status: 204, body: null });
   });
 });
 

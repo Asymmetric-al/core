@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useSyncExternalStore } from "react";
 
 import type {
   EmailTemplate,
@@ -12,29 +12,72 @@ type EmailStudioDesign = Record<string, unknown>;
 const STORAGE_KEY = "email_studio_draft_templates";
 const CAMPAIGNS_KEY = "email_studio_draft_campaigns";
 
-function loadStoredItems<T>(key: string): T[] {
-  if (typeof window === "undefined") return [];
-
-  const stored = localStorage.getItem(key);
-  if (!stored) return [];
+function parseStoredItems<T>(raw: string | null): T[] {
+  if (!raw) return [];
 
   try {
-    return JSON.parse(stored);
+    return JSON.parse(raw);
   } catch {
     return [];
   }
 }
 
+// localStorage is exposed to React as an external store: parsed snapshots are
+// cached per key (revalidated against the raw string, so clears and other-tab
+// writes are picked up) to give useSyncExternalStore a stable reference,
+// same-tab writes go through writeStoredItems, and other tabs notify via the
+// `storage` event. Reading it this way lets the hydration render use the empty
+// server snapshot and swap in the stored items before paint, instead of an
+// effect flashing the empty state after the first paint.
+const EMPTY_ITEMS: never[] = [];
+const storedItemsCache = new Map<
+  string,
+  { raw: string | null; items: unknown[] }
+>();
+const storedItemsListeners = new Set<() => void>();
+
+function readStoredItems<T>(key: string): T[] {
+  if (typeof window === "undefined") return EMPTY_ITEMS as T[];
+
+  const raw = localStorage.getItem(key);
+  const cached = storedItemsCache.get(key);
+  if (cached && cached.raw === raw) return cached.items as T[];
+
+  const items = parseStoredItems<T>(raw);
+  storedItemsCache.set(key, { raw, items });
+  return items;
+}
+
+function writeStoredItems<T>(key: string, items: T[]): void {
+  const raw = JSON.stringify(items);
+  localStorage.setItem(key, raw);
+  storedItemsCache.set(key, { raw, items });
+  for (const listener of storedItemsListeners) listener();
+}
+
+function subscribeToStoredItems(onChange: () => void): () => void {
+  storedItemsListeners.add(onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    storedItemsListeners.delete(onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function useStoredItems<T>(key: string): T[] {
+  return useSyncExternalStore(
+    subscribeToStoredItems,
+    () => readStoredItems<T>(key),
+    () => EMPTY_ITEMS as T[],
+  );
+}
+
 export function useEmailTemplates() {
-  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const templates = useStoredItems<EmailTemplate>(STORAGE_KEY);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    setTemplates(loadStoredItems<EmailTemplate>(STORAGE_KEY));
-  }, []);
-
   const saveToStorage = useCallback((data: EmailTemplate[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    writeStoredItems(STORAGE_KEY, data);
   }, []);
 
   const createTemplate = useCallback(
@@ -60,8 +103,10 @@ export function useEmailTemplates() {
           ...options,
         };
 
-        const updated = [...templates, newTemplate];
-        setTemplates(updated);
+        const updated = [
+          ...readStoredItems<EmailTemplate>(STORAGE_KEY),
+          newTemplate,
+        ];
         saveToStorage(updated);
 
         return newTemplate;
@@ -69,7 +114,7 @@ export function useEmailTemplates() {
         setIsLoading(false);
       }
     },
-    [templates, saveToStorage],
+    [saveToStorage],
   );
 
   const updateTemplate = useCallback(
@@ -79,10 +124,11 @@ export function useEmailTemplates() {
     ): Promise<EmailTemplate | null> => {
       setIsLoading(true);
       try {
-        const index = templates.findIndex((t) => t.id === id);
+        const current = readStoredItems<EmailTemplate>(STORAGE_KEY);
+        const index = current.findIndex((t) => t.id === id);
         if (index === -1) return null;
 
-        const updated = [...templates];
+        const updated = [...current];
         const currentTemplate = updated[index];
         if (!currentTemplate) return null;
 
@@ -93,7 +139,6 @@ export function useEmailTemplates() {
           updatedAt: new Date(),
         };
 
-        setTemplates(updated);
         saveToStorage(updated);
 
         return updated[index];
@@ -101,22 +146,23 @@ export function useEmailTemplates() {
         setIsLoading(false);
       }
     },
-    [templates, saveToStorage],
+    [saveToStorage],
   );
 
   const deleteTemplate = useCallback(
     async (id: string): Promise<boolean> => {
       setIsLoading(true);
       try {
-        const updated = templates.filter((t) => t.id !== id);
-        setTemplates(updated);
+        const updated = readStoredItems<EmailTemplate>(STORAGE_KEY).filter(
+          (t) => t.id !== id,
+        );
         saveToStorage(updated);
         return true;
       } finally {
         setIsLoading(false);
       }
     },
-    [templates, saveToStorage],
+    [saveToStorage],
   );
 
   const getTemplate = useCallback(
@@ -157,15 +203,11 @@ export function useEmailTemplates() {
 }
 
 export function useEmailCampaigns() {
-  const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
+  const campaigns = useStoredItems<EmailCampaign>(CAMPAIGNS_KEY);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    setCampaigns(loadStoredItems<EmailCampaign>(CAMPAIGNS_KEY));
-  }, []);
-
   const saveToStorage = useCallback((data: EmailCampaign[]) => {
-    localStorage.setItem(CAMPAIGNS_KEY, JSON.stringify(data));
+    writeStoredItems(CAMPAIGNS_KEY, data);
   }, []);
 
   const createCampaign = useCallback(
@@ -192,8 +234,10 @@ export function useEmailCampaigns() {
           ...options,
         };
 
-        const updated = [...campaigns, newCampaign];
-        setCampaigns(updated);
+        const updated = [
+          ...readStoredItems<EmailCampaign>(CAMPAIGNS_KEY),
+          newCampaign,
+        ];
         saveToStorage(updated);
 
         return newCampaign;
@@ -201,7 +245,7 @@ export function useEmailCampaigns() {
         setIsLoading(false);
       }
     },
-    [campaigns, saveToStorage],
+    [saveToStorage],
   );
 
   const updateCampaign = useCallback(
@@ -211,10 +255,11 @@ export function useEmailCampaigns() {
     ): Promise<EmailCampaign | null> => {
       setIsLoading(true);
       try {
-        const index = campaigns.findIndex((c) => c.id === id);
+        const current = readStoredItems<EmailCampaign>(CAMPAIGNS_KEY);
+        const index = current.findIndex((c) => c.id === id);
         if (index === -1) return null;
 
-        const updated = [...campaigns];
+        const updated = [...current];
         const currentCampaign = updated[index];
         if (!currentCampaign) return null;
 
@@ -225,7 +270,6 @@ export function useEmailCampaigns() {
           updatedAt: new Date(),
         };
 
-        setCampaigns(updated);
         saveToStorage(updated);
 
         return updated[index];
@@ -233,22 +277,23 @@ export function useEmailCampaigns() {
         setIsLoading(false);
       }
     },
-    [campaigns, saveToStorage],
+    [saveToStorage],
   );
 
   const deleteCampaign = useCallback(
     async (id: string): Promise<boolean> => {
       setIsLoading(true);
       try {
-        const updated = campaigns.filter((c) => c.id !== id);
-        setCampaigns(updated);
+        const updated = readStoredItems<EmailCampaign>(CAMPAIGNS_KEY).filter(
+          (c) => c.id !== id,
+        );
         saveToStorage(updated);
         return true;
       } finally {
         setIsLoading(false);
       }
     },
-    [campaigns, saveToStorage],
+    [saveToStorage],
   );
 
   const getCampaign = useCallback(

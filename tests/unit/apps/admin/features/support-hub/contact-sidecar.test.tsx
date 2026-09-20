@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCrmLinks } from "../../../../../../apps/admin/features/support-hub/components/detail/ConversationCrmLinks";
+import { buildCrmLinks } from "../../../../../../apps/admin/features/support-hub/components/detail/conversation-crm-links";
 
 describe("buildCrmLinks", () => {
   it("returns no links when no contact + no email is present", () => {
