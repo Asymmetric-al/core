@@ -198,6 +198,20 @@ describe("admin high-complexity extraction contracts", () => {
     expect(source).toContain("<AutomationDryRunResult");
   });
 
+  it("uses semantic Maia tokens for extracted support-hub chrome instead of zinc utilities", () => {
+    const zincUtility =
+      /(?:text|bg|border|ring|from|to|via|shadow|outline|fill|stroke)-zinc-\d/;
+    const extractedChrome = [
+      "apps/admin/features/support-hub/components/board/BoardCard.tsx",
+      "apps/admin/features/support-hub/components/detail/timeline/EmailMessage.tsx",
+      "apps/admin/features/support-hub/components/settings/automations/AutomationDryRunPreview.tsx",
+    ];
+
+    for (const path of extractedChrome) {
+      expect(readRepoFile(path), path).not.toMatch(zincUtility);
+    }
+  });
+
   it("resolves native collection edit model outside the Payload edit view", () => {
     const source = readRepoFile(
       "apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx",

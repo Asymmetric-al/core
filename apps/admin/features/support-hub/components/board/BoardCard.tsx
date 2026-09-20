@@ -40,7 +40,7 @@ interface BoardCardProps {
 }
 
 const LABEL_TONE_CLASSES: Record<SupportLabelTone, string> = {
-  zinc: "bg-zinc-100 text-zinc-700 ring-zinc-200",
+  zinc: "bg-muted text-foreground ring-border",
   blue: "bg-blue-50 text-blue-700 ring-blue-200",
   amber: "bg-amber-50 text-amber-700 ring-amber-200",
   rose: "bg-rose-50 text-rose-700 ring-rose-200",
@@ -83,20 +83,20 @@ function BoardCardHeader({
   nowIso: string;
 }) {
   return (
-    <header className="flex items-center justify-between gap-2 text-[11px] text-zinc-500">
+    <header className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
       <span className="flex items-center gap-1.5 truncate">
         {isUnread ? (
           <span
             aria-hidden
-            className="size-1.5 shrink-0 rounded-full bg-zinc-900"
+            className="size-1.5 shrink-0 rounded-full bg-foreground"
           />
         ) : null}
-        <span className="truncate font-medium text-zinc-700">
+        <span className="truncate font-medium text-foreground">
           {conversation.externalContactName ??
             conversation.externalContactEmail}
         </span>
       </span>
-      <span className="shrink-0 font-mono tabular-nums text-zinc-400">
+      <span className="shrink-0 font-mono tabular-nums text-muted-foreground">
         {formatRelative(conversation.lastMessageAt, nowIso)}
       </span>
     </header>
@@ -112,7 +112,7 @@ function BoardCardAssignee({
 }) {
   if (conversation.assignee) {
     return (
-      <Avatar className="size-6 border border-zinc-100">
+      <Avatar className="size-6 border border-border">
         <AvatarImage
           src={conversation.assignee.avatarUrl ?? undefined}
           alt={conversation.assignee.name}
@@ -130,7 +130,7 @@ function BoardCardAssignee({
         "flex size-6 items-center justify-center rounded-full border border-dashed",
         isUnassigned
           ? "border-amber-300 text-amber-600"
-          : "border-zinc-200 text-zinc-300",
+          : "border-border text-muted-foreground",
       )}
       aria-label="Unassigned"
     >
@@ -171,7 +171,7 @@ function BoardCardFooter({
           <LabelChip key={label.id} label={label} />
         ))}
         {conversation.labels.length > 2 ? (
-          <span className="text-[10px] font-semibold text-zinc-400">
+          <span className="text-[10px] font-semibold text-muted-foreground">
             +{conversation.labels.length - 2}
           </span>
         ) : null}
@@ -188,7 +188,10 @@ function BoardCardFooter({
           />
         ) : null}
         {conversation.channel === "email" ? (
-          <Mail className="size-3 text-zinc-300" aria-label="Email channel" />
+          <Mail
+            className="size-3 text-muted-foreground"
+            aria-label="Email channel"
+          />
         ) : null}
         <BoardCardAssignee
           conversation={conversation}
@@ -225,11 +228,11 @@ export function BoardCard({
       {...dragHandleProps}
       data-conversation-id={conversation.id}
       className={cn(
-        "group rounded-2xl border bg-white shadow-sm transition-shadow",
-        "border-zinc-100 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md focus-within:shadow-md",
+        "group rounded-2xl border bg-card shadow-sm transition-shadow",
+        "border-border [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md focus-within:shadow-md",
         isFirstReplyPastDue && "border-l-2 border-l-rose-300",
         isEscalated && "ring-1 ring-rose-200",
-        isSelected && "ring-1 ring-zinc-900",
+        isSelected && "ring-1 ring-foreground",
         isDragging && "opacity-60",
       )}
     >
@@ -243,7 +246,7 @@ export function BoardCard({
           isFirstReplyPastDue,
           isEscalated,
         })}
-        className="flex w-full flex-col gap-2 rounded-2xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
+        className="flex w-full flex-col gap-2 rounded-2xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <BoardCardHeader
           conversation={conversation}
@@ -251,7 +254,7 @@ export function BoardCard({
           nowIso={nowIso}
         />
 
-        <p className="line-clamp-2 text-[13px] font-medium leading-snug text-zinc-900">
+        <p className="line-clamp-2 text-[13px] font-medium leading-snug text-foreground">
           {conversation.subject}
         </p>
 

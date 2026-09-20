@@ -32,14 +32,14 @@ const DELIVERY_TONES: Partial<
     label: "Draft",
   },
   queued: {
-    tone: "border-zinc-200 bg-zinc-100 text-zinc-700",
+    tone: "border-border bg-muted text-foreground",
     label: "Queued",
   },
   sending: {
-    tone: "border-zinc-200 bg-zinc-100 text-zinc-700",
+    tone: "border-border bg-muted text-foreground",
     label: "Sending",
   },
-  sent: { tone: "border-zinc-200 bg-zinc-100 text-zinc-700", label: "Sent" },
+  sent: { tone: "border-border bg-muted text-foreground", label: "Sent" },
   delivered: {
     tone: "border-emerald-200 bg-emerald-50 text-emerald-700",
     label: "Delivered",
@@ -66,8 +66,8 @@ function emailMessageChrome(message: SupportMessage) {
     className: isDraft
       ? "border-amber-200 bg-amber-50/40"
       : isOutbound
-        ? "border-zinc-100 border-l-2 border-l-emerald-200"
-        : "border-zinc-100 border-l-2 border-l-zinc-200",
+        ? "border-border border-l-2 border-l-emerald-200"
+        : "border-border border-l-2 border-l-border",
   };
 }
 
@@ -83,8 +83,8 @@ function EmailMessageHeader({
   const headers = message.emailHeaders;
 
   return (
-    <header className="flex flex-wrap items-start gap-3 border-b border-zinc-100 px-4 py-3">
-      <Avatar className="size-9 border border-zinc-100">
+    <header className="flex flex-wrap items-start gap-3 border-b border-border px-4 py-3">
+      <Avatar className="size-9 border border-border">
         <AvatarImage
           src={message.author.avatarUrl ?? undefined}
           alt={message.author.name}
@@ -94,10 +94,10 @@ function EmailMessageHeader({
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-zinc-900">
+        <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-foreground">
           <span className="font-semibold">{message.author.name}</span>
           {message.author.email ? (
-            <span className="text-[11px] text-zinc-500">
+            <span className="text-[11px] text-muted-foreground">
               &lt;{message.author.email}&gt;
             </span>
           ) : null}
@@ -123,13 +123,13 @@ function EmailMessageHeader({
           ) : null}
         </div>
         {headers ? (
-          <p className="mt-0.5 truncate text-[11px] text-zinc-500">
+          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
             to {headers.to.join(", ")}
             {headers.cc.length > 0 ? ` · cc ${headers.cc.join(", ")}` : null}
           </p>
         ) : null}
       </div>
-      <span className="shrink-0 font-mono text-[11px] tabular-nums text-zinc-400">
+      <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
         {formatRelative(message.postedAt, nowIso)}
       </span>
     </header>
@@ -149,13 +149,13 @@ function EmailMessageAttachmentsFooter({
   }
 
   return (
-    <footer className="flex flex-wrap items-center gap-2 border-t border-zinc-100 px-4 py-2">
+    <footer className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-2">
       {message.attachments.map((attachment) => (
         <span
           key={attachment.id}
-          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-700"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium text-foreground"
         >
-          <Paperclip className="size-3 text-zinc-400" />
+          <Paperclip className="size-3 text-muted-foreground" />
           <span className="max-w-[200px] truncate">{attachment.filename}</span>
         </span>
       ))}
@@ -177,7 +177,7 @@ export function EmailMessage({ message }: EmailMessageProps) {
 
   return (
     <article
-      className={cn("rounded-2xl border bg-white shadow-sm", chrome.className)}
+      className={cn("rounded-2xl border bg-card shadow-sm", chrome.className)}
       aria-label={chrome.ariaLabel}
     >
       <EmailMessageHeader
@@ -200,11 +200,11 @@ const INBOUND_ATTACHMENT_TONES: Record<
   { tone: string; label: string }
 > = {
   pending: {
-    tone: "border-zinc-200 bg-zinc-100 text-zinc-600",
+    tone: "border-border bg-muted text-muted-foreground",
     label: "Attachments pending",
   },
   retrying: {
-    tone: "border-zinc-200 bg-zinc-100 text-zinc-600",
+    tone: "border-border bg-muted text-muted-foreground",
     label: "Attachments retrying",
   },
   failed: {
@@ -278,7 +278,7 @@ function InboundAttachmentState({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-5 gap-1 px-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900"
+          className="h-5 gap-1 px-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
           onClick={requestRetry}
           disabled={retryState === "requesting"}
         >
