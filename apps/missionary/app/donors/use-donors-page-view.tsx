@@ -2847,18 +2847,23 @@ function DonorsTagEditorDialog({ model }: { model: DonorsPageViewModel }) {
                     : "bg-zinc-50 text-zinc-400 border-zinc-200 hover:bg-zinc-100",
                 )}
               >
-                <AnimatePresence mode="wait">
-                  {tagEditor.selectedTags.includes(tag.id) && (
-                    <motion.span
-                      initial={{ scale: 0.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.5, opacity: 0 }}
-                      className="inline-flex"
-                    >
-                      <Check className="size-3 mr-1" />
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                <span
+                  className="inline-flex w-3 mr-1 justify-center"
+                  aria-hidden={!tagEditor.selectedTags.includes(tag.id)}
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    {tagEditor.selectedTags.includes(tag.id) && (
+                      <motion.span
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.5, opacity: 0 }}
+                        className="inline-flex"
+                      >
+                        <Check className="size-3" />
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </span>
                 {tag.label}
               </motion.button>
             ))}

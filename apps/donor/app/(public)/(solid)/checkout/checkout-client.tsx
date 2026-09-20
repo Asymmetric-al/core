@@ -61,6 +61,12 @@ import {
   type CheckoutPaymentMethod,
   type ServerDonation,
 } from "./checkout-donation";
+import {
+  commitPaymentAttemptState as commitPaymentAttemptSnapshot,
+  commitSuccessfulOriginalPaymentAttempt as commitSuccessfulOriginalPaymentSnapshot,
+  exitStalePaymentAttempt as exitStalePaymentSnapshot,
+  isPaymentAttemptActive as isCurrentPaymentAttemptIdentity,
+} from "./checkout-payment-attempt";
 
 import { getFieldWorkerById } from "@/lib/mock-data";
 
@@ -1525,6 +1531,7 @@ function CheckoutContent({
   const checkoutMode =
     stripeOverride?.mode ?? resolveCheckoutMode(mountedPublishableKey);
   const mountedPublishableKeyRef = useRef(mountedPublishableKey);
+  mountedPublishableKeyRef.current = mountedPublishableKey;
   const currentRequestFingerprint = useMemo(
     () =>
       buildCheckoutRequestFingerprint({
@@ -1618,115 +1625,39 @@ function CheckoutContent({
   useEffect(() => {
     checkoutStateRef.current = checkoutState;
     currentRequestFingerprintRef.current = currentRequestFingerprint;
-    // Read only after `await`s inside handlePayment, so a post-commit sync is
-    // always fresh by the time the async flow gets there.
-    mountedPublishableKeyRef.current = mountedPublishableKey;
-  }, [checkoutState, currentRequestFingerprint, mountedPublishableKey]);
+  }, [checkoutState, currentRequestFingerprint]);
 
-  const isPaymentAttemptActive = (attempt: PaymentAttempt) => {
-    const activeAttempt = activePaymentAttemptRef.current;
-
-    return (
-      activeAttempt?.id === attempt.id &&
-      activeAttempt.fingerprint === attempt.fingerprint &&
-      currentRequestFingerprintRef.current === attempt.fingerprint
-    );
+  const paymentAttemptRefs = {
+    activePaymentAttemptRef,
+    checkoutStateRef,
+    currentRequestFingerprintRef,
+    setCheckoutState,
   };
 
-  const isOriginalPaymentAttemptActive = (attempt: PaymentAttempt) => {
-    const activeAttempt = activePaymentAttemptRef.current;
-
-    return (
-      activeAttempt?.id === attempt.id &&
-      activeAttempt.fingerprint === attempt.fingerprint
+  const isPaymentAttemptActive = (attempt: PaymentAttempt) =>
+    isCurrentPaymentAttemptIdentity(
+      attempt,
+      activePaymentAttemptRef.current,
+      currentRequestFingerprintRef.current,
     );
-  };
 
-  const isPaymentAttemptStateActive = (
-    attempt: PaymentAttempt,
-    state: CheckoutState,
-  ) =>
-    state.idempotencyFingerprint === attempt.fingerprint &&
-    state.step === "payment";
-
-  const isOriginalPaymentAttemptStateActive = (
-    attempt: PaymentAttempt,
-    state: CheckoutState,
-  ) =>
-    isOriginalPaymentAttemptActive(attempt) &&
-    state.idempotencyFingerprint === attempt.fingerprint &&
-    state.step === "payment";
-
-  // React may replay a state updater, so the updaters below stay pure: every
-  // ref check and ref write happens here in the async handler, and the
-  // `checkoutStateRef` mirror is derived from the latest known state so the
-  // rest of the in-flight payment flow can read it before React commits.
   const commitPaymentAttemptState = (
     attempt: PaymentAttempt,
     updater: (prev: CheckoutState) => CheckoutState,
-  ) => {
-    if (!isPaymentAttemptActive(attempt)) {
-      return false;
-    }
-
-    const current = checkoutStateRef.current;
-    if (isPaymentAttemptStateActive(attempt, current)) {
-      checkoutStateRef.current = updater(current);
-    }
-    setCheckoutState((prev) =>
-      isPaymentAttemptStateActive(attempt, prev) ? updater(prev) : prev,
-    );
-
-    return true;
-  };
+  ) => commitPaymentAttemptSnapshot(attempt, updater, paymentAttemptRefs);
 
   const commitSuccessfulOriginalPaymentAttempt = (
     attempt: PaymentAttempt,
     donation: ServerDonation,
-  ) => {
-    if (
-      !isOriginalPaymentAttemptStateActive(attempt, checkoutStateRef.current)
-    ) {
-      return false;
-    }
-
-    const toSuccess = (prev: CheckoutState): CheckoutState => ({
-      ...prev,
+  ) =>
+    commitSuccessfulOriginalPaymentSnapshot(
+      attempt,
       donation,
-      error: null,
-      isProcessing: false,
-      step: "success" as const,
-      successSnapshot: attempt.successSnapshot,
-    });
-
-    activePaymentAttemptRef.current = null;
-    checkoutStateRef.current = toSuccess(checkoutStateRef.current);
-    setCheckoutState((prev) =>
-      isPaymentAttemptStateActive(attempt, prev) ? toSuccess(prev) : prev,
+      paymentAttemptRefs,
     );
 
-    return true;
-  };
-
-  const exitStalePaymentAttempt = (attempt: PaymentAttempt) => {
-    if (!isOriginalPaymentAttemptActive(attempt)) {
-      return;
-    }
-
-    const toStale = (prev: CheckoutState): CheckoutState => ({
-      ...prev,
-      donation: null,
-      error:
-        "Checkout details changed while payment was processing. Please review your details and try again.",
-      isProcessing: false,
-      step: "payment" as const,
-      successSnapshot: null,
-    });
-
-    activePaymentAttemptRef.current = null;
-    checkoutStateRef.current = toStale(checkoutStateRef.current);
-    setCheckoutState(toStale);
-  };
+  const exitStalePaymentAttempt = (attempt: PaymentAttempt) =>
+    exitStalePaymentSnapshot(attempt, paymentAttemptRefs);
 
   const handleAmountSelect = (val: number) => {
     setAmount(val);

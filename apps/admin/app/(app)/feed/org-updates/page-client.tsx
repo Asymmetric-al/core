@@ -794,7 +794,7 @@ function ComposeCardActions({
 }) {
   return (
     <div className="flex flex-col gap-3 w-full">
-      <AnimatePresence>
+      <AnimatePresence mode="popLayout">
         {selectedMedia.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -4 }}

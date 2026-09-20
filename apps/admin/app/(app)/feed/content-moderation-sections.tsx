@@ -1729,7 +1729,7 @@ function ModerationQueuePostCard({
                 </div>
               </div>
 
-              <AnimatePresence>
+              <AnimatePresence mode="popLayout">
                 {post.flagReason && (
                   <motion.div
                     initial={{ opacity: 0, y: -4 }}
