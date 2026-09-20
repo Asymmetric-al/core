@@ -1,6 +1,12 @@
 import { parseRpcObject } from "../shared/parse-rpc-object";
 
-export type GiftIntakeFeeExtras = Record<string, string>;
+export type GiftIntakeFeeExtras = {
+  gift_amount_cents: string;
+  cover_fees: string;
+  payment_method: string;
+  cover_amount_cents: string;
+  estimated_fee_cents: string;
+};
 
 export type GiftIntakeRpcInvoker = (
   fn: "begin_donation_saga",

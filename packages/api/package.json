@@ -21,6 +21,7 @@
     "./document-cutover": "./src/document-cutover/index.ts",
     "./donate": "./src/donate/index.ts",
     "./donate/begin-gift-intake": "./src/donate/begin-gift-intake.ts",
+    "./donate/fee-policy": "./src/donate/fee-policy.ts",
     "./donate/idempotency": "./src/donate/idempotency.ts",
     "./donate/guest/donor-matching": "./src/donate/guest/donor-matching.ts",
     "./donate/guest/donor-merge": "./src/donate/guest/donor-merge.ts",

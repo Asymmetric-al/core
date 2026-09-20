@@ -1,4 +1,7 @@
+import type { GiftProcessingFeeStripeMetadata } from "./fee-policy";
 import type Stripe from "stripe";
+
+export type DonationPaymentIntentMethodType = "card" | "us_bank_account";
 
 /**
  * Server-side PaymentIntent leg of the donate flow (money path).
@@ -16,6 +19,59 @@ export interface DonationPaymentIntentMetadata {
   fund_id?: string;
   tenant_id?: string;
   user_id?: string;
+  gift_amount_cents?: string;
+  cover_fees?: string;
+  payment_method?: string;
+  cover_amount_cents?: string;
+  estimated_fee_cents?: string;
+}
+
+export const GIFT_PROCESSING_FEE_METADATA_KEYS = [
+  "gift_amount_cents",
+  "cover_fees",
+  "payment_method",
+  "cover_amount_cents",
+  "estimated_fee_cents",
+] as const;
+
+export function pickGiftProcessingFeeMetadata(
+  extra: GiftProcessingFeeStripeMetadata | Record<string, string> | undefined,
+): Partial<DonationPaymentIntentMetadata> {
+  if (!extra) {
+    return {};
+  }
+
+  const picked: Partial<DonationPaymentIntentMetadata> = {};
+  const record = extra as Record<string, string>;
+
+  for (const key of GIFT_PROCESSING_FEE_METADATA_KEYS) {
+    const value = record[key];
+    if (typeof value === "string" && value.length > 0) {
+      picked[key] = value;
+    }
+  }
+
+  return picked;
+}
+
+export function mergeDonationPaymentIntentMetadata(input: {
+  donationId: string;
+  donorId: string;
+  missionaryId: string;
+  fundId: string;
+  tenantId: string;
+  actorUserId: string;
+  extra?: GiftProcessingFeeStripeMetadata | Record<string, string>;
+}): DonationPaymentIntentMetadata {
+  return {
+    ...pickGiftProcessingFeeMetadata(input.extra),
+    donation_id: input.donationId,
+    donor_id: input.donorId,
+    missionary_id: input.missionaryId,
+    fund_id: input.fundId,
+    tenant_id: input.tenantId,
+    user_id: input.actorUserId,
+  };
 }
 
 export interface DonationPaymentIntentParams {
@@ -26,6 +82,12 @@ export interface DonationPaymentIntentParams {
   /** Raw saga idempotency key; namespaced here so it can't collide with other calls. */
   idempotencyKey: string;
   customerId?: string;
+  /**
+   * Bind the PaymentIntent to the quoted method. Gift intake passes this on
+   * first shot; recovery and batch workers load the same extras from the
+   * outbox so ACH cover-fee rows cannot be confirmed with a cheaper card.
+   */
+  paymentMethodTypes?: ReadonlyArray<DonationPaymentIntentMethodType>;
 }
 
 export interface DonationPaymentIntentResult {
@@ -59,12 +121,19 @@ export async function createDonationPaymentIntent(
     );
   }
 
+  const paymentMethodTypes =
+    params.paymentMethodTypes && params.paymentMethodTypes.length > 0
+      ? [...params.paymentMethodTypes]
+      : undefined;
+
   const paymentIntent = await stripe.paymentIntents.create(
     {
       amount: params.amountCents,
       currency: params.currency.toLowerCase(),
       ...(params.customerId ? { customer: params.customerId } : {}),
-      automatic_payment_methods: { enabled: true },
+      ...(paymentMethodTypes
+        ? { payment_method_types: paymentMethodTypes }
+        : { automatic_payment_methods: { enabled: true } }),
       metadata: toStripeMetadata(params.metadata),
     },
     { idempotencyKey: `${params.idempotencyKey}:payment_intent` },

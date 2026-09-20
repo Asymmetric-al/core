@@ -7,10 +7,23 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { beginGiftIntake } from "./begin-gift-intake";
+import {
+  GiftProcessingFeePolicyError,
+  giftProcessingFeeStripeMetadataEquals,
+  readStoredGiftProcessingFeeStripeMetadata,
+  resolveGiftIntakeCharge,
+  toGiftProcessingFeeStripeMetadata,
+  type GiftProcessingFeeQuote,
+  type GiftProcessingFeeStripeMetadata,
+} from "./fee-policy";
 import { resolveRequiredIdempotencyKey } from "./idempotency";
 import { processDonationSagaOutboxEvent } from "./saga";
 import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
-import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
+import {
+  ApiHttpError,
+  ensureJsonBody,
+  toErrorResponse,
+} from "../shared/http-errors";
 import { findDonorByProfileId } from "../shared/queries";
 import { withOperation } from "../shared/with-operation";
 import { resolveTenantStripe } from "../stripe/tenant-client";
@@ -25,9 +38,14 @@ export const POST = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
 
-    const { amount, currency, missionary_id, fund_id } = donatePostSchema.parse(
-      await ensureJsonBody(request),
-    );
+    const {
+      amount,
+      currency,
+      missionary_id,
+      fund_id,
+      cover_fees,
+      payment_method,
+    } = donatePostSchema.parse(await ensureJsonBody(request));
 
     const tenantStripe = await resolveTenantStripe({
       supabaseAdmin,
@@ -44,8 +62,24 @@ export const POST = withOperation(
     }
 
     const { stripe, publishableKey } = tenantStripe;
-    const amountInCents = Math.round(amount * 100);
+    let feeQuote: GiftProcessingFeeQuote;
+    try {
+      feeQuote = resolveGiftIntakeCharge({
+        amount,
+        coverFees: cover_fees,
+        paymentMethod: payment_method,
+        currency,
+      });
+    } catch (error) {
+      if (error instanceof GiftProcessingFeePolicyError) {
+        throw new ApiHttpError(400, error.message);
+      }
+      throw error;
+    }
+    const amountInCents = feeQuote.chargedAmountCents;
     const idempotencyKey = resolveRequiredIdempotencyKey(request.headers);
+    const extraPaymentIntentMetadata =
+      toGiftProcessingFeeStripeMetadata(feeQuote);
 
     const begin = await beginGiftIntake({
       rpc: async (fn, rpcArgs) => {
@@ -62,6 +96,7 @@ export const POST = withOperation(
       idempotencyKey,
       ipAddress: request.headers.get("x-forwarded-for"),
       userAgent: request.headers.get("user-agent"),
+      feeExtras: extraPaymentIntentMetadata,
     });
 
     if (!begin.ok) {
@@ -90,11 +125,81 @@ export const POST = withOperation(
       }
     }
 
+    if (begin.replayed) {
+      const { data: storedDonation, error: storedDonationError } =
+        await supabaseAdmin
+          .from("donations")
+          .select("amount")
+          .eq("id", begin.donationId)
+          .eq("tenant_id", ctx.tenantId)
+          .single();
+
+      const storedAmountCents = Number(storedDonation?.amount);
+      if (
+        storedDonationError ||
+        storedDonation == null ||
+        !Number.isSafeInteger(storedAmountCents)
+      ) {
+        throw new ApiHttpError(
+          500,
+          "Failed to load the existing donation for this idempotency key.",
+        );
+      }
+      if (storedAmountCents !== feeQuote.chargedAmountCents) {
+        throw new ApiHttpError(
+          409,
+          "This idempotency key was already used for a different charged amount.",
+        );
+      }
+
+      const { data: storedOutbox, error: storedOutboxError } =
+        await supabaseAdmin
+          .from("donation_saga_outbox")
+          .select("fee_extras")
+          .eq("id", begin.outboxId)
+          .eq("tenant_id", ctx.tenantId)
+          .single();
+
+      if (storedOutboxError || storedOutbox == null) {
+        throw new ApiHttpError(
+          500,
+          "Failed to load the existing donation fee extras for this idempotency key.",
+        );
+      }
+      let storedFeeExtras: GiftProcessingFeeStripeMetadata | undefined;
+      try {
+        storedFeeExtras = readStoredGiftProcessingFeeStripeMetadata(
+          storedOutbox.fee_extras,
+        );
+      } catch (error) {
+        if (error instanceof GiftProcessingFeePolicyError) {
+          throw new ApiHttpError(
+            500,
+            "Failed to load the existing donation fee extras for this idempotency key.",
+          );
+        }
+        throw error;
+      }
+      if (
+        storedFeeExtras == null ||
+        !giftProcessingFeeStripeMetadataEquals(
+          storedFeeExtras,
+          extraPaymentIntentMetadata,
+        )
+      ) {
+        throw new ApiHttpError(
+          409,
+          "This idempotency key was already used for a different gift fee quote.",
+        );
+      }
+    }
+
     const sagaResult = await processDonationSagaOutboxEvent({
       supabaseAdmin,
       stripe,
       outboxId: begin.outboxId,
       actorUserId: ctx.userId,
+      extraPaymentIntentMetadata,
     });
 
     if (sagaResult.status !== "completed") {
