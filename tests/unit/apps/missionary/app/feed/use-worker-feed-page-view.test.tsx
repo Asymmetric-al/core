@@ -210,6 +210,88 @@ describe("useWorkerFeedPageView initial loads", () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 
+  it("keeps published loading visible when a pending draft request finishes during reload", async () => {
+    const draft = Promise.withResolvers<Response>();
+    const publishedRetry = Promise.withResolvers<Response>();
+    let publishedCalls = 0;
+
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.startsWith("/api/posts?status=published")) {
+        publishedCalls += 1;
+        if (publishedCalls === 1) {
+          return jsonResponse(500, { error: "database unavailable" });
+        }
+        return publishedRetry.promise;
+      }
+      if (url.startsWith("/api/posts?status=draft")) {
+        return draft.promise;
+      }
+      if (url.startsWith("/api/follower-requests")) {
+        return jsonResponse(200, { requests: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    const { result } = renderHook(() => useWorkerFeedPageView());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.feedError).toMatch(/failed to load published posts/i);
+
+    let reloadPromise: Promise<void> | undefined;
+    await act(async () => {
+      reloadPromise = result.current.reloadPosts();
+    });
+    expect(result.current.isLoading).toBe(true);
+
+    await act(async () => {
+      draft.resolve(jsonResponse(200, { posts: [] }));
+      await draft.promise;
+    });
+    expect(result.current.isLoading).toBe(true);
+
+    await act(async () => {
+      publishedRetry.resolve(jsonResponse(200, { posts: [] }));
+      await reloadPromise;
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+  });
+
+  it("does not clear published loading when the initial draft request finishes first", async () => {
+    const published = Promise.withResolvers<Response>();
+
+    fetchMock.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.startsWith("/api/posts?status=published")) {
+        return published.promise;
+      }
+      if (url.startsWith("/api/posts?status=draft")) {
+        return jsonResponse(200, {
+          posts: [{ id: "draft-1", status: "draft" }],
+        });
+      }
+      if (url.startsWith("/api/follower-requests")) {
+        return jsonResponse(200, { requests: [] });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+
+    const { result } = renderHook(() => useWorkerFeedPageView());
+
+    await waitFor(() =>
+      expect(result.current.drafts).toEqual([
+        { id: "draft-1", status: "draft" },
+      ]),
+    );
+    expect(result.current.isLoading).toBe(true);
+
+    await act(async () => {
+      published.resolve(jsonResponse(200, { posts: [] }));
+      await published.promise;
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+  });
+
   it("keeps initial feed loads inside the effect so set-state-in-effect stays clean", () => {
     const source = readFileSync(
       "apps/missionary/app/feed/use-worker-feed-page-view.ts",

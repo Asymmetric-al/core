@@ -226,7 +226,9 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         }
         toast.error("Could not load feed", { id: "worker-feed-load-error" });
       }
-      setIsLoading(false);
+      if (status === "published") {
+        setIsLoading(false);
+      }
     },
     [setIsLoading],
   );
@@ -256,7 +258,9 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         }
         toast.error("Could not load feed", { id: "worker-feed-load-error" });
       }
-      setIsLoading(false);
+      if (status === "published") {
+        setIsLoading(false);
+      }
     };
 
     const loadInitialFollowerRequests = async () => {
