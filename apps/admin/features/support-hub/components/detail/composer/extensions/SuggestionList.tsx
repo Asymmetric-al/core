@@ -61,6 +61,9 @@ export const SuggestionList = React.forwardRef<
     [items],
   );
 
+  const optionId = (id: string) => `suggestion-option-${id}`;
+  const activeItem = items[activeIndex];
+
   const select = (index: number) => {
     const item = items[index];
     if (!item) return;
@@ -90,6 +93,7 @@ export const SuggestionList = React.forwardRef<
   return (
     <div
       role="listbox"
+      aria-activedescendant={activeItem ? optionId(activeItem.id) : undefined}
       className={cn(
         "z-50 min-w-[220px] max-w-sm overflow-hidden rounded-xl border border-zinc-200 bg-white text-zinc-900 shadow-lg",
       )}
@@ -102,13 +106,17 @@ export const SuggestionList = React.forwardRef<
       {items.length === 0 ? (
         <p className="p-3 text-[12px] text-zinc-400">{emptyHint}</p>
       ) : (
-        <ul className="max-h-64 overflow-y-auto py-1">
+        <ul role="presentation" className="max-h-64 overflow-y-auto py-1">
           {items.map((item, index) => {
             const isActive = index === activeIndex;
             return (
-              <li key={item.id} role="option" aria-selected={isActive}>
+              <li key={item.id} role="presentation">
                 <button
                   type="button"
+                  id={optionId(item.id)}
+                  role="option"
+                  aria-selected={isActive}
+                  tabIndex={-1}
                   className={cn(
                     "flex w-full items-start gap-2 px-3 py-1.5 text-left",
                     isActive

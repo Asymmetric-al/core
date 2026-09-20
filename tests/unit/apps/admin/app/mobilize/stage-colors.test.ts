@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { STAGE_COLORS } from "../../../../../../apps/admin/app/(app)/mobilize/mobilize-sections";
+import { STAGE_COLORS } from "../../../../../../apps/admin/app/(app)/mobilize/stage-colors";
 
 describe("mobilize stage colors", () => {
   it("keeps deployed visually distinct from vetting", () => {

@@ -121,6 +121,16 @@ describe("fetchJsonResult", () => {
       message: "boom",
     });
   });
+
+  it("falls back to the status message when error is not a string", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(503, { error: { code: 1 } }));
+
+    const result = await fetchJsonResult("/api/posts");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("expected failure");
+    expect(result.error.message).toBe("Request failed with status 503");
+  });
 });
 
 describe("readJsonBody", () => {

@@ -42,7 +42,7 @@ function calculateTimeAgo(
   return formatCalendarDate(dateString, TIME_AGO_DATE_OPTIONS);
 }
 
-export function formatDate(
+function formatDate(
   dateString: string,
   options?: Intl.DateTimeFormatOptions,
 ): string {

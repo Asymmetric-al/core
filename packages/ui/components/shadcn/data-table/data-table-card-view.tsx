@@ -103,6 +103,114 @@ interface DataTableCardItemProps<TData extends RowData> {
   getRowActionAriaLabel?: (row: Row<TData>) => string;
 }
 
+function cardField(original: Record<string, unknown>, field?: string): string {
+  return field ? String(original[field] ?? "") : "";
+}
+
+function DataTableCardSelection<TData extends RowData>({
+  row,
+  isSelected,
+  enableRowSelection,
+}: {
+  row: Row<TData>;
+  isSelected: boolean;
+  enableRowSelection: boolean;
+}) {
+  if (!enableRowSelection) {
+    return null;
+  }
+
+  return (
+    <div className="pt-0.5">
+      <Checkbox
+        checked={isSelected}
+        onCheckedChange={(checked) => row.toggleSelected(!!checked)}
+        aria-label="Select row"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  );
+}
+
+function DataTableCardAvatar({ avatarValue }: { avatarValue: string }) {
+  if (!avatarValue) {
+    return null;
+  }
+
+  return (
+    <div className="size-10 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden relative">
+      {avatarValue.startsWith("http") ? (
+        <Image
+          src={avatarValue}
+          alt=""
+          fill
+          sizes="40px"
+          className="object-cover"
+          unoptimized
+        />
+      ) : (
+        <span className="text-sm font-medium text-muted-foreground">
+          {avatarValue.charAt(0).toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function DataTableCardIdentity({
+  primaryValue,
+  secondaryValue,
+}: {
+  primaryValue: string;
+  secondaryValue: string;
+}) {
+  return (
+    <div className="min-w-0 flex-1">
+      {primaryValue && (
+        <p className="font-medium text-sm truncate">{primaryValue}</p>
+      )}
+      {secondaryValue && (
+        <p className="text-sm text-muted-foreground truncate">
+          {secondaryValue}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function DataTableCardTrailing<TData extends RowData>({
+  badgeValue,
+  row,
+  rowActions,
+  rowActionAriaLabel,
+  onRowClick,
+}: {
+  badgeValue: string;
+  row: Row<TData>;
+  rowActions?: DataTableInteractiveRowAction<TData>[];
+  rowActionAriaLabel?: (row: Row<TData>) => string;
+  onRowClick?: (row: Row<TData>) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 shrink-0">
+      {badgeValue && (
+        <Badge variant="secondary" className="rounded-lg text-xs">
+          {badgeValue}
+        </Badge>
+      )}
+      {rowActions && rowActions.length > 0 ? (
+        <DataTableRowActions
+          row={row}
+          actions={rowActions}
+          getAriaLabel={rowActionAriaLabel}
+        />
+      ) : (
+        onRowClick && <ChevronRight className="size-4 text-muted-foreground" />
+      )}
+    </div>
+  );
+}
+
 function DataTableCardItem<TData extends RowData>({
   row,
   primaryField,
@@ -117,16 +225,11 @@ function DataTableCardItem<TData extends RowData>({
 }: DataTableCardItemProps<TData>) {
   const original = row.original as Record<string, unknown>;
   const isSelected = row.getIsSelected();
-
-  const primaryValue = primaryField ? String(original[primaryField] ?? "") : "";
-  const secondaryValue = secondaryField
-    ? String(original[secondaryField] ?? "")
-    : "";
-  const tertiaryValue = tertiaryField
-    ? String(original[tertiaryField] ?? "")
-    : "";
-  const badgeValue = badgeField ? String(original[badgeField] ?? "") : "";
-  const avatarValue = avatarField ? String(original[avatarField] ?? "") : "";
+  const primaryValue = cardField(original, primaryField);
+  const secondaryValue = cardField(original, secondaryField);
+  const tertiaryValue = cardField(original, tertiaryField);
+  const badgeValue = cardField(original, badgeField);
+  const avatarValue = cardField(original, avatarField);
   const isRowClickable = Boolean(onRowClick);
   const primaryLabelValue = primaryValue.trim();
   const contextualRowActionAriaLabel = primaryLabelValue
@@ -164,70 +267,26 @@ function DataTableCardItem<TData extends RowData>({
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          {enableRowSelection && (
-            <div className="pt-0.5">
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={(checked) => row.toggleSelected(!!checked)}
-                aria-label="Select row"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          )}
-
-          {avatarValue && (
-            <div className="size-10 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden relative">
-              {avatarValue.startsWith("http") ? (
-                <Image
-                  src={avatarValue}
-                  alt=""
-                  fill
-                  sizes="40px"
-                  className="object-cover"
-                  unoptimized
-                />
-              ) : (
-                <span className="text-sm font-medium text-muted-foreground">
-                  {avatarValue.charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
-          )}
-
+          <DataTableCardSelection
+            row={row}
+            isSelected={isSelected}
+            enableRowSelection={enableRowSelection}
+          />
+          <DataTableCardAvatar avatarValue={avatarValue} />
           <div className="flex-1 min-w-0 space-y-1">
             <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                {primaryValue && (
-                  <p className="font-medium text-sm truncate">{primaryValue}</p>
-                )}
-                {secondaryValue && (
-                  <p className="text-sm text-muted-foreground truncate">
-                    {secondaryValue}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                {badgeValue && (
-                  <Badge variant="secondary" className="rounded-lg text-xs">
-                    {badgeValue}
-                  </Badge>
-                )}
-
-                {rowActions && rowActions.length > 0 ? (
-                  <DataTableRowActions
-                    row={row}
-                    actions={rowActions}
-                    getAriaLabel={rowActionAriaLabel}
-                  />
-                ) : (
-                  onRowClick && (
-                    <ChevronRight className="size-4 text-muted-foreground" />
-                  )
-                )}
-              </div>
+              <DataTableCardIdentity
+                primaryValue={primaryValue}
+                secondaryValue={secondaryValue}
+              />
+              <DataTableCardTrailing
+                badgeValue={badgeValue}
+                row={row}
+                rowActions={rowActions}
+                rowActionAriaLabel={rowActionAriaLabel}
+                onRowClick={onRowClick}
+              />
             </div>
-
             {tertiaryValue && (
               <p className="text-xs text-muted-foreground">{tertiaryValue}</p>
             )}

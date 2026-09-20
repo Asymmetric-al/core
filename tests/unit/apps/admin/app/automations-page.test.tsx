@@ -21,7 +21,7 @@ type AutomationsPageComponent =
 type AutomationsPageViewComponent =
   typeof import("../../../../../apps/admin/app/(app)/automations/page-client").AutomationsPageView;
 type FilterAutomationRules =
-  typeof import("../../../../../apps/admin/app/(app)/automations/page-client").filterAutomationRules;
+  typeof import("../../../../../apps/admin/app/(app)/automations/automation-rules").filterAutomationRules;
 type AutomationRuleFixture = Parameters<FilterAutomationRules>[0][number];
 let AutomationsPage: AutomationsPageComponent;
 let AutomationsPageView: AutomationsPageViewComponent;
@@ -115,9 +115,11 @@ describe("apps/admin/app/(app)/automations/page-client", () => {
     if (!AutomationsPage || !AutomationsPageView || !filterAutomationRules) {
       const pageClient =
         await import("../../../../../apps/admin/app/(app)/automations/page-client");
+      const automationRules =
+        await import("../../../../../apps/admin/app/(app)/automations/automation-rules");
       AutomationsPage = pageClient.default;
       AutomationsPageView = pageClient.AutomationsPageView;
-      filterAutomationRules = pageClient.filterAutomationRules;
+      filterAutomationRules = automationRules.filterAutomationRules;
     }
   }, 30_000);
 
