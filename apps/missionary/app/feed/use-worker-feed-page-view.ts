@@ -25,6 +25,13 @@ function toError(failure: FetchFailure): Error {
   return new Error(failure.message);
 }
 
+function publishedFeedErrorMessage(failure: FetchFailure): string {
+  if (failure.kind === "http") {
+    return `Failed to load published posts (${failure.status})`;
+  }
+  return failure.message;
+}
+
 export type WorkerFeedPageViewModel = {
   postType: string;
   postContent: string;
@@ -48,6 +55,8 @@ export type WorkerFeedPageViewModel = {
   posts: Post[];
   drafts: Post[];
   pendingRequests: FollowerRequest[];
+  feedError: string | null;
+  reloadPosts: () => Promise<void>;
   simulateUpload: () => Promise<void>;
   handlePost: (status?: PostStatus) => Promise<void>;
   handleEditDraft: (draft: Post) => void;
@@ -162,6 +171,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [drafts, setDrafts] = useState<Post[]>([]);
+  const [feedError, setFeedError] = useState<string | null>(null);
   const [followerRequests, setFollowerRequests] = useState<FollowerRequest[]>(
     [],
   );
@@ -192,33 +202,45 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     toast.success("Image uploaded successfully!");
   };
 
-  // Initial loads. Requests go through the never-throwing fetch helpers, so
-  // no try/finally is needed (the React Compiler cannot lower those yet), and
-  // every state update happens after an await. `isLoading` and
-  // `isLoadingRequests` start as true, so nothing is set synchronously here.
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadPosts = async (status: PostStatus) => {
+  // Requests go through the never-throwing fetch helpers, so no try/finally
+  // is needed (the React Compiler cannot lower those yet). Every state
+  // update happens after an await. `isLoading` and `isLoadingRequests`
+  // start as true for the initial effect, so nothing is set synchronously
+  // there. `reloadPosts` may flip `isLoading` before the published refetch.
+  const loadPosts = useCallback(
+    async (status: PostStatus, isCurrent: () => boolean = () => true) => {
       const result = await fetchJsonResult<{ posts?: Post[] }>(
         `/api/posts?status=${status}`,
       );
-      if (cancelled) return;
+      if (!isCurrent()) return;
       if (result.ok) {
-        if (status === "published") setPosts(result.data.posts || []);
-        else setDrafts(result.data.posts || []);
+        if (status === "published") {
+          setPosts(result.data.posts || []);
+          setFeedError(null);
+        } else setDrafts(result.data.posts || []);
       } else {
         console.error("Failed to fetch posts:", toError(result.error));
-        toast.error("Could not load feed");
+        if (status === "published") {
+          setFeedError(publishedFeedErrorMessage(result.error));
+        }
+        toast.error("Could not load feed", { id: "worker-feed-load-error" });
       }
       setIsLoading(false);
-    };
+    },
+    [setIsLoading],
+  );
 
-    const loadFollowerRequests = async () => {
+  const reloadPosts = useCallback(async () => {
+    setIsLoading(true);
+    await loadPosts("published");
+  }, [loadPosts, setIsLoading]);
+
+  const loadFollowerRequests = useCallback(
+    async (isCurrent: () => boolean = () => true) => {
       const result = await fetchJsonResult<{ requests?: FollowerRequest[] }>(
         "/api/follower-requests?status=pending",
       );
-      if (cancelled) return;
+      if (!isCurrent()) return;
       if (result.ok) {
         setFollowerRequests(result.data.requests || []);
       } else {
@@ -226,18 +248,27 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
           "Failed to fetch follower requests:",
           toError(result.error),
         );
+        toast.error("Could not load follower requests", {
+          id: "worker-feed-follower-requests-load-error",
+        });
       }
       setIsLoadingRequests(false);
-    };
+    },
+    [setIsLoadingRequests],
+  );
 
-    void loadPosts("published");
-    void loadPosts("draft");
-    void loadFollowerRequests();
+  useEffect(() => {
+    let cancelled = false;
+    const isCurrent = () => !cancelled;
+
+    void loadPosts("published", isCurrent);
+    void loadPosts("draft", isCurrent);
+    void loadFollowerRequests(isCurrent);
 
     return () => {
       cancelled = true;
     };
-  }, [setIsLoading, setIsLoadingRequests]);
+  }, [loadFollowerRequests, loadPosts]);
 
   const handlePost = useCallback(
     async (status: PostStatus = "published") => {
@@ -379,6 +410,8 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     posts,
     drafts,
     pendingRequests,
+    feedError,
+    reloadPosts,
     simulateUpload,
     handlePost,
     handleEditDraft,

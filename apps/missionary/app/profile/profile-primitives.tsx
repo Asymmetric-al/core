@@ -150,31 +150,19 @@ export function FormField({
         {label}
       </Label>
       {children}
-      <AnimatePresence mode="wait">
+      <div className="min-h-4">
         {error ? (
-          <motion.p
-            key="error"
+          <p
             className="text-xs text-red-500 flex items-center gap-1"
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.2 }}
+            role="alert"
           >
             <AlertCircle className="size-3 flex-shrink-0" />
             {error}
-          </motion.p>
+          </p>
         ) : helperText ? (
-          <motion.div
-            key="helper"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            {helperText}
-          </motion.div>
+          helperText
         ) : null}
-      </AnimatePresence>
+      </div>
     </motion.div>
   );
 }

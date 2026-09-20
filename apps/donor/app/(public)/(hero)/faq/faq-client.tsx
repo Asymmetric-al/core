@@ -1,7 +1,10 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { transitionStandard } from "@asym/lib/motion-presets";
+import {
+  transitionExitQuick,
+  transitionStandard,
+} from "@asym/lib/motion-presets";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { cn } from "@asym/ui/lib/utils";
@@ -197,12 +200,12 @@ const AccordionItem = ({
           </span>
         </div>
       </button>
-      <AnimatePresence initial={false}>
+      <AnimatePresence initial={false} mode="popLayout">
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: transitionExitQuick }}
             transition={transitionStandard}
           >
             <div className="px-6 pb-6 pl-[3.5rem] pr-8 text-zinc-600 leading-relaxed font-light">
