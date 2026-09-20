@@ -162,4 +162,55 @@ describe("beginGiftIntake", () => {
       code: "incomplete",
     });
   });
+
+  it("forwards p_fee_extras when feeExtras is provided", async () => {
+    const rpc = mockRpc({
+      data: {
+        donation_id: "don-1",
+        outbox_id: "out-1",
+        replayed: false,
+      },
+      error: null,
+    });
+    const feeExtras = {
+      gift_amount_cents: "2500",
+      cover_fees: "true",
+      payment_method: "card",
+      cover_amount_cents: "103",
+      estimated_fee_cents: "103",
+    };
+
+    await beginGiftIntake({ ...BASE_INPUT, rpc, feeExtras });
+
+    expect(rpc).toHaveBeenCalledWith("begin_donation_saga", {
+      p_tenant_id: "tenant-1",
+      p_profile_id: "profile-1",
+      p_actor_user_id: "user-1",
+      p_missionary_id: "missionary-1",
+      p_fund_id: null,
+      p_amount: 2500,
+      p_currency: "usd",
+      p_idempotency_key: "idem-1",
+      p_ip_address: "127.0.0.1",
+      p_user_agent: "vitest",
+      p_fee_extras: feeExtras,
+    });
+  });
+
+  it("omits p_fee_extras when feeExtras is not provided", async () => {
+    const rpc = mockRpc({
+      data: {
+        donation_id: "don-1",
+        outbox_id: "out-1",
+        replayed: false,
+      },
+      error: null,
+    });
+
+    await beginGiftIntake({ ...BASE_INPUT, rpc });
+
+    const rpcArgs = vi.mocked(rpc).mock.calls[0]?.[1];
+    expect(rpcArgs).toBeDefined();
+    expect(rpcArgs).not.toHaveProperty("p_fee_extras");
+  });
 });

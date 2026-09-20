@@ -1,5 +1,7 @@
 import { parseRpcObject } from "../shared/parse-rpc-object";
 
+export type GiftIntakeFeeExtras = Record<string, string>;
+
 export type GiftIntakeRpcInvoker = (
   fn: "begin_donation_saga",
   args: {
@@ -13,6 +15,7 @@ export type GiftIntakeRpcInvoker = (
     p_idempotency_key: string;
     p_ip_address: string | null;
     p_user_agent: string | null;
+    p_fee_extras?: GiftIntakeFeeExtras;
   },
 ) => Promise<{
   data: unknown;
@@ -31,6 +34,7 @@ export type BeginGiftIntakeInput = {
   idempotencyKey: string;
   ipAddress: string | null;
   userAgent: string | null;
+  feeExtras?: GiftIntakeFeeExtras;
 };
 
 export type BeginGiftIntakeResult =
@@ -67,6 +71,7 @@ export async function beginGiftIntake(
     p_idempotency_key: input.idempotencyKey,
     p_ip_address: input.ipAddress,
     p_user_agent: input.userAgent,
+    ...(input.feeExtras === undefined ? {} : { p_fee_extras: input.feeExtras }),
   });
 
   if (error) {
