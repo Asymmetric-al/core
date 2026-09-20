@@ -61,7 +61,7 @@ function EmailStudioSaveDialogFields({
   const [draft, setDraft] = useState<EmailMetadata>(metadata);
 
   return (
-    <DialogContent className="sm:max-w-[480px]">
+    <DialogContent className="sm:max-w-[480px]" showCloseButton={!isSaving}>
       <DialogHeader>
         <DialogTitle>Save Email Template</DialogTitle>
         <DialogDescription>
@@ -78,6 +78,7 @@ function EmailStudioSaveDialogFields({
             id="template-name"
             placeholder="e.g., Monthly Newsletter"
             value={draft.name}
+            disabled={isSaving}
             onChange={(event) =>
               setDraft((current) => ({
                 ...current,
@@ -92,6 +93,7 @@ function EmailStudioSaveDialogFields({
             id="template-subject"
             placeholder="e.g., Exciting Updates from Our Ministry"
             value={draft.subject}
+            disabled={isSaving}
             onChange={(event) =>
               setDraft((current) => ({
                 ...current,
@@ -109,6 +111,7 @@ function EmailStudioSaveDialogFields({
             id="template-preheader"
             placeholder="Preview text that appears after the subject in inbox..."
             value={draft.preheader}
+            disabled={isSaving}
             onChange={(event) =>
               setDraft((current) => ({
                 ...current,
@@ -134,7 +137,11 @@ function EmailStudioSaveDialogFields({
           onClick={() => onConfirmSave(draft)}
           disabled={!draft.name.trim() || isSaving}
         >
-          {isSaving ? <Spinner /> : <Save />}
+          {isSaving ? (
+            <Spinner data-icon="inline-start" />
+          ) : (
+            <Save data-icon="inline-start" />
+          )}
           Save Template
         </Button>
       </DialogFooter>

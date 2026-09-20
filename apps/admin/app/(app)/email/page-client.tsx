@@ -8,6 +8,7 @@ import {
 } from "@asym/database/query-keys";
 import {
   EMPTY_REACT_EMAIL_DESIGN,
+  isRecord,
   type EmailStudioEditorHandle,
   type EmailStudioExportOptions,
 } from "@asym/email/email-builder-types";
@@ -63,6 +64,10 @@ function coercePreviewText(value: string | null | undefined): string {
   return value ?? "";
 }
 
+function studioEditorDesign(value: unknown): Record<string, unknown> {
+  return isRecord(value) ? value : EMPTY_REACT_EMAIL_DESIGN;
+}
+
 function studioExportOptions(
   metadata: EmailMetadata,
   minifyHtml: boolean | undefined,
@@ -107,6 +112,9 @@ export default function EmailStudio() {
   const saveInFlightRef = useRef(false);
   const testSendInFlightRef = useRef(false);
   const [metadata, setMetadata] = useState<EmailMetadata>(DEFAULT_METADATA);
+  const [initialDesign, setInitialDesign] = useState<Record<string, unknown>>(
+    EMPTY_REACT_EMAIL_DESIGN,
+  );
   const [previewResult, setPreviewResult] = useState<PreviewResult | null>(
     null,
   );
@@ -234,11 +242,17 @@ export default function EmailStudio() {
         studioExportOptions(nextMetadata, ui.studioConfig?.export.minifyHtml),
       );
       const saved = await persistEmailTemplate(nextMetadata, exportResult);
+      const nextDesign = studioEditorDesign(exportResult.design);
+      setInitialDesign(nextDesign);
       setMetadata({
         ...nextMetadata,
         id: saved.id,
         name: saved.name,
       });
+      if (nextMetadata.id !== saved.id) {
+        pendingDesignRef.current = null;
+        dispatch({ type: "editor_unmounted" });
+      }
       dispatch({ type: "set_unsaved_changes", unsaved: false });
       void invalidateAdminSurfaceQuery(queryClient, "emailTemplates");
       return saved;
@@ -295,13 +309,25 @@ export default function EmailStudio() {
   );
 
   const handleNewTemplate = useCallback(() => {
+    if (saveInFlightRef.current || testSendInFlightRef.current) {
+      return;
+    }
+    setShowTestSendDialog(false);
+    dispatch({ type: "set_show_save_dialog", open: false });
+    const remountEditor = metadata.id !== null || isLegacyReadOnly;
     setMetadata(DEFAULT_METADATA);
     setPreviewResult(null);
     setLegacyPreviewResult(null);
+    setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
     dispatch({ type: "set_unsaved_changes", unsaved: false });
-    loadEditorDesign(EMPTY_REACT_EMAIL_DESIGN);
+    if (remountEditor) {
+      pendingDesignRef.current = null;
+      dispatch({ type: "editor_unmounted" });
+    } else {
+      loadEditorDesign(EMPTY_REACT_EMAIL_DESIGN);
+    }
     toast.success("New template created");
-  }, [loadEditorDesign]);
+  }, [isLegacyReadOnly, loadEditorDesign, metadata.id]);
 
   const handleSelectTemplate = useCallback(
     (template: EmailTemplateListEntry) => {
@@ -319,23 +345,24 @@ export default function EmailStudio() {
         pendingDesignRef.current = null;
         setLegacyPreviewResult(preview);
         setPreviewResult(preview);
+        setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
         dispatch({ type: "editor_unmounted" });
         dispatch({ type: "set_unsaved_changes", unsaved: false });
         toast.info("Legacy template opened read-only", {
           description:
-            "Legacy templates can't be edited in React Email. Showing a preview.",
+            "Legacy templates cannot be edited in React Email. Showing a preview.",
         });
         return;
       }
+      const design = studioEditorDesign(template.design_json);
       setLegacyPreviewResult(null);
       setPreviewResult(null);
-      loadEditorDesign(
-        (template.design_json as Record<string, unknown> | null) ??
-          EMPTY_REACT_EMAIL_DESIGN,
-      );
+      setInitialDesign(design);
+      pendingDesignRef.current = null;
+      dispatch({ type: "editor_unmounted" });
       dispatch({ type: "set_unsaved_changes", unsaved: false });
     },
-    [loadEditorDesign],
+    [],
   );
 
   const handleConfirmTestSend = useCallback(async () => {
@@ -384,11 +411,11 @@ export default function EmailStudio() {
       setIsSendingTest(false);
     }
   }, [
+    canEditCurrentTemplate,
     isLegacyReadOnly,
     metadata,
     testToEmail,
     ui.studioConfig?.export.minifyHtml,
-    canEditCurrentTemplate,
   ]);
 
   const handleCopyHtml = useCallback(async () => {
@@ -503,7 +530,12 @@ export default function EmailStudio() {
         onInsertMergeTag={(key) => editorRef.current?.insertMergeTag?.(key)}
         onSaveClick={handleSaveClick}
         onNewTemplate={handleNewTemplate}
-        onLoadTemplate={() => setShowTemplatePicker(true)}
+        onLoadTemplate={() => {
+          if (saveInFlightRef.current || testSendInFlightRef.current) {
+            return;
+          }
+          setShowTemplatePicker(true);
+        }}
         onToggleFullscreen={() => dispatch({ type: "toggle_fullscreen" })}
       />
 
@@ -523,7 +555,9 @@ export default function EmailStudio() {
           </Alert>
         ) : (
           <EmailStudioEditor
+            key={metadata.id ?? "draft"}
             ref={editorRef}
+            initialDesign={initialDesign}
             templateId={metadata.id}
             onReady={handleEditorReady}
             onDesignUpdate={() =>

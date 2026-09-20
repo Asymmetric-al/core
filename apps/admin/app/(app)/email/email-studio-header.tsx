@@ -187,25 +187,39 @@ export function EmailStudioHeader({
         onClick={onSaveClick}
         disabled={!isEditorReady || isSaving || isSendingTest}
       >
-        {isSaving ? <Spinner /> : <Save />}
+        {isSaving ? (
+          <Spinner data-icon="inline-start" />
+        ) : (
+          <Save data-icon="inline-start" />
+        )}
         Save
       </Button>
 
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button variant="ghost" size="icon-sm" aria-label="More">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="More email template actions"
+            >
               <MoreVertical />
             </Button>
           }
         />
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={onNewTemplate}>
+            <DropdownMenuItem
+              onClick={onNewTemplate}
+              disabled={isSaving || isSendingTest}
+            >
               <Plus />
               New Template
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onLoadTemplate}>
+            <DropdownMenuItem
+              onClick={onLoadTemplate}
+              disabled={isSaving || isSendingTest}
+            >
               <FileText />
               Load Template
             </DropdownMenuItem>

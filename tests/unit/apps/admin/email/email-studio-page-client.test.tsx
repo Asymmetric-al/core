@@ -369,14 +369,25 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
 
   const EmailStudioEditor = ReactModule.forwardRef(function EmailStudioEditor(
     {
+      initialDesign,
       onReady,
       onDesignUpdate,
+      templateId,
     }: {
+      initialDesign?: Record<string, unknown> | string | null;
       onReady?: () => void;
       onDesignUpdate?: (design: Record<string, unknown>) => void;
+      templateId?: string | null;
     },
     ref: React.Ref<typeof editorHandle>,
   ) {
+    const applyInitialDesign = () => {
+      if (initialDesign && typeof initialDesign === "object") {
+        editorHandle.appliedDesign = initialDesign;
+        editorHandle.loadDesign(initialDesign);
+      }
+    };
+
     ReactModule.useImperativeHandle(ref, () => editorHandle, []);
     ReactModule.useEffect(() => {
       editorMount.count += 1;
@@ -384,6 +395,7 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
         editorReadyControl.nestedReady = false;
         editorReadyControl.fireReady = () => {
           editorReadyControl.nestedReady = true;
+          applyInitialDesign();
           onReady?.();
         };
         return () => {
@@ -391,12 +403,19 @@ vi.mock("@asym/ui/components/studio/EmailStudioEditor", async () => {
         };
       }
       editorReadyControl.nestedReady = true;
+      applyInitialDesign();
       onReady?.();
     }, [onReady]);
 
     return (
       <div data-testid="react-email-editor">
         React Email editor
+        <span data-testid="editor-template-id">{templateId ?? "draft"}</span>
+        <span data-testid="editor-design">
+          {initialDesign === undefined
+            ? "missing"
+            : JSON.stringify(initialDesign)}
+        </span>
         <button
           type="button"
           onClick={() => onDesignUpdate?.({ blocks: [{ id: "hero" }] })}
@@ -562,7 +581,7 @@ describe("EmailStudio page", () => {
     expect(screen.queryByTestId("react-email-editor")).toBeNull();
   });
 
-  it("loads a react_email design into the existing editor without remounting", async () => {
+  it("remounts a loaded React Email template with its design JSON, not an empty editor", async () => {
     const reactDesign = { body: { rows: [{ cells: [1], columns: [{}] }] } };
     stubStudioFetch((url, method) => {
       if (method === "GET" && url === "/api/email/templates") {
@@ -604,10 +623,14 @@ describe("EmailStudio page", () => {
     );
 
     await waitFor(() => {
-      expect(editorHandle.loadDesign).toHaveBeenCalledWith(reactDesign);
+      expect(screen.getByTestId("editor-template-id").textContent).toBe(
+        "react-welcome",
+      );
     });
-    expect(editorMount.count).toBe(mountsBeforeLoad);
-    expect(screen.getByTestId("react-email-editor")).toBeTruthy();
+    expect(editorMount.count).toBeGreaterThan(mountsBeforeLoad);
+    expect(screen.getByTestId("editor-design").textContent).toBe(
+      JSON.stringify(reactDesign),
+    );
   });
 
   it("sends one persist request when Save Template is clicked twice", async () => {
@@ -792,7 +815,9 @@ describe("EmailStudio page", () => {
     expect(
       screen.getByRole("button", { name: /mobile preview/i }),
     ).toBeTruthy();
-    expect(screen.getByRole("button", { name: /^more$/i })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /more email template actions/i }),
+    ).toBeTruthy();
     expect(screen.getByRole("button", { name: /^fullscreen$/i })).toBeTruthy();
   });
 
@@ -980,6 +1005,7 @@ describe("EmailStudio page", () => {
     );
 
     editorReadyControl.defer = true;
+    editorHandle.appliedDesign = {};
     fireEvent.click(screen.getByRole("button", { name: /load template/i }));
     fireEvent.click(
       await screen.findByRole("button", { name: /react welcome/i }),
@@ -1013,7 +1039,19 @@ describe("EmailStudio page", () => {
     ).toEqual([]);
   });
 
-  it("persists the save-dialog draft name without remounting the editor", async () => {
+  it("keeps the exported design after the first save remounts the editor onto a template id", async () => {
+    const exportedDesign = {
+      type: "doc",
+      content: [{ type: "heading", attrs: { level: 1 } }],
+    };
+    editorHandle.appliedDesign = exportedDesign;
+    editorHandle.exportEmail.mockResolvedValue({
+      builder: "react_email",
+      builderVersion: "1.5.3",
+      design: exportedDesign,
+      html: "<h1>Campaign</h1>",
+      text: "Campaign",
+    });
     const fetchMock = stubStudioFetch();
 
     render(
@@ -1044,10 +1082,64 @@ describe("EmailStudio page", () => {
       expect(body.name).toBe("April campaign");
     });
 
-    expect(editorMount.count).toBe(mountsBeforeSave);
+    await waitFor(() => {
+      expect(screen.getByTestId("editor-template-id").textContent).toBe(
+        "tmpl_new",
+      );
+    });
+    expect(editorMount.count).toBeGreaterThan(mountsBeforeSave);
+    expect(screen.getByTestId("editor-design").textContent).toBe(
+      JSON.stringify(exportedDesign),
+    );
     await waitFor(() => {
       expect(screen.queryByText("Unsaved")).toBeNull();
     });
+  });
+
+  it("does not persist empty HTML while the remounted editor is not ready", async () => {
+    const fetchMock = stubStudioFetch();
+
+    render(
+      <QueryProvider>
+        <EmailStudio />
+      </QueryProvider>,
+    );
+
+    await screen.findByTestId("react-email-editor");
+    editorReadyControl.defer = true;
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save template/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("editor-template-id").textContent).toBe(
+        "tmpl_new",
+      );
+    });
+
+    expect(
+      (screen.getByRole("button", { name: /^save$/i }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+
+    editorHandle.exportEmail.mockClear();
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    const leftoverConfirm = screen.queryByRole("button", {
+      name: /save template/i,
+    });
+    if (leftoverConfirm && !(leftoverConfirm as HTMLButtonElement).disabled) {
+      fireEvent.click(leftoverConfirm);
+    }
+
+    expect(editorHandle.exportEmail).not.toHaveBeenCalled();
+    expect(
+      fetchMock.mock.calls.filter(([url, init]) => {
+        const method = String((init as RequestInit | undefined)?.method);
+        const path = String(url);
+        return (
+          method === "PATCH" && /^\/api\/email\/templates\/[^/]+$/.test(path)
+        );
+      }),
+    ).toEqual([]);
   });
 
   it("submits the test-send form and falls back when messageId is absent", async () => {

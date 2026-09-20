@@ -9,7 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
-import { Field, FieldLabel } from "@asym/ui/components/shadcn/field";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@asym/ui/components/shadcn/field";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Spinner } from "@asym/ui/components/shadcn/spinner";
 import { Send } from "lucide-react";
@@ -33,7 +37,7 @@ export function EmailStudioTestSendDialog({
 }: EmailStudioTestSendDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-[420px]" showCloseButton={!isSending}>
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -47,17 +51,20 @@ export function EmailStudioTestSendDialog({
               Resend connection.
             </DialogDescription>
           </DialogHeader>
-          <Field className="py-2">
-            <FieldLabel htmlFor="test-to-email">Recipient</FieldLabel>
-            <Input
-              id="test-to-email"
-              type="email"
-              required
-              placeholder="you@example.com"
-              value={toEmail}
-              onChange={(event) => onToEmailChange(event.target.value)}
-            />
-          </Field>
+          <FieldGroup className="py-2">
+            <Field>
+              <FieldLabel htmlFor="test-to-email">Recipient</FieldLabel>
+              <Input
+                id="test-to-email"
+                type="email"
+                required
+                placeholder="you@example.com"
+                value={toEmail}
+                disabled={isSending}
+                onChange={(event) => onToEmailChange(event.target.value)}
+              />
+            </Field>
+          </FieldGroup>
           <DialogFooter>
             <Button
               type="button"
@@ -71,7 +78,11 @@ export function EmailStudioTestSendDialog({
               type="submit"
               disabled={isSending || toEmail.trim().length === 0}
             >
-              {isSending ? <Spinner /> : <Send />}
+              {isSending ? (
+                <Spinner data-icon="inline-start" />
+              ) : (
+                <Send data-icon="inline-start" />
+              )}
               Send
             </Button>
           </DialogFooter>
