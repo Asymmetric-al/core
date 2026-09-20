@@ -358,11 +358,16 @@ export default function EmailStudio() {
       setLegacyPreviewResult(null);
       setPreviewResult(null);
       setInitialDesign(design);
-      pendingDesignRef.current = null;
-      dispatch({ type: "editor_unmounted" });
+      const remountEditor = isLegacyReadOnly || metadata.id !== template.id;
+      if (remountEditor) {
+        pendingDesignRef.current = null;
+        dispatch({ type: "editor_unmounted" });
+      } else {
+        loadEditorDesign(design);
+      }
       dispatch({ type: "set_unsaved_changes", unsaved: false });
     },
-    [],
+    [isLegacyReadOnly, loadEditorDesign, metadata.id],
   );
 
   const handleConfirmTestSend = useCallback(async () => {
