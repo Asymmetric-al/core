@@ -49,6 +49,31 @@ function describeInput(input: RequestInfo | URL): string {
   return input.url;
 }
 
+export type JsonBody<T> = {
+  ok: boolean;
+  status: number;
+  /** Parsed JSON body, or `null` when the body was empty or not JSON. */
+  body: T | null;
+};
+
+/**
+ * Read a JSON body regardless of status while still checking `response.ok`
+ * first. Many API routes here return `{ error }` payloads on 4xx/5xx that the
+ * caller wants to surface, so the body is needed on both branches; doing the
+ * status check before consuming the stream keeps that explicit and audited in
+ * one place.
+ */
+export async function readJsonBody<T>(
+  response: Response,
+): Promise<JsonBody<T>> {
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as T | null;
+    return { ok: false, status: response.status, body };
+  }
+  const body = (await response.json().catch(() => null)) as T | null;
+  return { ok: true, status: response.status, body };
+}
+
 /** `fetch` that resolves to a result; the body is untouched on success. */
 export async function fetchResult(
   input: RequestInfo | URL,

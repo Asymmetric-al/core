@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { parseJsonResponse } from "../http/parse-json-response";
+
 export type MissionaryPortalTask = {
   id: string;
   missionary_id: string;
@@ -96,24 +98,6 @@ export type MissionaryPortalSnapshot = {
 };
 
 const MISSIONARY_PORTAL_QUERY_KEY = ["missionary", "portal"] as const;
-
-async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const payload = (await response.json().catch(() => null)) as
-    | (T & { error?: string })
-    | null;
-
-  if (!response.ok) {
-    throw new Error(
-      payload?.error || `Request failed with status ${response.status}`,
-    );
-  }
-
-  if (!payload) {
-    throw new Error("Request returned an empty response.");
-  }
-
-  return payload;
-}
 
 export async function fetchMissionaryPortalSnapshot(): Promise<MissionaryPortalSnapshot> {
   const response = await fetch("/api/missionary/portal", {

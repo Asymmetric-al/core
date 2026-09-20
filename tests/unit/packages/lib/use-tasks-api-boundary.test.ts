@@ -15,6 +15,8 @@ describe("missionary task hook API boundary", () => {
     expect(source).not.toMatch(/createBrowserClient/);
     expect(source).not.toMatch(/from\("missionary_tasks"\)/);
     expect(source).toContain("/api/missionary/tasks");
+    expect(source).toContain("fetchJsonResult");
+    expect(source).not.toContain("parseJsonResponse");
     expect(source).not.toMatch(/notes:/);
     expect(source).not.toMatch(/reminder_date:/);
   });

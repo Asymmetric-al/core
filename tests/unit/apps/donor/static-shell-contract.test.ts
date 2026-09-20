@@ -244,6 +244,32 @@ describe("donor shell contract: public static shell + dashboard gate ordering", 
     expect(source).toMatch(/redirect\("\/no-access"\)/);
   });
 
+  it("gives every live Navbar consumer a real main skip target", () => {
+    const hero = read("apps/donor/app/(public)/(hero)/layout.tsx");
+    const solid = read("apps/donor/app/(public)/(solid)/layout.tsx");
+    const dashboard = read(
+      "apps/donor/app/(dashboard)/donor-dashboard/layout.tsx",
+    );
+
+    expect(hero).toMatch(/<main\b[^>]*\bid=["']main-content["']/);
+    expect(solid).toMatch(/<main\b[^>]*\bid=["']main-content["']/);
+    expect(dashboard).toMatch(/<main\b[^>]*\bid=["']main-content["']/);
+    expect(hero).not.toMatch(/<div id=["']main-content["']/);
+    expect(solid).not.toMatch(/<div id=["']main-content["']/);
+  });
+
+  it("avoids nested main landmarks under the public skip target", () => {
+    expect(
+      read("apps/donor/app/(public)/(solid)/where-we-work/page.tsx"),
+    ).not.toMatch(/<main\b/);
+    expect(
+      read("apps/donor/app/(public)/(solid)/workers/[id]/layout.tsx"),
+    ).not.toMatch(/<main\b/);
+    expect(
+      read("apps/donor/app/(public)/(solid)/sign/[token]/page-client.tsx"),
+    ).not.toMatch(/<main\b/);
+  });
+
   it("keeps the edge as the primary role gate for the dashboard", () => {
     const source = read("apps/donor/proxy.ts");
 
