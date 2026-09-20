@@ -13,8 +13,126 @@ import Link from "next/link";
 import { formatSupportRelativeTime } from "../../support-hub.derived";
 import { supportHubRoutes } from "../../support-hub.routes";
 
+import type {
+  SupportContact,
+  SupportMacro,
+  SupportQueue,
+  SupportTicket,
+} from "@asym/api/admin/support/types";
+
 interface SupportTicketDetailPageProps {
   params: Promise<{ id: string }>;
+}
+
+function SupportTicketNotFoundPage({ id }: { id: string }) {
+  return (
+    <PageShell
+      title="Support Ticket Not Found"
+      description="The requested support ticket could not be found."
+    >
+      <Card className="rounded-3xl">
+        <CardHeader>
+          <CardTitle>Missing ticket</CardTitle>
+          <CardDescription>
+            Ticket {id} does not exist in the current Support Hub data set.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link
+            href={supportHubRoutes.tickets}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            Back to tickets
+          </Link>
+        </CardContent>
+      </Card>
+    </PageShell>
+  );
+}
+
+function SupportTicketMetrics({
+  ticket,
+  queue,
+  generatedAt,
+}: {
+  ticket: SupportTicket;
+  queue: SupportQueue | undefined;
+  generatedAt: string;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-4">
+      {[
+        ["Status", ticket.status],
+        ["Priority", ticket.priority],
+        ["Track", queue?.label ?? ticket.queueId],
+        [
+          "Follow-up",
+          ticket.followUpAt
+            ? formatSupportRelativeTime(ticket.followUpAt, generatedAt)
+            : "Not scheduled",
+        ],
+      ].map(([label, value]) => (
+        <div className="rounded-2xl bg-muted p-3" key={label}>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+            {label}
+          </p>
+          <p className="mt-1 font-semibold">{value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SupportTicketContactCard({
+  contact,
+  ticket,
+}: {
+  contact: SupportContact | undefined;
+  ticket: SupportTicket;
+}) {
+  return (
+    <Card className="rounded-3xl">
+      <CardHeader>
+        <CardTitle>Contact context</CardTitle>
+        <CardDescription>
+          {contact?.relationship ?? "No linked contact"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm text-muted-foreground">
+        <p className="font-semibold text-foreground">
+          {contact?.name ??
+            ticket.contactName ??
+            ticket.contactNameSnapshot ??
+            "Unknown contact"}
+        </p>
+        <p>
+          {contact?.email ?? ticket.contactEmail ?? ticket.contactEmailSnapshot}
+        </p>
+        <p>{contact?.organization}</p>
+        <p>{contact?.givingSummary}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SupportTicketMacroCard({
+  macro,
+}: {
+  macro: SupportMacro | undefined;
+}) {
+  return (
+    <Card className="rounded-3xl">
+      <CardHeader>
+        <CardTitle>Suggested macro</CardTitle>
+        <CardDescription>{macro?.title ?? "No macro found"}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm leading-6 text-muted-foreground">
+          {macro?.preview ?? "Create a track-specific macro before replying."}
+        </p>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default async function SupportTicketDetailPage({
@@ -25,29 +143,7 @@ export default async function SupportTicketDetailPage({
   const { ticket } = model;
 
   if (!ticket) {
-    return (
-      <PageShell
-        title="Support Ticket Not Found"
-        description="The requested support ticket could not be found."
-      >
-        <Card className="rounded-3xl">
-          <CardHeader>
-            <CardTitle>Missing ticket</CardTitle>
-            <CardDescription>
-              Ticket {id} does not exist in the current Support Hub data set.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link
-              href={supportHubRoutes.tickets}
-              className={buttonVariants({ variant: "outline" })}
-            >
-              Back to tickets
-            </Link>
-          </CardContent>
-        </Card>
-      </PageShell>
-    );
+    return <SupportTicketNotFoundPage id={id} />;
   }
 
   const contact = ticket.contactId
@@ -76,29 +172,11 @@ export default async function SupportTicketDetailPage({
             <CardDescription>{ticket.summary}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-4">
-              {[
-                ["Status", ticket.status],
-                ["Priority", ticket.priority],
-                ["Track", queue?.label ?? ticket.queueId],
-                [
-                  "Follow-up",
-                  ticket.followUpAt
-                    ? formatSupportRelativeTime(
-                        ticket.followUpAt,
-                        model.generatedAt,
-                      )
-                    : "Not scheduled",
-                ],
-              ].map(([label, value]) => (
-                <div className="rounded-2xl bg-muted p-3" key={label}>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                    {label}
-                  </p>
-                  <p className="mt-1 font-semibold">{value}</p>
-                </div>
-              ))}
-            </div>
+            <SupportTicketMetrics
+              ticket={ticket}
+              queue={queue}
+              generatedAt={model.generatedAt}
+            />
 
             <div className="rounded-2xl border border-border p-4">
               <p className="text-sm font-bold">Latest activity</p>
@@ -111,44 +189,8 @@ export default async function SupportTicketDetailPage({
         </Card>
 
         <aside className="space-y-4">
-          <Card className="rounded-3xl">
-            <CardHeader>
-              <CardTitle>Contact context</CardTitle>
-              <CardDescription>
-                {contact?.relationship ?? "No linked contact"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p className="font-semibold text-foreground">
-                {contact?.name ??
-                  ticket.contactName ??
-                  ticket.contactNameSnapshot ??
-                  "Unknown contact"}
-              </p>
-              <p>
-                {contact?.email ??
-                  ticket.contactEmail ??
-                  ticket.contactEmailSnapshot}
-              </p>
-              <p>{contact?.organization}</p>
-              <p>{contact?.givingSummary}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-3xl">
-            <CardHeader>
-              <CardTitle>Suggested macro</CardTitle>
-              <CardDescription>
-                {macro?.title ?? "No macro found"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-6 text-muted-foreground">
-                {macro?.preview ??
-                  "Create a track-specific macro before replying."}
-              </p>
-            </CardContent>
-          </Card>
+          <SupportTicketContactCard contact={contact} ticket={ticket} />
+          <SupportTicketMacroCard macro={macro} />
         </aside>
       </div>
     </PageShell>

@@ -23,13 +23,13 @@ type ReportsPageComponent =
 type ReportsPageViewComponent =
   typeof import("../../../../../apps/admin/app/(app)/reports/page-client").ReportsPageView;
 type DeriveReportKpis =
-  typeof import("../../../../../apps/admin/app/(app)/reports/page-client").deriveReportKpis;
+  typeof import("../../../../../apps/admin/app/(app)/reports/report-model").deriveReportKpis;
 type BuildReportSummary =
-  typeof import("../../../../../apps/admin/app/(app)/reports/page-client").buildReportSummary;
+  typeof import("../../../../../apps/admin/app/(app)/reports/report-model").buildReportSummary;
 type DeriveGivingByFund =
-  typeof import("../../../../../apps/admin/app/(app)/reports/page-client").deriveGivingByFund;
+  typeof import("../../../../../apps/admin/app/(app)/reports/report-model").deriveGivingByFund;
 type DeriveDonorsByFund =
-  typeof import("../../../../../apps/admin/app/(app)/reports/page-client").deriveDonorsByFund;
+  typeof import("../../../../../apps/admin/app/(app)/reports/report-model").deriveDonorsByFund;
 
 let ReportsPage: ReportsPageComponent;
 let ReportsPageView: ReportsPageViewComponent;
@@ -143,12 +143,14 @@ describe("apps/admin/app/(app)/reports/page-client", () => {
     ) {
       const pageClient =
         await import("../../../../../apps/admin/app/(app)/reports/page-client");
+      const reportModel =
+        await import("../../../../../apps/admin/app/(app)/reports/report-model");
       ReportsPage = pageClient.default;
       ReportsPageView = pageClient.ReportsPageView;
-      deriveReportKpis = pageClient.deriveReportKpis;
-      buildReportSummary = pageClient.buildReportSummary;
-      deriveGivingByFund = pageClient.deriveGivingByFund;
-      deriveDonorsByFund = pageClient.deriveDonorsByFund;
+      deriveReportKpis = reportModel.deriveReportKpis;
+      buildReportSummary = reportModel.buildReportSummary;
+      deriveGivingByFund = reportModel.deriveGivingByFund;
+      deriveDonorsByFund = reportModel.deriveDonorsByFund;
     }
   });
 
