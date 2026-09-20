@@ -18,4 +18,21 @@ describe("checkout runtime config apply-time identity", () => {
       "runtimeConfigAbortRef.current !== abortController",
     );
   });
+
+  it("mirrors the mounted publishable key in an effect, not during render", () => {
+    const source = readFileSync(
+      new URL(
+        "apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx",
+        root,
+      ),
+      "utf8",
+    );
+
+    expect(source).not.toMatch(
+      /const mountedPublishableKeyRef = useRef\(mountedPublishableKey\);\s*mountedPublishableKeyRef\.current = mountedPublishableKey;/,
+    );
+    expect(source).toMatch(
+      /useEffect\(\(\) => \{\s*checkoutStateRef\.current = checkoutState;\s*currentRequestFingerprintRef\.current = currentRequestFingerprint;\s*mountedPublishableKeyRef\.current = mountedPublishableKey;/,
+    );
+  });
 });

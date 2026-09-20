@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
@@ -15,5 +17,19 @@ describe("TimeAgo SSR", () => {
   it("keeps a date-only YYYY-MM-DD on its calendar day", () => {
     const html = renderToString(<TimeAgo date={DATE_ONLY} />);
     expect(html).toContain("Jan 5");
+  });
+});
+
+describe("TimeAgo source contracts", () => {
+  it("does not keep a leftover local formatDate helper", () => {
+    const source = readFileSync(
+      new URL(
+        "../../../../packages/lib/hooks/use-time-ago.tsx",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+
+    expect(source).not.toMatch(/\bfunction formatDate\b/);
   });
 });

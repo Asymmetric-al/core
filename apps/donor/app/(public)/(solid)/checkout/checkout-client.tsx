@@ -1531,7 +1531,6 @@ function CheckoutContent({
   const checkoutMode =
     stripeOverride?.mode ?? resolveCheckoutMode(mountedPublishableKey);
   const mountedPublishableKeyRef = useRef(mountedPublishableKey);
-  mountedPublishableKeyRef.current = mountedPublishableKey;
   const currentRequestFingerprint = useMemo(
     () =>
       buildCheckoutRequestFingerprint({
@@ -1625,7 +1624,8 @@ function CheckoutContent({
   useEffect(() => {
     checkoutStateRef.current = checkoutState;
     currentRequestFingerprintRef.current = currentRequestFingerprint;
-  }, [checkoutState, currentRequestFingerprint]);
+    mountedPublishableKeyRef.current = mountedPublishableKey;
+  }, [checkoutState, currentRequestFingerprint, mountedPublishableKey]);
 
   const paymentAttemptRefs = {
     activePaymentAttemptRef,

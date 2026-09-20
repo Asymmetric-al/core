@@ -42,17 +42,6 @@ function calculateTimeAgo(
   return formatCalendarDate(dateString, TIME_AGO_DATE_OPTIONS);
 }
 
-function formatDate(
-  dateString: string,
-  options?: Intl.DateTimeFormatOptions,
-): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString(
-    "en-US",
-    options ?? { month: "short", day: "numeric", year: "numeric" },
-  );
-}
-
 function useNow(updateInterval?: number): number {
   const intervalMs = updateInterval && updateInterval > 0 ? updateInterval : 0;
 

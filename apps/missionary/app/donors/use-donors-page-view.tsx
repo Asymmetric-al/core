@@ -3,7 +3,6 @@
 
 import { useMissionaryDonorRows } from "@asym/database/hooks";
 import { invalidateSupabaseTableQuery } from "@asym/database/query-keys";
-import type { Profile } from "@asym/database/types";
 import { useAuth } from "@asym/lib/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
@@ -122,6 +121,7 @@ import {
   type DonorsStatFilterType,
 } from "./donors-page-model";
 import { EditDonorDialog } from "./edit-donor-dialog";
+import { EMPTY_TAG_DRAFT, nextTagDraftOnDonorSelect } from "./tag-draft";
 
 import type {
   Activity,
@@ -130,7 +130,7 @@ import type {
   Donor,
   RecurringStatus,
 } from "./donor-types";
-import { EMPTY_TAG_DRAFT, nextTagDraftOnDonorSelect } from "./tag-draft";
+import type { Profile } from "@asym/database/types";
 
 function currentDisplayDate(): Date {
   return new globalThis.Date();
