@@ -2,9 +2,10 @@
 
 import { useLastSynced } from "@asym/lib/hooks";
 import { motion } from "@asym/lib/motion";
-import { Clock, Loader2 } from "lucide-react";
+import { Button } from "@asym/ui/components/shadcn/button";
+import { Clock, Globe, Loader2, TriangleAlert } from "lucide-react";
 
-import type { ElementType } from "react";
+import type { ElementType, ReactNode } from "react";
 
 const smoothTransition = {
   duration: 0.25,
@@ -57,10 +58,12 @@ export function EmptyState({
   icon: Icon,
   title,
   description,
+  action,
 }: {
   icon: ElementType;
   title: string;
   description: string;
+  action?: ReactNode;
 }) {
   return (
     <motion.div
@@ -93,6 +96,66 @@ export function EmptyState({
       >
         {description}
       </motion.p>
+      {action ? <div className="mt-6">{action}</div> : null}
     </motion.div>
+  );
+}
+
+export function FeedLoadErrorState({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry?: () => void;
+}) {
+  return (
+    <div role="alert">
+      <EmptyState
+        icon={TriangleAlert}
+        title="Couldn't load your feed"
+        description={message}
+        action={
+          onRetry ? (
+            <Button type="button" variant="outline" onClick={onRetry}>
+              Try again
+            </Button>
+          ) : null
+        }
+      />
+    </div>
+  );
+}
+
+export function PublishedFeedPane({
+  children,
+  feedError,
+  hasPosts,
+  isLoading,
+  onRetry,
+}: {
+  children: ReactNode;
+  feedError: string | null;
+  hasPosts: boolean;
+  isLoading: boolean;
+  onRetry?: () => void;
+}) {
+  if (isLoading) {
+    return <LoadingState />;
+  }
+
+  if (hasPosts) {
+    return children;
+  }
+
+  if (feedError) {
+    return <FeedLoadErrorState message={feedError} onRetry={onRetry} />;
+  }
+
+  return (
+    <EmptyState
+      icon={Globe}
+      title="Your feed is empty"
+      description="Start sharing your journey with your partners."
+    />
   );
 }

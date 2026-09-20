@@ -38,6 +38,8 @@ export type WorkerFeedPageViewModel = {
   posts: Post[];
   drafts: Post[];
   pendingRequests: FollowerRequest[];
+  feedError: string | null;
+  reloadPosts: () => Promise<void>;
   simulateUpload: () => Promise<void>;
   handlePost: (status?: PostStatus) => Promise<void>;
   handleEditDraft: (draft: Post) => void;
@@ -163,6 +165,7 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [drafts, setDrafts] = useState<Post[]>([]);
+  const [feedError, setFeedError] = useState<string | null>(null);
   const [followerRequests, setFollowerRequests] = useState<FollowerRequest[]>(
     [],
   );
@@ -201,17 +204,31 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
           res,
           `${status} posts`,
         );
-        if (status === "published") setPosts(data.posts || []);
-        else setDrafts(data.posts || []);
+        if (status === "published") {
+          setPosts(data.posts || []);
+          setFeedError(null);
+        } else setDrafts(data.posts || []);
       } catch (err) {
         console.error("Failed to fetch posts:", err);
-        toast.error("Could not load feed");
+        if (status === "published") {
+          setFeedError(
+            err instanceof Error
+              ? err.message
+              : "Failed to load published posts",
+          );
+        }
+        toast.error("Could not load feed", { id: "worker-feed-load-error" });
       } finally {
         setIsLoading(false);
       }
     },
     [setIsLoading],
   );
+
+  const reloadPosts = useCallback(async () => {
+    setIsLoading(true);
+    await fetchPosts("published");
+  }, [fetchPosts, setIsLoading]);
 
   const fetchFollowerRequests = useCallback(async () => {
     try {
@@ -224,6 +241,9 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
       setFollowerRequests(data.requests || []);
     } catch (err) {
       console.error("Failed to fetch follower requests:", err);
+      toast.error("Could not load follower requests", {
+        id: "worker-feed-follower-requests-load-error",
+      });
     } finally {
       setIsLoadingRequests(false);
     }
@@ -379,6 +399,8 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     posts,
     drafts,
     pendingRequests,
+    feedError,
+    reloadPosts,
     simulateUpload,
     handlePost,
     handleEditDraft,

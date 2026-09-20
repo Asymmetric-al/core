@@ -72,7 +72,11 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 import { buildSecurityDialogState, SECURITY_OPTIONS } from "./feed-model";
-import { EmptyState, LastSyncedDisplay, LoadingState } from "./feed-support-ui";
+import {
+  EmptyState,
+  LastSyncedDisplay,
+  PublishedFeedPane,
+} from "./feed-support-ui";
 import { useWorkerFeedPageView } from "./use-worker-feed-page-view";
 
 import type {
@@ -1193,7 +1197,9 @@ type FeedPostsTabsSectionProps = {
   activeTab: PostStatus;
   drafts: Post[];
   posts: Post[];
+  feedError: string | null;
   isLoading: boolean;
+  reloadPosts: () => Promise<void>;
   setActiveTab: (value: React.SetStateAction<PostStatus>) => void;
   handleEditDraft: (draft: Post) => void;
   handleDeletePost: (postId: string) => Promise<void>;
@@ -1203,7 +1209,9 @@ function FeedPostsTabsSection({
   activeTab,
   drafts,
   posts,
+  feedError,
   isLoading,
+  reloadPosts,
   setActiveTab,
   handleEditDraft,
   handleDeletePost,
@@ -1258,10 +1266,15 @@ function FeedPostsTabsSection({
           <LayoutGroup>
             <motion.div layout className="space-y-6 sm:space-y-8 lg:space-y-10">
               <AnimatePresence mode="popLayout">
-                {isLoading ? (
-                  <LoadingState />
-                ) : posts.length > 0 ? (
-                  posts.map((post, index) => (
+                <PublishedFeedPane
+                  feedError={feedError}
+                  hasPosts={posts.length > 0}
+                  isLoading={isLoading}
+                  onRetry={() => {
+                    void reloadPosts();
+                  }}
+                >
+                  {posts.map((post, index) => (
                     <PostCard
                       key={post.id}
                       post={post}
@@ -1269,14 +1282,8 @@ function FeedPostsTabsSection({
                       onEdit={() => handleEditDraft(post)}
                       onDelete={() => handleDeletePost(post.id)}
                     />
-                  ))
-                ) : (
-                  <EmptyState
-                    icon={Globe}
-                    title="Your feed is empty"
-                    description="Start sharing your journey with your partners."
-                  />
-                )}
+                  ))}
+                </PublishedFeedPane>
               </AnimatePresence>
             </motion.div>
           </LayoutGroup>
@@ -1529,7 +1536,9 @@ function WorkerFeedPageView() {
             activeTab={vm.activeTab}
             drafts={vm.drafts}
             posts={vm.posts}
+            feedError={vm.feedError}
             isLoading={vm.isLoading}
+            reloadPosts={vm.reloadPosts}
             setActiveTab={vm.setActiveTab}
             handleEditDraft={vm.handleEditDraft}
             handleDeletePost={vm.handleDeletePost}
