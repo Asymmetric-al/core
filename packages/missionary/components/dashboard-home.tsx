@@ -13,6 +13,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
+import { Progress } from "@asym/ui/components/shadcn/progress";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
   ArrowUpRight,
@@ -190,20 +191,11 @@ function DashboardHomeContent({
                         {formatSupportAmount(remainingCents)} remaining
                       </span>
                     </div>
-                    <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
-                      {/* Animate transform: scaleX (GPU, no layout) instead of width */}
-                      <div
-                        className="size-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
-                        style={{
-                          transform: `scaleX(${Math.min(percentFunded, 100) / 100})`,
-                        }}
-                        role="progressbar"
-                        aria-valuenow={percentFunded}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-label="Support funded"
-                      />
-                    </div>
+                    <Progress
+                      value={Math.min(percentFunded, 100)}
+                      aria-label="Support funded"
+                      className="h-1.5 bg-zinc-800 [&_[data-slot=progress-indicator]]:bg-white [&_[data-slot=progress-indicator]]:duration-700 [&_[data-slot=progress-indicator]]:ease-[var(--ease-out-soft)]"
+                    />
                   </div>
 
                   <div className="mt-2.5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-y-2 sm:gap-x-8 pt-2.5 border-t border-zinc-800/50">

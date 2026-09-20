@@ -18,7 +18,7 @@ export type {
   MetricData,
   DonationMetrics,
 } from "./use-donation-metrics";
-export { useTimeAgo, useLastSynced, formatDate, TimeAgo } from "./use-time-ago";
+export { useTimeAgo, useLastSynced, TimeAgo } from "./use-time-ago";
 export {
   createLocaleFormatters,
   SERVER_FORMAT_ENVIRONMENT,

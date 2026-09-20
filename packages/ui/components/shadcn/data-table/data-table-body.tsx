@@ -16,6 +16,7 @@ import {
   type RowSelectionState,
   type PaginationState,
   type Row,
+  type Table as DataTableInstance,
   type TableOptions,
   createDataTableRowModels,
   dataTableFeatures,
@@ -284,6 +285,223 @@ export function DataTableBodyWithUrl<TData extends RowData, TValue>({
   );
 }
 
+function DataTableBodyEmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="rounded-2xl bg-muted/50 p-4 mb-4">
+        <Inbox className="size-10 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-semibold">No results found</h3>
+      <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+        Try adjusting your search or filter criteria to find what you&apos;re
+        looking for.
+      </p>
+    </div>
+  );
+}
+
+function DataTableBodyToolbar<TData extends RowData>({
+  enableFilters,
+  toolbar,
+  table,
+  filterFields,
+  toolbarSearchColumnId,
+  searchPlaceholder,
+  enableColumnVisibility,
+  urlStatePending,
+}: {
+  enableFilters: boolean;
+  toolbar?: React.ReactNode;
+  table: DataTableInstance<TData>;
+  filterFields: DataTableFilterField<TData>[];
+  toolbarSearchColumnId?: string;
+  searchPlaceholder?: string;
+  enableColumnVisibility: boolean;
+  urlStatePending?: boolean;
+}) {
+  if (!enableFilters) {
+    return null;
+  }
+
+  return (
+    toolbar ?? (
+      <DataTableToolbar
+        table={table}
+        filterFields={filterFields}
+        searchKey={toolbarSearchColumnId}
+        searchPlaceholder={searchPlaceholder}
+        enableColumnVisibility={enableColumnVisibility}
+        urlStatePending={urlStatePending}
+      />
+    )
+  );
+}
+
+function DataTableBodyTableFrame<TData extends RowData>({
+  table,
+  tableColumns,
+  tableContainerRef,
+  isVirtualized,
+  containerHeight,
+  virtualRows,
+  virtualPaddingTop,
+  virtualPaddingBottom,
+  rows,
+  renderRow,
+  rowActionsColumnCount,
+  emptyState,
+  tableClassName,
+  isLoading,
+}: {
+  table: DataTableInstance<TData>;
+  tableColumns: ColumnDef<TData, unknown>[];
+  tableContainerRef: React.RefObject<HTMLDivElement | null>;
+  isVirtualized: boolean;
+  containerHeight?: number | string;
+  virtualRows: { index: number }[];
+  virtualPaddingTop: number;
+  virtualPaddingBottom: number;
+  rows: Row<TData>[];
+  renderRow: (row: Row<TData>) => React.ReactNode;
+  rowActionsColumnCount: number;
+  emptyState: React.ReactNode;
+  tableClassName?: string;
+  isLoading: boolean;
+}) {
+  return (
+    <div className="relative">
+      <DataTableLoadingOverlay isLoading={isLoading} />
+      <div
+        className={cn(
+          "rounded-2xl border border-border bg-card overflow-hidden shadow-sm",
+          tableClassName,
+        )}
+      >
+        <div
+          ref={tableContainerRef}
+          className={cn(isVirtualized && "overflow-y-auto")}
+          style={isVirtualized ? { maxHeight: containerHeight } : undefined}
+        >
+          <Table>
+            <TableHeader className="bg-muted/30">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow
+                  key={headerGroup.id}
+                  className="hover:bg-transparent border-border"
+                >
+                  {headerGroup.headers.map((header) => {
+                    const meta = header.column.columnDef.meta;
+                    return (
+                      <TableHead
+                        key={header.id}
+                        className={cn(
+                          "h-12 px-4 text-xs font-semibold text-muted-foreground",
+                          meta?.headerClassName,
+                        )}
+                        style={{
+                          width:
+                            header.getSize() !== 150
+                              ? header.getSize()
+                              : undefined,
+                        }}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                  {rowActionsColumnCount > 0 && (
+                    <TableHead className="h-12 px-4 text-right text-xs font-semibold text-muted-foreground">
+                      Actions
+                    </TableHead>
+                  )}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {rows.length ? (
+                isVirtualized ? (
+                  <>
+                    {virtualPaddingTop > 0 && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={tableColumns.length + rowActionsColumnCount}
+                          className="p-0"
+                          style={{ height: virtualPaddingTop }}
+                        />
+                      </TableRow>
+                    )}
+                    {virtualRows.map((virtualRow) => {
+                      const row = rows[virtualRow.index];
+                      return renderRow(row as Row<TData>);
+                    })}
+                    {virtualPaddingBottom > 0 && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={tableColumns.length + rowActionsColumnCount}
+                          className="p-0"
+                          style={{ height: virtualPaddingBottom }}
+                        />
+                      </TableRow>
+                    )}
+                  </>
+                ) : (
+                  rows.map((row) => renderRow(row as Row<TData>))
+                )
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={tableColumns.length + rowActionsColumnCount}
+                    className="h-64"
+                  >
+                    {emptyState}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DataTableBodyFooter<TData extends RowData>({
+  enablePagination,
+  enableRowSelection,
+  table,
+  actionBarActions,
+  urlStatePending,
+}: {
+  enablePagination: boolean;
+  enableRowSelection: boolean;
+  table: DataTableInstance<TData>;
+  actionBarActions?: DataTableBodyWithTableStateProps<
+    TData,
+    unknown
+  >["actionBarActions"];
+  urlStatePending?: boolean;
+}) {
+  return (
+    <>
+      {enablePagination && (
+        <DataTablePagination
+          table={table}
+          showSelectedCount={enableRowSelection}
+          urlStatePending={urlStatePending}
+        />
+      )}
+      {enableRowSelection && (
+        <DataTableActionBar table={table} actions={actionBarActions} />
+      )}
+    </>
+  );
+}
+
 export function DataTableBodyWithTableState<TData extends RowData, TValue>({
   columns,
   data,
@@ -501,151 +719,41 @@ export function DataTableBodyWithTableState<TData extends RowData, TValue>({
     return <DataTableSkeleton columnCount={columns.length} />;
   }
 
-  const defaultEmptyState = (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="rounded-2xl bg-muted/50 p-4 mb-4">
-        <Inbox className="size-10 text-muted-foreground" />
-      </div>
-      <h3 className="text-lg font-semibold">No results found</h3>
-      <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-        Try adjusting your search or filter criteria to find what you&apos;re
-        looking for.
-      </p>
-    </div>
-  );
-
   return (
     <div className={cn("w-full space-y-4", className)}>
-      {enableFilters &&
-        (toolbar ?? (
-          <DataTableToolbar
-            table={table}
-            filterFields={filterFields}
-            searchKey={toolbarSearchColumnId}
-            searchPlaceholder={searchPlaceholder}
-            enableColumnVisibility={enableColumnVisibility}
-            urlStatePending={tableState.isUrlStatePending}
-          />
-        ))}
-
-      <div className="relative">
-        <DataTableLoadingOverlay isLoading={isLoading} />
-        <div
-          className={cn(
-            "rounded-2xl border border-border bg-card overflow-hidden shadow-sm",
-            tableClassName,
-          )}
-        >
-          <div
-            ref={tableContainerRef}
-            className={cn(isVirtualized && "overflow-y-auto")}
-            style={
-              isVirtualized
-                ? { maxHeight: resolvedVirtualization.containerHeight }
-                : undefined
-            }
-          >
-            <Table>
-              <TableHeader className="bg-muted/30">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow
-                    key={headerGroup.id}
-                    className="hover:bg-transparent border-border"
-                  >
-                    {headerGroup.headers.map((header) => {
-                      const meta = header.column.columnDef.meta;
-                      return (
-                        <TableHead
-                          key={header.id}
-                          className={cn(
-                            "h-12 px-4 text-xs font-semibold text-muted-foreground",
-                            meta?.headerClassName,
-                          )}
-                          style={{
-                            width:
-                              header.getSize() !== 150
-                                ? header.getSize()
-                                : undefined,
-                          }}
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                    {rowActionsColumnCount > 0 && (
-                      <TableHead className="h-12 px-4 text-right text-xs font-semibold text-muted-foreground">
-                        Actions
-                      </TableHead>
-                    )}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {rows.length ? (
-                  isVirtualized ? (
-                    <>
-                      {virtualPaddingTop > 0 && (
-                        <TableRow>
-                          <TableCell
-                            colSpan={
-                              tableColumns.length + rowActionsColumnCount
-                            }
-                            className="p-0"
-                            style={{ height: virtualPaddingTop }}
-                          />
-                        </TableRow>
-                      )}
-                      {virtualRows.map((virtualRow) => {
-                        const row = rows[virtualRow.index];
-                        return renderRow(row as Row<TData>);
-                      })}
-                      {virtualPaddingBottom > 0 && (
-                        <TableRow>
-                          <TableCell
-                            colSpan={
-                              tableColumns.length + rowActionsColumnCount
-                            }
-                            className="p-0"
-                            style={{ height: virtualPaddingBottom }}
-                          />
-                        </TableRow>
-                      )}
-                    </>
-                  ) : (
-                    rows.map((row) => renderRow(row as Row<TData>))
-                  )
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={tableColumns.length + rowActionsColumnCount}
-                      className="h-64"
-                    >
-                      {emptyState ?? defaultEmptyState}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      </div>
-
-      {enablePagination && (
-        <DataTablePagination
-          table={table}
-          showSelectedCount={enableRowSelection}
-          urlStatePending={tableState.isUrlStatePending}
-        />
-      )}
-
-      {enableRowSelection && (
-        <DataTableActionBar table={table} actions={actionBarActions} />
-      )}
+      <DataTableBodyToolbar
+        enableFilters={enableFilters}
+        toolbar={toolbar}
+        table={table}
+        filterFields={filterFields}
+        toolbarSearchColumnId={toolbarSearchColumnId}
+        searchPlaceholder={searchPlaceholder}
+        enableColumnVisibility={enableColumnVisibility}
+        urlStatePending={tableState.isUrlStatePending}
+      />
+      <DataTableBodyTableFrame
+        table={table}
+        tableColumns={tableColumns}
+        tableContainerRef={tableContainerRef}
+        isVirtualized={isVirtualized}
+        containerHeight={resolvedVirtualization.containerHeight}
+        virtualRows={virtualRows}
+        virtualPaddingTop={virtualPaddingTop}
+        virtualPaddingBottom={virtualPaddingBottom}
+        rows={rows}
+        renderRow={renderRow}
+        rowActionsColumnCount={rowActionsColumnCount}
+        emptyState={emptyState ?? <DataTableBodyEmptyState />}
+        tableClassName={tableClassName}
+        isLoading={isLoading}
+      />
+      <DataTableBodyFooter
+        enablePagination={enablePagination}
+        enableRowSelection={enableRowSelection}
+        table={table}
+        actionBarActions={actionBarActions}
+        urlStatePending={tableState.isUrlStatePending}
+      />
     </div>
   );
 }

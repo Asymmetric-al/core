@@ -223,6 +223,7 @@ export function AppShell({
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
               <input
                 type="text"
+                aria-label="Search command center"
                 placeholder="Search command center..."
                 className="h-9 w-64 pl-10 pr-4 text-[11px] font-medium rounded-xl border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/5 transition-[background-color,box-shadow]"
               />

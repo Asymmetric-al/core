@@ -1,4 +1,4 @@
-import { brandConfig } from "@asym/ui/components/brand-logo";
+import { brandConfig } from "@asym/config/site-client";
 
 import type { Comment, ModerationStats, Post } from "./feed-model";
 
