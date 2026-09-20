@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "./use-auth";
+import { fetchJsonResult } from "../http/fetch-result";
 
 // Local type definitions (should match missionary app types)
 export type TaskStatus =
@@ -107,24 +108,6 @@ interface UseTasksReturn {
   refresh: () => Promise<void>;
 }
 
-async function parseJsonResponse<T>(response: Response): Promise<T> {
-  const payload = (await response.json().catch(() => null)) as
-    | (T & { error?: string })
-    | null;
-
-  if (!response.ok) {
-    throw new Error(
-      payload?.error || `Request failed with status ${response.status}`,
-    );
-  }
-
-  if (!payload) {
-    throw new Error("Request returned an empty response.");
-  }
-
-  return payload;
-}
-
 function taskPayloadFromFormData(
   data: Partial<TaskFormData | { sort_key: number }>,
 ): Record<string, unknown> {
@@ -179,36 +162,31 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
     setLoading(true);
     setError(null);
 
-    try {
-      const params = new URLSearchParams();
-      if (donorId) params.set("donorId", donorId);
-      const response = await fetch(`/api/missionary/tasks?${params}`, {
+    const params = new URLSearchParams();
+    if (donorId) params.set("donorId", donorId);
+    const result = await fetchJsonResult<{ tasks: Task[] }>(
+      `/api/missionary/tasks?${params}`,
+      {
         credentials: "same-origin",
         headers: {
           Accept: "application/json",
         },
         method: "GET",
-      });
-      const { tasks: formattedTasks } = await parseJsonResponse<{
-        tasks: Task[];
-      }>(response);
+      },
+    );
 
-      if (mountedRef.current) {
-        setTasks(formattedTasks);
-        initialFetchDone.current = true;
-      }
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to fetch tasks";
-      if (mountedRef.current) {
-        setError(message);
-      }
-      console.error("Tasks fetch error:", err);
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
+    if (!mountedRef.current) {
+      return;
     }
+
+    if (!result.ok) {
+      setError(result.error.message);
+      console.error("Tasks fetch error:", result.error);
+    } else {
+      setTasks(result.data.tasks);
+      initialFetchDone.current = true;
+    }
+    setLoading(false);
   }, [profile?.id, donorId]);
 
   useEffect(() => {
@@ -316,19 +294,19 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
         return null;
       }
 
-      try {
-        // Get the highest sort_key for the new task
-        const maxSortKey =
-          tasks.length > 0
-            ? Math.max(...tasks.map((t) => t.sort_key))
-            : Date.now() / 1000;
+      const maxSortKey =
+        tasks.length > 0
+          ? Math.max(...tasks.map((t) => t.sort_key))
+          : Date.now() / 1000;
 
-        const insertData = {
-          ...taskPayloadFromFormData(data),
-          sort_key: maxSortKey + 100,
-        };
+      const insertData = {
+        ...taskPayloadFromFormData(data),
+        sort_key: maxSortKey + 100,
+      };
 
-        const response = await fetch("/api/missionary/tasks", {
+      const result = await fetchJsonResult<{ task: Task }>(
+        "/api/missionary/tasks",
+        {
           body: JSON.stringify(insertData),
           credentials: "same-origin",
           headers: {
@@ -336,25 +314,22 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
             "Content-Type": "application/json",
           },
           method: "POST",
-        });
-        const { task: formattedTask } = await parseJsonResponse<{ task: Task }>(
-          response,
-        );
+        },
+      );
 
-        if (mountedRef.current) {
-          setTasks((prev) =>
-            [...prev, formattedTask].sort((a, b) => a.sort_key - b.sort_key),
-          );
-        }
-        toast.success("Task created successfully");
-        return formattedTask;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to create task";
-        toast.error(message);
-        console.error("Task create error:", err);
+      if (!result.ok) {
+        toast.error(result.error.message);
+        console.error("Task create error:", result.error);
         return null;
       }
+
+      if (mountedRef.current) {
+        setTasks((prev) =>
+          [...prev, result.data.task].sort((a, b) => a.sort_key - b.sort_key),
+        );
+      }
+      toast.success("Task created successfully");
+      return result.data.task;
     },
     [profile?.id, tasks],
   );
@@ -364,8 +339,9 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
       id: string,
       data: Partial<TaskFormData | { sort_key: number }>,
     ): Promise<boolean> => {
-      try {
-        const response = await fetch(`/api/missionary/tasks/${id}`, {
+      const result = await fetchJsonResult<{ task: Task }>(
+        `/api/missionary/tasks/${id}`,
+        {
           body: JSON.stringify(taskPayloadFromFormData(data)),
           credentials: "same-origin",
           headers: {
@@ -373,19 +349,17 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
             "Content-Type": "application/json",
           },
           method: "PATCH",
-        });
+        },
+      );
 
-        await parseJsonResponse<{ task: Task }>(response);
-
-        await fetchTasks();
-        return true;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to update task";
-        toast.error(message);
-        console.error("Task update error:", err);
+      if (!result.ok) {
+        toast.error(result.error.message);
+        console.error("Task update error:", result.error);
         return false;
       }
+
+      await fetchTasks();
+      return true;
     },
     [fetchTasks],
   );
@@ -434,8 +408,9 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
 
       setTasks(newTasks);
 
-      try {
-        const response = await fetch(`/api/missionary/tasks/${taskId}`, {
+      const result = await fetchJsonResult<{ task: Task }>(
+        `/api/missionary/tasks/${taskId}`,
+        {
           body: JSON.stringify({
             status: newStatus,
             sort_key: newSortKey,
@@ -446,49 +421,50 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
             "Content-Type": "application/json",
           },
           method: "PATCH",
-        });
+        },
+      );
 
-        await parseJsonResponse<{ task: Task }>(response);
-        return true;
-      } catch (err) {
+      if (!result.ok) {
         setTasks(oldTasks);
         toast.error("Failed to move task. Reverting...");
-        console.error("Move task error:", err);
+        console.error("Move task error:", result.error);
         return false;
       }
+
+      return true;
     },
     [tasks],
   );
 
   const deleteTask = useCallback(async (id: string): Promise<boolean> => {
-    try {
-      const response = await fetch(`/api/missionary/tasks/${id}`, {
+    const result = await fetchJsonResult<{ success: true }>(
+      `/api/missionary/tasks/${id}`,
+      {
         credentials: "same-origin",
         headers: {
           Accept: "application/json",
         },
         method: "DELETE",
-      });
+      },
+    );
 
-      await parseJsonResponse<{ success: true }>(response);
-
-      if (mountedRef.current) {
-        setTasks((prev) => prev.filter((t) => t.id !== id));
-      }
-      toast.success("Task deleted");
-      return true;
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to delete task";
-      toast.error(message);
-      console.error("Task delete error:", err);
+    if (!result.ok) {
+      toast.error(result.error.message);
+      console.error("Task delete error:", result.error);
       return false;
     }
+
+    if (mountedRef.current) {
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+    }
+    toast.success("Task deleted");
+    return true;
   }, []);
 
   const completeTask = useCallback(async (id: string): Promise<boolean> => {
-    try {
-      const response = await fetch(`/api/missionary/tasks/${id}`, {
+    const result = await fetchJsonResult<{ task: Task }>(
+      `/api/missionary/tasks/${id}`,
+      {
         body: JSON.stringify({ status: "completed" }),
         credentials: "same-origin",
         headers: {
@@ -496,37 +472,36 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
           "Content-Type": "application/json",
         },
         method: "PATCH",
-      });
+      },
+    );
 
-      await parseJsonResponse<{ task: Task }>(response);
-
-      if (mountedRef.current) {
-        setTasks((prev) =>
-          prev.map((t) =>
-            t.id === id
-              ? {
-                  ...t,
-                  status: "completed" as TaskStatus,
-                  completed_at: new Date().toISOString(),
-                }
-              : t,
-          ),
-        );
-      }
-      toast.success("Task completed");
-      return true;
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to complete task";
-      toast.error(message);
-      console.error("Task complete error:", err);
+    if (!result.ok) {
+      toast.error(result.error.message);
+      console.error("Task complete error:", result.error);
       return false;
     }
+
+    if (mountedRef.current) {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                status: "completed" as TaskStatus,
+                completed_at: new Date().toISOString(),
+              }
+            : t,
+        ),
+      );
+    }
+    toast.success("Task completed");
+    return true;
   }, []);
 
   const reopenTask = useCallback(async (id: string): Promise<boolean> => {
-    try {
-      const response = await fetch(`/api/missionary/tasks/${id}`, {
+    const result = await fetchJsonResult<{ task: Task }>(
+      `/api/missionary/tasks/${id}`,
+      {
         body: JSON.stringify({ status: "not_started" }),
         credentials: "same-origin",
         headers: {
@@ -534,32 +509,30 @@ export function useTasks(options: UseTasksOptions = {}): UseTasksReturn {
           "Content-Type": "application/json",
         },
         method: "PATCH",
-      });
+      },
+    );
 
-      await parseJsonResponse<{ task: Task }>(response);
-
-      if (mountedRef.current) {
-        setTasks((prev) =>
-          prev.map((t) =>
-            t.id === id
-              ? {
-                  ...t,
-                  status: "not_started" as TaskStatus,
-                  completed_at: null,
-                }
-              : t,
-          ),
-        );
-      }
-      toast.success("Task reopened");
-      return true;
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to reopen task";
-      toast.error(message);
-      console.error("Task reopen error:", err);
+    if (!result.ok) {
+      toast.error(result.error.message);
+      console.error("Task reopen error:", result.error);
       return false;
     }
+
+    if (mountedRef.current) {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                status: "not_started" as TaskStatus,
+                completed_at: null,
+              }
+            : t,
+        ),
+      );
+    }
+    toast.success("Task reopened");
+    return true;
   }, []);
 
   return {
