@@ -9,8 +9,7 @@ const {
   uploadMock,
   getPublicUrlMock,
   storageFromMock,
-  serverEnv,
-  clientEnv,
+  envState,
 } = vi.hoisted(() => {
   const upload = vi.fn().mockResolvedValue({ data: null, error: null });
   const getPublicUrl = vi.fn(() => ({
@@ -24,16 +23,11 @@ const {
     uploadMock: upload,
     getPublicUrlMock: getPublicUrl,
     storageFromMock: storageFrom,
-    serverEnv: {
+    envState: {
       NEXT_PUBLIC_CLOUDINARY_ENABLED: false as boolean,
-      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: "demo",
-      NEXT_PUBLIC_CLOUDINARY_API_KEY: "1234",
-      CLOUDINARY_API_SECRET: "abcd",
-    },
-    clientEnv: {
-      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: "demo",
-      NEXT_PUBLIC_CLOUDINARY_API_KEY: "1234",
-      NEXT_PUBLIC_CLOUDINARY_ENABLED: true,
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: undefined as string | undefined,
+      NEXT_PUBLIC_CLOUDINARY_API_KEY: undefined as string | undefined,
+      CLOUDINARY_API_SECRET: undefined as string | undefined,
     },
   };
 });
@@ -48,11 +42,12 @@ vi.mock("@asym/database/supabase/admin", () => ({
 }));
 
 vi.mock("@asym/env", () => ({
-  serverEnv,
-  clientEnv,
+  serverEnv: envState,
+  clientEnv: envState,
 }));
 
 import { POST } from "../../../../../packages/api/src/email/assets";
+import { generateCloudinarySignature } from "../../../../../packages/lib/cloudinary-server";
 
 function createUploadRequest(
   file: File,
@@ -68,10 +63,17 @@ function createUploadRequest(
   }) as NextRequest;
 }
 
+function resetEnv() {
+  envState.NEXT_PUBLIC_CLOUDINARY_ENABLED = false;
+  envState.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = undefined;
+  envState.NEXT_PUBLIC_CLOUDINARY_API_KEY = undefined;
+  envState.CLOUDINARY_API_SECRET = undefined;
+}
+
 describe("api/email/assets/upload", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    serverEnv.NEXT_PUBLIC_CLOUDINARY_ENABLED = false;
+    resetEnv();
     vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue("uuid-1234");
     getAuthContextMock.mockResolvedValue({
       tenantId: "tenant_1",
@@ -87,6 +89,11 @@ describe("api/email/assets/upload", () => {
       },
       error: null,
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("rejects unsupported image MIME types", async () => {
@@ -126,55 +133,101 @@ describe("api/email/assets/upload", () => {
       "email-assets/tenant_1/template_9/uuid-1234.png",
     );
   });
-});
 
-describe("api/email/assets/upload Cloudinary signature", () => {
-  afterEach(() => {
-    serverEnv.NEXT_PUBLIC_CLOUDINARY_ENABLED = false;
-    vi.useRealTimers();
-  });
-
-  it("signs live Cloudinary uploads with SHA-256 and signature_algorithm", async () => {
-    serverEnv.NEXT_PUBLIC_CLOUDINARY_ENABLED = true;
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(1315060510 * 1000));
-    vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue("uuid-1234");
-    getAuthContextMock.mockResolvedValue({
-      tenantId: "tenant_1",
-      profileId: "profile_1",
-      role: "admin",
-    });
-    requireRoleMock.mockReturnValue(undefined);
-
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        secure_url:
-          "https://res.cloudinary.com/demo/image/upload/uuid-1234.png",
-        public_id: "email-assets/tenant_1/template_1/uuid-1234",
-      }),
-    });
-    vi.stubGlobal("fetch", fetchMock);
+  it("returns 503 when Cloudinary is enabled but not fully configured", async () => {
+    envState.NEXT_PUBLIC_CLOUDINARY_ENABLED = true;
+    const fetchMock = vi.spyOn(globalThis, "fetch");
 
     const response = await POST(
       createUploadRequest(new File(["png"], "hero.png", { type: "image/png" })),
     );
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body.error).toBe(
+      "Cloudinary image upload is enabled but not fully configured.",
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(uploadMock).not.toHaveBeenCalled();
+  });
+
+  it("signs live Cloudinary uploads with SHA-256 via generateCloudinarySignature", async () => {
+    envState.NEXT_PUBLIC_CLOUDINARY_ENABLED = true;
+    envState.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = "demo";
+    envState.NEXT_PUBLIC_CLOUDINARY_API_KEY = "1234";
+    envState.CLOUDINARY_API_SECRET = "abcd";
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(1315060510 * 1000));
+
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          secure_url:
+            "https://res.cloudinary.com/demo/image/upload/v1/email-assets/tenant_1/template_1/uuid-1234.png",
+          public_id: "email-assets/tenant_1/template_1/uuid-1234",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+
+    const expected = generateCloudinarySignature({
+      folder: "email-assets/tenant_1/template_1",
+      public_id: "uuid-1234",
+    });
+    const liveStringToSign =
+      "folder=email-assets/tenant_1/template_1&public_id=uuid-1234&timestamp=1315060510abcd";
+    const independentLiveDigest = createHash("sha256")
+      .update(liveStringToSign)
+      .digest("hex");
+    const sha1OfOfficialString = createHash("sha1")
+      .update(liveStringToSign)
+      .digest("hex");
+
+    const response = await POST(
+      createUploadRequest(new File(["png"], "hero.png", { type: "image/png" })),
+    );
+    const body = await response.json();
 
     expect(response.status).toBe(201);
-    expect(fetchMock).toHaveBeenCalledOnce();
-    const [, init] = fetchMock.mock.calls[0] as [string, { body: FormData }];
-    const uploaded = init.body;
-    expect(uploaded.get("signature_algorithm")).toBe("sha256");
-
-    // Cloudinary reconstructs the string-to-sign from signed upload params.
-    // `signature_algorithm` is request metadata (which digest to verify), not a
-    // signed param — including it here 502s against Cloudinary's canonical check.
-    const stringToSign =
-      "folder=email-assets/tenant_1/template_1&public_id=uuid-1234&timestamp=1315060510abcd";
-    expect(uploaded.get("signature")).toBe(
-      createHash("sha256").update(stringToSign).digest("hex"),
+    expect(body.url).toBe(
+      "https://res.cloudinary.com/demo/image/upload/v1/email-assets/tenant_1/template_1/uuid-1234.png",
     );
-    expect(stringToSign).not.toContain("signature_algorithm");
-    expect(String(uploaded.get("signature"))).toHaveLength(64);
+    expect(body.asset.provider).toBe("cloudinary");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(url).toBe("https://api.cloudinary.com/v1_1/demo/image/upload");
+    expect(init).toMatchObject({ method: "POST" });
+
+    const uploaded = init?.body as FormData;
+    const signature = String(uploaded.get("signature"));
+    const reservedUploadKeys = new Set([
+      "file",
+      "resource_type",
+      "api_key",
+      "signature",
+      "signature_algorithm",
+    ]);
+    expect(independentLiveDigest).toBe(
+      "54071de8e8ab0810fa44e425dc682d2caa5982f50f470ec1a7cdddcb8970ccc3",
+    );
+    expect(signature).toHaveLength(64);
+    expect(signature).toBe(independentLiveDigest);
+    expect(signature).toBe(expected.signature);
+    expect(signature).not.toBe(sha1OfOfficialString);
+    expect(uploaded.get("api_key")).toBe(expected.apiKey);
+    expect(uploaded.get("timestamp")).toBe(String(expected.timestamp));
+    expect(uploaded.get("folder")).toBe("email-assets/tenant_1/template_1");
+    expect(uploaded.get("public_id")).toBe("uuid-1234");
+    expect(uploaded.get("signature_algorithm")).toBe(
+      expected.signatureAlgorithm,
+    );
+    expect(
+      [...uploaded.keys()]
+        .filter((key) => !reservedUploadKeys.has(key))
+        .toSorted(),
+    ).toEqual(["folder", "public_id", "timestamp"]);
+    expect(uploadMock).not.toHaveBeenCalled();
   });
 });
