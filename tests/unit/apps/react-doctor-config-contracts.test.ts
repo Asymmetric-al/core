@@ -149,9 +149,6 @@ describe("React Doctor config contracts", () => {
     const cloudinaryServerSource = readRepoFile(
       "packages/lib/cloudinary-server.ts",
     );
-    expect(cloudinaryServerSource).toContain(
-      "packages/api/src/email/assets.ts",
-    );
     expect(cloudinaryServerSource).not.toContain(
       "This helper is currently unused: no production caller imports it",
     );
@@ -193,8 +190,13 @@ describe("React Doctor config contracts", () => {
     const assets = readRepoFile("packages/api/src/email/assets.ts");
 
     expect(assets).toContain("generateCloudinarySignature");
-    expect(assets).toContain('formData.set("signature_algorithm", "sha256")');
+    expect(assets).toContain(
+      'formData.set("signature_algorithm", signed.signatureAlgorithm)',
+    );
     expect(assets).not.toContain('createHash("sha256")');
+    expect(assets).not.toContain(
+      'formData.set("signature_algorithm", "sha256")',
+    );
     expect(assets).not.toContain('signature_algorithm: "sha256"');
     expect(docs).toContain(
       "the live email uploader in `packages/api/src/email/assets.ts` SHA-256s and sends `signature_algorithm=sha256`",

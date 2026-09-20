@@ -175,10 +175,13 @@ describe("api/email/assets/upload", () => {
       folder: "email-assets/tenant_1/template_1",
       public_id: "uuid-1234",
     });
+    const liveStringToSign =
+      "folder=email-assets/tenant_1/template_1&public_id=uuid-1234&timestamp=1315060510abcd";
+    const independentLiveDigest = createHash("sha256")
+      .update(liveStringToSign)
+      .digest("hex");
     const sha1OfOfficialString = createHash("sha1")
-      .update(
-        "folder=email-assets/tenant_1/template_1&public_id=uuid-1234&timestamp=1315060510abcd",
-      )
+      .update(liveStringToSign)
       .digest("hex");
 
     const response = await POST(
@@ -199,14 +202,32 @@ describe("api/email/assets/upload", () => {
 
     const uploaded = init?.body as FormData;
     const signature = String(uploaded.get("signature"));
+    const reservedUploadKeys = new Set([
+      "file",
+      "resource_type",
+      "api_key",
+      "signature",
+      "signature_algorithm",
+    ]);
+    expect(independentLiveDigest).toBe(
+      "54071de8e8ab0810fa44e425dc682d2caa5982f50f470ec1a7cdddcb8970ccc3",
+    );
     expect(signature).toHaveLength(64);
+    expect(signature).toBe(independentLiveDigest);
     expect(signature).toBe(expected.signature);
     expect(signature).not.toBe(sha1OfOfficialString);
     expect(uploaded.get("api_key")).toBe(expected.apiKey);
     expect(uploaded.get("timestamp")).toBe(String(expected.timestamp));
     expect(uploaded.get("folder")).toBe("email-assets/tenant_1/template_1");
     expect(uploaded.get("public_id")).toBe("uuid-1234");
-    expect(uploaded.get("signature_algorithm")).toBe("sha256");
+    expect(uploaded.get("signature_algorithm")).toBe(
+      expected.signatureAlgorithm,
+    );
+    expect(
+      [...uploaded.keys()]
+        .filter((key) => !reservedUploadKeys.has(key))
+        .toSorted(),
+    ).toEqual(["folder", "public_id", "timestamp"]);
     expect(uploadMock).not.toHaveBeenCalled();
   });
 });
