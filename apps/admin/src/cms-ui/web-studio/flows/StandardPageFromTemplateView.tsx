@@ -12,12 +12,8 @@ import { formatAdminURL } from "payload/shared";
 import { Suspense, useMemo, useState } from "react";
 import { z } from "zod";
 
-import {
-  TENANT_REQUIRED_MESSAGE,
-  TenantSelectField,
-  buildTenantsQuery,
-  isSuperAdminUser,
-} from "./tenant-picker";
+import { buildTenantsQuery, isSuperAdminUser } from "./tenant-options";
+import { TENANT_REQUIRED_MESSAGE, TenantSelectField } from "./tenant-picker";
 import { Link, useRouter, useSearchParams } from "../routing";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";

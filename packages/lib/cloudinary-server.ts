@@ -7,9 +7,18 @@ export interface CloudinarySignature {
   timestamp: number;
   apiKey: string;
   cloudName: string;
+  signatureAlgorithm: "sha256";
 }
 
 type CloudinarySignatureParam = string | number | boolean | null | undefined;
+
+const UNSIGNED_UPLOAD_KEYS = new Set([
+  "file",
+  "resource_type",
+  "api_key",
+  "signature",
+  "signature_algorithm",
+]);
 
 /**
  * Generates a SHA-256 signature for Cloudinary signed uploads.
@@ -18,8 +27,6 @@ type CloudinarySignatureParam = string | number | boolean | null | undefined;
  * Cloudinary accepts SHA-1 and SHA-256 hex digests; SHA-256 requires
  * `signature_algorithm=sha256` on the upload body, not in the signed string
  * (https://cloudinary.com/documentation/authentication_signatures).
- * Live email uploads sign with SHA-256 in `packages/api/src/email/assets.ts`.
- * This helper is currently unused by production callers.
  */
 export function generateCloudinarySignature(
   params: Record<string, CloudinarySignatureParam>,
@@ -48,6 +55,7 @@ export function generateCloudinarySignature(
     sortedKeys
       .filter(
         (key) =>
+          !UNSIGNED_UPLOAD_KEYS.has(key) &&
           signatureParams[key] !== undefined &&
           signatureParams[key] !== null &&
           signatureParams[key] !== "",
@@ -68,6 +76,7 @@ export function generateCloudinarySignature(
     timestamp,
     apiKey,
     cloudName,
+    signatureAlgorithm: "sha256",
   };
 }
 
