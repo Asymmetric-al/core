@@ -41,7 +41,7 @@ import {
   LoaderCircle,
   TriangleAlert,
 } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { useId, useState, type Dispatch, type SetStateAction } from "react";
 
 import {
   invalidateContributionOperationQueries,
@@ -68,7 +68,10 @@ import type {
 // Type-only imports are erased at compile time, so pulling this one type
 // from the barrel does not evaluate its server-only modules in the client
 // bundle (matches contribution-detail-overlay.tsx).
-import type { CrmPostFailedScope } from "@asym/api/admin/contribution-operations";
+import type {
+  CrmPostFailedScope,
+  ViewerProjectedContributionDetail,
+} from "@asym/api/admin/contribution-operations";
 import type {
   ContributionActionResult,
   ContributionActionType,
@@ -213,6 +216,48 @@ async function submitOperation(input: {
   return body.result;
 }
 
+function receiptOutcomeChangedByApprover(
+  requested: ReceiptDeliveryOutcome["requested"],
+  confirmed: ReceiptDeliveryOutcome["confirmed"],
+): boolean {
+  return Boolean(
+    requested &&
+    confirmed &&
+    (requested.choice !== confirmed.choice ||
+      (requested.deferReason ?? null) !== (confirmed.deferReason ?? null)),
+  );
+}
+
+function ReceiptOutcomeChangedByApproverItem({
+  confirmed,
+  requested,
+}: {
+  confirmed: NonNullable<ReceiptDeliveryOutcome["confirmed"]>;
+  requested: NonNullable<ReceiptDeliveryOutcome["requested"]>;
+}) {
+  return (
+    <li>
+      Requested: {receiptDeliveryChoiceLabel(requested.choice)} · Confirmed:{" "}
+      {receiptDeliveryChoiceLabel(confirmed.choice)}
+    </li>
+  );
+}
+
+function ReceiptOutcomePdfLinkItem({ snapshotId }: { snapshotId: string }) {
+  return (
+    <li>
+      <a
+        href={receiptSnapshotPdfUrl(snapshotId)}
+        target="_blank"
+        rel="noreferrer"
+        className="font-medium text-foreground underline underline-offset-2"
+      >
+        Download updated receipt PDF
+      </a>
+    </li>
+  );
+}
+
 /**
  * Receipt-outcome lines for the in-place result panel (AL-263): status,
  * requested vs confirmed delivery when the approver changed it, the defer
@@ -225,11 +270,10 @@ function ReceiptOutcomeResultItems({
 }) {
   const requested = outcome.requested ?? null;
   const confirmed = outcome.confirmed ?? null;
-  const changedByApprover =
-    requested !== null &&
-    confirmed !== null &&
-    (requested.choice !== confirmed.choice ||
-      (requested.deferReason ?? null) !== (confirmed.deferReason ?? null));
+  const changedByApprover = receiptOutcomeChangedByApprover(
+    requested,
+    confirmed,
+  );
   const deferReason =
     outcome.status === "deferred"
       ? (confirmed?.deferReason ?? outcome.reason)
@@ -238,137 +282,36 @@ function ReceiptOutcomeResultItems({
   return (
     <>
       <li>Receipt: {outcome.status.replace(/_/g, " ")}</li>
-      {changedByApprover && requested && confirmed && (
-        <li>
-          Requested: {receiptDeliveryChoiceLabel(requested.choice)} · Confirmed:{" "}
-          {receiptDeliveryChoiceLabel(confirmed.choice)}
-        </li>
-      )}
-      {deferReason && <li>Defer reason: {deferReason}</li>}
-      {outcome.status === "pdf_generated" && outcome.snapshotId && (
-        <li>
-          <a
-            href={receiptSnapshotPdfUrl(outcome.snapshotId)}
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium text-foreground underline underline-offset-2"
-          >
-            Download updated receipt PDF
-          </a>
-        </li>
-      )}
+      {changedByApprover && requested && confirmed ? (
+        <ReceiptOutcomeChangedByApproverItem
+          confirmed={confirmed}
+          requested={requested}
+        />
+      ) : null}
+      {deferReason ? <li>Defer reason: {deferReason}</li> : null}
+      {outcome.status === "pdf_generated" && outcome.snapshotId ? (
+        <ReceiptOutcomePdfLinkItem snapshotId={outcome.snapshotId} />
+      ) : null}
     </>
   );
 }
 
-export function ContributionOperationShell({
-  open,
-  onClose,
-  operation,
-  donationId,
-  sourceSurface,
-  onOpenFullDetail,
-  onRowRefresh,
-}: {
-  open: boolean;
-  onClose: () => void;
-  operation: OperationDefinition | null;
-  donationId: string | null;
-  sourceSurface: ContributionSourceSurface;
-  /** Optional secondary action — never an automatic redirect (ADR-CD-033). */
-  onOpenFullDetail?: (donationId: string) => void;
-  onRowRefresh?: () => void | Promise<void>;
-}) {
-  const queryClient = useQueryClient();
-  const detailQuery = useContributionDetail(open ? donationId : null);
-  const [phase, setPhase] = useState<ShellPhase>({ name: "form" });
-  const [values, setValues] = useState<OperationFieldValues>({
-    reason: "",
-    confirmed: false,
-  });
-  const [delivery, setDelivery] = useState<ReceiptDeliveryValue | null>(null);
-  const [idempotencyKey, setIdempotencyKey] = useState("");
-  const [openKey, setOpenKey] = useState<string | null>(null);
-  const [draftRevision, setDraftRevision] = useState<string | null>(null);
-  const [amountPrefillKey, setAmountPrefillKey] = useState<string | null>(null);
-  const reasonId = useId();
-  const amountId = useId();
-  const fundId = useId();
-  const confirmId = useId();
-
-  const resetDraftState = () => {
-    setPhase({ name: "form" });
-    setValues({ reason: "", confirmed: false });
-    setDelivery(null);
-    setIdempotencyKey(crypto.randomUUID());
-    setDraftRevision(null);
-    // Re-arm the refund amount prefill so a reload after a stale draft
-    // repopulates the amount from the refreshed detail.
-    setAmountPrefillKey(null);
-  };
-
-  // Reset the form whenever a different operation/gift opens. State is
-  // adjusted during render (React's documented pattern) so no effect-driven
-  // cascading renders are needed.
-  const nextOpenKey = open
-    ? `${donationId ?? ""}:${operation?.actionType ?? ""}`
+function remainingRefundableCentsForOperation(
+  isRefundOperation: boolean,
+  detail: ViewerProjectedContributionDetail | undefined,
+): number | null {
+  return isRefundOperation && detail
+    ? Math.max(
+        0,
+        detail.original.amountCents - detail.shared.refundedAmountCents,
+      )
     : null;
-  if (nextOpenKey !== openKey) {
-    setOpenKey(nextOpenKey);
-    setAmountPrefillKey(null);
-    if (nextOpenKey) {
-      resetDraftState();
-    }
-  }
+}
 
-  const detail = detailQuery.data;
-  const detailQueryEnabled = isContributionGiftParam(donationId);
-  const detailLoading = detailQueryEnabled && detailQuery.isPending;
-  const detailLoadBlock =
-    !detail && !detailLoading
-      ? {
-          reason:
-            detailQuery.error instanceof Error
-              ? detailQuery.error.message
-              : "Current gift detail is unavailable for this row.",
-          nextStep: "Close this action, refresh the CRM row, and try again.",
-        }
-      : null;
-  const latestRevision = detail?.revision ?? null;
-  const hasBackgroundConflict =
-    draftRevision !== null &&
-    latestRevision !== null &&
-    draftRevision !== latestRevision;
-  const needsStaleDraftRecovery =
-    hasBackgroundConflict || (phase.name === "failure" && phase.staleSave);
-  const captureDraftRevision = () => {
-    setDraftRevision((current) => current ?? detail?.revision ?? null);
-  };
-  // Pin the revision the staffer is acting on as soon as detail is ready.
-  // Input-free operations (send receipt, retry) never touch a field, so
-  // waiting for the first edit would let a background refetch silently
-  // re-point expectedRevision at data the staffer never reviewed. State is
-  // adjusted during render (React's documented pattern), guarded so it runs
-  // once per draft.
-  if (nextOpenKey && latestRevision !== null && draftRevision === null) {
-    setDraftRevision(latestRevision);
-  }
-  const isRefundOperation = operation?.actionType === "refund";
-  // The refundable basis is the ORIGINAL charged amount (what the provider
-  // charged), matching the server availability payload and the refund
-  // adapter (#265). The adjusted effective amount (shared.amountCents) can
-  // drift above or below it after amount corrections and must not drive the
-  // prefill, the validation cap, or the "Remaining refundable" row.
-  const remainingRefundableCents =
-    isRefundOperation && detail
-      ? Math.max(
-          0,
-          detail.original.amountCents - detail.shared.refundedAmountCents,
-        )
-      : null;
-  // A refund correction that is still pending provider confirmation means
-  // money may already be moving; block a second submission client-side. The
-  // server live-charge check remains the authority.
+function pendingRefundMessageForOperation(
+  isRefundOperation: boolean,
+  detail: ViewerProjectedContributionDetail | undefined,
+): string | null {
   const hasPendingRefundCorrection =
     isRefundOperation && detail
       ? detail.corrections.some(
@@ -377,40 +320,69 @@ export function ContributionOperationShell({
             correction.status === "pending",
         )
       : false;
-  const pendingRefundMessage = hasPendingRefundCorrection
+  return hasPendingRefundCorrection
     ? "A refund is pending provider confirmation."
     : null;
+}
 
-  // Refunds default to the full remaining amount: once detail loads, prefill
-  // the amount input a single time per open so staff can lower it for a
-  // partial refund without re-typing the common full-refund case.
-  if (
-    nextOpenKey &&
-    remainingRefundableCents !== null &&
-    amountPrefillKey !== nextOpenKey
-  ) {
-    setAmountPrefillKey(nextOpenKey);
-    setValues((prev) => ({
-      ...prev,
-      amountDollars: (remainingRefundableCents / 100).toFixed(2),
-    }));
-  }
-
-  const availability = useMemo(() => {
-    if (!detail || !operation) {
-      return null;
-    }
-    return (
-      detail.actionAvailability.find(
-        (entry) => entry.actionType === operation.actionType,
-      ) ?? null
-    );
-  }, [detail, operation]);
-
-  if (!operation) {
+function resolveOperationAmountError({
+  amountCurrencyCode,
+  isRefundOperation,
+  operation,
+  remainingRefundableCents,
+  values,
+}: {
+  amountCurrencyCode: string;
+  isRefundOperation: boolean;
+  operation: OperationDefinition;
+  remainingRefundableCents: number | null;
+  values: OperationFieldValues;
+}): string | null {
+  if (!operation.fields.includes("amount")) {
     return null;
   }
+  const parsed = Number.parseFloat(values.amountDollars || "");
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return "Enter a valid amount.";
+  }
+  if (!isRefundOperation) {
+    return null;
+  }
+  const cents = Math.round(parsed * 100);
+  const isWholeCents = Math.abs(parsed * 100 - cents) < 1e-6;
+  if (!isWholeCents || cents <= 0) {
+    return "Enter a valid amount.";
+  }
+  if (remainingRefundableCents !== null && cents > remainingRefundableCents) {
+    return `Enter an amount up to ${formatSharedContributionAmount(
+      remainingRefundableCents,
+      amountCurrencyCode,
+    )}.`;
+  }
+  return null;
+}
 
+function resolveOperationBlockedState({
+  availability,
+  detail,
+  detailLoadBlock,
+  operation,
+}: {
+  availability:
+    | ViewerProjectedContributionDetail["actionAvailability"][number]
+    | null;
+  detail: ViewerProjectedContributionDetail | undefined;
+  detailLoadBlock: { reason: string; nextStep: string } | null;
+  operation: OperationDefinition;
+}): {
+  blocked: boolean;
+  blockedNextStep: string;
+  blockedReason: string;
+  failedRetryScopes: CrmPostFailedScope[];
+  hasIndependentStagedGiftRetry: boolean;
+  operationBlock: { reason: string; nextStep: string } | null;
+  retryTargetScope: CrmPostFailedScope | null;
+} {
   const failedRetryScopes =
     operation.actionType === "retry_staged_gift"
       ? (detail?.crm.failedScopes ?? [])
@@ -455,42 +427,168 @@ export function ContributionOperationShell({
     operationBlock?.nextStep ??
     availability?.nextStep ??
     "Refresh the gift detail or choose another action.";
-  const amountCurrencyCode = detail?.shared.currencyCode ?? "USD";
-  const amountError = (() => {
-    if (!operation.fields.includes("amount")) {
-      return null;
+
+  return {
+    blocked,
+    blockedNextStep,
+    blockedReason,
+    failedRetryScopes,
+    hasIndependentStagedGiftRetry,
+    operationBlock,
+    retryTargetScope,
+  };
+}
+
+function useOperationDraftLifecycle({
+  actionType,
+  donationId,
+  latestRevision,
+  open,
+  remainingRefundableCents,
+}: {
+  actionType: string | undefined;
+  donationId: string | null;
+  latestRevision: string | null;
+  open: boolean;
+  remainingRefundableCents: number | null;
+}) {
+  const [phase, setPhase] = useState<ShellPhase>({ name: "form" });
+  const [values, setValues] = useState<OperationFieldValues>({
+    reason: "",
+    confirmed: false,
+  });
+  const [delivery, setDelivery] = useState<ReceiptDeliveryValue | null>(null);
+  const [idempotencyKey, setIdempotencyKey] = useState("");
+  const [openKey, setOpenKey] = useState<string | null>(null);
+  const [draftRevision, setDraftRevision] = useState<string | null>(null);
+  const [amountPrefillKey, setAmountPrefillKey] = useState<string | null>(null);
+
+  const resetDraftState = () => {
+    setPhase({ name: "form" });
+    setValues({ reason: "", confirmed: false });
+    setDelivery(null);
+    setIdempotencyKey(crypto.randomUUID());
+    setDraftRevision(null);
+    setAmountPrefillKey(null);
+  };
+
+  const nextOpenKey = open ? `${donationId ?? ""}:${actionType ?? ""}` : null;
+  if (nextOpenKey !== openKey) {
+    setOpenKey(nextOpenKey);
+    setAmountPrefillKey(null);
+    if (nextOpenKey) {
+      resetDraftState();
     }
-    const parsed = Number.parseFloat(values.amountDollars || "");
-    if (!Number.isFinite(parsed) || parsed <= 0) {
-      return "Enter a valid amount.";
-    }
-    if (!isRefundOperation) {
-      return null;
-    }
-    // Refund amounts must resolve to whole cents; the provider contract
-    // takes integer cents. Client validation is advisory — the server
-    // revalidates against current truth on submit.
-    const cents = Math.round(parsed * 100);
-    const isWholeCents = Math.abs(parsed * 100 - cents) < 1e-6;
-    if (!isWholeCents || cents <= 0) {
-      return "Enter a valid amount.";
-    }
-    if (remainingRefundableCents !== null && cents > remainingRefundableCents) {
-      return `Enter an amount up to ${formatSharedContributionAmount(
-        remainingRefundableCents,
-        amountCurrencyCode,
-      )}.`;
-    }
+  }
+  if (nextOpenKey && latestRevision !== null && draftRevision === null) {
+    setDraftRevision(latestRevision);
+  }
+  if (
+    nextOpenKey &&
+    remainingRefundableCents !== null &&
+    amountPrefillKey !== nextOpenKey
+  ) {
+    setAmountPrefillKey(nextOpenKey);
+    setValues((prev) => ({
+      ...prev,
+      amountDollars: (remainingRefundableCents / 100).toFixed(2),
+    }));
+  }
+
+  const captureDraftRevision = () => {
+    setDraftRevision((current) => current ?? latestRevision);
+  };
+
+  return {
+    captureDraftRevision,
+    delivery,
+    draftRevision,
+    idempotencyKey,
+    phase,
+    resetDraftState,
+    setDelivery,
+    setPhase,
+    setValues,
+    values,
+  };
+}
+
+function resolveOperationShellViewModel({
+  delivery,
+  detail,
+  detailQueryError,
+  detailQueryIsPending,
+  donationId,
+  draftRevision,
+  isRefundOperation,
+  latestRevision,
+  operation,
+  phase,
+  remainingRefundableCents,
+  values,
+}: {
+  delivery: ReceiptDeliveryValue | null;
+  detail: ViewerProjectedContributionDetail | undefined;
+  detailQueryError: unknown;
+  detailQueryIsPending: boolean;
+  donationId: string | null;
+  draftRevision: string | null;
+  isRefundOperation: boolean;
+  latestRevision: string | null;
+  operation: OperationDefinition | null;
+  phase: ShellPhase;
+  remainingRefundableCents: number | null;
+  values: OperationFieldValues;
+}): OperationShellViewModel | null {
+  if (!operation) {
     return null;
-  })();
+  }
+
+  const detailQueryEnabled = isContributionGiftParam(donationId);
+  const detailLoading = detailQueryEnabled && detailQueryIsPending;
+  const detailLoadBlock =
+    !detail && !detailLoading
+      ? {
+          reason:
+            detailQueryError instanceof Error
+              ? detailQueryError.message
+              : "Current gift detail is unavailable for this row.",
+          nextStep: "Close this action, refresh the CRM row, and try again.",
+        }
+      : null;
+  const hasBackgroundConflict =
+    draftRevision !== null &&
+    latestRevision !== null &&
+    draftRevision !== latestRevision;
+  const needsStaleDraftRecovery =
+    hasBackgroundConflict || (phase.name === "failure" && phase.staleSave);
+  const pendingRefundMessage = pendingRefundMessageForOperation(
+    isRefundOperation,
+    detail,
+  );
+  const availability = detail
+    ? (detail.actionAvailability.find(
+        (entry) => entry.actionType === operation.actionType,
+      ) ?? null)
+    : null;
+  const blockedState = resolveOperationBlockedState({
+    availability,
+    detail,
+    detailLoadBlock,
+    operation,
+  });
+  const amountCurrencyCode = detail?.shared.currencyCode ?? "USD";
+  const amountError = resolveOperationAmountError({
+    amountCurrencyCode,
+    isRefundOperation,
+    operation,
+    remainingRefundableCents,
+    values,
+  });
   const fundError =
     operation.fields.includes("fundId") && !values.fundId?.trim()
       ? "Enter the destination fund."
       : null;
-
-  // Updated receipt delivery (AL-263): only receipt-affecting operations on
-  // gifts with a sent receipt render the choice, and only when the server
-  // supplied the delivery context. The server stays the policy authority.
   const receiptDelivery: ContributionReceiptDeliveryContext | null =
     detail &&
     operation.receiptFields.length > 0 &&
@@ -506,7 +604,6 @@ export function ContributionOperationShell({
     receiptDelivery,
     value: deliveryValue,
   });
-
   const reasonError =
     operation.requiresReason && !values.reason.trim()
       ? "A reason is required for this operation."
@@ -517,6 +614,131 @@ export function ContributionOperationShell({
       : null;
   const validationMessage =
     amountError ?? fundError ?? deliveryError ?? reasonError ?? confirmError;
+  const showForm =
+    !blockedState.blocked &&
+    !detailQueryIsPending &&
+    phase.name !== "success" &&
+    phase.name !== "submitting";
+
+  return {
+    amountCurrencyCode,
+    amountError,
+    availability,
+    blocked: blockedState.blocked,
+    blockedNextStep: blockedState.blockedNextStep,
+    blockedReason: blockedState.blockedReason,
+    confirmError,
+    deliveryError,
+    deliveryValue,
+    detailLoading,
+    fundError,
+    hasBackgroundConflict,
+    isRefundOperation,
+    needsStaleDraftRecovery,
+    operationBlock: blockedState.operationBlock,
+    pendingRefundMessage,
+    receiptDelivery,
+    reasonError,
+    retryTargetScope: blockedState.retryTargetScope,
+    showForm,
+    validationMessage,
+  };
+}
+
+type OperationShellViewModel = {
+  amountCurrencyCode: string;
+  amountError: string | null;
+  availability:
+    | ViewerProjectedContributionDetail["actionAvailability"][number]
+    | null;
+  blocked: boolean;
+  blockedNextStep: string;
+  blockedReason: string;
+  confirmError: string | null;
+  deliveryError: string | null;
+  deliveryValue: ReceiptDeliveryValue;
+  detailLoading: boolean;
+  fundError: string | null;
+  hasBackgroundConflict: boolean;
+  isRefundOperation: boolean;
+  needsStaleDraftRecovery: boolean;
+  operationBlock: { reason: string; nextStep: string } | null;
+  pendingRefundMessage: string | null;
+  receiptDelivery: ContributionReceiptDeliveryContext | null;
+  reasonError: string | null;
+  retryTargetScope: CrmPostFailedScope | null;
+  showForm: boolean;
+  validationMessage: string | null;
+};
+
+export function ContributionOperationShell({
+  open,
+  onClose,
+  operation,
+  donationId,
+  sourceSurface,
+  onOpenFullDetail,
+  onRowRefresh,
+}: {
+  open: boolean;
+  onClose: () => void;
+  operation: OperationDefinition | null;
+  donationId: string | null;
+  sourceSurface: ContributionSourceSurface;
+  /** Optional secondary action — never an automatic redirect (ADR-CD-033). */
+  onOpenFullDetail?: (donationId: string) => void;
+  onRowRefresh?: () => void | Promise<void>;
+}) {
+  const queryClient = useQueryClient();
+  const detailQuery = useContributionDetail(open ? donationId : null);
+  const reasonId = useId();
+  const amountId = useId();
+  const fundId = useId();
+  const confirmId = useId();
+  const detail = detailQuery.data;
+  const isRefundOperation = operation?.actionType === "refund";
+  const remainingRefundableCents = remainingRefundableCentsForOperation(
+    Boolean(isRefundOperation),
+    detail,
+  );
+  const latestRevision = detail?.revision ?? null;
+  const {
+    captureDraftRevision,
+    delivery,
+    draftRevision,
+    idempotencyKey,
+    phase,
+    resetDraftState,
+    setDelivery,
+    setPhase,
+    setValues,
+    values,
+  } = useOperationDraftLifecycle({
+    actionType: operation?.actionType,
+    donationId,
+    latestRevision,
+    open,
+    remainingRefundableCents,
+  });
+
+  const view = resolveOperationShellViewModel({
+    delivery,
+    detail,
+    detailQueryError: detailQuery.error,
+    detailQueryIsPending: detailQuery.isPending,
+    donationId,
+    draftRevision,
+    isRefundOperation: Boolean(isRefundOperation),
+    latestRevision,
+    operation,
+    phase,
+    remainingRefundableCents,
+    values,
+  });
+
+  if (!operation || view === null) {
+    return null;
+  }
 
   const refreshAfterOperation = async (
     completedResult: ContributionActionResult,
@@ -554,21 +776,21 @@ export function ContributionOperationShell({
     if (
       !isContributionGiftParam(donationId) ||
       !detail ||
-      !availability?.available ||
-      validationMessage ||
-      blocked ||
-      hasBackgroundConflict ||
-      pendingRefundMessage
+      !view.availability?.available ||
+      view.validationMessage ||
+      view.blocked ||
+      view.hasBackgroundConflict ||
+      view.pendingRefundMessage
     ) {
       return;
     }
     const receiptDeliverySelection: ReceiptDeliveryProposal | null =
-      receiptDelivery && deliveryValue.choice
+      view.receiptDelivery && view.deliveryValue.choice
         ? {
-            choice: deliveryValue.choice,
+            choice: view.deliveryValue.choice,
             deferReason:
-              deliveryValue.choice === "defer"
-                ? deliveryValue.deferReason.trim() || null
+              view.deliveryValue.choice === "defer"
+                ? view.deliveryValue.deferReason.trim() || null
                 : null,
           }
         : null;
@@ -580,7 +802,7 @@ export function ContributionOperationShell({
       operation.actionType === "retry_staged_gift"
         ? {
             ...basePayload,
-            ...retryPayloadForScope(retryTargetScope),
+            ...retryPayloadForScope(view.retryTargetScope),
           }
         : basePayload;
     setPhase({ name: "submitting" });
@@ -645,7 +867,55 @@ export function ContributionOperationShell({
     resetDraftState();
   };
 
-  const effectiveSummary = detail ? (
+  return (
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent
+        className="gap-4 p-5 max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:max-h-[92dvh] max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-y-auto max-sm:rounded-b-none sm:max-w-lg"
+        data-testid="contribution-operation-shell"
+      >
+        <DialogTitle className="text-base font-semibold">
+          {operation.title}
+        </DialogTitle>
+        <DialogDescription className="text-sm text-muted-foreground">
+          {operation.description}
+        </DialogDescription>
+        <OperationShellDialogBody
+          amountId={amountId}
+          captureDraftRevision={captureDraftRevision}
+          confirmId={confirmId}
+          detail={detail}
+          detailQueryIsFetching={detailQuery.isFetching}
+          detailQueryIsPending={detailQuery.isPending}
+          donationId={donationId}
+          fundId={fundId}
+          onClose={onClose}
+          onOpenFullDetail={onOpenFullDetail}
+          onReloadLatestDetail={() => void handleReloadLatestDetail()}
+          onSubmit={() => void handleSubmit()}
+          operation={operation}
+          phase={phase}
+          reasonId={reasonId}
+          remainingRefundableCents={remainingRefundableCents}
+          setDelivery={setDelivery}
+          setValues={setValues}
+          values={values}
+          view={view}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function OperationEffectiveSummary({
+  detail,
+  isRefundOperation,
+  remainingRefundableCents,
+}: {
+  detail: ViewerProjectedContributionDetail;
+  isRefundOperation: boolean;
+  remainingRefundableCents: number | null;
+}) {
+  return (
     <dl className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted/30 p-3 text-sm">
       <dt className="text-muted-foreground">Current amount</dt>
       <dd className="text-right font-mono font-semibold tabular-nums">
@@ -654,7 +924,7 @@ export function ContributionOperationShell({
           detail.shared.currencyCode,
         )}
       </dd>
-      {isRefundOperation && (
+      {isRefundOperation ? (
         <>
           {/* Refund figures reconcile against the ORIGINAL charged amount,
               not the effective amount shown above (#265). */}
@@ -680,7 +950,7 @@ export function ContributionOperationShell({
             )}
           </dd>
         </>
-      )}
+      ) : null}
       <dt className="text-muted-foreground">Designation</dt>
       <dd className="text-right font-medium">
         {detail.shared.designationSummary.fundName}
@@ -690,294 +960,575 @@ export function ContributionOperationShell({
         {detail.shared.receiptStatus.replace(/_/g, " ")}
       </dd>
     </dl>
-  ) : null;
+  );
+}
+
+function OperationShellLoading({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="space-y-3">
+      <p role="status" className="text-sm text-muted-foreground">
+        Loading current gift values…
+      </p>
+      <div className="flex justify-end">
+        <Button variant="outline" className="h-11" onClick={onClose}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function OperationShellBlocked({
+  blockedNextStep,
+  blockedReason,
+  donationId,
+  onOpenFullDetail,
+  operationBlock,
+}: {
+  blockedNextStep: string;
+  blockedReason: string;
+  donationId: string | null;
+  onOpenFullDetail?: (donationId: string) => void;
+  operationBlock: { reason: string; nextStep: string } | null;
+}) {
+  return (
+    <div
+      role="note"
+      className="rounded-lg border border-border bg-muted/30 p-4 space-y-1"
+    >
+      <p className="text-sm font-medium text-foreground">{blockedReason}</p>
+      {blockedNextStep ? (
+        <p className="text-xs text-muted-foreground">{blockedNextStep}</p>
+      ) : null}
+      {operationBlock && onOpenFullDetail && donationId ? (
+        <Button
+          variant="outline"
+          className="mt-3 h-11"
+          onClick={() => onOpenFullDetail(donationId)}
+        >
+          View full contribution detail
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+function OperationAmountField({
+  amountCurrencyCode,
+  amountError,
+  amountId,
+  captureDraftRevision,
+  isRefundOperation,
+  setValues,
+  values,
+}: {
+  amountCurrencyCode: string;
+  amountError: string | null;
+  amountId: string;
+  captureDraftRevision: () => void;
+  isRefundOperation: boolean;
+  setValues: Dispatch<SetStateAction<OperationFieldValues>>;
+  values: OperationFieldValues;
+}) {
+  return (
+    <Field data-invalid={Boolean(amountError)}>
+      <FieldLabel htmlFor={amountId}>Amount ({amountCurrencyCode})</FieldLabel>
+      <Input
+        id={amountId}
+        aria-describedby={amountError ? `${amountId}-error` : undefined}
+        aria-invalid={Boolean(amountError)}
+        inputMode="decimal"
+        value={values.amountDollars ?? ""}
+        onChange={(event) => {
+          captureDraftRevision();
+          setValues((prev) => ({
+            ...prev,
+            amountDollars: event.target.value,
+          }));
+        }}
+        className="h-11"
+      />
+      {isRefundOperation ? (
+        <FieldDescription>
+          Enter a lower amount for a partial refund.
+        </FieldDescription>
+      ) : null}
+      <FieldError
+        id={`${amountId}-error`}
+        errors={amountError ? [{ message: amountError }] : []}
+      />
+    </Field>
+  );
+}
+
+function OperationFundField({
+  captureDraftRevision,
+  fundError,
+  fundId,
+  setValues,
+  values,
+}: {
+  captureDraftRevision: () => void;
+  fundError: string | null;
+  fundId: string;
+  setValues: Dispatch<SetStateAction<OperationFieldValues>>;
+  values: OperationFieldValues;
+}) {
+  return (
+    <Field data-invalid={Boolean(fundError)}>
+      <FieldLabel htmlFor={fundId}>Destination fund ID</FieldLabel>
+      <Input
+        id={fundId}
+        aria-describedby={fundError ? `${fundId}-error` : undefined}
+        aria-invalid={Boolean(fundError)}
+        value={values.fundId ?? ""}
+        onChange={(event) => {
+          captureDraftRevision();
+          setValues((prev) => ({
+            ...prev,
+            fundId: event.target.value,
+          }));
+        }}
+        className="h-11"
+      />
+      <FieldError
+        id={`${fundId}-error`}
+        errors={fundError ? [{ message: fundError }] : []}
+      />
+    </Field>
+  );
+}
+
+function OperationReasonField({
+  captureDraftRevision,
+  reasonError,
+  reasonId,
+  setValues,
+  values,
+}: {
+  captureDraftRevision: () => void;
+  reasonError: string | null;
+  reasonId: string;
+  setValues: Dispatch<SetStateAction<OperationFieldValues>>;
+  values: OperationFieldValues;
+}) {
+  return (
+    <Field data-invalid={Boolean(reasonError)}>
+      <FieldLabel htmlFor={reasonId}>Reason</FieldLabel>
+      <Textarea
+        id={reasonId}
+        aria-describedby={reasonError ? `${reasonId}-error` : undefined}
+        aria-invalid={Boolean(reasonError)}
+        value={values.reason}
+        onChange={(event) => {
+          captureDraftRevision();
+          setValues((prev) => ({
+            ...prev,
+            reason: event.target.value,
+          }));
+        }}
+        placeholder="Why is this change needed?"
+      />
+      <FieldError
+        id={`${reasonId}-error`}
+        errors={reasonError ? [{ message: reasonError }] : []}
+      />
+    </Field>
+  );
+}
+
+function OperationConfirmField({
+  captureDraftRevision,
+  confirmError,
+  confirmId,
+  setValues,
+  values,
+}: {
+  captureDraftRevision: () => void;
+  confirmError: string | null;
+  confirmId: string;
+  setValues: Dispatch<SetStateAction<OperationFieldValues>>;
+  values: OperationFieldValues;
+}) {
+  return (
+    <Field data-invalid={Boolean(confirmError)} orientation="horizontal">
+      <Checkbox
+        id={confirmId}
+        aria-describedby={confirmError ? `${confirmId}-error` : undefined}
+        aria-invalid={Boolean(confirmError)}
+        checked={values.confirmed}
+        onCheckedChange={(checked) => {
+          captureDraftRevision();
+          setValues((prev) => ({
+            ...prev,
+            confirmed: checked === true,
+          }));
+        }}
+        className="mt-0.5"
+      />
+      <FieldContent>
+        <Label htmlFor={confirmId} className="text-sm font-normal leading-snug">
+          I reviewed the current values and downstream effects and want to
+          submit this change.
+        </Label>
+        <FieldError
+          id={`${confirmId}-error`}
+          errors={confirmError ? [{ message: confirmError }] : []}
+        />
+      </FieldContent>
+    </Field>
+  );
+}
+
+function OperationDraftAlerts({
+  hasBackgroundConflict,
+  phase,
+}: {
+  hasBackgroundConflict: boolean;
+  phase: ShellPhase;
+}) {
+  if (phase.name === "failure") {
+    return (
+      <p role="alert" className="text-sm text-destructive">
+        <CircleX className="mr-1 inline size-4" aria-hidden />
+        {phase.message}
+      </p>
+    );
+  }
+
+  if (!hasBackgroundConflict) {
+    return null;
+  }
 
   return (
-    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <DialogContent
-        className="gap-4 p-5 max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:max-h-[92dvh] max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-y-auto max-sm:rounded-b-none sm:max-w-lg"
-        data-testid="contribution-operation-shell"
-      >
-        <DialogTitle className="text-base font-semibold">
-          {operation.title}
-        </DialogTitle>
-        <DialogDescription className="text-sm text-muted-foreground">
-          {operation.description}
-        </DialogDescription>
+    <p role="alert" className="text-sm text-destructive">
+      <CircleX className="mr-1 inline size-4" aria-hidden />
+      This gift changed while you were editing. Review the latest current values
+      above, then reload to start again or discard this draft.
+    </p>
+  );
+}
 
-        {detailLoading && (
-          <div className="space-y-3">
-            <p role="status" className="text-sm text-muted-foreground">
-              Loading current gift values…
-            </p>
-            <div className="flex justify-end">
-              <Button variant="outline" className="h-11" onClick={onClose}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        )}
+function OperationSubmitBar({
+  availability,
+  detail,
+  detailQueryIsFetching,
+  detailQueryIsPending,
+  hasBackgroundConflict,
+  needsStaleDraftRecovery,
+  onClose,
+  onReloadLatestDetail,
+  onSubmit,
+  operation,
+  pendingRefundMessage,
+  phase,
+  validationMessage,
+}: {
+  availability:
+    | ViewerProjectedContributionDetail["actionAvailability"][number]
+    | null;
+  detail: ViewerProjectedContributionDetail | undefined;
+  detailQueryIsFetching: boolean;
+  detailQueryIsPending: boolean;
+  hasBackgroundConflict: boolean;
+  needsStaleDraftRecovery: boolean;
+  onClose: () => void;
+  onReloadLatestDetail: () => void;
+  onSubmit: () => void;
+  operation: OperationDefinition;
+  pendingRefundMessage: string | null;
+  phase: ShellPhase;
+  validationMessage: string | null;
+}) {
+  const submitDisabled =
+    Boolean(validationMessage) ||
+    Boolean(pendingRefundMessage) ||
+    !detail ||
+    !availability?.available ||
+    detailQueryIsPending ||
+    hasBackgroundConflict;
 
-        {blocked && !detailLoading && (
-          <div
-            role="note"
-            className="rounded-lg border border-border bg-muted/30 p-4 space-y-1"
-          >
-            <p className="text-sm font-medium text-foreground">
-              {blockedReason}
-            </p>
-            {blockedNextStep && (
-              <p className="text-xs text-muted-foreground">{blockedNextStep}</p>
-            )}
-            {operationBlock && onOpenFullDetail && donationId && (
-              <Button
-                variant="outline"
-                className="mt-3 h-11"
-                onClick={() => onOpenFullDetail(donationId)}
-              >
-                View full contribution detail
-              </Button>
-            )}
-          </div>
-        )}
+  return (
+    <div className="flex flex-wrap justify-end gap-2 pt-1">
+      <Button variant="outline" className="h-11" onClick={onClose}>
+        {needsStaleDraftRecovery ? "Discard draft" : "Cancel"}
+      </Button>
+      {needsStaleDraftRecovery ? (
+        <Button
+          className="h-11"
+          disabled={detailQueryIsFetching}
+          onClick={onReloadLatestDetail}
+        >
+          {detailQueryIsFetching
+            ? "Reloading latest gift…"
+            : "Reload latest gift"}
+        </Button>
+      ) : (
+        <Button className="h-11" disabled={submitDisabled} onClick={onSubmit}>
+          {phase.name === "failure" ? "Retry" : operation.title}
+        </Button>
+      )}
+    </div>
+  );
+}
 
-        {!blocked &&
-          !detailQuery.isPending &&
-          phase.name !== "success" &&
-          phase.name !== "submitting" && (
-            <div className="space-y-4">
-              {effectiveSummary}
+function OperationShellForm({
+  amountId,
+  captureDraftRevision,
+  confirmId,
+  detail,
+  detailQueryIsFetching,
+  detailQueryIsPending,
+  fundId,
+  onClose,
+  onReloadLatestDetail,
+  onSubmit,
+  operation,
+  phase,
+  reasonId,
+  remainingRefundableCents,
+  setDelivery,
+  setValues,
+  values,
+  view,
+}: {
+  amountId: string;
+  captureDraftRevision: () => void;
+  confirmId: string;
+  detail: ViewerProjectedContributionDetail | undefined;
+  detailQueryIsFetching: boolean;
+  detailQueryIsPending: boolean;
+  fundId: string;
+  onClose: () => void;
+  onReloadLatestDetail: () => void;
+  onSubmit: () => void;
+  operation: OperationDefinition;
+  phase: ShellPhase;
+  reasonId: string;
+  remainingRefundableCents: number | null;
+  setDelivery: Dispatch<SetStateAction<ReceiptDeliveryValue | null>>;
+  setValues: Dispatch<SetStateAction<OperationFieldValues>>;
+  values: OperationFieldValues;
+  view: OperationShellViewModel;
+}) {
+  return (
+    <div className="space-y-4">
+      {detail ? (
+        <OperationEffectiveSummary
+          detail={detail}
+          isRefundOperation={view.isRefundOperation}
+          remainingRefundableCents={remainingRefundableCents}
+        />
+      ) : null}
 
-              {pendingRefundMessage && (
-                <Alert role="status" data-testid="pending-refund-notice">
-                  <Clock3 className="size-4" aria-hidden />
-                  <AlertDescription className="text-xs">
-                    {pendingRefundMessage} Submitting another refund is blocked
-                    until the provider confirms or the pending refund fails.
-                  </AlertDescription>
-                </Alert>
-              )}
+      {view.pendingRefundMessage ? (
+        <Alert role="status" data-testid="pending-refund-notice">
+          <Clock3 className="size-4" aria-hidden />
+          <AlertDescription className="text-xs">
+            {view.pendingRefundMessage} Submitting another refund is blocked
+            until the provider confirms or the pending refund fails.
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
-              {operation.riskCopy && (
-                <Alert role="note">
-                  <AlertDescription className="text-xs">
-                    {operation.riskCopy}
-                  </AlertDescription>
-                </Alert>
-              )}
+      {operation.riskCopy ? (
+        <Alert role="note">
+          <AlertDescription className="text-xs">
+            {operation.riskCopy}
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
-              {operation.downstreamEffects.length > 0 && (
-                <ul className="list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
-                  {operation.downstreamEffects.map((effect) => (
-                    <li key={effect}>{effect}</li>
-                  ))}
-                </ul>
-              )}
+      {operation.downstreamEffects.length > 0 ? (
+        <ul className="list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
+          {operation.downstreamEffects.map((effect) => (
+            <li key={effect}>{effect}</li>
+          ))}
+        </ul>
+      ) : null}
 
-              {operation.fields.includes("amount") && (
-                <Field data-invalid={Boolean(amountError)}>
-                  <FieldLabel htmlFor={amountId}>
-                    Amount ({amountCurrencyCode})
-                  </FieldLabel>
-                  <Input
-                    id={amountId}
-                    aria-describedby={
-                      amountError ? `${amountId}-error` : undefined
-                    }
-                    aria-invalid={Boolean(amountError)}
-                    inputMode="decimal"
-                    value={values.amountDollars ?? ""}
-                    onChange={(event) => {
-                      captureDraftRevision();
-                      setValues((prev) => ({
-                        ...prev,
-                        amountDollars: event.target.value,
-                      }));
-                    }}
-                    className="h-11"
-                  />
-                  {isRefundOperation && (
-                    <FieldDescription>
-                      Enter a lower amount for a partial refund.
-                    </FieldDescription>
-                  )}
-                  <FieldError
-                    id={`${amountId}-error`}
-                    errors={amountError ? [{ message: amountError }] : []}
-                  />
-                </Field>
-              )}
+      {operation.fields.includes("amount") ? (
+        <OperationAmountField
+          amountCurrencyCode={view.amountCurrencyCode}
+          amountError={view.amountError}
+          amountId={amountId}
+          captureDraftRevision={captureDraftRevision}
+          isRefundOperation={view.isRefundOperation}
+          setValues={setValues}
+          values={values}
+        />
+      ) : null}
 
-              {operation.fields.includes("fundId") && (
-                <Field data-invalid={Boolean(fundError)}>
-                  <FieldLabel htmlFor={fundId}>Destination fund ID</FieldLabel>
-                  <Input
-                    id={fundId}
-                    aria-describedby={fundError ? `${fundId}-error` : undefined}
-                    aria-invalid={Boolean(fundError)}
-                    value={values.fundId ?? ""}
-                    onChange={(event) => {
-                      captureDraftRevision();
-                      setValues((prev) => ({
-                        ...prev,
-                        fundId: event.target.value,
-                      }));
-                    }}
-                    className="h-11"
-                  />
-                  <FieldError
-                    id={`${fundId}-error`}
-                    errors={fundError ? [{ message: fundError }] : []}
-                  />
-                </Field>
-              )}
+      {operation.fields.includes("fundId") ? (
+        <OperationFundField
+          captureDraftRevision={captureDraftRevision}
+          fundError={view.fundError}
+          fundId={fundId}
+          setValues={setValues}
+          values={values}
+        />
+      ) : null}
 
-              {receiptDelivery && (
-                <ReceiptDeliveryChoiceField
-                  affectedFields={operation.receiptFields}
-                  receiptDelivery={receiptDelivery}
-                  value={deliveryValue}
-                  onChange={(nextDelivery) => {
-                    captureDraftRevision();
-                    setDelivery(nextDelivery);
-                  }}
-                  error={deliveryError}
-                />
-              )}
+      {view.receiptDelivery ? (
+        <ReceiptDeliveryChoiceField
+          affectedFields={operation.receiptFields}
+          receiptDelivery={view.receiptDelivery}
+          value={view.deliveryValue}
+          onChange={(nextDelivery) => {
+            captureDraftRevision();
+            setDelivery(nextDelivery);
+          }}
+          error={view.deliveryError}
+        />
+      ) : null}
 
-              {operation.requiresReason && (
-                <Field data-invalid={Boolean(reasonError)}>
-                  <FieldLabel htmlFor={reasonId}>Reason</FieldLabel>
-                  <Textarea
-                    id={reasonId}
-                    aria-describedby={
-                      reasonError ? `${reasonId}-error` : undefined
-                    }
-                    aria-invalid={Boolean(reasonError)}
-                    value={values.reason}
-                    onChange={(event) => {
-                      captureDraftRevision();
-                      setValues((prev) => ({
-                        ...prev,
-                        reason: event.target.value,
-                      }));
-                    }}
-                    placeholder="Why is this change needed?"
-                  />
-                  <FieldError
-                    id={`${reasonId}-error`}
-                    errors={reasonError ? [{ message: reasonError }] : []}
-                  />
-                </Field>
-              )}
+      {operation.requiresReason ? (
+        <OperationReasonField
+          captureDraftRevision={captureDraftRevision}
+          reasonError={view.reasonError}
+          reasonId={reasonId}
+          setValues={setValues}
+          values={values}
+        />
+      ) : null}
 
-              {operation.requiresConfirmation && (
-                <Field
-                  data-invalid={Boolean(confirmError)}
-                  orientation="horizontal"
-                >
-                  <Checkbox
-                    id={confirmId}
-                    aria-describedby={
-                      confirmError ? `${confirmId}-error` : undefined
-                    }
-                    aria-invalid={Boolean(confirmError)}
-                    checked={values.confirmed}
-                    onCheckedChange={(checked) => {
-                      captureDraftRevision();
-                      setValues((prev) => ({
-                        ...prev,
-                        confirmed: checked === true,
-                      }));
-                    }}
-                    className="mt-0.5"
-                  />
-                  <FieldContent>
-                    <Label
-                      htmlFor={confirmId}
-                      className="text-sm font-normal leading-snug"
-                    >
-                      I reviewed the current values and downstream effects and
-                      want to submit this change.
-                    </Label>
-                    <FieldError
-                      id={`${confirmId}-error`}
-                      errors={confirmError ? [{ message: confirmError }] : []}
-                    />
-                  </FieldContent>
-                </Field>
-              )}
+      {operation.requiresConfirmation ? (
+        <OperationConfirmField
+          captureDraftRevision={captureDraftRevision}
+          confirmError={view.confirmError}
+          confirmId={confirmId}
+          setValues={setValues}
+          values={values}
+        />
+      ) : null}
 
-              {phase.name === "failure" && (
-                <p role="alert" className="text-sm text-destructive">
-                  <CircleX className="mr-1 inline size-4" aria-hidden />
-                  {phase.message}
-                </p>
-              )}
+      <OperationDraftAlerts
+        hasBackgroundConflict={view.hasBackgroundConflict}
+        phase={phase}
+      />
 
-              {hasBackgroundConflict && phase.name !== "failure" && (
-                <p role="alert" className="text-sm text-destructive">
-                  <CircleX className="mr-1 inline size-4" aria-hidden />
-                  This gift changed while you were editing. Review the latest
-                  current values above, then reload to start again or discard
-                  this draft.
-                </p>
-              )}
+      <OperationSubmitBar
+        availability={view.availability}
+        detail={detail}
+        detailQueryIsFetching={detailQueryIsFetching}
+        detailQueryIsPending={detailQueryIsPending}
+        hasBackgroundConflict={view.hasBackgroundConflict}
+        needsStaleDraftRecovery={view.needsStaleDraftRecovery}
+        onClose={onClose}
+        onReloadLatestDetail={onReloadLatestDetail}
+        onSubmit={onSubmit}
+        operation={operation}
+        pendingRefundMessage={view.pendingRefundMessage}
+        phase={phase}
+        validationMessage={view.validationMessage}
+      />
+    </div>
+  );
+}
 
-              <div className="flex flex-wrap justify-end gap-2 pt-1">
-                <Button variant="outline" className="h-11" onClick={onClose}>
-                  {needsStaleDraftRecovery ? "Discard draft" : "Cancel"}
-                </Button>
-                {needsStaleDraftRecovery ? (
-                  <Button
-                    className="h-11"
-                    disabled={detailQuery.isFetching}
-                    onClick={() => void handleReloadLatestDetail()}
-                  >
-                    {detailQuery.isFetching
-                      ? "Reloading latest gift…"
-                      : "Reload latest gift"}
-                  </Button>
-                ) : (
-                  <Button
-                    className="h-11"
-                    disabled={
-                      Boolean(validationMessage) ||
-                      Boolean(pendingRefundMessage) ||
-                      !detail ||
-                      !availability?.available ||
-                      detailQuery.isPending ||
-                      hasBackgroundConflict
-                    }
-                    onClick={() => void handleSubmit()}
-                  >
-                    {phase.name === "failure" ? "Retry" : operation.title}
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
+function OperationShellSubmitting() {
+  return (
+    <p role="status" className="flex items-center gap-2 text-sm">
+      <LoaderCircle className="size-4 animate-spin" aria-hidden />
+      Submitting…
+    </p>
+  );
+}
 
-        {phase.name === "submitting" && (
-          <p role="status" className="flex items-center gap-2 text-sm">
-            <LoaderCircle className="size-4 animate-spin" aria-hidden />
-            Submitting…
-          </p>
-        )}
+function OperationShellDialogBody({
+  amountId,
+  captureDraftRevision,
+  confirmId,
+  detail,
+  detailQueryIsFetching,
+  detailQueryIsPending,
+  donationId,
+  fundId,
+  onClose,
+  onOpenFullDetail,
+  onReloadLatestDetail,
+  onSubmit,
+  operation,
+  phase,
+  reasonId,
+  remainingRefundableCents,
+  setDelivery,
+  setValues,
+  values,
+  view,
+}: {
+  amountId: string;
+  captureDraftRevision: () => void;
+  confirmId: string;
+  detail: ViewerProjectedContributionDetail | undefined;
+  detailQueryIsFetching: boolean;
+  detailQueryIsPending: boolean;
+  donationId: string | null;
+  fundId: string;
+  onClose: () => void;
+  onOpenFullDetail?: (donationId: string) => void;
+  onReloadLatestDetail: () => void;
+  onSubmit: () => void;
+  operation: OperationDefinition;
+  phase: ShellPhase;
+  reasonId: string;
+  remainingRefundableCents: number | null;
+  setDelivery: Dispatch<SetStateAction<ReceiptDeliveryValue | null>>;
+  setValues: Dispatch<SetStateAction<OperationFieldValues>>;
+  values: OperationFieldValues;
+  view: OperationShellViewModel;
+}) {
+  return (
+    <>
+      {view.detailLoading ? <OperationShellLoading onClose={onClose} /> : null}
 
-        {phase.name === "success" && (
-          <OperationResultPanel
-            result={phase.result}
-            operation={operation}
-            donationId={donationId}
-            submittedReceiptDelivery={phase.submittedReceiptDelivery}
-            refreshFailed={phase.refreshFailed}
-            onOpenFullDetail={onOpenFullDetail}
-            onClose={onClose}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
+      {view.blocked && !view.detailLoading ? (
+        <OperationShellBlocked
+          blockedNextStep={view.blockedNextStep}
+          blockedReason={view.blockedReason}
+          donationId={donationId}
+          onOpenFullDetail={onOpenFullDetail}
+          operationBlock={view.operationBlock}
+        />
+      ) : null}
+
+      {view.showForm ? (
+        <OperationShellForm
+          amountId={amountId}
+          captureDraftRevision={captureDraftRevision}
+          confirmId={confirmId}
+          detail={detail}
+          detailQueryIsFetching={detailQueryIsFetching}
+          detailQueryIsPending={detailQueryIsPending}
+          fundId={fundId}
+          onClose={onClose}
+          onReloadLatestDetail={onReloadLatestDetail}
+          onSubmit={onSubmit}
+          operation={operation}
+          phase={phase}
+          reasonId={reasonId}
+          remainingRefundableCents={remainingRefundableCents}
+          setDelivery={setDelivery}
+          setValues={setValues}
+          values={values}
+          view={view}
+        />
+      ) : null}
+
+      {phase.name === "submitting" ? <OperationShellSubmitting /> : null}
+
+      {phase.name === "success" ? (
+        <OperationResultPanel
+          result={phase.result}
+          operation={operation}
+          donationId={donationId}
+          submittedReceiptDelivery={phase.submittedReceiptDelivery}
+          refreshFailed={phase.refreshFailed}
+          onOpenFullDetail={onOpenFullDetail}
+          onClose={onClose}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -1036,6 +1587,171 @@ function resolveResultPresentation(
   return { headline: "Operation completed.", tone: "success" };
 }
 
+function OperationResultHeadline({
+  headline,
+  tone,
+}: {
+  headline: string;
+  tone: OperationResultTone;
+}) {
+  const headlineClassName =
+    tone === "failure"
+      ? "flex items-center gap-2 text-sm font-medium text-destructive"
+      : tone === "warning"
+        ? "flex items-start gap-2 text-sm font-medium text-amber-700 dark:text-amber-400"
+        : "flex items-center gap-2 text-sm font-medium text-foreground";
+  const role = tone === "failure" || tone === "warning" ? "alert" : "status";
+  const Icon =
+    tone === "failure"
+      ? CircleX
+      : tone === "warning"
+        ? TriangleAlert
+        : tone === "pending"
+          ? Clock3
+          : CircleCheck;
+
+  return (
+    <p role={role} className={headlineClassName}>
+      <Icon
+        className={tone === "warning" ? "mt-0.5 size-4 shrink-0" : "size-4"}
+        aria-hidden
+      />
+      {headline}
+    </p>
+  );
+}
+
+function OperationResultCorrectionItem({
+  correctionRequestId,
+}: {
+  correctionRequestId: string | null | undefined;
+}) {
+  if (!correctionRequestId) {
+    return null;
+  }
+
+  return <li>Approval request: {correctionRequestId}</li>;
+}
+
+function OperationResultAdjustmentItem({
+  adjustmentId,
+}: {
+  adjustmentId: string | null | undefined;
+}) {
+  if (!adjustmentId) {
+    return null;
+  }
+
+  return <li>Adjustment: {adjustmentId}</li>;
+}
+
+function OperationResultProposedReceiptItem({
+  approvalStatus,
+  submittedReceiptDelivery,
+}: {
+  approvalStatus: ContributionActionResult["approvalStatus"];
+  submittedReceiptDelivery: ReceiptDeliveryProposal | null;
+}) {
+  if (approvalStatus !== "pending_approval" || !submittedReceiptDelivery) {
+    return null;
+  }
+
+  return (
+    <li>
+      Proposed receipt delivery:{" "}
+      {receiptDeliveryChoiceLabel(submittedReceiptDelivery.choice)}
+      {submittedReceiptDelivery.deferReason
+        ? ` — ${submittedReceiptDelivery.deferReason}`
+        : null}
+    </li>
+  );
+}
+
+function OperationResultProviderReferenceItem({
+  referenceId,
+  tone,
+}: {
+  referenceId: string | null | undefined;
+  tone: OperationResultTone;
+}) {
+  if (!referenceId) {
+    return null;
+  }
+
+  return (
+    <li
+      className={
+        // Reconciliation depends on the provider reference when the
+        // local record did not converge — keep it prominent.
+        tone === "warning" ? "text-sm font-medium text-foreground" : undefined
+      }
+    >
+      Provider reference: {referenceId}
+    </li>
+  );
+}
+
+function OperationResultProviderErrorItem({
+  errorCode,
+  tone,
+}: {
+  errorCode: string | null | undefined;
+  tone: OperationResultTone;
+}) {
+  if ((tone !== "failure" && tone !== "warning") || !errorCode) {
+    return null;
+  }
+
+  return <li>Provider error code: {errorCode}</li>;
+}
+
+function OperationResultReceiptOutcomeItem({
+  outcome,
+}: {
+  outcome: ContributionActionResult["receiptOutcome"];
+}) {
+  if (!outcome || outcome.status === "not_required") {
+    return null;
+  }
+
+  return <ReceiptOutcomeResultItems outcome={outcome} />;
+}
+
+function OperationResultDetailsList({
+  result,
+  submittedReceiptDelivery,
+  tone,
+}: {
+  result: ContributionActionResult;
+  submittedReceiptDelivery: ReceiptDeliveryProposal | null;
+  tone: OperationResultTone;
+}) {
+  const providerOutcome = result.providerOutcome ?? null;
+
+  return (
+    <ul className="space-y-0.5 text-xs text-muted-foreground">
+      <OperationResultCorrectionItem
+        correctionRequestId={result.correctionRequestId}
+      />
+      <OperationResultAdjustmentItem adjustmentId={result.adjustmentId} />
+      <OperationResultProposedReceiptItem
+        approvalStatus={result.approvalStatus}
+        submittedReceiptDelivery={submittedReceiptDelivery}
+      />
+      <OperationResultProviderReferenceItem
+        referenceId={providerOutcome?.referenceId}
+        tone={tone}
+      />
+      <OperationResultProviderErrorItem
+        errorCode={providerOutcome?.errorCode}
+        tone={tone}
+      />
+      <OperationResultReceiptOutcomeItem outcome={result.receiptOutcome} />
+      <li>Audit event: {result.auditEventId}</li>
+    </ul>
+  );
+}
+
 /**
  * In-place result panel (ADR-CD-033). The headline stays honest about the
  * provider outcome — a failed or still-pending provider action is never
@@ -1059,33 +1775,12 @@ function OperationResultPanel({
   onOpenFullDetail?: (donationId: string) => void;
   onClose: () => void;
 }) {
-  const providerOutcome = result.providerOutcome ?? null;
   const { headline, tone } = resolveResultPresentation(result, operation);
-  const headlineClassName =
-    tone === "failure"
-      ? "flex items-center gap-2 text-sm font-medium text-destructive"
-      : tone === "warning"
-        ? "flex items-start gap-2 text-sm font-medium text-amber-700 dark:text-amber-400"
-        : "flex items-center gap-2 text-sm font-medium text-foreground";
 
   return (
     <div className="space-y-3" data-testid="operation-result-panel">
-      <p
-        role={tone === "failure" || tone === "warning" ? "alert" : "status"}
-        className={headlineClassName}
-      >
-        {tone === "failure" ? (
-          <CircleX className="size-4" aria-hidden />
-        ) : tone === "warning" ? (
-          <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
-        ) : tone === "pending" ? (
-          <Clock3 className="size-4" aria-hidden />
-        ) : (
-          <CircleCheck className="size-4" aria-hidden />
-        )}
-        {headline}
-      </p>
-      {refreshFailed && (
+      <OperationResultHeadline headline={headline} tone={tone} />
+      {refreshFailed ? (
         <Alert role="alert">
           <AlertDescription>
             The submission succeeded, but the displayed gift data may be stale
@@ -1093,47 +1788,14 @@ function OperationResultPanel({
             loading current values.
           </AlertDescription>
         </Alert>
-      )}
-      <ul className="space-y-0.5 text-xs text-muted-foreground">
-        {result.correctionRequestId && (
-          <li>Approval request: {result.correctionRequestId}</li>
-        )}
-        {result.adjustmentId && <li>Adjustment: {result.adjustmentId}</li>}
-        {result.approvalStatus === "pending_approval" &&
-          submittedReceiptDelivery && (
-            <li>
-              Proposed receipt delivery:{" "}
-              {receiptDeliveryChoiceLabel(submittedReceiptDelivery.choice)}
-              {submittedReceiptDelivery.deferReason
-                ? ` — ${submittedReceiptDelivery.deferReason}`
-                : null}
-            </li>
-          )}
-        {providerOutcome?.referenceId && (
-          <li
-            className={
-              // Reconciliation depends on the provider reference when the
-              // local record did not converge — keep it prominent.
-              tone === "warning"
-                ? "text-sm font-medium text-foreground"
-                : undefined
-            }
-          >
-            Provider reference: {providerOutcome.referenceId}
-          </li>
-        )}
-        {(tone === "failure" || tone === "warning") &&
-          providerOutcome?.errorCode && (
-            <li>Provider error code: {providerOutcome.errorCode}</li>
-          )}
-        {result.receiptOutcome &&
-          result.receiptOutcome.status !== "not_required" && (
-            <ReceiptOutcomeResultItems outcome={result.receiptOutcome} />
-          )}
-        <li>Audit event: {result.auditEventId}</li>
-      </ul>
+      ) : null}
+      <OperationResultDetailsList
+        result={result}
+        submittedReceiptDelivery={submittedReceiptDelivery}
+        tone={tone}
+      />
       <div className="flex flex-wrap justify-end gap-2">
-        {onOpenFullDetail && donationId && (
+        {onOpenFullDetail && donationId ? (
           <Button
             variant="outline"
             className="h-11"
@@ -1141,7 +1803,7 @@ function OperationResultPanel({
           >
             View full contribution detail
           </Button>
-        )}
+        ) : null}
         <Button className="h-11" onClick={onClose}>
           Done
         </Button>
