@@ -1,5 +1,7 @@
 /** @vitest-environment jsdom */
 
+import { readFileSync } from "node:fs";
+
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { StrictMode } from "react";
 import { toast } from "sonner";
@@ -206,5 +208,16 @@ describe("useWorkerFeedPageView initial loads", () => {
     await waitFor(() => expect(result.current.isLoadingRequests).toBe(false));
     expect(result.current.pendingRequests).toEqual([]);
     expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("keeps initial feed loads inside the effect so set-state-in-effect stays clean", () => {
+    const source = readFileSync(
+      "apps/missionary/app/feed/use-worker-feed-page-view.ts",
+      "utf8",
+    );
+
+    expect(source).toContain("const loadInitialPosts = async");
+    expect(source).toContain("const loadInitialFollowerRequests = async");
+    expect(source).not.toMatch(/void loadPosts\(/);
   });
 });

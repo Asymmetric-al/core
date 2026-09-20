@@ -207,12 +207,13 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   // update happens after an await. `isLoading` and `isLoadingRequests`
   // start as true for the initial effect, so nothing is set synchronously
   // there. `reloadPosts` may flip `isLoading` before the published refetch.
+  // Initial loads stay declared inside the effect so react-hooks/set-state-in-effect
+  // does not treat hook-level callbacks as synchronous setState.
   const loadPosts = useCallback(
-    async (status: PostStatus, isCurrent: () => boolean = () => true) => {
+    async (status: PostStatus) => {
       const result = await fetchJsonResult<{ posts?: Post[] }>(
         `/api/posts?status=${status}`,
       );
-      if (!isCurrent()) return;
       if (result.ok) {
         if (status === "published") {
           setPosts(result.data.posts || []);
@@ -235,12 +236,34 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     await loadPosts("published");
   }, [loadPosts, setIsLoading]);
 
-  const loadFollowerRequests = useCallback(
-    async (isCurrent: () => boolean = () => true) => {
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadInitialPosts = async (status: PostStatus) => {
+      const result = await fetchJsonResult<{ posts?: Post[] }>(
+        `/api/posts?status=${status}`,
+      );
+      if (cancelled) return;
+      if (result.ok) {
+        if (status === "published") {
+          setPosts(result.data.posts || []);
+          setFeedError(null);
+        } else setDrafts(result.data.posts || []);
+      } else {
+        console.error("Failed to fetch posts:", toError(result.error));
+        if (status === "published") {
+          setFeedError(publishedFeedErrorMessage(result.error));
+        }
+        toast.error("Could not load feed", { id: "worker-feed-load-error" });
+      }
+      setIsLoading(false);
+    };
+
+    const loadInitialFollowerRequests = async () => {
       const result = await fetchJsonResult<{ requests?: FollowerRequest[] }>(
         "/api/follower-requests?status=pending",
       );
-      if (!isCurrent()) return;
+      if (cancelled) return;
       if (result.ok) {
         setFollowerRequests(result.data.requests || []);
       } else {
@@ -253,22 +276,16 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
         });
       }
       setIsLoadingRequests(false);
-    },
-    [setIsLoadingRequests],
-  );
+    };
 
-  useEffect(() => {
-    let cancelled = false;
-    const isCurrent = () => !cancelled;
-
-    void loadPosts("published", isCurrent);
-    void loadPosts("draft", isCurrent);
-    void loadFollowerRequests(isCurrent);
+    void loadInitialPosts("published");
+    void loadInitialPosts("draft");
+    void loadInitialFollowerRequests();
 
     return () => {
       cancelled = true;
     };
-  }, [loadFollowerRequests, loadPosts]);
+  }, [setIsLoading, setIsLoadingRequests]);
 
   const handlePost = useCallback(
     async (status: PostStatus = "published") => {
