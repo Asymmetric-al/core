@@ -90,7 +90,7 @@ function ImageUploadCustomTrigger({
   });
   const sharedClassName = cn(
     "cursor-pointer",
-    isDragging && "ring-2 ring-zinc-400 ring-offset-2 rounded-lg",
+    isDragging && "ring-2 ring-ring ring-offset-2 rounded-lg",
     (disabled || isUploading) && "cursor-not-allowed opacity-50",
   );
   const isSingleElement = React.isValidElement(content);

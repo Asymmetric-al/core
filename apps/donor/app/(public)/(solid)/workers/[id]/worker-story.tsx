@@ -1,8 +1,8 @@
 /** Worker story copy shared by the server page and the client tab view. */
 export function WorkerStory({ description }: { description: string }) {
   return (
-    <div className="prose prose-lg prose-slate max-w-none text-zinc-600 leading-relaxed font-light">
-      <blockquote className="font-medium text-xl text-zinc-900 leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic not-prose">
+    <div className="prose prose-lg max-w-none text-muted-foreground leading-relaxed font-light">
+      <blockquote className="font-medium text-xl text-foreground leading-relaxed mb-8 border-l-4 border-emerald-500 pl-6 italic not-prose">
         &quot;{description}&quot;
       </blockquote>
       <h3>The Mission</h3>
@@ -21,16 +21,16 @@ export function WorkerStory({ description }: { description: string }) {
       </p>
 
       <div className="my-8 grid grid-cols-1 sm:grid-cols-2 gap-4 not-prose">
-        <div className="p-6 bg-white rounded-2xl border border-zinc-100 shadow-sm">
-          <h4 className="font-semibold text-zinc-900 mb-2">Direct Impact</h4>
-          <p className="text-sm text-zinc-500">
+        <div className="p-6 bg-card rounded-2xl border border-border shadow-sm">
+          <h4 className="font-semibold text-foreground mb-2">Direct Impact</h4>
+          <p className="text-sm text-muted-foreground">
             100% of your program donation goes directly to the field account
             after processing fees.
           </p>
         </div>
-        <div className="p-6 bg-white rounded-2xl border border-zinc-100 shadow-sm">
-          <h4 className="font-semibold text-zinc-900 mb-2">Accountability</h4>
-          <p className="text-sm text-zinc-500">
+        <div className="p-6 bg-card rounded-2xl border border-border shadow-sm">
+          <h4 className="font-semibold text-foreground mb-2">Accountability</h4>
+          <p className="text-sm text-muted-foreground">
             We conduct quarterly site visits and financial audits to ensure
             integrity.
           </p>
