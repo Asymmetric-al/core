@@ -49,10 +49,6 @@ import {
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@asym/ui/components/shadcn/toggle-group";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -64,7 +60,6 @@ import {
   FileText,
   Save,
   Download,
-  Smartphone,
   Monitor,
   ChevronRight,
   Settings,
@@ -81,7 +76,6 @@ import {
   Minimize2,
   Sparkles,
   History,
-  Layers,
   FileDown,
   Printer,
   RotateCcw,
@@ -101,12 +95,19 @@ import type { UnlayerDesignJSON } from "@asym/email/email-studio-types";
 import type { LegacyUnlayerDocumentEditorHandle } from "@asym/ui/components/studio/legacy/UnlayerDocumentEditor";
 
 import {
+  StudioExportedHtmlPreview,
+  type StudioPreviewDevice,
+  StudioPreviewDeviceToggle,
+  StudioSaveButton,
+  StudioTemplateBreadcrumb,
+} from "@/components/studio/studio-chrome";
+import {
   PDF_TEMPLATE_CATEGORIES,
   PAGE_SIZES,
   ORIENTATIONS,
 } from "@/lib/pdf-studio";
 
-type PreviewDevice = "desktop" | "mobile";
+type PreviewDevice = StudioPreviewDevice;
 
 interface PDFMetadata {
   id: string | null;
@@ -429,25 +430,10 @@ function PDFStudioHeaderSection({
 
         <Separator orientation="vertical" className="h-5 hidden md:block" />
 
-        <div className="hidden lg:flex items-center gap-1 text-xs text-muted-foreground min-w-0">
-          <span className="shrink-0">Templates</span>
-          <ChevronRight className="size-3 shrink-0" />
-          <span className="font-medium text-foreground truncate max-w-[180px]">
-            {metadata.name}
-          </span>
-          {hasUnsavedChanges && (
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
-                }
-              />
-              <TooltipContent side="bottom">
-                <p>Unsaved changes</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </div>
+        <StudioTemplateBreadcrumb
+          name={metadata.name}
+          hasUnsavedChanges={hasUnsavedChanges}
+        />
       </div>
 
       <div className="flex items-center gap-1.5 md:gap-2">
@@ -493,51 +479,11 @@ function PDFStudioHeaderSection({
         </div>
 
         <div className="hidden md:block">
-          <ToggleGroup
-            value={[previewDevice]}
-            onValueChange={(groupValue) => {
-              const next = groupValue[0];
-              if (next) {
-                onPreview(next as PreviewDevice);
-              }
-            }}
+          <StudioPreviewDeviceToggle
+            value={previewDevice}
+            onChange={onPreview}
             disabled={!isEditorReady}
-            variant="outline"
-            size="sm"
-          >
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <ToggleGroupItem
-                    value="desktop"
-                    className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
-                  >
-                    <Monitor className="size-3.5" />
-                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                      Desktop
-                    </span>
-                  </ToggleGroupItem>
-                }
-              />
-              <TooltipContent side="bottom">Desktop preview</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <ToggleGroupItem
-                    value="mobile"
-                    className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
-                  >
-                    <Smartphone className="size-3.5" />
-                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                      Mobile
-                    </span>
-                  </ToggleGroupItem>
-                }
-              />
-              <TooltipContent side="bottom">Mobile preview</TooltipContent>
-            </Tooltip>
-          </ToggleGroup>
+          />
         </div>
 
         <Separator orientation="vertical" className="h-5 hidden md:block" />
@@ -595,26 +541,11 @@ function PDFStudioHeaderSection({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button
-          size="sm"
+        <StudioSaveButton
           onClick={onSaveClick}
           disabled={!isEditorReady || isSaving}
-          className="h-8 px-3 md:px-4 gap-1.5"
-        >
-          {isSaving ? (
-            <>
-              <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              <span className="hidden sm:inline text-xs font-medium">
-                Saving…
-              </span>
-            </>
-          ) : (
-            <>
-              <Save className="size-3.5" />
-              <span className="hidden sm:inline text-xs font-medium">Save</span>
-            </>
-          )}
-        </Button>
+          isSaving={isSaving}
+        />
 
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -913,42 +844,16 @@ function PDFExportDialogSection({
             )}
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <div className="relative group">
-            <div className="absolute top-3 right-3 z-10">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={onCopyHtml}
-              >
-                {copiedHtml ? (
-                  <Check className="size-3.5 mr-1 text-emerald-600" />
-                ) : (
-                  <Copy className="size-3.5 mr-1" />
-                )}
-                {copiedHtml ? "Copied!" : "Copy"}
-              </Button>
-            </div>
-            <pre className="bg-zinc-950 text-zinc-100 p-4 rounded-xl text-xs overflow-auto max-h-[320px] font-mono leading-relaxed">
-              {exportedHtml.slice(0, 3000)}
-              {exportedHtml.length > 3000 && (
-                <span className="text-zinc-500">
-                  {`\n\n… truncated (${(exportedHtml.length - 3000).toLocaleString()} more characters)`}
-                </span>
-              )}
-            </pre>
-          </div>
-          <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-            <span>{exportedHtml.length.toLocaleString()} characters</span>
-            <span className="flex items-center gap-1">
-              <Layers className="size-3" />
-              {engine === "asym_pdf_document_builder"
-                ? "Native source"
-                : "Ready for PDF conversion"}
-            </span>
-          </div>
-        </div>
+        <StudioExportedHtmlPreview
+          html={exportedHtml}
+          copied={copiedHtml}
+          onCopy={onCopyHtml}
+          readyLabel={
+            engine === "asym_pdf_document_builder"
+              ? "Native source"
+              : "Ready for PDF conversion"
+          }
+        />
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
