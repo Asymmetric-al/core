@@ -62,8 +62,10 @@ and does not reopen tenant processor-cost attribution.
 - GIVEN Gift intake passes fee-quote extras into the first-shot PaymentIntent
 - WHEN extras include `donation_id` or other claim-identity keys
 - THEN merged metadata keeps saga `donation_id` last
-- AND recovery or batch first-shot PaymentIntents MAY omit extras because
-  charged cents already live in `begin_donation_saga` `p_amount`
+- AND recovery or batch first-shot PaymentIntents MAY omit extras only for
+  legacy or never-quoted rows; newly quoted Guest Giving rows MUST keep stored
+  extras including `payment_method` because charged cents in
+  `begin_donation_saga` `p_amount` do not preserve method
 
 #### Scenario: Staff donations path does not apply cover-fees
 
