@@ -9,6 +9,8 @@ import { useProfilePageView } from "../../../../../../apps/missionary/app/profil
 import { getQueryClient } from "../../../../../../packages/database/providers/query-client";
 import { QueryProvider } from "../../../../../../packages/database/providers/query-provider";
 
+import type { ProfileData } from "../../../../../../apps/missionary/app/profile/profile-model";
+
 vi.mock("sonner", () => ({
   toast: {
     error: vi.fn(),
@@ -24,6 +26,47 @@ function jsonResponse(status: number, body: unknown): Response {
     status,
     headers: { "Content-Type": "application/json" },
   });
+}
+
+// profilePatchSchema treats avatarUrl/coverUrl as z.string().url().nullable().
+// Empty string is "Invalid URL"; omit or null are accepted.
+function isSchemaValidPhotoUrl(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  if (typeof value !== "string" || value.length === 0) return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isSchemaValidPhotoPatch(body: unknown): boolean {
+  if (!body || typeof body !== "object") return false;
+  const record = body as Record<string, unknown>;
+  return (
+    isSchemaValidPhotoUrl(record.avatarUrl) &&
+    isSchemaValidPhotoUrl(record.coverUrl)
+  );
+}
+
+function patchInits(): RequestInit[] {
+  return fetchMock.mock.calls.flatMap((call) => {
+    const init = call[1];
+    if (
+      typeof init === "object" &&
+      init !== null &&
+      "method" in init &&
+      init.method === "PATCH"
+    ) {
+      return [init];
+    }
+    return [];
+  });
+}
+
+function patchBodies(): unknown[] {
+  return patchInits().map((init) => JSON.parse(String(init.body)));
 }
 
 const apiProfile = {
@@ -145,6 +188,210 @@ describe("useProfilePageView", () => {
     expect(result.current.isSaving).toBe(false);
     expect(result.current.hasChanges).toBe(true);
     consoleError.mockRestore();
+  });
+
+  it("persists a cover photo that is saved in the same tick as the upload", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const coverUrl = "https://cdn.example/new-cover.jpg";
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, { ok: true }));
+
+    // Profile Photos calls updateProfile(field, url); handleSave() in one
+    // event. The save must read that pending edit, not the previous render.
+    await act(async () => {
+      result.current.updateProfile("coverUrl", coverUrl);
+      await result.current.handleSave();
+    });
+
+    const body = patchBodies().at(-1);
+    expect(body).toMatchObject({
+      coverUrl,
+      location: "London",
+    });
+    expect(isSchemaValidPhotoPatch(body)).toBe(true);
+    expect(result.current.profile.coverUrl).toBe(coverUrl);
+    expect(result.current.hasChanges).toBe(false);
+    expect(toast.success).toHaveBeenCalledWith("Profile saved");
+  });
+
+  it("sends a schema-valid avatar-only PATCH when cover is empty", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const avatarUrl = "https://cdn.example/new-avatar.jpg";
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, { ok: true }));
+
+    await act(async () => {
+      result.current.updateProfile("avatarUrl", avatarUrl);
+      await result.current.handleSave();
+    });
+
+    const body = patchBodies().at(-1);
+    expect(body).toMatchObject({ avatarUrl });
+    expect(
+      body &&
+        typeof body === "object" &&
+        "coverUrl" in body &&
+        (body as { coverUrl: unknown }).coverUrl === "",
+    ).toBe(false);
+    expect(isSchemaValidPhotoPatch(body)).toBe(true);
+    expect(result.current.profile.avatarUrl).toBe(avatarUrl);
+    expect(result.current.hasChanges).toBe(false);
+  });
+
+  it("does not let an older overlapping photo save overwrite a newer one", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const avatarUrl = "https://cdn.example/new-avatar.jpg";
+    const coverUrl = "https://cdn.example/new-cover.jpg";
+    let resolveOlderSave!: (value: Response) => void;
+    let resolveNewerSave!: (value: Response) => void;
+    fetchMock
+      .mockImplementationOnce(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveOlderSave = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveNewerSave = resolve;
+          }),
+      );
+
+    let olderSave!: Promise<void>;
+    act(() => {
+      result.current.updateProfile("avatarUrl", avatarUrl);
+      olderSave = result.current.handleSave();
+    });
+
+    let newerSave!: Promise<void>;
+    act(() => {
+      result.current.updateProfile("coverUrl", coverUrl);
+      newerSave = result.current.handleSave();
+    });
+
+    await act(async () => {
+      resolveNewerSave(jsonResponse(200, { ok: true }));
+      await newerSave;
+    });
+
+    await act(async () => {
+      resolveOlderSave(jsonResponse(200, { ok: true }));
+      await olderSave;
+    });
+
+    const cached = getQueryClient().getQueryData<ProfileData>(["profile"]);
+    expect(cached?.avatarUrl).toBe(avatarUrl);
+    expect(cached?.coverUrl).toBe(coverUrl);
+    expect(result.current.profile.avatarUrl).toBe(avatarUrl);
+    expect(result.current.profile.coverUrl).toBe(coverUrl);
+    expect(result.current.hasChanges).toBe(false);
+    expect(patchInits()[0]?.signal?.aborted).toBe(true);
+    expect(patchInits()[1]?.signal?.aborted).toBe(false);
+  });
+
+  it("aborts an in-flight save and restores the original profile on discard", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let resolveSave!: (value: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+
+    act(() => {
+      result.current.updateProfile("location", "Paris");
+    });
+
+    let pendingSave!: Promise<void>;
+    act(() => {
+      pendingSave = result.current.handleSave();
+    });
+
+    expect(result.current.isSaving).toBe(true);
+
+    act(() => {
+      result.current.handleDiscard();
+    });
+
+    expect(patchInits()[0]?.signal?.aborted).toBe(true);
+    expect(result.current.isSaving).toBe(false);
+    expect(result.current.profile.location).toBe("London");
+    expect(result.current.hasChanges).toBe(false);
+
+    await act(async () => {
+      resolveSave(jsonResponse(200, { ok: true }));
+      await pendingSave;
+    });
+
+    expect(getQueryClient().getQueryData<ProfileData>(["profile"])).toEqual(
+      result.current.profile,
+    );
+    expect(result.current.profile.location).toBe("London");
+    expect(result.current.hasChanges).toBe(false);
+    expect(toast.success).not.toHaveBeenCalledWith("Profile saved");
+  });
+
+  it("does not discard edits typed while a save is in flight", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, apiProfile));
+
+    const { result } = renderHook(() => useProfilePageView(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let resolveSave!: (value: Response) => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+
+    act(() => {
+      result.current.updateProfile("location", "Paris");
+    });
+
+    let pendingSave!: Promise<void>;
+    act(() => {
+      pendingSave = result.current.handleSave();
+    });
+
+    act(() => {
+      result.current.updateProfile("bio", "typed during save");
+    });
+
+    await act(async () => {
+      resolveSave(jsonResponse(200, { ok: true }));
+      await pendingSave;
+    });
+
+    expect(result.current.profile.location).toBe("Paris");
+    expect(result.current.profile.bio).toBe("typed during save");
+    expect(result.current.hasChanges).toBe(true);
   });
 
   it("exposes a load failure as fetchError and toasts once", async () => {
