@@ -157,20 +157,25 @@ describe("React Doctor config contracts", () => {
     );
     expect(docs).not.toContain("the live email uploader still SHA-1s");
 
-    const remainingCloneFiles = [
+    const remainingPortalFiles = [
       "packages/database/collections/admin-locations.ts",
       "packages/database/hooks/admin-locations.ts",
       "packages/database/hooks/donor-portal.ts",
       "packages/database/hooks/member-care.ts",
       "packages/database/hooks/missionary-portal.ts",
-      "packages/lib/hooks/use-tasks.ts",
     ];
 
-    for (const path of remainingCloneFiles) {
+    for (const path of remainingPortalFiles) {
       const source = readRepoFile(path);
       expect(source).not.toMatch(/async function parseJsonResponse/);
-      expect(source).toContain("parseJsonResponse");
+      expect(source).toContain('from "../http/parse-json-response"');
     }
+
+    const tasks = readRepoFile("packages/lib/hooks/use-tasks.ts");
+    expect(tasks).not.toMatch(/async function parseJsonResponse/);
+    expect(tasks).not.toContain("parseJsonResponse");
+    expect(tasks).toContain("fetchJsonResult");
+    expect(tasks).toContain('from "../http/fetch-result"');
   });
 
   it("does not let packages/database import @asym/lib", () => {

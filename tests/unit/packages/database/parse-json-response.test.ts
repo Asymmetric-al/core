@@ -46,10 +46,18 @@ describe("packages/database parseJsonResponse", () => {
     ).rejects.toThrow("Request failed with status 503");
   });
 
-  it("does not treat a message field as the thrown error", async () => {
+  it("uses a string message when error is missing, and ignores non-string error", async () => {
     await expect(
       parseJsonResponse(jsonResponse(500, { message: "boom" })),
-    ).rejects.toThrow("Request failed with status 500");
+    ).rejects.toThrow("boom");
+
+    await expect(
+      parseJsonResponse(jsonResponse(503, { error: { code: 1 } })),
+    ).rejects.toThrow("Request failed with status 503");
+
+    await expect(
+      parseJsonResponse(jsonResponse(502, { error: [] })),
+    ).rejects.toThrow("Request failed with status 502");
   });
 
   it("throws when a success body is empty", async () => {
