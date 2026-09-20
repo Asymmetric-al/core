@@ -173,6 +173,9 @@ export function useUpdateDonorPortal() {
 }
 
 export function useCreateDonorBillingPortalSession() {
+  // Creates a Stripe Billing Portal session and returns its redirect URL; it
+  // changes no cached donor data, and the return trip is a full navigation.
+  // react-doctor-disable-next-line react-doctor/query-mutation-missing-invalidation
   return useMutation({
     mutationFn: async () => {
       const response = await fetch("/api/donor/billing-portal", {
