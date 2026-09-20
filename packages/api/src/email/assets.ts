@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 import {
   getAuthContext,
   requireRole,
@@ -7,6 +5,7 @@ import {
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { serverEnv } from "@asym/env";
+import { generateCloudinarySignature } from "@asym/lib/cloudinary-server";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { ApiHttpError, toErrorResponse } from "../shared/http-errors";
@@ -75,17 +74,6 @@ function isCloudinaryEnabled() {
   return serverEnv.NEXT_PUBLIC_CLOUDINARY_ENABLED === true;
 }
 
-function getCloudinarySignature(params: Record<string, string>) {
-  const payload = Object.entries(params)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, value]) => `${key}=${value}`)
-    .join("&");
-
-  return createHash("sha256")
-    .update(`${payload}${serverEnv.CLOUDINARY_API_SECRET ?? ""}`)
-    .digest("hex");
-}
-
 async function uploadToCloudinary(input: {
   ctx: AuthenticatedContext;
   templateId: string | null;
@@ -102,27 +90,25 @@ async function uploadToCloudinary(input: {
     );
   }
 
-  const timestamp = Math.floor(Date.now() / 1000).toString();
   const publicId = crypto.randomUUID();
   const folder = `email-assets/${input.ctx.tenantId}/${
     input.templateId || "draft"
   }`;
-  const signature = getCloudinarySignature({
+  const signed = generateCloudinarySignature({
     folder,
     public_id: publicId,
-    timestamp,
   });
   const formData = new FormData();
   formData.set("file", input.file);
-  formData.set("api_key", apiKey);
-  formData.set("timestamp", timestamp);
+  formData.set("api_key", signed.apiKey);
+  formData.set("timestamp", String(signed.timestamp));
   formData.set("folder", folder);
   formData.set("public_id", publicId);
-  formData.set("signature", signature);
-  formData.set("signature_algorithm", "sha256");
+  formData.set("signature", signed.signature);
+  formData.set("signature_algorithm", signed.signatureAlgorithm);
 
   const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    `https://api.cloudinary.com/v1_1/${signed.cloudName}/image/upload`,
     {
       method: "POST",
       body: formData,
