@@ -15,6 +15,10 @@ replace the inherited singleton attribution policy, which rejected Conrad and
 the GitHub-authored develop baseline. The five overlapping files are reconciled
 cumulatively; the workflow source manifest records exact source and integrated
 hashes. No credential, repository setting or required approval is bypassed.
+The first large documentation commit required a narrow metadata-reader fix:
+project the fields consumed by attribution inside `gh` before buffering stdout.
+The default subprocess limit and all identity/signature/parent checks remain
+intact; file patches, commit messages and unused profile fields are excluded.
 
 ## Authority
 

@@ -130,3 +130,25 @@ app path is documentation. Two independent review findings were corrected and
 rechecked. The normal commit/push hooks and remote current-head checks remain
 mandatory; their final results are recorded in the PR to avoid implying that
 pre-publication local results prove a future remote state.
+
+## Large-commit CI attribution correction
+
+The first published commit exposed `spawnSync gh ENOBUFS` in the prerequisite's
+GitHub REST lookup: the large commit's unused file patches exceeded Node's
+default stdout buffer before identity validation. The lookup now asks `gh` to
+project only the SHA, Git author/committer identities, GitHub actor login/ID
+pairs and parent records before Node reads stdout. Signature verification and
+all attribution decisions remain unchanged; no buffer limit or policy is relaxed.
+
+A regression test reproduced the overflow with the real default subprocess
+limit and oversized patch/message output before the fix. The fix passed all
+87 focused attribution, workflow-contract and pre-push tests, including negative
+cases for missing parent, Git identity and actor-ID data. Scoped formatting,
+ESLint and whitespace checks passed. Final outgoing and remote checks are
+tracked on PR #1891 at the published commit.
+
+Independent live verification compared the actual `a54f236a` response:
+1,275,130 raw bytes versus 643 projected bytes, with exact equality for every
+retained attribution field and parent record. The raw response reproduces
+`ENOBUFS` under Node's default limit; the projected response exits successfully.
+Independent review found no actionable issue in the fix or four regression cases.

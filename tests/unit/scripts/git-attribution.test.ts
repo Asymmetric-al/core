@@ -1,3 +1,5 @@
+import * as childProcess from "node:child_process";
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -24,6 +26,11 @@ import {
   validateCommitAttribution,
   validateIdentity,
 } from "../../../scripts/verify/git-attribution.mjs";
+
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof childProcess>();
+  return { ...actual, spawnSync: vi.fn(actual.spawnSync) };
+});
 
 const blakeNoReplyEmail =
   "116130409+II-ricky-bobby-II@users.noreply.github.com";
@@ -1544,6 +1551,130 @@ describe("git attribution verifier", () => {
           repoSlug: "Asymmetric-al/core",
         });
         expect(readPullRequests).not.toHaveBeenCalled();
+      }
+    },
+  );
+
+  it.each([
+    "complete",
+    "missing parents",
+    "missing Git author",
+    "missing actor ID",
+  ])(
+    "verifies large commit metadata without buffering patches or messages: %s",
+    async (fixture) => {
+      const baseSha = "1".repeat(40);
+      const headParent = "2".repeat(40);
+      const headSha = "3".repeat(40);
+      const payload = {
+        sha: headSha,
+        commit: {
+          author: { name: conradName, email: conradNoReplyEmail },
+          committer: { name: "GitHub", email: "noreply@github.com" },
+        },
+        author: { login: conradGithubLogin, id: conradGithubId },
+        committer: { login: "web-flow", id: githubPlatformId },
+        parents: [{ sha: baseSha }, { sha: headParent }],
+      };
+      if (fixture === "missing parents") {
+        Reflect.deleteProperty(payload, "parents");
+      } else if (fixture === "missing Git author") {
+        Reflect.deleteProperty(payload.commit, "author");
+      } else if (fixture === "missing actor ID") {
+        Reflect.deleteProperty(payload.author, "id");
+      }
+      const projection =
+        "{sha, commit: (.commit | {author, committer}), author: (.author | {id, login}), committer: (.committer | {id, login}), parents}";
+      const { spawnSync } =
+        await vi.importActual<typeof childProcess>("node:child_process");
+      const spawn = vi
+        .mocked(childProcess.spawnSync)
+        .mockImplementation((command, args) => {
+          expect(command).toBe("gh");
+          expect(args?.slice(0, 2)).toEqual([
+            "api",
+            `repos/Asymmetric-al/core/commits/${headSha}`,
+          ]);
+          const projected = args?.[2] === "--jq" && args[3] === projection;
+          // Model gh's output boundary with the real default subprocess limit:
+          // unprojected file patches/message exceed it; metadata alone does not.
+          return spawnSync(
+            process.execPath,
+            [
+              "-e",
+              `const payload = ${JSON.stringify(payload)};
+             if (!${projected}) {
+               payload.files = [{patch: "x".repeat(2 * 1024 * 1024)}];
+               payload.commit.message = "x".repeat(2 * 1024 * 1024);
+             }
+             process.stdout.write(JSON.stringify(payload));`,
+            ],
+            { encoding: "utf8" },
+          );
+        });
+      const readSignature = vi.fn(() => ({
+        isValid: true,
+        state: "VALID",
+        wasSignedByGitHub: true,
+        signerLogin: "web-flow",
+        signerId: githubPlatformId,
+      }));
+
+      try {
+        const verify = () =>
+          collectCiVerification({
+            collectCommitShas: () => [headSha],
+            environment: {
+              ASYM_GITHUB_BASE_SHA: baseSha,
+              ASYM_GITHUB_EVENT_ACTOR_ID: String(conradGithubId),
+              ASYM_GITHUB_EVENT_ACTOR_LOGIN: conradGithubLogin,
+              ASYM_GITHUB_EVENT_NAME: "push",
+              ASYM_GITHUB_HEAD_REPOSITORY: "Asymmetric-al/core",
+              ASYM_GITHUB_HEAD_SHA: headSha,
+              ASYM_GITHUB_REF_NAME: "develop",
+              ASYM_GITHUB_REF_TYPE: "branch",
+              ASYM_GITHUB_REPOSITORY: "Asymmetric-al/core",
+            },
+            isHistorical: () => false,
+            readPullRequests: () => [
+              {
+                base: {
+                  ref: "develop",
+                  repo: { full_name: "Asymmetric-al/core" },
+                  sha: baseSha,
+                },
+                head: { sha: headParent },
+                merge_commit_sha: headSha,
+                merged_at: "2026-09-21T00:00:00Z",
+                state: "closed",
+              },
+            ],
+            readSignature,
+          });
+
+        if (fixture === "missing parents" || fixture === "missing Git author") {
+          expect(verify).toThrow(
+            `GitHub commit metadata was incomplete for ${headSha}`,
+          );
+          expect(readSignature).not.toHaveBeenCalled();
+          return;
+        }
+
+        const result = verify();
+        expect(result.checkedCommits).toEqual([headSha]);
+        if (fixture === "missing actor ID") {
+          expect(result.errors).toContain(
+            `${headSha}: commit author GitHub actor did not resolve to an immutable account id`,
+          );
+        } else {
+          expect(result.errors).toEqual([]);
+        }
+        expect(readSignature).toHaveBeenCalledWith({
+          repoSlug: "Asymmetric-al/core",
+          sha: headSha,
+        });
+      } finally {
+        spawn.mockImplementation(spawnSync);
       }
     },
   );

@@ -6,7 +6,7 @@
   "head": "4e2c014afdbea1a2679f71ff3e9f385f6bf755a2",
   "authorizedInitialHead": "014092e44f9e8355c9243b845501856d91ccc6cf",
   "latestInspectionDate": "2026-09-21",
-  "stateAtInspection": "open; latest source head includes develop integration; original owner review remains pending",
+  "stateAtInspection": "open; latest source head includes develop integration; no upstream merge is claimed",
   "authorization": "Conrad explicitly approved including this existing PR as a prerequisite on 2026-09-16.",
   "preservedCommits": [
     "322b3cffd3718239b660c7a3782d629337a001e1",
@@ -217,8 +217,8 @@
       "path": "scripts/verify/git-attribution.mjs",
       "sourceSha256": "bbe0d57dbdea3e398e4f93855f8c3b366953ddd5f8e143d171e57aebc64d65af",
       "sourceGitBlob": "e0fad76d38bc7345ede8bb2daaf1071f1bf2dfa8",
-      "integratedSha256": "bbe0d57dbdea3e398e4f93855f8c3b366953ddd5f8e143d171e57aebc64d65af",
-      "disposition": "unchanged prerequisite"
+      "integratedSha256": "b6592cc7f74b9c31b7b2a4337c5c62e38dcb91324cc391cc7369e605e011ee20",
+      "disposition": "reconciled with documentation changes"
     },
     {
       "path": "tests/unit/scripts/git-attribution-workflow.contract.test.ts",
@@ -231,8 +231,8 @@
       "path": "tests/unit/scripts/git-attribution.test.ts",
       "sourceSha256": "7bbbece92b924a454c06c17799e6f182f5081f1921d90cbad417a18b84ac14f7",
       "sourceGitBlob": "ddb86781ced4390e6bd31c62cbd5599e6b39f16b",
-      "integratedSha256": "7bbbece92b924a454c06c17799e6f182f5081f1921d90cbad417a18b84ac14f7",
-      "disposition": "unchanged prerequisite"
+      "integratedSha256": "252fd754b26727908151c94ba84184938bc7eaa4ef65a2932df6f3a8c95f7964",
+      "disposition": "reconciled with documentation changes"
     },
     {
       "path": "tests/unit/scripts/pre-push.test.ts",
