@@ -13,7 +13,8 @@ and correction/void/cancel/replace authorization and effect. Phase 18's code-
 owned jurisdiction/identity contract MUST own `ACK-*` and exact-issuer `ca_r_v1`
 allocation, reuse/nonreuse, disposition, and artifact linkage. Render Attempts
 MUST remain subordinate evidence beneath one Generation Request. Phase 17
-Delivery MUST remain an external linked authority.
+content/publication resolution and Phase 6 intent, consent, delivery, provider
+recovery and communication history MUST remain external linked authorities.
 
 Only the Generated Document service MAY allocate a Phase 18 reference or serial,
 after request admission/freeze and before identifier-bearing render. Templates,
@@ -52,7 +53,7 @@ facts or become document-render authority.
 #### Scenario: Delivery fails after issuance
 
 - GIVEN a canonical issued artifact exists
-- WHEN its Phase 17 message bounces or is resent
+- WHEN its Phase 17-prepared message bounces or is resent through Phase 6
 - THEN only delivery evidence changes
 - AND the Facts Package, Generation Request, Issuance, Artifact, and logical
   document current head remain unchanged
@@ -792,9 +793,10 @@ Authority loss, cancellation, compromise, or security revocation MUST invalidate
 affected grants and sessions immediately. Routine replacement MUST NOT interrupt
 an already-authorized short document session.
 
-Every capability-bearing notice MUST hand off through Phase 17 as a
-fact-minimized recipient-specific message using the verified sender profile and
-durable local intent/outbox. Resend open and click tracking MUST be disabled and
+Every capability-bearing notice MUST use Phase 17 governed content and verified
+sender-profile resolution, with a fact-minimized recipient-specific intent
+through the Phase 6 durable outbox. Phase 6 MUST own consent, submission,
+provider evidence, recovery and communication history. Resend open and click tracking MUST be disabled and
 proved off at activation, protected-batch start, and periodic drift checks
 without a synchronous provider lookup on every send. Provider keys and verified,
 deduplicated, order-independent webhook reductions MUST remain subordinate
@@ -848,7 +850,7 @@ as residual processor risk rather than denied.
   usable
 - AND the first successful redemption retires its unredeemed sibling atomically
 - AND a hard bounce retires only the failed replacement while an ambiguous send
-  reconciles through the same Phase 17 semantic identity
+  reconciles through the same Phase 6 communication identity and pinned Phase 17 content
 
 ### Requirement: Document Access Is Calm Role-safe And Recoverable
 
@@ -1334,7 +1336,8 @@ cutover premise is false.
 
 - WHEN one source-approved U.S. contribution crosses publication resolution,
   request freeze, rendering, exact validation/storage, issuance linkage,
-  staff/donor access, Phase 17 delivery and resend, and source correction
+  staff/donor access, Phase 17 content preparation, Phase 6 delivery and resend,
+  and source correction
 - THEN every phase observes one logical document and the expected immutable
   lineage
 - AND every download and resend resolves the exact expected bytes

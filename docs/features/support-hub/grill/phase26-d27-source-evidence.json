@@ -1,0 +1,330 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "headAndOriginDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "relatedPRs": [
+    {
+      "number": 1335,
+      "state": "OPEN",
+      "head": "e1c86e1a30f479363960eeb35500112665e16bb3"
+    },
+    {
+      "number": 1336,
+      "state": "OPEN",
+      "head": "3b2827ffcf184bf767664018efedda317c7da03c"
+    },
+    {
+      "number": 1564,
+      "state": "OPEN",
+      "head": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1"
+    },
+    {
+      "number": 1340,
+      "state": "OPEN",
+      "head": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6"
+    },
+    {
+      "number": 1558,
+      "state": "OPEN",
+      "head": "ab1a1703a725be454376990a7fe68aef2e048026"
+    }
+  ],
+  "files": [
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "AGENTS.md",
+      "sha256": "fcfd96225c1ec927dec6c1791687717a5436111de12fd4b1dbfd416908410cc3",
+      "lines": 118,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/AGENTS.md",
+      "sha256": "9360ec47f1cd402c2126a8d24d32a12570ae3b181987eeb65711a826e3c9c272",
+      "lines": 37,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/access/public-read.ts",
+      "sha256": "a796af6a5ff5e5be7d5ac787b9704ed4064495480d04c6c487c0fc73f2093ce9",
+      "lines": 318,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/collections/pages.ts",
+      "sha256": "f968a013c33385d3b8afb76b02b25a23a8629c14da6057efa7ee3d14736389ae",
+      "lines": 109,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/published-content-reader.ts",
+      "sha256": "479ccc0560345b0e9809632881cc0d12be392e7ede1249f5f401c16ed915a096",
+      "lines": 316,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/published-page-read.ts",
+      "sha256": "ea8a5774b8ebf10a6c273e13ee613be5d36d78e5e95b30dca464e05098e1ca83",
+      "lines": 119,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/resolve-tenant.ts",
+      "sha256": "02862dc987ae47e4bd89b94c9f8932b568e8ab6ccd75d880ebe0922be846447b",
+      "lines": 189,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/lib/cms/client.ts",
+      "sha256": "3a277bef352e8bf133ac0486baa5843ffcb5c1e1895ae4972c3d3bbf8749f828",
+      "lines": 354,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0027-transport-agnostic-public-content-reader.md",
+      "sha256": "69e136006ba2b6242b9e5d9d3ae2a41d79f583378e8541b9f619b618a7c7d64f",
+      "lines": 49,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0029-reference-not-copy-cms-operational.md",
+      "sha256": "67948ee43e8d7aa9b0ecbec675e55518b9619ca0f16a3d6c208dbe2d8a24611d",
+      "lines": 53,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0030-canonical-message-document-and-presentation-dependencies.md",
+      "sha256": "6da9e5c451c1c3a6e42f1ed39e0445b7f9a0db279686489393dfea92303b8a1d",
+      "lines": 51,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/rules/frontend.md",
+      "sha256": "f11a37f1ebb847987171c957857b938239fc93a2f670d2b19682669df6e79447",
+      "lines": 225,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/skills/domain-modeling/SKILL.md",
+      "sha256": "dfb17ef2da12d6f178a42955fc9880f21d7c7cbf0dede1d15868c521a1ccf0eb",
+      "lines": 74,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/skills/grill-with-docs/SKILL.md",
+      "sha256": "610d091047bcfb9db0f75c057d15538481a721111579fc5ec7f83ad9131a2165",
+      "lines": 7,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/skills/grilling/SKILL.md",
+      "sha256": "679b96d001adfa494dad5f8fd846834bcdc70b1b5d07be41dbefc12141c2787c",
+      "lines": 12,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/skills/payloadcms-payload/SKILL.md",
+      "sha256": "b423a5f1cc53cb67415ce3a6f9f83df73cc40671e54c0ef1c4e3878aebdef4f6",
+      "lines": 471,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2",
+      "lines": 109,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md",
+      "sha256": "0fb5b9bdd7b50f483b449f3e73d5f167fb0d88704b079adaea341d385894d736",
+      "lines": 314,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md",
+      "sha256": "4653ae542c1f28e076cc7f9c39fe316c82ad77d59340bfe90b9b0f58f3ef524d",
+      "lines": 3236,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/project.md",
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e",
+      "lines": 110,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/identity-and-access/spec.md",
+      "sha256": "c2d1e411ff413c61549fdd56ed174fb983f2ae6c2818dd0dbf6033d93fc4dba5",
+      "lines": 149,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4",
+      "lines": 407,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/cache-tags.ts",
+      "sha256": "bcc3313602aa3b5abfb4485faa80e6c5bb5481ef68152912192113aa1e1294a4",
+      "lines": 147,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/context.ts",
+      "sha256": "80efa2687d8ceac8a092921e8ef410567bbfd1998461288cd4217edf1bb4d375",
+      "lines": 49,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/reader.ts",
+      "sha256": "236d680029954d6ee0bca1286f613f26956a463f463296c81991554f579dba66",
+      "lines": 144,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/serialized.ts",
+      "sha256": "12aba0ea565dc07bd9181e60ad40b60db2d02a9de7c48d91f96ed213c2dd19d2",
+      "lines": 179,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/AGENTS.md",
+      "sha256": "358a36a1e9e70b3a93b3b897d06999c0503329d61ba9e0ae3cb701113021c1d7",
+      "lines": 83,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components.json",
+      "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134",
+      "lines": 69,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/config.toml",
+      "sha256": "3a31bbfd599aa7203245fbfab25e4b623ec98043049293cbf35052c6736a54c7",
+      "lines": 382,
+      "kind": "current repository"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16",
+      "lines": 791,
+      "kind": "current repository"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0145-page-local-composition-bounded-reuse-and-coherent-site-generations.md",
+      "sha256": "7f9dac25a684494ff66ab28d60d4de111ee9102a78d94f94c3f33082a404b2b9",
+      "lines": 115,
+      "kind": "accepted planning snapshot, not implemented proof"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0147-generation-bound-automatic-ordinary-page-route-continuity.md",
+      "sha256": "57eba0de8463093d63c537bc57ce347e16cf255e9bafba8ae395cce0ee69b7c9",
+      "lines": 110,
+      "kind": "accepted planning snapshot, not implemented proof"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0161-derived-public-site-search-projection-and-adverse-first-convergence.md",
+      "sha256": "f31ec862abd7fd47efcfd940b25675ca9e4330c97104c7440cf43c64b7f4f7d2",
+      "lines": 122,
+      "kind": "accepted planning snapshot, not implemented proof"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0166-bounded-localized-editorial-profile-over-exact-locale-lineages.md",
+      "sha256": "a931f52bfaa2a97f8f1558d0316563de5eec8ae069cef784e31ffe74516c9eb3",
+      "lines": 394,
+      "kind": "accepted planning snapshot, not implemented proof"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0168-one-exact-public-audience-and-app-owned-authenticated-surfaces.md",
+      "sha256": "4454ed8790b9a47d744894b31a6b13624454a0a2805fbd397106bcb9a3df60a6",
+      "lines": 179,
+      "kind": "accepted planning snapshot, not implemented proof"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0172-versioned-site-search-sharing-profile-and-d1-compiler-ownership.md",
+      "sha256": "fcb5ab82665f22a607c1b4e7a3346fee39e54e47dfff59dfcc2aa80ad322b860",
+      "lines": 382,
+      "kind": "accepted planning snapshot, not implemented proof"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0174-single-staff-access-authority-and-governed-engine-diagnostics.md",
+      "sha256": "cd1c9e556308b51a39f01e7440e797df14b68044aac9462cae3fd63f71840043",
+      "lines": 365,
+      "kind": "accepted planning snapshot, not implemented proof"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/prds/sitestacker-parity/phase-23-web-studio-cms.md",
+      "sha256": "33237425979848223ab3a05048dca0466110f6bebd17133b3d199281e78dc96c",
+      "lines": 1126,
+      "kind": "accepted planning snapshot, not implemented proof"
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/adr/0187-proof-gated-independent-site-locale-publication.md",
+      "sha256": "415c84d2a0231948d5f5b5fc76744da3412852b7b811e9ddb0847327c9a5d6b7",
+      "lines": 128,
+      "kind": "accepted planning snapshot, not implemented proof"
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/adr/0193-one-primary-site-domain-with-redirect-site-domains.md",
+      "sha256": "980a9cdbe2c5e003a848392fe6fdb2da8e74598a573890ff56fc5308f8e44926",
+      "lines": 395,
+      "kind": "accepted planning snapshot, not implemented proof"
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/adr/0196-fresh-proof-clean-start-site-domain-claims.md",
+      "sha256": "99999d70557eafd126c8704d01c707ea0f545767a1dc0167820c5de2314dded9",
+      "lines": 321,
+      "kind": "accepted planning snapshot, not implemented proof"
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/prds/sitestacker-parity/phase-24-multi-site-management.md",
+      "sha256": "60ecf01f9f8bdfbac23e9b692864c163598f2be10d5d1c01e2859bc13c55e9f6",
+      "lines": 694,
+      "kind": "accepted planning snapshot, not implemented proof"
+    }
+  ],
+  "sourceProbe": "phase26-d27-source-probe.json",
+  "limits": "Current source and immutable open planning snapshots, primary documentation and seven synthetic pure-source observations. No real DB/RLS/concurrency/provider/browser/AT/search-capacity/staff-usability or D27 implementation proof."
+}

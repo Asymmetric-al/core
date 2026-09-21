@@ -2,15 +2,16 @@
 
 ## Context
 
-PR #1324 merged into `develop` at `0a569f0c` and is archived as
-`openspec/changes/archive/2026-08-18-modernize-agent-dev-environment/`.
-Official `openspec archive` failed on this overlay filesystem with `EXDEV`
-during sibling rename; the archive was completed with copy-then-remove after
-the main `agent-instruction-system` delta was applied. Archive validation of
-that folder passed.
+PR #1324 merged into `develop` at `0a569f0c`. Its current archive is
+`openspec/changes/archive/2026-08-19-modernize-agent-dev-environment/`.
+The original archival attempt encountered `EXDEV` on an overlay filesystem and
+used a documented copy/remove recovery; that is dated operational evidence,
+not a prescribed manual archive procedure. Use the pinned archive workflow
+and current acceptance gates for new work.
 
-Latest stable OpenSpec at execution time is `1.9.0`. No newer stable release
-was used.
+The August execution verified OpenSpec `1.9.0` and pinned that exact version.
+The current manifest still owns that pin; this historical observation does not
+claim it is the newest upstream release today.
 
 ## Decisions
 
@@ -24,10 +25,12 @@ was used.
   and documents `Bash(bun:*)` in `allowed-tools`.
 - Existing numbered commands remain the end-to-end wrappers. Official Propose
   stays planning-only for ordinary future work.
-- Strict `openspec validate --all --strict` runs in `ci-preflight` immediately
-  after `skills-verify`.
-- Archive audit (`validate --archived`) currently passes all historical
-  archives, including the retired Twenty package. Keep it blocking.
+- CI/preflight runs `skills-verify`, `phase25-spec`, `openspec-validate`, then
+  `openspec-deltas`. The last stage checks every active delta against current
+  durable requirement identities without applying or archiving it.
+- Run archive audit (`validate --archived`) for archive changes. The September
+  16 audit passed all 32 retained archives, including the retired Twenty package;
+  a dated pass does not replace verification after a new archive change.
 
 ## Affected surfaces
 

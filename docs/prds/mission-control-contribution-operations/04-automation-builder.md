@@ -1,10 +1,10 @@
 # PRD 4: Mission Control Automation Builder
 
-## Delivered split status
-
-Delivered through split PRs #401 and #404. Do not create a new `status:ready`
-implementation issue from this historical PRD unless a follow-up gap is
-identified against the shipped code.
+**Current requirements amended 2026-09-16 (AL-1861).** These bodies use the
+ratified [owner contracts](../../features/mission-control/contribution-detail/README.md).
+The [original PRD](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/prds/mission-control-contribution-operations/04-automation-builder.md)
+records the earlier requirements and delivery history (split PRs #401 and #404). Those
+original delivery claims do not establish implementation of the amended target.
 
 ## Problem statement
 
@@ -18,14 +18,16 @@ platform into an unsafe scripting tool or a complicated workflow product.
 
 ## Solution
 
-Build a Mission Control-wide automation builder with two modes:
+Use the shared Mission Control automation boundary with two presentation modes:
 
 - **Simple mode** for plain-language, staff-friendly rules.
 - **Advanced mode** for deeper conditions, branching, delays, retries,
   approvals, and review-first workflows.
 
-Only users with `automation:manage` can create or edit automations. Activation
-requires preview, test run, and activity log setup.
+The current Phase 12 automation capability gates authoring and activation;
+`automation:manage` is the predecessor name, not a bypass of current access.
+Activation requires exact preview/test evidence, supported actions and owner
+qualification. Definitions never acquire data, recipient or money authority.
 
 Each automation chooses its run mode:
 
@@ -45,16 +47,18 @@ run.
 - Add preview and test-run requirements before activation.
 - Add automatic and review-first run modes.
 - Add activity logs for every run.
-- Route donor emails through Email Studio notification policy.
+- Route exact source message requests through Phase 17 preparation and Phase 6
+  dispatch; no direct provider send or mutable-template execution.
 - Route contribution actions through Contribution Operations Core.
 - Route review/failure work through shared Mission Control tasks.
-- Keep execution provider-agnostic; do not assume Inngest exists.
+- Use the established durable-execution/outbox contract. Workflow engines carry
+  execution, while source owners retain business truth; add no duplicate engine.
 
 ## Out of scope
 
 - External integration marketplace.
 - Arbitrary user code.
-- Adding Inngest or a durable workflow provider.
+- Replacing the repository durable-execution provider or bypassing its contract.
 - Building every possible automation at once.
 - Replacing shared task, notification, or contribution operation systems.
 
@@ -62,7 +66,7 @@ run.
 
 Test:
 
-- `automation:manage` permission for create/edit/activate/deactivate/delete;
+- current Phase 12 capability and source-scope checks for all definition actions;
 - simple and advanced definition validation;
 - arbitrary code/unsupported action rejection;
 - preview generation;
@@ -74,17 +78,19 @@ Test:
 - stale approval re-check;
 - run unchanged/regenerate/cancel options;
 - activity logs for success/skip/failure/partial completion;
-- donor emails go through Email Studio only;
+- messages use Phase 17/6 exact protected contracts, including source-required
+  notices, immutable preparation and recovery;
 - contribution automations call contribution services.
 
 ## Definition of done
 
-- Admins with `automation:manage` can create simple and advanced automation
-  definitions.
+- Currently authorized administrators can create bounded supported definitions;
+  no role label or definition grants source command authority.
 - Activation requires preview and test run.
 - Activity logs capture every run.
 - Automations support auto-run and review-first.
 - Review-first workflows show exact proposed changes and re-check latest data.
-- Donor emails use Email Studio only.
+- Donor messages use Phase 17 preparation and Phase 6 delivery; unsupported
+  meanings, retired CRM commands and cross-owner mutations are rejected.
 - Contribution-related automations use contribution services and audit events.
 - Focused tests pass.

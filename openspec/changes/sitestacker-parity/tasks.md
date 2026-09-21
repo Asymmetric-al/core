@@ -198,8 +198,15 @@
 ## 3. Verification
 
 - [x] 3.1 `bun run openspec -- validate --all --strict` passes.
-- [ ] 3.2 Archive this change once Phase 0 is accepted (Phase 0 is done when the
-      picture is complete and honest, per `phase-00-baseline.md`).
+- [ ] 3.2 Before any archive, classify every contained delta against accepted
+      implementation evidence. Phase 0 acceptance alone cannot close this
+      cumulative change: its Phase 16 recurring and Phase 17 communication
+      deltas still describe forward behavior. Separate accepted program
+      governance from unimplemented capability deltas into explicit successor
+      changes, or wait until every applicable contained implementation is
+      accepted and verified. Preserve still-valid scenarios and the separately
+      owned Phase 18/19 changes. Do not promote planned behavior or mark
+      unimplemented work complete through a Phase 0 archive.
 
 ## 4. Follow-ups (not Phase 0 completion blockers)
 

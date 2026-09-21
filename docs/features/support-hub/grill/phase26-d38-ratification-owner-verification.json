@@ -1,0 +1,715 @@
+{
+  "date": "2026-09-15",
+  "status": "passed",
+  "method": "Independent full-ratification original-body/status/owner-seam/source/mirror documentary verification; not runtime implementation proof",
+  "checksPassed": 146,
+  "checksTotal": 146,
+  "checks": [
+    {
+      "check": "original baseline hash 0038-private-autosaved-new-internal-note-drafts.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash CONTEXT.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-completion-audit.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-current-mention-probe.json",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-evidence.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-final-lifecycle-review.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-final-supabase-review.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-final-supabase-reviewed-files.json",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-final-ux-review.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-lifecycle-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-proof-and-operations.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-review-corrections.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-selection.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-source-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-supabase-contract.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-supabase-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-ux-research.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-d38-validation.json",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-grill-log.md",
+      "passed": true
+    },
+    {
+      "check": "original baseline hash phase26-session-handoff.md",
+      "passed": true
+    },
+    {
+      "check": "R clauses exact sequence",
+      "passed": true
+    },
+    {
+      "check": "C contracts exact sequence",
+      "passed": true
+    },
+    {
+      "check": "L contracts exact sequence",
+      "passed": true
+    },
+    {
+      "check": "UX acceptance exact sequence",
+      "passed": true
+    },
+    {
+      "check": "P proof exact sequence",
+      "passed": true
+    },
+    {
+      "check": "O controls exact sequence",
+      "passed": true
+    },
+    {
+      "check": "F corrections exact sequence",
+      "passed": true
+    },
+    {
+      "check": "23 categories retained",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-adversarial-review.md original body recoverable",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-completion-audit.md original body recoverable",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-current-mention-probe.json original exact",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-evidence.md original body recoverable",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-final-lifecycle-review.md original exact",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-final-supabase-review.md original exact",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-final-supabase-reviewed-files.json original exact",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-final-ux-review.md original exact",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-lifecycle-seam-review.md original body recoverable",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-proof-and-operations.md original body recoverable",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-review-corrections.md original body recoverable",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-selection.md original body recoverable",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-source-evidence.json original exact",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-supabase-contract.md original body recoverable",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-supabase-evidence.json original exact",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-ux-blueprint.md original body recoverable",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-ux-research.md original exact",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-validation.json original exact",
+      "passed": true
+    },
+    {
+      "check": "glossary status heading only",
+      "passed": true
+    },
+    {
+      "check": "glossary D38 now ratified",
+      "passed": true
+    },
+    {
+      "check": "one original D38 term unchanged",
+      "passed": true
+    },
+    {
+      "check": "ADR original substantive body preserved",
+      "passed": true
+    },
+    {
+      "check": "ADR current acceptance",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.md old history preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.md current D38 ratification",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.md next unanswered",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.md old history preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.md current D38 ratification",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.md next unanswered",
+      "passed": true
+    },
+    {
+      "check": "master incorporates R01\u2013R26",
+      "passed": true
+    },
+    {
+      "check": "master incorporates C01\u2013C15",
+      "passed": true
+    },
+    {
+      "check": "master incorporates L01\u2013L16",
+      "passed": true
+    },
+    {
+      "check": "master incorporates P01\u2013P30",
+      "passed": true
+    },
+    {
+      "check": "master incorporates O01\u2013O05",
+      "passed": true
+    },
+    {
+      "check": "master incorporates F01\u2013F03",
+      "passed": true
+    },
+    {
+      "check": "master incorporates P17",
+      "passed": true
+    },
+    {
+      "check": "master incorporates P6",
+      "passed": true
+    },
+    {
+      "check": "master incorporates D15",
+      "passed": true
+    },
+    {
+      "check": "master incorporates D16",
+      "passed": true
+    },
+    {
+      "check": "master incorporates D17",
+      "passed": true
+    },
+    {
+      "check": "master incorporates CRM",
+      "passed": true
+    },
+    {
+      "check": "master incorporates Tiptap",
+      "passed": true
+    },
+    {
+      "check": "master incorporates 48",
+      "passed": true
+    },
+    {
+      "check": "master incorporates five",
+      "passed": true
+    },
+    {
+      "check": "master incorporates unexecuted",
+      "passed": true
+    },
+    {
+      "check": "master full acceptance",
+      "passed": true
+    },
+    {
+      "check": "no ADR0039",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-validation.json historical evidence byte identical",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-current-mention-probe.json historical evidence byte identical",
+      "passed": true
+    },
+    {
+      "check": "historical 48 checks actual count",
+      "passed": true
+    },
+    {
+      "check": "historical five source observations actual count",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S01",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S01",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S02",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S02",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S03",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S03",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S04-S05",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S04-S05",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S06a",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S06a",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S06b",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S06b",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S07-S08",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S07-S08",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S09",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S09",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged Config",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid Config",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged Retired-CRM-conflict",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid Retired-CRM-conflict",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged Native-CRM-owner",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid Native-CRM-owner",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged Canonical-document",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid Canonical-document",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged In-product-versus-provider",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid In-product-versus-provider",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged Shared-platform-boundaries",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid Shared-platform-boundaries",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged Permission-priority",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid Permission-priority",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S10",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S10",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S10-contract",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S10-contract",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S11",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S11",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S12-attention",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S12-attention",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S12-retention",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S12-retention",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged S13",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid S13",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged No-note-work-plan",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid No-note-work-plan",
+      "passed": true
+    },
+    {
+      "check": "source pin unchanged Purpose-profiles",
+      "passed": true
+    },
+    {
+      "check": "source ranges valid Purpose-profiles",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-adversarial-review.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-completion-audit.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-current-mention-probe.json Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-evidence.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-final-lifecycle-review.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-final-supabase-review.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-final-supabase-reviewed-files.json Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-final-ux-review.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-lifecycle-seam-review.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-proof-and-operations.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-review-corrections.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-selection.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-source-evidence.json Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-supabase-contract.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-supabase-evidence.json Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-ux-blueprint.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-ux-research.md Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-validation.json Core mirror",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-full-ratification.md Core mirror",
+      "passed": true
+    }
+  ],
+  "changedPrimaryNotices": [
+    "phase26-d38-adversarial-review.md",
+    "phase26-d38-completion-audit.md",
+    "phase26-d38-evidence.md",
+    "phase26-d38-lifecycle-seam-review.md",
+    "phase26-d38-proof-and-operations.md",
+    "phase26-d38-review-corrections.md",
+    "phase26-d38-selection.md",
+    "phase26-d38-supabase-contract.md",
+    "phase26-d38-ux-blueprint.md"
+  ],
+  "mirrorsVerified": [
+    "phase26-d38-adversarial-review.md",
+    "phase26-d38-completion-audit.md",
+    "phase26-d38-current-mention-probe.json",
+    "phase26-d38-evidence.md",
+    "phase26-d38-final-lifecycle-review.md",
+    "phase26-d38-final-supabase-review.md",
+    "phase26-d38-final-supabase-reviewed-files.json",
+    "phase26-d38-final-ux-review.md",
+    "phase26-d38-lifecycle-seam-review.md",
+    "phase26-d38-proof-and-operations.md",
+    "phase26-d38-review-corrections.md",
+    "phase26-d38-selection.md",
+    "phase26-d38-source-evidence.json",
+    "phase26-d38-supabase-contract.md",
+    "phase26-d38-supabase-evidence.json",
+    "phase26-d38-ux-blueprint.md",
+    "phase26-d38-ux-research.md",
+    "phase26-d38-validation.json",
+    "phase26-d38-full-ratification.md"
+  ],
+  "runtimeProofGroupsRequired": 30,
+  "runtimeProofGroupsExecuted": 0,
+  "historicalDocumentaryChecks": 48,
+  "historicalMockedSourceObservations": 5,
+  "files": [
+    {
+      "name": "phase26-d38-adversarial-review.md",
+      "sha256": "4ccde897d851c66ca36c1dde562c71b4cef595f05b83e45734d0481750af8442"
+    },
+    {
+      "name": "phase26-d38-completion-audit.md",
+      "sha256": "d9bfa8e6a3ff17fc0df8b55c06d5dc8c4e362ea5bf73ff2ad54cc29535de79fb"
+    },
+    {
+      "name": "phase26-d38-current-mention-probe.json",
+      "sha256": "177bb258a0a379b9898d599a3d9f9ae6e937ab15306b0cc081e23a773b344ff1"
+    },
+    {
+      "name": "phase26-d38-evidence.md",
+      "sha256": "1739f22e5d4de08a89adf0855b2c775f99f549dbc21bd0da903c2f35372a8e6d"
+    },
+    {
+      "name": "phase26-d38-final-lifecycle-review.md",
+      "sha256": "904d4e98616886535c7afc64fce2c71c8b49b0111473042ea40bb011ab0c8c4e"
+    },
+    {
+      "name": "phase26-d38-final-supabase-review.md",
+      "sha256": "12c2c075fd13a2e345f25d67b4a01c80b1eebac7d5eb03223132457d3f43d0e9"
+    },
+    {
+      "name": "phase26-d38-final-supabase-reviewed-files.json",
+      "sha256": "838cc6a65a20ca76b58f184210593cc1493ea1b80516e43e0e62a847e545a23a"
+    },
+    {
+      "name": "phase26-d38-final-ux-review.md",
+      "sha256": "4e028d7de50c1b4e4dfc8a8ed6f7228606dbe89f0a3ca033228c63aab3e32dd7"
+    },
+    {
+      "name": "phase26-d38-full-ratification.md",
+      "sha256": "e10c49c3f12e4dda5d52aeb239017a81ad322c372a0a23c044bb2009651ea309"
+    },
+    {
+      "name": "phase26-d38-lifecycle-seam-review.md",
+      "sha256": "46f697ce37ea57866aa6b031d56464ebb5a64dbb707193599db86754251ac1f2"
+    },
+    {
+      "name": "phase26-d38-proof-and-operations.md",
+      "sha256": "8845b50399e697094624d74f206b3615a95867e7697156e74b69959775861e77"
+    },
+    {
+      "name": "phase26-d38-ratification-q39-source-evidence.json",
+      "sha256": "47010043d15250e8998330071a319921e2e89e70755ba1ecd044fb4e0a329b56"
+    },
+    {
+      "name": "phase26-d38-ratification-seam-review.md",
+      "sha256": "9701bc24f54ca632d97b94c9222b0e73eb04472a5ca1591f171ce0a6c3b1aa88"
+    },
+    {
+      "name": "phase26-d38-review-corrections.md",
+      "sha256": "69d8f2ed682eaaf2ed345cdb65077f472f8e122656c68d4fafe9ab5f33a76d75"
+    },
+    {
+      "name": "phase26-d38-selection.md",
+      "sha256": "4359518566e194a9d5cddf2ceb775e74f41318ea6a3c4f33ef7effa36e8f79a8"
+    },
+    {
+      "name": "phase26-d38-source-evidence.json",
+      "sha256": "f44e8447dc224aa62c77fc361be3dfdacc593b3747d19c133354ffc1f6128a21"
+    },
+    {
+      "name": "phase26-d38-supabase-contract.md",
+      "sha256": "12258f30e6e6b8c7179c66abc2dc366eb4bfceddb24e358efcbfb4bd9c111554"
+    },
+    {
+      "name": "phase26-d38-supabase-evidence.json",
+      "sha256": "30755279c2708b02a00489e5634def39caa82c3b1ab44b02d51895b3bcb81617"
+    },
+    {
+      "name": "phase26-d38-ux-blueprint.md",
+      "sha256": "1adbb4ec82cc0e15449946866932aacbc24b4e74012b87a763f09a92338a54d2"
+    },
+    {
+      "name": "phase26-d38-ux-research.md",
+      "sha256": "26ea81cabb8030caea02420371cb6b088ab0fd79434b79a76932bb389d1a73ac"
+    },
+    {
+      "name": "phase26-d38-validation.json",
+      "sha256": "edc01cbf5599555a0148e8c222ef4217b1bec12550e48d6f05b6daf1ae5b5535"
+    }
+  ]
+}

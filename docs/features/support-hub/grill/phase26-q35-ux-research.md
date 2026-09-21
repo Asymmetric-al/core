@@ -1,0 +1,46 @@
+# Q35 — UX comparison for correcting internal notes
+
+**13 September2026. Research synthesis; Q35 unanswered.** This report combines current primary research with the independent UX reviewer's scope finding that bulk/navigation are already settled. The final independent reviewer evaluates the actual completed question and this synthesis. No prototype, participant study or runtime UI test was performed.
+
+## The practical distinction
+
+A note can contain a transcription mistake, or new circumstances can make an earlier note outdated. These should not look identical. In the question's example, recording Tuesday when the donor said Thursday is a correction. The donor later changing Tuesday to Thursday is a new update. A good interaction supports both without making staff reason about storage internals.
+
+Recommend **author-owned edits with visible history**, while preserving new updates as new notes. Keep the original author/posting time, show Edited with an accessible detail action, and retain only earlier revisions still permitted by source/privacy/retention policy. Avoid both silent overwrite and a permanently visible document-diff interface. Other staff can add their own correction/clarification; no new administrator impersonation/override is required.
+
+## What current products establish
+
+| Evidence                                                                                                                                                                                                             | Useful pattern                                                                                                                 | Limit on applying it                                                                                                                                             |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Intercom March2026 release](https://www.intercom.com/changes/en/136196-edit-your-internal-notes) and [current FAQs](https://www.intercom.com/help/en/articles/8838326-conversations-faqs)                           | Edit your own posted note in the stream, save, show Edited; a dedicated permission and no admin override keep ownership clear. | Current feature is web-only and full historical body retention is not established. Asym must qualify its mobile-web and history/privacy requirements separately. |
+| [HubSpot notes](https://knowledge.hubspot.com/help-desk/create-edit-and-manage-notes-in-help-desk),23April2026, Service Hub Pro/Enterprise                                                                           | Local editing/Save and a separate History panel; coherent note presence through associated records.                            | Property-history UI is not proof of a particular body-revision architecture. Adopt continuity, not duplicate CRM note ownership or integration sync.             |
+| [Help Scout](https://docs.helpscout.com/article/32-edit-threads-and-notes),3January2026                                                                                                                              | Convenient individual note editing.                                                                                            | It expressly does not preserve original note text and deletion leaves no marker. Do not copy that loss of reviewable meaning into recommended A.                 |
+| [Zendesk comment policy](https://support.zendesk.com/hc/en-us/articles/4408885807258-Can-I-edit-recall-or-delete-comments-in-my-tickets)                                                                             | Ordinary comments remain unchanged; sensitive content has separate redaction.                                                  | Supports B's chronology priority, but additional correction notes can make small mistakes cumbersome. No measured Asym friction rate is claimed.                 |
+| [Front comments](https://help.front.com/en/articles/2256),24July2026; [Zoho Desk comments](https://help.zoho.com/portal/en/kb/desk/ticket-management/ticket-replies/articles/private-and-public-comments-in-tickets) | Contextual edit actions and explicit history of comment changes are familiar support patterns.                                 | Do not copy hover-only discovery, public conversion, implicit access through mentions or undocumented full-version behavior.                                     |
+
+The sources establish alternatives, not one universal best practice. Reported requests for editing on Zendesk's article are self-selected friction evidence. No tenant research establishes an optimal arbitrary grace period for C.
+
+## Compare the whole journey
+
+**A — Author edits with visible history:** From the original note's accessible menu, choose Edit, keep Internal note identity visible, correct in place and Save/Cancel. The posted note keeps its timeline position; Edited exposes qualified history without hiding the current corrected content. Current authorization, conflict/unknown-save recovery and source expiry are necessary. A's benefit is low repeated effort and clean current reading; the cost is maintaining truthful revisions.
+
+**B — Linked correction only:** Choose Add correction from the original or deliberately reference it in a new note. Post the correction with its own author/time; the original has a clear current-authorized link to the correction. This is simpler published-history semantics, but two entries must be read together. The correction must not be buried below unrelated later messages or require a copied sensitive quotation. It remains a genuinely new published note with its existing attention/retention consequences.
+
+**C — Short edit window then correction:** Use A during a short grace period and B later. This helps immediate fixes but introduces a boundary that can expire during a phone call, mobile interruption or save failure. If selected, the boundary needs exact server-time semantics and understandable UI; the question deliberately does not invent a duration or make it configurable. C is a legitimate compromise, but adds friction and state without solving already-read copies or sensitive-history retention.
+
+## Proposed A interaction quality
+
+- Reuse the same qualified Support note component through Support and CRM. Show an explicit accessible Edit action, not only a hover pencil. No second CRM editor or stacked modal.
+- Maintain clear Internal note labeling while editing. Save cannot convert to external reply or rewrite a sent email. Keep the current reply draft, reading/Find/Compact state, scroll and focus intact.
+- Present original posted time and Edited detail separately. Do not reposition the note as if a new event occurred. Earlier revisions must not appear current or claim an already-delivered notification was changed.
+- Show saving, definite failure, unknown result and revision conflict truthfully. Preserve unsaved correction text if current source policy permits; never restore expired/redacted data from a stale local draft.
+- Use shared Base UI/base-maia semantics/tokens, keyboard/touch focus handling, narrow-screen reflow, readable long/international names and deliberate Save/Cancel. Do not import another editor or diff library merely to ask this question.
+- Make a new update easy for changed circumstances and direct staff attention available through the existing producer when a material correction requires action. Do not send an email for every typo, auto-classify materiality with AI or imply an Edited marker proves someone noticed.
+
+## Maintenance and source continuity
+
+Support owns the canonical note and any qualified revisions; current identity/source permissions govern its actions from both surfaces. Redaction and expiry must remove ineligible representations from history/search/previews and invalidate unsafe pending notification content. Edits do not renew retention. Other-domain CRM notes, giving records, official documents and intake briefs retain their owners. Minimal audit attribution differs from retaining forbidden note bodies indefinitely.
+
+An offboarded author, lost permission or an expired source does not justify letting an administrator rewrite the author's statement. Use existing owner correction/privacy paths or a new attributable clarification while currently allowed. The post-selection answer must work through those cases, attachment and mention changes, concurrency and release proof. A narrow revision mechanism is plausible; a shared document-collaboration/history platform is not selected.
+
+**Recommendation: A.** It supports straightforward correction without hiding authorship or forcing routine thread clutter. B and C are visibly available in the actual [question](phase26-q35-internal-note-corrections.md); no option has been recorded as the founder's answer.

@@ -6,7 +6,7 @@
 
 **Issue:** #427
 
-**Builds on:** ADR-0019 through ADR-0025, and ADR-0027
+**Builds on:** ADR-0019 through [ADR-0025 — eve retention replay lifecycle](./0025-eve-retention-replay-lifecycle.md), and [ADR-0027 — eve admin auth session ownership](./0027-eve-admin-auth-session-ownership.md)
 
 ## Context
 
@@ -53,7 +53,7 @@ metadata only.
 - Private memory controls and history: #422.
 - Approvals, budgets, and recent policy decisions: #423.
 - Replay retention and holds: #424.
-- Verified current-admin identity and ownership: #426 / ADR-0027.
+- Verified current-admin identity and ownership: #426 / [ADR-0027 — eve admin auth session ownership](./0027-eve-admin-auth-session-ownership.md).
 - Runtime mount and secondary chat surface: #428.
 - GitHub activity: #430.
 - Notification delivery: #436.

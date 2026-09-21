@@ -65,7 +65,9 @@ jobs:
         run: bun run verify:git-attribution -- --ci
       - run: bun run format:check
       - run: bun run skills:verify
+      - run: bun run verify:phase25-spec
       - run: bun run openspec:validate
+      - run: bun run verify:openspec-deltas
 
   lint:
     runs-on: ubuntu-latest

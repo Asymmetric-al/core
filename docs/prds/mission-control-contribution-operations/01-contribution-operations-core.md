@@ -1,14 +1,10 @@
 # PRD 1: Mission Control Contribution Operations Core
 
-## Delivered split status
-
-Delivered through split PRs #386-#405. Do not create a new
-`status:ready` implementation issue from this historical PRD unless a follow-up
-gap is identified against the shipped code. The CRM repost / CRM outbound
-posting actions referenced below target the now-retired Twenty pipeline and
-are dormant per
-[ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
-(2026-07-06).
+**Current requirements amended 2026-09-16 (AL-1861).** These bodies use the
+ratified [owner contracts](../../features/mission-control/contribution-detail/README.md).
+The [original PRD](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/prds/mission-control-contribution-operations/01-contribution-operations-core.md)
+records the earlier requirements and delivery history (split PRs #386–#405). Those
+original delivery claims do not establish implementation of the amended target.
 
 ## Problem statement
 
@@ -17,25 +13,27 @@ experience. Staff must be able to manage gifts from both the Contribution Hub
 and the donor CRM record without creating duplicate gift truth, duplicate
 schemas, or disconnected workflows.
 
-The repo had a contribution list, contribution detail sheet, CRM donor gift
-history, staged gift actions, receipt resend, CRM post retry, Stripe raw event
-replay helpers, refund webhook handling, and staged gift audit events. Those
-foundations have now been consolidated into the split contribution-operations
-implementation referenced above.
+The original May–June implementation supplied shared staff actions and read
+models. Preserve compatible UI and command seams while adopting the current
+Phase 13 ledger, Phase 12 permissions, Phase 16 recurring and Phase 7/17/18/19
+document/communication contracts. Current source and tests establish remaining
+implementation work; the original delivery record is not a new runtime audit.
 
 ## Solution
 
-Build a shared Contribution Operations Core for Mission Control. The core
-provides one backend contribution truth and two staff entry points:
+Use one shared Contribution Operations Core as the staff command/projection
+boundary over the Phase 13 contribution header, designation lines, postings
+and canonical effective fold. It serves two staff entry points:
 
 - **Contribution Hub:** gift-first search and operations.
 - **CRM donor record:** donor-first context and operations without leaving the
   donor record.
 
-Both entry points may present different layouts, but they must call the same
-backend operations, use the same schema, enforce the same permissions, write
-the same audit events, and return the same canonical gift truth after each
-action.
+Both entry points call the same owner commands, enforce current Phase 12
+access and return the same effective gift truth. Phase 13 money effects, Phase
+16 recurring state, Phase 7/18 document truth, Phase 19 statement runs and
+Phase 17/6 communication outcomes remain independently owned. The staff module
+cannot create a second ledger, receipt renderer, notification store or CRM sync.
 
 ## Goals
 
@@ -56,10 +54,11 @@ action.
 ## Non-goals
 
 - Do not move payment execution away from Stripe.
-- Do not move contribution truth into Payload or Twenty.
+- Do not move contribution truth into Payload or restore Twenty clients, sync,
+  post/repost operations or rollback routes.
 - Do not move PRD 2 Email Studio templates, PRD 3 shared tasks, PRD 4
   automation builder, or PRD 5 bulk execution ownership into the core module;
-  those shipped responsibilities remain owned by their PRD-specific slices.
+  those adapters consume the shared owner contracts rather than reimplementing them.
 - Do not replace the donor portal.
 
 ## User stories
@@ -85,8 +84,8 @@ action.
   statement, and payment-state changes create correction records.
 - As finance admin, donor relinking, amount correction, designation/fund
   correction, missionary/project allocation correction, refund correction,
-  receipt/statement correction, payment-state correction, Stripe replay, and
-  CRM repost are supported by the shared action layer.
+  source-authorized receipt/statement follow-up, payment-state correction and
+  qualified Stripe replay use their owning commands through the shared action layer.
 - As finance admin, I can issue full or partial refunds and see Stripe provider
   outcomes without the platform overstating finality.
 - As finance admin, Stripe errors include clear next steps.
@@ -103,11 +102,12 @@ action.
 
 ### Module
 
-Create a shared domain module, preferred path:
+The staff-facing domain boundary lives under:
 
 `packages/api/src/admin/contribution-operations/*`
 
-Suggested files:
+Existing module names are source-navigation evidence; adapt them to the owner
+commands instead of building another financial authority:
 
 - `types.ts`
 - `schemas.ts`
@@ -137,13 +137,18 @@ executeContributionAction({
 }) -> ContributionActionResult
 ```
 
-The result includes canonical contribution detail, audit event id, correction
-id where created, notification decision if relevant, task ids if relevant, and
-provider outcome if relevant.
+The route derives tenant, actor and EffectiveAccess from authenticated context;
+caller input does not supply authority. The result includes canonical detail,
+source/posting revision, audit/correction-request/task references and separate
+provider, document and communication outcomes. An accepted command is not proof
+that those downstream effects completed.
 
 ### Canonical detail read model
 
-The contribution detail read model includes, when available:
+The read model consumes the Phase 13 effective fold and separately authorized
+owner projections. Header/line ids and legacy UUID continuity follow Phase 13
+D2; original scalar donation columns are not current money truth. Include only
+currently authorized fields, with source-qualified unavailable states:
 
 - gift identity;
 - donor identity and contact context;
@@ -155,12 +160,13 @@ The contribution detail read model includes, when available:
 - Stripe PaymentIntent, charge, refund, webhook, and replay context only for
   viewers with `contributions.use_provider_actions`; other viewers receive safe
   payment summaries and safe last-four/brand/bank labels;
-- fund, designation, missionary, project, campaign, and allocation context;
+- eligible giving destination, designation line, missionary/project context,
+  and separate Giving Campaign attribution;
 - receipt and statement state;
 - refund state;
 - recurring gift state;
 - staged gift state;
-- CRM post state;
+- Phase 13 posting state and independently owned integrity/recovery facts;
 - linked audit events;
 - linked tasks;
 - linked batch runs;
@@ -172,10 +178,10 @@ Direct updates are allowed only for harmless internal metadata such as safe
 internal notes or tags that do not change money, identity, designation,
 official donor records, provider state, or donor-visible history.
 
-Use correction records for any change touching money, donor identity,
-designation, fund, missionary/project allocation, refund, payment state,
-provider state, official receipts, official statements, or donor-visible
-contribution history.
+Money corrections append Phase 13 postings through exact source commands.
+Identity corrections, official documents, statements and provider recovery
+retain their own admission and outcomes. Do not use a local adjustment overlay,
+settled-row patch or a UI status edit to implement their effects.
 
 ### High-risk policy
 
@@ -187,8 +193,12 @@ Always require reason and confirmation for:
 - payment state correction;
 - Stripe replay.
 
-The high-risk permission is `finance:manage_contributions`. The backend must
-enforce it for any action that changes money truth.
+Phase 13 declares action-specific capabilities and Phase 12 enforces current
+EffectiveAccess. The broad historical `finance:manage_contributions` gate is
+not the complete target. High-risk money work requires capability, reason and
+active audit; second approval is optional per tenant and off by default.
+Enabled separation of duties excludes the requester. A prior external effect
+does not itself enable mandatory approval.
 
 ### Audit
 
@@ -221,8 +231,10 @@ Keep app routes thin. Add package-backed routes for:
 - canonical contribution detail;
 - contribution action execution.
 
-Existing staged gift routes may remain as compatibility delegates while UI
-migrates to the shared action contract.
+Follow Phase 13 D2 atomic ledger cutover and Phase 18 D17 clean document
+replacement. Preserve stable gift UUIDs and authorized navigation; do not keep
+a donation-table/receipt-render compatibility runtime or a retired CRM command
+as a shortcut to satisfying old routes.
 
 ## Testing decisions
 
@@ -231,18 +243,20 @@ Tests must verify behavior and business rules, not helper structure.
 Add failing tests first for:
 
 - policy and reason/confirmation requirements;
-- `finance:manage_contributions` permission enforcement;
+- action-specific Phase 13 capability and current Phase 12 access enforcement;
 - non-suppressible prompt behavior;
 - direct metadata edit versus correction record;
 - correction records and audit events for money, identity, designation,
-  provider, refund, receipt, statement, payment state, Stripe replay, CRM
-  repost;
+  provider, refund, document, statement, payment state and qualified Stripe replay;
 - tenant isolation for detail reads and mutations;
 - canonical detail returned consistently to CRM and Contribution Hub;
 - donor-visible state after correction;
 - Stripe full refund, partial refund, over-refund rejection, duplicate refund,
   provider errors;
-- receipt resend and CRM repost audit behavior;
+- exact artifact access/delivery audit and denial of retired CRM post/repost;
+- append-only postings and the shared effective fold;
+- default direct money admission, enabled second approval and requester exclusion;
+- no local receipt generation or unsupported document fallback;
 - query invalidation after successful mutations;
 - Playwright smoke: find gift in Contribution Hub, perform low-risk action,
   see audit event, verify donor CRM record reflects the change.
@@ -252,10 +266,11 @@ Add failing tests first for:
 - Staff can work a contribution from CRM donor record or Contribution Hub.
 - Both entry points use one backend action layer.
 - No duplicate contribution truth exists.
-- High-risk actions require `finance:manage_contributions`, reason, and
-  confirmation.
+- High-risk actions enforce current action capability, reason, confirmation
+  and active audit; optional second approval defaults off.
 - Every meaningful action writes an audit event.
-- Corrections use the direct edit versus correction record split.
+- Harmless metadata follows its owner; money corrections append Phase 13
+  postings. Document, provider and message outcomes remain separately truthful.
 - Donor-visible corrections update from the same truth.
 - Focused unit, integration, and smoke tests pass.
 - Repo gates pass: format, lint, typecheck, build, unit tests, data boundary

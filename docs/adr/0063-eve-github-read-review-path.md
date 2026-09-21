@@ -7,7 +7,7 @@
 **Issue:** #430
 
 **Builds on:** ADR-0018, ADR-0019, ADR-0020, ADR-0021, ADR-0022, ADR-0024,
-ADR-0026, and ADR-0030
+[ADR-0062 — eve standalone runtime foundation](./0062-eve-standalone-runtime-foundation.md), and [ADR-0030 — Eve sandbox engineering worker](./0030-eve-sandbox-engineering-worker.md)
 
 ## Context
 
@@ -41,7 +41,7 @@ The model receives a turn-local contract requiring one bounded JSON decision
 summary and zero to twenty-five inline findings. Core parses that output with a
 strict schema, rejects sensitive output rather than posting it, requires every
 finding path to be in GitHub's observed changed-file set, and derives
-protected-area visibility independently from the model using ADR-0018/ADR-0030
+protected-area visibility independently from the model using ADR-0018/[ADR-0030 — Eve sandbox engineering worker](./0030-eve-sandbox-engineering-worker.md)
 path rules.
 
 One GitHub pull-request review transaction publishes the summary and inline

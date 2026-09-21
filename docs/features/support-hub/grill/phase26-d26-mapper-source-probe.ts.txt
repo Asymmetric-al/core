@@ -1,0 +1,50 @@
+import { createHash } from "node:crypto";
+import { readFileSync, writeFileSync } from "node:fs";
+
+const repo = "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10";
+if (process.cwd() !== repo) throw new Error("Wrong cwd");
+const relative = "packages/api/src/admin/support-hub/adapter/supabase.ts";
+const source = readFileSync(`${repo}/${relative}`, "utf8");
+function section(start: string, end: string) {
+  const a = source.indexOf(start);
+  const b = source.indexOf(end, a);
+  if (a < 0 || b <= a) throw new Error(`Missing source markers ${start}`);
+  return source.slice(a, b);
+}
+const extracted = [
+  section("function nowIso()", "function genId("),
+  section("function asString(", "function asBoolean("),
+  section("function asJsonRecord(", "function asJsonArray<"),
+  section("function iso(", "function assertDb("),
+  section("function toConversation(", "async function hydrateConversation("),
+].join("\n");
+const compiled = new Bun.Transpiler({ loader: "ts" }).transformSync(extracted);
+function mapperAt(instant: string) {
+  const RealDate = Date;
+  class FixedDate extends RealDate {
+    constructor(value?: string) { super(value === undefined ? instant : value); }
+  }
+  return new Function("Date", `${compiled}; return toConversation;`)(FixedDate);
+}
+const row = {
+  id: "synthetic-request", tenant_id: "synthetic-tenant", inbox_id: "synthetic-inbox",
+  subject: "Receipt question recorded by staff", status: "open", priority: "normal",
+  channel: "manual", external_contact_email: null, external_contact_name: null,
+  first_message_at: null, last_message_at: null, last_message_direction: null,
+  last_customer_message_at: null, message_count: 0, unread_count: 0,
+  created_at: "2026-09-10T09:00:00.000Z", updated_at: "2026-09-10T09:00:00.000Z",
+};
+const snapshot = { agents: new Map(), teams: new Map(), labels: new Map() };
+const a = mapperAt("2026-09-12T01:00:00.000Z")(row, snapshot, []);
+const b = mapperAt("2026-09-12T02:00:00.000Z")(row, snapshot, []);
+const valid = mapperAt("2026-09-12T01:00:00.000Z")({ ...row, channel: "email", external_contact_email: "person@example.test", first_message_at: "2026-09-10T09:01:00.000Z", last_message_at: "2026-09-10T09:02:00.000Z", last_message_direction: "inbound", message_count: 2 }, snapshot, []);
+const observations = [
+  { id: "SYN01", observation: "Mapper hard-codes email for a synthetic manual origin", actual: a.channel, expectedCurrentBehavior: a.channel === "email" },
+  { id: "SYN02", observation: "Absent contact/direction become literal null strings", actual: { email: a.externalContactEmail, direction: a.lastMessageDirection }, expectedCurrentBehavior: a.externalContactEmail === "null" && a.lastMessageDirection === "null" },
+  { id: "SYN03", observation: "The same absent native mail times change with read time", actual: { firstRead: a.lastMessageAt, secondRead: b.lastMessageAt, firstMessageAt: a.firstMessageAt, messageCount: a.messageCount }, expectedCurrentBehavior: a.lastMessageAt !== b.lastMessageAt && a.messageCount === 0 },
+  { id: "SYN04", observation: "Positive control preserves valid email address and actual occurrence", actual: { email: valid.externalContactEmail, lastMessageAt: valid.lastMessageAt, messageCount: valid.messageCount }, expectedCurrentBehavior: valid.externalContactEmail === "person@example.test" && valid.lastMessageAt === "2026-09-10T09:02:00.000Z" && valid.messageCount === 2 },
+];
+if (observations.some(x => !x.expectedCurrentBehavior)) throw new Error("Observed source changed");
+const output = { sourceRevision: "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd", date: "2026-09-12", sources: [{ path: relative, sha256: createHash("sha256").update(source).digest("hex") }], method: "Exact private mapper/helper source extracted and transpiled with installed Bun; synthetic input and controlled Date only", observations, limits: "Synthetic manual row is deliberately not admissible under current email-only schema. This proves mapper incompatibility with proposed origin, not a production manual-row incident. No env/app import/database/network/provider/browser; no proposed implementation was tested." };
+writeFileSync("/mnt/c/Users/Conrad/Documents/Codex/2026-09-10/i-want-to-set-up-a/outputs/phase26-d26-source-probe.json", `${JSON.stringify(output, null, 2)}\n`);
+console.log(JSON.stringify({ status: "observed", observations: observations.length, networkCalls: 0, databaseCalls: 0 }));

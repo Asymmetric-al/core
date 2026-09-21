@@ -57,7 +57,7 @@ not create or target one.
 - [ ] Stripe live webhook endpoints exist for each production app at `/api/webhooks/stripe`
 - [ ] Production readiness verifier passes for the exact commit to ship:
       `bun run verify:vercel-production -- --commit <sha>`
-- [ ] Rollback plan reviewed for this deploy: [docs/ops/rollback-plan.md](./rollback-plan.md)
+- [ ] Release-specific rollback/forward-fix plan recorded and reviewed for this deploy; follow the [production release controls](./production-release.md).
 
 ## 2. Deploy
 
@@ -97,7 +97,7 @@ not create or target one.
 
 ## 5. If something is wrong
 
-- [ ] Code-only issue: perform Vercel rollback (see [docs/ops/rollback-plan.md](./rollback-plan.md))
+- [ ] Code-only issue: execute the reviewed rollback plan under the [production release controls](./production-release.md).
 - [ ] Migration involved: assess and execute rollback/forward-fix via rollback plan
 - [ ] Restore rehearsal or recovery work must target an isolated database first;
       never restore over production as a proof step

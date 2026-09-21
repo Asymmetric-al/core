@@ -1,0 +1,134 @@
+{
+  "date": "2026-09-12",
+  "cwd": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "scope": "Read-only source/document pinning. Grooming files may be uncommitted. No runtime, database, provider, environment or behavioral test.",
+  "files": [
+    {
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16",
+      "bytes": 31417,
+      "lines": 791
+    },
+    {
+      "path": "supabase/migrations/20260611183000_support_inbound_routes.sql",
+      "sha256": "b22f7236b566f33a0e1b6aabd3fa2754abdaae3bcaa69b92fc2d4bc7d8d03566",
+      "bytes": 4332,
+      "lines": 77
+    },
+    {
+      "path": "supabase/config.toml",
+      "sha256": "3a31bbfd599aa7203245fbfab25e4b623ec98043049293cbf35052c6736a54c7",
+      "bytes": 14046,
+      "lines": 382
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1",
+      "bytes": 4241,
+      "lines": 153
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+      "bytes": 45362,
+      "lines": 1451
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "sha256": "c209deb5a02bb49a788d2bad6a56b528ebc1c3f52bd27c9834815f01b5615682",
+      "bytes": 2480,
+      "lines": 81
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a",
+      "bytes": 8648,
+      "lines": 290
+    },
+    {
+      "path": "packages/api/src/admin/crm/detail/service.ts",
+      "sha256": "488887537732e4383b9176e1034fdc53e6bd20f294cee97f1ab90e24595e6810",
+      "bytes": 16987,
+      "lines": 519
+    },
+    {
+      "path": "packages/api/src/admin/crm/detail/index.ts",
+      "sha256": "c9a9c1ea724ae060cbabba73bd0fe046c07bad17683587a8d62ceaed8f1123a3",
+      "bytes": 1560,
+      "lines": 51
+    },
+    {
+      "path": "packages/api/src/crm/auth/access.ts",
+      "sha256": "d57a2e6a59a6fbb0713d8d2cdc7029ed99d875409c1947313301d71d5dba632a",
+      "bytes": 1810,
+      "lines": 63
+    },
+    {
+      "path": "packages/api/src/missionary-portal/donor.ts",
+      "sha256": "0f406f4e82be81ca9ae28559dd5351880dbda928f36a99cb9b5d5a9c331aa1ef",
+      "bytes": 7006,
+      "lines": 249
+    },
+    {
+      "path": "packages/database/collections/support-hub.ts",
+      "sha256": "edabdc658b565d1f39272377aeded21634aecc779db43f4a738788ebd9615da2",
+      "bytes": 74266,
+      "lines": 2429
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/ConversationCrmLinks.tsx",
+      "sha256": "1b2d57bbd900757bc4295ffef2980b8edbf3fe4776d11ea2095bdb71e06a67be",
+      "bytes": 3843,
+      "lines": 132
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md",
+      "sha256": "82463b0ce3c42894c01f3542e70db175d13de583246c4228903d47d7e331cc66",
+      "bytes": 72694,
+      "lines": 1157
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203",
+      "bytes": 313201,
+      "lines": 4227
+    },
+    {
+      "path": "docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "sha256": "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174",
+      "bytes": 7927,
+      "lines": 138
+    },
+    {
+      "path": "docs/features/support-hub/grill/phase26-d9-adversarial-review.md",
+      "sha256": "2b115c00c70a052652856e98c3806e25987dd42449287e615d3e3f63cf197a2f",
+      "bytes": 72653,
+      "lines": 320
+    },
+    {
+      "path": "docs/features/support-hub/grill/phase26-d12-adversarial-review.md",
+      "sha256": "8de9af77a62aeed1fe7c5bc825211eb16ed4b30f99d111c98abcb0477a7ec429",
+      "bytes": 77687,
+      "lines": 353
+    },
+    {
+      "path": "docs/features/support-hub/grill/phase26-d14-adversarial-review.md",
+      "sha256": "8da8039edba331e3890d4eeb5c75e0c944bd338a6322f5db47776352099f761a",
+      "bytes": 87323,
+      "lines": 329
+    },
+    {
+      "path": "docs/features/support-hub/grill/phase26-d17-adversarial-review.md",
+      "sha256": "af3a54ab11c3aac719ccb9bb1f29e3d5d12fb4489749c6b90671b99562d5cd6c",
+      "bytes": 73144,
+      "lines": 377
+    },
+    {
+      "path": "docs/features/support-hub/grill/phase26-d25-adversarial-review.md",
+      "sha256": "6f26099cda52ad9bb59521f4dbae2253bd1eafd83b462ff48b03e5e49b8e9e3d",
+      "bytes": 70872,
+      "lines": 349
+    }
+  ]
+}

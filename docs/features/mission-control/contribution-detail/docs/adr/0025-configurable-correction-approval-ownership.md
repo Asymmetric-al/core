@@ -1,33 +1,32 @@
-# ADR-CD-025: Correction approval ownership is tenant-configurable
+# ADR-CD-025: Current owner policy controls correction approval ownership
 
-**Status:** Accepted (grill session 2026-05-29)
+**Status:** Accepted 2026-05-29; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-High-risk correction requests can affect donor-facing receipts, CRM records, reconciliation, refunds, annual statements, and provider state. Different tenants may have different internal finance controls, but approval ownership must remain explicit and auditable.
+Tenants may add preventive approval while preserving the Phase 13 light default and Phase 12 authorization boundaries.
 
 ## Decision
 
-Correction approval ownership is controlled by tenant-level approval policy.
-
-Supported policy modes should include:
-
-- No approval required where super-admin approval suppression allows it.
-- One approver required.
-- Separation-of-duties required, where the requester cannot approve their own high-risk correction.
-- Stronger approval for selected categories such as refunds, annual statement changes, large amount/tax-deductible corrections, or admin overrides.
-
-The default should be conservative: separation of duties for high-risk corrections unless explicitly relaxed by tenant settings.
+- Second approval is optional and off by default. Source actions remain
+  capability-, reason- and audit-gated regardless of a second approver.
+- Phase 12 evaluates enabled owner action/threshold policy with current actor,
+  tenant, source scope and version; role labels alone never authorize.
+- When separation of duties applies, the requester cannot approve. A local
+  suppression setting or superadmin label cannot override the exclusion.
+- Resolve eligible approvers through current policy. Responsibility changes
+  and notifications never grant decision rights.
+- Authorize/audit policy changes separately; they cannot retroactively change
+  prior source/provider outcomes.
 
 ## Consequences
 
-- Approval policy must be enforced server-side.
-- Policy changes must be audited with actor, reason, and old/new values.
-- The UI must explain why a correction is pending and who can approve it.
-- Approval suppression or relaxed approval ownership does not suppress audit, correction reasons, concurrency checks, idempotency, or provider requirements.
+Explain why approval is required and the eligible next step. Recheck authority and source version at decision, and report pending, approved, rejected, stale or superseded context truthfully.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **Any finance approver always allowed:** Too weak for tenants that require separation of duties.
-- **Hard-coded separation of duties only:** Safe but not flexible enough for every tenant operating model.
-- **Amount/risk matrix only:** Useful as a policy mode, but still needs tenant configurability.
+The [original 2026-05-29 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0025-configurable-correction-approval-ownership.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

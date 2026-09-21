@@ -6,7 +6,7 @@
 
 **Issue:** #428
 
-**Builds on:** ADR-0026, ADR-0027, and ADR-0028
+**Builds on:** [ADR-0062 — eve standalone runtime foundation](./0062-eve-standalone-runtime-foundation.md), [ADR-0027 — eve admin auth session ownership](./0027-eve-admin-auth-session-ownership.md), and [ADR-0028 — eve admin workspace operations shell](./0028-eve-admin-workspace-operations-shell.md)
 
 ## Context
 

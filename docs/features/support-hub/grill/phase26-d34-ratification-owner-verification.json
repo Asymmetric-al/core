@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-13",
+  "scope": "Independent documentary ratification preservation only; no runtime/provider proof",
+  "status": "passed",
+  "assertions": 604,
+  "primaryDocuments": 8,
+  "historicalD34RecordsUnchanged": 11,
+  "priorCanonicalFilesUnchanged": 530,
+  "inventory": {
+    "clauses": 28,
+    "categories": 23,
+    "terms": 3,
+    "requiredUnexecutedReleaseGroups": 36,
+    "operatingControls": 7
+  },
+  "failures": []
+}

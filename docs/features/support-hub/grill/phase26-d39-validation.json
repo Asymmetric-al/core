@@ -1,0 +1,230 @@
+{
+  "date": "2026-09-15",
+  "checkedAtUtc": "2026-09-14T18:28:59.897158+00:00",
+  "stage": "A selected; detailed amendments proposed; D1-D38 ratified; no Q40",
+  "evidenceClass": "Documentary/source checks, not runtime implementation proof",
+  "pass": true,
+  "checks": [
+    {
+      "name": "phase26-d39-adversarial-review.md ordered IDs",
+      "pass": true,
+      "detail": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25, 26
+      ]
+    },
+    {
+      "name": "phase26-d39-adversarial-review.md ordered IDs",
+      "pass": true,
+      "detail": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23
+      ]
+    },
+    {
+      "name": "phase26-d39-proof-and-operations.md ordered IDs",
+      "pass": true,
+      "detail": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25, 26, 27, 28, 29, 30
+      ]
+    },
+    {
+      "name": "phase26-d39-proof-and-operations.md ordered IDs",
+      "pass": true,
+      "detail": [1, 2, 3, 4, 5]
+    },
+    {
+      "name": "phase26-d39-supabase-contract.md ordered IDs",
+      "pass": true,
+      "detail": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "phase26-d39-lifecycle-seam-review.md ordered IDs",
+      "pass": true,
+      "detail": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "name": "phase26-d39-reader-tiptap-contract.md ordered IDs",
+      "pass": true,
+      "detail": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    },
+    {
+      "name": "phase26-d39-review-corrections.md ordered IDs",
+      "pass": true,
+      "detail": [1, 2]
+    },
+    {
+      "name": "Prior baseline preservation",
+      "pass": true,
+      "detail": {
+        "baselineFiles": 1313,
+        "unchanged": 1306,
+        "authorizedChanged": 7,
+        "unexpected": []
+      }
+    },
+    {
+      "name": "phase26-grill-log.md preserves historical body",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-grill-log.md current mirror equal",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-session-handoff.md preserves historical body",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-session-handoff.md current mirror equal",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-q39-conversation-reading.md preserves historical body",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-q39-conversation-reading.md current mirror equal",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Glossary only one appended selected term",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "No Q40 artifact",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Live freshness recorded without external mutation",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Runtime limits explicit",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Local HEAD and tracked status preserved",
+      "pass": true,
+      "detail": {
+        "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+        "status": "M CONTEXT-MAP.md\n?? docs/features/support-hub/CONTEXT.md\n?? docs/features/support-hub/docs/\n?? docs/features/support-hub/grill/"
+      }
+    },
+    {
+      "name": "Source hashes and cited ranges match",
+      "pass": true,
+      "detail": {
+        "pinRecords": 48,
+        "uniquePaths": 43,
+        "mismatches": []
+      }
+    },
+    {
+      "name": "Four actual renderer fixtures retain stated observations",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Actual editor versions/configuration recorded",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Independent final reviews match actual files",
+      "pass": true,
+      "detail": [
+        {
+          "review": "phase26-d39-final-ux-review.md",
+          "pass": true,
+          "fileCount": 9,
+          "mismatches": []
+        },
+        {
+          "review": "phase26-d39-final-lifecycle-review.md",
+          "pass": true,
+          "fileCount": 6,
+          "mismatches": []
+        },
+        {
+          "review": "phase26-d39-final-supabase-review.md",
+          "pass": true,
+          "fileCount": 8,
+          "mismatches": []
+        }
+      ]
+    },
+    {
+      "name": "All category concerns have severity effect and exact rules",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "F01 active composition/inactive draft/manual epoch captured",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "F02 source-only baseline captured",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Combined snapshot and no per-original chores captured",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Source/P17/P6/CRM/current-state privacy captured",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Required empirical prerequisites captured",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ADR0039 remains exploratory and proposed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D39 mirrors exact",
+      "pass": true,
+      "detail": 18
+    },
+    {
+      "name": "Local documentary links resolve",
+      "pass": true,
+      "detail": {
+        "links": 100,
+        "missing": []
+      }
+    }
+  ],
+  "totals": {
+    "checkGroups": 33,
+    "passedGroups": 33,
+    "baselineFiles": 1313,
+    "preservedFiles": 1306,
+    "authorizedExistingChanges": 7,
+    "D39ArtifactsExcludingValidation": 18,
+    "sourcePinRecords": 48,
+    "uniquePinnedSourcePaths": 43,
+    "runtimeGroupsExecuted": 0,
+    "actualRendererFixtures": 4
+  },
+  "runtimeQualification": "All 30 actual runtime groups remain required and unexecuted."
+}

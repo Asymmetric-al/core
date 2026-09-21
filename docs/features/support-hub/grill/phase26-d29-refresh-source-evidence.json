@@ -1,0 +1,455 @@
+{
+  "date": "2026-09-14",
+  "scope": "read-only document and exact source verification; no runtime or live-data proof",
+  "cwd": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "originDevelopLive": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "gitSourceCount": 29,
+  "gitSources": [
+    {
+      "ref": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "path": "docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth.md",
+      "sha256": "9fe683de186f769403e51b8f312900c5a48447281c20eb6072134ec64730b47b",
+      "bytes": 57456,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "path": "docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/contracts/experience.md",
+      "sha256": "f4716bff1817481b0455584f821921d2b266bdb529b795cfe696e16d658af911",
+      "bytes": 72978,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/published-content-reader.ts",
+      "sha256": "479ccc0560345b0e9809632881cc0d12be392e7ede1249f5f401c16ed915a096",
+      "bytes": 9209,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/resolve-tenant.ts",
+      "sha256": "02862dc987ae47e4bd89b94c9f8932b568e8ab6ccd75d880ebe0922be846447b",
+      "bytes": 4880,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/route-helpers.ts",
+      "sha256": "dac77538b0aaf1b5df57a92e1880e854d63c934c67c8bbe310ed1153a4a34956",
+      "bytes": 1125,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/app/(public)/(hero)/faq/faq-client.tsx",
+      "sha256": "4bbcdfca7813a555b29e4c94852a481b00e74fa40a01e6e0ffdd33ac6bb329aa",
+      "bytes": 16820,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/lib/cms/client.ts",
+      "sha256": "3a277bef352e8bf133ac0486baa5843ffcb5c1e1895ae4972c3d3bbf8749f828",
+      "bytes": 8089,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2",
+      "bytes": 7239,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203",
+      "bytes": 313201,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/project.md",
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e",
+      "bytes": 4255,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-surfaces/spec.md",
+      "sha256": "2f9cae0d5073464717d0888c5efc82ec4a04d56fc54d2c4d3c0310e3201ebf73",
+      "bytes": 11085,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/inbound-router.ts",
+      "sha256": "6bb9db43d29a459009939308d0a573a35f4dc1239e2065a0f7d564dd641d629f",
+      "bytes": 4229,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1",
+      "bytes": 4241,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a",
+      "bytes": 8648,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/context.ts",
+      "sha256": "80efa2687d8ceac8a092921e8ef410567bbfd1998461288cd4217edf1bb4d375",
+      "bytes": 1834,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/reader.ts",
+      "sha256": "236d680029954d6ee0bca1286f613f26956a463f463296c81991554f579dba66",
+      "bytes": 5137,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/donor-portal/route-helpers.ts",
+      "sha256": "a3459a57d9c676caae1517160beeb6f63ae011520ea34d180e48440a7ec4a4b4",
+      "bytes": 1046,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16",
+      "bytes": 31417,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": true
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0158-versioned-dynamic-source-catalog-and-content-list.md",
+      "sha256": "c9b3ddd6c3324e60707df93cef9514d95ec13cd4b63dadfdfa95d7bbaa6b7b4b",
+      "bytes": 11526,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0159-three-bounded-content-list-curation-strategies.md",
+      "sha256": "976158ec4270e4446827c9bed6240e044591dccb6c72b68d15e89ca3a3d58135",
+      "bytes": 9942,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0161-derived-public-site-search-projection-and-adverse-first-convergence.md",
+      "sha256": "f31ec862abd7fd47efcfd940b25675ca9e4330c97104c7440cf43c64b7f4f7d2",
+      "bytes": 11437,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0168-one-exact-public-audience-and-app-owned-authenticated-surfaces.md",
+      "sha256": "4454ed8790b9a47d744894b31a6b13624454a0a2805fbd397106bcb9a3df60a6",
+      "bytes": 12282,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0170-purpose-bounded-public-form-definitions-and-domain-owned-routing.md",
+      "sha256": "382f219e563c038c3b592ccb2b992e86c9bba5fbf8b4236e11ca4865b028d442",
+      "bytes": 19189,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0172-versioned-site-search-sharing-profile-and-d1-compiler-ownership.md",
+      "sha256": "fcb5ab82665f22a607c1b4e7a3346fee39e54e47dfff59dfcc2aa80ad322b860",
+      "bytes": 27100,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/prds/sitestacker-parity/phase-23-web-studio-cms.md",
+      "sha256": "33237425979848223ab3a05048dca0466110f6bebd17133b3d199281e78dc96c",
+      "bytes": 64638,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/prds/sitestacker-parity/research/phase-23-d26-public-form-definitions-and-routing-decision-brief.md",
+      "sha256": "65b333b25b291d5c9c1e4f960cb06e5c2a7c8ef25ead8e1554323770803ead66",
+      "bytes": 45516,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/prds/sitestacker-parity/research/phase-23-d26-public-forms-adversarial-review.md",
+      "sha256": "bbea3540e7ffb5d4dedb85680c7498a012560d4a59a3920f7d7311864410a9fb",
+      "bytes": 33925,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "sha256": "b1918986b7508f03e5d9bcf1b743f005574f20ec7c9b2f965f96f520d77bcecf",
+      "bytes": 85561,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/prds/sitestacker-parity/phase-24-multi-site-management.md",
+      "sha256": "60ecf01f9f8bdfbac23e9b692864c163598f2be10d5d1c01e2859bc13c55e9f6",
+      "bytes": 58751,
+      "matchesOriginalPin": true,
+      "headWorkingFileMatches": null
+    }
+  ],
+  "acceptedLocalSources": [
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d13-adversarial-review.md",
+      "bytes": 76631,
+      "sha256": "4950cca55f74614c9022ece2981343695ba69e5a6847fb6ae76cbf636752bfb6",
+      "currentSha256": "4950cca55f74614c9022ece2981343695ba69e5a6847fb6ae76cbf636752bfb6",
+      "matchesOriginalPin": true
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d14-adversarial-review.md",
+      "bytes": 87323,
+      "sha256": "8da8039edba331e3890d4eeb5c75e0c944bd338a6322f5db47776352099f761a",
+      "currentSha256": "8da8039edba331e3890d4eeb5c75e0c944bd338a6322f5db47776352099f761a",
+      "matchesOriginalPin": true
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d28-adversarial-review.md",
+      "bytes": 70103,
+      "sha256": "5563383b0a14e3090b947f50d3cd88ee0d8aa4bf5c596c5f4eaa6cda4c28eb13",
+      "currentSha256": "5563383b0a14e3090b947f50d3cd88ee0d8aa4bf5c596c5f4eaa6cda4c28eb13",
+      "matchesOriginalPin": true
+    }
+  ],
+  "citedSourceCount": 21,
+  "citedSources": [
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/cms/public/context.ts#L23",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 49,
+      "lineBoundsValid": true,
+      "sha256": "80efa2687d8ceac8a092921e8ef410567bbfd1998461288cd4217edf1bb4d375"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/admin/src/cms/public/resolve-tenant.ts#L22",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 189,
+      "lineBoundsValid": true,
+      "sha256": "02862dc987ae47e4bd89b94c9f8932b568e8ab6ccd75d880ebe0922be846447b"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/cms/public/reader.ts#L121",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 144,
+      "lineBoundsValid": true,
+      "sha256": "236d680029954d6ee0bca1286f613f26956a463f463296c81991554f579dba66"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/inbound-router.ts#L12",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 130,
+      "lineBoundsValid": true,
+      "sha256": "6bb9db43d29a459009939308d0a573a35f4dc1239e2065a0f7d564dd641d629f"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/inbound-router.ts#L40",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 130,
+      "lineBoundsValid": true,
+      "sha256": "6bb9db43d29a459009939308d0a573a35f4dc1239e2065a0f7d564dd641d629f"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/route-helpers.ts#L31",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 153,
+      "lineBoundsValid": true,
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/route-helpers.ts#L77",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 153,
+      "lineBoundsValid": true,
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/supabase/migrations/20260515025814_support_hub_core_modules.sql#L545",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 791,
+      "lineBoundsValid": true,
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/donor-portal/route-helpers.ts#L20",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 36,
+      "lineBoundsValid": true,
+      "sha256": "a3459a57d9c676caae1517160beeb6f63ae011520ea34d180e48440a7ec4a4b4"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/9069dcad67f9630323474ca5ee8bcc85ca7bf0f6/docs/adr/0170-purpose-bounded-public-form-definitions-and-domain-owned-routing.md#L37",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 279,
+      "lineBoundsValid": true,
+      "sha256": "382f219e563c038c3b592ccb2b992e86c9bba5fbf8b4236e11ca4865b028d442"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/9069dcad67f9630323474ca5ee8bcc85ca7bf0f6/docs/adr/0170-purpose-bounded-public-form-definitions-and-domain-owned-routing.md#L91",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 279,
+      "lineBoundsValid": true,
+      "sha256": "382f219e563c038c3b592ccb2b992e86c9bba5fbf8b4236e11ca4865b028d442"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/9069dcad67f9630323474ca5ee8bcc85ca7bf0f6/openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md#L988",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 1588,
+      "lineBoundsValid": true,
+      "sha256": "b1918986b7508f03e5d9bcf1b743f005574f20ec7c9b2f965f96f520d77bcecf"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/9069dcad67f9630323474ca5ee8bcc85ca7bf0f6/docs/adr/0168-one-exact-public-audience-and-app-owned-authenticated-surfaces.md#L22",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 179,
+      "lineBoundsValid": true,
+      "sha256": "4454ed8790b9a47d744894b31a6b13624454a0a2805fbd397106bcb9a3df60a6"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/9069dcad67f9630323474ca5ee8bcc85ca7bf0f6/docs/adr/0168-one-exact-public-audience-and-app-owned-authenticated-surfaces.md#L65",
+      "sourceDocument": "phase26-d29-refresh-data-review.md",
+      "lineCount": 179,
+      "lineBoundsValid": true,
+      "sha256": "4454ed8790b9a47d744894b31a6b13624454a0a2805fbd397106bcb9a3df60a6"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/9069dcad67f9630323474ca5ee8bcc85ca7bf0f6/docs/prds/sitestacker-parity/research/phase-23-d26-public-form-definitions-and-routing-decision-brief.md#L374",
+      "sourceDocument": "phase26-d29-refresh-owner-review.md",
+      "lineCount": 761,
+      "lineBoundsValid": true,
+      "sha256": "65b333b25b291d5c9c1e4f960cb06e5c2a7c8ef25ead8e1554323770803ead66"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/9069dcad67f9630323474ca5ee8bcc85ca7bf0f6/docs/adr/0168-one-exact-public-audience-and-app-owned-authenticated-surfaces.md#L20",
+      "sourceDocument": "phase26-d29-refresh-owner-review.md",
+      "lineCount": 179,
+      "lineBoundsValid": true,
+      "sha256": "4454ed8790b9a47d744894b31a6b13624454a0a2805fbd397106bcb9a3df60a6"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md#L175",
+      "sourceDocument": "phase26-d29-refresh-owner-review.md",
+      "lineCount": 765,
+      "lineBoundsValid": true,
+      "sha256": "2bdf280e2a79a2dd2a7a4cc48420e32d744728709618381fcaa42708bd7cb39b"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/prds/sitestacker-parity/phase-17-system-message-executable-manifest.md#L40",
+      "sourceDocument": "phase26-d29-refresh-owner-review.md",
+      "lineCount": 1154,
+      "lineBoundsValid": true,
+      "sha256": "a884be5f7472228cca643318a0304aba135ba0b0d2f72f4dc8239be850e6a8ca"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md#L1519",
+      "sourceDocument": "phase26-d29-refresh-owner-review.md",
+      "lineCount": 3236,
+      "lineBoundsValid": true,
+      "sha256": "4653ae542c1f28e076cc7f9c39fe316c82ad77d59340bfe90b9b0f58f3ef524d"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/adapter/supabase.ts#L241",
+      "sourceDocument": "phase26-d29-refresh-owner-review.md",
+      "lineCount": 1451,
+      "lineBoundsValid": true,
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/donor/app/%28public%29/%28hero%29/faq/faq-client.tsx#L34",
+      "sourceDocument": "phase26-d29-refresh-owner-review.md",
+      "lineCount": 422,
+      "lineBoundsValid": true,
+      "sha256": "4bbcdfca7813a555b29e4c94852a481b00e74fa40a01e6e0ffdd33ac6bb329aa"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "date": "2026-09-11",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "mode": "read-only structural source assertions; no module execution, environment, database, provider or browser access",
+  "sourceHashes": [
+    {
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md",
+      "sha256": "2bdf280e2a79a2dd2a7a4cc48420e32d744728709618381fcaa42708bd7cb39b"
+    }
+  ],
+  "observations": [
+    {
+      "id": "D17-S01",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "line": 837,
+      "finding": "Resolved command assigns the newly sampled timestamp without a same-state retention guard in this method.",
+      "structurallyVerified": true
+    },
+    {
+      "id": "D17-S02",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "line": 643,
+      "finding": "Inbound reopen clears resolved_at.",
+      "structurallyVerified": true
+    },
+    {
+      "id": "D17-S03",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "line": 689,
+      "finding": "Current list has an explicit 2000-row cap before further in-memory processing.",
+      "structurallyVerified": true
+    },
+    {
+      "id": "D17-S04",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "line": 476,
+      "finding": "Audit stores free-form body/metadata and cascades from conversation.",
+      "structurallyVerified": true
+    },
+    {
+      "id": "D17-S05",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "line": 1371,
+      "finding": "Thread lookup uses raw-header messageId then sender/subject fallback; this is not the ratified D1 authority.",
+      "structurallyVerified": true
+    },
+    {
+      "id": "D17-S06",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "line": 548,
+      "finding": "Generic authenticated staff DML covers Support tables; no live policy inspection is implied.",
+      "structurallyVerified": true
+    },
+    {
+      "id": "D17-S07",
+      "path": "docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md",
+      "line": 226,
+      "finding": "P6 explicitly supersedes new durable recipient_email writes.",
+      "structurallyVerified": true
+    }
+  ],
+  "status": "verified source observations only",
+  "limits": "Not D17 implementation, runtime, SQL/RLS, performance, provider, concurrency or accessibility proof. Source presence is bounded evidence; actual deployment remains untested."
+}

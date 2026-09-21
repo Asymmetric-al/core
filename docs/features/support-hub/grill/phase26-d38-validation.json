@@ -1,0 +1,268 @@
+{
+  "date": "2026-09-14",
+  "observedAtUtc": "2026-09-14T13:57:12.559202+00:00",
+  "status": "passed",
+  "method": "Source/documentary/history/links/trace/mirror verification; not runtime implementation proof",
+  "checksPassed": 48,
+  "checksTotal": 48,
+  "checks": [
+    {
+      "check": "26exactRclauses",
+      "passed": true,
+      "details": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25, 26
+      ]
+    },
+    {
+      "check": "23independentcategoryoutcomes",
+      "passed": true,
+      "details": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23
+      ]
+    },
+    {
+      "check": "15Supabasecontracts",
+      "passed": true,
+      "details": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    },
+    {
+      "check": "16lifecyclecontracts",
+      "passed": true,
+      "details": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "check": "10completeUXjourneystages",
+      "passed": true,
+      "details": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    },
+    {
+      "check": "16UXacceptanceadditions",
+      "passed": true,
+      "details": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    },
+    {
+      "check": "30requiredactualruntimegroups",
+      "passed": true,
+      "details": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25, 26, 27, 28, 29, 30
+      ]
+    },
+    {
+      "check": "5operatingcontrols",
+      "passed": true,
+      "details": [1, 2, 3, 4, 5]
+    },
+    {
+      "check": "3incorporatedcorrections",
+      "passed": true,
+      "details": [1, 2, 3]
+    },
+    {
+      "check": "EveryRclausecoveredbyruntimeproofmapping",
+      "passed": true,
+      "details": [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25, 26
+      ]
+    },
+    {
+      "check": "Everycategoryexplicitmaterialconcernandpermanentclauselink",
+      "passed": true
+    },
+    {
+      "check": "Dispositionandstageareexplicit",
+      "passed": true
+    },
+    {
+      "check": "ReadOnlypermissionrefinementandseparatementionauthority",
+      "passed": true
+    },
+    {
+      "check": "Actualsourcefootgunsandcorrectionscaptured",
+      "passed": true
+    },
+    {
+      "check": "SupabaseatomicownerandRealtimebounds",
+      "passed": true
+    },
+    {
+      "check": "D35CRMEmailStudioownershippreserved",
+      "passed": true
+    },
+    {
+      "check": "Allruntimeproofunexecutedandmonitorsdefined",
+      "passed": true
+    },
+    {
+      "check": "HEADmatchesrecordedlocalandlivedevelop",
+      "passed": true
+    },
+    {
+      "check": "FivefreshPRrecordsagreewithpreviousqualifiedheads",
+      "passed": true
+    },
+    {
+      "check": "33sourcepinshashesandlineboundsverified",
+      "passed": true,
+      "details": {
+        "sourcePins": 33,
+        "failed": []
+      }
+    },
+    {
+      "check": "Postgresversionevidencenotfabricated",
+      "passed": true
+    },
+    {
+      "check": "CurrentprimarySupabasereferencesqualified",
+      "passed": true
+    },
+    {
+      "check": "5actualhelperassertionspassedwithnonetworkorDB",
+      "passed": true
+    },
+    {
+      "check": "Actualhelperprobesourcehashescurrent",
+      "passed": true
+    },
+    {
+      "check": "1252priorrecordbaselinepreservedexceptauthorizedstatusandglossary",
+      "passed": true,
+      "details": []
+    },
+    {
+      "check": "UserownedCONTEXTMAPuntouched",
+      "passed": true
+    },
+    {
+      "check": "Glossarypriorbodyexactandonepuretermadded",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.mdoriginalhistorypreserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.mdoriginalhistorypreserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-q38-unfinished-internal-notes.mdoriginalhistorypreserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.mdcurrentselectionproposedamendments",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.mdcurrentselectionproposedamendments",
+      "passed": true
+    },
+    {
+      "check": "ScopedADR38selectednotfullyratifiedandcorrectseam",
+      "passed": true
+    },
+    {
+      "check": "NoADR39created",
+      "passed": true
+    },
+    {
+      "check": "Reviewversionpreserved:phase26-d38-adversarial-review.md",
+      "passed": true
+    },
+    {
+      "check": "Reviewversionpreserved:phase26-d38-proof-and-operations.md",
+      "passed": true
+    },
+    {
+      "check": "Reviewversionpreserved:phase26-d38-supabase-contract.md",
+      "passed": true
+    },
+    {
+      "check": "Reviewversionpreserved:phase26-d38-supabase-evidence.json",
+      "passed": true
+    },
+    {
+      "check": "Reviewversionpreserved:phase26-d38-lifecycle-seam-review.md",
+      "passed": true
+    },
+    {
+      "check": "Reviewversionpreserved:phase26-d38-ux-blueprint.md",
+      "passed": true
+    },
+    {
+      "check": "Reviewversionpreserved:phase26-d38-current-mention-probe.json",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-final-supabase-review.mdfinalPassrecorded",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-final-lifecycle-review.mdfinalPassrecorded",
+      "passed": true
+    },
+    {
+      "check": "phase26-d38-final-ux-review.mdfinalPassrecorded",
+      "passed": true
+    },
+    {
+      "check": "Allnewlocalfileandheadinglinksresolve",
+      "passed": true,
+      "details": {
+        "checked": 59,
+        "failed": []
+      }
+    },
+    {
+      "check": "Allnew/currentmirrorsbyteidentical",
+      "passed": true
+    },
+    {
+      "check": "Gitstatusremainsgroomingonly",
+      "passed": true
+    },
+    {
+      "check": "Noexternalmutationandnoactualruntimetestclaim",
+      "passed": true
+    }
+  ],
+  "Rclauses": 26,
+  "categories": 23,
+  "supabaseContracts": 15,
+  "lifecycleContracts": 16,
+  "uxAcceptanceAdditions": 16,
+  "runtimeGroupsRequired": 30,
+  "runtimeGroupsExecuted": 0,
+  "operatingControls": 5,
+  "sourcePins": 33,
+  "sourceProbeAssertions": 5,
+  "sourceProbeRealNetworkRequests": 0,
+  "sourceProbeDatabaseWrites": 0,
+  "mirrorsBeforeValidation": 20,
+  "finalArtifactHashes": {
+    "phase26-d38-adversarial-review.md": "9d59e7bac648af9aa47878df8442d693741631dcfe41a5bdfd27284bf9f4d506",
+    "phase26-d38-completion-audit.md": "368c2159fba426609c5128f01e7afc24a71d46aa67480cd3338f8d3830c89178",
+    "phase26-d38-current-mention-probe.json": "177bb258a0a379b9898d599a3d9f9ae6e937ab15306b0cc081e23a773b344ff1",
+    "phase26-d38-evidence.md": "5338d56261e8312d125576bcfa19682fc559680c3ae077d3576579dccee9ab12",
+    "phase26-d38-final-lifecycle-review.md": "904d4e98616886535c7afc64fce2c71c8b49b0111473042ea40bb011ab0c8c4e",
+    "phase26-d38-final-supabase-review.md": "12c2c075fd13a2e345f25d67b4a01c80b1eebac7d5eb03223132457d3f43d0e9",
+    "phase26-d38-final-supabase-reviewed-files.json": "838cc6a65a20ca76b58f184210593cc1493ea1b80516e43e0e62a847e545a23a",
+    "phase26-d38-final-ux-review.md": "4e028d7de50c1b4e4dfc8a8ed6f7228606dbe89f0a3ca033228c63aab3e32dd7",
+    "phase26-d38-lifecycle-seam-review.md": "9bfb738eb9fda0c43f9ac5b8d933d15b8c11dc8b8e5dab6d2650f099b579c9d5",
+    "phase26-d38-proof-and-operations.md": "945b9fee14d875a0b6b0a42a561dc03207a1f03d02fe923c2066ee7b9233a855",
+    "phase26-d38-review-corrections.md": "adac2119378d907d95eddd2ba116e39e35c150f501b73f62be9631ef27637016",
+    "phase26-d38-selection.md": "5fbfdcce287ee8f24108b2603dde8c19e03f3ae90655db28ec9ab7354c8516ae",
+    "phase26-d38-source-evidence.json": "f44e8447dc224aa62c77fc361be3dfdacc593b3747d19c133354ffc1f6128a21",
+    "phase26-d38-supabase-contract.md": "9469d687d0aabbbc0ce688f6edc04e95335085578532c0f43292b271f01f5d4f",
+    "phase26-d38-supabase-evidence.json": "30755279c2708b02a00489e5634def39caa82c3b1ab44b02d51895b3bcb81617",
+    "phase26-d38-ux-blueprint.md": "631197445f8a36d79cd287a34e4c56384d07995d726ace01b6ca15bdaae3f23e",
+    "phase26-d38-ux-research.md": "26ea81cabb8030caea02420371cb6b088ab0fd79434b79a76932bb389d1a73ac"
+  },
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "Q38": "A selected; detailed amendments proposed",
+  "Q39": "not opened"
+}

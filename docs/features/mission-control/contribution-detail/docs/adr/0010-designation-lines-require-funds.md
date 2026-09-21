@@ -1,39 +1,31 @@
-# ADR-CD-010: Every designation line requires a fund
+# ADR-CD-010: Each designation line has one eligible giving destination
 
-> **Note (2026-07-06):** The CRM/Twenty post state and repost/retry actions
-> referenced in this ADR target the now-retired Twenty pipeline and are dormant
-> per
-> [ADR-0001](../../../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
-> (2026-07-06); "CRM post" survives only as a label over the dormant
-> staged-gift pipeline pending the Phase 8 re-groom.
-
-**Status:** Accepted (grill session 2026-05-28)
+**Status:** Accepted 2026-05-28; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-Multiple designations per gift are first-class and equal. A designation line needs a stable giving destination for receipts, CRM/Twenty posting, reporting, corrections, and reconciliation.
-
-The product owner clarified that if a donor does not provide a specific designation, the gift should typically default to General Fund. Later edits must remain possible, but every line must always be tied to a fund.
+Equal first-class gift lines need unambiguous money destinations and exact owner evidence for downstream documents, credit and reporting.
 
 ## Decision
 
-Every designation line must point to exactly one fund.
-
-- If donor intent is unspecified, assign the line to General Fund.
-- "Unassigned" is not a valid final contribution detail state.
-- Memo text can support fund resolution but does not replace a fund.
-- Each designation line can be edited later through audited designation corrections.
-- Multiple designation lines are allowed and equal; the invariant is one fund per designation line.
+- Each Phase 13 designation line carries amount/currency and exactly one
+  eligible source-owned giving destination, with stable line identity.
+- Multiple lines are peers. Do not infer a primary missionary or fund from
+  array order or legacy scalar donation columns.
+- Apply the owning Phase 13 General Fund rule when donor intent is unspecified;
+  do not resolve an invalid/restricted named destination to it silently.
+- Giving Campaign remains a separate effort/attribution axis.
+- The shared read model exposes permitted destination context; corrections
+  preserve ledger conservation and history through the owning command.
 
 ## Consequences
 
-- Detail APIs should not expose final fundless designation lines.
-- External effects should be blocked or resolved before using any non-final intake state.
-- Correction workflows must support changing a designation line's fund after the fact.
-- General Fund must be available as a valid tenant fund for fallback designation.
+Validate source eligibility and tenant/entity/currency scope server-side. A missing legacy staged-gift record does not determine availability of an otherwise admitted owner command. No CRM posting adapter is required.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **Fundless designation lines:** Ambiguous for receipts, CRM posting, and reporting.
-- **Freeform final designations:** Hard to reconcile and easy to duplicate.
-- **Single fund per gift:** Conflicts with first-class multiple designations.
+The [original 2026-05-28 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0010-designation-lines-require-funds.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

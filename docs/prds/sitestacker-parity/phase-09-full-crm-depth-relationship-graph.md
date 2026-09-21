@@ -1,5 +1,10 @@
 # Phase 9 — Full CRM Depth & Relationship Graph
 
+**Contract revision:** 2026-09-16. Ratified Phase 25
+[identity rules](./phase-25-donor-dashboard-depth/contracts/identity.md)
+are incorporated in the implementation, testing and acceptance sections below;
+implementation and qualification remain separately unproved.
+
 > **Program:** SiteStacker Parity · **Phase:** 9 · **Status:** Groomed
 > (grill-with-docs, 2026-07-06) · **Base:** `develop`
 > **Predecessors:** Phase 0 (baseline/governance) · Phase 2 (site/locale/
@@ -36,6 +41,11 @@ inheriting Phase 4 isolation plumbing and the Phase 7 party spine as amended.
 ---
 
 ## Problem Statement
+
+**Historical repository baseline (2026-07-06).** The following observations
+record the original grooming investigation, not a current deployment claim.
+The normative implementation and acceptance sections contain later ratified
+amendments.
 
 The CRM surface today is a donor-only demo shell on a donor-only schema.
 Everything Phase 9 needs — parties, edges, party-keyed engagement, a real list
@@ -562,8 +572,12 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   no Phase 8 prerequisite; the Audit-tab ops-indicator socket reads whatever
   the Phase 8 re-groom defines, and Phase 9 must not invent a gate.**
   `crm_command_logs` stays reserved for future async provider commands only.
-  Double-submit protection is client-side + the Phase 4 dedupe scan; the
-  donate-path idempotency header stays money-path-only. (D7.4, ADR-0001 §4.)
+  The donate-path idempotency header remains money-path-only. Ordinary
+  personal-contact Name/Phone writes instead use B17's expected source revision
+  and narrow change-record correlation for duplicate/lost-response recovery;
+  client-side double-submit protection or a later dedupe scan is insufficient
+  for that command. No generic CRM/provider journal is introduced. (D7.4,
+  ADR-0001 §4; Phase 25 IC10/F04.)
 
 - **A18 — Exports ship governed; detail reads share one contract.** A minimal
   list CSV export ships in P9, routed through Phase 3 export governance
@@ -627,6 +641,26 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   through the exact tenant/account/livemode/Party/provider-Customer binding;
   metadata fields only. A legacy unscoped `donors.stripe_customer_id` lookup is
   forbidden.
+
+- **B17 — Ordinary personal-contact command (IC10/F04).** The owning
+  subtype/contact service admits one exact-Tenant proved person and Phase 12
+  field/purpose capability. Name is one unsplit Unicode contact/display value;
+  never infer given/family parts, require a surname, transliterate, or overwrite
+  independent structured/legal names. Phone is optional and clearable,
+  preserves human input/leading plus/extensions, and gains a derived dialing
+  form only from sufficient region evidence. Neither field creates verified
+  possession, login/MFA, SMS consent, a represented-Party edit, provider billing
+  change, or released public/document identity. The subtype alone controls any
+  intended Party label write-through; Party receives no inline contact fields.
+  Validate every selected field and permission before one transaction commits
+  values, monotonic revision and minimized audit/activity. Invalid second-field
+  input or audit failure writes nothing. Same-operation readback reconciles a
+  lost response; stale/ABA writes conflict. Return accepted save independently
+  of a failed subsequent page refresh. Converge donor/profile REST,
+  GraphQL/RPC, collections and fallback readers/writers: no save-then-403 side
+  effect, mirror of independent values, or old fallback resurrecting a Clear.
+  Shared typed bounds prevent silent truncation. Name/Phone do not inherit
+  mailing/financial retention timers or force profile completion.
 
 ### C. Predecessor plug-ins & amendment ledger
 
@@ -721,6 +755,14 @@ foundation, business, daf_sponsor, partner, agency, …}` on the org
   `donors.party_type`, `donors.person_id`. Dropped: `donors.missionary_id`,
   `donors.type`, `donors.organization`, `donors.spouse`, `donors.notes`
   scalar, `donor_activities`.
+
+**Ordinary personal contact:** B17's source is the exact Tenant/person/purpose
+within its owning subtype/contact service, with an unsplit Name, optional Phone,
+monotonic revision and narrow change-record/audit correlation. This declares the
+required owner contract, not that current `persons`/profile/donor columns already
+implement it. Preserve separate Auth, structured/legal, represented, billing,
+public and document facts. Reached compatibility fields migrate only from proved
+source provenance; no new inline Party contact columns or generic command log.
 
 **Graph:** `crm_relationships` + `crm_relationship_types` per A4/A5; seeded
 catalog per the disposition table below; derived views per A6.
@@ -870,6 +912,12 @@ derived edges, B4 roles view, B7 timeline, B10 predicates).
   cross-tenant search returns nothing.
 - CSV export honors Phase 3 field policies (negative test).
 - Names containing `, % ( )` round-trip through search and page boundaries.
+- B17 personal Name/Phone: mononyms/non-Latin input and phone extensions survive;
+  Clear remains clear across every reader; invalid second field and audit
+  failure write nothing; duplicate/lost-response recovery and stale/ABA checks
+  preserve current values. Donor-plus-missionary identities do not cause a
+  profile write followed by rejection. REST/GraphQL/RPC/direct bypass tests
+  prove the same field/purpose gate and no Auth/legal/public/billing effects.
 - Stable keyset pagination across a seeded mixed timeline with duplicate
   timestamps.
 - Merge re-point: colliding active edges deduped, self-edges eliminated,
@@ -1003,6 +1051,12 @@ grill: any filtered state shareable as a URL (A14.3); the `, % ( )`
 round-trip (A14.4); keyset-only + facet endpoint (A14.4–5); every `/crm*`
 route in the e2e a11y spec (A14.7); the four cross-surface leak tests; the
 seeded duplicates/tombstones/assignment-edges requirement (E4).
+
+**Personal-contact acceptance:** B17's exact owner transaction, all reached
+writers/readers, current P12 capabilities and source migration must be proved
+before the Phase 25 editor activates. A successful UI save, source-text check
+or mocked query alone does not prove direct-database isolation/atomicity or
+convergence. No producer completion is claimed by this PRD.
 
 **Acceptance artifacts:** the permanent negative/safety tier + structural CI
 gates pass; the F1 ADR is authored; the C2/C1 amendment one-liners land on
@@ -1155,3 +1209,110 @@ helper assignment, invoke a financial correction, or become a downstream
 disposition. Relationship change and Party merge preserve immutable actors and
 cause history and require explicit owner-domain succession; they never transfer
 recovery authority.
+
+## Dated Phase 22 D11-D12 Ministry Update engagement relationship boundary (2026-08-06)
+
+Phase 9 continues to own Party, household, supporter, purpose, relationship,
+timeline, and any separately governed relationship-health truth. A Phase 22
+Ministry Update, Release Projection, Engagement Space, Like, I prayed,
+comment/reply, report, or moderation occurrence is not a Phase 9 relationship
+edge or `crm_activity_event`. It cannot create supporter membership, infer a
+relationship, change household/coach/team structure, or automatically increase
+an engagement score or relationship-health projection.
+
+Phase 9/28 may provide an exact current purpose-authorized supporter input to
+D11's protected audience resolver. D11/D12 must re-prove that owner-domain fact
+on every protected operation and retain response evidence only inside its exact
+audience-local Engagement Space. A response may be offered to Phase 9 as a
+typed, separately admitted observation in a future contract, but it never
+becomes relationship truth merely because it occurred or was delivered.
+
+## Dated Phase 22 D13 public-discovery search boundary (2026-08-06)
+
+Phase 9 continues to own staff-only Party identity, legal-name and alias
+search, the Cmd-K permission-filtered `pg_trgm`/UNION surface, CRM facets, and
+relationship results. Phase 22 D13 owns only public discovery over its current
+source-complete Public Ministry Directory Projection. D13 never queries,
+reuses, widens, or treats the Phase 9 search index as public authority, and a
+Party's presence in CRM search never proves that a public page exists or is
+listed.
+
+D13 may consume only the D1 page identity reference and the exact current
+Phase 10-safe public card fields admitted by the current D2 Page Release. It
+must not expose or index a Party legal name, private alias, relationship,
+household, supporter status, staff note, task, generalized CRM location, or
+other Phase 9 field merely because that field is searchable to authorized
+staff. Party merge and relationship repair preserve their source-owned history
+and require D13 to rebuild from the resulting current owner-domain references;
+they do not mutate a released public card or silently transfer public-page
+membership.
+
+## Dated Phase 22 D17 Ministry Project source-ownership amendment (2026-08-06)
+
+Phase 9's CRM operational ownership layer owns the minimal **Ministry Project**
+identity and lifecycle contract consumed by Phase 22 D17: stable opaque
+identity, exact Tenant and Legal Entity, source-owned type/status, immutable
+version, optional dates, retirement/successor meaning, and audit provenance.
+That narrow source is not a Party, relationship edge, task board, project-
+management suite, accounting project, Phase 13 Giving Campaign or Designation,
+or Payload Project Page. Phase 22 owns only the exact typed Page Subject Binding
+and the privacy-safe source snapshot pinned into a release; it does not create
+or copy the operational project.
+
+The **Ongoing ministry or project** subject arm remains unavailable until the
+source schema, lifecycle and tombstone semantics, same-scope isolation, export
+shape, owner adapter, and production-shaped fixtures are certified. Phase 9
+must not grow task, budget, accounting, scheduling, or arbitrary project-
+management behavior merely to satisfy the public-page relationship.
+
+Party relationships, project leadership, team membership, displayed-person
+status, Campaign ownership, Designation management, and Ministry Project
+participation may be useful staff context but grant no contributor, preview,
+review, release, notification, financial, or workspace authority. Party merge,
+relationship change, source retirement, or project succession preserves every
+historical Page/source reference and enters explicit D8/lifecycle handling; it
+never repoints a released Page or infers a successor Page, Giving destination,
+progress source, or public identity.
+
+## Dated Phase 22 D19 Ministry Assignment source-ownership amendment (2026-08-06)
+
+Phase 9's CRM operational ownership layer also owns the stable **Ministry
+Assignment** identity and lifecycle used by Missionary Ministry Pages. A
+Ministry Assignment belongs to exactly one Tenant and Legal Entity, may have
+zero-to-many separately identified Party participants, and survives participant,
+spouse, household, team, leadership, login, employment, and public-page changes.
+It is distinct from a Party, household, relationship edge, Phase 9 Ministry
+Project, Phase 21 Support Assignment, Phase 13 Designation or Campaign, Public
+Ministry Page, and financial account.
+
+A **Ministry Assignment Participant Membership** is a prospective,
+effective-dated, append-only-corrected association for one Party and one exact
+half-open interval. Phase 9 owns that association only. It grants no D1 public
+display or Page contribution, Phase 12 capability, Phase 21 participation or
+Support Workspace access, responsibility, notification, supporter identity,
+financial ownership, or money movement.
+
+Phase 21's separately finance-authorized command owns and may maintain one
+optional prospective same-scope **Ministry Assignment Support Binding Version**
+to a Support Assignment. Phase 22 consumes that bridge but no Page,
+contributor, or CRM role may select it. The binding references both source-owned
+identities and never merges them. Adding, ending, correcting, or succeeding a
+Ministry Assignment membership or binding does not propagate participants,
+grants, balances, history, notifications, Giving destinations, or public
+progress.
+
+A Ministry Assignment is the people, service, and optional Support Workspace
+context for a Missionary Ministry Page. A Ministry Project is an initiative or
+program subject for D17's Project/Campaign Page. D19 adds no fourth D17 subject
+arm and never auto-links those source identities. Project Page collaborators
+still require D1 Contributor Assignments, while any project support viewer
+still requires Phase 21 participation where applicable, an exact Phase 12
+grant, and the D9 module publication posture.
+
+Every Missionary Ministry Page references one exact Ministry Assignment through
+D1's Page Subject Binding and pins only a Phase 10-approved public-safe snapshot
+into a release. Display Participants and Contributor Assignments remain explicit
+D1 facts. Party merge/split, spouse separation, departure, death/incapacity,
+team change, Ministry Assignment retirement, or binding succession preserves
+historical identity and requires explicit owner-domain dispositions; it never
+repoints a released Page or unions permissions.

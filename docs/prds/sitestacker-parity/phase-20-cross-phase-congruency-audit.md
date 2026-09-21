@@ -807,8 +807,12 @@ That would expose a finance projection as fundraising or field-account truth.
 
 **Permanent correction.**
 
-- Phase 22 public progress uses Phase 13 posted contribution facts and Phase 16
-  commitment/goal contracts only, through the Phase 10-safe projection.
+- Phase 22 D6 resolves an optional page-local public metric through a Phase
+  10-safe projection. Its numerator is exactly one compatible source family:
+  Phase 13 corrected gross-received or typed-count facts, or a Phase 16 active
+  commitment projection. Its denominator, when required, is exactly one Phase
+  13 campaign goal or Phase 28 Support-Raising Goal Version. It never blends
+  those source families.
 - Phase 28 distinguishes support activity, committed support, the
   Finance-confirmed Field Account Balance with through/as-of date, provisional
   activity since close, optional policy-derived ministry-expense capacity,
@@ -1175,15 +1179,70 @@ protocol.
 
 Add:
 
-> **Truthful support progress.** A progress component binds to one approved
-> goal contract with an explicit numerator, currency, period, and source.
-> Ordinary support-raised progress uses eligible gross support from Phase 13
-> and commitments from Phase 16 as defined by that contract; admin assessment,
-> processor cost, Accounting Release state, Stripe balance, and Phase 21
-> internal Field Account balance or ministry-expense capacity do not silently
-> reduce, replace, or appear in the public numerator. A tenant may publish a
-> separately approved privacy-reviewed runway or goal projection, but Phase 22
-> never exposes the internal Field Account balance.
+> **Optional, page-resolved truthful support progress.** Every released page
+> pins one immutable Phase 22 D6 Public Support Progress Profile Version that
+> either shows no public progress or selects exactly one compatible primary
+> metric. A metric uses Phase 13 corrected gross-received, exact-period, or
+> typed-count facts, or a Phase 16 active-commitment projection; it never blends
+> receipts and commitments. A goal-based metric binds to exactly one Phase 13
+> campaign goal or Phase 28 Support-Raising Goal Version. Every monetary metric
+> has one ISO currency, and every projection states its period and through-date.
+> Admin assessment, processor cost, Accounting Release state, Stripe balance,
+> Phase 21 Field Account balance or capacity, runway, and Phase 33 reporting
+> conversions are not eligible numerator, denominator, fallback, or public
+> authority. Unsafe, stale, incompatible, or uncomputable progress is omitted
+> at the smallest scope while Giving remains independently controlled.
+>
+> **One exact MVP Giving destination.** Every released Phase 22 page pins one
+> immutable Page Giving Binding to exactly one Phase 13 Designation, and all CTA
+> placements share it. Phase 5 transports only untrusted context; current page,
+> Phase 10, Designation, Settlement Account Binding, issuer, currency, cadence,
+> attribution, and return-path proof is repeated at cart/checkout and the final
+> pre-provider boundary. A stale or ineligible binding contains only Giving and
+> never falls back to another purpose. Phase 13 campaign `expected designations`
+> remains staff intent and a future seam, not an MVP public picker. Phase 20
+> settlement or accounting state cannot select or validate the public
+> destination.
+>
+> **Source-qualified public route disposition.** Phase 22 D8 owns immutable
+> Public Page Route Generations, cause/source-qualified disposition cases,
+> Transition Notice Releases, same-Page Listed-public canonical moves, uniform
+> privacy-safe tombstone `404` behavior, and Route Effect Manifests. The external
+> namespace is uniquely Site × locale × canonical path while mandatory composite
+> relationships preserve Tenant, Legal Entity, Page Family, Page, release, and
+> route-class scope. A different Phase 13-proved successor presentation is a
+> fresh explicit link, never an automatic redirect or inherited Giving action.
+> D8 references but cannot recreate, close, or move D7/Phase 13 Designation and
+> new-Giving truth or Phase 16 recurring truth. Phase 20 accounting, settlement,
+> posting, or reconciliation state cannot select a public route disposition,
+> prove a successor page, or advance external cache/search cleanup.
+>
+> **Release-bound public ministry media.** Phase 22 D9 owns public-media
+> meaning, context-specific placement, Page Release binding, and withdrawal
+> intent. Phase 29-compatible custody owns private intake bytes, immutable
+> sanitized masters and derivatives, scan/transform evidence, copy access,
+> retention, and disposal outcomes; Phase 10 owns current safety and consent;
+> Phase 5 owns only guarded HTTP delivery. The public serializer and delivery
+> surface expose one opaque released reference and the exact certified
+> derivative, never a raw provider URL, original filename, source-derived
+> metadata, or private intake. Media upload, scan, transformation, placement,
+> release, delivery, withdrawal, purge, and deletion are independent facts.
+> None is a contribution, Designation, expense, receipt, accounting source,
+> Accounting Posting Intent, Accounting Release, QBO/Xero delivery, payment, or
+> reconciliation fact, and Phase 20 cannot make a media asset public or safe.
+>
+> **Scoped public discovery is presentation only.** Phase 22 D13 owns one
+> exact-scope Public Ministry Discovery Profile, the source-complete Public
+> Ministry Directory Projection, bounded public query and typed-card contracts,
+> and the active Together-or-Separate presentation topology. Membership derives
+> only from the current D2 `Listed publicly` Page Release after Phase 10 and D8
+> proof. None of those records is a contribution, settlement, accounting,
+> reconciliation, availability, Field Account, payroll, or payment fact. D13
+> cannot consume an Accounting Release, bank/provider balance, QBO/Xero object,
+> or reconciliation result as membership, ranking, filtering, progress, card,
+> or fallback authority. Optional D6 progress and D7 Giving remain independent
+> current references whose failure removes only that capability; Phase 20
+> cannot add, rank, suppress, or repair a public directory result.
 
 ### Phase 24 — Full Multi-Site, Language & Currency Management
 
@@ -1901,3 +1960,49 @@ reconciles that package with Phases 17–19. Only an explicitly approved
 predecessor issue bodies must be corrected before they are dispatched
 unchanged. These documents are implementation-ready planning, not runtime
 implementation authorization.
+
+## Dated Phase 22 D15 financial-separation amendment (2026-08-06)
+
+Phase 22 D15 Public page activity is delayed, suppression-safe,
+non-financial measurement. Phase 20 accounting facts, Phase 21 Field Accounts,
+provider balances, reconciliation, payroll, and payment evidence never feed its
+metrics, and a Page/Update/Share/Give interaction never becomes contribution or
+accounting truth. A separately displayed Phase 13 aggregate retains its own
+authorization, label, and through-date without a person/session join; Phase 20
+owns no D15 intake, aggregate, correction, report, or external-analytics lane.
+
+## Dated Phase 22 D17 subject/accounting separation amendment (2026-08-06)
+
+A D17 Page Subject Binding may reference one CRM Ministry Project, Phase 13
+Giving Campaign, or separately public-subject-eligible Designation only to state
+what a Project/Campaign Page is about. It is not an accounting project, class,
+fund balance, posting dimension, source discriminator, Accounting Release,
+provider object, payment, or reconciliation fact. Phase 20 data cannot fabricate
+or select a Page subject, and D17 cannot infer an accounting mapping from a
+Ministry Project, Campaign, Designation, `fundId`, or public presentation.
+
+Even when the same Designation is independently selected by D7 for Giving, D17
+creates no contribution, settlement, posting, transfer, balance, or accounting
+authority. Any downstream accounting treatment follows Phase 20's existing
+source-qualified lanes and never feeds back to mutate a released subject or Page
+lifecycle.
+
+## Dated Phase 22 D21 adoption/accounting separation amendment (2026-08-14)
+
+The Phase 22 D21 Public Ministry Surface Adoption Case, Adoption Plan Version,
+code-owned coverage plan, tenant Adoption Coverage Manifest, shadow proof,
+cutover receipt, selected reader-generation head, staff consequence review, and
+D18 convergence cause are publication-migration and serving evidence only. They
+create no contribution, receivable, cash, restriction, net-asset class, revenue,
+expense, fee, settlement, payout, transfer, Field Account, journal, accounting
+dimension, Accounting Release, provider posting, reconciliation, payment, or
+books-and-records truth.
+
+D21 may reference an exact D7/Phase 13 Designation and current Giving-lane facts
+only to prove that presentation and handoff do not change purpose. It cannot
+infer an accounting mapping from a route, page family, Ministry Assignment,
+Campaign, `fundId`, source code, compatible legacy presentation, or adoption
+disposition, and it cannot use a cutover count or content digest as a financial
+control total. Phase 20 remains the sole owner of its separately qualified
+accounting releases and delivery; QBO/Xero and other external books remain
+authoritative only for their exact posted and reconciled outcomes.

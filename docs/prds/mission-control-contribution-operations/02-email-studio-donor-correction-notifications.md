@@ -1,108 +1,108 @@
 # PRD 2: Email Studio Donor Correction Notifications
 
-## Delivered split status
-
-Delivered through split PRs #395-#396. Do not create a new `status:ready`
-implementation issue from this historical PRD unless a follow-up gap is
-identified against the shipped code.
+**Current requirements amended 2026-09-16 (AL-1861).** These bodies use the
+ratified [owner contracts](../../features/mission-control/contribution-detail/README.md).
+The [original PRD](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/prds/mission-control-contribution-operations/02-email-studio-donor-correction-notifications.md)
+records the earlier requirements and delivery history (split PRs #395–#396). Those
+original delivery claims do not establish implementation of the amended target.
 
 ## Problem statement
 
-Contribution corrections can change what a donor sees, receives, or trusts.
-Donors need clear notifications for money and official document changes, while
-staff need settings so the product does not send noisy or confusing emails for
-small internal actions.
-
-The repo already has Email Studio, React Email Editor, provider-neutral
-template storage, merge tags, immutable template versions, and Resend delivery.
-Contribution operations must use that foundation rather than creating ad hoc
-donor emails.
+Donors need correct, privacy-safe explanations of actual money and official-
+document changes. Staff need to see whether a notice was required, prepared,
+submitted, delivered, blocked or lawfully suppressed without confusing that
+state with the underlying correction.
 
 ## Solution
 
-Create donor correction notification support inside Email Studio. All
-donor-facing contribution correction emails use Email Studio templates. The
-contribution operations system chooses the template family/variant from the
-real action type and outcome, applies notification policy, validates required
-merge tags at activation and send time, sends through Resend, and records the
-notification decision in the contribution audit trail.
+Contribution operations emit exact typed source occurrences and safe fact
+projections into the Phase 17 system-message contract. Phase 17 owns content,
+publication resolution, protected facts/actions and whole-message preparation;
+Phase 6 owns recipient intent, consent checks, dispatch, provider outcomes,
+recovery and body-free history. Neither the producer nor automation calls
+Resend directly or rereads a mutable template after message preparation.
 
-If a required template is missing, inactive, or invalid at send time, the
-contribution action still succeeds. The email is blocked, the audit trail
-records the failure, and a follow-up task is created according to assignment
-settings.
+Use the [executable manifest](../sitestacker-parity/phase-17-system-message-executable-manifest.md)
+for exact key, source fence, recipient resolver, purpose, requiredness, locale,
+retention and proof. Missing/invalid/incompatible content blocks the notice and
+creates owner-routed repair; it does not undo an already completed source action.
+Financial corrections have no cross-language/protected-default content fallback.
 
 ## Goals
 
-- Add system template families for donor correction notifications.
-- Keep templates editable through React Email Editor.
-- Protect required merge tags at activation and send time.
-- Add notification policy by action type.
-- Allow a bounded personal note without replacing official template content.
-- Record every notification decision.
-- Use Resend through the existing delivery layer.
-- Bridge failures into the shared task system from PRD 3.
+- Use one catalog and protected message preparation pipeline.
+- Keep authorized surrounding-copy authoring in governed Email Studio/Tiptap;
+  content editing cannot alter source facts, recipient, action or requiredness.
+- Use exact source-derived financial/document facts and safe personal-note slots.
+- Preserve source decision, message preparation and provider outcome separately.
+- Reconcile retries against the same sealed message and effect identity.
+- Route actionable failure through the actual repair/source owner and shared tasks.
 
 ## Initial template families
 
-- refund notification family
-- amount correction notification family
-- designation correction notification family
-- receipt correction notification family
-- statement correction notification family
-- payment state correction notification family
-- donor relinking notification family
+Use only the exact qualified Target Live keys from Phase 17:
 
-Variants include refund started, refund completed, refund failed, partial
-refund completed, full refund completed, receipt corrected, statement
-corrected, designation changed, and payment state corrected.
+- refund failed; unspecified-kind, partial and full refund completed;
+- amount corrected; designation changed; payment-state corrected; donor relinked;
+- receipt corrected, only with the current source correction effect and exact
+  ready Phase 18 successor artifact; do not duplicate receipt-replaced meaning;
+- the statement-owning keys for actual Phase 19 run/fulfillment occurrences.
+
+These are navigation labels, not new key definitions. A refund-started or other
+unlisted meaning must remain unavailable until its owning catalog contract is
+qualified; never alias it to a completed-refund or generic correction key.
 
 ## Default notification policy
 
-- refunds: auto-notify
-- amount corrections: auto-notify
-- receipt changes: auto-notify
-- statement changes: auto-notify
-- designation changes: always ask
-- payment state corrections: always ask
-- donor relinking: staff chooses
+The contribution source determines whether the exact donor financial notice is
+required under `source_required_with_audited_suppression@1`. A permitted money/
+official-document suppression requires source capability, reason and immutable
+audit. Phase 17 content/settings cannot suppress it or turn a personal/marketing
+preference into an official-message block.
 
-Suppression of a money or official document notification requires a reason.
+Receipt messages use their exact Phase 7 issuer/purpose/recipient policy. The
+named corrected-receipt source suppression exception is not a generic override.
+A missing or unauthorized recipient blocks with source-owned repair; no template
+may substitute another Party. The old per-action auto/ask table is not a second
+notification policy engine.
 
 ## Implementation decisions
 
-- Extend the existing Email Studio provider-neutral template model.
-- Drafts may save with missing required tags, but active system bindings cannot
-  activate without required tags.
-- Send-time validation checks the active template/version again.
-- Donor-facing automation and bulk notification sends must call the same
-  notification module; they must not call Resend directly.
-- Missing/invalid templates block only the email, not the contribution action.
-- Failure tasks default to actor plus Finance Operations queue; tenant settings
-  may choose actor-only, queue-only, or both.
+- Consume Phase 17 catalog/source adapters and qualified Tiptap authoring.
+  Existing template-store/system-binding rows are migration inputs, not parallel
+  activation or message-identity authority.
+- Validate and resolve a whole compatible publication before preparation;
+  preserve its immutable facts, recipient, actions and effect identity afterward.
+- For donor corrections, keep requested-locale inheritance within the exact
+  permitted scope; missing content opens repair without a weaker fallback.
+- Receipt-corrected messages wait for the exact current ready artifact and
+  retain Phase 7 recipient authority; reading a receipt never generates one.
+- Optional personal notes exist only in the source-approved safe slot; donor
+  relink messages never expose old/new donor identities from template input.
+- Required in-product repair attention and task routing follow their owner
+  contract. Notification preferences never erase source work.
 
 ## Testing decisions
 
-Test behavior from the staff/donor perspective:
+Test exact source/recipient/key/fence identity, protected facts/actions,
+publication qualification, whole-message immutability, locale restrictions,
+source-audited suppression and read/dispatch-time access loss. Verify attempted
+refund wording never claims money moved; full/partial completion uses proved
+source amounts. Prove receipt-corrected notices require the exact current
+artifact and cannot duplicate receipt replacement. Verify no local Resend call,
+mutable-template reread, richer optional-email leak or unsupported fallback.
 
-- template activation validation with required tags present and missing;
-- send-time validation for inactive/invalid templates;
-- policy modes: auto-notify, always ask, staff chooses;
-- suppression reason requirement;
-- variant selection for refund started/completed/failed, receipt corrected,
-  designation changed;
-- personal note inclusion through a safe field;
-- blocked template behavior creates audit and task intent;
-- automation-triggered donor emails cannot bypass Email Studio templates.
+Exercise idempotent source and provider recovery separately; a blocked notice
+must not reverse a completed correction or make a later retry a new effect.
 
 ## Definition of done
 
-- Contribution notification template families exist in Email Studio storage.
-- Templates are editable through React Email Editor.
-- Required merge tags are enforced before activation and before send.
-- Notification settings exist by action type.
-- Staff can add a short personal note.
-- Missing or invalid templates block the email, not the contribution action.
-- Failed or blocked notification tasks are created and auditable.
-- Donor-facing sends use Resend through existing delivery paths.
-- Focused unit and app tests pass.
+- All reached producer paths use exact qualified Phase 17 contracts and Phase 6
+  dispatch/history, including single, inline, automation and bulk entrypoints.
+- Requiredness, suppression, source facts, recipient scope and artifact gates
+  are proved under negative, stale, duplicate and recovery cases.
+- Governed authoring preserves protected meaning; no legacy binding/template
+  path remains an alternate authority for this scope.
+- Staff see honest source, preparation, provider and repair outcomes.
+- Relevant unit/integration/browser and owner qualification checks pass; these
+  document edits do not claim those runtime gates already passed.

@@ -135,7 +135,7 @@ The result: a donor gives once and to many, seamlessly; a missionary's recurring
   _(Amended 2026-07-13 by Phase 16 D1–D16.)_
 - **Make source codes first-class** (registry + UTM capture + `?sc=`/short-link/QR + per-line frozen attribution) (D14, D14b), and **build the giving-campaign model** with typed goals and a bounded hierarchy, rolling up through the source-code FK (D13).
 - **Model corrections/refunds/re-designations as append-only entries**, wire the refund path, and add the missing `charge.dispute.*` handling (D5, D7).
-- **Establish the five orthogonal contribution status axes** (payment / ledger / receipt / accounting-export / review), each a DB-enforced state machine, replacing free-text `donations.status` (D7).
+- **Establish the three Phase 13-owned header axes** (payment / ledger-posting / review), each a DB-enforced state machine replacing free-text `donations.status`. Receipt/document and accounting outcomes remain separately owned related records and read-only projections (D7; Phases 7/18/19/20).
 - **Capture correct money and tender facts** — integer minor units + per-currency, seven tenders + the non-cash asset substrate, and exact-issuer jurisdiction-owned date-of-delivery (D8, D10, D11).
 - **Lay only the Phase 13 import-aware money seams** (tenant/account/mode-scoped
   external provider references and the `already_receipted` boundary). Phase 16
@@ -159,7 +159,7 @@ The result: a donor gives once and to many, seamlessly; a missionary's recurring
   substrate only. A fixed-total pledge and an automatic recurring commitment
   are distinct aggregates and are **never** auto-converted.
 - **Donor-portal depth** (designation-edit polish beyond the eligibility guard, statements, preference center, magic-link, wallet) — Phase 25 (D16).
-- **Public campaign pages, P2P/peer-to-peer fundraisers, and appeals** — Phases 22/36/27; Phase 13 reserves the `parent_campaign_id` self-FK and the by-id page reference, and moves all email/presentation fields _out_ of the campaign into their domains (D13).
+- **Public campaign pages, P2P/peer-to-peer fundraisers, and appeals** — Phases 22/36/27; Phase 13 reserves the `parent_campaign_id` self-FK while Phase 22 owns the typed immutable Page Subject Binding rather than a by-id CMS page reference, and moves all email/presentation fields _out_ of the campaign into their domains (D13).
 - **Accounting/GL export execution and reconciliation** — Phase 20; Phase 13
   exposes exact source-occurrence identity and eligibility but reserves no
   writable export-status axis (D7, D9).
@@ -248,24 +248,24 @@ Stories are grouped by actor and numbered continuously. Every story is grounded 
 
 1. As a **donor**, I want to add several designations to one giving cart (multiple missionaries, a project fund, the general fund) and give to all of them in a single checkout, so that I support everyone I care about without paying five separate times. `[D15]`
 2. As a **donor**, I want to mix one-time and recurring gifts in the same cart (a one-time gift to a building project alongside a monthly gift to a missionary), so that I set up all my giving in one flow. `[D15, D15.1]`
-3. As a **donor**, I want the split between my one-time and recurring gifts to be invisible at submit — one confirmation screen, one flow — so that I never have to think about how the payments are structured under the hood. `[D15.1]`
+3. As a **donor**, I want one clear confirmation for my mixed cart that explains what will charge today and on the continuing dates, so that one flow never hides multiple payments or future obligations. `[D15.1; Phase 16 D2/D4]`
 4. As a **donor**, I want to add another designation inline with a quiet "add another designation" action, so that expanding my gift is obvious but never clutters the page. `[D15, D15/D12 review]`
-5. As a **donor**, I want to set each line to one-time or monthly with an inline per-line toggle, so that I control the cadence of each gift independently. `[D15]`
+5. As a **donor**, I want each line to offer one-time giving or the currently enabled recurring cadences, with monthly featured when available, so that I can choose each destination's schedule without a provider default deciding it. `[D15; Phase 16 D3]`
 6. As a **donor**, I want a sticky running total that never scrolls away and a clear tax note, so that I always know exactly what I'm giving before I confirm. `[D15/D12 review]`
 7. As a **donor** on my phone, I want a thumb-reachable checkout CTA and a total that stays visible, so that giving on mobile is effortless. `[D15/D12 review]`
 8. As a **donor**, I want the whole checkout on a single page with the fewest possible fields (6–8, autofilled where possible), so that I can finish in seconds. `[D15/D12 review]`
-9. As a **donor**, I want an amount minimum of $1 per line and a friendly cap of up to 50 lines, so that the cart stays sane without getting in my way. `[D15.3, D15.4]`
-10. As a **donor** who accidentally added the same designation twice, I want the cart to dedupe identical designation+frequency lines, so that I don't double-give by mistake. `[D15]`
+9. As a **donor**, I want each line checked against the current currency and payment-route minimum, with a friendly cap of 50 lines, so that checkout accepts a valid gift without applying a dollar minimum to another currency. `[D15.3/D15.4; Phase 2; Phase 24 D61–D65]`
+10. As a **donor** who accidentally added an identical gift twice, I want deduplication only when the destination and complete gift-intent terms match, so that different cadence, anchor or end-date choices are never silently combined. `[D15; Phase 16 D2/D3; Phase 24 D65]`
 
 ### Public donor — wallets, guest checkout & payment
 
 11. As a **donor**, I want Apple Pay, Google Pay, and Link offered prominently above the fold, so that I can pay with a saved wallet in one tap. `[D15/D12 review]`
 12. As a **donor**, I want to give as a guest without being forced to create an account, so that a required signup never stops me from completing my gift. `[D15/D12 review]`
 13. As a **donor**, I want to be offered an account only after I've given, on the confirmation screen, so that account creation is a convenience, not a gate. `[D15/D12 review]`
-14. As a **donor**, I want to enter my card once and have that same method confirm my one-time gift and set up every recurring gift in the cart, so that I never re-enter payment details per line. `[D15/D12 review]`
+14. As a **donor**, I want to enter my payment details once through the qualified provider flow and authorize each disclosed one-time and recurring payment arrangement, so that I avoid needless re-entry without granting undisclosed future-use or cross-account authority. `[D15/D12 review; Phase 16 D2/D4/D15]`
 15. As a **donor**, I want my card details to live entirely inside Stripe's secure fields and never touch the ministry's or Asym's servers, so that my payment data stays safe (SAQ-A). `[D1]`
-16. As a **donor** setting up multiple monthly gifts, I want a clear disclosure like "you'll see N separate monthly charges from [Ministry], one per designation," so that my bank statement never surprises me. `[D15.2, D15/D12 review]`
-17. As a **donor**, I want each monthly charge to show a recognizable ministry-branded descriptor with the designation, so that I recognize the charge and never dispute it by accident. `[D15/D12 review]`
+16. As a **donor** setting up recurring gifts, I want the review to show the exact count, amount, date and destination allocation of today's charges and the continuing charges, so that my statement matches the compatible cohort plan I authorized rather than assuming one charge per designation. `[D15.2; Phase 16 D2/D4]`
+17. As a **donor**, I want each actual charge to show a recognizable, privacy-safe ministry descriptor and my confirmation to explain its destination allocation, so that I can recognize combined or separate cohort charges without exposing a restricted person's identity. `[D15/D12 review; Phase 10; Phase 16 D2/D4]`
 18. As a **donor** whose payment is declined, I want the cart to re-render intact so I can fix my method and retry, so that a decline doesn't lose my whole cart. `[D15/D12 review]`
 19. As a **donor** who hit a "confirm your card" (SCA) step on a recurring gift, I want that to be handled gracefully so my sustaining gift actually gets set up, so that a common authentication step never silently drops my monthly commitment. `[D15/D12 review]`
 
@@ -275,7 +275,7 @@ Stories are grouped by actor and numbered continuously. Every story is grounded 
 21. As a **guest donor**, I want my cart to survive in my browser for up to 90 days if I step away, so that I can come back and finish without rebuilding it. `[D15.3]`
 22. As a **donor** who built a cart as a guest and then logged in, I want my guest cart merged into my account cart sensibly (no silent doubling of amounts), so that logging in never corrupts what I intended to give. `[D15/D12 review]`
 23. As a **donor** who returns to an old cart, I want every line re-checked against what's currently available before I pay, so that I never get charged for a designation that's closed or changed. `[D15]`
-24. As a **donor**, I want a resumed cart to re-price and re-mint its payment intent on load, so that a stale saved cart can never charge an old or wrong amount. `[D15/D12 review]`
+24. As a **donor**, I want a resumed cart revalidated and any existing accepted or uncertain payment operation reconciled before a replacement is allowed, so that reopening checkout cannot duplicate a charge or reuse stale money terms. `[D15/D12 review; Phase 16 D4; Phase 24 D63/D65]`
 
 ### Public donor — designation safety & honesty at checkout
 
@@ -300,7 +300,7 @@ Stories are grouped by actor and numbered continuously. Every story is grounded 
 
 ### Public donor — receipts & attribution at gift time
 
-40. As a **donor**, I want one consolidated receipt for my whole multi-designation cart, so that I get a single clean record instead of a pile of emails. `[D15.1]`
+40. As a **donor**, I want one coherent giving confirmation with access to each receipt or statement artifact that its legal issuer and receipt policy authorize, so that a multi-designation cart is easy to understand without inventing one tax document across separate gifts or issuers. `[D15.1; Phase 7; Phase 16 D2/D4; Phase 18]`
 41. As a **donor**, I want my gift to carry where it came from (the newsletter link, the banquet QR, the year-end appeal) automatically, so that the ministry knows what moved me without me doing anything. `[D14]`
 42. As a **donor**, I want a scanned QR or short link to send me to the right giving page with attribution already applied, so that I never see or have to type a tracking code. `[D14b]`
 
@@ -331,8 +331,8 @@ Stories are grouped by actor and numbered continuously. Every story is grounded 
 
 ### Donor — receipts, statements & corrections (self-service)
 
-71. As a **donor**, I want a correct receipt for every gift including the fees I chose to cover, so that my record matches what I actually paid. `[D12, P7]`
-72. As a **donor** whose ACH gift was returned weeks later, I want my receipt automatically voided or reduced and to be notified, so that a good-faith early receipt never becomes a wrong tax document. `[D7, D8]`
+71. As a **donor**, I want the receipt or year-end record authorized for my gift, including the eligible fee-cover facts, so that my record matches what I paid without treating every gift as eligible for an immediate individual receipt. `[D12; Phase 7 exact-issuer receipt plan; Phase 18]`
+72. As a **donor** whose previously receipted ACH gift was later returned, I want the original artifact retained and its current correction or replacement explained through the responsible receipt and document owners, with any required notice, so that returned money never leaves misleading paperwork or rewrites my history. `[D7/D8; Phase 7; Phase 18; Phase 19; Phase 17]`
 73. As a **donor** whose gift was corrected or partially refunded, I want a new receipt version with a "corrected" badge (the prior retained), so that my paperwork stays honest and legible. `[D5, P7]`
 74. As a **donor**, I want a prior-year receipt to never be silently retracted — only superseded with an explanation — so that my past filings aren't undermined. `[D5, P10]`
 
@@ -525,9 +525,7 @@ Stories are grouped by actor and numbered continuously. Every story is grounded 
      the exact tenant, connected account, mode, Party, and source object, so that
      an import can never guess across customers, accounts, or organizations.
      `[D24, D25; amended by Phase 16 D14/D16]`
-170. As an **org admin**, I want imported historical gifts flagged as
-     `already_receipted`, so Asym never re-issues a receipt the old system already
-     sent. `[D24, D25]`
+170. As an **org admin**, I want imported historical receipt evidence recorded as an exact source-bound already-receipted fact, so that import cannot automatically issue a duplicate and any later document action requires the current Phase 7 authority and Phase 18 artifact contract. `[D24/D25; Phase 7; Phase 18]`
 171. As an **org admin**, I want unmatched or ambiguous external records
      quarantined for review rather than linked by email, name, phone, or payment
      fingerprint, so migration cannot silently attach money or authority to the
@@ -556,12 +554,12 @@ Stories are grouped by actor and numbered continuously. Every story is grounded 
 188. As a **developer**, I want the effective value folded by a monotonic per-header sequence (never `created_at`, which ties non-deterministically in one transaction), so that the folded result is always deterministic. `[D3]`
 189. As a **developer**, I want effective values readable only through the derivation (base money columns writer-role-only, enforced by a CI grep gate), so that no reader can accidentally show pre-correction amounts. `[D3]`
 190. As a **developer**, I want `funds.current_amount` deleted as a writable counter and fund progress derived from the fold with a drift alarm, so that a denormalized total can never silently disagree with the ledger. `[D3, D17]`
-191. As a **developer**, I want a contribution to have five orthogonal state axes (payment, ledger/posting, receipt, accounting-export, review), each a closed state machine, never collapsed into one enum, so that a refund never overwrites receipt truth and each lifecycle evolves independently. `[D7]`
-192. As a **developer**, I want every axis transition enforced in a locked DB function plus a trigger (unknown transitions escalate, never silently ignored), so that a raw `.update({status})` can't bypass validation. `[D7 review]`
-193. As a **developer**, I want the Stripe webhook to be the sole ledger writer (payment axis driven by webhooks only), so that money-final rows are never written optimistically in the request path. `[D1, D7]`
+191. As a **developer**, I want three separate contribution-header state axes—payment, ledger/posting and review—with receipt and accounting outcomes represented only by their independently owned related records and projections, so that a refund cannot overwrite document truth or claim accounting delivery. `[D7; Phase 7/18/19/20]`
+192. As a **developer**, I want each Phase 13-owned axis transition enforced through its locked database command and constraints, with downstream receipt/document/accounting owners advancing their own outcomes, so that a generic status update cannot bypass either local validation or domain ownership. `[D7 review; Phase 7/18/19/20]`
+193. As a **developer**, I want signed provider events to be the sole driver of provider-originated successful payment and posting transitions, while authorized offline tenders use their source-owned commands, so that the request path cannot optimistically invent provider-final money and valid offline gifts remain supported. `[D1/D7/D8; Phase 15]`
 194. As a **developer**, I want one-time and recurring ACH processing to remain provider evidence until source-confirmed success creates the contribution/posting once, while checks post at recorded and remain provisional until cleared, so that every posted occurrence has a complete settlement-based dating fact and later returns still reverse append-only. Check individual receipts follow the ordinary Phase 7 timing rail by default, with hold-until-cleared only as a tenant opt-in. `[D7 review, D8]` _(Amended 2026-07-11 by Phase 15 D5 and 2026-07-24 by Phase 19 D4: any individual receipt admitted by Phase 7 follows the ordinary timing rail, with an NSF/ACH-return compensating reversal + void/corrected receipt if money later returns. The exact-issuer, effective-interval Phase 7 resolver selects the governing frozen Canadian plan or ordinary policy; `annual_cumulative_cash` creates no per-gift receipt, and a Canadian legal lock/end never falls through to ordinary policy.)_
 195. As a **developer**, I want `charge.dispute.*` and ACH-return handlers built and required before ACH is enabled, so that returned money can't be silently ignored while the gift stays "paid" forever. `[D7 review]`
-196. As a **developer**, I want receipts grained `(donation_id, version)` before any receipt is written, so that a later void or correction is a new version, never a mutation of frozen truth. `[D7 review, P7]`
+196. As a **developer**, I want every receipt request and artifact version bound to Phase 7's exact issuer, source occurrence and purpose authority and Phase 18's canonical identity/currentness contract, so that corrections retain predecessor artifacts without using a generic donation-id/version row as a second document authority. `[D7 review; Phase 7; Phase 18]`
 197. As a **developer**, I want the canonical gift identity to be fresh header/line/posting tables that reuse the existing `donations.id` UUIDs, with the old `donations` table dropped as the migration's final statement (no compatibility view, ever), so that every FK and `/contributions/{id}` URL stays valid while the legacy flat row is fully retired. `[D2]`
 198. As a **developer**, I want the units seam (NUMERIC dollars → integer minor units) proven by a before/after reconciliation (`sum(minor)/100` = pre-migration dollar total per tenant), so that a single unconverted read can't cause a silent 100× money error. `[D2, D10]`
 199. As a **developer**, I want integer minor units with explicit currency on every row, one currency per header (DB-enforced), branded into the TS money type so USD+JPY fails typecheck, so that currency bugs are caught at compile time. `[D3, D10, D11]`
@@ -623,11 +621,7 @@ P16 D4/D5/D16]`
 220. As a **developer**, I want money-transaction records to carry no custom fields in v1 (funds may, default-closed and receipt-excluded), and `extensible_targets.campaign` enabled by Phase 13 when it defines the real campaign record, so that the custom-field surface stays safe on the money path. `[P11, D13]`
 221. As a **developer**, I want a permanent negative/safety test tier plus structural CI gates (pgTAP for deferred-sum-at-commit, append-only immutability, per-line deltas, integer minor units; grep gates banning `.from('donations')` and direct base-money reads; type regeneration so `donations` no longer typechecks), so that the ledger's core invariants fail the build if broken. `[D2, D3]`
 222. As a **developer**, I want out-of-order events (a refund arriving before its charge) quarantined with backoff (never dropped or fabricated), so that webhook ordering can't corrupt the ledger. `[D3]`
-223. As a **developer**, I want imported/adopted gifts to enter the same four
-     source-owned axes pre-advanced (no special "imported" enum), with an exact
-     pre-Asym provenance boundary and Phase 20 D17 previous-owner evidence, so that
-     migration reuses the source lifecycle without a parallel path or falsely
-     claiming accounting delivery. `[D7, D24; amended 2026-07-27]`
+223. As a **developer**, I want imported gifts to enter the existing payment, posting and review axes with exact pre-Asym provenance, while prior receipt and accounting evidence remain related owner records, so that migration neither creates a parallel lifecycle nor falsely claims document issuance or accounting delivery. `[D7/D24; Phase 7/18; Phase 20 D17]`
 
 ---
 
@@ -1190,10 +1184,14 @@ The forward design makes the leak a **compile error**, not a review catch:
   makes it structurally unreachable from monetary Field Account candidate and
   close paths; only exact source-final realized proceeds may later create a
   Realized Support Basis.
-- The Phase 18 renderer consumes a **discriminated-union
-  `ReceiptRenderInput`** whose non-cash arm has no `amount` field at the type
-  level → putting a value on a non-cash receipt is a `tsc` error, backed by a
-  taint test + a negative test.
+- Phase 18 consumes only its purpose- and jurisdiction-qualified canonical
+  input built from authorized Phase 7 facts. Phase 13's private internal FMV is
+  absent from that boundary and every output channel/metadata path. The U.S.
+  noncash acknowledgment arm is description-only and cannot carry an amount;
+  other purpose/jurisdiction inputs follow their owning contract without
+  importing an internal valuation. Taint, negative and compile-time fixtures
+  prove those exact boundaries; Phase 13 creates no parallel
+  `ReceiptRenderInput` or renderer.
 
 This is cheap now (pre-schema) and near-impossible to retrofit once receipts freeze.
 
@@ -1254,27 +1252,283 @@ The donor-facing anchor of SiteStacker parity: a single **giving cart** that let
 
 - **The cart is an ordered list of designation lines.** Each line carries:
   `designation_ref` (`missionary_id` XOR `fund_id`; general → null),
-  `amount_minor` (min $1/line, D2 integer minor units), `gift_mode`
+  `amount_minor` (nullable only on a mutable draft; otherwise positive D2
+  integer minor units and at least the exact current currency/route minimum),
+  `gift_mode`
   (`one_time|recurring`), and—only for recurring mode—the Phase 16 cadence,
   continuing anchor, giving-zone context, and optional final eligible date. It
   also carries the Phase 5 attribution axes (`site_id`, `source_code_id`,
   `currency`, `locale`, `entry_method='public_checkout'`) and a stable opaque
   `line_id` that survives guest→login merge. Monthly is featured when enabled;
   every submitted cadence is server-validated against the closed, versioned
-  tenant allowlist. The cart header carries `cover_fees`, the server-recomputed
-  fee amount (§M), and one `cartKey` idempotency key. Mixed one-time + recurring
+  tenant allowlist. The cart header carries `cover_fees` (nullable/unanswered
+  only on an editable draft), the server-recomputed fee amount (§M), and one
+  `cartKey` idempotency key. Mixed one-time + recurring
   lines live in one cart and one review, but the review truthfully discloses
   initial and continuing charge count, amount, and dates. Caps: 50 lines,
-  min $1/line; only lines with the same destination and identical complete
-  intent fingerprint dedupe.
+  the 50-line cap applies to draft purpose-only lines too. Review/acceptance
+  requires the current currency/route minimum per line; only lines with the same
+  destination and identical complete intent fingerprint dedupe.
+- **Phase 24 D61 — one provider-neutral Donor Presentment Currency selection.**
+  A coarse country may suggest one currency only while the giving intent is
+  empty and mutable. Resolution order is: an explicit choice already recorded
+  on that intent; one current eligible local suggestion; the current qualified
+  Site default; otherwise an explicit donor selection from remaining qualified
+  currencies. No qualified choices means Giving is unavailable without taking
+  down the public Site. Locale, URL, profile, cookie, another Site, browser
+  language, payment-method currency, or later location never changes a
+  nonempty cart.
+
+  Currency belongs authoritatively to the cart/gift-intent aggregate, not
+  independently to each line. Every line and resulting compatible payment
+  group must match it through structural database integrity, not UI convention.
+  The server intersects Site policy with the exact current Tenant, environment,
+  Legal Entity, Settlement Account Binding, connected account/charge topology,
+  cart destinations, cadence, amount limits, currency representation, and
+  payment-rail capability before acceptance and provider creation. The client
+  expresses intent only. A donor-selected but newly unqualified currency
+  preserves the cart and blocks submission with one explicit recovery choice;
+  it never silently converts, substitutes, deletes, or redesignates.
+
+  Currency is part of cart revision, accepted-command semantic fingerprint,
+  outbox identity, and provider-operation idempotency. Reusing one key with a
+  materially different currency conflicts; an existing provider attempt is
+  never mutated or reused for another currency. A later currency change after
+  amount/cart state exists follows D63's confirmed successor-revision contract;
+  it is never an in-place money edit. Existing accepted gifts, recurring
+  agreements and occurrences, receipts, refunds, provider events, and
+  accounting evidence retain their frozen currency regardless of later Site,
+  location, or provider-policy change.
+
+- **Phase 24 D62 — setup qualification is not acceptance authority.** Adding a
+  currency in **Site → Currencies** automatically performs one side-effect-free
+  Payments preflight for each currently offered gift-mode cohort. The setup
+  evaluator binds its immutable generation to the exact Tenant, live
+  environment, Site financial route, Legal Entity, effective Settlement
+  Account Binding/version, connected account, charge topology, ISO currency,
+  giving mode/cadence family, admissible rail, Core money ruleset, pinned
+  provider-contract/configuration evidence, observation time, and expiry. It
+  may inspect current declarative account/capability/requirement/payment-method
+  configuration evidence, but it creates no PaymentIntent, SetupIntent,
+  Customer, subscription, charge, refund, or provider mutation. Test mode does
+  not prove live readiness.
+
+  Setup proves only that Core knows no current stable blocker to offering the
+  currency in the named cohort. The accepted checkout command remains the sole
+  authority for the actual cart: immediately before any provider object it
+  revalidates every designation/payment group, Legal Entity and binding,
+  connected account/mode, amount and provider limits, cadence, selected method,
+  currency/exponent, policy/qualification generation, and currency-bearing
+  idempotency fingerprint. A donor decline, Radar decision, authentication,
+  device/wallet condition, or ordinary network failure does not retroactively
+  falsify global setup readiness; a deterministic contract mismatch or
+  authoritative provider/account drift does.
+
+  The authorized Site-policy save checks the expected complete policy revision
+  and exact qualification fingerprints in one transaction after provider reads
+  complete outside it. A stale race writes nothing and returns the updated
+  consequence. Initial activation requires at least one qualified cohort; a
+  partial result names the exact mode, while the Site default must qualify for
+  every current entry that relies on it. The enabled Site currency remains a
+  broad but bounded ceiling—offer it wherever this Site's routes qualify—so
+  staff do not maintain a route/payment-method matrix. Later qualification may
+  widen or narrow effective new-gift availability without rewriting that
+  intent. Unknown, stale, contradictory, deauthorized, or unavailable evidence
+  pauses only the affected new-gift cohort and never rewrites carts, accepted
+  commands, recurring agreements, provider evidence, refunds, receipts, ledger,
+  reporting, settlement, or accounting history.
+
+- **Phase 24 D63 — preserve purpose, clear money, and confirm.** D63 applies
+  only while the cart is unaccepted and editable. If it contains no entered,
+  selected, prefilled, or allocated amount; fee-cover choice/estimate; derived
+  monetary claim/total; payment-method selection/input; mandate/acceptance;
+  wallet/authentication state; exposed client secret; provider session; or
+  submitted operation, the donor may change to another currently qualified
+  currency immediately. Merely rendering unselected amount choices is pristine.
+  Otherwise the original cart stays authoritative while the shared Base UI
+  AlertDialog explains the exact loss and offers **Keep CAD** and **Change to
+  USD**. Cancel, Escape, browser back, eligibility/concurrency failure, or lost
+  response clears nothing.
+
+  The transition revalidates the target currency against the complete current
+  cart—including every line's Tenant/Site route, Legal Entity/payment group,
+  cadence, account/environment, and D62 qualification—before changing state. A
+  server-owned preserve allowlist may carry stable line IDs/order, designation/
+  purpose, Site/source/locale attribution, cadence/recurring terms, donor/contact
+  fields, tribute, anonymity, comments, and consents only where their meaning and
+  authority remain currency-independent and currently valid. Every other field
+  clears by default: all line/allocation/installment/match/benefit/add-on amounts,
+  preset selection, fee-cover election/basis/estimate, totals and amount-derived
+  copy, payment selection/details, wallet/mandate/authorization/review state,
+  mounted provider UI, browser client secret, and provider-attempt identity. If
+  any purpose or cadence cannot survive, the current cart remains intact; Core
+  never drops a line, redesignates, changes monthly to one-time, substitutes a
+  currency, converts value, rounds, or copies numeric digits.
+
+  One command binds owner/guest session, cart, expected revision/source
+  currency, target currency, complete line-scope fingerprint, qualification
+  generations, and semantic idempotency identity. It atomically creates the
+  target monetary revision, preserves line lineage, clears money, advances CAS,
+  and rotates every future command/provider idempotency namespace. Duplicate
+  delivery returns that same result; another-tab or guest→account change cannot
+  erase unseen work or create two successors. An authenticated cart remains
+  owner-only RLS with per-line Tenant/Site composite integrity; a guest cart
+  remains untrusted, Tenant-namespaced client intent. Service-role paths reassert
+  owner/session and every line scope. Prior draft revision evidence is retained
+  only as needed for ordinary bounded cart concurrency/readback/retention—not as
+  permanent ledger, donor, or analytics history.
+
+  Currency is locked whenever submission, confirmation, redirect/wallet
+  approval, authentication, `requires_action`, processing, capture-pending,
+  cancellation, webhook reconciliation, success, or outcome-unknown work exists.
+  A terminal failed attempt may start a separately identified successor only
+  after reconciliation; no attempted provider object is mutated or reused. The
+  target architecture creates provider effects only after accepted Core intent.
+  If an integration already has a still-unattempted provider object with no
+  browser-exposed source-currency secret, the Payments adapter—not cart/UI code—
+  may update or replace it only when the pinned lifecycle proves stale execution
+  impossible. Stripe currently permits some PaymentIntent currency updates;
+  D63's new Core money identity is an integrity choice, not a false provider
+  limitation.
+
+  The dialog uses a visible title/description, initially focuses **Keep CAD**,
+  traps focus, and uses ordinary rather than severe warning styling. Copy names
+  the number of amounts affected and appends fee/payment loss only when present.
+  After authoritative success, the previous payment UI is destroyed, retained
+  non-money work stays visible, one persistent status says **Currency changed to
+  USD. Enter your gift amounts in USD**, and focus moves to the first amount
+  field. A failed command says the CAD cart is unchanged. D63 requires keyboard,
+  screen-reader, 44×44 touch, 320-CSS-pixel reflow, 200% zoom/text spacing, long
+  translated names, RTL/bidi, reduced-motion, offline/slow-network, browser-
+  restoration, and stale-client-secret proof. It adds no FX request, undo store,
+  generic transition engine, provider-status UI, or permanent draft audit.
+
+- **Phase 24 D64 — native Site suggestions, donor Money stays authoritative.**
+  Checkout receives at most one complete current Site Suggested Amount Set for
+  each line's exact resolved Tenant, Site, cart ISO currency, and `one_time` or
+  exact Phase 16 cadence. Operational Postgres owns the immutable versioned
+  set; CMS, URL parameters, component constants, Stripe Products/Prices, and
+  provider state do not. A set has zero to six unique positive target-currency
+  minor-unit values in ascending order and selects none automatically. Set
+  existence neither authorizes the currency/cadence nor proves the actual amount
+  or payment method.
+
+  Ordinary open giving always offers a currency-labelled custom amount. A
+  missing or reviewed-empty set therefore remains usable only while the exact
+  currency/cadence context remains qualified and presents no staff-setup error
+  to the donor. No set selects money. Added cart lines and a D63
+  successor remain blank; only a separately governed, validated explicit CTA
+  amount may initialize an intent. D64 leaves the behavior of a donor-initiated
+  frequency change after amount interaction for D65 rather than silently copying
+  or mapping values.
+
+  Selecting a suggestion records only bounded source set/version/entry
+  provenance and creates ordinary donor cart intent. `amount_minor + currency`
+  remains authoritative and passes the same current exponent, destination,
+  cadence, route, minimum/maximum, fee, method, and final acceptance checks as
+  custom input. No contribution, recurring agreement, or provider object
+  depends on mutable preset identity. Removing or editing a suggestion never
+  rewrites a selected/resumed cart amount; if still currently valid it appears
+  as custom. Invalid or stale CTA/URL money is never adopted into cart amount
+  state: checkout shows a blank currency-labelled custom field and plain
+  correction. Only text the donor personally typed into that current field may
+  remain visible for correction. Neither path clamps, rounds, converts, or
+  remaps value.
+
+  The current duplicated hard-coded USD ladders, literal `$`, client default
+  `100`, two-decimal parser, and one-time coercion are migration evidence, not
+  approved Site policy. One shared currency-aware amount component and server
+  projection must replace every public giving surface together. The literals
+  are never backfilled as staff-reviewed D64 versions. Non-USD and frequency-
+  specific cohorts remain gated until the operational owner, D61/D62
+  qualification, D63 transition, Phase 16 cadence, cache/version isolation,
+  and complete public-surface migration pass release proof.
+
+- **Phase 24 D65 — donor schedule transitions preserve purpose and clear
+  affected money/schedule.** A Donor Gift-Schedule Transition changes exactly
+  one unaccepted editable cart line between two distinct closed schedule
+  identities: `one_time`, or `recurring + exact Phase 16 cadence_code`. It never
+  edits accepted gifts or recurring agreements and never carries source digits,
+  maps preset position, converts value, or silently substitutes a designation.
+  A merely rendered, unanswered line switches immediately. Any nonempty or
+  incomplete amount, preset/handoff provenance, donor-entered schedule detail,
+  fee election/estimate, derived claim/review state, payment selection,
+  future-use/mandate acceptance, wallet/client-secret/provider state, or
+  submission makes the transition consequential and requires one concise
+  confirmation while the complete source cart remains authoritative.
+
+  For an authenticated cart, one owner-scoped command binds the cart and
+  expected revision, stable line, source/target schedule identities, complete
+  dependency fingerprint, current Site/currency/cadence/qualification
+  generations, planner version, and semantic idempotency identity; it commits
+  one successor revision with cause `donor_schedule_change` or nothing. A guest
+  cart remains client-only: it submits a minimal untrusted local revision and
+  fingerprint, the server independently derives/revalidates the target and
+  returns one idempotent successor result, and the client replaces local state
+  only after that result or bounded readback. The server may retain only an
+  expiring non-PII command outcome—not a guest cart or permanent donor history.
+  When guest checkout already has server/provider state, the command also binds
+  the server-issued checkout-operation token; caller-supplied provider/group IDs
+  have no authority. Immediately before any clear, both paths reauthorize and
+  re-prove destination/purpose, target cadence, current route, and payment
+  qualification. Duplicate delivery returns the same effect; different meaning
+  under one key, stale tabs, guest-to-login races, concurrent edits, lost
+  responses, and acceptance races never clear newer work.
+
+  Success preserves the affected line's stable lineage, order, currency,
+  Tenant/Site/source/locale/entry attribution, and only revalidated schedule-
+  independent purpose/contact/tribute/anonymity/comment/consent. Every unrelated
+  cart line's amount, purpose, and schedule remains unchanged. It clears the
+  affected amount and raw/partial input, D64/CTA provenance, allocations and
+  amount-derived claims; every source anchor/start/end/final date and schedule
+  preview; affected fee basis/election/estimate; review and authorization
+  fingerprints; selected/saved payment method, wallet, future-use/mandate
+  acceptance and mounted provider UI. The target amount is null and explicitly
+  **Amount needed**, never zero or an inferred equivalent, and its exact D64 set
+  renders unselected with **Other amount**.
+
+  The mutation is line-scoped but invalidation follows the smallest complete
+  dependency closure. The Phase 13/16 planner supersedes every draft one-time
+  payment group, recurring cohort preview, execution plan, total, fee estimate,
+  authorization hash, and review token whose membership or meaning changed.
+  Because `cover_fees` is currently cart-header state, a prior fee election
+  clears when the changed line affects its meaning; the dialog names that
+  broader consequence, and no per-line fee setting is invented to hide it. A
+  sibling line's donor intent remains even if its shared execution projection
+  must be rebuilt.
+
+  No provider object is created for the target before a target amount is
+  chosen. An exposed, attempted, authenticated, processing, mandate-bound, or
+  outcome-ambiguous object/secret never authorizes the successor. A provably
+  unattempted and unexposed object may be updated or replaced only through the
+  pinned Payments adapter when its lifecycle contract proves predecessor
+  submission impossible; otherwise a fenced, reconcilable retirement completes
+  before target payment is enabled. Review and acceptance require a positive
+  currently valid amount and complete target schedule. Draft schedule changes
+  create no contribution, CRM record, staff task, Phase 16 agreement/cohort/
+  occurrence, provider subscription, ledger fact, receipt, or permanent guest
+  history.
+
+  The donor dialog uses the shared accessible Base UI AlertDialog. Example:
+  **Change this gift to monthly? Your gift amount will be cleared. Where this
+  gift goes will stay. You'll choose a new amount for each month.** It names
+  scheduled dates, fee coverage, or payment re-selection only when applicable;
+  actions are **Keep one-time** and **Change to monthly**, with the least-
+  destructive action initially focused. Cancel, Escape, outside press, browser
+  back, failure, offline state, or stale proof changes nothing. After
+  authoritative success, focus moves to the affected line's first amount
+  control, other lines remain visible, totals show incomplete rather than zero,
+  and persistent status says **This gift is now monthly. Choose an amount for
+  each month.**
+
 - **Real-vs-forward (as of authoring):** the current public donate path is a single-charge `PaymentIntent` with no cart. `donatePostSchema` omits the attribution axes and drops `coverFees` before the POST (the server never learns the donor opted in). The proven substrate to build on: the donate saga over the transactional outbox, three-layer idempotency, and the connected-account Customer save at `packages/api/.../saga.ts` (repo already attaches the PM to a Customer). This is **mostly extension, not rebuild** — the cart fans the proven single-line path out to N lines.
 - **Server re-validates every line (Phase 5 handoff HONORED).** Client amounts and labels are **suggestions**; the server re-validates **every** line against the resolved tenant (exists + `is_active` + public-eligibility), extending `begin_donation_saga`'s per-reference check to per-line. Public labels are re-fetched server-side, so a stale or restricted name never renders or charges. Invalid / cross-tenant / inactive lines **fail safe** — dropped or flagged "no longer available," never an error, never a leak, never a mis-designation.
 - **Persistence is HYBRID, and the RLS scope is OWNER-only — not owner+tenant.** This is a **decisive correction**: a donor gives across multiple orgs and has **no single `tenant_id` JWT claim** (`authz.current_tenant_id()` is a _staff_ membership claim). Copying the staff RLS clause onto the cart is wrong.
-  - **Guest cart = client-only `localStorage`, zero pre-identity PII on the server** (strongest enumeration-safe posture; consistent with Phase 5 §A8). It stores only opaque designation IDs, amounts, one-time/recurring intent terms, and the attribution axes — never a name, email, or card pre-identity. Namespaced by tenant context. Soft **90-day TTL** (D15.3), client-side.
+  - **Guest cart = client-only `localStorage`, zero pre-identity PII on the server** (strongest enumeration-safe posture; consistent with Phase 5 §A8). It stores only opaque designation IDs, answered-or-null draft amounts, one-time/recurring intent terms, and the attribution axes — never a name, email, or card pre-identity. Namespaced by tenant context. Soft **90-day TTL** (D15.3), client-side.
   - **Authenticated cart = server-side, owner-scoped, cross-device.** Schema: `carts(id, owner_user_id NOT NULL FK, status, …)` with a **partial-unique index `WHERE status='active'`** (exactly ONE active cart per owner); `tenant_id` lives on each `cart_lines` row (opaque designation ref, suggested amount, gift mode plus versioned recurring intent terms, `is_fee_cover`, attribution incl. `tenant_id`, stable opaque `line_id`). RLS: `USING/WITH CHECK (owner_user_id = (SELECT auth.uid()))`. Opaque UUID PK. The API is **`GET /cart`** (owner implicit from the session), never `/cart/:id`. Any admin / service-role read **MUST re-assert `owner_user_id`** (a unit test proves a cross-owner read returns empty). The cart stores **intent only** — no card, no PII beyond the owner FK, no denormalized labels.
-- **Guest → login merge = ONE idempotent RPC under a per-owner advisory lock** (the repo's custom-collection-reorder locked-function pattern), idempotency-keyed on `cartKey`. Union by complete intent fingerprint: a new fingerprint stays; the same destination plus identical gift mode/cadence/anchor/end terms keeps the incoming amount and never sums; materially different terms remain separate lines. If the login tenant ≠ the guest-cart tenant, **discard/re-scope the guest lines that do not belong to the login tenant** (never dump Tenant A's lines into Tenant B). The 50-line cap and min-$1 are enforced **inside the lock**. Garbage collection is convert-driven + lazy-TTL and **never deletes a cart with an in-flight accepted-agreement saga**.
+- **Guest → login merge = ONE idempotent RPC under a per-owner advisory lock** (the repo's custom-collection-reorder locked-function pattern), idempotency-keyed on `cartKey`. Union by complete intent fingerprint: a new fingerprint stays; the same destination plus identical gift mode/cadence/anchor/end terms keeps the incoming amount and never sums; materially different terms remain separate lines. If the login tenant ≠ the guest-cart tenant, **discard/re-scope the guest lines that do not belong to the login tenant** (never dump Tenant A's lines into Tenant B). The 50-line cap and each line's current currency/route minimum are enforced **inside the lock**. Garbage collection is convert-driven + lazy-TTL and **never deletes a cart with an in-flight accepted-agreement saga**.
 - **Cart → Phase 13 money branch + Phase 16 recurring branch.** The mixed cart is **not** forced into one Stripe object. The server creates one accepted checkout command, then a durable saga hands stable line intent to the appropriate owner. `add_invoice_items` is rejected because provider objects never become donor intent.
-  - **N one-time lines → 1 PaymentIntent (PI-on-cart)** on the connected account → **1 D3 header + N designation lines** (largest-remainder proration, §M).
+  - **Compatible one-time lines → one PaymentIntent per qualified payment group**, bound to the exact Legal Entity, connected account/mode and currency → **one D3 header plus that group's designation lines** (largest-remainder proration, §M). The review discloses every actual group and charge; a cart spanning incompatible routes or issuers never forces one provider object.
   - **M recurring lines → Phase 16 group/line/cohort/leg planner.** One explicit accepted action creates the minimum groups and compatible cohorts. Ordinary cadences normally use one subscription leg; twice-monthly uses separate 1st/15th legs. Every line has one exact item binding in every applicable leg.
   - **ONE donor interaction does not imply unlimited authorization.** A provider-managed payment flow may collect one method, but the server binds it only to groups/cohorts whose exact Party, payer, account/mode, currency, schedule, merchant, amount, future-use, retry, and cancellation terms the accepted authorization covers.
   - **The signed provider-event path is the sole writer of
@@ -1359,9 +1613,33 @@ A **giving campaign** is a **staff-defined, time-bounded fundraising EFFORT** wi
   - **Reparent / delete / archive:** reparent is governed / audited / effective-dated via the locked function and is **BLOCKED on closed/archived nodes** (closed-period totals are never retroactively rewritten — the most under-surfaced hazard); delete is `ON DELETE RESTRICT` (attributed or parent nodes are **archive-only**; an empty draft node is deleted only by walking the **full** subtree, not the repo's one-level-only footgun); archive is a per-node status + a view filter, **does not cascade**, a parent cannot archive while a child is non-terminal, and it never touches `source_codes.campaign_id` or posted lines.
 - **Rollup semantics — double-count-free (§Q owns the projection).** Each posted line attributes to **EXACTLY ONE** node (the frozen `source_code.campaign_id`). Two distinctly-named derived measures per node: **`amount_own`** (lines whose node = this node) and **`amount_in_hierarchy`** (the SUM over the **DISTINCT line set** where node ∈ {self} ∪ descendants — **a set-union filter, NEVER `parent.own + Σ(child)`**, which is the classic NPSP double-count bug this platform closes). No down-rollup (children never inherit ancestor gifts). Compensating entries attribute to the same node, so the subtree set-union nets partial refunds naturally. **ONE canonical rollup view/function feeds ALL surfaces** (public / staff / Phase-33) — ad-hoc SUMs are forbidden (mirrors the Phase-12 one-authority discipline). Single-currency-per-hierarchy (a child's currency = the parent's) OR per-currency buckets — never a mixed-currency scalar. **Reconciliation invariants** via `giving_reconciliation_runs`: `Σ(amount_own over tree) == root.amount_in_hierarchy`; `Σ(all posted lines) == campaign-total-over-all == fund-total-over-all`; plus an attribution match-rate. Drift fails loudly; the derived value wins over any snapshot.
 - **⚑ Restricted-fund PUBLIC DESCRIPTOR = alias / fund-code, NEVER the worker's real name (a Phase-13-owned ruling P10 explicitly deferred to us).** Rollups are computed **UNDER the viewer's effective access** via the P10 sole-entry publication projection; restricted lines are excluded **PER-NODE, BEFORE aggregation, at every level** (they never enter a parent total) + a **small-N inference guard** on public totals for mixed restricted+open nodes. Progress/public display routes through the P10 public projection — never a raw ledger sum.
-- **Many-funds staff UX (D13.1).** The campaign tree and the fund set are **TWO separate pickers** (staff never navigate funds _through_ the tree). A soft **"expected designations" intent list** (labeled _intent, NOT attribution_ — never a second source of truth) drives: the **source-code generation wizard** (one code per intended fund/channel, with consistent naming), a **coverage/reconciliation panel** ("intended 6 funds, received on 5, 1 at $0"), and the eventual Phase-22 donor fund picker. A per-campaign source-code inventory (live gift count/$ per code, prune zero-activity, deprecate-never-delete, `campaign_id` immutable once gifts exist) contains combinatorial sprawl. The **progress display is an explicit scope toggle** ("This campaign only" vs "Including N sub-campaigns") — **NEVER raw parent + child side-by-side** (the NPSP hand-addition footgun). New campaigns default **FLAT** (a parent is opt-in).
-- **Phase seams (BUILD vs RESERVE).** BUILD = the `giving_campaigns` object + `campaign_goals` + the campaign↔source_code link (consuming D14's reserved FK) + the derived progress projection + reporting facts (feeding Phase 33). RESERVE = the **Phase 22 public page** (a page record references a campaign **by id** — never presentation fields on the campaign; note for future callback: Phase 22 attaches the public page); **Phase 36 P2P/PCP** (a supporter fundraiser links via `parent_campaign_id` + a future `personal_campaign` flag — the self-FK is reserved; `creator_donor_id` retired); **Phase 27 appeal** (the appeal owns the linkage; the campaign carries no appeal fields); **Phase 17/32 email** (a comms send references a campaign ONLY via a source_code; all email fields — channel/audience_filter/scheduled_for/sent_at — LEAVE the campaign table into the comms domain); **Phase 33 reporting** (read-only over ledger truth, per-currency, P10-safe).
+- **Many-funds staff UX (D13.1).** The campaign tree and the fund set are **TWO separate pickers** (staff never navigate funds _through_ the tree). A soft **"expected designations" intent list** (labeled _intent, NOT attribution_ — never a second source of truth) drives: the **source-code generation wizard** (one code per intended fund/channel, with consistent naming), a **coverage/reconciliation panel** ("intended 6 funds, received on 5, 1 at $0"), and a reserved future public-choice seam. Phase 22 D7 deliberately does **not** consume that seam in its MVP: every released Public Ministry Page binds exactly one Designation, and Phase 13's list neither enumerates public choices nor authorizes checkout. A per-campaign source-code inventory (live gift count/$ per code, prune zero-activity, deprecate-never-delete, `campaign_id` immutable once gifts exist) contains combinatorial sprawl. The **progress display is an explicit scope toggle** ("This campaign only" vs "Including N sub-campaigns") — **NEVER raw parent + child side-by-side** (the NPSP hand-addition footgun). New campaigns default **FLAT** (a parent is opt-in). _(Clarified 2026-08-04 by Phase 22 D7.)_
+- **Phase seams (BUILD vs RESERVE).** BUILD = the `giving_campaigns` object + `campaign_goals` + the campaign↔source_code link (consuming D14's reserved FK) + the derived progress projection + reporting facts (feeding Phase 33). RESERVE = the **Phase 22 public page** (one immutable-versioned typed Page Subject Binding references the exact eligible Campaign or Designation; Payload stores only the opaque Page identity, never a raw `campaign_id` authority or campaign presentation fields, and D7's Giving binding remains independent); **Phase 36 P2P/PCP** (a supporter fundraiser links via `parent_campaign_id` + a future `personal_campaign` flag — the self-FK is reserved; `creator_donor_id` retired); **Phase 27 appeal** (the appeal owns the linkage; the campaign carries no appeal fields); **Phase 17/32 email** (a comms send references a campaign ONLY via a source_code; all email fields — channel/audience_filter/scheduled_for/sent_at — LEAVE the campaign table into the comms domain); **Phase 33 reporting** (read-only over ledger truth, per-currency, P10-safe).
 - **Six hard invariants (tested):** (1) the composite tenant-FK; (2) the depth cap 5; (3) the one locked reparent function with the cycle + depth guard; (4) the single-attribution set-union rollup via one canonical function; (5) `RESTRICT` deletes / archive-only for attributed nodes; (6) closed-node reparent immutability.
+
+#### Dated Phase 22 D17 typed Page-subject source amendment (2026-08-06)
+
+A Project/Campaign Page may bind its subject to one exact Giving Campaign or to
+one exact Designation that Phase 13 separately certifies as eligible to
+represent a public **Fund or designated purpose**, with Phase 10 separately
+supplying the safe public label/presentation. This says what the Page is
+about; it does not select D7's Page Giving Binding, D6 progress, D1
+contributors, or public identity. Even when subject and Giving both reference
+the same Designation, each is an independently versioned and re-proved
+relationship.
+
+A Campaign or Designation never becomes a CRM Ministry Project. No fund,
+campaign owner, intended-designation list, title, or legacy `fundId` may imply
+that classification or any Page permission. Source closure or retirement
+supplies cause-owned lifecycle evidence to Phase 22; it does not automatically
+retire a Page, redirect a route, change Giving, choose progress, or select a
+successor.
+
+Legacy `fundId` rows are migration input only. Each requires exact
+Tenant/Legal-Entity/source classification as a Designation subject or another
+certified kind; ambiguous, missing, duplicated, inactive, or cross-scope rows
+are quarantined and never fuzzy-matched or silently promoted to a Ministry
+Project.
 
 ### N. Historical recurring design — superseded by Phase 16
 
@@ -1425,7 +1703,7 @@ Every new table below carries: `tenant_id UUID NOT NULL` with **no default** (th
 
 ### New/changed tables — the ledger core (D2, D3)
 
-- **`contribution_headers`** — one contribution (one hard-tender payment). Purpose: the gift's canonical identity and declared total. Key columns: `id` (**reuses the `donations.id` UUID**), `tenant_id`, immutable `legal_issuer_id` (server-resolved from the verified legal-issuer authority, never caller input), immutable `gift_method`, `total_minor BIGINT`, currency (ISO-4217), the **frozen legal-donor snapshot** (`donor_id` frozen at gift time per Phase 4; explicit `is_anonymous`/NULL-donor flag; survives merge re-point), the five orthogonal **status axes**, `entry_method`, and Stripe link columns (`stripe_payment_intent_id`, `stripe_charge_id`, `stripe_account_id`). Invariants: `UNIQUE (tenant_id, id, legal_issuer_id)` supports exact-issuer dependent facts; header total = hard tender only; `total_minor = SUM(lines)` at COMMIT; issuer and tender are immutable once posted. The locked commit seam creates the required initial Phase 7 `contribution_dating_facts` revision in the same transaction; the header carries no competing dating values.
+- **`contribution_headers`** — one contribution (one hard-tender payment). Purpose: the gift's canonical identity and declared total. Key columns: `id` (**reuses the `donations.id` UUID**), `tenant_id`, immutable `legal_issuer_id` (server-resolved from the verified legal-issuer authority, never caller input), immutable `gift_method`, `total_minor BIGINT`, currency (ISO-4217), the **frozen legal-donor snapshot** (`donor_id` frozen at gift time per Phase 4; explicit `is_anonymous`/NULL-donor flag; survives merge re-point), the three Phase 13-owned **status axes** (payment, ledger/posting and review), with receipt/document/accounting outcomes in separately owned related records, `entry_method`, and Stripe link columns (`stripe_payment_intent_id`, `stripe_charge_id`, `stripe_account_id`). Invariants: `UNIQUE (tenant_id, id, legal_issuer_id)` supports exact-issuer dependent facts; header total = hard tender only; `total_minor = SUM(lines)` at COMMIT; issuer and tender are immutable once posted. The locked commit seam creates the required initial Phase 7 `contribution_dating_facts` revision in the same transaction; the header carries no competing dating values.
 - **`contribution_designation_lines`** — one designation target per line; N
   lines per header (split gifts). Purpose: the **money source-of-truth** (the
   header's declared total is validated against these). Key columns: `id`,
@@ -1486,7 +1764,7 @@ Composition is a one-directional precondition chain whose first step is tender-s
   - **`asset_identity`** — subtype-keyed `{vin | cusip/ticker/coin+on-chain-ref | parcel}` gated by per-subtype CHECK.
   - Subtype rules: **vehicle** auto-posts the gift (a car is accepted; only disposition/proceeds/ack wait), derived `form_1098c_required = claimed_value > $500`; **securities** carry `asset_class ∈ {publicly_traded, non_publicly_traded, crypto}` (`delivery_datetime` is a TIMESTAMP for intraday crypto), publicly-traded = mean high/low never appraisal, non-public > $10k appraisal, crypto = property, appraisal > $5k with no public-price exception (CCA 202302012), donee 8282 on disposition < 3yr; **real_estate** carries `requires_gift_acceptance_review = TRUE` **always** (ANDs into the auto-post predicate → D7 fail-closed review queue; **never auto-posts**; a `pending_valuation` line state holds in review — never a zero, never a placeholder on a receipt). IRS statutory constants ($500/$5k/$10k/3yr) live as **DB lookup data**, not hard-coded.
   - **DAF is a shape, not a subtype/tender:** `is_daf_grant = true` makes the **hard-credit donor = the sponsor party** (Fidelity/Schwab/NCF); the advisor attaches as **soft credit only** (`is_receiptable = FALSE`, reusing the Phase 7 A8 DB CHECK). Suppression **becomes** the hard-credit-donor identity — **not** a parallel `tax_receipt_suppressed` boolean that could disagree with the wall. `no_quid_pro_quo = true` refuses any benefit/FMV downstream (§4967). An unmatched sponsor alias **fails closed to review**.
-- **`contribution_internal_valuation`** (D8.b, BLOCKER-class structural wall) — the optional, **receipt-invisible** internal FMV of a non-cash line. Purpose: the internal FMV **IS the non-cash line's `amount_minor`** (so `sum(lines)=header` holds and totals are real), stored in a table the Phase 7 inclusion-snapshot builder **physically never joins**. The render type is a **discriminated-union `ReceiptRenderInput` whose non-cash arm has no `amount` field at the type level** → a value on a non-cash receipt is a **compile error, not a code-review catch** (plus a taint/negative test). Staff UX must make it crystal-clear this value will not appear on the receipt.
+- **`contribution_internal_valuation`** (D8.b, BLOCKER-class structural wall) — the optional, **receipt-invisible** internal FMV of a non-cash line. Purpose: the internal FMV **IS the non-cash line's `amount_minor`** (so `sum(lines)=header` holds and totals are real), stored in a table the Phase 7 inclusion-snapshot builder **physically never joins**. Phase 18's canonical purpose/jurisdiction input excludes this private internal value; the U.S. noncash acknowledgment is description-only. Taint, negative and compile-time fixtures exercise the owner-input and artifact/metadata boundaries; Phase 13 creates no separate render input or renderer. Staff UX must make it crystal-clear this value will not appear on the receipt.
   Phase 21 D21 extends the same structural wall to Field Accounts: this value,
   any appraisal, and any estimated proceeds cannot create a D2 candidate or
   monetary support. Only the exact source-final Realized Support Basis from a
@@ -1507,24 +1785,44 @@ Composition is a one-directional precondition chain whose first step is tender-s
 
 ### New/changed tables — giving cart, cross-device (D15)
 
-- **`carts`** — the authenticated, **owner-scoped** cart (a donor gives _across_ tenants and has no single tenant JWT claim — so **owner-only, NOT owner+tenant** RLS). Key columns: `id` (opaque UUID PK), `owner_user_id NOT NULL FK`, `status`, timestamps; **partial-unique `WHERE status='active'`** (one active cart per owner). RLS `USING/WITH CHECK (owner_user_id = (SELECT auth.uid()))`; the API is `GET /cart` (implicit owner), never `/cart/:id`; admin/service-role reads must re-assert `owner_user_id`. **Guest cart = client-only localStorage** (90-day TTL, 50-line max), zero server state (enumeration-safe). Merge (guest→login) is **one idempotent RPC under a per-owner advisory lock**: union by ref (new→keep, same ref+freq→**keep incoming amount, never SUM**, same ref+diff freq→keep both), discard/re-scope guest lines not belonging to the login tenant.
+- **`carts`** — the authenticated, **owner-scoped** cart (a donor gives _across_ tenants and has no single tenant JWT claim — so **owner-only, NOT owner+tenant** RLS). Key columns: `id` (opaque UUID PK), `owner_user_id NOT NULL FK`, `status`, nullable `currency` only while the cart has no line/provider effect, revision, timestamps; **partial-unique `WHERE status='active'`** (one active cart per owner) plus a unique `(id, currency)` relationship target once currency is selected. The first line and currency freeze atomically; later currency transition requires the separately governed successor command. RLS `USING/WITH CHECK (owner_user_id = (SELECT auth.uid()))`; the API is `GET /cart` (implicit owner), never `/cart/:id`; admin/service-role reads must re-assert `owner_user_id`. **Guest cart = client-only localStorage** (90-day TTL, 50-line max), zero server state (enumeration-safe). Merge (guest→login) is **one idempotent RPC under a per-owner advisory lock**: union by ref (new→keep, same ref+freq→**keep incoming amount, never SUM**, same ref+diff freq→keep both), discard/re-scope guest lines not belonging to the login tenant. Merge rejects or routes an explicit donor recovery when two nonempty carts carry different currencies; it never picks one, converts, or mixes.
 - **`cart_lines`** — one designation line. Key columns: `cart_id`,
   `tenant_id` (lives on the line, not the cart), stable opaque `line_id`,
   `designation_ref` (missionary_id XOR fund_id; general→null), `amount_minor`
-  (min $1), **one-time or a Phase 16 recurring cadence intent**,
+  (nullable only while the line belongs to an editable draft; otherwise a
+  positive integer satisfying the current exact currency/route minimum),
+  **one-time or a Phase 16 recurring cadence intent**,
   `is_fee_cover`, and the frozen attribution axes (`site_id`, `source_code_id`,
-  `currency`, `locale`, `entry_method='public_checkout'`). Monthly is featured
-  when enabled; the server validates any recurring cadence against the
+  `currency`, `locale`, `entry_method='public_checkout'`). A composite
+  `(cart_id, currency)` foreign key references the cart's same pair so a mixed-
+  currency line is structurally impossible; currency is not independently
+  mutable per line. Monthly is featured when enabled; the server validates any
+  recurring cadence against the
   tenant's versioned Phase 16 allowlist. Invariants: intent only (no card, no
   PII beyond the owner FK, no denormalized labels—the label/state resolves at
   render through the Phase-10-aware read model); one cart = one currency
-  (mixed-currency **rejected**); server re-validates every line against live
-  tenant state on load AND submit; invalid/cross-tenant/inactive lines **fail
-  safe** (dropped/flagged, never leak or mis-designate). \*(Amended 2026-07-13.)\_
+  (mixed-currency **rejected**); a draft may preserve purpose with no amount
+  after D63, but cannot enter review, acceptance, provider creation, recurring,
+  or money projection until every line has a checked target-currency amount;
+  server re-validates every line against live tenant state on load AND submit;
+  invalid/cross-tenant/inactive lines **fail safe** (flagged for explicit donor
+  repair, never silently dropped during D63, leaked, or mis-designated).
+  \*(Amended 2026-07-13 and 2026-08-30.)\_
 
 ### New/changed tables — fee-cover config (D12)
 
 - **`tenant_fee_cover_config`** (per-tenant, **per-payment-method**) — a clean two-row matrix (card / ACH), each `{enabled, rate_bps INTEGER, mode}` where `mode ∈ {optional_opt_out (default), optional_opt_in, mandatory}`. The **engine is `% + fixed-flat` gross-up** — `charge = round((net + flat_cents) / (1 − bps/10000))`, flat = a per-method system constant — so a pure % does not silently under-recover the flat fee; **the tenant sets a simple %, the donor sees clean dollar amounts**. Fail-CLOSED: default optional-opt-out, mandatory OFF, never fail-open to mandatory or a garbage rate. **Mandatory card is bounded** (surcharge law): gift-total framing never "card fee," debit/prepaid hard carve-out via `card.funding` (`unknown` treated as non-credit, auto-downgrade to optional), pre-auth disclosure of the exact added amount + new total, rate clamped ≤3%, per-installment persistence with **no silent recurring increases** (a rate hike is grandfathered or re-consented), plus a tenant warning banner. Fee-cover is its **own ledger line** (`is_fee_cover=true`, reserved system fund), **fully deductible**, and **refund includes the cover**.
+
+  **Phase 24 D61 multicurrency correction:** `flat_cents`, dollar copy, one
+  universal rate, and USD card/ACH assumptions apply only to the original USD
+  evidence and cannot be generalized. For any additional Donor Presentment
+  Currency, the payments/fee-policy owner must prove the exact method, account/
+  charge topology, currency, integer-minor flat/rate basis, legal mode, and
+  recurring/refund behavior. If it cannot, fee cover is unavailable for that
+  exact path while the independently qualified gift may remain available; Core
+  never converts a USD flat, fabricates a rate, or lets fee-cover failure change
+  currency. Donor and staff UI use the exact selected currency and say
+  **estimated** where the amount is only an estimate.
 
 ### New/changed tables — recurring commitments (D16, D24, D25)
 
@@ -1682,7 +1980,7 @@ Good tests here assert **external, money- and tax-observable behavior** — "a h
 4. **Integer minor units + no ÷100.** Every money value is integer minor units with explicit branded currency; the shared format/parse helper is the _only_ converter; a hardcoded `/100` or `en-US` assumption fails typecheck or a lint/grep gate (P2, D10). Regression fixture: JPY (zero-exponent) round-trips with **no** division, and USD+JPY on one header fails to type-check. This is the D2 "units seam" blocker — one unconverted read is a silent 100× money error; a backfill assertion proves `sum(minor)/100 == pre-migration dollar total per tenant`.
 5. **Auto-post exception routing fails CLOSED.** The exception predicate set (large-gift, restricted-ministry, import-source, donor-match _ambiguity_ ≥2 candidates, real-estate `requires_gift_acceptance_review`) routes to the finance review queue; **absent tenant config defaults to conservative review**, never silent auto-post (D7 blocker #2). Poison fixture: a new tenant with no config + a restricted-ministry gift must land in review, not post.
 6. **DAF zero-advisor-receipt.** An `is_daf_grant` gift makes the _sponsor_ the hard-credit donor; the advisor attaches as soft credit only (`is_receiptable=FALSE`), and suppression _is_ the hard-credit-donor identity — not a parallel `tax_receipt_suppressed` boolean that can disagree (D8 DAF ruling). Poison fixture: a DAF advisor can never mint a receipt or enter a deductible total.
-7. **Internal-value-unreachable taint test.** The optional internal FMV of a non-cash gift _is_ that line's ledger amount (so `sum(lines)=header` holds) but lives in a separate `contribution_internal_valuation` table the Phase-7 inclusion-snapshot builder **physically never joins**; the `ReceiptRenderInput` non-cash arm has **no `amount` field at the type level**, so a value on a non-cash receipt is a **compile error** (D8 blocker #1). Test: a taint/negative test asserting the non-cash render arm cannot carry a dollar figure, plus the compile-fail fixture.
+7. **Internal-value-unreachable taint test.** The optional internal FMV of a non-cash gift _is_ that line's ledger amount (so `sum(lines)=header` holds) but lives in a separate `contribution_internal_valuation` table the Phase-7 inclusion-snapshot builder **physically never joins**; Phase 18's canonical purpose/jurisdiction input excludes that private value, and its U.S. noncash acknowledgment arm cannot carry an amount (D8 blocker #1; US18-07). Test the real owner-input boundary and every artifact/metadata channel with taint, negative and compile-fail fixtures; no Phase 13 renderer or duplicate input type is permitted.
 8. **Cross-tenant isolation.** No header/line/posting/commitment/campaign/source-code row ever resolves across a tenant; lines use composite `(tenant_id, header_id)`/`(tenant_id, fund_id)` FKs so a cross-tenant reference cannot resolve, with RLS as belt-and-suspenders (D3.12). The `…0001` default is gone. Poison fixture: a line pointing at another tenant's fund fails the composite FK, not just RLS.
 9. **ACH return reversal.** A `charge.dispute.created` on a one-time or recurring succeeded-but-return-exposed ACH gift appends the money _reversal_ (never mutates), moves the payment axis to terminal `returned` (distinct from `refunded`), net-reduces progress, and emits one idempotent pointer to Phase 7's source correction authority — **all Phase 13 effects in one transactional DB function under a per-contribution advisory lock**. Phase 7 independently derives the correction/coverage effect; Phase 18 independently creates any jurisdiction-correct successor/current artifact; Phase 19 coordinates any affected statement late-fact/correction lane; Phase 17 independently communicates. Poison fixture: an out-of-order return-before-success event is quarantined, never dropped or fabricated.
 10. **Dispute-after-receipt.** A dispute/return arriving after issuance retains every prior artifact and appends the owner-separated correction chain. Phase 7 owns source correction/coverage, Phase 18 applies the purpose/jurisdiction identity rule (for example, a U.S. acknowledgment reference may retain its stable reference with a new version, while a Canadian replacement receives a new serial citing the predecessor), Phase 19 coordinates any affected statement successor, and Phase 17 delivers any required notice. No universal “base number retained” rule and no cross-domain atomic artifact mutation are permitted.
@@ -1722,7 +2020,8 @@ Good tests here assert **external, money- and tax-observable behavior** — "a h
 hands recurring intent to Phase 16 exactly once per stable opaque line; a
 subscription-origin payment cannot also enter the one-time writer; raw provider
 event replay cannot duplicate a contribution header or designation line; a
-resumed cross-device cart re-prices/re-mints stale one-time provider intent; a
+resumed cross-device cart revalidates money terms and reconciles accepted or
+outcome-uncertain operations before any proof-gated provider successor; a
 guest→login merge keeps the incoming amount on a same-ref/same-cadence
 collision and never sums it; the fee-cover mandatory-card debit carve-out
 treats unknown funding as non-credit; CSV formula injection is neutralized at
@@ -1853,7 +2152,10 @@ Reserved as seams (plumbed, not built) or owned by a named later phase — Phase
   product retry incidents, ACH recovery, derived health/attention reasons, and
   meaningful-transition candidate generation. Phase 13 records provider and
   ledger facts only; it does not mint a mutable `lapsed` state or a sequence.
-- **Public campaign pages** — Phase 22 (a page record references a campaign by id; no presentation fields on the campaign).
+- **Public campaign pages** — Phase 22 (one immutable-versioned typed Page
+  Subject Binding references an exact eligible Campaign or Designation; Payload
+  stores only the opaque Page identity, no raw `campaign_id` authority or
+  presentation fields on the campaign; D7's Giving binding remains separate).
 - **Peer-to-peer / personal-campaign fundraising** — Phase 36 (the `parent_campaign_id` self-FK + `personal_campaign` flag are reserved).
 - **Appeals** — Phase 27 (the appeal owns the linkage; the campaign carries no appeal fields).
 - **Full accounting / GL delivery** — Phase 20. Phase 13 supplies exact
@@ -1976,3 +2278,79 @@ redesignates, merges, reverses, or corrects a contribution. Party, spouse,
 household, teammate, leader, login, notification, or page state cannot select a
 financial target. Purpose succession remains Phase 13/D5 source-owned and
 append-only.
+
+## Dated Phase 22 D6 public-progress projection amendment (2026-08-03)
+
+Phase 13 remains the sole authority for corrected posted-effective gross
+Designation and campaign amounts, canonical typed distinct counts, campaign
+goals and hierarchy scope, and provisional-public eligibility. Its canonical
+effective fold is a source input, not a universal public metric: Phase 22 D6
+alone decides whether one page shows progress and binds exactly one compatible
+Public Progress Metric Contract. Missionary support may instead use a separately
+certified Phase 16 commitment projection and therefore does not universally
+derive from the Phase 13 money model.
+
+Phase 22 cannot query contribution rows anonymously, mix received money with
+commitments, include staged or unposted offline evidence, reinterpret gross as
+net support, substitute a Field Account or accounting value, or use a mutable
+counter. Phase 13 corrections advance a compatible disposable D6 projection
+under its exact source watermark; they do not rewrite the pinned public metric
+meaning. Public privacy filtering and small-cell suppression occur before
+aggregation, and a non-computable result is omitted rather than shown as zero or
+replaced by another metric.
+
+## Dated Phase 22 D8 public-route and purpose-succession amendment (2026-08-04)
+
+Phase 13 remains the sole authority for Designation identity and eligibility,
+new-Giving acceptance, contribution truth, and accepted source-purpose
+succession. A Phase 22 route or lifecycle event cannot close, replace, redirect,
+or re-designate any of those facts. A D8 Transition Notice Release retains D7's
+exact Page Giving Binding and renders its current Phase 13-owned state; if the
+binding remains eligible, D8 cannot invent an intentional no-Giving posture, and
+if it becomes ineligible D7's existing smallest-scope Giving containment applies.
+
+Accepted source-purpose succession may qualify a separately labelled link from
+a Transition Notice Release to another currently eligible public presentation.
+It never proves that the other page is the same presentation identity and can
+never authorize a cross-page `308`, inherited Designation, amount, cadence,
+source code, return path, contribution, or recurring action. An automatic
+permanent move is restricted to a new eligible Listed-public route for the same
+immutable Phase 22 Page; every different-page visit is a fresh deliberate donor
+navigation and Phase 13 revalidates any later Giving choice normally.
+
+## Dated Phase 22 D15 Give-selection boundary amendment (2026-08-06)
+
+A D15 **Give button selected** occurrence proves only that the visitor directly
+activated the current released page's Give CTA. It is not cart entry, Source
+Code attribution, conversion, contribution, recurring agreement, provider
+acceptance, settlement, or payment and cannot be joined through a visitor or
+session. Phase 13 remains independently authoritative for every money-path
+fact. Any Phase 13 aggregate displayed beside Public page activity keeps its
+own label, current authorization, and through-date; it does not create a D15
+conversion rate or advance D15 coverage.
+
+## Dated Phase 22 D21 public-surface cutover Giving amendment (2026-08-14)
+
+D21 preparation and cutover may reference only the exact current D7 Page Giving
+Binding and its Phase 13 Designation, source-code, issuer, currency, cadence,
+Settlement Account Binding, locale, Site, and environment facts. A legacy
+`fundId`, missionary ID, CTA URL, page title, route, profile row, campaign
+relationship, visual similarity, or general-fund convention is migration
+evidence only and cannot select, replace, or widen a Giving destination. Every
+adopted CTA receives one explicit owner-valid disposition. An ambiguous,
+missing, or ineligible adoption binding keeps the Page non-public rather than
+defaulting. Only a previously exact released binding that later becomes
+ineligible may leave independently safe Page content public with Giving
+unavailable.
+
+An existing browser tab, copied CTA, return path, or cart that crosses the D21
+reader-generation boundary must preserve and server-revalidate its exact
+original binding and Designation at cart entry and immediately before provider
+execution. If that exact lane is stale, retired, cross-scope, or no longer
+executable, the action fails safely with an accessible explanation and a fresh
+deliberate navigation path; it never follows a page redirect, compatible legacy
+renderer, newly current Page, or organization-fund fallback to a different
+Designation. D21 prepared, cut over, reachable, served, cached, or converged
+status proves no cart entry, contribution, recurring agreement, settlement,
+payment, or accounting outcome, and Phase 13 creates no duplicate contribution
+while reconciling repeated pre-/post-cutover requests.

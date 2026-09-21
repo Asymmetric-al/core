@@ -51,18 +51,20 @@ bun run ci:preflight
 1. `verify:git-attribution`
 2. `format:check`
 3. `skills:verify`
-4. `openspec:validate`
-5. `lint`
-6. `verify:data-boundary`
-7. `verify:cms-public-sole-entry`
-8. `verify:workspace-contract`
-9. `verify:bun-lock-drift`
-10. `verify:eslint`
-11. `verify:shadcn-config`
-12. `verify:shadcn-diff`
-13. `typecheck`
-14. `build` (with CI-compatible env defaults for local parity)
-15. `test:unit`
+4. `verify:phase25-spec`
+5. `openspec:validate`
+6. `verify:openspec-deltas`
+7. `lint`
+8. `verify:data-boundary`
+9. `verify:cms-public-sole-entry`
+10. `verify:workspace-contract`
+11. `verify:bun-lock-drift`
+12. `verify:eslint`
+13. `verify:shadcn-config`
+14. `verify:shadcn-diff`
+15. `typecheck`
+16. `build` (with CI-compatible env defaults for local parity)
+17. `test:unit`
 
 Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage order),
 `tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
@@ -170,17 +172,24 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `format`
 
-- _What it checks:_ Checks out full history, runs remote
+- _What it checks:_ Checks out full history and runs remote
   `verify:git-attribution` for the event-specific commit scope, then runs
-  `bun run format:check` (Prettier) and `bun run skills:verify` (skills mirror
-  drift gate).
+  `bun run format:check` (Prettier), `bun run skills:verify` (skill mirrors),
+  `bun run verify:phase25-spec` (controlled story projections and source
+  references), `bun run openspec:validate` (strict OpenSpec validation), and
+  `bun run verify:openspec-deltas` (read-only applicability to durable specs).
 - _Why it exists:_ Rejects unproven registered identity claims, forbidden event
-  principals, and unresolvable GitHub metadata inside `ci-gate`, then prevents
-  formatting and skill-mirror drift.
+  principals and unresolvable GitHub metadata inside `ci-gate`, then prevents
+  formatting, mirror and specification drift. Phase 25's
+  [authoring boundary](prds/sitestacker-parity/phase-25-donor-dashboard-depth/README.md#authoring-and-generated-views)
+  keeps one story source and one task writer.
 - _Debug locally:_ Run `bun run verify:git-attribution`, then
-  `bun run format:check`; if needed run `bun run format`. Run
-  `bun run skills:verify` (or `bun run skills:sync` to update mirrors) and
-  re-check. Event-actor and signature proof require CI metadata and GitHub APIs.
+  `bun run format:check`; if needed run `bun run format`. Check mirrors with
+  `bun run skills:verify` (or `bun run skills:sync` for intentional updates).
+  For a Phase 25 story edit, regenerate through its documented renderer and run
+  `bun run verify:phase25-spec`. Finish with `bun run openspec:validate` and
+  `bun run verify:openspec-deltas`. Event-actor and signature proof require CI
+  metadata and GitHub APIs; local success alone does not establish that proof.
 
 ### `lint` (needs: `format`)
 

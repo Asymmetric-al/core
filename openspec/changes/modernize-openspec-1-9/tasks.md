@@ -10,7 +10,7 @@
 
 - [x] 2.1 Confirm PR #1324 merged at `0a569f0c`
 - [x] 2.2 Apply the merged `agent-instruction-system` delta to the main spec
-- [x] 2.3 Archive `modernize-agent-dev-environment` as `2026-08-18-modernize-agent-dev-environment` (copy-then-remove after OpenSpec CLI `EXDEV` on overlay FS)
+- [x] 2.3 Archive `modernize-agent-dev-environment` as `2026-08-19-modernize-agent-dev-environment` (copy-then-remove after OpenSpec CLI `EXDEV` on overlay FS)
 - [x] 2.4 Run archive validation on the new archive
 
 ## 3. Authority and context
@@ -26,7 +26,7 @@
 - [x] 4.3 Update `AGENTS.md` intended vs current reality, Twenty invariant, OpenSpec pin, compact skill catalog
 - [x] 4.4 Convert numbered commands into OpenSpec wrappers; keep names
 - [x] 4.5 Update Guardian to remain permanently read-only
-- [x] 4.6 Add `openspec-validate` to CI preflight immediately after `skills-verify`
+- [x] 4.6 Add `openspec-validate` to CI preflight after skill validation (AL-1861 now runs the Phase 25 projection check between them and delta verification immediately afterward)
 
 ## 5. Verification
 
@@ -34,4 +34,7 @@
 - [x] 5.2 `bun run skills:verify` is non-mutating
 - [x] 5.3 `bun run openspec:validate` is strict and green
 - [x] 5.4 `bun run openspec:audit-archive` is green
-- [ ] 5.5 Leave this change active until the implementation is merged
+- [x] 5.5 Confirm implementation merged to `develop` through PR #1325 on
+      2026-08-19 (`7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd`). The change
+      remains active pending a separate scope-aware sync/archive review; this
+      merge record is not an archive action.

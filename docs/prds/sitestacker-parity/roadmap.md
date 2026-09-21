@@ -1,5 +1,25 @@
 # Asym Missions Platform — Program Roadmap (v2)
 
+## Documentation reconciliation — 2026-09-16
+
+AL-1861 adopts the ratified Phase 22–26 planning packages together on this
+reconciliation branch, preserving their owner amendments and qualification
+boundaries. The original source PRs [#1323](https://github.com/Asymmetric-al/core/pull/1323),
+[#1340](https://github.com/Asymmetric-al/core/pull/1340),
+[#1558](https://github.com/Asymmetric-al/core/pull/1558),
+[#1564](https://github.com/Asymmetric-al/core/pull/1564) and
+[#1657](https://github.com/Asymmetric-al/core/pull/1657) remain unmerged as of this
+snapshot. Their open state does not erase the decisions adopted here, and this
+documentation change does not implement, activate or dispatch product work.
+
+Use the [document-authority guide](../../ai/document-authority.md) and
+[reconciliation source manifest](../../ai/audits/2026-09-16-documentation-reconciliation-sources.json)
+to distinguish integrated planning from exact source captures. Prior source-PR
+states, ticket frontiers, check results and publication restrictions are dated
+evidence; current implementation requires the accepted owning contracts and
+qualified producer seams. Read the current phase entries cumulatively; a later
+phase never silently replaces another domain's authority.
+
 _The source-of-truth roadmap for the SiteStacker parity program and the full
 Asym product build-out. Adopted 2026-07-07._
 
@@ -120,49 +140,60 @@ or feeds this phase but does not gate its start; "enhanced by" links point
 forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 `grilling in progress` / `future (needs PRD)`.
 
-| #      | Slug                         | Phase                                                                                                                             | Hard deps                                             | Soft / consumes / enhanced by                         | Owner surface / system                                          | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **0**  | `baseline`                   | [Baseline, Governance & Evidence](./phase-00-baseline.md)                                                                         | —                                                     | —                                                     | Docs, OpenSpec, parity matrix, evidence                         | `PRD exists`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| **1**  | `ownership-matrix`           | [Source-of-Truth Ownership Matrix](./phase-01-source-of-truth-ownership-matrix.md)                                                | 0                                                     | —                                                     | OpenSpec, architecture docs, `packages/api`                     | `PRD exists` (ruled 2026-07-06)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **2**  | `site-locale-currency`       | [Site, Locale & Currency Foundation](./phase-02-site-locale-currency-foundation.md)                                               | 1                                                     | —                                                     | Tenant/site settings, public context, giving primitives         | `PRD exists` (epic #477)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **3**  | `permission-floor`           | [Minimum Permission & Role-Scoped Projection Foundation](./phase-03-minimum-permission-role-scoped-projection-foundation.md)      | 1, 2                                                  | —                                                     | `packages/api` authz/projections, Mission Control               | `PRD exists` (epic #489)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **4**  | `identity-claiming`          | [Identity & Account-Claiming Foundation](./phase-04-identity-account-claiming-foundation.md)                                      | 2, 3                                                  | —                                                     | Identity services, account claiming, tenant membership          | `PRD exists` (epic #503)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **5**  | `public-runtime`             | [Public Website Runtime Contract](./phase-05-public-website-runtime-contract.md)                                                  | 2, 3, 4                                               | —                                                     | Public Website, Web Studio, Payload, donor public routes        | `PRD exists` (epic #520)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **6**  | `comms-event-model`          | [Shared Communication Event Model](./phase-06-shared-communication-event-model.md)                                                | 2, 3, 4, 5                                            | —                                                     | Communication services, CRM timeline, provider adapters         | `PRD exists` (epic #550)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **7**  | `receipt-rules-credit`       | [Receipt & Statement Compliance Rules + Donor Identity/Credit Model](./phase-07-receipt-statement-compliance-and-donor-credit.md) | **4, 6, 3** (PRD C1–C3)                               | 2, 5                                                  | Receipt/statement services, finance rules, party/credit model   | `PRD exists` (epic #566)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_        | none (build-now core)                                 | 6 (emailed path), 9 (reserved sockets)                | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| **9**  | `crm-depth-graph`            | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md)                                            | **4, 7, 3**                                           | 8 (operations visibility only)                        | Mission Control CRM (Asym Postgres)                             | `PRD exists` (epic #604 + #605–#627)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **10** | `sensitive-safety`           | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md)                      | **3, 9**                                              | 4, 5, 6                                               | Mission Control, security projections, Member Care seams        | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **11** | `custom-fields`              | Custom Fields & Custom Collections                                                                                                | 9, 10, 3                                              | —                                                     | Mission Control CRM configuration                               | `PRD exists` (epic #645 + #646–#664)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11                                             | —                                                     | Mission Control Admin, `packages/api` authz                     | `PRD exists` (epic #665 + #666–#687)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7                                      | —                                                     | Contributions/giving, public checkout, MC finance               | `PRD exists` (epic #690 + #691–#713)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **14** | `donor-credit-ops`           | [Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts](./phase-14-donor-credit-operations.md)                   | 13, 7, 9                                              | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `PRD exists` (epic #719 + #720–#741)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7                                         | 9; enhanced by 16 (fulfillment matching)              | Mission Control Contributions                                   | `PRD exists (epic #758 + #759–#786)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**           | enhanced by 17 (message rendering/delivery)           | Contributions and CRM                                           | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| **17** | `system-messages`            | [System Messages & Template Management](./phase-17-system-messages-template-management.md)                                        | 6, 2, 3, 7                                            | —                                                     | Email Studio / System Messages                                  | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| **18** | `document-templates`         | [Receipt & PDF Template System](./phase-18-receipt-pdf-template-system.md)                                                        | 7, **13**, 17                                         | 6                                                     | Document Studio / Generated Documents                           | `PRD exists` (epic #907 + #908–#961; #908–#910 ready frontier)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **19** | `statement-operations`       | [Year-End Statement Operations](./phase-19-year-end-statement-operations.md)                                                      | 6, 7, 12, **13**, 14, 15, 17, 18                      | 9, 4                                                  | Mission Control Contributions/Finance                           | `PRD exists` (epic #977 + #978–#1031; blocked/not-dispatched)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| **20** | `accounting-exports`         | [Accounting Exports & Reconciliation](./phase-20-accounting-exports-reconciliation.md)                                            | **2, 3, 4, 7, 12, 13, 14, 15**                        | 16                                                    | Mission Control Accounting                                      | `PRD exists` (implementation-ready 2026-07-27; not implemented)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **21** | `field-accounts`             | [Missionary Field Accounts & Support Balances](./phase-21-field-accounts.md)                                                      | **1**, 3, 4, 6, **9, 10, 12**, 13, **15**, 17, 18, 20 | 16                                                    | Mission Control Finance/Admin, Missionary Workspace projection  | `PRD exists` (implementation-ready 2026-08-02; spec #1108; epic #1109 + lane epics #1110–#1120 + P21-01–P21-101 published and dependency-governed; not implemented; D1-D28 scope-frozen; D17/D27 activation requires certified Phase 29 opening-source private-byte custody and Phase 30 import-session staging; selected private-byte-bearing D10/D14/D18/D22/D24/D25/D28 and D26 package/lifecycle slices require their exact owner seams, while metadata/manual/feed paths remain separate; D28 requires Phase 29/30 only for its selected private-byte/bulk lane and otherwise weakens no owning-phase prerequisite) |
-| **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3                                       | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **23** | `web-studio-cms`             | CMS / Site Planner Dynamic Content Parity                                                                                         | 5, 3, 2                                               | 22                                                    | Web Studio, Payload, Public Website                             | `future (needs PRD)` — deps allow an early start after Phase 5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **24** | `multi-site-management`      | Full Multi-Site, Language & Currency Management                                                                                   | 2, 5, 13, 20, 23                                      | 17                                                    | Tenant settings, Web Studio, Contributions settings             | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **25** | `donor-portal-depth`         | Donor Dashboard Depth                                                                                                             | 4, 3, 13, 7, 6                                        | 17, 19                                                | Donor Portal                                                    | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17                                        | —                                                     | Support Hub, communication services, `packages/api`             | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **27** | `donor-development`          | Donor Development & Portfolio Management _(beyond-parity differentiator)_                                                         | **9**, 3, 6, 13                                       | consumes 14, 16; 26; enhanced by 33, 34               | Mission Control CRM (Development)                               | `future (needs PRD)` (was v1 Phase 33)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **28** | `missionary-workspace-depth` | Missionary Workspace Depth & Support-Raising CRM                                                                                  | 9, 13, 16, 6, 3, 27                                   | 26                                                    | Missionary Workspace                                            | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **29** | `files-documents`            | File Manager & Document Management                                                                                                | 3, 9                                                  | 18, 26, the shipped workflow-orchestration runtime    | Documents/File Manager, CRM, Workflows, Web Studio              | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **30** | `imports-migration`          | Imports & Migration Tools                                                                                                         | 9, 13, 11, 29, 4, 3                                   | 14                                                    | Mission Control Data Tools                                      | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **31** | `platform-api`               | Platform API, Webhooks & Connector Framework                                                                                      | 1, 3, 4, 6                                            | 9, 13                                                 | Platform API, Integrations, Admin                               | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **32** | `newsletter-sync`            | Mailchimp / Newsletter Sync with Suppression Handling                                                                             | 6, 3, 28, 4, 31                                       | —                                                     | Missionary Workspace settings, MC integrations                  | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **33** | `reporting-bi`               | Reporting & BI / Report Studio                                                                                                    | 9, 13, 7, 6, 3                                        | 11, 15, 16, 30                                        | Report Studio                                                   | `future (needs PRD)` — deps allow an early start (see lanes)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| **34** | `workflow-engine`            | Configurable Automation & Workflow Engine                                                                                         | 9, 11, 12, 29, 17, 6                                  | 13 (registration fees), 33                            | Automations/Workflows in Mission Control                        | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **35** | `contribution-triggers`      | Spark-Style Contribution Triggers                                                                                                 | **34**, 13, 6, 3                                      | 33                                                    | Automations, Contributions                                      | `future (needs PRD)` (confirmed separate from 34)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| **36** | `p2p-campaigns`              | Peer-to-Peer & Advocacy Campaigns                                                                                                 | 5, 13, 25, 3, 22                                      | —                                                     | Public Website, Donor Portal, Contributions                     | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **37** | `events-groups`              | Event / Opportunity Workflows & Group Management                                                                                  | 5, 9, 13, 6, 29, 34, 36                               | 10                                                    | Event Hub, Public Website, CRM, Workflows                       | `future (needs PRD)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **38** | `member-care-ops`            | Member Care, Crisis & Restricted-Ministry Operations                                                                              | 10, 3, 4, 9, 29                                       | 6, 12, 26, 34                                         | Member Care, Mission Control, security-sensitive projections    | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **39** | `field-first-ux`             | Mobile, Low-Bandwidth & Conflict-Safe Field Experience                                                                            | 3, 4, 9, 28                                           | 31                                                    | Cross-surface UX, `packages/api` concurrency contracts          | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **40** | `data-stewardship-ai`        | Data Stewardship, Global Search & AI Operator Workbench                                                                           | 3, 4, 8, 9, 13, 30, 33                                | 6, 11, 34                                             | Mission Control, Data Tools, Search, AI Assist                  | `future (needs PRD)` — **new in v2**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+<!-- prettier-ignore -->
+| # | Slug | Phase | Hard deps | Soft / consumes / enhanced by | Owner surface / system | Status |
+| ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **0** | `baseline` | [Baseline, Governance & Evidence](./phase-00-baseline.md) | — | — | Docs, OpenSpec, parity matrix, evidence | `PRD exists` |
+| **1** | `ownership-matrix` | [Source-of-Truth Ownership Matrix](./phase-01-source-of-truth-ownership-matrix.md) | 0 | — | OpenSpec, architecture docs, `packages/api` | `PRD exists` (ruled 2026-07-06) |
+| **2** | `site-locale-currency` | [Site, Locale & Currency Foundation](./phase-02-site-locale-currency-foundation.md) | 1 | — | Tenant/site settings, public context, giving primitives | `PRD exists` (epic #477) |
+| **3** | `permission-floor` | [Minimum Permission & Role-Scoped Projection Foundation](./phase-03-minimum-permission-role-scoped-projection-foundation.md) | 1, 2 | — | `packages/api` authz/projections, Mission Control | `PRD exists` (epic #489) |
+| **4** | `identity-claiming` | [Identity & Account-Claiming Foundation](./phase-04-identity-account-claiming-foundation.md) | 2, 3 | — | Identity services, account claiming, tenant membership | `PRD exists` (epic #503) |
+| **5** | `public-runtime` | [Public Website Runtime Contract](./phase-05-public-website-runtime-contract.md) | 2, 3, 4 | — | Public Website, Web Studio, Payload, donor public routes | `PRD exists` (epic #520) |
+| **6** | `comms-event-model` | [Shared Communication Event Model](./phase-06-shared-communication-event-model.md) | 2, 3, 4, 5 | — | Communication services, CRM timeline, provider adapters | `PRD exists` (epic #550) |
+| **7** | `receipt-rules-credit` | [Receipt & Statement Compliance Rules + Donor Identity/Credit Model](./phase-07-receipt-statement-compliance-and-donor-credit.md) | **4, 6, 3** (PRD C1–C3) | 2, 5 | Receipt/statement services, finance rules, party/credit model | `PRD exists` (epic #566) |
+| **8** | `crm-operating` | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_ | none (build-now core) | 6 (emailed path), 9 (reserved sockets) | Mission Control CRM Operations, `packages/api/src/crm` | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587) |
+| **9** | `crm-depth-graph` | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md) | **4, 7, 3** | 8 (operations visibility only) | Mission Control CRM (Asym Postgres) | `PRD exists` (epic #604 + #605–#627) |
+| **10** | `sensitive-safety` | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md) | **3, 9** | 4, 5, 6 | Mission Control, security projections, Member Care seams | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641) |
+| **11** | `custom-fields` | Custom Fields & Custom Collections | 9, 10, 3 | — | Mission Control CRM configuration | `PRD exists` (epic #645 + #646–#664) |
+| **12** | `permission-config` | Full Role & Permission Configuration | 3, 10, 11 | — | Mission Control Admin, `packages/api` authz | `PRD exists` (epic #665 + #666–#687) |
+| **13** | `contribution-ledger` | Campaign, Designation, Contribution Ledger & Giving Cart | 1, 2, 3, 4, 5, 7 | — | Contributions/giving, public checkout, MC finance | `PRD exists` (epic #690 + #691–#713) |
+| **14** | `donor-credit-ops` | [Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts](./phase-14-donor-credit-operations.md) | 13, 7, 9 | enhanced by 17 (tribute letters) | Contributions, CRM views, reports | `PRD exists` (epic #719 + #720–#741) |
+| **15** | `gift-batch-entry` | Offline Gift & Batch Entry | **13**, 14, 7 | 9; enhanced by 16 (fulfillment matching) | Mission Control Contributions | `PRD exists (epic #758 + #759–#786)` |
+| **16** | `pledges-commitments` | Pledges & Recurring Commitments | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15** | enhanced by 17 (message rendering/delivery) | Contributions and CRM | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched) |
+| **17** | `system-messages` | [System Messages & Template Management](./phase-17-system-messages-template-management.md) | 6, 2, 3, 7 | — | Email Studio / System Messages | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched) |
+| **18** | `document-templates` | [Receipt & PDF Template System](./phase-18-receipt-pdf-template-system.md) | 7, **13**, 17 | 6 | Document Studio / Generated Documents | `PRD exists` (epic #907 + #908–#961; #908–#910 ready frontier) |
+| **19** | `statement-operations` | [Year-End Statement Operations](./phase-19-year-end-statement-operations.md) | 6, 7, 12, **13**, 14, 15, 17, 18 | 9, 4 | Mission Control Contributions/Finance | `PRD exists` (epic #977 + #978–#1031; blocked/not-dispatched) |
+| **20** | `accounting-exports` | [Accounting Exports & Reconciliation](./phase-20-accounting-exports-reconciliation.md) | **2, 3, 4, 7, 12, 13, 14, 15** | 16 | Mission Control Accounting | `PRD exists` (implementation-ready 2026-07-27; not implemented) |
+| **21** | `field-accounts` | [Missionary Field Accounts & Support Balances](./phase-21-field-accounts.md) | **1**, 3, 4, 6, **9, 10, 12**, 13, **15**, 17, 18, 20 | 16 | Mission Control Finance/Admin, Missionary Workspace projection | `PRD exists` (implementation-ready 2026-08-02; spec #1108; epic #1109 + lane epics #1110–#1120 + P21-01–P21-101 published and dependency-governed; not implemented; D1-D28 scope-frozen; D17/D27 activation requires certified Phase 29 opening-source private-byte custody and Phase 30 import-session staging; selected private-byte-bearing D10/D14/D18/D22/D24/D25/D28 and D26 package/lifecycle slices require their exact owner seams, while metadata/manual/feed paths remain separate; D28 requires Phase 29/30 only for its selected private-byte/bulk lane and otherwise weakens no owning-phase prerequisite) |
+| **22** | `public-ministry-pages` | [Public Missionary & Project Page Workflow](./phase-22-public-ministry-pages.md) | 5, 9, 10, **12**, 13, 3 | 15, 16, 21, 28 (optional source-owned progress/support inputs) | Web Studio, Public Website, Missionary Workspace, Contributions | `PRD exists` (implementation-ready 2026-08-14; spec [#1281](https://github.com/Asymmetric-al/core/issues/1281); P22-01–P22-41 / #1282–#1322 published with native blockers; #1282 sole child ready frontier; [OpenSpec](../../../openspec/changes/add-public-ministry-pages/proposal.md); D1–D27 scope-frozen; not implemented; activation requires certification of Phase 23 CMS, Phase 24 locale/domain, and Phase 29 media-custody/sanitization owner slices); original source PR remains unmerged; affected P25 consumers require accepted owner contracts and qualified producer implementation |
+| **23** | `web-studio-cms` | [CMS / Site Planner Dynamic Content Parity](./phase-23-web-studio-cms.md) | **2, 3, 5** | 22 | Web Studio, Payload, Public Website | `PRD exists` (implementation-ready 2026-08-24; spec [#1339](https://github.com/Asymmetric-al/core/issues/1339); [OpenSpec](../../../openspec/changes/add-web-studio-cms/proposal.md); D1–D36 scope-frozen; not implemented); original source PR remains unmerged; affected P25 consumers require accepted owner contracts and qualified producer implementation; P10/P12/P22 are required consumer/safety seams, not blanket core merge gates (clarified 2026-09-16, #1340 at db7a5e5) |
+| **24** | `multi-site-management` | [Full Multi-Site, Language & Currency Management](./phase-24-multi-site-management.md) | 2, 5, 13, 20, 23 | 17 | Tenant settings, Web Studio, Contributions settings | `PRD exists` (implementation-ready 2026-09-01; spec [#1431](https://github.com/Asymmetric-al/core/issues/1431); [OpenSpec](../../../openspec/changes/add-multi-site-management/proposal.md); tickets [#1432–#1557](https://github.com/Asymmetric-al/core/issues/1432) published and dependency-governed; P24-01/#1432 sole ready frontier; 125 successors blocked; D1–D18 and D57–D84 scope-frozen; D19–D55 preserved cross-phase evidence; D56 deferred; not implemented); original source PR remains unmerged; affected P25 consumers require accepted owner contracts and qualified producer implementation |
+| **25** | `donor-portal-depth` | [Donor Dashboard Depth](./phase-25-donor-dashboard-depth.md) | Baseline/start: 3, 4, 6, 7, 13.<br>Before affected consumer dispatch: exact P9, P10, P12, P14, P16, P17, P18, P19 and P22–24 producers from S04/S06 require final accepted contracts plus implemented, qualified owner seams. Q25 also requires the bounded P28/P12 guest-recipient projection and P32 external-enrollment exclusion before dispatch; neither whole future phase is a prerequisite. P22–24-dependent and Q25 consumers remain not dispatch-ready until their exact producer gates pass. Unaffected safe slices remain independent. | 17/19 are required for affected consumers, not optional enhancements; apply the scoped producer gates in the preceding cell. | Donor Portal | `PRD exists` (spec #1563; Q01–Q29 ratified, Q30 accepted; scoped source-owner prerequisites; not implemented; 88 native implementation issues #1565–#1652 under #1563; no blanket dispatch readiness) |
+| **26** | `support-hub` | Support Hub & Conversation Management | 6, 3, 4, 9, 17; 23 (selected lanes) | — | Support Hub, communication services, `packages/api` | `PRD exists` — [ratified specification #1656](https://github.com/Asymmetric-al/core/issues/1656); D1–D40 complete, including D27-C and D29-X01; 4 native index issues #1658–#1661 and 199 implementation leaves #1662–#1860 under #1656; implementation and release proof outstanding |
+| **27** | `donor-development` | Donor Development & Portfolio Management _(beyond-parity differentiator)_ | **9**, 3, 6, 13 | consumes 14, 16; 26; enhanced by 33, 34 | Mission Control CRM (Development) | `future (needs PRD)` (was v1 Phase 33) |
+| **28** | `missionary-workspace-depth` | Missionary Workspace Depth & Support-Raising CRM | 9, 13, 16, 6, 3, 27 | 26 | Missionary Workspace | `future (needs PRD)` for the full phase; unimplemented. [Q25 only](./phase-25-donor-dashboard-depth/contracts/experience.md#ex16--qualification-rollout-and-retained-proof) defines an adopted bounded P28/P12 guest-origin newsletter-recipient projection; not general Phase 28 readiness. |
+| **29** | `files-documents` | File Manager & Document Management | 3, 9 | 18, 26, the shipped workflow-orchestration runtime | Documents/File Manager, CRM, Workflows, Web Studio | `future (needs PRD)` |
+| **30** | `imports-migration` | Imports & Migration Tools | 9, 13, 11, 29, 4, 3 | 14 | Mission Control Data Tools | `future (needs PRD)` |
+| **31** | `platform-api` | Platform API, Webhooks & Connector Framework | 1, 3, 4, 6 | 9, 13 | Platform API, Integrations, Admin | `future (needs PRD)` — **new in v2** |
+| **32** | `newsletter-sync` | Mailchimp / Newsletter Sync with Suppression Handling | 6, 3, 28, 4, 31 | — | Missionary Workspace settings, MC integrations | `future (needs PRD)` for the full phase; unimplemented. [Q25 only](./phase-25-donor-dashboard-depth/contracts/experience.md#ex16--qualification-rollout-and-retained-proof) defines an adopted bounded P32 external-enrollment exclusion; no newsletter-sync implementation or general Phase 32 readiness. |
+| **33** | `reporting-bi` | Reporting & BI / Report Studio | 9, 13, 7, 6, 3 | 11, 15, 16, 30 | Report Studio | `future (needs PRD)` — deps allow an early start (see lanes) |
+| **34** | `workflow-engine` | Configurable Automation & Workflow Engine | 9, 11, 12, 29, 17, 6 | 13 (registration fees), 33 | Automations/Workflows in Mission Control | `future (needs PRD)` |
+| **35** | `contribution-triggers` | Spark-Style Contribution Triggers | **34**, 13, 6, 3 | 33 | Automations, Contributions | `future (needs PRD)` (confirmed separate from 34) |
+| **36** | `p2p-campaigns` | Peer-to-Peer & Advocacy Campaigns | 5, 13, 25, 3, 22 | — | Public Website, Donor Portal, Contributions | `future (needs PRD)` |
+| **37** | `events-groups` | Event / Opportunity Workflows & Group Management | 5, 9, 13, 6, 29, 34, 36 | 10 | Event Hub, Public Website, CRM, Workflows | `future (needs PRD)` |
+| **38** | `member-care-ops` | Member Care, Crisis & Restricted-Ministry Operations | 10, 3, 4, 9, 29 | 6, 12, 26, 34 | Member Care, Mission Control, security-sensitive projections | `future (needs PRD)` — **new in v2** |
+| **39** | `field-first-ux` | Mobile, Low-Bandwidth & Conflict-Safe Field Experience | 3, 4, 9, 28 | 31 | Cross-surface UX, `packages/api` concurrency contracts | `future (needs PRD)` — **new in v2** |
+| **40** | `data-stewardship-ai` | Data Stewardship, Global Search & AI Operator Workbench | 3, 4, 8, 9, 13, 30, 33 | 6, 11, 34 | Mission Control, Data Tools, Search, AI Assist | `future (needs PRD)` — **new in v2** |
+
+**Phase 26 activation qualifier.** Phase 23 is a required owning-phase
+prerequisite for the selected Help/contact/form and Public Guidance lanes, with
+qualification at each actual consumer seam before that lane activates. It is
+not a blanket prerequisite for all Support work: core inbox/work/CRM paths keep
+their own dependencies, and Internal Staff guides remain Support-owned
+operational content rather than CMS Pages. The
+[ratified Phase 26 specification](./phase-26-support-hub-conversation-management.md)
+sets the exact boundaries and proof gates; this qualifier grants no activation
+or implementation authority.
 
 **Out of scope (deliberate):** **child sponsorship** (tracked as an
 out-of-scope row in [`parity-matrix.md`](./parity-matrix.md)).
@@ -235,8 +266,11 @@ generally precede higher ones.
   independent chains and can be groomed/built in parallel.
 - **Phase 17 (System Messages)** needs only 6 + 2 + 3 + 7 — it can run alongside
   either chain.
-- **Phase 23 (Web Studio/CMS)** needs only 5 + 3 + 2 — it can start early
-  whenever content-lane capacity exists.
+- **Phase 23 (Web Studio/CMS)** has hard implementation dependencies
+  **2 + 3 + 5** and can start when those foundations qualify. Phase 10, 12 and
+  22 remain required at affected consumer/safety seams, not blanket core merge
+  gates. The ordinary Phase 23 core does not wait for the original P22 PR to
+  merge; an integration cannot activate without its exact qualified owner.
 - **Phase 31 (Platform API framework)** needs only 1/3/4/6 hard — its spine
   can also be pulled forward if integration pressure demands, though its
   useful payload grows with 9 + 13.
@@ -436,7 +470,8 @@ runtime — it does _not_ fork a second healer), alert routing (Sentry + the
 Phase-6 send seam), and the **CRM data-health catalog** that Phase 40 builds
 its stewardship product on. The one net-new active heal it owns —
 re-projecting a stale derived view — is reserved until Phase 9 makes derived
-views exist. Withdrawn (dormant code → #602): the write gate,
+views exist. The withdrawn Twenty runtime was removed through merged PR #1325
+on 2026-08-19: the write gate,
 provider-idempotency, reactive pause, kill-switch, provider-health probing,
 and Notes write-enable.
 
@@ -554,7 +589,11 @@ with no firewall.
 - **Consent & publishing preferences** per person (explicit consent records
   for publishing name/photo/story; hard do-not-publish flags), wired into the
   existing outbound-email consent gate — honoring the Art. 9(2)(d) invariant
-  (no disclosure outside the body without consent).
+  (no disclosure outside the body without consent). Phase 22 D26 narrowly uses
+  one whole-candidate Public Content Sharing Attestation as its ordinary Page
+  and Update input, so absent granular affirmative rows alone create no second
+  editorial workflow; any known objection, hard flag, restriction, or stricter
+  current safety result still wins, and other Phase 10 purposes are unchanged.
 - **Security-aware content seams** for later phases: the review-before-publish
   **verdict contract** (`allowed | needs_review | blocked`) that Phase 22 (public
   pages) and Phase 32 (newsletters) consume. _(Trigger-word content detection
@@ -2232,8 +2271,10 @@ immutable coverage. Final accounting delivery and reconciliation stay in Phase
   become a compensation adapter.
   Donation-only views remain clearly labelled activity until a source-owned
   Phase 21 projection exists.
-  Public support progress consumes an approved public-goal projection and
-  never exposes an internal Field Account balance or ministry-expense capacity.
+  Public support progress consumes only the exact D6 page profile and compatible
+  Phase 13/16/28 source projection; typed counts do not require a Phase 28 goal.
+  It never exposes an internal Field Account balance, support-credit amount, or
+  ministry-expense capacity.
   Currency implementation also rejects implicit USD, mutable account currency,
   destructive merge, selector-only balance discovery, mixed-currency totals,
   provider-rate inference, a generic readiness flag, provider calls during
@@ -2640,145 +2681,568 @@ runtime and production authorization are not claimed.
 
 ### Phase 22 — Public Missionary & Project Page Workflow (`public-ministry-pages`)
 
+**Status.** `PRD exists` — implementation-ready planning, not implemented. The founder accepted the completed
+[formal closure audit §51](./phase-22-public-ministry-pages-research-evidence.md#51-formal-phase-22-closure-audit--d1d27-are-product-decision-complete)
+on 2026-08-14 and froze D1–D27 as the complete Phase 22 grooming authority. No
+D28 is opened. The founder subsequently invoked `/to-spec`; the canonical
+[Phase 22 PRD](./phase-22-public-ministry-pages.md) and active
+[`add-public-ministry-pages` OpenSpec change](../../../openspec/changes/add-public-ministry-pages/proposal.md)
+now carry the approved implementation contract. Parent specification issue
+[#1281](https://github.com/Asymmetric-al/core/issues/1281) owns 41 native child
+issues, [#1282](https://github.com/Asymmetric-al/core/issues/1282) through
+[#1322](https://github.com/Asymmetric-al/core/issues/1322), connected by 117
+native blocking relationships. P22-01/#1282 alone among the 41 implementation
+children is the current `ready-for-agent` frontier. Implementation, migration,
+and production remain separate work governed by each ticket's live blockers.
+
 **What this phase is (plain language).** The public pages where donors meet
 missionaries and projects — connected to _real_ operational records instead
 of the mock data the public `/workers` pages render today. A missionary's
-public page shows their story, a support progress bar, and a give button
-that lands in the right designation with the right attribution; the
-missionary can propose edits; staff approve; and **restricted workers are
-protected by construction** (Phase 10).
+public page shows their story, an optional source-authoritative support
+progress presentation, and a give button that lands in the right designation
+with the right attribution. A missionary can prepare and deliberately submit
+edits; the tenant's current Phase 22 Review & Release Profile decides whether
+an authorized staff member reviews that exact candidate or it releases after
+all mandatory checks pass; and **restricted workers are protected by
+construction** (Phase 10).
 
-**Why it sits here.** Needs the Phase 5 runtime contract, Phase 9 parties
-(pages represent parties), **Phase 10 safety (hard — a public identity
-surface must not exist before the publication firewall)**, and Phase 13
-designations (CTAs carry designation + source code + site/locale context).
+**Why it sits here.** Needs the Phase 5 runtime contract; Phase 9 Parties and
+organization-owned Ministry Assignments; **Phase 10 safety (hard — a public
+identity surface must not exist before the publication firewall)**; Phase 12
+authorization; Phase 13 Designations (CTAs carry designation + source code +
+site/locale context); and optional Phase 21 support projections.
 
 **What it covers.**
 
-- **Public page ↔ party linkage**: presentation identity (CMS content)
-  referencing operational identity (party) — reference, never copy; the
-  public projection renders only Phase 10 public-tier fields (alias,
-  approved photo, generalized region for restricted workers).
-- **Support progress**: percent-raised / monthly-support-vs-goal computed
-  from source-authoritative ledger facts and commitments (13/16; offline
-  gifts included via 15) against an approved Phase 28 support-raising goal,
-  through the existing PII-safe public projection pattern. Base public pages
-  ship cleanly without this optional progress widget until that approved goal
-  projection exists. Its numerator and denominator must use the same explicit
-  currency and period; a converted comparison is a visibly labelled Phase 33
-  reporting projection, never source truth. It never exposes or substitutes a
-  Phase 21 Field Account balance, available-to-spend amount, assessment,
-  expense, or accounting total. When donor-facing assessment disclosure is
-  required, Phase 22 may render only the approved general policy-language
-  projection; it never exposes an account-specific profile, rate,
-  determination, or support-credited result and never recalculates progress
-  from those effects.
-- **Missionary edit workflow**: workspace-submitted drafts → staff review
-  queue → publish, consuming Phase 10's publication firewall + review-verdict
-  contract and photo/EXIF scrubbing in the pipeline; shareable expiring review
-  links.
+- **Missionary Page ↔ Ministry Assignment linkage**: presentation identity
+  references one organization-owned operational Ministry Assignment—never a
+  copied Party, household, Support Assignment, Field Account, or CMS ownership
+  shortcut. Each spouse, teammate, leader, and contributor remains a separate
+  Party and principal. D1 Display Participant and contributor facts decide
+  public portrayal and editing; the public projection renders only Phase 10
+  public-tier fields such as an approved alias, approved photo, and generalized
+  region for restricted workers.
+- **Exact typed Project/Campaign Page subjects**: every Project/Campaign Page
+  binds immutably to exactly one owner-certified CRM Ministry Project, Phase 13
+  Giving Campaign, or separately public-subject-eligible Phase 13 Designation.
+  The CRM operational layer owns the minimal Ministry Project identity and
+  lifecycle; Phase 13 owns Campaign/Designation truth; Phase 22 owns only the
+  exact Page Subject Binding and release-pinned privacy-safe snapshot. Subject,
+  D7 Giving, D6 progress, D1 contributors/display, D2 reach/release, D8
+  lifecycle, D9 media, D11 Updates, D13 discovery, and D14 search/share remain
+  independent. Staff answer one plain-language **What is this page about?**
+  question and then review separate **This Page is about**, **Gifts go to**,
+  **Progress shown**, **Who can edit**, **Public reach**, and review/release
+  rows. Before first release a correction is a CAS-guarded binding successor;
+  afterward a different subject requires a new Page identity plus D8 succession.
+  No CMS record, fund, `fundId`, title, accounting project, Party relationship,
+  Campaign owner, or Designation membership may fabricate a project or infer
+  permissions, public identity, Giving, progress, or lifecycle.
+- **Optional, page-resolved support progress**: every released page explicitly
+  selects **Do not show public progress** or exactly one compatible typed
+  metric. Page Family and tenant defaults only seed new drafts; they never
+  decide visibility, assume missionary means monthly or project means finite,
+  or live-inherit into released pages. Eligible sources remain distinct:
+  Phase 13 owns corrected posted-effective gross received and typed counts,
+  Phase 16 owns a separately certified active-commitment projection, and Phase
+  28 owns a referenced Support-Raising Goal Version. Phase 15 contributes only
+  after an offline gift becomes Phase 13 posted-effective truth. Every monetary
+  comparison uses one exact ISO currency, compatible period and goal, names
+  whether it is **committed** or **received**, and shows a through date. There
+  is no mixed commitment/receipt formula, mutable counter, manual total,
+  converted public grand total, or Phase 20/21/33 fallback. Privacy is applied
+  before aggregation; incomplete, stale, suppressed, or unsafe truth omits only
+  the optional block and opens one cause-owned staff exception rather than
+  showing zero or last-known data. Giving remains independently controlled.
+- **Missionary edit workflow**: private workspace drafts become immutable
+  release candidates only after deliberate submission. The tenant selects
+  `Review before publishing` or `Publish after checks` prospectively for each
+  page/update path; both modes consume Phase 10's publication firewall and
+  review-verdict contract, then use the content owner's current-proofed release
+  command: D2's Page CAS and Page Release Manifest for a Page, or D11's
+  audience-scoped CAS, Audience Release Manifest, and selected projection head
+  for a Ministry Update. Neither command or manifest may substitute for the
+  other. Review-mode staff judge the exact rendered candidate through
+  **Approve & publish** or **Request changes**; healthy automatic candidates do
+  not enter the staff queue. Phase 22 adds no second consent workflow or
+  participant/field/asset permission matrix. A contributor assignment alone
+  never grants publication authority; in the automatic lane an authorized
+  contributor may initiate **Publish changes**, while the tenant profile and
+  current system proofs still decide whether one release succeeds.
 - **Optional AI drafting assistance**: a tenant may bind an independently
   authorized public-profile drafting purpose through the shared D10 AI Provider
   Connection, write-only Credential Revision, and prospective
-  capability-certified Binding Version. Phase 22—not Phase 21 or the model—owns
+  capability-certified Binding Version. One quiet **Help me write** control may
+  act only on an exact D1 contributor-editable D3 narrative field, block, or
+  selection through a source-visible minimum-data manifest, immutable private
+  suggestion, accessible original-versus-suggestion review, and explicit CAS-
+  guarded Use into an ordinary successor working revision. The code-owned action
+  catalog is small; AI never reads broad Page, CRM, supporter, receipt, expense,
+  financial, progress, or Giving context and never submits or publishes.
+  **Translate to English** is separately available only for a pair-certified
+  source language and exact existing Phase 24 English BCP 47 target locale. It
+  names both languages, treats detection as confirmable help, separates mixed-
+  language ambiguity, preserves the original, and cannot combine translation
+  with rewriting or factual localization. Every result carries the adjacent
+  **Check this translation** warning and asks the author to review names, dates,
+  numbers, quotations, Scripture, ministry terms, relationships, and cultural
+  meaning; important content should be checked by a fluent English reader and
+  is never represented as certified. Phase 22—not Phase 21 or the model—owns
   biography draft meaning, source selection, human acceptance, moderation,
-  consent, review, and publication. The feature is suggestion-only, never reads
-  receipt evidence, never bypasses the Phase 10 firewall, and has a complete
+  consent, review, and publication. The feature is tenant-off-by-default,
+  suggestion-only, never bypasses the Phase 10 firewall, and has a complete
   manual writing path.
-- **Giving CTAs** preserving site, source code, locale, currency, and
-  designation through the Phase 5 checkout handoff into the Phase 13 cart.
-  The server resolves the designation's exact Legal Entity and
-  SettlementAccountBinding and shows the issuer before confirmation; a Site
-  never defines or overrides financial ownership.
-- **Project/campaign pages** with the same mechanics (designation-backed,
-  progress from ledger truth).
-- **Page lifecycle**: created on mobilization and retired safely on departure.
-  Phase 21 D5's exact Worker Lifecycle Authority Reference may trigger the
-  presentation task, but Phase 22 retires or redirects only after Phase 13/16
-  proves the financial destination or recurring-term successor. A page never
-  chooses or silently redirects money, and no orphaned page continues
-  collecting for an inactive destination.
+- **Canonical Ministry Updates with exact audience projections**: one stable,
+  source-scoped Ministry Update has immutable Revisions and one exact Audience
+  Release Manifest. Independently recoverable Public Page and authenticated
+  purpose-authorized Supporter projections consume D1 contribution authority,
+  D3's exact Feed Binding, D4/D5's sole review/release lane, D2's current reach,
+  Phase 10's per-egress ceiling, Phase 12 current authorization, Phase 24
+  locale, and D9/Phase 29 media. The missionary uses one accessible autosaving
+  **Ministry updates** composer—**My Feed** is only a legacy alias—with separate
+  **Save draft**, tenant-seeded **Supporters**, **Public page**, or **Public page
+  and supporters** choices, exact previews, an optional deliberately authored
+  public-safe variant, and one consequence review. Publication, current
+  protected access, supporter relationship, notification intent, recipient/
+  consent/suppression/cadence, provider delivery, engagement, and Giving remain
+  separate truths. **Publish & notify supporters** may be one quiet interaction
+  but routes notification through Phases 28/17/6; it is never hidden email or
+  collapsed authority. Corrections and withdrawal are audience-specific and
+  append-only, current protected membership is re-proved on every governed
+  request, and migration uses one complete disposition manifest and authority
+  cutover rather than copied posts, inferred audiences, or dual write.
+- **Bounded authenticated supporter responses**: one prospective immutable
+  tenant Supporter Response Profile Version selects exactly **Responses off**,
+  **Like + I prayed**, or **Like + I prayed + comments**. New tenants begin off;
+  guided setup recommends acknowledgements without comments. Every response is
+  contained inside one exact D11 Supporter Release Projection-bound Engagement
+  Space and re-proves current purpose-authorized membership, Phase 10 safety,
+  and Phase 12 authority on every operation. Like and I prayed are fixed,
+  reversible, idempotent acknowledgements. Optional comments are bounded plain
+  text with one reply level, append-only self-edit/withdrawal, privacy-safe
+  tombstones, and one quiet reversible moderation lane. Counts/viewer state are
+  rebuildable audience-local projections; anonymous public releases contain no
+  protected response fact. Phase 22 emits typed response/moderation occurrences
+  only—Phases 17/6 independently own any communication, and D7/Phase 13 owns
+  Giving. No existing demo reactions, mutable counters, comments, raw browser
+  tables, or Realtime policies are grandfathered as D12 authority.
+- **Scoped public ministry discovery**: one exact Tenant, Legal Entity,
+  environment, Site, and locale-scoped Public Ministry Discovery Profile uses
+  **Together** by quiet default or tenant-selected **Separate by Page Family**
+  presentation over one complete D2/Phase-10-admitted Directory Projection,
+  bounded server query contract, and family-typed card contract. Separate
+  Missionary and Project destinations are views, never separate membership,
+  index, search, cache, or inclusion authorities. Search uses admitted public
+  fields only, deterministic locale-pinned behavior, bounded filters, opaque
+  generation-bound keyset cursors, complete shadow rebuilds, atomic head
+  activation, and affected-positive-first removal. D6 progress and D7 Giving
+  remain optional independent references; Phase 5/D8 retain request and route
+  authority. No page-level directory toggle, raw browser table/Realtime read,
+  hidden facet count, map/exact coordinate, popularity or financial ranking,
+  unsafe locale fallback, dual-read migration, or concurrent indexable
+  Together/Separate catalogs may become D13 authority.
+- **Release-bound public search and sharing presentation**: one immutable,
+  locale-exact D14 manifest contains distinct Search and Share results for each
+  exact current Phase-10-safe Page Release and Public Page Ministry Update
+  Release. Listed-public releases are server-rendered, canonical, reciprocal-
+  locale and exact-host sitemap eligible, locally search-index eligible, and
+  shareable; Shared-by-link releases remain public and shareable but `noindex`
+  and absent from public discovery; stricter truth emits no content-specific
+  anonymous presentation. Each canonical Ministry Update has one stable opaque
+  Site/locale permalink whose posture derives from complete current placement
+  coverage. One code-owned compiler produces coherent HTML/head, crawler
+  directives, canonical/alternate links, significant-release `lastmod`,
+  sharded sitemaps, visible-fact JSON-LD, Open Graph-compatible metadata, and an
+  exact D9-certified social derivative. Staff get generated defaults and only
+  bounded locale title/description and certified-image choices inside the sole
+  D4/D5 lane; visitors get native Share plus Copy-link/click-only fallbacks.
+  Search-ready, crawler submission, crawl, index, rank, snippet, share opening,
+  completed sharing, cache refresh, local removal, and external forgetting
+  remain distinct facts.
+- **Bounded public-ministry measurement**: one prospective Tenant × Legal
+  Entity × Site profile is persisted **Off** until staff explicitly selects
+  guided **Staff only** or **Staff + assigned page contributors**. Exactly four
+  fixed, first-party, immutable-release-bound interactions—qualified Page load,
+  full Update open, Share options opened, and Give button selected—use
+  best-effort same-origin post-render or explicit-action intake; fetch, render,
+  preview, crawler, scanner, social-card, and monitor paths create nothing.
+  Durable measurement contains no raw IP/header, URL/referrer, identity,
+  fingerprint, cookie/session, free-form, replay, or cross-site/device data.
+  Private occurrences and idempotency evidence expire within 24 hours; sealed
+  daily aggregates retain for one code-owned 24-month period with append-only
+  corrections. Every report read/export re-proves current Phase 12 staff or D1
+  exact-page assignment authority. One accessible **Public page activity**
+  report uses fixed 7/30/90 complete-day presets, suppression-safe values,
+  distinct coverage states, and **Data complete through** truth. D15 never
+  claims people, reach, completed shares, conversion, gifts, attribution,
+  settlement, or payment; its failure never changes the public or Giving path,
+  and replay-free production proof precedes activation.
+- **One exact Giving destination per released page for the MVP**: every
+  Missionary Ministry Page and Project/Campaign Page pins one immutable Page
+  Giving Binding to exactly one Phase 13 Designation, and every CTA placement
+  shares it. Phase 5 carries only untrusted plain parameters; cart/checkout
+  entry and the final pre-provider boundary re-prove the current D2 release,
+  Phase 10-safe label and eligibility, Tenant, Legal Entity, Site, binding,
+  Designation, Settlement Account Binding, environment, currency, cadence,
+  registered attribution, and internal return path. Suggested amount/frequency
+  and per-CTA source code remain bounded context, never routing authority. A
+  stale or ineligible destination makes only Giving unavailable with no silent
+  fallback; any separately labelled general-giving path starts a fresh donor
+  choice. Phase 13's campaign `expected designations` remains staff intent and
+  a future seam, not a Phase 22 MVP public picker. A Site never defines or
+  overrides financial ownership.
+- **Project/campaign pages** with the same publication and Giving mechanics;
+  progress is absent or uses the page's exact D6 source-authoritative profile,
+  never a Page-Family default or copied campaign counter.
+- **Source-qualified route and lifecycle disposition**: a route/lifecycle source
+  event opens one cause-owned case but never chooses the public result. Staff may
+  keep the current eligible release, publish a substantive coverage-aware
+  Transition Notice Release at the current address, permanently move only the
+  same immutable Listed-public Page to its already released eligible new
+  canonical route, or remove the route through the same real privacy-safe `404`
+  plus `noindex` as an unknown page. A different proved successor presentation
+  is a clearly labelled fresh link, never a redirect or inherited Giving action.
+  The external URL namespace is uniquely Site × locale × canonical path; exact
+  Tenant, Legal Entity, Page Family, Page, route class, and release scope remain
+  mandatory composite integrity. Shared/restricted direct links never redirect;
+  resolver outage is neutral no-store `503`; every request freshly checks D2 and
+  Phase 10 before cached content. D7/Phase 13 Giving and Phase 16 recurring truth
+  remain independent, so a page disposition never chooses, closes, moves, or
+  silently redirects money.
+- **Release-bound, privacy-preserving public media**: one Phase-29-compatible
+  Public Ministry Media Asset contract separates short-lived private Upload
+  Intakes, immutable Sanitized Media Master Versions, bounded certified Public
+  Media Derivative Manifests, and context-owned Public Ministry Media Placement
+  Versions. Original filenames and prohibited source metadata never enter a
+  durable identity, public URL or response, derivative, log, analytic, error,
+  export, title, or alt-text default. Qualifying still images are fully decoded,
+  bounded, reconstructed, re-encoded, and independently reparsed before they
+  can become ready; raw originals, raw provider URLs, mutable overwrite, SVG,
+  animation, arbitrary remote fetch, and unproved formats remain ineligible.
+  Every placement pins its exact semantic role, focal point or crop, contextual
+  alt-or-decorative decision, caption/attribution, master, and responsive/card/
+  social derivative set. D3 owns typed placement, D4/D5 remain the sole review
+  lane, and the Page Release Manifest atomically pins only certified
+  derivatives after fresh D2 and Phase 10 proof. Replacement keeps the old
+  coherent release live until the new release succeeds. Ordinary removal is a
+  page draft; urgent remove-everywhere is smallest-scope Phase 10 containment
+  with exact where-used evidence. An opaque Asym-controlled resolver serves
+  private-origin bytes and records targeted purge outcomes without claiming
+  recall from external copies. Phase 22 owns public-media meaning, placement,
+  release eligibility, and withdrawal intent; Phase 29 owns shared byte
+  custody, scans, transformations, copy inventory, access, retention, and
+  disposal evidence.
+- **Authenticated exact-version Public Ministry Preview**: a contributor
+  previews one explicitly selected coherently saved working revision; an
+  authorized staff editor/reviewer or existing verified tenant principal with
+  one exact Phase 12 page-scoped `Preview only` named grant previews one
+  immutable submitted candidate. Every HTML, RSC/data, media, refresh, and
+  session-continuation request reauthenticates and reauthorizes the exact
+  principal, active tenant assignment, Tenant, Legal Entity, Site, Page Family,
+  Page, locale, version/candidate, purpose, assignment/capability/grant and
+  expiry, authorization epoch, environment, Phase 10 ceiling, D3 renderer
+  generation, and D9 media coverage. Preview uses Phase 5's production-
+  equivalent reader and renderer, is private, `no-store`, non-indexable,
+  referrer-suppressed, and makes Giving, forms, embeds, notifications,
+  tracking, and other consequential controls visibly inert. Authentication,
+  Draft Mode, a copied URL, role, relationship, CMS user, or service role grants
+  nothing. No anonymous, bearer, shared-password, preview-token, or separate
+  guest-identity path exists, and preview never means reviewed, released,
+  live, Giving-ready, payable, or paid.
+- **Release-bound Public Ministry runtime composition**: Phase 5 executes the
+  public runtime and cache mechanics; Phase 22 owns Public Ministry semantics,
+  current-serving admission, and adverse-first convergence across controlled
+  surfaces. Every Asym-controlled response evaluates current serving before
+  returning reusable positive content, and no Payload publish state, cache,
+  deployment, provider result, or effect worker becomes a second public
+  authority. D18 is recorded in
+  [ADR-0135](../../adr/0135-release-bound-public-ministry-runtime-composition.md).
+- **Organization-owned Ministry Assignments with separated support access**:
+  one stable Phase-9-owned, Tenant- and Legal-Entity-scoped Ministry Assignment is the exact
+  Missionary Ministry Page subject. Zero-to-many effective-dated, append-only-
+  corrected Party memberships model spouses, teammates, leaders, coaches,
+  staff, and contributors without shared accounts or implicit access. One
+  optional prospective Phase-21-owned Support Binding Version may connect the
+  Ministry Assignment to one exact Support Assignment. It never grants access:
+  each person separately requires the current purpose-, projection-, target-,
+  field-, currency-, and history-specific Phase 12 Support Workspace grant, and
+  the tenant's D9 publication must permit the selected module. A quiet **People
+  & access** experience can apply explicit same-scope membership, display,
+  contributor, notification, responsibility, and support-access facts through
+  bounded presets after one literal consequence review. Membership, marriage,
+  display, editing, Designation, notification preference, or the binding itself
+  cannot expose supporter identity, read support data, move money, or rewrite
+  history. Raw tables remain browser-inaccessible; coarse Tenant RLS plus the
+  sole server-side Phase 12 policy decision point, live authorization epochs,
+  append-only evidence, deny-first revocation, and production-shaped isolation
+  proof are mandatory. D19 is recorded in
+  [ADR-0136](../../adr/0136-organization-owned-ministry-assignments-and-separated-support-access.md).
 
-**Boundaries & guardrails.** Public pages are presentation, never
-operational identity or financial truth. Missionary edits route through
-approval. Restricted-worker rules are enforced at the projection, not by
-page-by-page configuration (SiteStacker's page-level "Authenticate" checkbox
-model is the anti-pattern).
+- **Two bounded Page Family Semantic Catalogs and quiet authoring**: D20 fills
+  D3's concrete launch vocabulary with one immutable code-owned Missionary
+  Ministry catalog and one non-interchangeable Project/Campaign catalog. Every
+  semantic role declares source/edit authority, cardinality, certified zone,
+  locale/accessibility/performance behavior, and exact empty, unavailable,
+  invalid, and withdrawn outcomes. A prospective D3 profile may set only an
+  eligible optional editorial role to **Off**, **Available**, or **Expected**,
+  choose bounded order inside certified zones, and make it staff-only or
+  contributor-editable. Expected is private completeness guidance, never
+  public filler. Contributors work through one quiet **Basics**, **Story**,
+  **Media**, **Support & giving**, and **Updates** form; staff configure two
+  compact family surfaces with safe defaults and prospective consequence
+  preview. Every D2 release pins the exact catalog/renderer/profile/content/
+  locale/brand/managed-reference generations. Unknown, wrong-family,
+  unauthorized, stale, or over-budget input rejects the new candidate and
+  preserves the last certified release. The current shared seven-block Payload
+  builder, copied mutable templates, free CTA URLs, duplicated serializers, and
+  silent unknown-block omission are migration evidence only. D20 is recorded in
+  [ADR-0137](../../adr/0137-two-bounded-page-family-semantic-catalogs.md).
 
-**Open questions for grooming.** Slug policy for restricted workers (never
-name-derived); page templates per org vs per-missionary customization
-latitude; whether staff can override a missionary's page entirely; and, after
-source-owned financial succession is proved, whether the departed-worker page
-redirects to the approved successor presentation or shows an explanatory
-message.
+- **Complete-surface authority cutover with incremental private Page
+  adoption**: D21 replaces the current mock, static, generic, and copied Public
+  Ministry surface through one immutable-scope Adoption Case per exact Tenant ×
+  Legal Entity × environment × Site × verified-host set × locale. Preparation
+  is additive, chunked, resumable, private, and non-authoritative; the public
+  surface changes once through one content-addressed complete Adoption Coverage
+  Manifest and a short current-reproved, idempotent CAS authority cutover.
+  Every discovered route, Page/version, shared template, subject/identity hint,
+  Giving hint, Update, media artifact, preview, directory/search/sitemap/social
+  output, cache variant, API/reader, fixture, and import path receives exactly
+  one non-overlapping disposition. A narrowly certified compatible-legacy D2
+  release may preserve proved-safe editorial presentation only where D20 allows
+  it; it is never raw Payload publication, a fallback reader, or managed truth.
+  The D21 production-shaped shadow has no public effects, staff review only
+  genuine exceptions and one complete visitor-consequence summary, and the one
+  literal action is **Start using these prepared pages**. After cutover the
+  Phase 5/D18 gateway is the sole reader, current admission prevents stale
+  positive bytes from regaining authority, and recovery may select only a
+  currently re-proved generation-compatible safe release—never mock data, the
+  legacy reader, destructive rollback, or deployment-as-content authority. D21
+  is recorded in
+  [Phase 22 research evidence §44](./phase-22-public-ministry-pages-research-evidence.md#44-ratified-d21-research--complete-public-ministry-surface-authority-cutover)
+  and
+  [ADR-0138](../../adr/0138-complete-public-ministry-surface-authority-cutover.md).
+
+**Boundaries & guardrails.** Public pages are presentation, never operational
+identity or financial truth. Missionary edits route through the tenant's exact
+Review & Release Profile and the same mandatory safety/release proof; automatic
+release is system execution of standing tenant authority, not contributor
+publication authority. Restricted-worker rules are enforced at the projection,
+not by page-by-page configuration (SiteStacker's page-level "Authenticate"
+checkbox model is the anti-pattern).
+
+**Scope-freeze record.** D1–D27 are binding and no founder-level product question
+remains open. D12's bounded Supporter
+Response contract is recorded in
+[ADR-0129](../../adr/0129-bounded-supporter-response-profiles.md). D13 ratifies
+one source-complete directory/search authority with tenant-chosen Together or
+Separate-by-family presentation, recorded in
+[Phase 22 research evidence §29](./phase-22-public-ministry-pages-research-evidence.md#29-ratified-d13-adversarial-review--one-authority-tenant-chosen-directory-topology)
+and
+[ADR-0130](../../adr/0130-scoped-public-ministry-discovery-with-tenant-chosen-topology.md).
+D14's exact search/share manifest, stable Update permalink, safe sharing, and
+honest external-outcome contract are recorded in
+[Phase 22 research evidence §32](./phase-22-public-ministry-pages-research-evidence.md#32-ratified-d14-selected-option-adversarial-review-and-hardened-decision)
+and
+[ADR-0131](../../adr/0131-release-bound-public-search-and-sharing-presentation.md).
+D15's bounded first-party measurement, current-assignment visibility, privacy
+ceiling, through-dated reporting, and failure-isolation contract are recorded
+in
+[Phase 22 research evidence §36](./phase-22-public-ministry-pages-research-evidence.md#36-ratified-d15-synthesis-and-hardened-decision)
+and
+[ADR-0132](../../adr/0132-bounded-public-ministry-measurement-and-contributor-visibility.md).
+D16's source-bounded assistant, exact-English-locale translation rider,
+check-work warning, and shared-D10/manual-continuity contract are recorded in
+[Phase 22 research evidence §§37–39](./phase-22-public-ministry-pages-research-evidence.md#37-ratified-d16-research--source-bounded-public-page-writing-assistant)
+and
+[ADR-0133](../../adr/0133-source-bounded-public-page-writing-assistance.md).
+D17's owner-certified closed subject-kind contract, CRM-owned Ministry Project
+source, independently authoritative Page Subject/Giving/progress/permission
+bindings, and immutable subject-succession rules are recorded in
+[Phase 22 research evidence §41](./phase-22-public-ministry-pages-research-evidence.md#41-ratified-d17-research--one-exact-source-qualified-typed-projectcampaign-page-subject)
+and
+[ADR-0134](../../adr/0134-exact-typed-public-page-subject-bindings.md).
+D18's release-bound composition, current-serving admission, adverse-first
+convergence, and Phase 5 execution boundary are recorded in
+[ADR-0135](../../adr/0135-release-bound-public-ministry-runtime-composition.md).
+D19's organization-owned Ministry Assignment subject, effective-dated Party
+memberships, independently authorized Support Workspace access, and
+Phase-21-owned optional Support Binding are recorded in
+[Phase 22 research evidence §42](./phase-22-public-ministry-pages-research-evidence.md#42-ratified-d19-research--organization-owned-ministry-assignments-and-separated-support-access)
+and
+[ADR-0136](../../adr/0136-organization-owned-ministry-assignments-and-separated-support-access.md).
+D20's exact family catalogs, D3 section offerings, bounded authoring experience,
+source/edit authority, release pinning, and fail-closed candidate behavior are
+recorded in
+[Phase 22 research evidence §43](./phase-22-public-ministry-pages-research-evidence.md#43-ratified-d20-research--two-small-code-owned-page-family-semantic-catalogs-under-d3)
+and
+[ADR-0137](../../adr/0137-two-bounded-page-family-semantic-catalogs.md).
+D21's complete surface census and adoption coverage, incremental private
+preparation, compatible-legacy boundary, production-shaped shadow, one current-
+reproved CAS authority transition, quiet role-specific UX, and no-fallback
+post-cutover contract are recorded in
+[Phase 22 research evidence §44](./phase-22-public-ministry-pages-research-evidence.md#44-ratified-d21-research--complete-public-ministry-surface-authority-cutover)
+and
+[ADR-0138](../../adr/0138-complete-public-ministry-surface-authority-cutover.md).
+D22's quiet disposable Public Page Operations Projection, three fixed
+permission-filtered navigation views, source-owned root causes and resolution,
+cause-to-impact grouping, finite owner actions, and prohibition on Page-health,
+mutable close, and second-workflow authority are recorded in
+[Phase 22 research evidence §45](./phase-22-public-ministry-pages-research-evidence.md#45-ratified-d22-research--quiet-derived-public-page-operations)
+and
+[ADR-0139](../../adr/0139-derived-public-page-operations-with-cause-owned-actions.md).
+No current mock, `public.locations`, exact-coordinate map, browser filtering,
+raw table/Realtime policy, independent family index, global metadata helper,
+raw-id URL, original-filename serializer, fictional share URL, or inert Share
+control, Session Replay, access-log-derived counter, or mock/financial
+missionary Analytics, generic seven-block builder, free author-entered CTA URL,
+mutable copied template, silent unknown-block omission, page-by-page authority
+flag, mixed reader, fuzzy adoption, or destructive legacy rollback is
+grandfathered. D23 Public Pages setup/settings is ratified as the exact
+C-prime-R: one scope-first disposable summary over source-owned versions with
+one owner-specific amendment at a time. D24 is ratified as one
+attribution-preserving Staff-authored Page Revision path inside D1's sole
+working head and the unchanged D4/D5/D2 review-and-release lane: staff edit,
+review, release, reach, safety, and managed-fact authority remain separate;
+active or submitted contributor work remains immutable and attributed; routine
+staff edits remain quiet; and successor-only, current-reproved CAS prevents an
+override, destructive restore, or last-write-wins path. See
+[Phase 22 research evidence §47](./phase-22-public-ministry-pages-research-evidence.md#47-ratified-d24-research--attribution-preserving-staff-authored-page-revisions)
+and
+[ADR-0141](../../adr/0141-attribution-preserving-staff-authored-page-revisions.md).
+The founder ratified D25 as the exact hardened C-prime-R. It keeps the design
+database-minimal: actionability is derived
+per action from current owner facts; one coalesced Payload recovery buffer sits
+beneath the sole Page-and-locale head; deliberate sources remain immutable; and
+no D25 table, status, queue, timer, tenant expiry matrix, or per-autosave event
+stream is added. See
+[Phase 22 research evidence §48](./phase-22-public-ministry-pages-research-evidence.md#48-ratified-d25-research--cause-gated-actionability-with-bounded-recoverable-editorial-work)
+and
+[ADR-0142](../../adr/0142-derived-editorial-actionability-and-bounded-recovery.md).
+The founder ratified D26 as the exact hardened A-prime-R. One calm statement
+beside the existing final action records the actual current submitter's exact
+candidate-bound Public Content Sharing Attestation; it adds no checkbox, D26
+table, Page Boolean, rights workflow, public-render lookup, inherited evidence,
+or staff verification duty. Missing granular affirmative Phase 10 records alone
+create no Page checklist, while known objections, `do_not_publish`, restricted-
+person rules, and stricter current safety remain non-overridable. See
+[Phase 22 research evidence §49](./phase-22-public-ministry-pages-research-evidence.md#49-ratified-d26-research--one-calm-page-content-sharing-attestation)
+and
+[ADR-0143](../../adr/0143-candidate-bound-public-content-sharing-attestation.md).
+D27 is ratified as one Site-scoped Page with exactly one
+Missionary and one Project/Campaign family presentation pattern per Site,
+independent Page × locale editorial releases, public fallback disabled, and a
+complete-cohort compatible family-head switch fenced against concurrent D2
+release changes rather than copied layout or per-Page fanout. This is an
+explicit amendment to the current multi-decision presentation
+composition. See
+[Phase 22 research evidence §50](./phase-22-public-ministry-pages-research-evidence.md#50-ratified-d27-research--one-family-pattern-with-independent-locale-content)
+and
+[ADR-0144](../../adr/0144-site-family-presentation-with-independent-locale-releases.md).
+Implementation, migration, and production activation remain separate work
+governed by the published issue graph and each ticket's live blockers.
 
 ---
 
 ### Phase 23 — CMS / Site Planner Dynamic Content Parity (`web-studio-cms`)
 
-**What this phase is (plain language).** Grow Web Studio into the ministry
-publishing product SiteStacker's Site Planner represents: a page tree,
-menus, dynamic content lists, redirects, scheduled publishing windows, and
-site search — a friendly two-pane "content vs site plan" experience for
-non-technical ministry staff, **without ever exposing raw Payload admin**.
+**Status.** `PRD exists` — implementation-ready planning, not implemented.
+Phase 23 D1–D36 were founder-ratified and formally closed on 2026-08-24. The
+[Phase 23 PRD](./phase-23-web-studio-cms.md), active
+[`add-web-studio-cms` OpenSpec change](../../../openspec/changes/add-web-studio-cms/proposal.md),
+and parent specification issue
+[#1339](https://github.com/Asymmetric-al/core/issues/1339) carry the approved
+implementation contract. The
+[decision log](./phase-23-web-studio-cms-decision-log.md) and ADR-0145 through
+ADR-0180 preserve its founder authority.
 
-**Why it sits here.** Only hard-needs Phases 5/3/2 — it can start early when
-content-lane capacity exists (its number reflects priority, not
-dependency). Phase 10 and Phase 22 gate only the public operational blocks
-that consume their safety and publication contracts, not the CMS foundation.
+**What this phase is (plain language).** Grow Web Studio into the tenant-safe
+ministry publishing product: Page-local content and explicit reuse, staged
+hierarchical paths, curated navigation, one coherent Site Plan release,
+recoverable editing and scheduling, dynamic lists and search, a Content
+Library, exact-locale editorial lineages, whole-Site Preview, forms, public
+media, portability, content health, and production qualification. Staff use an
+Asym-owned ministry UX; Payload remains the content engine behind those
+authority boundaries.
+
+**Why it sits here.** Its hard dependencies remain Phases 2, 3, and 5. Phase 10
+and Phase 22 qualify only the public operational sources that consume their
+safety and publication contracts; they do not gate the ordinary CMS
+foundation. Later owner phases may supply certified integrations without
+becoming hidden prerequisites for the Phase 23 core.
 
 **What it covers.**
 
-- **Page tree** (drag-drop sitemap over the Payload nested-docs plugin —
-  parent/breadcrumb/URL cascade is plugin-provided; the tree UI is the Web
-  Studio build), per-site slug uniqueness, auto-redirect on slug change.
-- **Menu management** with item-level visibility conditions and versioned
-  draft/preview (the Phase 5 nav draft-leak fix must hold through the menu
-  editor).
-- **Redirects UI + runtime enforcement** (the Payload redirects plugin only
-  _stores_ them — the public app must enforce, with loop/collision
-  validation and cache-tag invalidation).
-- **Visibility windows**: scheduled publish **and unpublish** via Payload
-  `schedulePublish` — which silently never fires without a deployed jobs
-  runner; wire the runner (Inngest vs Payload jobs — one scheduler, decided
-  at grooming) _before_ the UI ships, with a bounded-staleness backstop.
-- **Dynamic content lists**: missionary/project/opportunity/article list
-  blocks bound to operational records through the published-only,
-  tenant-scoped choke point (SiteStacker's dynamic content types are the
-  parity bar). Missionary, project, and opportunity blocks remain unavailable
-  until the Phase 10 public projection and Phase 22 publication workflow are
-  active; Payload never queries or copies raw operational rows.
-- **Adopt Payload core, don't rebuild**: Folders, Query Presets, Trash,
-  autosave, version history, Live Preview; SEO/search/form-builder plugins.
-- **Localization flags enabled now** on content collections (retrofitting
-  `localized: true` later forces a storage-shape migration — cheap insurance
-  under the fresh-build posture), even while the UI ships English-only.
+- **One coherent Site release (D1–D10):** deterministic Page-local composition,
+  explicit reusable sections, staged hierarchical Public Paths, automatic
+  same-Page route continuity, curated Link-or-Group navigation, bounded
+  semantic Page families and starters, tenant-distinct certified presentation
+  packages, and complete-cohort activation through one sealed Site Plan.
+- **Bounded editorial operations (D11–D13):** one versioned Rich Text Profile
+  with typed video embeds, recoverable autosave with one active editor, and
+  exact-revision publish or unpublish appointments executed through the D1
+  activation authority.
+- **Discoverable and recoverable content (D14–D25):** one versioned Dynamic
+  Source Catalog, three Page-local curation strategies, link-native public
+  windows, one derived public-search projection, authority-free Content Library
+  folders, controlled topics and saved views, reference-aware Trash,
+  explicit-start exact-locale lineages with no silent fallback, independent
+  Copy to Site drafts, one exact public audience with app-owned authenticated
+  surfaces, and immutable whole-Site Preview candidates.
+- **Governed inputs, custody, operations, and production admission (D26–D35):**
+  purpose-bounded forms and domain-owned routes; a Tenant-wide public-media
+  catalog over immutable byte-and-rendition custody; release-bound search and
+  sharing profiles; governed exports and staged imports; Supabase Auth as the
+  sole human authority with governed engine diagnostics; quiet, exception-first
+  Content Health; advisory accessibility assistance with source-owned release
+  invariants; a provider-neutral capacity profile qualified for Vercel; a
+  release-bound Payload v4 major-line commitment; and a census-gated,
+  one-authority pre-production cutover.
 
-**Boundaries & guardrails.** Payload remains the content engine; Web Studio
-is the ministry UX; public runtime stays separate from the donor portal.
-Vendor risk is real (Payload acquired by Figma; its Visual Editor is
-enterprise-tier "coming soon") — the Phase 5 Asym boundary contains it;
-nothing on this roadmap may depend on Payload enterprise features. Judge
-parity on staff outcomes, not wrapper-nesting nostalgia — model
-SiteStacker's inherited-content/wrapper cascade as per-site layout defaults.
-CMS configuration cannot bypass a source domain's publication or safety
-contract.
+**Boundaries & guardrails.** The D1 Site Plan compiler and atomic activation
+fence own every public generation change. The single `PublishedContentReader`
+remains the public observation seam. Supabase Auth remains authoritative for
+human identity and access. Payload, Inngest, Vercel, Supabase Storage, search,
+email, and other providers are qualified engines or adapters, never parallel
+product authorities. No CMS configuration, plugin default, preview, autosave,
+schedule, import, health signal, or diagnostic may bypass tenant isolation,
+source-domain safety, exact-revision publication, or release invariants.
 
-**Open questions for grooming.** Audience-conditional public content
-(beyond date windows) vs the tenant-keyed cache — needs an explicit
-personalization/cache rule before conditions ship; per-locale publish status
-(Payload `localizeStatus` is beta); content import/export as staff-facing vs
-ops-only.
+**Remaining founder questions.** None. D36 formally closed Phase 23. Provider
+qualification, migration census, capacity evidence, accessibility evidence,
+test matrices, and rollout proof are implementation evidence requirements, not
+new product decisions.
+
+**Public Ministry owner seams.** Phase 22 D8 still owns typed Ministry
+Page route dispositions and the uniform privacy-safe response; D13 owns exact
+scope Directory Projection, query, family, cards and topology; D14 owns release-
+bound metadata and manifests. Phase 23 consumes these through qualified owner
+contracts and cannot invent cross-page successors, duplicate public membership
+or override D2 or Phase 10 safety.
+
+**Phase 24 D59 integration.** Phase 24 owns the ordinary self-service Site-
+brand management experience and complete bounded Site Brand Versions; it does
+not create another renderer or serving head. Under Phase 23's adopted
+Presentation Package/Public Site Generation contracts, Phase 24 consumes their qualified presentation choices and release authority. Staff-
+supplied code remains prohibited, and any certified package lane must be
+explicitly reconciled with the repository's governing Base Maia/Base UI
+contract before implementation.
+
+Phase 24 D66 governs public Site Locale publication; Payload localized
+status remains experimental/default-off editor convenience and never Core's
+readiness or serving authority.
 
 ---
 
 ### Phase 24 — Full Multi-Site, Language & Currency Management (`multi-site-management`)
 
-**What this phase is (plain language).** Phase 2 built the primitives (site,
-locale, currency, entry method, source code); this phase builds the **staff
-management product** on top: run a second branded site, add a domain and
-watch it verify, enable a locale and see translation status, configure
-currencies — all self-service in Mission Control/Web Studio.
+**What this phase is (plain language).** Phase 2 built the Site, locale, and
+currency primitives; it also records entry method and source code as
+independent giving-attribution context, but Phase 24 does not manage those
+axes. This phase builds the **staff management product** on the Site/locale/
+currency primitives: run a second branded site, add a domain and watch it
+verify, enable a locale and see translation status, and configure currencies —
+all self-service in Mission Control/Web Studio.
 
 **Why it sits here.** After Phase 23 (site management UX lives in the
 Studio shell) and Phase 2/5 (primitives + runtime).
@@ -2787,19 +3251,42 @@ Studio shell) and Phase 2/5 (primitives + runtime).
 
 - **Site management**: create/configure branded sites (SiteStacker's Site
   Channel mental model: per-site domains, templates, language, content
-  sharing), per-site branding and defaults, and one shared tenant checkout
-  policy. Every financial route is prospectively bound to one exact Legal
-  Entity, Designation, SettlementAccountBinding, environment, and currency
-  lane; a Site supplies presentation and entry context but never defines
-  financial ownership.
-- **Domain lifecycle**: wildcard tenant subdomains by default; custom
-  domains added/verified via the Vercel Domains API with **async
-  verification status UX** (the API is rate-limited — 50/hr/team — so bulk
-  onboarding must queue), automatic SSL, fail-closed unknown-host behavior
+  sharing), complete bounded Site Brand Versions and defaults, and one shared
+  Tenant-wide checkout flow/product structure with Site-scoped brand, currency,
+  and suggested-amount facets. Every financial route is prospectively bound to
+  one exact Legal Entity, Designation, SettlementAccountBinding, environment,
+  and currency lane; a Site supplies presentation and entry context but never
+  defines financial ownership.
+- **Domain lifecycle**: private provider/platform preview hosts during setup;
+  publicly activated Sites use exact Tenant-controlled custom domains added/
+  verified via the Vercel Domains API with **async
+  verification status UX**. Provider domain APIs are rate-limited, so Core
+  coalesces and queues checks, honors current response limit/reset headers and
+  `429` backoff, and presents plan/endpoint limits as source-labelled evidence
+  rather than product constants. Automatic SSL and fail-closed unknown-host behavior
   (Phase 5).
-- **Localization management**: enabled locales per site/tenant, translation
-  status visibility, fallback-chain configuration, per-locale system-message
-  overrides (with Phase 17).
+- **Localization management**: stable Site Locales per Site, exact translation
+  status visibility, private preparation/production-faithful preview, and
+  proof-gated explicit public release. Exact public locale routes never use a
+  Site-wide cross-language content fallback; independently current equivalents
+  may be linked explicitly. Phase 17 separately owns its permitted whole-
+  message fallback and per-locale overrides.
+  D13 public discovery always requests one exact
+  current Site locale and pins its declared search configuration or literal-
+  token mode. A general CMS fallback chain cannot make a missing translation,
+  legal name, unsafe source language, or cross-locale Page Release searchable.
+  D14 additionally consumes only the exact verified Site host and admitted
+  locale for canonical URLs, reciprocal alternates, sitemaps, public Update
+  permalinks, card media, and cache identity. An unverified domain, provider
+  verification, IndexNow acceptance, or general fallback never establishes
+  reach, search readiness, or locale admission.
+  Phase 22 D16 may create only a reviewed writing suggestion for an already
+  existing exact English-locale working revision. Its **Translate to English**
+  action never enables a locale, creates a locale record or route, marks
+  translation complete, chooses fallback, establishes an alternate, or proves
+  release/publication. Deliberate **Use English draft** may create only an
+  ordinary D1 successor draft in that existing locale lineage; Phase 24 remains
+  authoritative for every locale and release fact.
 - **Currency management**: per-site default plus enabled donor presentment
   currencies, donor-facing conversion disclosure, and clear separation of
   presentment from settlement. The ordinary path lets Stripe convert activity
@@ -2822,151 +3309,845 @@ prospectively, but cannot convert, merge, or rewrite Phase 21 Field Account
 currency, Activation Version, Support Currency Allocation Manifest, or any
 frozen Phase 20 Accounting Release.
 
-**Open questions for grooming.** Whether the donor portal lives on tenant
-domains or a platform domain; brand-theming depth per site. Phase 24 only
-surfaces Phase 17-owned sender-domain, outbound-identity, and readiness status
-per site/locale; it does not own Resend credentials, sender profiles, or
-delivery configuration.
+**Phase 24 D57 resolution.** The authenticated Donor Portal launches only on
+one current verified Tenant-controlled HTTPS host per Tenant and environment.
+It is Tenant-wide rather than Site-owned; all donor-facing identity and portal
+surfaces are Tenant-brand-native and provide no visible Asym co-branding or
+`asymmetric.al` fallback. Host and branding never establish authorization, and
+required legal, merchant, processor, payment, security, and accessibility facts
+remain truthful.
+
+**Phase 24 D58 resolution.** That one portal uses one current Tenant Donor
+Account Brand across sign-in, claim, recovery, errors, navigation, settings,
+and cross-Site history. The Default Site and entry Site never reskin the
+account; a verified same-Tenant Site may appear only as secondary attribution
+or a validated return action. Customization stays inside the shared accessible
+product structure, brand never authorizes or replaces legal/financial truth,
+and no failed asset or incomplete draft may fall back to Asym, GiveHope,
+another Tenant, or a Site brand.
+
+**Phase 24 D59 resolution.** Each Site has complete immutable Site Brand
+Versions for its public website and public-giving presentation. Ordinary staff
+controls are expressive but bounded to approved identity assets, dedicated
+semantic brand roles, compatible typography, and finite purpose-named choices;
+they contain no runtime code or unrestricted styling. Starting from an exact
+compatible Tenant Donor Account Brand projection creates an independent draft,
+never live inheritance or Site authority for the account brand. The applicable
+public-Site release authority pins one exact qualified version; drafts and
+failures have no public effect, and D59 creates no second renderer, theme store,
+serving head, or approval workflow. Navigation,
+content, media, account, message, legal, payment, and authorization owners keep
+their facts.
+
+**Phase 24 D60 resolution.** Each applicable Site setup/readiness view shows one
+quiet, read-only **Messages** summary derived by Phase 17 for the exact current
+Site capabilities and Site Locales. It preserves exact Ready, compatible-
+fallback, and attention outcomes; shows an explicit unavailable state rather
+than stale green; groups exceptions; and offers one authorization-safe action
+into System Messages. Phase 17 remains the only configuration, readiness,
+provider-evidence, repair, and audit owner. The Site surface copies no settings,
+provider enums, scores, polling, or mutation controls and creates no readiness
+authority. Core website activation remains independent; only an exact
+capability owner may declare and re-prove its own message dependency.
+
+**Phase 24 D61 resolution.** A Site with several enabled donor presentment
+currencies uses one provider-neutral, country-level suggestion only for an
+empty giving intent. The exact current donor-visible set is the intersection of
+Site policy and payments-owned qualification for the complete Tenant, Site,
+Legal Entity, Settlement Account Binding, connected account/environment,
+cart/route, cadence, amount, and payment-method context. Donor choice wins for
+that intent; one cart remains one currency; the accepted contribution and any
+recurring agreement freeze it. Locale, browser language, URL, profile, cookie,
+Site default, provider global support, or location never authorizes currency or
+changes a nonempty cart. Missing/ambiguous location uses the qualified Site
+default; if it is unavailable, the donor explicitly chooses another qualified
+currency or Giving fails closed when none exist. D61 adds no GPS prompt,
+third-party geocoder, profile preference, country rules, currency URL, FX
+engine, Stripe Adaptive Pricing/Checkout Sessions dependency, retained
+settlement lane, or accounting setup.
+
+The donor sees one labelled ISO-code-plus-localized-name control before amounts
+when multiple currencies qualify, or static currency text when one qualifies,
+with the code repeated through authorization, confirmation, receipt, and
+history. Staff manage only default plus enabled intent, current availability,
+prospective impact, and one owner action in the Site workspace; payments owns
+qualification and Phase 20 keeps settlement/accounting consequences separate.
+No non-USD cohort may activate until the exponent-aware money seam, exact
+connected-account binding, structural single-currency cart, currency-bearing
+idempotency, fee/preset/payment-method correctness, and every downstream money
+projection pass production-shaped proof.
+
+**Phase 24 D62 resolution.** Adding a presentment currency is one compact step
+inside the Site **Currencies** card. Selection automatically runs a read-only,
+Payments-owned qualification for each current live Site route/giving-mode
+cohort; there is no separate wizard, checklist, provider matrix, test charge,
+or provider-setting mutation. Staff see one truthful result—ready for the named
+modes, payment setup needed, unavailable for the Site, or temporarily unable to
+check—and one cause-owned next action. One explicit save changes the complete
+Site policy only when at least one route qualifies, the Site-policy revision and
+exact qualification fingerprints still match, and a new default covers every
+current entry that relies on it.
+
+Qualification binds the exact Tenant, live environment, Site financial route,
+Legal Entity, Settlement Account Binding, connected account/charge topology,
+currency, gift mode, admissible rail, canonical money implementation, pinned
+provider contract/configuration, source generation, and expiry. It proves a
+stable offering envelope, not a donor payment: checkout must still re-prove the
+actual cart, amount, cadence, method, limits, binding/account, and currency
+before any provider object. Sandbox success, Stripe's global currency list, a
+past gift, or Site intent never proves live readiness. Unknown, stale, drifted,
+or contradictory evidence removes only the affected currency/mode from new
+donor availability while preserving selected Site intent and all carts,
+accepted gifts, recurring agreements, provider evidence, receipts, refunds,
+ledger, settlement, and accounting history. Ordinary CAD-presentment to
+USD-settlement adds no foreign bank/accounting prerequisite or FX engine.
+
+**Phase 24 D63 resolution.** A donor may deliberately change a still-editable
+cart from CAD to another currently qualified currency without losing its
+purpose. A pristine cart changes immediately. Once any entered/prefilled amount,
+fee choice, derived total, payment selection/input, authorization, client
+secret, provider session, or other currency-dependent state exists, Core leaves
+the complete CAD cart untouched and first uses one accessible consequence-
+specific confirmation. The target is re-proved for every current cross-Tenant/
+Site line, Legal Entity/payment group, cadence, route, account/environment, and
+qualification before commit; any stale/incompatible/concurrent result writes
+nothing.
+
+One server-owned successor revision preserves only revalidated currency-
+independent designation/order, cadence, attribution, contact, tribute,
+anonymity, comments, consent, and form intent. All amounts, presets, allocations,
+fee-cover meaning, totals/amount-derived claims, payment/method/mandate/
+authorization state, browser payment state, old client-secret meaning, and
+attempt identity clear by default. No FX lookup, rounding, or digit carryover
+occurs. The donor sees **Change currency to USD?**, initially focuses **Keep
+CAD**, and after success sees a persistent **Currency changed to USD. Enter your
+gift amounts in USD** instruction with focus at the first amount. Provider-
+attempt, confirming/authenticating/processing/capture-pending, successful, and
+outcome-unknown states are immutable or reconciled before a separately
+identified successor; accepted gifts and recurring agreements never change
+currency. Draft amount absence is valid only while editable—review, acceptance,
+provider creation, recurring authorization, and every money projection require
+checked target-currency amounts.
+
+**Phase 24 D64 resolution.** Suggested gift amounts are reviewed native Site
+fundraising presentation, not FX, Stripe pricing, or money truth. Operational
+Postgres owns one immutable versioned Site Suggested Amount Set for each exact
+Tenant, Site, ISO presentment currency, and one-time or exact enabled recurring
+cadence. A set contains zero to six unique positive exponent-correct amounts in
+ascending order and selects none automatically. Ordinary open giving always
+offers a custom amount.
+Missing or intentionally empty sets therefore produce a clean custom-only flow
+only while the exact context remains qualified, not a donor-facing setup error.
+
+The Site workspace shows compact per-currency summaries and one in-context
+frequency-tab editor with the shared donor preview. One authorized expected-
+revision save is the review and applies prospectively to new pristine views;
+there is no matrix, wizard, CMS publication, separate approval, mandatory
+reason, Stripe/provider call, FX source, AI personalization, or live inheritance.
+Core never copies monetary digits across currencies or frequencies. Phase 13
+owns and revalidates the donor-selected Money; changing a set never rewrites a
+selected cart amount, accepted gift, recurring agreement, receipt, refund,
+ledger, or accounting history. D61/D62 still determine currency availability,
+Phase 16 still owns cadence policy, and D63 loads a target set without silently
+selecting new money after a confirmed currency clear. Amount-dependent impact
+claims remain outside D64's numeric contract.
+
+Deliberate currency/cadence disablement retires the corresponding set from
+public use without deleting history; a later re-enable must explicitly reaffirm
+former values through a successor before presets return. A transient D62
+qualification pause preserves reviewed Site policy and resumes only under D62's
+same exact proof, never through a custom-input bypass.
+
+**Phase 24 D65 resolution.** A Donor Gift-Schedule Transition changes one
+unaccepted editable cart line between one-time and any exact enabled Phase 16
+cadence, or between two exact cadences. It preserves the same revalidated
+destination/purpose and every unrelated line, but clears the affected amount,
+source schedule details, amount/schedule-derived claims and the smallest
+complete dependent fee, payment, authorization, group/cohort and execution-plan
+state. It never carries digits, maps D64 preset position, substitutes another
+destination, edits an accepted gift/agreement, or performs provider proration.
+
+Pristine unanswered changes are immediate. Any material donor, fee, payment,
+authorization or provider state keeps the complete source cart authoritative
+until one accessible consequence-specific confirmation and either an
+authenticated owner-scoped CAS transaction or a server-revalidated idempotent
+guest successor result proves the exact target context. A guest cart remains
+client-only and replaces local state only after success/readback; Core stores no
+guest cart or permanent donor history. Failure or stale/incompatible proof
+changes nothing. Success makes the target amount explicitly unanswered, shows
+its D64 set unselected, derives a fresh Phase 16 schedule with no copied source
+dates, preserves sibling intent even when shared execution projections must
+rebuild, and prevents every predecessor secret or provider attempt from
+submitting. D65 adds no staff setting, capability, workflow, provider
+subscription editor, or generic transition engine.
+
+**Phase 24 D66 resolution.** The original Option 1 wording is rejected and
+replaced because its `/fr-ca/...` examples, Site-wide ordinary-content fallback,
+and universal Giving/account/message gate contradicted D14-D16, D57-D60, and the
+fixed `/lang/{exact-locale}` contract. The permanent direction remains private
+preparation plus explicit proof-gated publication.
+
+Site Platform must maintain one small, code-owned, versioned **Site Locale
+Publication Contract**. Version 1 has exactly five core-website families:
+trusted route/Site/host/locale/release identity; exact-locale homepage/frame/
+Brand/Navigation/language control and invoked support/privacy/legal links;
+known-Site not-found/error/unavailable/recovery; complete exact-locale
+presentation of every applicable member of those presentation families plus
+direction/script/font/bidi/responsive/accessibility correctness; and canonical/
+reciprocal-alternate/sitemap/robots/serializer/generation/cache closure. New
+universal website dependencies must classify themselves in the same change or
+CI fails. Tenants cannot add, remove, waive, score, or percentage-weight rows.
+Each source owner retains its truth; the contract only composes exact current
+evidence.
+
+Staff may add, author, and production-preview a Site Locale privately. The
+first default locale participates in the Site's one D6 **Go live** action; an
+additional locale on a live Site receives one explicit **Publish French
+(Canada)** action after a fresh Preview. When untranslated ordinary content
+exists, the confirmation shows a numeric unavailable total only from a complete
+safe aggregate; otherwise it says **Some** and never exposes hidden items. Every
+generated label uses the complete Site Locale display label. A ready action creates one immutable
+Site Locale Public Release through D66's minimal Public Site Generation
+contract. This does not accept the broader unmerged Phase 23 Presentation
+Package proposal; an accepted compatible generation owner is consumed rather
+than duplicated. Publication uses current authorization, expected heads, semantic idempotency, short-
+transaction CAS, business receipt, audit, and outbox—or changes nothing. The UI
+shows **Publishing** until the exact public URL, language menu, canonical/
+alternate metadata, and sitemap acknowledge the same generation. Search-engine
+indexing is not part of convergence. A pre-commit failure keeps the first locale
+private or preserves the prior head; after commit the new head is sole authority
+and failed readback remains honestly **Publishing** with fail-safe serving.
+Favorable publication commits the human-authorized head before enabling the
+generation-bound admission projection; every withdrawal, suspension, or safety
+revocation persists and acknowledges the adverse admission fence before its
+head transition. Unknown fence outcomes reconcile before continuing.
+After fence success, head failure/conflict/unknown keeps admission adverse and
+the same durable command in **Needs attention** for forward reconciliation;
+only an explicit reauthorized all-source safety proof may restore admission.
+
+Ordinary missing stories do not block publication. Missing items remain absent
+from French Navigation, site search, sitemap, and `hreflang`; only a source-
+owned typed same-resource relation may place an explicit **Read this story in
+English** link to its current authorized, non-source-revoked URL. D67
+translation freshness remains a separate editorial fact. Exact French URLs never
+substitute another Site Locale as field/resource/Page fallback; deliberately
+authored multilingual passages remain valid with truthful `lang`/`dir`. D67
+owns the serving policy for an already-published item that later becomes out of date.
+Giving/address, Tenant account, Messages, receipts, currencies, payments, and
+default-locale activation remain separately owned and nonblocking. Publication
+does not enable or configure them. Publishing French does not make it the D16
+default, and withdrawal never redirects to another locale or releases route/
+history.
+
+Phase 2's `default_locale`/`allowed_locales[]` become one-way migration
+projections, not dual owners. Relational writers remain off until one cutover
+fences every legacy array mutation; rollback never re-enables array writes.
+Phase 24 normalizes stable same-scope Site Locale identity as A1a's bounded
+repeated-facet exception; the sole Public Site Generation head remains serving
+truth, with no `is_ready`/`is_public` Boolean or checklist table. Site data is
+isolated one deployment environment per Supabase project/database; a future
+shared database must add environment to Site and every dependent key/FK in one
+migration. Operational tables require full-scope keys/FKs, restrictive
+deletion, explicit grants, FORCE RLS, matching structural `USING`/`WITH CHECK`,
+and command-only writes. Direct DML is revoked from browser and secret/service-
+role paths; Phase 12 PDP/PEP owns capabilities while RLS remains coarse Tenant/
+structural isolation. Fresh human `sites.publish_locales` authority governs
+first activation and whole-locale lifecycle/contract transitions. Later
+resource publications follow the Tenant's source-owned manual, automatic, or
+scheduled publication policy and add no second locale approval; an NHI may
+mechanically process only a command already authorized by that applicable
+policy. Payload owns exact-
+locale drafts/publications and is queried with fallback disabled; its role's
+RLS bypass, experimental localized status, and internal version are contained
+behind access hooks and the published-reader boundary.
+
+Vercel publication is runtime/data driven: no Domain API call, deployment,
+`generateStaticParams` inventory, Proxy database/content lookup, or language-
+negotiation cache variant. Keys bind Tenant/environment/Site/host/stable locale/
+generation/resource/renderer; scoped tags invalidate only. Private, unknown,
+withdrawn, preview, and adverse results are `no-store`; generation-bound,
+adverse-first Edge Config (or an equivalent non-React seam) performs pre-stream
+admission but never sole authorization, and runtime/head/existence rechecks
+produce real non-success status before streaming.
+The admission adapter reuses one bounded A6 lookup and stores only compact
+host/Site/locale/generation/status coordinates; it must prove current provider
+size/read/write/cost limits, remains partitionable/replaceable, and denies on
+exhaustion rather than scanning Postgres in Proxy or broadly allowing.
+The current static English metadata/root layout, unprefixed catch-all, host-only
+CMS cache, broad locale tag, and 24-hour sitemap cache are migration blockers,
+not accepted runtime behavior. See ADR-0187.
+
+**Phase 24 D67 resolution.** Every target revision has immutable **Translated**,
+**Independently authored**, or **Legacy · source unclassified** provenance. Only
+Translated pins exactly one explicit same-scope, distinct-locale Translation
+Basis and source-owner translation-input identity containing a compatible
+canonicalization profile/version plus digest. Independent has no freshness
+comparison; a currently public Independent target reports **Current** (no
+translation follow-up) with **Independently authored** detail. Legacy is **Could
+not be checked**. A current authoritative source publication with different
+semantic input derives staff-only **Out of date**; an unproved profile
+transition is **Could not be checked**, never compared by bare digest;
+drafts, autosaves, future/rejected candidates, timestamps, cache age, tasks, and
+unrelated source changes do not. Ordinary drift leaves the reviewed target route,
+content, Navigation, search, sitemap, reciprocal alternatives, and authorized
+language links public. Provenance and lineage are explicit, never inferred.
+
+Only a registered safety-governed source successor asks its authoritative owner
+whether prior translation-dependent public use may continue or must be revoked.
+That one source-owned, unselected consequence choice stays in the existing source
+publication review and creates no generic risk tier, approval workflow, reason,
+task, timer, notification, or translation-quality decision. An adverse result
+uses D66's server-derived smallest complete closure and fence-first transition;
+a resource successor omits only the complete affected resource closure, while a
+universal-frame dependency may deny the locale. The compact generation fence may
+temporarily deny the containing locale but never stores per-Page truth, selects a
+fallback, or becomes a favorable head. See ADR-0188.
+Every safety-governed unpublish/retire/tombstone/delete must likewise resolve
+prior public use or complete adverse fencing, and referenced evidence cannot be
+hard-deleted.
+
+**Phase 24 D68 resolution.** The promised **fallback-chain configuration** is
+renamed **Suggested translation sources** and narrowed to one optional partial
+same-Site order for staff authoring. It ranks currently eligible sources in
+explicit, unselected **Copy from…** and **Compare with…** choosers; every omitted
+eligible source remains available. The order grants no access, establishes no
+locale equivalence or Translation Basis, changes no provenance/freshness, and
+has no public route, alternative, publication, generation, search, SEO, cache,
+Vercel, message, Giving, currency, receipt, or payment effect. `sites.manage_locales`
+owns one expected-revision save; source/target commands reauthorize and pin the
+actual revision. Empty/unavailable preference leaves the ordinary chooser
+usable. See ADR-0189.
+
+**Phase 24 D69 resolution.** For each exact D68-eligible source locale, **Copy
+from…** may offer at most two distinct, unselected logical heads: **Latest saved
+draft**, the exact current server-acknowledged D12 Working Revision when
+ADR-0191-qualified, and **Current published version**, the exact source revision
+selected by D1's current authorized public generation when it also qualifies.
+Each exact head qualifies before enabled-candidate deduplication; equal compatible
+copy inputs collapse to the public row only when the public head qualifies, so an
+unknown public head never hides a qualified private one. Provider latest/history/status, unsaved or
+outcome-unknown work, schedules, and arbitrary versions are excluded.
+
+Selecting a private head freezes/reuses an immutable retention-protected Copy
+Source Checkpoint. One trusted resource command reauthorizes exact source/target
+scope and atomically creates checkpoint if needed, one private target, Translated
+provenance, D67 Basis, audit, and receipt—or none. It copies only the finite
+source manifest, never overwrites, and creates no policy, workflow, task,
+notification, version browser, public resolver, Vercel, Giving, currency,
+Stripe, or message behavior. A target whose Basis is supported only by private
+source evidence cannot first publish as Translated until D1's current
+authoritative source publication pins that same exact source revision and
+compatible copy identity, or D67 records a reviewed successor Basis against the
+actual current publication. Compatible readers must retain the derived blocker
+and D67 remediation after the private writer is disabled. See ADR-0190.
+
+**Phase 24 D70 resolution.** Private-draft Copy requires exact-revision,
+purpose-specific **Copy Qualification**, not publication readiness. After D12's
+side-effect-dark acknowledgement, source owners asynchronously create or reuse at most one durable immutable content-free
+completed revision result for an exact revision/digest and versioned source-
+contract digest covering the supported schema/profile/manifest/canonicalizer/
+qualifier/block/node/package versions and limits,
+without delaying Save; a retained-reader-qualified legacy D1 current publication
+may receive the same source-owned evidence. Missing/in-progress/failed work is
+retryable unknown, and Check again idempotently requests the same identity through
+source-owned durable work—not a revision attempt history or readiness workflow.
+Pending work coalesces to current private/public heads and revisions referenced by
+a retained D69 Copy Source Checkpoint/Basis;
+superseded unretained autosaves do not build an unbounded queue.
+The picker combines it with batched live authorization/
+lifecycle/safety/reference facts, and the selected command reloads the exact body
+and reruns lossless proof. Unknown, corrupt, over-limit, unclassified, silently
+omitted, fallback-derived, unauthorized, cross-scope, ambiguous, or zero-effect
+input cannot create a Translated target. Public source heads pass the same proof.
+
+Source-owned Details to finish, Suggestions, Technical issues, and unavailable
+checks remain truthful, visible, and non-gating when Copy qualification succeeds.
+They never transfer to the independently validated target or become public truth.
+D70 adds no Ready-for-translation state, workflow, capability, setting, issue
+ledger, generic validator, external scanner, eager candidate-body scan, public
+runtime, Vercel, Giving, currency, Stripe, or message behavior. D1/D66 retain
+publication authority. See ADR-0191.
+
+**Phase 24 D71 resolution.** For one exact authorized viewer, target, Copy
+action, and D69 private/public head, the server derives one nonpersisted **Copy
+Source Disposition**: qualified, proved unavailable, qualification unknown, or
+not disclosable. Only qualified heads enter the unselected **Source version**
+RadioGroup. Immediately afterward, one neutral **Unavailable source versions**
+section renders authorized unavailable/unknown heads as ordinary semantic list
+content with exact locale/head identity, bounded content-free reason, and at
+most one independently authorized cause-owned action. It exposes no disabled
+radio, selectable row, count, raw error, provider detail, live static row, or
+nondisclosable-head distinction.
+
+Candidate and status members derive from one authorization/head snapshot and
+cursor; paging retains locale groups that contain only authorized status heads.
+Check again and source handoff reauthorize the displayed exact current D12/D1
+lane head and never silently substitute its successor. Zero qualified heads omit
+the RadioGroup/disabled Create control and make **Start {target locale} blank
+draft** the direct primary Sheet-footer action. D71 persists nothing, creates no
+second resolver, query, workflow, retry store, poller, schema/RLS change,
+Vercel/Stripe call, or public behavior, and must meet D69's p95 300 ms budget at
+the Site Locale owner's maximum supported status-heavy catalog. See ADR-0192.
+
+**Phase 24 D72 resolution.** Every publicly activated, nonretired Site retains
+exactly one current **Primary Site Domain**, including while D7 suspends
+serving. It alone may serve favorable website content and supplies the origin
+for new canonical/internal/alternate/sitemap/social/feed/share/public-generation
+output. Private pre-activation Sites may have no public role; retired Sites keep
+history without favorable roles. No live Tenant website uses an Asym, Vercel,
+or other platform-branded public fallback.
+
+A Site may have zero or more explicit **Redirect Site Domains**. They never
+serve duplicate website content or become another origin. The staff-facing
+state is **Redirects website visits**: Core's trusted host/router projection
+may send only route-owner-qualified `GET`/`HEAD` navigation one hop to the exact
+final current-primary destination. It composes D16 root directly, prevents
+source-fragment inheritance, and uses only owner-allowlisted query context.
+Giving/checkout, protected/auth/callback/API/control, and every other source-
+owned route run first and retain D9–D15/their owner's exact behavior. Vercel
+whole-domain redirects, serving aliases, arbitrary forwarding, fallback homes,
+chains, and implicit apex/`www` activation are prohibited.
+
+Operational Domain authority—not CMS `primaryDomain`, proposed
+`primary_domain`/`alias_domains[]`, DNS, TLS, or provider state—owns canonical
+hostname identity, platform-wide current uniqueness, complete Site scope,
+role/lifecycle, immutable public history, CAS heads, receipts, and provider-
+evidence references. The logical model is relational with one-primary
+cardinality, restrictive grants/RLS/privileged parity, provider work outside
+transactions, adverse-first fencing, and one bounded admission lookup under
+Phase 5's 15 ms launch p99 budget after capacity proof. The compact **Site →
+Domains** workspace separates public role from setup/serving health, shows safe
+IDN identity and bounded route-owner exceptions, suggests but never selects
+`www`, and exposes one authorized next action. **Not used for website** applies
+when the website role is absent but an independently owned public route may
+remain; **Not public** requires complete owner proof of no favorable Core route.
+See ADR-0193.
+
+**Phase 24 D73 resolution.** Every exact replacement of an existing Primary
+Site Domain requires one initially unselected former-primary website choice:
+**Redirect eligible website visits — recommended** or **Stop website use on the
+old domain**. There is no implicit apex/`www` exception: current or historical
+redirect/cache behavior must prove promotion and inverse mapping loop-safe.
+The choice changes no Giving, checkout, auth, callback, API, protected, or other
+source-owned route; the owner supplies its direct/unavailable/successor/block
+outcome. Known messages, documents, QR codes, analytics/search properties, and
+external placements are advisory and explicitly incomplete—Core builds no URL
+crawler or universal placement graph.
+
+One focused Base Maia review shows Current/New, origin and existing Redirect
+effects, authorized owner outcomes, incomplete advisory evidence, the
+RadioGroup, and **Make {new host} primary**. Stop means no Site website role,
+not erasure or provider detachment. Primary replacement privately compiles the
+exact D1/D66 current public-locale origin successors and advances the Domain/
+public-head cohort in one expected-head command with receipt/audit/outbox.
+Stable equivalent website routes may use owner-approved `308`; the mutable root
+uses D16 `307`; every redirect is one-hop, `no-store`, `no-referrer`, and
+route-aware. Vercel remains evidence/transport and receives no whole-domain
+redirect, force, detach, DNS change, or rollback authority. Later provider
+disconnection remains the separate D74 operation. See ADR-0194.
+
+**Phase 24 D74 resolution.** One exact Tenant-controlled custom hostname may
+disconnect from one Site through Tenant self-service only after a complete
+current finite owner manifest proves no positive hosting dependency. Historical
+facts and D9–D15 reservations survive and do not falsely block. The eligible row
+says **Not public · Connected for hosting** and offers **Disconnect from this
+Site**; one compact confirmation warns that registration, DNS, renewal, email,
+and history remain unchanged and DNS still pointing to Vercel may produce an
+external error. The commit action is **Disconnect domain**.
+
+One reauthorized CAS transaction records the durable operation and establishes
+a monotonic Disconnecting barrier. Every public admission cohort must
+acknowledge the adverse host generation before a sealed worker removes exact
+Core-controlled provider routing outside the transaction. Only authenticated
+current absence permits a second transaction to end the current Site-binding
+interval and platform-wide occupancy claim. Ambiguity retains the fence/claim
+and shows **Disconnection needs attention**. `sites.disconnect_domains` is the
+separately protected human effect included in the standard Domain Manager
+bundle. D74 never cascades across hosts/Sites, deletes provider-account/domain
+ownership, changes DNS/registration/email, transfers or force-moves a domain, or
+authorizes future reuse. See ADR-0195.
+
+**Phase 24 D75 resolution.** After D74 final release, every Tenant may use the
+ordinary Site → Domains **Add domain** flow. An unproved verification attempt is
+private, nonexclusive, provider-dark, and reserves nothing. **Verify domain
+control** shows one Core-issued, seven-day, server-generated 256-bit exact-host
+TXT challenge with Type/Name/Value copy actions, absolute expiry/last-checked
+times, bounded automatic checks, one **Check again**, and leave/resume. It proves
+current technical DNS control—not legal ownership or public readiness.
+
+Immediately after trusted server DNS observation, one reauthorized short
+transaction consumes the one-use challenge, proves D74 final/no current claim,
+acquires the sole platform-wide hostname claim, creates a new private binding
+generation, and records receipt/audit/provider outbox—or changes nothing. Two
+valid claimants have one constraint-enforced winner; foreign/history outcomes
+remain non-enumerating. Old bindings are never retargeted. No former positive
+content/brand/locale/role/route/permission/provider/integration/donor/auth/cache/
+client state follows; D9–D15 adverse reservations remain and run first.
+
+Only after claim may Vercel hosting prepare without force/move. Core proof,
+provider verification/assignment, TLS, DNS routing, Site readiness, and public
+role remain separate; success is **Domain verified · Not public**. D75 reuses
+`sites.manage_domains`, adds no reconnect/approval capability, and does not
+solve a current live same-Tenant move or contested current claim. See ADR-0196.
+
+**Phase 24 D76 resolution.** A still-connected hostname moves between two Sites
+in the same Tenant through one prepared self-service successor, not D74→D75,
+mutable reassignment, routine DNS reproof, support or provider control. Current
+`sites.manage_domains` on both Sites prepares; `sites.activate_domains` on both
+commits. Destination Primary/Redirect/Not-public is initially unselected; an
+active source Primary needs a different eligible replacement; D6/D73 and all
+critical D9–D15/security owners retain their exact authority.
+
+The hostname remains globally occupied by the same Tenant. One command first
+establishes/read-backs an adverse Moving generation, then appends a new target
+binding and atomically advances the private host plus both Sites' Domain/public
+heads. A bounded neutral gap is honest; two favorable/mixed Sites or a literal
+zero-downtime promise are not. Launch performs no Vercel/DNS/TLS/registrar
+mutation because all Sites share the donor project. The full-page Base Maia
+review has two entry points, explicit consequences, durable progress/receipt,
+and no content, Giving/auth, Stripe, email or provider-project migration. See
+ADR-0197.
+
+**Phase 24 D77 resolution.** Before that D76 barrier, one immutable **Domain Move
+Route Review** reuses the existing small, versioned, code-owned D72–D76 critical
+owner-family inventory and compares complete source/destination effective-host
+route manifests. This is future contract reuse—current `develop` has neither the
+registry nor authoritative manifests—and D77 adds no adapter framework. Missing,
+unknown, stale, contradictory or blocking critical evidence stops the move.
+
+One pure canonical comparison classifies source-only, target-only, exact
+collision, current owner-qualified successor, redirect/history conflict, and
+unknown outcomes. Source-only ordinary addresses automatically compile durable
+real-not-found effects into the target binding generation; later destination
+Pages cannot silently reuse them. Exact different-Page collisions remain
+blocked until their owner publishes an accepted successor or the destination
+changes path. The D76 page shows one compact **Existing web addresses** section:
+only blockers open, qualified/not-found counts stay collapsed, and known
+external placements are explicitly incomplete advice. Phase 5 remains the sole
+runtime router; D77 creates no redirect console, crawler, workflow, pattern DSL,
+query carry, money effect or Vercel/project rule. See ADR-0198.
+
+**Phase 24 D78 resolution.** One exact D77 collision between different Site-
+owned ordinary General Pages may be resolved only by an **Ordinary Page
+Successor Qualification** issued through the existing Page route owner. Core
+proves same Tenant/environment, exact locale, `general_page`, public audience,
+exact Publication Reach, compatible safety, current public releases/routes/
+generations, and protected-
+owner exclusion. One authorized human then compares both exact public releases
+and explicitly answers whether the target gives a visitor the same public
+subject, substantive purpose, and intended task. The fixed-pair choice begins
+unselected: use the named target for this address or keep the address
+unavailable.
+
+The relation is immutable, directional, path-specific, non-symmetric,
+non-transitive, and bound to exact reviewed evidence. It stores a stable Page
+identity, not a URL; copy provenance, slug/title/content/template/search/
+analytics/AI never proves it. Pages remain independent and no purpose taxonomy,
+redirect console, workflow, Page editor, provider rule, or money effect is
+created. D76 alone may activate it. Same-path direct service requires a target
+Primary; redirect-only roles or different paths compile one direct final clean-
+`GET`/`HEAD` result to the Primary without source context carry. Before D76
+activation, later target revisions require the same exact fixed-pair proof. See
+ADR-0199.
+
+**Phase 24 D79 resolution.** After D76 activation, a D78 relation pins one
+sparse, opaque **Page Purpose Continuity Version** for the stable target General
+Page and exact locale. It is a Page-owner same-subject/substantive-purpose/
+visitor-task assertion, not tenant-authored purpose prose, taxonomy, Page family,
+body/diff/hash/score/AI, or copied audience/Reach/safety/route state.
+
+Only a candidate affected effective Page release whose exact meaning-bearing
+Page/localized/Reusable Section/shared/global/reference dependency digest
+changed adds one initially unselected choice to the existing D1 Publish review:
+**This update keeps what this Page is for** universally preserves the current
+version for every reviewed current relation; **This update changes what this
+Page is for** requires a fresh independent private Page under D80. D80 leaves
+the source version/relations unchanged and the target inherits none.
+Draft/autosave/preview and delivery-only D1
+rebuilds with the exact effective digest unchanged do nothing; Pages that never
+had D78 predecessors have no D79 state/UX and terminal history remains inert.
+
+One calm main-column **Historical addresses** panel shows truthful server-
+derived status, an exact count only with aggregate authority, and permission-
+safe detail. The Page owner makes one universal Page-level choice over every
+reviewed current relation; each D78 relation remains independent and fresh
+renewal still uses the exact fixed pair and both-Page authority. Restore/copy cannot revive or inherit
+authority. Phase 5 consumes only D1's compiled direct/redirect/not-found effect;
+there is no runtime purpose lookup, new workflow/capability, provider/money
+mutation, or donor interstitial. An advanced-purpose candidate cannot publish
+through the source identity.
+See ADR-0200.
+
+**Phase 24 D80-D84 resolution.** A D79 material-purpose candidate always continues
+as a new Page; Core has no direct-only in-place exception or route-history
+override. One contextual **Move saved changes to new Page draft** action uses the exact
+acknowledged Page-owned candidate and D23's finite transfer compiler to create a
+fresh same-Tenant/environment/Site/locale `general_page`, exact locale lineage,
+Page-local identities, D12 Working Revision, and staff-reviewed D2 parent/path
+claim. It is a private handoff, not Publish or generic duplicate.
+
+The source public release, current/historical routes, continuity/D78,
+Navigation, schedule, search/cache, and donor result remain unchanged; target
+inherits none and has no public route before later ordinary D1. Reusable
+Sections materialize; nonseparable shared-owner change blocks; no owner,
+provider, operational, or money authority copies. The inline old/new review
+uses title, Parent Page/Top level, and web address, with explicit target/source
+outcomes. The same transaction records independently resource-scoped protected
+Editorial/Placement checkpoint pins, appends clean source successors only for
+changed Page-owned axes from exact D1 public pins, fences every old lease in the
+sealed source pair, and leaves separately managed content unchanged. Safely
+transferable content reaches the target; every repairable omission is listed and
+the exact original remains in protected source History. D80-D81 adds no
+workflow, purpose classifier, public resolver, larger critical-owner inventory,
+or Vercel/DNS/TLS/Stripe mutation. See ADR-0201 and ADR-0202.
+
+ADR-0203/D82 permits one narrow D2 exception to the ordinary occupied-path
+rule. A sealed source **Draft-only Path Claim** may be atomically superseded by
+a fresh target Placement and claimant-ownership occurrence/version for the
+exact same canonical key only after
+complete positive proof that no equivalent, under any claimant, has ever been
+activated or admitted to a public/protected route effect and has no platform-
+reserved, specialized source-owned, scheduled, safety, migration, or Trash
+owner other than the exact current private source candidate claim. Private source Revision History is
+preserved but is not current route authority; unknown history fails closed.
+The D2-owned D82 disposition inside the D80-D84 transaction and semantic receipt
+owns the succession with the exact source claimant before and exact target
+claimant after, no visible gap or dual owner, exact replay, and no public/Vercel/
+money effect. Later D2/Trash lifecycle
+may supersede, protect, or release the target claim but never returns it
+automatically to the source.
+
+The existing Parent Page/Web address group shows source provenance, the full
+tenant-branded URL, and private/not-live meaning; editing returns to ordinary
+D2. No checkbox, modal, suffix, reservation service, transfer API, resolver,
+redirect, or saga is added.
+
+ADR-0204/D83 permits one completely qualified source-owned descendant closure
+when cleaning the source ancestor changes derived private paths and their
+corresponding breadcrumbs.
+D2 server-derives and seals the exact same-scope closure; preserves every child
+identity, direct parent, authored segment, sibling order, every existing
+immutable History row, Editorial content, Navigation, permission, schedule,
+reference, and public fact; may append only the qualified cause-labelled
+derived-output successor required by accepted D2 storage; and changes only
+exact private derived outputs/claim dispositions. High fan-out reuses D2's
+bounded/resumable sealed plan/impact artifact and one D33-admitted atomic
+business transition without a private closure head. Staff see an always-visible permission-safe affected address count,
+plain live-site/Navigation non-change, and proportional mappings under the one
+existing handoff action. Every stale, inaccessible, protected, independently
+incompatible, or over-capacity closure uses its exact ordinary D2 owner action.
+If that action cleans/releases the source root claim, D82 adoption ends and the
+target address becomes an unreserved ordinary suggestion that may lose fresh
+validation. No recursive child resave, authoritative partial batch, subtree transfer, literal-link rewrite,
+workflow, route engine, or public-delivery/Vercel/money effect is added. See ADR-0204.
+
+ADR-0205/D84 gives the fresh target one initial D2 sibling position without
+transferring a source/provider rank or adding another question in the qualified
+common path. The visible Parent Page or **Top level** choice resolves through
+trusted D2 Site/root state, never null/caller inference. A position is
+preserved only when immutable D2 placement-command provenance proves a tagged
+start/between/end/only boundary. Under lock, D2 determines the sealed D81/D82/
+D83 effects and their post-clean/pre-target final cohort, then validates that
+boundary or resolves a positively recorded append-last default against the
+same baseline. Missing/unknown provenance and stale explicit boundaries use
+ordinary D2 review; neither silently appends. No immutable prior revision is
+mutated; only sealed predecessor effects may advance affected heads, and D84
+adds no collateral pre-existing Page parent/order write while preserving final-
+cohort relative order. One read-only consequence row distinguishes reviewed
+First/Last/Only/Between from default Last/Only, uses “at top level” when
+applicable, safely separates structural calculation from detail disclosure,
+and states that Navigation/live website do not change. Boundary IDs obey the
+handoff privacy/retention/tombstone contract. Provider ranks, raw Payload
+`orderable`, imports, current adjacency, and drag telemetry are never intent or
+authority. The qualified same-database Payload adapter may persist the command;
+D84 adds no native reorder authority, capability, workflow, selector, public/
+D4/Vercel/external-provider/donor/money effect. See ADR-0205.
+
+The three original Phase 24 grooming questions—Donor Portal host, brand depth,
+and outbound-message readiness presentation—are resolved by D57-D60. D84 closes
+the D78-D84 ordinary-Page continuity/material-purpose branch. Before another
+founder question is added, the phase requires a complete decision-to-spec
+coverage audit and consolidated OpenSpec/PRD synthesis; implementation details
+or already-separated owner facts are not new grooming decisions. The former
+D56 access-profile withdrawal-authority question remains explicitly deferred
+to its Phase 12/17 activation boundary.
 
 ---
 
 ### Phase 25 — Donor Dashboard Depth (`donor-portal-depth`)
 
-**What this phase is (plain language).** The donor portal becomes a
-complete self-service home: manage recurring giving (change amount, pause,
-skip, reactivate), keep payment methods current, view or download the
-exact-current receipt and statement for each logical document, control
-communication preferences by topic, and see a giving history with impact —
-the features research shows retain recurring donors (pause/skip alone retains
-~8 of 10 recurring donors over 12 months; amount-modification cuts
-cancellation likelihood ~26%).
+**Status.** The complete
+[Phase 25 specification](./phase-25-donor-dashboard-depth.md), published as
+[#1563](https://github.com/Asymmetric-al/core/issues/1563), records Q01-Q29's
+ratified choices, Q30's accepted scope and F01-F14's final clarifications.
+Its 242 stories, five normative contracts, source-clause traceability and
+implementation task plan govern the adopted planning. The live 2026-09-16
+delivery graph contains 88 native implementation issues #1565–#1652 under
+#1563. No Phase 25 feature is implemented or activated by this reconciliation.
 
-**Why it sits here.** After identity (4), projections (3), the ledger (13),
-receipt facts (7), comms (6), recurring commands (16), governed messages (17),
-canonical generated documents (18), and statement runs (19).
+**What this phase is.** One calm organization portal lets donors care for their
+giving, retrieve the right records, read Ministry Updates and change their own
+account and communication choices. Personal giving is the neutral starting
+point when available; an exact represented task keeps its independently
+authorized financial context. Reading and personal contact choices remain the
+acting human's own.
 
 **What it covers.**
 
-- **Recurring control** built as custom UI over the Phase 16 server-command
-  and provider-adapter contracts — explicitly **not** delegated to the hosted
-  billing portal. Donors can change eligible future amount/date/designation
-  terms, skip one named occurrence, pause until a date or indefinitely,
-  resume a pause, and cancel. Restart after cancellation requires fresh
-  authorization and creates a linked successor; it never resurrects the old
-  authorization. The portal consumes Phase 16's separate donor-intent,
-  schedule/occurrence, payment/collection-health, and provider-control/
-  reconciliation facts. A planned pause is shown truthfully as paused, never
-  inferred as behind or lapsed. Phase 25 owns the donor-facing portal UX and
-  wallet completion, not a second lifecycle or retry authority.
-- **Wallet**: add/remove/set-default payment methods (the settled
-  disposition's donor-side completion), network card-updater, pre-expiry and
-  failed-payment notices with self-service recovery links (17).
-- **Documents**: for each logical per-gift receipt or year-end statement,
-  present one exact-current canonical accessible PDF with a clear current
-  status and correction explanation plus unmetered view/download. Immutable
-  prior versions remain governed evidence in Phase 18, not separate donor
-  file choices. Repeatable outbound-copy requests use Phase 19's bounded
-  fulfillment contract; offline/imported gifts merge into one history without
-  minting retroactive receipts.
-- **Giving history + impact**: cumulative totals partitioned by currency,
-  per-missionary/project impact view, CSV export (Phase 3-governed). Any
-  converted comparison is an explicitly labelled Phase 33 reporting
-  projection with rate, basis, and as-of time, never source truth.
-- **Preference center**: topic- and channel-granular over the shipped
-  consent gate; **RFC 8058 one-click unsubscribe** honored instantly
-  (Gmail/Yahoo bulk-sender rules) with topic mapping — never
-  unsubscribe-all-by-accident, and transactional mail (receipts) never
-  suppressed by marketing opt-out.
-- **Access**: passwordless magic-link flows aligned with Phase 4
-  account-claiming (guest-first; enumeration-safe, constant-time).
-- **"My Campaigns"** socket reserved for Phase 36 P2P.
+- **Home, Updates and ministry connection:** a useful neutral Home, bounded
+  current Needs attention, a prominent complete Ministry Updates reader,
+  independent Show and post-email preferences, finite source-owned
+  notifications, an optional private ministry overview and a simple newsletter
+  request. A newsletter request records interest without claiming external
+  enrollment or delivery.
+- **Recurring giving and Wallet:** native owner-reviewed changes, pause,
+  resume, skip, cancel and fresh-authorized successor restart, with distinct
+  card and ACH recovery. Add, selected-use replacement, new-gift preference
+  and Remove are independently qualified effects; a provider default does not
+  become product authority and hosted billing UI does not own these commands.
+- **Giving records:** all currently authorized source-admitted History, exact
+  filters and bounded exports; an explainable calendar-year monetary measure
+  partitioned by issuer and currency; and one Receipts & statements destination
+  over exact current canonical documents. No guessed impact, cross-currency
+  total or portal tax calculation is introduced.
+- **Account and Preferences:** email-first link/code entry with the selected
+  qualified Google, Apple and Facebook direction; guided sign-in/contact email
+  changes; ordinary Name and optional Phone; one optional personal mailing
+  address; and direct purpose-specific communication choices. Authentication,
+  claims, represented access and each communication purpose retain separate
+  owners.
+- **Relevant-only records:** fixed-total Campaign commitments, recorded
+  employer-match progress and received DAF-grant awareness appear only under
+  their exact admitted scope. IRA/QCD intent, source-case admission and
+  acknowledgment remain distinct from DAF recognition and personal tax
+  treatment. These paths create no general household or sponsor access.
 
-**Boundaries & guardrails.** The donor portal is self-service — never a
-staff finance or CRM console. Everything renders through Phase 3
-projections.
+**Dependencies and boundaries.** The dependency cell separates baseline/start
+conditions from the mandatory producers for each affected consumer. Phase 9
+contact, Phase 10 safety, Phase 12 authorization, Phase 14 recognition, Phase 16
+recurring/Wallet, Phase 17 communications and Phase 18/19 documents are required
+where the exact capability consumes them; they are not optional enhancements.
+[Shared S04-S06](./phase-25-donor-dashboard-depth/contracts/shared.md#s04--exact-owner-amendment-and-predecessor-reconciliation-register)
+assigns each source amendment and proof gate. Complete and qualify the exact
+producer before dispatching its dependent consumer implementation; independently
+safe work with satisfied prerequisites may proceed. This is not a global union
+that blocks unrelated slices.
 
-**Open questions for grooming.** Household visibility (do spouses see each
-other's gifts — Phase 7 receipted-donor model governs); giving-history depth
-for imported legacy data (with 30); donor-facing designation names for
-restricted workers (10).
+The Phase 22-24 rows now identify their existing proposed PRs rather than claiming
+that no PRD exists. Their open, unmerged versions remain pinned research and
+reconciliation inputs. The Updates, newsletter, public-content and host/brand
+consumers that depend on them are **not dispatch-ready** until the affected
+producer's final source contract is accepted and its required implementation and
+qualification are established. A specification issue's readiness label does not
+waive this gate, authorize copying a draft producer or imply permission to invent
+a substitute. Activation still requires the consumer's own remaining S06 gates.
+
+Q25 additionally requires two already-ratified, bounded owner extensions under
+[EX11-EX13/EX16](./phase-25-donor-dashboard-depth/contracts/experience.md#ex16--qualification-rollout-and-retained-proof):
+P28/P12 supplies the exact authenticated recipient projection for a guest-origin
+newsletter request without fabricating a donor/supporter relationship; P32 keeps
+that request, handoff and engagement outside automatic external-list enrollment,
+resubscription, suppression-reset and consent/export admission. The P23 occurrence
+remains the source. These exact extensions must be accepted, implemented and
+qualified before Q25 consumer dispatch. Full Phase 28 workspace depth and Phase 32
+newsletter sync remain unimplemented future work; neither whole phase must be
+groomed or completed for this narrow contract. Other Phase 25 slices retain their
+independent satisfied-gate paths.
+
+**Remaining qualification.** The product choices are ratified, not open
+roadmap questions. G01's supported native Auth linking guarantee remains
+unresolved and blocks affected social activation; email-only does not complete
+the selected social scope. Actual database, native provider, document,
+accessibility and complete-journey proof remain to be earned at the named
+owner gates. The
+[decision log](./phase-25-donor-dashboard-depth/decision-log.md),
+[glossary](./phase-25-donor-dashboard-depth/glossary.md) and
+[evidence register](./phase-25-donor-dashboard-depth/evidence.md)
+retain the decision and research context without certifying runtime behavior.
 
 ---
 
 ### Phase 26 — Support Hub & Conversation Management (`support-hub`)
 
-**What this phase is (plain language).** The staff home for **inbound**
-communication: a donor replies to a receipt, a church emails a question, a
-missionary asks for help — every message lands in a shared team inbox,
-routes to the right person, links to the sender's CRM record, and can't be
-lost, double-answered, or silently dropped. The industry table stakes are
-four features: **assignment, collision detection, internal notes, and
-status tracking** — plus a quarantine queue so no donor email ever
-disappears.
+**Status and authority.** D1–D40, including D27-C and D29-X01, are fully
+ratified. The [Phase 26 specification](./phase-26-support-hub-conversation-management.md),
+[glossary](./phase-26-support-hub-glossary.md), normative requirement volumes
+[A](./phase-26-support-hub-requirements-a.md),
+[B](./phase-26-support-hub-requirements-b.md) and
+[C](./phase-26-support-hub-requirements-c.md),
+[traceability register](./phase-26-support-hub-traceability.md), and
+[OpenSpec package](../../../openspec/changes/add-support-hub-conversation-management/)
+form the implementation contract published in
+[specification #1656](https://github.com/Asymmetric-al/core/issues/1656).
+The former roadmap-level grooming questions are settled by that contract.
+Implementation and runtime release proof remain outstanding.
 
-**Why it sits here.** After the comms spine (6 — conversations emit into
-`communication_events`), parties (9 — sender linking), and templates (17 —
-macros/canned responses ride the same variable safety), with Phase 10
-classification deciding which subjects may enter the general inbox. **The repo is
-already well down this road** — a 19-table Support Hub schema (inboxes,
-agents, teams, labels, SLA policies, conversations, messages, saved views,
-macros, automation rules, audit log), a live Supabase adapter with
-inbound-email → conversation routing through the durable workflow ledger,
-an admin workspace UI, and unit + e2e smoke coverage all exist (classified
-durable), alongside an **older parallel `support` module (fixed queue ids)
-that this phase must consolidate or retire**, plus two written-but-
-unexecuted hardening plans (SQL-side filters; inbound pipeline). This phase
-grooms all of that against the researched semantics and completes the
-product.
+**What this phase is (plain language).** Support Hub is one staff surface
+within Asym for handling ordinary help requests, continuing them by email and
+using qualified contextual Help entry points. Staff see the responsible worker,
+current work, permitted CRM context and truthful action outcomes without
+turning every ministry workflow into a ticket. Requesters do not need an Asym
+account to continue ordinary email contact; this phase does not add a requester
+"My messages" archive.
 
-**What it covers.**
+**Ratified scope.**
 
-- **Conversation model**: one canonical thread with typed parts (customer
-  message / staff reply / internal note / system event — notes structurally
-  never deliverable), status lifecycle (decide Front-lightweight
-  open/snoozed/closed vs Zendesk-full at grooming; snooze-with-timer and
-  reopen-on-reply either way).
-- **Collision detection that blocks send** on mid-compose updates (Help
-  Scout semantics) — the highest-ROI delta over a shared mailbox.
-- **Assignment**: individual + team, manual, round-robin, and rules
-  conditioned on CRM party data (donor tier, missionary link, content, wait
-  time); an explicit unassigned queue. Launch routing is a bounded coded
-  policy, not a second tenant-authored automation engine.
-- **CRM linking**: auto-match sender → party on exact email;
-  suggest-and-confirm for unknown senders (never HubSpot-style auto-create
-  junk); conversations on the person timeline via the Phase 6 emit-hook with
-  the dedupe rule (support replies must not double-write timeline events).
-- **Inbound ingestion**: forwarding-based + BYO-domain (MX/inbound routes)
-  with verification; RFC-2822 threading (In-Reply-To/References) +
-  unguessable plus-address tokens as fallback; quoted-reply stripping;
-  attachment limits. The provider spike qualifies Resend Inbound against the
-  mandatory contract first. Other providers remain contingency research only
-  if Resend cannot satisfy a mandatory inbound capability; Phase 26 does not
-  ship a multi-provider mail adapter.
-- **The safety layer ships before real domains open**: suspended/quarantine
-  review queue (never silently drop), Auto-Submitted/Precedence:bulk
-  detection, per-sender loop rate limits (Zendesk's 20/hr-suspend, 40/hr-
-  reject budget), DMARC-failure and own-address-loop guards.
-- **Outbound failure states on the conversation** (pending → retrying →
-  undelivered/bounced) from the Resend webhooks + Phase 6 monotonic machine.
-- **SLA machinery** (schema exists): first-reply/next-reply/resolution
-  against business-hours calendars — groom whether small missions teams need
-  enforcement UI at launch or reporting suffices.
-- **Macros/canned responses** through the Phase 17 variable allow-list.
+- **Work and continuity.** Four work states — Open, Waiting for requester,
+  Waiting on our side and Resolved — remain separate from assignment, personal
+  reading, reminders and delivery. Qualified assignment and coverage, exact
+  duplicate merge/Undo, related conversations and delegated owner work preserve
+  original-source identity, current authorization and genuine obligations.
+- **Safe reading and authoring.** Deliberate Reply and Internal note modes,
+  private Reply/new-note drafts in My drafts, optional quotation, own-note edits
+  with visible history, advisory composing cues, personal read/unread, a Compact
+  default with a personal Full option, and qualified file previews share the
+  accessible Base UI/Maia experience. Presence and reading never replace the
+  exact send-review and concurrency checks.
+- **CRM continuity.** Observed sender endpoints and authorized CRM associations
+  remain distinct. Matching email does not prove identity or access and does not
+  create a Party automatically. Support and CRM show the same owner-filtered
+  facts; protected updates use the owning domain's commands without duplicate
+  CRM records, communication history or Support-to-CRM synchronization.
+- **Intake and recovery.** Canonical intake, source-safe threading, loop and
+  abuse controls, accountable Needs review with exact Release/Dismiss, truthful
+  attachment/delivery recovery, and Resend qualification precede applicable
+  activation. Unwanted correspondence has a recoverable designation separate
+  from work status; future holding is a separate, explicit exact
+  receiving-inbox/mailbox policy. It does not block CRM contacts or silently
+  dispose of already accepted or held inputs.
+- **Useful guidance and wording.** Public and Internal Guidance share a surface
+  while retaining different content owners. Contextual guides and direct
+  contact do not force self-service. Saved wording, signatures and curated
+  shortcuts use qualified authoring and publication boundaries.
+- **Truthful history and reporting.** Optional internal First/Next reply targets
+  are distinct from public service promises or resolution timers. Feedback and
+  reports preserve genuine obligations and historical evidence. Restrictions,
+  redaction, finite purpose-based retention and recovery follow the exact source,
+  privacy and authorization contracts.
 
-**Boundaries & guardrails.** Support Hub owns support work — not CRM truth,
-provider mail truth, message-template truth, or member-care private truth
-(care-classified subjects route to Phase 38 surfaces, not the general inbox).
-Phase 17 owns and prepares governed replies; Phase 6 dispatches and records them.
-Existing `support_automation_rules` remain inert versioned data until Phase 34
-becomes the sole configurable trigger/condition/action vocabulary and
-adopts or migrates them; Phase 26 does not forward-gate on Phase 34 or ship a
-parallel builder.
+**Ownership and activation.** Phases 6, 3, 4, 9 and 17 remain the foundational
+owners. Email Studio (Phase 17) owns governed email preparation and its reusable
+content; Phase 6 owns dispatch, immutable communication/provider evidence and
+recovery. Support owns work, deliberate authoring and its private working state.
+Internal note saving/posting is not external email preparation; any independently
+authorized notification keeps its own Phase 17/6 admission. CRM, giving and
+sensitive-care actions retain their owning domain's permissions and history.
 
-**Open questions for grooming.** Whether donors/missionaries get a "my
-messages" portal view (rides Phase 6 projections) or the hub stays
-staff-only; conversation merge/split at launch; retention/redaction class
-for message bodies + attachments (Phase 6 redact-not-delete interplay);
-auto-acknowledgment policy and loop budget.
+Phase 23 is required before activating the selected Help/contact/form and Public
+Guidance lanes, including their qualified occurrence, publication and withdrawal
+seams. This lane-specific gate does not make Phase 23 the owner of Internal Staff
+guides or a blanket prerequisite for core inbox/work/CRM behavior. Phase 34 remains
+the sole configurable automation vocabulary; legacy Support rule data does not
+authorize a parallel builder or make Phase 34 a blanket forward gate.
+
+**Proof still required.** Existing schema, adapters, UI, tests and the parallel
+legacy Support module are partial source evidence, not proof of the ratified
+product. Consolidation and migration must preserve qualified identities/history.
+The confirmed testing contract requires real authenticated API/intake/job seams,
+disposable Supabase database and Storage checks, authorization/concurrency/replay
+and migration cases, complete browser and assistive-technology journeys, intended
+user evaluation, and actual provider/capacity qualification. Production inboxes
+and dependent lanes activate only after their recorded evidence gates pass.
 
 ---
 
@@ -3124,6 +4305,10 @@ projections available when their tenant-selected modules are active.
   neither authority live-synchronizes or rewrites the other. Phase 21
   separately owns finance-closed Support Cycles, assessments, compensation
   funding coverage, and optional policy-derived ministry-expense capacity.
+  Phase 22 D6 may reference one exact compatible Goal Version for a page's
+  optional public metric, but Phase 28 never makes that goal public, changes a
+  page profile, or silently updates a released denominator. A new goal version
+  becomes public only through Phase 22's normal prospective page release.
 - **Interaction log shared with staff** (one log, permission-scoped
   visibility — the same phone call is never logged twice or lost).
 
@@ -3296,6 +4481,26 @@ authority.
   quarantining, or disposing bytes cannot activate Field Accounts, alter an
   Opening Position, make reference history authoritative, replay side effects,
   or create accounting truth. Opening evidence is never public storage.
+- **Public Ministry Media byte lifecycle** (22): Phase 22 D9 owns the semantic
+  Public Ministry Media Asset, page/locale placement meaning, release
+  eligibility, exact Page Release Manifest pin, where-used meaning, and
+  withdrawal intent. Phase 29 supplies the compatible private Upload Intake,
+  immutable Sanitized Media Master and derivative byte custody, scanning and
+  bounded transformation execution, copy inventory, access, quarantine, hold,
+  retention, and disposal evidence. It must preserve D9's opaque identities,
+  discarded-source-name, private-origin, no-public-original, immutable-
+  generation, independent-output-proof, and scope-isolation invariants. Moving,
+  restoring, purging, or deleting bytes cannot release a page, establish
+  safety, rewrite a placement, or prove external forgetting. Existing generic
+  media rows, filename-bearing serializers, mutable provider objects, and raw
+  public URLs are not grandfathered as D9 assets or evidence.
+  D14 may select only the exact current D9-certified social derivative and
+  contextual placement text pinned by its release coverage. Phase 29 owns byte
+  custody and processing evidence, not search eligibility, share presentation,
+  permalink posture, external cache state, or completed-sharing truth.
+  D25 editorial prose, semantic versions, and the bounded recovery buffer remain
+  private Payload content; Phase 29 gains no editorial-text family,
+  actionability, retention-policy, or scratch-cleanup authority from D25.
 
 **Boundaries & guardrails.** Storage providers hold bytes only. Phase 29 owns
 generic storage-object metadata, signed access, and access audit; the source
@@ -3304,10 +4509,11 @@ authorization purpose, legal status, and retention policy. No direct-to-bucket
 access from clients outside the signed flow, and filenames/folders never
 define domain truth.
 
-**Open questions for grooming.** Virus/malware scanning (provider-native vs
-service); upload size/type policy per surface; whether missionary resources
-(org → field distribution) ship here or with 28; CDN posture for public
-media.
+**Open questions for grooming.** Exact certified scanning/processing/storage
+provider choices and operational thresholds; upload size/type policy for
+non-D9 surfaces; whether missionary resources (org → field distribution) ship
+here or with 28; and CDN implementation within D9's already-ratified private-
+origin, opaque-resolver, immutable-release, and honest-withdrawal constraints.
 
 ---
 
@@ -3495,6 +4701,14 @@ rides the framework instead of defining it ad hoc.
   Phase 31 must not generalize that provider-specific financial authority into
   a second connector. Financial projections carry explicit Legal Entity,
   currency, source, and as-of semantics and never expose provider credentials.
+- **Optional future Public Ministry measurement adapter**: Phase 22 D15 owns
+  only its suppression-safe aggregate facts and local report. Phase 31 may later
+  certify one external analytics mapping/egress lane only after exact purpose,
+  fields, consent or objection posture, provider, region, retention, deletion,
+  and observed-versus-modeled behavior are proved. It may never export D15's
+  transient occurrences, identifiers, raw request data, replay, or a generic
+  tenant-authored event payload and cannot reinterpret external results as
+  people, shares, conversions, gifts, attribution, settlement, or payment.
 - **Optional D26 records destination**: only after D26's complete browser lane
   exists, Phase 31 may certify a tenant-owned storage destination using
   provider-native authorization, exact destination identity, least privilege,
@@ -3629,6 +4843,11 @@ archive, or custody transfer. Report filters and scheduled runs never define
 archival completeness, source-family watermarks, original-byte coverage,
 retention, hold, or disposition.
 
+Phase 33 conversions, custom metrics, report filters, materialized read models,
+or dashboards never become a Phase 22 D6 public-progress source, denominator,
+automatic fallback, or authoritative converted total. Phase 22 consumes only
+the exact source-owned Phase 13, Phase 16, and Phase 28 contracts ratified by D6.
+
 **Open questions for grooming.** Semantic-layer build-vs-adopt (Cube Core
 vs in-house definitions); which rollups are materialized vs live;
 donor/missionary-facing report surfaces (portal impact views ride the same
@@ -3702,6 +4921,524 @@ Phase 10 classification. A workflow may request a permitted Phase 21 command
 through the domain service and observe its result; it cannot write Field
 Account entries, approve expense truth, generate an Accounting Release, or
 mutate provider-delivery state directly.
+
+**Phase 24 D31–D43 Tasks Hub and authorization compatibility.** When a Phase 34 workflow action
+appears in the shared Tasks Hub, the workflow run/stage/task record remains its
+authoritative source. A control such as **Complete interview review** must be
+the exact Phase 34 source command with current role, evidence, consequence, and
+expected-head checks; only its successful source receipt closes the projected
+task. A generic Tasks Hub checkbox, task status, notification read, timer, or
+Inngest run cannot advance a workflow. A separately defined human follow-up
+may use task-owned completion only when it is not the workflow source action or
+stage-transition truth.
+
+Any future Phase 34 responsibility change shown in Tasks Hub must likewise be
+the exact source-owned D33-style command: resolve only currently eligible
+destinations, re-prove actor/target/scopes/heads at commit, append an immutable
+successor generation/receipt, preserve continuing engagement, and distinguish
+named handoff from no-successor return/Needs assignment. Tasks Hub cannot edit
+a generic assignee, and Website eligibility/routes are not copied into
+Mobilize. A broader workflow delegation, queue, acceptance, availability, or
+bulk-transfer product requires its own Phase 34 decision and evidence.
+
+If a future Mobilize source-return genuinely needs actor-selected recovery
+context, it may reuse D34's source-owned envelope only after its own evidence-
+backed decision defines the exact trigger, closed vocabulary, recovery use,
+visibility, retention, authorization, and non-effects. Tasks Hub never copies
+or interprets the Website v1 codes, and Mobilize never inherits them from a
+task title, policy kind, source link, or module name. Inngest receives only the
+source-transition identifier and remains projection/reconciliation execution,
+not context or routing authority.
+
+D35 contributes only reusable mechanics: an authoritative source-owned
+ownerless-work lane, a versioned bounded responsibility-intent route, complete/
+zero/indeterminate recipient resolution, one shared task identity with personal
+assignment/engagement, source receipts, identifier-only outbox, and monotonic
+reconciliation. Phase 34 and Mobilize inherit no Website policy mode, member,
+Site behavior, label, D34 code, action capability, eligibility predicate, or
+default audience. A future source must separately prove its ownerless-work
+state, lane, recovery action, audience, visibility, retention, channels, and
+policy. Inngest remains optional execution and never becomes workflow,
+responsibility, authorization, lane, or idempotency truth.
+
+D36 contributes reusable prospective-cutover and explicit-current-adoption
+mechanics only: a separately authorized permission-safe impact, immutable
+product-owned application/cohort/result ledger, per-source-occurrence atomic
+differential routing, continuing engagement, durable replay, and resumable
+status. Phase 34 does not inherit D36’s Website cohort, policy, members, task
+role, result copy, no-Site-override decision, or current-work capability. A
+future Phase 34 source must define whether policy changes are prospective,
+whether existing work may be adopted, the exact cohort/authority/privacy
+boundary, and truthful correction/rollback behavior. Inngest may page accepted
+identifier-only members but never defines or authorizes the adoption.
+
+D37 fixes the Website-specific D36 cohort as the complete compatible
+pre-cutover Tenant set proved from authoritative source occurrence heads and a
+closed code-owned producer/version catalog. Preparation has no effect; unknown
+completeness blocks confirmation; an atomic normalized seal precedes member
+claims; and actor visibility, Sites, filters, tasks, recipient qualification,
+and client selection never define membership. One separate Tenant-wide
+application capability authorizes only the operation and exact complete
+aggregate item/assignment impact required for consent, not source detail or
+recipient authority. Phase 34 and Mobilize inherit none of D37's Website
+catalog, cohort, capability, cutover, aggregate disclosure, or UI semantics.
+Each future source must make its own evidence-backed cohort/privacy/action
+decision; optional Inngest remains identifier-only execution.
+
+D38 makes the D37 action one zero-by-default, `explicit_only` Phase 12
+capability. Grant administration is separate from possession and requires a
+current same-Tenant `permissions.manage_grants` decision within live scope and
+ceiling. Owner/Admin/staff/Web Studio/policy/Site/source/coordinator/task/
+support state never implies it; grants bind the Active Tenant Assignment; and
+current EffectiveAccess owns deduplicated holder/provenance truth. Zero holders
+leaves prospective policy and Needs assignment complete and creates no task,
+notification, reminder, or fallback.
+
+Revocation, expiry, assignment end, suspension, or applicable delegation end
+makes the affected source inert and fences later uncommitted D37 effects only
+when final post-change EffectiveAccess no longer contains D38, without
+rewriting committed source/task history.
+The Phase 12 People & access/My Access product owns grant/revoke UX; Website,
+Tasks Hub, Phase 34, Mobilize, and Inngest own no grant roster or authorization
+shortcut and inherit no D38 atom automatically.
+
+D39 permits both a typed direct assignment-capability grant for a specific
+active staff assignment and a governed flat **Access group** grant for a stable
+job function through the one Phase 12 EffectiveAccess/provenance/epoch model.
+Both are optional, additive, deduplicated sources; every human edge binds an
+exact same-Tenant Active Tenant Assignment, and group assignment is one
+relationship rather than per-member fanout. No Website group, seeded holder,
+Team/task/coordinator/Mobilize mapping, external/dynamic/nested membership, or
+Inngest authority is introduced.
+
+A group carrying D38 is protected authorization state. Group capability
+changes require `permissions.manage_grants` within a live assignable-capability
+ceiling; member add/activation separately requires exact scoped
+`permissions.manage_membership` with a live ceiling covering the complete group
+bundle and revision. Ordinary Team ownership and self-membership cannot create
+authority. Any Phase 34 or Mobilize use of groups must make its own domain
+decision and may reuse only this central authorization primitive—not Website's
+D38 capability, group, membership, or UX semantics.
+
+D40 permits one deliberately reviewed **separate direct grant** while an exact
+staff assignment already receives D38 through current group paths. The person-
+access surface shows every current source first and states that present ability
+is unchanged while future survival changes. It requires a fresh minimized
+reason, explicit unpreselected independent duration, current grant authority/
+ceiling and self/SoD/quorum checks, and a complete current group-source-set
+proof.
+
+The command reuses D39's typed direct relation. It records immutable overlap-
+creation provenance in audit/receipt evidence, advances the Tenant epoch once,
+and creates no backup table, new permission kind, source priority, automatic
+handoff/cleanup, notification, task, or Inngest authority. Relevant source
+change before commit conflicts; later group loss leaves the independent direct
+source current. Final EffectiveAccess loss alone fences D37. Phase 34 and
+Mobilize inherit none of this Website capability or creation UX.
+
+D41 keeps current source truth distinct from historical origin after the final
+group path ends. Current People & access and My Access presentation says
+**Direct grant** or **Granted directly to you** with the direct source's own end
+condition. Authorized expanded **Why this person has access** / **Why you have
+access** provenance retains
+**Added for continuity**, the immutable event-time overlap evidence, and later
+source history according to D42's viewer/purpose policy. Ending or
+returning a group path changes the current source list through Phase 12's
+existing epoch but never converts, reissues, retags, or renews the direct grant;
+if optional history is unavailable, canonical current access remains truthful.
+Operational search/export classifies the source as direct, and no current
+continuity badge, shadow state, conversion worker, task, notification,
+recertification timer, staff score, or Inngest authority is introduced.
+
+D42 admits four server-derived Phase 12 history projections only:
+`access.self_explanation`, `access.membership_change_review`,
+`access.grant_governance`, and `access.security_audit`. The holder receives the
+safe **Added for continuity · [date]** explanation; membership review receives
+only the surviving direct source/end; exact grant governance receives only
+floor-permitted minimized evidence; and full typed authorization evidence
+requires current `permissions.audit.read`. Bulk audit export additionally
+requires `permissions.audit.export`. A withheld event-time source label renders
+**Protected access group**; protected reason/actor values are omitted. One
+request uses one purpose and exact Active Tenant Assignment, never a multi-hat
+or role union. Raw/browser, support/service, task/notification, ordinary
+Website/reporting, analytics, AI, cache, and current-access export paths receive
+no continuity fields. D42 changes no grant, task, workflow, or current-access
+truth; D43 alone decides the holder's safe correction action.
+
+D43 gives the exact current subject of one D40 continuity-created direct source
+one quiet **Ask for an access review** action. The current source/end remains
+first; an inline Base Maia/Base UI form asks only **Why should this access be
+reviewed?**, requires trimmed 1–500-code-point protected plain text, warns
+against private personal/ministry/donor/care/security/location detail, and says
+submission does not change access. A committed result persists as **Review
+requested. Your access has not changed.** The subject may withdraw while
+pending. Current access and request history remain separate: a subject-only
+**My access requests** section retains safe outcomes after a removed or expired
+source disappears from current access.
+
+D43 reuses one typed Phase 12 `permission_change_request` kind,
+`holder_direct_grant_review`, contract version 1. It creates no Website-local
+request table or generic workflow. One exact Tenant/assignment/direct source has
+at most one `pending_review` episode; terminal states are `withdrawn`,
+`resolved_kept`, `resolved_removed`, or `no_longer_applicable`. Same-Tenant
+composite keys, immutable event/receipt history, state constraints, semantic
+idempotency, current-head compare-and-swap, forced RLS, hardened command
+boundaries, and privileged-path parity prevent retargeting, duplicate terminal
+outcomes, and caller-controlled attribution. Protected request/decision text is
+never copied to tasks, notifications, email, logs, search, analytics, AI,
+Realtime, or ordinary export.
+
+The permission-filtered Phase 12 **Access requests** source lane displays D43
+as **Review current access**; periodic **Access reviews** remains the separate
+recertification-campaign area. Actionable lane rows, personal-recipient
+eligibility, and both decisions require current exact-scope
+`permissions.manage_grants` authority within the live ceiling plus existing
+Phase 12 floor/self/SoD/quorum/last-authority controls. D42 audit/review-read
+authority, role names, the original grantor, a task, notification, support, or
+deep link grants nothing.
+
+Review reloads current sources and the D37/post-removal consequence. **Keep
+direct access** requires a fresh holder-safe explanation and changes no grant or
+epoch. **Remove direct access** asks for no duplicate prose and invokes the one
+locked Phase 12 grant-state command; exact source end, request outcome, audit,
+receipt, one epoch advance, and identifier-only projection intent commit
+atomically. Other sources remain independent, and the holder is told whether
+access survives another way. If the source ends first, the request becomes
+non-actionable and converges to `no_longer_applicable`, shown as **Direct access
+ended before review**.
+
+Each pending D43 request is one ADR-0183 source-work occurrence. Phase 12 owns
+request status/actionability/decision/closure; Tasks Hub may later present one
+shared task identity with recipient engagement only after D44, and every generic
+task mutation rejects. The **Access requests** lane and holder history work with
+no personal route or Tasks Hub. Optional Inngest execution is identifier-only,
+post-commit, fire-time-reauthorized projection/reconciliation; it owns no human
+wait, request, reviewer, access, decision, idempotency, or completion. D44 alone
+decides optional personal routing among already-authorized grant managers.
+
+D44 keeps that source lane complete and adds one optional Tenant route for D43
+personal responsibility. A Tenant deliberately chooses **Use the shared Access
+requests lane only** or one to three unique, unordered, co-equal current Active
+Tenant Assignments as **Access request coordinators**. A new selection must
+currently qualify for D43 grant-decision work in at least one live Tenant scope;
+every exact request then independently narrows that configured set. Selection
+grants no permission or decision authority; every request re-proves current
+`permissions.manage_grants`, ceiling, floor, scope, assignment, and
+requester exclusion. Complete zero or indeterminate resolution routes nobody
+and never broadcasts or guesses a fallback.
+
+The compact policy summary lives in **People & access → Access requests**, with
+one responsive Base Maia Sheet, a progressive server-filtered picker, and a
+fresh aggregate consequence review before save. A confirmed immutable policy
+revision applies to all current and future pending requests. Continuing
+recipients preserve engagement, newly admitted recipients receive fresh
+personal responsibility, removed recipients end as **Coordinator responsibility
+changed**, and an unchanged effective set creates no churn. D44 changes no
+request, grant, duration, or authorization epoch.
+
+Tasks Hub is not the only attention path. The same current Phase 12 recipient
+generation drives one source-backed task assignment and one independent
+ADR-0027/Phase 17 staff Notification Center projection. Newly opened requests
+use `holder_access_review_requested_v1`. When a route or eligibility change
+admits a coordinator to existing pending work, individual tasks still
+materialize but the bell receives only one safe aggregate
+`access_request_responsibility_updated_v1` item per recipient and source-owned
+responsibility-application generation. That generation pins the route revision,
+current eligibility/authorization basis, admission cause, and sealed child set.
+Both deep-link to fresh People & access authorization and copy no
+protected request, reason, grant, capability, or group detail. Task engagement,
+notification engagement, channel delivery, and D43 closure remain independent.
+D45 adds one optional immediate email sibling for each exact contract; the
+published Tenant Delivery Plan defaults Off. One
+`profile.access_governance_attention@1` family selection governs both D44
+`staff_email` slots atomically; mixed per-key On/Off is invalid while each key
+keeps separate semantics and rendering. The exact coordinator's
+self-managed `preference.access_request_responsibility_email@1` uses the
+canonical Phase 17 tuple of Tenant, Active Tenant Assignment, Party, registered
+role/surface, contract family, and email channel and is `inherit | disabled`:
+absence/`inherit` follows deliberate Tenant On, `disabled` narrows
+it, and neither can broaden Tenant Off. Email requires all
+current source, recipient, authorization, contactability/suppression,
+locale/publication, sender/reply, Tenant Resend, and dispatch proof. Failure or
+absence sends nothing and leaves source, task, and required in-product attention
+unchanged. Widening is future-only; current narrowing suppresses any not-yet-
+submitted optional email, while accepted mail is non-retractable. The generic email has one authenticated
+People & access link and no protected source/grant detail, inline decision,
+secret URL, attachment, or tracking. New work is at most one email per admitted
+recipient generation; a current-work route application is at most one grouped
+email per recipient/application generation, never one per child request.
+
+Tenant delivery configuration stays in the Phase 17 System Messages Delivery
+Plan; the D44 coordinator card shows only a quiet delivery summary/link. A
+coordinator manages only their own preference under **Settings →
+Notifications**, with required in-product shown as always on, email truthfully
+shown as following the current organization setting unless the recipient turns
+it off, explicit **Save changes**, persistent future-only status, and truthful
+Tenant-disabled/unready states. Tenant administrators cannot inspect, edit, or
+override another person's opt-out. Unavailable future channels are not placeholder switches.
+Push, Slack, Teams, Google Chat, SMS, reminders, digests, and escalation each
+require an independent source/channel contract and proof; there is no generic
+channel array or rule DSL. D46 records no automatic reminder while D43 has no
+source-owned due instant, expiry, risk transition, SLA, or other ratified
+temporal requirement. D47 permits a bounded candidate to become evidence-
+qualified and a separately activated, Tenant-default-Off profile to become a
+Phase 12 source policy for at most
+one courtesy occurrence without Due/Overdue, SLA, escalation, no-response, or
+access meaning; it activates no policy or reminder now.
+Accordingly this phase adds no reminder key, row, field, timer, schedule,
+Inngest sleep, Tenant setting, or placeholder UI; elapsed age is not an implied
+deadline or urgency signal. A future reminder remains compatible only through a
+separately ratified Phase 12 temporal occurrence with exact time/calendar,
+semantic identity, cancellation/supersession, recipient, authorization,
+durable-idempotency, late-usefulness, and recovery rules. Optional Inngest may execute
+identifier-only claims/reconciliation but never owns the route, recipient,
+preference, task, notification, request, provider identity, authorization,
+idempotency, reminder time, cancellation, or outcome.
+
+If later activated after clock and channel decisions, the cadence policy stays
+separate from the D44 coordinator policy and Phase 17 Delivery Plan. It uses
+only code-owned bounded choices and never creates a second Tasks Hub task.
+D48 now fixes first application: the first successful non-Off policy boundary
+and genuine D43 request creation share one Phase 12 source order, and only a
+creation ordered after that boundary may atomically retain cadence admission.
+Existing requests never enter through age, timestamp comparison, current policy
+join, task/notification state, migration, replay, restore, or Apply-current.
+Ordinary absence/Off is expected exclusion; an asserted-active proof failure
+safely records no admission without blocking the valid D43 request. Exact
+committed replay preserves the original result.
+
+D49 now binds each one possible source occurrence atomically to the complete
+exact then-current D44 responsibility generation for that request. Each sealed
+member carries the exact D44 recipient-generation identity plus Active Tenant
+Assignment; a concurrent route change yields the complete old or new set, and
+the same ordering works when the optional D44 row is absent. Proved zero is a
+terminal empty cohort. Indeterminate leaves the same occurrence unreleased with
+append-only attempt evidence and may retry to one terminal result; it never
+releases a partial set or fallback. After sealing, only a gap-free D44
+continuation may retain a member and every source/channel effect may only narrow
+its relevant subset—later additions, restored eligibility, remove-then-readd,
+and recreated assignments cannot join. No reminder task is created.
+
+D50 now selects one immutable request-anchored elapsed eligibility instant. A
+fresh trusted database source-created instant is captured exactly once after
+D48's serialized policy winner is proved and becomes authoritative only with
+the successful D43 source transaction. The exact admitted duration identity/
+revision and bounded whole elapsed seconds derive one finite absolute UTC not-
+before instant. A later approved “day” is exactly 86,400 seconds; civil/
+working-day arithmetic, PostgreSQL day/month interval fields, Tenant/session
+zones, DST, weekends, holidays, D44 changes, tasks, providers, and executors do
+not move it. Early workers do nothing; late workers attempt the same occurrence
+subject to later cancellation/usefulness, and D49 seals the then-current cohort
+at the actual successful seal commit. Source-created, eligible, seal,
+presentation, submission, and delivery times remain distinct; not-before is no
+Due/Overdue state or send promise. No D50 runtime/schema/UI/OpenSpec artifact is
+added.
+
+Phase 24 D51 now makes cadence Off an immediate source-fenced narrowing. A
+successful Active-to-Off publication advances a separate monotonic cancellation
+epoch in one O(1) Phase 12 commit. D48 admissions pin the epoch; non-Off edits do
+not advance it, and re-enable retains it, so old D50 timing remains stable while
+fenced work never resumes or catches up. D49 seal and every registered
+irreversible descendant admission re-prove the epoch. Off-first prevents the
+boundary; boundary-first preserves truthful history. For local presentation the
+boundary is atomic queryable release, not read. For the currently governed
+email step it is Phase 6's provider-submission attempt fence before external
+I/O, not provider acceptance; after Off, existing ambiguous/provider evidence
+may reconcile but no further provider call or false recall is permitted. Each
+future channel must separately register and prove its own product-owned
+boundary and finality semantics.
+
+Off creates no request/task/access mutation, cancellation task/notification,
+unread reset, current-work census/count, or synchronous fanout. The later
+complete Base Maia editor uses a local draft and one inline consequence review
+with **Turn off courtesy reminders** and **Cancel**, not an autosaving switch,
+nested dialog, typed phrase, protected impact list, or provider-status UI. D51
+adds no runtime/schema/UI/OpenSpec artifact.
+
+Phase 24 D52 now makes late usefulness one finite source-owned admission
+interval rather than a scheduler/provider retry rule. Every later activated
+complete timing profile pairs positive finite whole-second wait and
+usefulness values; D48/D50 pin them and derive immutable finite UTC
+`not_before` and `useful_until` in the successful D43 source transaction. D49
+seal and each still-unreleased member/channel irreversible admission require a
+fresh trusted primary-database claim inside the half-open interval
+`not_before <= claim_instant < useful_until`, the matching D51 epoch, and every
+current source, member, authorization, privacy, and channel gate. Equality at
+the upper bound expires the work.
+
+Expiry closes unresolved work without release, replacement, or catch-up. D49
+indeterminate remains historical indeterminate rather than guessed zero; a
+sealed cohort remains history while every unreleased descendant expires
+independently. A local item released in time follows ADR-0027 and D43
+actionability rather than disappearing at `useful_until`. Email still
+**Prepared definitely unsubmitted** is suppressed; a pre-expiry **Submission
+may have begun** attempt's one admitted initial provider call may start, finish,
+or reconcile later only as the immediate bounded continuation of the same pre-
+I/O critical section with its envelope already prepared; a stalled/restarted
+process makes no call or retry. Expiry allows no new attempt, follow-up call,
+replacement, rekey, resend, or recall claim. Provider TTL
+may only narrow delivery. Inngest may wake/reconcile identifiers but owns no
+clock, source transition, idempotency, or terminal result.
+
+The future editor adds no separate grace-period control, expiry countdown,
+Due/Overdue or missed badge, task date, catch-up action, provider/worker status,
+or cancellation notification. Each visible cadence card is one complete timing
+profile and says **If Asym cannot create the reminder soon enough, it skips it
+instead of sending it late.** D52 changes no request, task, access, read state,
+or historical effect and adds no runtime/schema/UI/OpenSpec artifact. D53 and
+D47's representative-evidence gate must admit exact complete timing pairs
+before activation.
+
+Phase 24 D53 keeps cadence **Off by normative absence** until each exact
+complete `(wait_for_seconds, useful_for_seconds)` pair passes D47's
+preregistered representative-evidence gate. A passing result creates only an
+evidence-qualified proposal for founder/product ratification; it creates no
+runtime profile, key, row, flag, policy, plan, step, worker, setting,
+placeholder, or evidence workflow. Evidence stays privacy-minimized and
+version-controlled outside product runtime. Each exact pair qualifies under an
+immutable `research_candidate_id` and preregistered protocol version, while
+compatible current baseline evidence may be reused. Material timing or
+semantic/interaction changes require new qualification; meaning-preserving
+editorial, accessibility, and localization corrections do not.
+
+Only a separate full activation package that closes D46–D55 source semantics,
+stable content and every proposed channel, authorization/RLS/privacy,
+retention, accessibility/localization, concurrency/idempotency, load,
+migration/mixed-version, disable/repair, OpenSpec, manifest, tests, and release
+proof may add an immutable code-owned activated profile identity and
+exact whole-second pair. Tenant policy references an activated identity only;
+trusted server code resolves timing. Tenant rows, callers, imports, support
+tools, workers, providers, and experiments cannot author or mutate values.
+Temporary rollout/kill controls may narrow only after activation and require an
+owner and removal criteria; they cannot become product truth.
+
+Ordinary profile retirement blocks new policy selection/reselection only; a
+Tenant's current selected head continues prospective D43 source admission until
+deliberate change. D55 now makes urgent safety withdrawal one irreversible exact-
+profile platform disposition that preserves selected heads while effective
+cadence becomes Off. D56 must still ratify its authority/evidence-review rule
+before first activation.
+
+Before activation, users see no cadence UI, empty state, disabled option, beta
+badge, or teaser. After activation, the D44/D47-governed future route-addressable
+**People & access → Access requests → Settings** surface shows one quiet vertical **Courtesy reminders** radio fieldset with
+only the Tenant's current effective Off choice—whether represented by absence
+or an explicit later policy revision—and fully activated complete profiles. A retired profile is
+absent from new choices and new selection APIs but remains truthfully visible in
+a separate read-only **Current setting** summary outside the selectable radio
+choices wherever a Tenant's policy head still references it. One choice represents the full pair. Concise helper text explains that one
+courtesy reminder may be created only while a request is still waiting, sets
+no due date or access change, and is skipped if too late. An available,
+collapsed-by-default **How timing works** disclosure contains the D48–D52 detail
+and renders the selected pair in plain language: **Eligible after [wait]; if it
+cannot be created within the next [usefulness], it is skipped.** It never shows
+internal field names. The governed explicit
+Save/Cancel, prospective-change warning, expected-head conflict handling,
+durable receipt, persistent success, and lost-response recovery apply. No
+autosave, modal-only warning, arbitrary duration, second usefulness control,
+countdown, evidence score, or provider state appears.
+
+Later decisions must still define external channels, remaining content,
+withdrawal authority/evidence review, and activation/rollback;
+exact bounded values remain deliberately unselected until candidate research
+qualifies a pair under D47/D53. Future UX belongs in the D44/D47-governed People & access
+→ Access requests governance area. First enable, non-Off interval edits,
+and re-enable use **Applies only to access review requests created after you
+save. Requests already waiting aren't included. This doesn't set a due date or
+change access.** Selecting Off instead uses D51's current-and-future inline
+consequence review and **Turn off courtesy reminders** action. Its recipient
+summary is **Recipients** / **Access request
+coordinators responsible when the reminder occurs.** Later changes may stop
+delivery but never redirect that occurrence; if nobody qualifies, the request
+stays in Access requests. It performs no current-request census, recipient
+picker, or roster preview and exposes no channel matrix,
+custom calendar, recurrence builder, backlog action, or phantom control before
+activation. The future timing summary is **After the request has been waiting
+for [selected interval]**; the required available **How timing works** disclosure explains that
+timing starts at new request creation, runs continuously including weekends,
+is not restarted by time-zone or coordinator changes, and exposes the selected
+complete wait/usefulness effect in plain language. Ordinary staff see no
+countdown, promised send time, worker status, or internal clock terminology.
+
+Phase 24 D54 selects one distinct required in-product reminder item per exact
+still-qualified D49 sealed member after full activation. It means only that the
+same current access review is still waiting at the admitted courtesy point; it
+is not a resend, deadline, escalation, awareness claim, decision, access change,
+or task mutation. The activation generation assigns/registers its stable key and
+reminder-specific source-end rule; D54 names/reserves neither and adds no current
+artifact.
+
+An eligible matching `holder_access_review_requested_v1` child and the reminder
+use one deterministic, rebuildable **Access-review attention group** for the
+same Tenant, exact D43 episode, recipient, role/surface/privacy boundary, and
+uninterrupted D44 responsibility lineage. The multi-request
+`access_request_responsibility_updated_v1` aggregate never joins. When no
+eligible initial child exists, the reminder is a complete one-child group and no
+history is fabricated or backfilled. Each child keeps its own occurrence,
+applicability, engagement, and history. Only the new child receives fresh unread
+state; the group owns no engagement/source/task/access truth and contributes at
+most one derived badge count.
+
+Future release is one atomic D43/D48/D49/D51/D52/current authorization/privacy/
+uniqueness/group-attachment decision. D43 resolution ends applicable children
+under their own rules; D51 Off after release ends only reminder active/unread
+contribution, and D52 bounds first release rather than history. The future item
+uses ordinary **Attention**, the Phase 17 source-actionable presentation policy,
+safe **Access review is still waiting** copy, and one reauthorized People &
+access action. It contains no person, reason, capability, grant/provenance,
+authority, decision, location, ministry, or member-care detail and creates no
+second task.
+
+The Notification Center reuses Phase 17 and Base Maia/Base UI, with visually and
+programmatically equivalent grouping/order, semantic list/heading/disclosure
+structure, independent unread states, quiet arrival, and keyboard, screen-
+reader, forced-color, reflow/zoom, localization/RTL/CJK, mobile, and low-
+bandwidth proof. It does not copy the hardcoded demo bell, add a generic thread/
+conversation/grouping DSL, rely on avatars/color/proximity, or show inline
+Keep/Remove, task controls, urgency, due/overdue, sounds, focus theft, or toast-
+only history.
+
+D45's initial-email family plan is not inherited. Local reminder presentation
+is required; every external reminder channel remains absent/not-applicable until
+separately admitted. D54 changes no runtime, key, manifest/census count, profile,
+plan, step, schema/RLS, OpenSpec, route, worker, telemetry, or UI now. Current
+counts remain 20 Target Live candidates and 20 Reserved keys.
+
+Phase 24 D55 preserves Tenant intent while making one unsafe timing-profile
+revision terminally non-executable. One append-only, irreversible, exact-profile
+platform safety withdrawal makes every Tenant reference effectively Off without
+editing a Tenant head, publishing mass Off successors, selecting a fallback, or
+performing a Tenant census/fanout. It is distinct from ordinary retirement,
+D51 Tenant Off, provider pause, and temporary rollout/kill flags. It cannot be
+cleared; recovery requires a separately evidenced/activated successor and each
+Tenant's deliberate Save, with no historical catch-up.
+
+Every selection, D43 admission, D49 seal, local release, and external
+irreversible-effect boundary atomically checks current product-owned withdrawal
+state. Missing/unknown/stale/mixed-version state fails closed only for reminder
+effects while requests, initial attention, and tasks remain usable. Fence-first
+blocks admission/release; a selection/admission that won first stays truthful but
+all not-yet-irreversible descendants close safety-withdrawn/no-release. A released
+local reminder loses active/unread contribution without changing its initial
+sibling or source work. Definitely unsubmitted external work suppresses; an
+already admitted **Submission may have begun** call only completes/reconciles
+under its frozen identity and never retries, rekeys, falls back, or claims recall.
+
+The future settings editor separates selected from effective truth. A withdrawn
+selected profile appears outside choices as **Selected: [profile label]**,
+**Status: Unavailable for safety**, **Effective: Off**, and **Courtesy reminders
+are off. Existing access requests, tasks, and access are unchanged. This setting
+will not restart.** A secondary **Choose a new setting** action opens the
+ordinary choices with no replacement preselected. Cancel preserves the head;
+explicit Save chooses Off or another activated profile. There is no disabled
+radio, automatic substitute, internal jargon, incident detail, task,
+notification, email, banner, modal, toast, or mass Tenant alert. Safe status is
+accessible, localized, mobile/reflow-complete, and distinct from D42-restricted
+actor/evidence detail.
+
+D55 adds no runtime, key, profile, withdrawal row, manifest/census entry,
+plan/step, schema/RLS, OpenSpec, UI, flag, worker, telemetry, or automatic
+trigger. Current counts remain 20 Target Live candidates and 20 Reserved keys.
 
 D25 ships complete without Phase 34. A later workflow may subscribe to an exact
 D25 occurrence, mirror a follow-up task, and invoke only an already permitted
@@ -4070,7 +5807,17 @@ the actions it drafts) enrich it.
 
 - **Global search**: cross-record-type, permission-governed (Phase 3/10
   compiled into the query — restricted tiers excluded from indexing per the
-  Phase 10 ruling), extending the Phase 9 Cmd-K foundation platform-wide.
+  Phase 10 ruling), extending the Phase 9 Cmd-K foundation platform-wide. It
+  may consume D13's already-admitted public Directory Projection and typed card
+  references in the future, but cannot widen D2 reach, Phase 10 safety, Page
+  Family, Site/locale scope, or public indexed fields. D13 launches without a
+  dedicated external-search authority; a later Phase 40 engine remains a new
+  proof-gated adapter over owner-domain projections, never a retroactive D13
+  prerequisite or parallel public catalog.
+- **Phase 22 D25 independence:** D25's action resolver, recovery buffer, and
+  bounded reference-safe cleanup launch as deterministic owner-contract
+  behavior. Phase 40 cannot classify stale editorial work, inspect drafts,
+  operate recovery, or become an authority or prerequisite for D25.
 - **Data-quality queues as continuous control** (not periodic cleanup):
   duplicate suggestions (prevent-at-entry + real-time detect + small
   governed merges), completeness/staleness/consistency checks, growing the
@@ -4177,9 +5924,10 @@ not omissions). Grooming for the named phase must check its items off.
   child-sponsorship-adjacent features (child sponsorship is out of scope);
   missionary–donor correspondence is covered by 6/17/26/28. Recorded here
   so the omission is a decision.
-- **Visibility conditions on public content** (23): date windows ship;
-  audience-conditional content is a Phase 23 grooming decision (cache
-  interplay).
+- **Public-content audiences and time windows** (23): Phase 23 D13 owns
+  exact-revision publish and unpublish appointments through D1; D24 fixes one
+  exact public audience. Authenticated or segmented experiences remain
+  app-owned surfaces, not CMS visibility conditions.
 - **Platform-adjacent (outside this program):** tenant provisioning/
   self-signup, the platform's own SaaS billing, plan gating.
 

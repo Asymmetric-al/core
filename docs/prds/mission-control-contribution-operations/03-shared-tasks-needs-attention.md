@@ -1,30 +1,29 @@
 # PRD 3: Shared Mission Control Tasks and Needs Attention
 
-## Delivered split status
-
-Delivered through split PR #394. Do not create a new `status:ready`
-implementation issue from this historical PRD unless a follow-up gap is
-identified against the shipped code. The "failed CRM posting" task source
-below feeds from the now-retired Twenty outbound queue, dormant per
-[ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
-(2026-07-06).
+**Current requirements amended 2026-09-16 (AL-1861).** These bodies use the
+ratified [owner contracts](../../features/mission-control/contribution-detail/README.md).
+The [original PRD](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/prds/mission-control-contribution-operations/03-shared-tasks-needs-attention.md)
+records the earlier requirements and delivery history (split PR #394). Those
+original delivery claims do not establish implementation of the amended target.
 
 ## Problem statement
 
 Contribution operations create follow-up work: failed donor notifications,
-failed receipt sends, failed CRM posting, failed provider actions, correction
+failed receipt sends, failed provider actions, correction
 reviews, pending refunds, missing donor/designation, and batch runs with
 issues. If each feature creates its own task model or queue, Mission Control
 will become fragmented.
 
 ## Solution
 
-Build one shared Mission Control task system and a Contribution Hub Needs
-Attention view. The task system is a lightweight workflow foundation, not a
-heavy enterprise workflow engine.
+Use the shared Mission Control task owner and a Contribution Hub Needs
+Attention projection. The source correction, document, message or provider case
+retains business state and resolution; task completion/dismissal cannot approve
+a correction, prove a payment, erase a failure or complete another owner action.
 
-Contribution operations use it first. Later Support Hub, CRM, Email Studio,
-CMS, missionary workflows, automations, and batch processing should reuse it.
+Contribution, Support, CRM, Email Studio, CMS and automation adapters use the
+same shared task contract with exact source references and current Phase 12
+access. There is no retired Twenty task source and no internal CRM-copy queue.
 
 ## Goals
 
@@ -64,7 +63,6 @@ CMS, missionary workflows, automations, and batch processing should reuse it.
 - receipt issues
 - statement issues
 - donor notification issues
-- CRM post issues
 - Stripe/provider issues
 - pending refunds
 - correction reviews
@@ -86,14 +84,13 @@ Critical urgency includes:
 
 High urgency includes:
 
-- CRM post failure
 - batch completed with issues
 - correction review waiting
 - recurring gift issue
 - missing designation
-- any Normal item aging past the tenant threshold
+- an unresolved contribution-source item aging past its configured threshold
 
-Recommended defaults:
+Contribution-source defaults (not a global timer for other domains):
 
 - Normal to High after 24 hours
 - High to Critical after 48 hours when donor trust or money state is involved
@@ -108,11 +105,13 @@ failure tasks.
 
 Test behavior and queue visibility:
 
-- task creation from donor notification, receipt, statement, CRM post,
+- task creation from donor notification, receipt, statement,
   provider, pending refund, correction review, batch, missing donor/designation,
   and staged gift issues;
 - assignment policy for actor-only, queue-only, and both;
-- completion, dismissal, suppression with reason, comments, and reminders;
+- completion, permitted dismissal/suppression with reason, comments and reminders;
+- source-state truth unchanged by task/notification engagement;
+- denial of retired CRM post/repost sources and same-database copy jobs;
 - Needs Attention grouping by issue type and urgency;
 - Critical/High urgency and aging thresholds;
 - tenant-configurable thresholds;
@@ -120,12 +119,13 @@ Test behavior and queue visibility:
 - linked records for donor, contribution, audit, notification, batch, and
   provider action.
 
-## Delivered acceptance criteria
+## Acceptance criteria
 
-- A shared Mission Control task model exists.
+- Reached contribution work uses the shared Mission Control task owner.
 - Contribution failure/follow-up cases can create linked tasks.
 - Needs Attention exists in Contribution Hub.
 - Needs Attention supports issue type and urgency.
-- Staff can complete, dismiss, and suppress tasks where appropriate.
+- Staff can act on tasks under current capability/source policy; source business
+  outcomes and required attention cannot be dismissed away by a task preference.
 - Task and urgency behavior is audited.
 - Focused tests pass.

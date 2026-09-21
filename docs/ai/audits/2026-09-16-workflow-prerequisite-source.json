@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "sourcePr": 1428,
+  "sourceUrl": "https://github.com/Asymmetric-al/core/pull/1428",
+  "base": "ab53c8471688c75dd39d7e9a85490236d7122eb4",
+  "head": "4e2c014afdbea1a2679f71ff3e9f385f6bf755a2",
+  "authorizedInitialHead": "014092e44f9e8355c9243b845501856d91ccc6cf",
+  "latestInspectionDate": "2026-09-21",
+  "stateAtInspection": "open; latest source head includes develop integration; original owner review remains pending",
+  "authorization": "Conrad explicitly approved including this existing PR as a prerequisite on 2026-09-16.",
+  "preservedCommits": [
+    "322b3cffd3718239b660c7a3782d629337a001e1",
+    "574321598c4a0881a8035f5c1b7bdb4d1c8cd0d3",
+    "65d83e85e77692b1f69c5bb22d7233cdd9fb21b5",
+    "a554d920c418b98d5c0a509881ab9edfa4c1e7cc",
+    "87002b47744db63a449a4659d4b93561cf4f9b10",
+    "6ef4eaa0f84311cd6e708f597f94875f0f94f0bb",
+    "84b782e15a225f39c9250188d30c7b40c26eb8eb",
+    "90e0f71b6f274ccde701f283159c49767868bfde",
+    "639a557ba2503733ae0a269f7b613280f35e2847",
+    "ffce31f0b959202a352c3fcad59a8ccfd2011ffc",
+    "014092e44f9e8355c9243b845501856d91ccc6cf",
+    "4e2c014afdbea1a2679f71ff3e9f385f6bf755a2"
+  ],
+  "meaning": "Existing prerequisite commits remain ancestors with original authorship; source PR merge and owner approval are not claimed. The P22-P26 manifests remain independent planning provenance.",
+  "files": [
+    {
+      "path": ".github/CODEOWNERS",
+      "sourceSha256": "f2b33703fe42c66b41f9d621bb2c7ae84ae14216b7013cba7a2d47354960d537",
+      "sourceGitBlob": "4cd58a6f120b62351e68258cbddf93d05e7eedc3",
+      "integratedSha256": "f2b33703fe42c66b41f9d621bb2c7ae84ae14216b7013cba7a2d47354960d537",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "sourceSha256": "fa833e2a85eee8a2839d3df6b2e7fb65ad230801f251f3af403b77a9fdb847d9",
+      "sourceGitBlob": "b908d2a4dc58cbad0a52ae58aeda5939e13ac1f9",
+      "integratedSha256": "fa833e2a85eee8a2839d3df6b2e7fb65ad230801f251f3af403b77a9fdb847d9",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sourceSha256": "f3ac114ed4e6656354135f2df517f340f3844b68ef328980cc637d8d61cc0aea",
+      "sourceGitBlob": "8021ccaff80a2f5462b00ff0078b0ed3aab8f752",
+      "integratedSha256": "f362c470184f0e7b7b28bbd22992000b37f90547d46cc9847ed9ecc9e829559f",
+      "disposition": "reconciled with documentation changes"
+    },
+    {
+      "path": ".husky/pre-push",
+      "sourceSha256": "2e1bb1991b814aa6e7f95aa5c75b09c9309897cc1f63fb1c0e284de71b6823f8",
+      "sourceGitBlob": "fa837b382a6a56956b8f803fc235d4cee435c22b",
+      "integratedSha256": "2e1bb1991b814aa6e7f95aa5c75b09c9309897cc1f63fb1c0e284de71b6823f8",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "CODEOWNERS",
+      "sourceSha256": "c5599d11c4faeb4c83274bbe812fac4e5f91bad44f4739d925c2b972e1b79bf8",
+      "sourceGitBlob": "6fb8b5144329d3353b05915caf1c6b731342329f",
+      "integratedSha256": "c5599d11c4faeb4c83274bbe812fac4e5f91bad44f4739d925c2b972e1b79bf8",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "sourceSha256": "cd3a9046a4f39e6e83041ba6b21e66f01e006dc9fe5b36dfef96e55cb37e5801",
+      "sourceGitBlob": "fb9684ab7b68d4c83ad0e46ed2bb3384e4bbc269",
+      "integratedSha256": "cd3a9046a4f39e6e83041ba6b21e66f01e006dc9fe5b36dfef96e55cb37e5801",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "README.md",
+      "sourceSha256": "189d3217332a3d3dbad03fbd1dd65e5f0c9bd696c38d52a54c1057aedfbf86ed",
+      "sourceGitBlob": "f135bf0749aabac409ff78a61ca7860cf6cc2023",
+      "integratedSha256": "60a1e1b875873cbe23a2617a09c040b4b931a06cb431f28f059d68330e7d3864",
+      "disposition": "reconciled with documentation changes"
+    },
+    {
+      "path": "contribution-workflow.md",
+      "sourceSha256": "90ef5351b2c860492624148f29e75882ac1db073e15cf42e46492efe4a817c96",
+      "sourceGitBlob": "6276537682230bd6d17b8aaddd51b1d8dee33825",
+      "integratedSha256": "90ef5351b2c860492624148f29e75882ac1db073e15cf42e46492efe4a817c96",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "docs/ai/protected-paths.md",
+      "sourceSha256": "5dd86cb802abca059f9d46655ecbe56fac22f4fe1772bbf83996b0756339a2a1",
+      "sourceGitBlob": "468b4e378a34fb8650290cfff82c6c5b5aabb008",
+      "integratedSha256": "5e0ce6e556ac49f8d25bd7bf0d2af5e70033d70e82e21b67f8f931ded2a9a2d3",
+      "disposition": "reconciled with documentation changes"
+    },
+    {
+      "path": "docs/ai/rules/general.md",
+      "sourceSha256": "0252442c1b25dd08b21d09335a54a8226d3bb793510e5246993f12f684b85b8a",
+      "sourceGitBlob": "8f2b61f8b14c4cdaa6512033d2a927b3b3179ebe",
+      "integratedSha256": "9e50833511e40e36fd7e0acb763015ec4950d19c2c9b62ab9cccc1e8b91d9066",
+      "disposition": "reconciled with documentation changes"
+    },
+    {
+      "path": "docs/ai/rules/testing.md",
+      "sourceSha256": "417c0903f52e82067968811b6df65e69a2b0448ef1fbfede10b18dfd4d5a5252",
+      "sourceGitBlob": "4d46abbba9f22870204ea210194f371286f58da5",
+      "integratedSha256": "417c0903f52e82067968811b6df65e69a2b0448ef1fbfede10b18dfd4d5a5252",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "docs/ci.md",
+      "sourceSha256": "aed26137172e92826a21f28ebaa09ca29105cff85d8dfa64aa16e9364cc552d8",
+      "sourceGitBlob": "ad2fb9e2833b560d7c3b43331f1dc2752f1f1dc9",
+      "integratedSha256": "16422c948b58aa06068c9c12f500a4183437787566faa31e34f6380cec28dea0",
+      "disposition": "reconciled with documentation changes"
+    },
+    {
+      "path": "docs/guides/development/code-review-and-ownership.md",
+      "sourceSha256": "fe32eecf5a04e3ac24aea3a0157dfd2370c847a1c8d3628960b3cc111b307161",
+      "sourceGitBlob": "3eae9bc764a2f22bafee6ad776b3410c3153a0da",
+      "integratedSha256": "fe32eecf5a04e3ac24aea3a0157dfd2370c847a1c8d3628960b3cc111b307161",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "docs/guides/development/contributing.md",
+      "sourceSha256": "5079b5234576d0fbada3c7a36ca728dce972eec664861238e706c1b14e9f62c3",
+      "sourceGitBlob": "627aa6717477ba61c9317846f5c2dfc078949c22",
+      "integratedSha256": "3dea16da59127a6ede0a34c1311983155b194f12420a67cf263c1c2d02571df9",
+      "disposition": "reconciled with documentation changes"
+    },
+    {
+      "path": "docs/guides/development/getting-started.md",
+      "sourceSha256": "31295fe0b3d0ab0e48b9bfe80b0b785daeae41fabc546579aa648c273f3ac8f4",
+      "sourceGitBlob": "af0e2162f748419f23cd90469e783647fb45e46c",
+      "integratedSha256": "31295fe0b3d0ab0e48b9bfe80b0b785daeae41fabc546579aa648c273f3ac8f4",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "docs/ops/deploy-checklist.md",
+      "sourceSha256": "69ee5665f10de848884e6d08ba14d3979e150844b988111a84060b5049b40ce9",
+      "sourceGitBlob": "59f455a284ed2104a52edce434a3d0dd785cc56b",
+      "integratedSha256": "c960501b1e534fbd3babd8a3b3f0004ecfe9b542e57c8e40cab93b885831d91e",
+      "disposition": "reconciled with documentation changes"
+    },
+    {
+      "path": "docs/ops/environments.md",
+      "sourceSha256": "835f2c29bab0f3252ce7e6c3074dcc184033236ca9fca5d4ef26fd8a818a08ff",
+      "sourceGitBlob": "b445ac5d3246fc3cef38977a7b03c2e3f7b3f096",
+      "integratedSha256": "867a82c527784cf154327dd389ae6ea062ceb8e93ce816b11dabd5530ec30211",
+      "disposition": "reconciled with documentation changes"
+    },
+    {
+      "path": "docs/ops/git-attribution.md",
+      "sourceSha256": "de650b220bdd505bd57a16715c6b19f34d65287d9c39a51e0223c0742e1357e1",
+      "sourceGitBlob": "0251f4d6f6f3423d2ea04fb37fa25e70884bdcb0",
+      "integratedSha256": "de650b220bdd505bd57a16715c6b19f34d65287d9c39a51e0223c0742e1357e1",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "docs/ops/scale-observability-reliability.md",
+      "sourceSha256": "c54d6ca62e381165dd121797b18ad548b642be6e7be167836b12efcb727856d4",
+      "sourceGitBlob": "52b42f1ad377b22ab651dbf5224cdf57a803d7f5",
+      "integratedSha256": "c54d6ca62e381165dd121797b18ad548b642be6e7be167836b12efcb727856d4",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "openspec/changes/enable-team-developer-workflow/.openspec.yaml",
+      "sourceSha256": "5f408ebe6a8c4d9c4c5e85f9e84c9ac47aa1192c4424a5f5f2224781c6f85fd7",
+      "sourceGitBlob": "4102db8a47b20189bae396fa612f28672c344522",
+      "integratedSha256": "5f408ebe6a8c4d9c4c5e85f9e84c9ac47aa1192c4424a5f5f2224781c6f85fd7",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "openspec/changes/enable-team-developer-workflow/design.md",
+      "sourceSha256": "954c0553675022639bf6e27613acbcb518857cbb83cdbaba4d5c74b64c38b2a9",
+      "sourceGitBlob": "65ef0d0a56eb5b570f1844b577ea0ee84dd4e922",
+      "integratedSha256": "954c0553675022639bf6e27613acbcb518857cbb83cdbaba4d5c74b64c38b2a9",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "openspec/changes/enable-team-developer-workflow/proposal.md",
+      "sourceSha256": "4d219c32b2373d91df497b0feeb99400184e35e1129cddee4fa0752fab42e100",
+      "sourceGitBlob": "0b59f7999b91d144df10c1f10315d7d08617804c",
+      "integratedSha256": "4d219c32b2373d91df497b0feeb99400184e35e1129cddee4fa0752fab42e100",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "openspec/changes/enable-team-developer-workflow/specs/repository-contribution-workflow/spec.md",
+      "sourceSha256": "e9ddf3f2c161a0e11af54f5f944b337607de6ef2285941f6f47261fd1a5c0a76",
+      "sourceGitBlob": "8c1e9b0118d8f29d0f0a66e9caea34a637b52d2f",
+      "integratedSha256": "e9ddf3f2c161a0e11af54f5f944b337607de6ef2285941f6f47261fd1a5c0a76",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "openspec/changes/enable-team-developer-workflow/tasks.md",
+      "sourceSha256": "d32d856d074a6627920474731bc0898b2aa323214a6a22d23009ccf54bc65fe3",
+      "sourceGitBlob": "00292308faae2727214a0440c8ad0d07d8f6c5b2",
+      "integratedSha256": "d32d856d074a6627920474731bc0898b2aa323214a6a22d23009ccf54bc65fe3",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "scripts/git/pre-push.mjs",
+      "sourceSha256": "c484c0ee38a4bf870d1600f96a330a423ff11e53106ea256616995ecea45908a",
+      "sourceGitBlob": "8557ccd8a27323c6db3ebd10c1b22ac09f3e725b",
+      "integratedSha256": "c484c0ee38a4bf870d1600f96a330a423ff11e53106ea256616995ecea45908a",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "scripts/git/trusted-identities.mjs",
+      "sourceSha256": "53ef6b83e1fe0cfef1e59b150bb18bff3d6b11b36d4019620acbf3cf8e6f79ff",
+      "sourceGitBlob": "fe987aa15986f3bd297bd818b27d86a8bf37af17",
+      "integratedSha256": "53ef6b83e1fe0cfef1e59b150bb18bff3d6b11b36d4019620acbf3cf8e6f79ff",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "scripts/verify/data-boundary-check.mjs",
+      "sourceSha256": "eabf5a62a9d29e4347ccfb16409f576becca8862d86d78e032bc472ac48bd1bc",
+      "sourceGitBlob": "f3a05dcb57ecf82b8d0483efb8d75311f47a490d",
+      "integratedSha256": "eabf5a62a9d29e4347ccfb16409f576becca8862d86d78e032bc472ac48bd1bc",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "scripts/verify/git-attribution.mjs",
+      "sourceSha256": "bbe0d57dbdea3e398e4f93855f8c3b366953ddd5f8e143d171e57aebc64d65af",
+      "sourceGitBlob": "e0fad76d38bc7345ede8bb2daaf1071f1bf2dfa8",
+      "integratedSha256": "bbe0d57dbdea3e398e4f93855f8c3b366953ddd5f8e143d171e57aebc64d65af",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "tests/unit/scripts/git-attribution-workflow.contract.test.ts",
+      "sourceSha256": "92cff56a6e7ad3bb72fff136df534293672bab375c9762b5b5d69dd3ea8f0a63",
+      "sourceGitBlob": "bd7517c8f4f7b036506851ef142d8b1ad27060c6",
+      "integratedSha256": "92cff56a6e7ad3bb72fff136df534293672bab375c9762b5b5d69dd3ea8f0a63",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "tests/unit/scripts/git-attribution.test.ts",
+      "sourceSha256": "7bbbece92b924a454c06c17799e6f182f5081f1921d90cbad417a18b84ac14f7",
+      "sourceGitBlob": "ddb86781ced4390e6bd31c62cbd5599e6b39f16b",
+      "integratedSha256": "7bbbece92b924a454c06c17799e6f182f5081f1921d90cbad417a18b84ac14f7",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "tests/unit/scripts/pre-push.test.ts",
+      "sourceSha256": "0e92444ac4e3186b12e6a4a90e32583f8167793b7fb3df1564c8027df3926556",
+      "sourceGitBlob": "95a594e16b7f343a0b6922df694e7602a0ce7e7c",
+      "integratedSha256": "0e92444ac4e3186b12e6a4a90e32583f8167793b7fb3df1564c8027df3926556",
+      "disposition": "unchanged prerequisite"
+    },
+    {
+      "path": "tests/unit/scripts/twenty-retirement-guard.test.ts",
+      "sourceSha256": "0aa9f5ca5252a8fe0b7309db1e0229103cbf6c0d2e4cd2df0ab2cef990253606",
+      "sourceGitBlob": "bf2d08ea13ebc2a16d4bd06f1ac0a224ac1ddeca",
+      "integratedSha256": "0aa9f5ca5252a8fe0b7309db1e0229103cbf6c0d2e4cd2df0ab2cef990253606",
+      "disposition": "unchanged prerequisite"
+    }
+  ]
+}

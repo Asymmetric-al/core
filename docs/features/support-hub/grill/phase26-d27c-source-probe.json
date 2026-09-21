@@ -1,0 +1,64 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "method": "Exact installed shared Tiptap schema + parser with synthetic documents; no guide feature implemented.",
+  "tiptapVersion": "3.22.3",
+  "sources": [
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/extensions.ts",
+      "sha256": "df7ae7eb65cd85f783b879f20f387ef3395cbf1168768cf6887706c4f138680d"
+    },
+    {
+      "path": "packages/ui/node_modules/@tiptap/core/package.json",
+      "sha256": "9e28b96e1a31382d70038b16d8ff818f9dd74608e639466c50272232b7cd85fc"
+    }
+  ],
+  "observations": [
+    {
+      "id": "unknown-purpose-attributes-normalized-away",
+      "expectedCurrentBehavior": true,
+      "actual": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Synthetic generic instructions"
+              }
+            ]
+          }
+        ]
+      },
+      "note": "Generic node attributes cannot be the sole trusted source-purpose or disclosure boundary."
+    },
+    {
+      "id": "generic-image-node-admitted",
+      "expectedCurrentBehavior": true,
+      "actual": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "image",
+            "attrs": {
+              "src": "https://example.invalid/fixture.png",
+              "alt": "Synthetic only",
+              "title": null,
+              "width": "100%",
+              "height": null
+            }
+          }
+        ]
+      },
+      "note": "A hidden toolbar control alone does not define a restricted Staff guide schema. No image network fetch performed."
+    },
+    {
+      "id": "unknown-node-rejected-in-strict-mode",
+      "expectedCurrentBehavior": true,
+      "actual": true,
+      "note": "Positive control: explicit strict parsing rejects an unsupported node; this does not establish full source-purpose validation."
+    }
+  ],
+  "limits": "No env/app import/database/network/provider/browser. No actual server acceptance, disclosure exploit, Staff guide/P17 purpose contract, clipboard UI, RLS, search, publication or usability proof. These observations characterize existing generic schema behavior only."
+}

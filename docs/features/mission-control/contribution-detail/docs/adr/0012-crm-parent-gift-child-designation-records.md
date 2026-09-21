@@ -1,39 +1,31 @@
-# ADR-CD-012: CRM posting uses parent gift plus child designation records
+# ADR-CD-012: Native CRM projects one gift with its complete designation lines
 
-> **Note (2026-07-06):** The CRM/Twenty post state and repost/retry actions
-> referenced in this ADR target the now-retired Twenty pipeline and are dormant
-> per
-> [ADR-0001](../../../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
-> (2026-07-06); "CRM post" survives only as a label over the dormant
-> staged-gift pipeline pending the Phase 8 re-groom.
-
-**Status:** Accepted (grill session 2026-05-28)
+**Status:** Accepted 2026-05-28; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-Contribution detail treats one donation as one gift identity, while multiple designations per gift are first-class and equal. CRM posting must preserve both facts: staff should see one donor gift, but every designation line must remain explicit for attribution, reporting, and correction.
+CRM history and Contributions Hub are views of the same source-owned gift, which may contain several equally important lines.
 
 ## Decision
 
-CRM posting uses a parent/child model:
-
-- One CRM parent gift record represents the donation/gift.
-- Each designation line posts as a child designation/allocation record under that parent.
-- Contribution detail shows CRM post status for the parent and for each child designation record.
-- Failures can be parent-level or line-level.
-- Retry actions should target the failed scope.
-- If a CRM adapter cannot support child designation records, the adapter limitation must be surfaced.
-- Later decision ADR-CD-032 clarifies that Mission Control CRM donor history and Contributions Hub read shared database-backed contribution data; there is no internal sync process between those surfaces.
+- Read the Phase 13 header and complete authorized designation set through
+  the shared effective read model.
+- Show one gift with expandable lines; do not create parallel CRM parent/child
+  money records or a replication process.
+- Show actual source posting, integrity and provider exceptions with the owning
+  recovery action. UI refresh failure is not a CRM post failure.
+- Twenty is retired: no post/repost queue, vendor adapter, retry operation,
+  capability or fallback belongs to the current contract.
+- Shared-field parity and native CRM-only donor context follow ADR-CD-032.
 
 ## Consequences
 
-- The CRM link model needs to distinguish parent gift links from child designation links.
-- Detail APIs need parent and line-level CRM post state.
-- Staff can resolve and retry line-specific CRM/Twenty post failures without reposting unrelated designation lines.
-- CRM summaries can still show one gift, but must not collapse or lose designation detail.
+Split gifts stay understandable without duplicate money truth. Restore stale views through authorized refetch; do not manufacture copy/repost jobs or infer source completion from projection visibility.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **One CRM record per donation only:** Hides multi-designation truth unless overstuffed into notes/fields.
-- **One CRM record per designation only:** Makes one donor gift look like multiple gifts.
-- **Tenant-configurable summary vs line posting:** Too much variation for a core financial contract; adapter limitations should be explicit instead.
+The [original 2026-05-28 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0012-crm-parent-gift-child-designation-records.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

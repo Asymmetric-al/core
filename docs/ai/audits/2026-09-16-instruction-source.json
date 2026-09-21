@@ -1,0 +1,33 @@
+{
+  "source_pr": 1655,
+  "head": "fc5e54dd05f21744e152991273a81e38dde92f38",
+  "original_pr_state": "open at 2026-09-16 inspection",
+  "meaning": "Credible scope and completion guidance adopted into AL-1861; no original PR merge claim",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "source_sha256": "3f3183be3490c885b7c717a0c6c902f5818e335a5a943dc9a57fea739bc17408",
+      "representation": "reconciled with AL-1861 authority amendments"
+    },
+    {
+      "path": "openspec/changes/clarify-agent-task-completion/.openspec.yaml",
+      "source_sha256": "7e69d8445cf79fa4a5398138abf3cd1865bd0750cc53f44a98ef9904f1395f73",
+      "representation": "source PR snapshot"
+    },
+    {
+      "path": "openspec/changes/clarify-agent-task-completion/proposal.md",
+      "source_sha256": "1530b694ff0645fa4bd583e91f20ee326c5446ea39b4e686d3c5c1b38d3066db",
+      "representation": "source PR snapshot"
+    },
+    {
+      "path": "openspec/changes/clarify-agent-task-completion/specs/agent-instruction-system/spec.md",
+      "source_sha256": "9a3f209e51cedd229e27ce8e312ea9284a0aaeb4e574886b932d7571514f30f3",
+      "representation": "source PR snapshot"
+    },
+    {
+      "path": "openspec/changes/clarify-agent-task-completion/tasks.md",
+      "source_sha256": "a49401d3f028b175445e903e4b35f61e2736b3a0720b9bca01198b6b6626a7f1",
+      "representation": "source PR snapshot"
+    }
+  ]
+}

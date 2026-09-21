@@ -784,3 +784,209 @@ representation and provenance. The package compiler consumes only allow-listed
 owner projections and never performs a generic table dump. An owner-domain
 reference cannot be expanded through Phase 21 authority. Package staging and
 delivery remain Phase 29 execution behind this governed projection contract.
+
+## Dated Phase 22 D13 public-discovery projection amendment (2026-08-06)
+
+Phase 3 registers D13 Discovery Profile Versions, immutable Public Ministry
+Directory Projection generations and current heads, complete membership
+coverage, bounded public card/query results, and private cause-owned diagnostics
+as distinct projection families. The subtract-only Phase 3 field floor and
+current Phase 10 public ceiling apply before membership, indexing, search,
+filters, counts, ordering, pagination, cursor issuance, cache fill, logs,
+metrics, or diagnostics. Denied and absent pages leave no result, count, facet,
+cursor, timing, error-shape, or Realtime shadow.
+
+Anonymous visitors may receive only the narrow D13 server result for the trusted
+Site and exact locale. They never query raw CMS, Party, `public.locations`,
+profile/projection, or operational tables and never subscribe to raw database
+Realtime. Client-supplied Tenant, Site, locale, Page Family, public ID, query,
+filter, cursor, or cache state cannot establish scope or widen the server-owned
+family constraint. Staff diagnostics separately require current Phase 12
+purpose authorization and expose only the minimum source-owned exclusion cause.
+
+## Dated Phase 22 D14 search-and-sharing projection amendment (2026-08-06)
+
+Phase 3 registers the D14 Public Search & Sharing Presentation Manifest, Search
+Presentation result, Share Presentation result, stable public Ministry Update
+permalink presentation/posture, compiler generation, complete coverage proof,
+local readiness evidence, external-effect intent, and external-outcome
+observation as distinct record and projection families. D8 Public Page Route
+Effect Manifests remain a separate route-consequence family that may reference
+D14 artifacts; neither family is a release head.
+
+Anonymous callers receive only the code-compiled exact public HTML/head,
+crawler, sitemap, card, asset, and share outputs admitted for the current D2
+reach and Phase 10 ceiling. They never enumerate or query raw manifest,
+projection, CMS, CRM, Storage, provider-operation, profile, diagnostic, or
+observation tables and never subscribe to raw Realtime. Every positive result
+and cache identity structurally includes Tenant, Legal Entity, environment,
+Site, verified host, locale, content identity, presentation/feed, release,
+reach, route/effect, media, audience/placement, safety/containment, compiler,
+renderer, and complete coverage generations.
+
+Phase 3's subtract-only field floor and Phase 10 egress filtering apply
+independently before visible body, head metadata, canonical/alternate links,
+JSON-LD, sitemap/IndexNow fields, card media/alt, share payloads, logs, metrics,
+errors, and accessibility output. Negative tests must prove wrong-scope denial,
+no raw-table/Realtime path, full reach/placement matrices, no cross-Site or
+unsafe-locale fallback, no stale-generation resurrection, and affected-positive-
+first removal with append-only recovery.
+
+## Dated Phase 22 D15 measurement-projection amendment (2026-08-06)
+
+Phase 3 registers the D15 Measurement Profile Version, private transient
+Measurement Occurrence and idempotency evidence, sealed daily Activity
+Aggregate and correction, coverage fact, and Public Page Activity Projection as
+separate record families. The subtract-only field floor applies before intake,
+aggregation, suppression, report composition, export, logs, metrics, errors,
+and diagnostics. No browser, raw-table, Realtime, JWT-metadata, inferred-
+relationship, or service-role path grants access; current Phase 12 staff or
+exact D1 page-assignment authority is re-proved by the server and defended by
+structurally complete RLS for every read and export.
+
+## Dated Phase 22 D16 writing-assistance projection amendment (2026-08-06)
+
+Phase 3 registers D16's Public Page Writing Source Package, private short-lived
+Suggestion Version, body-free Invocation/Application evidence, and ordinary D1
+successor revision as distinct record families. The AI provider receives no
+general contributor, staff, public, CMS, Party, supporter, financial, or Page
+projection. One purpose-specific server projection subtracts to the exact D3
+narrative target, deliberately supplied answers, and individually selected
+Phase-10-admitted facts named in the Phase 21 D10 Egress Manifest for the exact
+`public-profile drafting` binding.
+
+Suggestions and translation warnings are private authoring facts and never
+enter anonymous public, directory, search/share, measurement, supporter, or
+financial projections. Every invoke, result read, and apply re-proves current
+Phase 12 and exact D1/staff target authority; service roles, raw table access,
+Realtime, browser locale, provider detection, cached source, or a prior
+suggestion grant nothing. **Translate to English** adds exact source and target
+locale/direction dimensions but creates no Phase 24 locale or translation-
+status projection.
+
+## Dated Phase 22 D17 typed Page-subject projection amendment (2026-08-06)
+
+Phase 3 registers Page Subject Binding lineage and each D2 release-pinned
+privacy-safe subject snapshot as distinct Phase 22 projections. The owner-domain
+source remains outside the Page projection: the CRM operational layer owns
+Ministry Projects, and Phase 13 owns Giving Campaigns and Designations. D17 may
+project only the exact source identity/version, lifecycle evidence, safe display
+material admitted by Phase 10, binding version, and complete Tenant, Legal
+Entity, environment, Site, Page Family, Page, actor, reason, and time scope
+required by the exact consumer.
+
+Anonymous users, browsers, Payload, Realtime, cached public identifiers, and
+service-role defaults never query raw Ministry Project, Campaign, Designation,
+or binding rows. Public serving consumes only the immutable release-pinned safe
+snapshot. Contributor, displayed-person, project/team, Campaign-owner, fund-
+manager, relationship, or subject status grants no projection; every staff read
+and mutation re-proves the exact Phase 12 capability and same-scope structural
+relationships.
+
+## Dated Phase 22 D18 current-serving and convergence projection amendment (2026-08-06)
+
+Phase 3 registers D18's **current-serving evaluation** as a small, disposable,
+exact-scope evaluation of independently authoritative D2 reach, Phase 10 safety
+and containment, and D8 route heads. It returns only **serve current release**,
+**privacy-safe absence**, **same-page redirect**, or **temporarily unavailable**.
+It is not a new persisted reach, safety, route, release, publication, or
+authorization fact. Any materialized accelerator carries the exact owner
+generations and cannot yield **serve current release** when an owner generation
+is missing, mismatched, stale, contradictory, or uncertain; an owner-labelled
+adverse fact advances local denial before asynchronous cache or provider
+convergence begins.
+
+Phase 3 also registers each append-only **Public Ministry Surface Convergence
+Operation** and its rebuildable, privacy-minimized current projection. The
+operation references one code-owned applicable-surface coverage plan and the
+existing D8, D9, D13, and D14 effect records; it never recreates or advances
+their heads. Requested, provider-accepted, controlled-response-observed,
+not-verifiable, and external-observation evidence remain separate. Anonymous
+traffic may consume only the minimum current-serving result and admitted
+release-bound presentation. It receives no operation, residual, provider,
+internal identifier, safety reason, or diagnostic row, and D15 measurement is
+structurally absent from render, cache, crawler, social, probe, and repair work.
+
+## Dated Phase 22 D19 Ministry Assignment projection amendment (2026-08-06)
+
+Phase 3 registers CRM Ministry Assignment identity/lifecycle, Ministry
+Assignment Participant Membership, D1 Missionary Page Subject Binding and
+public-safe snapshot, optional Ministry Assignment Support Binding Version,
+and each Phase 21 support projection as distinct families. It does not collapse
+them into one missionary profile, relationship graph, account view, broad
+tenant role, or cached assignment object.
+
+Anonymous presentation receives only the exact current Phase 10-admitted
+release snapshot. An authenticated Page contributor receives only D1's bounded
+editor projection. An authenticated support viewer receives only the exact
+Phase 12-authorized purpose, projection, target, fields, history floor, Legal
+Entity, Support Assignment, and separately ISO-labelled balances permitted by
+the applicable Phase 21 D9 profile. No projection is inferred from Ministry
+Assignment or Support Assignment membership, marriage, household, team,
+display, contributor status, binding, Designation, progress, preference, JWT,
+service role, or raw-table visibility.
+
+Raw identity, membership, binding, grant, supporter, activity, and financial
+relations remain browser-inaccessible. Forced coarse Tenant RLS and same-scope
+composite constraints are defense in depth; the sole server-side Phase 12 PDP
+owns current fine-grained selection. Realtime carries only an opaque private
+resource/version signal followed by a newly authorized server projection read.
+
+## Dated Phase 22 D21 private-adoption projection amendment (2026-08-14)
+
+Phase 3 registers the D21 Public Ministry Surface Adoption Case, immutable
+Adoption Plan Version, tenant-instance Adoption Coverage Manifest, cutover
+receipt, and selected reader-generation head as distinct operational families.
+The tenant manifest references one immutable code-owned coverage-plan/build
+generation for reader, API, fixture, test, and import-path completeness; it does
+not duplicate source-code inventory as mutable per-tenant rows. Resumable work
+appends immutable plan or manifest successors and selects exactly one candidate
+for a cutover attempt; it never edits readiness truth in place.
+
+Raw source censuses, legacy names and paths, Phase 10 causes, subject and
+Designation mappings, media evidence, content digests, authorization epochs,
+and residual diagnostics remain browser-inaccessible. Authorized staff receive
+only a current, privacy-minimized exception projection with the exact Site and
+language, visitor-safe consequence, owner-correct action, and the three D21
+preparation dispositions. Ordinary contributors receive only their existing
+D1/D18 Page projection plus a calm explanatory substatus; anonymous users
+receive no adoption, migration, manifest, generation, cause, or existence fact.
+
+Every read and command re-proves the current Principal, Active Tenant
+Assignment, exact D21 capability, cohort, owner generations, and authorization
+epoch through the Phase 12 decision point. Forced same-tenant RLS, composite
+scope keys, indexed policy predicates, private security-invoker projections,
+and no raw `anon` or `authenticated` grants remain defense in depth; neither RLS
+visibility, a client-selected cohort, JWT metadata, CMS role, service key, table
+ownership, nor `BYPASSRLS` grants adoption access or authority.
+
+## Dated Phase 22 D22 Public Page operations projection amendment (2026-08-14)
+
+Phase 3 registers privacy-safe projected references to owner-domain causes and
+exact Page/Ministry Update impacts as two separate private, disposable,
+rebuildable projection families. Every projected cause reference pins
+complete Tenant, Legal Entity, environment, Site, locale, owner domain, cause
+contract generation, stable source reference, monotonic owner version,
+responsible-owner generation, actionability, code-owned action kind, coverage,
+and through-time. Impact membership pins the exact Page or Update and only the
+privacy-safe visitor consequence currently permitted for the consumer. One
+cause may therefore affect many Pages without one row/task/notification per
+Page, while several causes on one Page remain independent.
+
+The application cannot write a resolved, dismissed, healthy, acknowledged,
+ignored, snoozed, or forced state into either family. Only a newer owner version
+may resolve, supersede, or reopen a cause. Consumers apply versions
+idempotently, reject older updates, expose incomplete coverage honestly, and
+use periodic count/digest reconciliation plus smallest-scope rebuild. An
+optional shared-task reference is collaboration metadata only and cannot
+change projection membership or owner truth.
+
+Every row, impact, group, count, search, sort, filter, export, subscription,
+badge, notification input, cache entry, and Realtime-triggered refetch passes
+through the same current Phase 10/12 purpose, field, target, scope, and
+authorization decision before filtering and before aggregation. Raw projection
+tables and privileged projector paths remain browser-inaccessible; exposed
+views use invoker behavior, explicit least-privilege grants, indexed default-
+deny RLS, complete non-null scope keys, and permission-consistent keyset
+pagination. Unauthorized or restricted Pages contribute no distinguishable
+row, total, timing, empty state, URL, or cache artifact.

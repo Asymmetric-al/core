@@ -1,0 +1,151 @@
+{
+  "status": "passed",
+  "kind": "Independent Python zoneinfo reference examples and source-expression observations; not production implementation tests",
+  "cases": [
+    {
+      "name": "US spring nonexistent custom time",
+      "observed": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "US autumn repeated custom time",
+      "observed": 2,
+      "expected": 2,
+      "passed": true
+    },
+    {
+      "name": "US overlap instants differ one hour",
+      "observed": 3600.0,
+      "expected": 3600.0,
+      "passed": true
+    },
+    {
+      "name": "Lord Howe half-hour gap",
+      "observed": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "Lord Howe overlap is thirty minutes",
+      "observed": 1800.0,
+      "expected": 1800.0,
+      "passed": true
+    },
+    {
+      "name": "Historical skipped local date",
+      "observed": 0,
+      "expected": 0,
+      "passed": true
+    },
+    {
+      "name": "Tomorrow uses actual local date at midnight boundary",
+      "observed": "2026-09-14T23:59:00",
+      "expected": "2026-09-14T23:59:00",
+      "passed": true
+    },
+    {
+      "name": "Calendar minute maps exactly to UTC",
+      "observed": "2026-09-14T16:59:00+00:00",
+      "expected": "2026-09-14T16:59:00+00:00",
+      "passed": true
+    },
+    {
+      "name": "Duration rounds target upward",
+      "observed": "2026-09-13T18:00:00+00:00",
+      "expected": "2026-09-13T18:00:00+00:00",
+      "passed": true
+    },
+    {
+      "name": "Whole-minute duration is not rounded twice",
+      "observed": "2026-09-13T14:00:00+00:00",
+      "expected": "2026-09-13T14:00:00+00:00",
+      "passed": true
+    },
+    {
+      "name": "Tomorrow across spring shift is 23 elapsed hours",
+      "observed": 82800.0,
+      "expected": 82800.0,
+      "passed": true
+    },
+    {
+      "name": "Tomorrow across fall shift is 25 elapsed hours",
+      "observed": 90000.0,
+      "expected": 90000.0,
+      "passed": true
+    },
+    {
+      "name": "Leap-day next calendar date",
+      "observed": "2028-02-29T12:00:00",
+      "expected": "2028-02-29T12:00:00",
+      "passed": true
+    },
+    {
+      "name": "Year rollover",
+      "observed": "2027-01-01T12:00:00",
+      "expected": "2027-01-01T12:00:00",
+      "passed": true
+    },
+    {
+      "name": "One week means seven local dates",
+      "observed": "2026-09-20T12:00:00",
+      "expected": "2026-09-20T12:00:00",
+      "passed": true
+    },
+    {
+      "name": "Quarter-hour zone",
+      "observed": "2026-09-14T03:15:00+00:00",
+      "expected": "2026-09-14T03:15:00+00:00",
+      "passed": true
+    },
+    {
+      "name": "Due equality is eligible",
+      "observed": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "New schedule at now is not future",
+      "observed": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "Changing display zone preserves legacy seconds/instant",
+      "observed": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "Actual source quick constant",
+      "observed": 16,
+      "expected": 16,
+      "passed": true
+    },
+    {
+      "name": "Source sixteen-hour formula from 20:00 yields noon",
+      "observed": "2026-09-14 12:00",
+      "expected": "2026-09-14 12:00",
+      "passed": true
+    },
+    {
+      "name": "Source sixteen-hour formula from 08:00 yields midnight",
+      "observed": "2026-09-14 00:00",
+      "expected": "2026-09-14 00:00",
+      "passed": true
+    },
+    {
+      "name": "Current component has no explicit custom date entry",
+      "observed": false,
+      "expected": false,
+      "passed": true
+    }
+  ],
+  "count": 23,
+  "limitations": [
+    "No actual SQL/RLS/worker/provider/browser execution",
+    "No guarantee of browser/server tzdb equivalence",
+    "No participant usability or assistive-technology testing",
+    "No implemented D31 resolver exists from this work"
+  ]
+}

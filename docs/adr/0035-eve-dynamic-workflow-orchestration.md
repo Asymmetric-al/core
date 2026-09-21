@@ -6,8 +6,8 @@
 
 **Issue:** #434
 
-**Builds on:** ADR-0019, ADR-0020, ADR-0021, ADR-0022, ADR-0024, ADR-0025,
-ADR-0026, ADR-0027, and ADR-0034
+**Builds on:** ADR-0019, ADR-0020, ADR-0021, ADR-0022, ADR-0024, [ADR-0025 — eve retention replay lifecycle](./0025-eve-retention-replay-lifecycle.md),
+[ADR-0062 — eve standalone runtime foundation](./0062-eve-standalone-runtime-foundation.md), [ADR-0027 — eve admin auth session ownership](./0027-eve-admin-auth-session-ownership.md), and [ADR-0034 — eve subagent catalog shared run context](./0034-eve-subagent-catalog-shared-run-context.md)
 
 ## Context
 

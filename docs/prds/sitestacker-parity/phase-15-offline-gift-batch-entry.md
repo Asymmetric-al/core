@@ -2455,6 +2455,16 @@ repair action while unrelated clean rows retain the existing atomic or
 governed carry-forward behavior. A later purpose-authority successor remains a
 Phase 13 append-only, authority-gated action rather than an offline-row edit.
 
+## Dated Phase 22 D6 public-progress admission amendment (2026-08-03)
+
+Phase 15 is never a direct public-progress source. An offline gift may enter a
+Phase 22 D6 received metric only after the governed Phase 15 commit creates the
+exact Phase 13 posted-effective fact and Phase 13 declares it public-eligible.
+Draft, staged, validated, deposited-only, unverified, manually estimated, and
+import-evidence states cannot increase a public numerator. Later Phase 15/13
+corrections flow through the source-owned append-only fold and compatible D6
+watermark; neither batch state nor staff attestation becomes a public amount.
+
 ## Out of Scope
 
 _Reserved as seams (plumbed, not built), owned by a named later phase, or deliberately killed. These are the BINDING "do not build" lists from every decision's cut list — an implementer facing a build-out-vs-defer call inside a ratified decision takes the leanest compliant reading._

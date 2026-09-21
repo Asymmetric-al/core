@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "date": "2026-09-11",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "decisionStatus": "D1-D16 fully founder-ratified including all adopted amendments",
+  "nextQuestion": "Q17 unanswered; three alternative defaults; A recommended",
+  "D16": {
+    "ratifiedClauses": 24,
+    "ratifiedRequiredProofGroups": 40,
+    "categoryOutcomes": 23,
+    "glossaryTerms": 4,
+    "operationalControls": 6,
+    "substantiveReviewPreservedVerbatim": true,
+    "substantiveUXPreservedVerbatim": true,
+    "definitionsPreservedVerbatim": true,
+    "unchangedEvidenceArtifacts": 6,
+    "sourceHashesReverified": 2
+  },
+  "preservedD1D15Artifacts": 61,
+  "preservedD1D15ADRs": 15,
+  "priorGlossaryPreserved": true,
+  "priorRatificationValidationPreserved": true,
+  "mirrorsMatched": 11,
+  "localLinksChecked": 204,
+  "outputLinksChecked": 184,
+  "immutableSourceLinksChecked": 36,
+  "uniqueImmutableSourceLinks": 24,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "noADR0017": true,
+  "limits": [
+    "No runtime or schema implementation",
+    "No live retention, provider, database, concurrency, browser or performance proof",
+    "No new legal applicability certification or universal duration",
+    "No formal specification, tickets, GitHub/provider/DNS/credential changes or real messages"
+  ]
+}

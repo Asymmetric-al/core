@@ -1,0 +1,84 @@
+{
+  "date": "2026-09-14",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "method": "Synthetic JSDOM exercises of actual installed Tiptap3.22.3, not implemented D37 or full browser",
+  "observations": [
+    {
+      "id": "selection-only-does-not-emit-content-update",
+      "updates": 0,
+      "selections": 1
+    },
+    {
+      "id": "default-setContent-emits-update",
+      "updatesAfterReplacement": 1
+    },
+    {
+      "id": "explicit-restore-suppresses-update-but-still-replaces-document",
+      "updatesAfterReplacement": 1,
+      "bodyReplaced": true
+    },
+    {
+      "id": "emitUpdate-false-is-not-a-stale-response-guard",
+      "workingContentOverwritten": true,
+      "additionalUpdateEmitted": false,
+      "note": "Primitive characterization only; no product network race or deployed data-loss exploit proved."
+    },
+    {
+      "id": "editable-state-change-can-emit-content-update-without-document-change",
+      "defaultAdditionalUpdates": 1,
+      "explicitFalseAdditionalUpdates": 0,
+      "note": "Meaningful dirty checking must not equate every update event with authored content."
+    },
+    {
+      "id": "strict-editor-schema-normalizes-unknown-attributes",
+      "unknownAttributesPreserved": false,
+      "note": "Original purpose-envelope validation must precede Tiptap parsing."
+    },
+    {
+      "id": "strict-unknown-node-positive-control",
+      "rejected": true
+    },
+    {
+      "id": "contentError-notification-alone-does-not-preserve-original",
+      "contentErrors": 1,
+      "normalizedContentEmpty": true,
+      "warningCount": 1,
+      "note": "Preserve owner original and stop writable initialization/autosave; a listener alone is insufficient."
+    }
+  ],
+  "sources": [
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "sha256": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f"
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/helpers.ts",
+      "sha256": "f81a57bfbb06d9d897ac6d0c6986c62da2d2f810dcdbdf3978973b767d720c16"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/use-conversation-composer.ts",
+      "sha256": "7a4e8e6a8d7108783d5a6d04b41e362a213136a34e08a233e0754991b6dc72e3"
+    },
+    {
+      "path": "packages/ui/node_modules/@tiptap/core/src/Editor.ts",
+      "sha256": "1a20ea5dab380c6f3d90a8abb765c0471d51392497fdad83b7deddfb9b9476dc"
+    },
+    {
+      "path": "packages/ui/node_modules/@tiptap/core/src/commands/setContent.ts",
+      "sha256": "5f58be8185aab3e3ebe85b69c19e6340bf8d2b519b097185aa08e8281b742f84"
+    },
+    {
+      "path": "packages/ui/node_modules/@tiptap/core/src/helpers/createNodeFromContent.ts",
+      "sha256": "399d60743cd3b01ced419eaae915583b837314150eb88f743dcae0e31eb54aa6"
+    },
+    {
+      "path": "packages/ui/node_modules/@tiptap/react/src/useEditor.ts",
+      "sha256": "1587be18fe75eef97fe1cab3344a487c4a1844cc32d0f9529b450dcc3f2a8e9a"
+    },
+    {
+      "path": "packages/ui/node_modules/@tiptap/core/package.json",
+      "sha256": "9e28b96e1a31382d70038b16d8ff818f9dd74608e639466c50272232b7cd85fc"
+    }
+  ],
+  "limits": "No product source edit, app start, env/config import, network, auth, database, provider, actual user content, production browser/IME or D37 runtime tests. Observed library command behavior and current-source hashes only."
+}

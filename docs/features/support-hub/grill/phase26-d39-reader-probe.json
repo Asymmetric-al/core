@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-15",
+  "method": "Bun executes the unchanged actual RichTextViewer component with actual installed React/static renderer and actual viewerExtensions; ReactDOMServer.renderToStaticMarkup renders synthetic canonical JSON fixtures.",
+  "boundary": "No source edits, DB, HTTP requests, editor construction, real message bodies, environment files or third-party data. No mocks. This is not browser visibility, focus, accessibility or durable read-state validation.",
+  "sourceHashes": {
+    "packages/ui/components/shadcn/rich-text-editor/rich-text-viewer.tsx": "58187bfd5e75baa7950492b0945327c96deda62539429db9a61eaa7295b120a1",
+    "packages/ui/components/shadcn/rich-text-editor/helpers.ts": "f81a57bfbb06d9d897ac6d0c6986c62da2d2f810dcdbdf3978973b767d720c16",
+    "packages/ui/components/shadcn/rich-text-editor/extensions.ts": "df7ae7eb65cd85f783b879f20f387ef3395cbf1168768cf6887706c4f138680d"
+  },
+  "results": [
+    {
+      "name": "valid-text",
+      "html": "<div class=\"tiptap prose prose-sm sm:prose-base max-w-none dark:prose-invert\"><p>D39 synthetic note</p></div>",
+      "threw": false,
+      "hasVisibleFixtureText": true
+    },
+    {
+      "name": "valid-empty-document",
+      "html": "<div class=\"tiptap prose prose-sm sm:prose-base max-w-none dark:prose-invert\"></div>",
+      "threw": false,
+      "hasVisibleFixtureText": false
+    },
+    {
+      "name": "unknown-node",
+      "html": "<div class=\"tiptap prose prose-sm sm:prose-base max-w-none dark:prose-invert\"></div>",
+      "threw": false,
+      "hasVisibleFixtureText": false
+    },
+    {
+      "name": "malformed-content",
+      "html": "<div class=\"tiptap prose prose-sm sm:prose-base max-w-none dark:prose-invert\"></div>",
+      "threw": false,
+      "hasVisibleFixtureText": false
+    }
+  ]
+}

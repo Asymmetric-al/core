@@ -30,33 +30,30 @@ planning.
 
 ### Requirement: AGENTS Remains the Always-On Router
 
-The repository SHALL keep `AGENTS.md` as the always-on routing layer for
-project work, while preserving generated Next.js-managed content. Root
-`AGENTS.md` SHALL act as a concise router and working contract: repository
-identity, source-of-truth hierarchy, package boundaries, TDD default,
-version-aware docs lookup, compact skill and tool map, nested-instruction
-discovery, Bun/Turborepo commands, verification expectations, major invariants
-including exact `base-maia`, and OpenSpec routing. Full skill catalogs,
-cloud runbooks, review-bot policy, and MCP tutorials SHALL live in scoped
-rulebooks, nested instructions, or ordinary developer documentation.
+The repository SHALL keep root `AGENTS.md` as the always-on routing layer for
+Codex project work. It SHALL preserve the small Next.js-managed opening block
+and act as a concise constitution: repository identity, source authority,
+OpenSpec routing, package boundaries, nested-instruction discovery, TDD,
+version-aware documentation, critical Core invariants, progressive skill and
+tool routing, Bun verification, and concise code-review rules.
+
+Full skill catalogs, compressed framework indexes, cloud runbooks,
+client-specific setup, review-bot manuals, and MCP tutorials SHALL live in
+scoped files rather than root.
 
 #### Scenario: Repo-wide routing is needed
 
-- WHEN an agent needs to resolve instruction precedence or choose which local
-  rulebook or skill to load
-- THEN it uses `AGENTS.md` as the primary routing entrypoint
-- AND it preserves the Next.js-managed block and exactly one compressed docs
-  index
-- AND it follows nested `AGENTS.md` files for package- or app-unique rules
+- WHEN Codex needs to resolve source authority or choose scoped guidance
+- THEN it uses root `AGENTS.md` as the primary entrypoint
+- AND it reads the nearest nested `AGENTS.md` before changing a scoped area
+- AND it searches installed Next.js docs or `.next-docs/` directly instead of
+  relying on a compressed index embedded in root
 
 #### Scenario: Tool-specific helper files are present
 
-- WHEN `cursor.md`, `.cursor/rules/*`, `.cursor/commands/*`,
-  `.github/copilot-instructions.md`, or `.github/instructions/*.instructions.md`
-  exist
-- THEN they stay aligned with `AGENTS.md`
-- AND they do not replace the root routing layer
-- AND they do not become the only carrier of the `base-maia` invariant
+- WHEN another client or tool-specific adapter points to root `AGENTS.md`
+- THEN that adapter remains thin
+- AND client-specific or cloud-specific instructions stay outside the root
 
 ### Requirement: Framework and Runtime Truth Beat Memory
 
@@ -318,16 +315,36 @@ version-matched installed docs before loading an action-specific workflow skill.
 
 ### Requirement: Always-On Instructions Fit Supported Client Budgets
 
-The portable instruction chain SHALL keep high-frequency invariants always
-available, including Bun/Turborepo usage, TDD, exact `base-maia`, OpenSpec
-routing, and Next.js docs-first behavior, without relying on a single client's
-limit increase. Silent truncation of those invariants is a defect.
+Root `AGENTS.md` SHALL fit comfortably within Codex's default project document
+budget without a client-specific limit increase. The file MUST be no larger
+than 16,384 UTF-8 bytes and 200 authored lines, SHOULD target no more than
+12,288 bytes, and MUST NOT contain a compressed Next.js documentation index.
 
 #### Scenario: Root instructions are loaded
 
-- WHEN Codex, Cursor, Claude Code, Copilot, or another `AGENTS.md` client loads
-  repository instructions
-- THEN the root file includes the concise `base-maia` invariant and TDD default
-- AND it contains one Next.js compressed docs index, not duplicate managed
-  indexes
-- AND detailed skill catalogs and operational runbooks live in scoped files
+- WHEN instruction-system tests run
+- THEN root contains exactly one Next.js-managed opening marker pair
+- AND it contains no `NEXT-AGENTS-MD` marker
+- AND every direct local path reference resolves
+- AND high-frequency Core invariants remain present before any scoped loading
+
+### Requirement: Task-Specific Guidance MUST Use Progressive Disclosure
+
+Root `AGENTS.md` MUST NOT enumerate the repository skill catalog, embed tool
+manuals, or carry cloud and client-specific runbooks. It SHALL point to scoped
+instructions, rulebooks, skills, configuration, and runtime evidence that load
+only when the task requires them.
+
+#### Scenario: Codex starts ordinary repository work
+
+- WHEN Codex loads root project instructions
+- THEN it receives repository identity, authority, critical invariants, routing,
+  and verification guidance
+- AND individual skill procedures, MCP manuals, framework catalogs, and cloud
+  setup are absent from the always-on file
+
+#### Scenario: A specialized task is requested
+
+- WHEN a task matches a discovered skill, nested instruction file, or rulebook
+- THEN Codex loads that scoped source
+- AND root does not duplicate its full procedure

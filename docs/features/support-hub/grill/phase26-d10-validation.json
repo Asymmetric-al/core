@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "D10": "C and explicit Undo selected; complete amendments proposed for ratification",
+  "requirements": 25,
+  "proofGroups": 39,
+  "categoryFindings": 23,
+  "operationalSignals": 8,
+  "priorD1D9ArtifactsPreserved": 30,
+  "priorADRsPreserved": 9,
+  "priorGlossaryPreserved": true,
+  "actualSourceObservations": 2,
+  "sourceAndExtractionHashesVerified": true,
+  "matchingUpdatedMirrors": 8,
+  "localLinksChecked": 350,
+  "immutableSourceLinksChecked": 412,
+  "formatAndGitDiffCheck": "passed",
+  "limits": "Documentation and two exact-current-source observations only; no implemented merge model/DB/Auth/RLS/concurrency/provider/browser/accessibility/ministry-user proof."
+}

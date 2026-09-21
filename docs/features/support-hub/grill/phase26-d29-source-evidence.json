@@ -1,0 +1,151 @@
+{
+  "date": "2026-09-13",
+  "status": "verified read-only source",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "originDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "files": [
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/app/(public)/(hero)/faq/faq-client.tsx",
+      "bytes": 16820,
+      "sha256": "4bbcdfca7813a555b29e4c94852a481b00e74fa40a01e6e0ffdd33ac6bb329aa"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/context.ts",
+      "bytes": 1834,
+      "sha256": "80efa2687d8ceac8a092921e8ef410567bbfd1998461288cd4217edf1bb4d375"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/resolve-tenant.ts",
+      "bytes": 4880,
+      "sha256": "02862dc987ae47e4bd89b94c9f8932b568e8ab6ccd75d880ebe0922be846447b"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "bytes": 4241,
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "bytes": 31417,
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0158-versioned-dynamic-source-catalog-and-content-list.md",
+      "bytes": 11526,
+      "sha256": "c9b3ddd6c3324e60707df93cef9514d95ec13cd4b63dadfdfa95d7bbaa6b7b4b"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0159-three-bounded-content-list-curation-strategies.md",
+      "bytes": 9942,
+      "sha256": "976158ec4270e4446827c9bed6240e044591dccb6c72b68d15e89ca3a3d58135"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0168-one-exact-public-audience-and-app-owned-authenticated-surfaces.md",
+      "bytes": 12282,
+      "sha256": "4454ed8790b9a47d744894b31a6b13624454a0a2805fbd397106bcb9a3df60a6"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0170-purpose-bounded-public-form-definitions-and-domain-owned-routing.md",
+      "bytes": 19189,
+      "sha256": "382f219e563c038c3b592ccb2b992e86c9bba5fbf8b4236e11ca4865b028d442"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0172-versioned-site-search-sharing-profile-and-d1-compiler-ownership.md",
+      "bytes": 27100,
+      "sha256": "fcb5ab82665f22a607c1b4e7a3346fee39e54e47dfff59dfcc2aa80ad322b860"
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "openspec/changes/add-web-studio-cms/specs/web-studio-cms/spec.md",
+      "bytes": 85561,
+      "sha256": "b1918986b7508f03e5d9bcf1b743f005574f20ec7c9b2f965f96f520d77bcecf"
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/prds/sitestacker-parity/phase-24-multi-site-management.md",
+      "bytes": 58751,
+      "sha256": "60ecf01f9f8bdfbac23e9b692864c163598f2be10d5d1c01e2859bc13c55e9f6"
+    },
+    {
+      "ref": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "path": "docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth.md",
+      "bytes": 57456,
+      "sha256": "9fe683de186f769403e51b8f312900c5a48447281c20eb6072134ec64730b47b"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d13-adversarial-review.md",
+      "bytes": 76631,
+      "sha256": "4950cca55f74614c9022ece2981343695ba69e5a6847fb6ae76cbf636752bfb6"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d14-adversarial-review.md",
+      "bytes": 87323,
+      "sha256": "8da8039edba331e3890d4eeb5c75e0c944bd338a6322f5db47776352099f761a"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d28-adversarial-review.md",
+      "bytes": 70103,
+      "sha256": "5563383b0a14e3090b947f50d3cd88ee0d8aa4bf5c596c5f4eaa6cda4c28eb13"
+    }
+  ],
+  "publicChangelog": {
+    "url": "https://supabase.com/changelog.md",
+    "retrieval": "read-only HTTPS GET; no database query",
+    "sha256": "49b064520ad70f592ea4ffc25f456fcc981404dc925f0c499e21438719a07163"
+  },
+  "limits": [
+    "Open planning objects are not implemented/deployed proof",
+    "No GitHub mutation, DB/provider action or real contact",
+    "Companion registry contains independently pinned source and accepted-session evidence"
+  ]
+}

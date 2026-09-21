@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-15",
+  "observedAtUtc": "2026-09-15T07:13:37.738313+00:00",
+  "directory": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "remoteDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "prs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN"
+    }
+  ],
+  "status": "M CONTEXT-MAP.md\n?? docs/features/support-hub/CONTEXT.md\n?? docs/features/support-hub/docs/\n?? docs/features/support-hub/grill/",
+  "method": "Fresh read-only source/PR checkpoint for D40 B review",
+  "externalMutations": false
+}

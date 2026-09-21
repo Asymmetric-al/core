@@ -1,0 +1,15 @@
+{
+  "executedAtDate": "2026-09-14",
+  "kind": "existing-source synthetic serializer counterexample; no product or live-send proof",
+  "sourceHead": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "source": "apps/admin/features/support-hub/components/detail/composer/serialize-payload.ts",
+  "method": "Imported actual exported serializer with Bun from the verified Core worktree; supplied only synthetic blockquote text and example.invalid contact context.",
+  "assertionsPassed": 4,
+  "canonicalJsonKeepsQuotedLiteral": true,
+  "htmlSubstitutesCurrentContext": true,
+  "textSubstitutesCurrentContext": true,
+  "attachmentsAcquired": 0,
+  "consequence": "Canonical JSON and generated HTML/text disagree when a quoted external literal resembles a merge token. D36 must use inert source-bound content under qualified P17 canonical preparation; current generic serialize-time substitution is not the permanent contract.",
+  "runtimeQualificationPassed": false,
+  "realMessagesSent": false
+}

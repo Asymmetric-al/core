@@ -1,0 +1,48 @@
+{
+  "date": "2026-09-13",
+  "sourceHead": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "kind": "actual pinned pure-source extraction with synthetic inputs",
+  "status": "passed",
+  "checks": [
+    {
+      "name": "same_period_current_waiting_and_open_disagree",
+      "passed": true,
+      "result": {
+        "waitingConversations": 0,
+        "openTotal": 1
+      },
+      "proves": "Current waiting is restricted by created-date range while current Open is not; this is observed legacy behavior, not desired semantics."
+    },
+    {
+      "name": "missing_specific_scope_returns_all",
+      "passed": true,
+      "result": ["old-open"],
+      "proves": "The pure legacy scope function treats empty specific ID as All; no API/RLS exploit is claimed."
+    },
+    {
+      "name": "current_home_move_changes_completed_report",
+      "passed": true,
+      "result": {
+        "before": 1440,
+        "after": 0
+      },
+      "proves": "Current inbox filtering changes the historical-looking report; exact D14 historical dimensions require a qualified replacement."
+    },
+    {
+      "name": "empty_and_real_zero_share_legacy_numeric_value",
+      "passed": true,
+      "result": {
+        "empty": 0,
+        "genuineZero": 0
+      },
+      "proves": "This legacy summary alone cannot distinguish an empty sample from a genuine zero-minute response."
+    },
+    {
+      "name": "missing_label_catalog_falls_back_to_raw_id",
+      "passed": true,
+      "result": "synthetic-missing-label",
+      "proves": "Missing display/catalog evidence falls back to the raw ID in current pure aggregation; no real label or user data was used."
+    }
+  ],
+  "limits": "These assertions confirm observed legacy behavior. They do not validate the proposed overview, actual SQL/RLS/source permissions, backend completeness, browser caching, provider delivery or performance."
+}

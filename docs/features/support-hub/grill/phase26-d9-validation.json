@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "D9": "C selected; full amendment package proposed for ratification",
+  "requirements": 22,
+  "proofGroups": 32,
+  "categories": 23,
+  "operationalSignals": 7,
+  "priorD1D8ArtifactsPreserved": 25,
+  "priorADRsPreserved": 8,
+  "priorGlossaryPreserved": true,
+  "actualSourceObservations": 2,
+  "sourceAndExtractionHashesVerified": true,
+  "matchingUpdatedMirrors": 8,
+  "localLinksChecked": 285,
+  "immutableSourceLinksChecked": 375,
+  "formatAndGitDiffCheck": "passed",
+  "limits": "Documentation and actual pure-source observations only; no deployed Auth/API/RLS/database/concurrency/provider/browser/accessibility/ministry-user-study proof."
+}
