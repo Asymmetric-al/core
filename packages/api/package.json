@@ -94,6 +94,7 @@
     "./reads/tenant-contributions": "./src/reads/tenant-contributions.ts",
     "./shared/http-errors": "./src/shared/http-errors.ts",
     "./generated-documents/purpose-catalog": "./src/generated-documents/purpose-catalog/index.ts",
+    "./generated-documents/renderer-qualification": "./src/generated-documents/renderer-qualification/index.ts",
     "./health/app": "./src/health/app.ts",
     "./health/db": "./src/health/db.ts",
     "./cms/public": "./src/cms/public/index.ts",
