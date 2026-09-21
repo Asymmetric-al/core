@@ -1450,8 +1450,153 @@ describe("git attribution verifier", () => {
             base: { ...pullRequest.base, sha: "4".repeat(40) },
           },
         ],
+        runGitStatus: () => 1,
       }),
     ).not.toEqual([]);
+  });
+
+  describe("recorded develop base ancestry", () => {
+    // Live Core PR #968: the target advanced through #1033 immediately before
+    // this platform merge, while GitHub retained the earlier PR base snapshot.
+    const recordedBase = "5e2018d4bf05f3b261a69e421b6c5956665e2119";
+    const firstParent = "da8593ab01ef0044e16b9585d061f4506bbec7ea";
+    const secondParent = "ac001b1cb3f1dfe03e399af71fe4d3a2d5c89aa6";
+    const mergeSha = "b519eaf1b39505bbe373b644e0c7852ec80f5850";
+
+    function proofFixture() {
+      return {
+        metadata: {
+          ...commitMetadata(),
+          sha: mergeSha,
+          parentShas: [firstParent, secondParent],
+        },
+        pullRequest: {
+          state: "closed",
+          merged_at: "2026-08-01T17:00:20Z",
+          merge_commit_sha: mergeSha,
+          base: {
+            ref: "develop",
+            repo: { full_name: "Asymmetric-al/core" },
+            sha: recordedBase,
+          },
+          head: { sha: secondParent },
+        },
+      };
+    }
+
+    it("accepts PR 968's older recorded base only after proving its ancestry", () => {
+      const { metadata, pullRequest } = proofFixture();
+      const runGitStatus = vi.fn(() => 0);
+
+      expect(
+        validateDevelopMergeProvenance({
+          metadata,
+          pullRequests: [pullRequest],
+          runGitStatus,
+        }),
+      ).toEqual([]);
+      expect(runGitStatus).toHaveBeenCalledExactlyOnceWith([
+        "merge-base",
+        "--is-ancestor",
+        recordedBase,
+        firstParent,
+      ]);
+    });
+
+    it("keeps the exact-base fast path without an ancestry lookup", () => {
+      const { metadata, pullRequest } = proofFixture();
+      pullRequest.base.sha = firstParent;
+      const runGitStatus = vi.fn(() => 128);
+
+      expect(
+        validateDevelopMergeProvenance({
+          metadata,
+          pullRequests: [pullRequest],
+          runGitStatus,
+        }),
+      ).toEqual([]);
+      expect(runGitStatus).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["unrelated or newer recorded base", 1],
+      ["missing local history", 128],
+      ["failed ancestry process", null],
+    ])("rejects %s", (_description, status) => {
+      const { metadata, pullRequest } = proofFixture();
+      const runGitStatus = vi.fn(() => status);
+
+      expect(
+        validateDevelopMergeProvenance({
+          metadata,
+          pullRequests: [pullRequest],
+          runGitStatus,
+        }),
+      ).not.toEqual([]);
+      expect(runGitStatus).toHaveBeenCalledExactlyOnceWith([
+        "merge-base",
+        "--is-ancestor",
+        recordedBase,
+        firstParent,
+      ]);
+    });
+
+    it.each([
+      "open PR",
+      "unmerged PR",
+      "wrong repository",
+      "wrong target",
+      "wrong merge",
+      "wrong head",
+      "one parent",
+      "malformed parent",
+      "missing recorded base",
+      "malformed recorded base",
+    ])("rejects %s before consulting ancestry", (invalid) => {
+      const { metadata, pullRequest } = proofFixture();
+      switch (invalid) {
+        case "open PR":
+          pullRequest.state = "open";
+          break;
+        case "unmerged PR":
+          Reflect.deleteProperty(pullRequest, "merged_at");
+          break;
+        case "wrong repository":
+          pullRequest.base.repo.full_name = "other/core";
+          break;
+        case "wrong target":
+          pullRequest.base.ref = "production";
+          break;
+        case "wrong merge":
+          pullRequest.merge_commit_sha = "4".repeat(40);
+          break;
+        case "wrong head":
+          pullRequest.head.sha = "4".repeat(40);
+          break;
+        case "one parent":
+          metadata.parentShas.pop();
+          break;
+        case "malformed parent":
+          metadata.parentShas[0] = "--all";
+          break;
+        case "missing recorded base":
+          Reflect.deleteProperty(pullRequest.base, "sha");
+          break;
+        case "malformed recorded base":
+          pullRequest.base.sha = "--all";
+          break;
+      }
+      const runGitStatus = vi.fn(() => 0);
+
+      expect(
+        validateDevelopMergeProvenance({
+          metadata,
+          pullRequests: [pullRequest],
+          runGitStatus,
+        }),
+      ).not.toEqual([]);
+      expect(runGitStatus).not.toHaveBeenCalled();
+    });
   });
 
   it("requires production promotions to already be reachable from develop", () => {

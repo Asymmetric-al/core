@@ -945,10 +945,14 @@ export function validateDevelopMergeProvenance({
   metadata,
   pullRequests,
   repository = CANONICAL_REPOSITORY,
+  runGitStatus: readGitStatus = runGitStatus,
 }) {
   const [baseParent, headParent] = metadata?.parentShas ?? [];
   const hasExactMergedPullRequest =
     metadata?.parentShas?.length === 2 &&
+    [metadata.sha, baseParent, headParent].every(
+      (sha) => typeof sha === "string" && FULL_SHA_PATTERN.test(sha),
+    ) &&
     Array.isArray(pullRequests) &&
     pullRequests.some(
       (pullRequest) =>
@@ -958,8 +962,18 @@ export function validateDevelopMergeProvenance({
         pullRequest.base?.repo?.full_name?.toLowerCase() ===
           repository.toLowerCase() &&
         pullRequest.base?.ref === "develop" &&
-        pullRequest.base?.sha === baseParent &&
-        pullRequest.head?.sha === headParent,
+        pullRequest.head?.sha === headParent &&
+        typeof pullRequest.base?.sha === "string" &&
+        FULL_SHA_PATTERN.test(pullRequest.base.sha) &&
+        // GitHub can retain an older PR base when develop advances before merge.
+        // Prove that pinned snapshot is ancestral to the actual first parent.
+        (pullRequest.base.sha === baseParent ||
+          readGitStatus([
+            "merge-base",
+            "--is-ancestor",
+            pullRequest.base.sha,
+            baseParent,
+          ]) === 0),
     );
 
   return hasExactMergedPullRequest

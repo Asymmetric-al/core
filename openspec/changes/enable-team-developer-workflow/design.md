@@ -94,7 +94,14 @@ Protected-branch pushes use the immutable `before`/`after` transition, reject
 non-fast-forwards, and audit the introduced first-parent integration spine.
 Every scanned commit must be a two-parent GitHub platform merge with a valid
 `web-flow` signature made by GitHub. A `develop` integration must also bind to
-the exact closed pull request, base, and parent transition. A `production`
+the exact closed Core pull request, target branch, merge SHA and second-parent
+head. The recorded PR base must equal or be proven to be an ancestor of the
+first parent. The read-only local Git ancestry check requires exit status zero;
+missing objects, command errors, reversed/diverged ancestry and malformed SHAs
+fail closed. Full-history CI checkouts retain the required objects. PR #968
+provides a real GitHub counterexample to exact base/first-parent equality; see
+[the captured proof](../../../docs/ai/audits/2026-09-21-git-merge-provenance-proof.json).
+A `production`
 promotion head must already be reachable from canonical `develop`. Side ancestry
 enters only after full PR verification and behind the signed GitHub envelope; the
 merge or release actor is never retroactively treated as that ancestry's author.

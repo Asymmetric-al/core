@@ -43,7 +43,7 @@
       "sourceSha256": "f3ac114ed4e6656354135f2df517f340f3844b68ef328980cc637d8d61cc0aea",
       "sourceGitBlob": "8021ccaff80a2f5462b00ff0078b0ed3aab8f752",
       "integratedSha256": "f362c470184f0e7b7b28bbd22992000b37f90547d46cc9847ed9ecc9e829559f",
-      "disposition": "reconciled with documentation changes"
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": ".husky/pre-push",
@@ -71,7 +71,7 @@
       "sourceSha256": "189d3217332a3d3dbad03fbd1dd65e5f0c9bd696c38d52a54c1057aedfbf86ed",
       "sourceGitBlob": "f135bf0749aabac409ff78a61ca7860cf6cc2023",
       "integratedSha256": "60a1e1b875873cbe23a2617a09c040b4b931a06cb431f28f059d68330e7d3864",
-      "disposition": "reconciled with documentation changes"
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "contribution-workflow.md",
@@ -85,14 +85,14 @@
       "sourceSha256": "5dd86cb802abca059f9d46655ecbe56fac22f4fe1772bbf83996b0756339a2a1",
       "sourceGitBlob": "468b4e378a34fb8650290cfff82c6c5b5aabb008",
       "integratedSha256": "5e0ce6e556ac49f8d25bd7bf0d2af5e70033d70e82e21b67f8f931ded2a9a2d3",
-      "disposition": "reconciled with documentation changes"
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "docs/ai/rules/general.md",
       "sourceSha256": "0252442c1b25dd08b21d09335a54a8226d3bb793510e5246993f12f684b85b8a",
       "sourceGitBlob": "8f2b61f8b14c4cdaa6512033d2a927b3b3179ebe",
       "integratedSha256": "9e50833511e40e36fd7e0acb763015ec4950d19c2c9b62ab9cccc1e8b91d9066",
-      "disposition": "reconciled with documentation changes"
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "docs/ai/rules/testing.md",
@@ -106,7 +106,7 @@
       "sourceSha256": "aed26137172e92826a21f28ebaa09ca29105cff85d8dfa64aa16e9364cc552d8",
       "sourceGitBlob": "ad2fb9e2833b560d7c3b43331f1dc2752f1f1dc9",
       "integratedSha256": "16422c948b58aa06068c9c12f500a4183437787566faa31e34f6380cec28dea0",
-      "disposition": "reconciled with documentation changes"
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "docs/guides/development/code-review-and-ownership.md",
@@ -120,7 +120,7 @@
       "sourceSha256": "5079b5234576d0fbada3c7a36ca728dce972eec664861238e706c1b14e9f62c3",
       "sourceGitBlob": "627aa6717477ba61c9317846f5c2dfc078949c22",
       "integratedSha256": "3dea16da59127a6ede0a34c1311983155b194f12420a67cf263c1c2d02571df9",
-      "disposition": "reconciled with documentation changes"
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "docs/guides/development/getting-started.md",
@@ -134,21 +134,21 @@
       "sourceSha256": "69ee5665f10de848884e6d08ba14d3979e150844b988111a84060b5049b40ce9",
       "sourceGitBlob": "59f455a284ed2104a52edce434a3d0dd785cc56b",
       "integratedSha256": "c960501b1e534fbd3babd8a3b3f0004ecfe9b542e57c8e40cab93b885831d91e",
-      "disposition": "reconciled with documentation changes"
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "docs/ops/environments.md",
       "sourceSha256": "835f2c29bab0f3252ce7e6c3074dcc184033236ca9fca5d4ef26fd8a818a08ff",
       "sourceGitBlob": "b445ac5d3246fc3cef38977a7b03c2e3f7b3f096",
       "integratedSha256": "867a82c527784cf154327dd389ae6ea062ceb8e93ce816b11dabd5530ec30211",
-      "disposition": "reconciled with documentation changes"
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "docs/ops/git-attribution.md",
       "sourceSha256": "de650b220bdd505bd57a16715c6b19f34d65287d9c39a51e0223c0742e1357e1",
       "sourceGitBlob": "0251f4d6f6f3423d2ea04fb37fa25e70884bdcb0",
-      "integratedSha256": "de650b220bdd505bd57a16715c6b19f34d65287d9c39a51e0223c0742e1357e1",
-      "disposition": "unchanged prerequisite"
+      "integratedSha256": "4d720b122be01495e61e1a2dedb7d9df2951e5a7651588024da736d4544030d3",
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "docs/ops/scale-observability-reliability.md",
@@ -168,8 +168,8 @@
       "path": "openspec/changes/enable-team-developer-workflow/design.md",
       "sourceSha256": "954c0553675022639bf6e27613acbcb518857cbb83cdbaba4d5c74b64c38b2a9",
       "sourceGitBlob": "65ef0d0a56eb5b570f1844b577ea0ee84dd4e922",
-      "integratedSha256": "954c0553675022639bf6e27613acbcb518857cbb83cdbaba4d5c74b64c38b2a9",
-      "disposition": "unchanged prerequisite"
+      "integratedSha256": "2515bbeae87d328d1012cc1d840f7932f44799ac66dd044a2d3f04c2c32d95e0",
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "openspec/changes/enable-team-developer-workflow/proposal.md",
@@ -182,8 +182,8 @@
       "path": "openspec/changes/enable-team-developer-workflow/specs/repository-contribution-workflow/spec.md",
       "sourceSha256": "e9ddf3f2c161a0e11af54f5f944b337607de6ef2285941f6f47261fd1a5c0a76",
       "sourceGitBlob": "8c1e9b0118d8f29d0f0a66e9caea34a637b52d2f",
-      "integratedSha256": "e9ddf3f2c161a0e11af54f5f944b337607de6ef2285941f6f47261fd1a5c0a76",
-      "disposition": "unchanged prerequisite"
+      "integratedSha256": "e903cdf1eef868cfa564397f3a749db6c55e9564df5ed15d031371485c25b953",
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "openspec/changes/enable-team-developer-workflow/tasks.md",
@@ -217,8 +217,8 @@
       "path": "scripts/verify/git-attribution.mjs",
       "sourceSha256": "bbe0d57dbdea3e398e4f93855f8c3b366953ddd5f8e143d171e57aebc64d65af",
       "sourceGitBlob": "e0fad76d38bc7345ede8bb2daaf1071f1bf2dfa8",
-      "integratedSha256": "b6592cc7f74b9c31b7b2a4337c5c62e38dcb91324cc391cc7369e605e011ee20",
-      "disposition": "reconciled with documentation changes"
+      "integratedSha256": "0078a841a4f8a6031e994e6d7149e667a5cef53aa878e7d7c4b4fd027389b851",
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "tests/unit/scripts/git-attribution-workflow.contract.test.ts",
@@ -231,8 +231,8 @@
       "path": "tests/unit/scripts/git-attribution.test.ts",
       "sourceSha256": "7bbbece92b924a454c06c17799e6f182f5081f1921d90cbad417a18b84ac14f7",
       "sourceGitBlob": "ddb86781ced4390e6bd31c62cbd5599e6b39f16b",
-      "integratedSha256": "252fd754b26727908151c94ba84184938bc7eaa4ef65a2932df6f3a8c95f7964",
-      "disposition": "reconciled with documentation changes"
+      "integratedSha256": "2a846207d37b27b30050c01bf7c4f3c6da8002462c733023763f92463911b428",
+      "disposition": "reconciled in AL-1861"
     },
     {
       "path": "tests/unit/scripts/pre-push.test.ts",

@@ -152,3 +152,28 @@ Independent live verification compared the actual `a54f236a` response:
 retained attribution field and parent record. The raw response reproduces
 `ENOBUFS` under Node's default limit; the projected response exits successfully.
 Independent review found no actionable issue in the fix or four regression cases.
+
+## Recorded PR base and actual merge ancestry
+
+GitHub review identified a second prerequisite edge case. Two independent reads
+of real Core PR #968 confirmed a valid, signed merge whose recorded PR base
+`5e2018d4bf05f3b261a69e421b6c5956665e2119` predates its first parent
+`da8593ab01ef0044e16b9585d061f4506bbec7ea`; the merge SHA and second-parent
+head match exactly. Both local Git and GitHub comparison prove the required
+base-to-first-parent ancestry. The captured proof records the immutable SHAs
+and remote evidence.
+
+The workflow contract now admits that proven ancestor relationship while
+preserving every exact closed-PR, repository, branch, merge-SHA, head-parent and
+platform-signature check. Missing/malformed evidence, command failure, reversed
+or unrelated ancestry must fail closed. This corrects a disproved metadata
+assumption; it does not broaden who may authorize an integration.
+
+PR #968 predates the policy baseline and is normally skipped as historical; it
+proves the real metadata shape rather than an existing protected-push failure.
+The corresponding regression failed before the fix. All 102 focused attribution,
+workflow-contract and pre-push tests then passed. Independent execution accepted
+the real ancestry and rejected descendant/missing bases, unavailable proof and
+wrong merge/head/repository/branch bindings; exact-base matches avoid a needless
+Git query. The code, negative cases, ops guide and OpenSpec amendment passed
+independent review, scoped formatting/lint and strict OpenSpec/delta checks.
