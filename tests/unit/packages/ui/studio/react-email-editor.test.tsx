@@ -24,6 +24,8 @@ const { editorState } = vi.hoisted(() => ({
     canRedoMock: vi.fn(),
     insertContentMock: vi.fn(),
     runMock: vi.fn(),
+    deferReady: false,
+    fireReady: undefined as (() => void) | undefined,
     onUploadImage: undefined as
       | ((file: File) => Promise<{ url: string }>)
       | undefined,
@@ -64,31 +66,51 @@ vi.mock("next/dynamic", async () => {
     },
     ref,
   ) {
-    React.useImperativeHandle(ref, () => ({
+    const editorApi = {
+      getJSON: editorState.getJSONMock,
+      extensionManager: { extensions: [] },
+      schema: { marks: {} },
+      commands: {
+        setContent: (content: unknown, options?: { emitUpdate?: boolean }) => {
+          editorState.setContentMock(content, options);
+          if (options?.emitUpdate !== false) {
+            props.onUpdate?.({ getJSON: editorState.getJSONMock });
+          }
+        },
+        undo: editorState.undoMock,
+        redo: editorState.redoMock,
+        focus: editorState.focusMock,
+      },
+      can: () => ({
+        undo: editorState.canUndoMock,
+        redo: editorState.canRedoMock,
+      }),
+      chain: createChain,
+    };
+    const handle: {
+      getJSON: typeof editorState.getJSONMock;
+      getEmail: typeof editorState.getEmailMock;
+      editor: typeof editorApi | undefined;
+    } = {
       getJSON: editorState.getJSONMock,
       getEmail: editorState.getEmailMock,
-      editor: {
-        getJSON: editorState.getJSONMock,
-        extensionManager: { extensions: [] },
-        schema: { marks: {} },
-        commands: {
-          setContent: editorState.setContentMock,
-          undo: editorState.undoMock,
-          redo: editorState.redoMock,
-          focus: editorState.focusMock,
-        },
-        can: () => ({
-          undo: editorState.canUndoMock,
-          redo: editorState.canRedoMock,
-        }),
-        chain: createChain,
-      },
-    }));
+      editor: editorState.deferReady ? undefined : editorApi,
+    };
+
+    React.useImperativeHandle(ref, () => handle);
 
     React.useEffect(() => {
       editorState.onUploadImage = props.onUploadImage;
-      props.onReady?.();
-      props.onUpdate?.({ getJSON: editorState.getJSONMock });
+      const fireReady = () => {
+        handle.editor = editorApi;
+        props.onReady?.();
+        props.onUpdate?.({ getJSON: editorState.getJSONMock });
+      };
+      if (editorState.deferReady) {
+        editorState.fireReady = fireReady;
+        return;
+      }
+      fireReady();
     }, [props]);
 
     return React.createElement("div", {
@@ -163,9 +185,62 @@ function EditorHarness({
   );
 }
 
+function LoadBeforeReadyHarness() {
+  const editorRef = useRef<EmailStudioEditorHandle>(null);
+
+  return (
+    <>
+      <ReactEmailEditor ref={editorRef} />
+      <button
+        type="button"
+        onClick={() =>
+          editorRef.current?.loadDesign({
+            body: { rows: [{ id: "hero" }] },
+          })
+        }
+      >
+        queue design
+      </button>
+    </>
+  );
+}
+
+function LoadAfterReadyHarness({
+  onReady,
+  onDesignUpdate,
+}: {
+  onReady?: () => void;
+  onDesignUpdate?: (design: Record<string, unknown>) => void;
+}) {
+  const editorRef = useRef<EmailStudioEditorHandle>(null);
+
+  return (
+    <>
+      <ReactEmailEditor
+        ref={editorRef}
+        initialDesign={{ type: "doc", content: [] }}
+        onReady={onReady}
+        onDesignUpdate={onDesignUpdate}
+      />
+      <button
+        type="button"
+        onClick={() =>
+          editorRef.current?.loadDesign({
+            body: { rows: [{ id: "welcome" }] },
+          })
+        }
+      >
+        load design
+      </button>
+    </>
+  );
+}
+
 describe("@asym/ui ReactEmailEditor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    editorState.deferReady = false;
+    editorState.fireReady = undefined;
     editorState.getJSONMock.mockReturnValue({ type: "doc", content: [] });
     editorState.getEmailMock.mockResolvedValue({
       html: "<p>fallback</p>",
@@ -268,5 +343,48 @@ describe("@asym/ui ReactEmailEditor", () => {
     await waitFor(() =>
       expect(screen.getByTestId("mock-react-email-editor")).toBeTruthy(),
     );
+  });
+
+  it("applies loadDesign queued before the nested editor is ready", async () => {
+    editorState.deferReady = true;
+
+    render(<LoadBeforeReadyHarness />);
+
+    await screen.findByTestId("mock-react-email-editor");
+    fireEvent.click(screen.getByRole("button", { name: "queue design" }));
+
+    expect(editorState.setContentMock).not.toHaveBeenCalled();
+
+    editorState.fireReady?.();
+
+    await waitFor(() => {
+      expect(editorState.setContentMock).toHaveBeenCalledWith(
+        { body: { rows: [{ id: "hero" }] } },
+        { emitUpdate: false },
+      );
+    });
+  });
+
+  it("does not notify onDesignUpdate when loadDesign applies stored template content", async () => {
+    const onReady = vi.fn();
+    const onDesignUpdate = vi.fn();
+
+    render(
+      <LoadAfterReadyHarness
+        onReady={onReady}
+        onDesignUpdate={onDesignUpdate}
+      />,
+    );
+
+    await waitFor(() => expect(onReady).toHaveBeenCalled());
+    onDesignUpdate.mockClear();
+
+    fireEvent.click(screen.getByRole("button", { name: "load design" }));
+
+    expect(editorState.setContentMock).toHaveBeenCalledWith(
+      { body: { rows: [{ id: "welcome" }] } },
+      { emitUpdate: false },
+    );
+    expect(onDesignUpdate).not.toHaveBeenCalled();
   });
 });

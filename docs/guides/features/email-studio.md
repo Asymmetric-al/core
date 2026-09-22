@@ -25,7 +25,15 @@ Events/audit          email_send_logs + Resend webhook ingestion
 
 Primary files:
 
-- `apps/admin/app/(app)/email/page-client.tsx` - admin Email Studio shell.
+- `apps/admin/app/(app)/email/page-client.tsx` — Email Studio orchestrator (`"use no memo"` stays here only).
+- `apps/admin/app/(app)/email/email-studio-types.ts` — Email Studio UI types.
+- `apps/admin/app/(app)/email/email-studio-ui-reducer.ts` — dialog/editor chrome reducer.
+- `apps/admin/app/(app)/email/email-studio-api.ts` — template list/persist/test-send client.
+- `apps/admin/app/(app)/email/email-studio-header.tsx` — toolbar, merge tags, unsaved chrome.
+- `apps/admin/app/(app)/email/email-studio-save-dialog.tsx`
+- `apps/admin/app/(app)/email/email-studio-export-dialog.tsx`
+- `apps/admin/app/(app)/email/email-studio-test-send-dialog.tsx`
+- `apps/admin/app/(app)/email/email-studio-template-picker-dialog.tsx`
 - `packages/ui/components/studio/EmailStudioEditor.tsx` - React Email editor surface (Unlayer removed).
 - `packages/ui/components/studio/ReactEmailEditor.tsx` - React Email Editor wrapper.
 - `packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx` - legacy Unlayer adapter, now used only by PDF Studio.
@@ -84,7 +92,7 @@ The React Email editor uses `packages/ui/components/studio/merge-tag-extension.t
 
 ## Preview And Test Send
 
-Preview exports the current editor HTML/text and renders HTML in a sandboxed iframe. The test-send flow sends the current edited template through `sendEmail(...)` in `packages/email/resend.ts`; it does not call the generic Resend connection-test email.
+Preview exports the current editor HTML/text and renders HTML in a sandboxed iframe. The test-send flow sends the current edited template through `sendEmail(...)` in `packages/email/resend.ts` (`packages/email/resend/send.ts`); it does not call the generic Resend connection-test email. Template list loads through TanStack Query keyed by `adminSurfaceQueryKeys.emailTemplates`.
 
 Generic connection testing remains at `/api/email/test-send`. Actual template testing uses:
 
@@ -112,7 +120,7 @@ Use `bun run verify:email-studio-legacy` during rollout. For the final decommiss
 
 - [ ] Read the current Next.js docs for App Router routes/components before changing route or page code.
 - [ ] Keep App Router route files thin; put business logic in `packages/api/src/email/*`.
-- [ ] Keep Resend delivery in the existing `packages/email/resend.ts` path.
+- [ ] Keep Resend delivery in the existing `packages/email/resend.ts` barrel (`packages/email/resend/send.ts` for send).
 - [ ] Persist React Email designs with `builder='react_email'`, HTML, text, subject, preheader, and a version row.
 - [ ] Validate and render merge tags server-side before sending.
 - [ ] Keep legacy Unlayer explicit and isolated.
@@ -124,9 +132,15 @@ Focused regression tests:
 - `tests/unit/packages/email/email-builder-types.test.ts`
 - `tests/unit/packages/email/merge-tags.test.ts`
 - `tests/unit/packages/email/merge-tag-render.test.ts`
+- `tests/unit/packages/email/resend.test.ts`
+- `tests/unit/packages/email/resend-module-seams.test.ts`
 - `tests/unit/packages/api/email/templates.test.ts`
 - `tests/unit/packages/api/email/template-test-send.test.ts`
 - `tests/unit/packages/api/email/assets.test.ts`
+- `tests/unit/packages/api/email/resend-snapshot-contract.test.ts`
 - `tests/unit/packages/ui/studio/react-email-editor.test.tsx`
 - `tests/unit/packages/ui/studio/email-studio-preview.test.tsx`
+- `tests/unit/apps/admin/email/email-studio-page-client.test.tsx`
+- `tests/unit/apps/admin/email/email-studio-ui-reducer.test.ts`
+- `tests/unit/apps/admin/email/email-studio-api.test.ts`
 - `tests/e2e/admin-email-studio.spec.ts`
