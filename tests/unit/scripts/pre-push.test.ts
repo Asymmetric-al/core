@@ -78,6 +78,8 @@ async function loadPrePushCoordinator(): Promise<PrePushCoordinatorModule> {
 describe("outgoing commit collection", () => {
   it("collects the full remote-to-local range for an existing ref", () => {
     const runGit = vi.fn((args: string[]) => {
+      if (args[0] === "rev-parse" && args[1] === "--is-shallow-repository")
+        return "false";
       if (args[0] === "rev-list") {
         return `${LOCAL_SHA_A}\n${MERGE_PARENT_SHA}\n`;
       }
@@ -103,6 +105,8 @@ describe("outgoing commit collection", () => {
 
   it("resolves a new ref to a commit and excludes history on the pushed remote", () => {
     const runGit = vi.fn((args: string[]) => {
+      if (args[0] === "rev-parse" && args[1] === "--is-shallow-repository")
+        return "false";
       if (args[0] === "rev-parse") {
         return LOCAL_SHA_A;
       }
@@ -153,6 +157,8 @@ describe("outgoing commit collection", () => {
   it("fetches an advertised remote tip before subtracting its shared ancestry", () => {
     let fetched = false;
     const runGit = vi.fn((args: string[]) => {
+      if (args[0] === "rev-parse" && args[1] === "--is-shallow-repository")
+        return "false";
       if (args[0] === "rev-parse") return LOCAL_SHA_A;
       if (args[0] === "ls-remote") {
         return `${REMOTE_SHA_A}\trefs/heads/develop\n`;
@@ -205,6 +211,8 @@ describe("outgoing commit collection", () => {
 
   it("deduplicates commits reachable from multiple updated refs", () => {
     const runGit = vi.fn((args: string[]) => {
+      if (args[0] === "rev-parse" && args[1] === "--is-shallow-repository")
+        return "false";
       const range = args.find((arg) => arg.includes(".."));
 
       if (range === `${REMOTE_SHA_A}..${LOCAL_SHA_A}`) {
@@ -259,6 +267,8 @@ describe("outgoing commit collection", () => {
 
   it("fails closed when a new ref cannot be resolved to a commit", () => {
     const runGit = vi.fn((args: string[]) => {
+      if (args[0] === "rev-parse" && args[1] === "--is-shallow-repository")
+        return "false";
       throw new Error(`cannot resolve ${args.join(" ")}`);
     });
 

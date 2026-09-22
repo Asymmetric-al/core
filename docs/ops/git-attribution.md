@@ -137,7 +137,10 @@ metadata. The pre-push coordinator reads Git's ref-update input once, preserves
 the production guard, and supplies the deduplicated outgoing commit set plus a
 sanitized repository slug to `bun run ci:preflight`; raw remote URLs are not
 propagated. Deletions introduce no commits. Existing refs use the complete
-remote-to-local graph; new refs query the actual remote branch/tag tips, fetch
+remote-to-local graph. Before any outgoing range walk, a shallow checkout must
+fetch complete history from the sanitized destination and verify it is no
+longer shallow; unavailable or still-incomplete history blocks verification.
+New refs query the actual remote branch/tag tips, fetch
 only missing advertised histories without updating refs or `FETCH_HEAD`, and
 subtract that remote history. For a fork push, the query uses a credential-free
 GitHub URL built from the actual destination slug, never a canonical `upstream`

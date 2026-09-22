@@ -69,7 +69,10 @@ commit, queries the pushed remote's branch and tag tips, and fetches only
 advertised tips missing from the local object database without updating refs or
 `FETCH_HEAD`. It then excludes their complete histories. Deletions carry no
 commits, multi-ref results are deduplicated, and malformed, unfetchable, or
-unresolvable data fails closed.
+unresolvable data fails closed. Before a local outgoing range walk, a shallow
+checkout fetches complete history from the sanitized destination and confirms
+that Git no longer considers it shallow. Fetch failure or a remaining shallow
+boundary blocks enumeration rather than hiding outgoing ancestors.
 
 ### Keep a forward-only ancestry baseline
 

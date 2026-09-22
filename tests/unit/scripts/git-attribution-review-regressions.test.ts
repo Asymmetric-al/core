@@ -163,6 +163,8 @@ describe("new-ref destination history", () => {
       runCommand,
     });
     const runGit = vi.fn((args: string[]) => {
+      if (args[0] === "rev-parse" && args[1] === "--is-shallow-repository")
+        return "false";
       if (args[0] === "rev-parse") return descendant;
       if (args[0] === "ls-remote")
         return `${args.at(-1) === "https://github.com/external/core.git" ? forkMerge : canonicalTip}\trefs/heads/main`;

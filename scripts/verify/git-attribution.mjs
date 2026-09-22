@@ -100,6 +100,28 @@ function splitCommitShas(output, label) {
     });
 }
 
+function ensureCompleteHistory(remoteName, runGit) {
+  const shallow = runGit(["rev-parse", "--is-shallow-repository"]).trim();
+  if (shallow === "false") return;
+  if (shallow !== "true") {
+    throw new Error("Git repository shallow state could not be determined");
+  }
+
+  runGit([
+    "fetch",
+    "--quiet",
+    "--unshallow",
+    "--no-tags",
+    "--no-write-fetch-head",
+    remoteName,
+  ]);
+  if (runGit(["rev-parse", "--is-shallow-repository"]).trim() !== "false") {
+    throw new Error(
+      "Git history is still shallow; cannot verify the complete outgoing range",
+    );
+  }
+}
+
 export function collectOutgoingCommitShas({
   updates,
   remoteName,
@@ -200,12 +222,14 @@ export function collectOutgoingCommitShas({
           throw new Error(`remote branch tip could not be inspected: ${sha}`);
         }
       }
+      ensureCompleteHistory(remoteName, runGit);
       output = runGit([
         "rev-list",
         resolvedCommit,
         ...(remoteTips.length > 0 ? ["--not", ...remoteTips] : []),
       ]);
     } else {
+      ensureCompleteHistory(remoteName, runGit);
       output = runGit(["rev-list", `${update.remoteSha}..${update.localSha}`]);
     }
 
@@ -1072,7 +1096,7 @@ function resolveLocalRemoteContext() {
   };
 }
 
-function collectLocalCommitShas({ remoteName, remoteQueryTarget }) {
+function collectLocalCommitShas({ remoteQueryTarget }) {
   const prePushInput = process.env.ASYM_PRE_PUSH_UPDATES;
 
   if (typeof prePushInput === "string") {
@@ -1084,6 +1108,7 @@ function collectLocalCommitShas({ remoteName, remoteQueryTarget }) {
     });
   }
 
+  ensureCompleteHistory(remoteQueryTarget, mustRunGit);
   return splitCommitShas(
     mustRunGit(["rev-list", "HEAD", "--not", "--remotes"]),
     "local-only",
@@ -1368,7 +1393,7 @@ function collectLocalVerification() {
     repository: repoSlug,
   });
 
-  for (const sha of collectLocalCommitShas({ remoteName, remoteQueryTarget })) {
+  for (const sha of collectLocalCommitShas({ remoteQueryTarget })) {
     if (
       isHistoricalCommit({
         sha,

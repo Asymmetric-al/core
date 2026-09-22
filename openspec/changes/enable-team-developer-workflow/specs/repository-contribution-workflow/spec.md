@@ -65,6 +65,12 @@ as if the current developer created it.
 - **THEN** enumeration queries a credential-free GitHub URL derived from the actual destination slug and excludes that fork's existing commits
 - **AND** canonical push identity and platform-commit trust rules remain unchanged
 
+#### Scenario: Local history is shallow
+
+- **WHEN** a local attribution range would be selected in a shallow checkout
+- **THEN** verification fetches complete history from the sanitized destination and confirms that no shallow boundary remains before walking the range
+- **AND** unavailable or incomplete history blocks verification rather than omitting outgoing ancestors
+
 #### Scenario: A ref is deleted
 
 - **WHEN** a push deletes a remote ref
