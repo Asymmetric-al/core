@@ -1,8 +1,8 @@
 ## Deploy Checklist (for PRs to `production` or `develop`)
 
 - [ ] CI passes
-- [ ] Base branch confirmed: `develop` = development, `production` = production release,
-      `main` = retired/inactive
+- [ ] Base branch confirmed: `develop` = development, `production` = production release;
+      no canonical `main` branch exists
 - [ ] `bun run verify:deployment-discipline` passes if deployment controls changed
 - [ ] Migrations reviewed (or N/A)
 - [ ] Migrations tested on development (or N/A)

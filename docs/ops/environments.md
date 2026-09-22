@@ -152,7 +152,7 @@ Each app also keeps source-controlled Git deployment branch gates in
 
 - `production`: production deployments
 - `develop`: development deployments
-- `main`: explicitly disabled retired history
+- `main`: deny-only legacy name; no canonical branch exists
 - all other branches: no Git deployment creation because `"*": false` closes
   the default auto-deploy path
 
@@ -345,8 +345,8 @@ that exposure is acceptable.
 - Development deploy trigger: push to `develop`.
 - Production deploy trigger: `bun run release:production` pushes a verified
   commit to `production`, the Vercel Production Branch.
-- `main` is retired/protected historical history; do not sync, merge, or deploy
-  from it for normal work.
+- The canonical repository has no `main` branch; do not create, sync, merge, or
+  deploy one. Deny-only deployment configuration may still mention it.
 - To refresh development parity ahead of QA/demo cycles, realign or merge from
   `production` into `develop`; development should start from production truth.
 - Inngest development is not integrated yet and remains a future placeholder.

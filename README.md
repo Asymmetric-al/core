@@ -329,7 +329,7 @@ Common commands:
 - `bun run test:e2e`, `bun run test:e2e:strict`, `bun run test:e2e:ui`
 - `bun run verify` (optional `VERIFY_HTTP=1`, `VERIFY_SUPABASE=1`)
 - `bun run verify:e2e`
-- PR-style gate: `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+- Canonical PR/push-readiness gate: `bun run ci:preflight`
 
 ### Git Hooks Setup
 
@@ -381,7 +381,7 @@ Build env details: `docs/guides/development/build-runbook.md`.
 ```bash
 bun run format
 
-bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
+bun run ci:preflight
 
 bun run test:e2e
 
