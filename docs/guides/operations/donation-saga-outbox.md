@@ -8,15 +8,73 @@ The goal is to keep all database mutations transactional while coordinating cros
 
 ## Flow Summary
 
-1. Donation entry points validate input and start the DB transaction via `begin_donation_saga`.
+1. Donation entry points validate input and start the DB transaction through the Gift Intake Begin Command (`beginGiftIntake` in `@asym/api`). That command calls `begin_donation_saga`. HTTP donate, HTTP donations, and GraphQL `createDonation` MUST NOT call the RPC directly.
 2. `begin_donation_saga` atomically:
    - creates/reuses donor
    - inserts a donation row (`status=processing`)
    - inserts transactional audit log (`donation_initiated`)
    - enqueues one row in `donation_saga_outbox`
 3. `POST /api/donate` and `POST /api/donations` attempt immediate processing via `processDonationSagaOutboxEvent`.
-4. GraphQL `createDonation` currently enqueues saga work and returns the donation; side-effect processing is handled by the outbox worker.
+4. GraphQL `createDonation` uses the same Gift Intake Begin Command and stays enqueue-only: it returns the donation without processing the outbox. Stripe side effects run through the outbox worker.
 5. If immediate processing does not finish, outbox processing continues through `POST /api/donate/outbox`.
+
+## Guest Giving charged amount
+
+Guest Giving `POST /api/donate` treats `amount` as the donor-entered gift in
+dollars. Gift processing-fee policy recomputes charged cents from `cover_fees`
+and `payment_method` before `begin_donation_saga`. `p_amount` is still charged
+cents.
+
+First-shot processing from that POST persists quote extras onto
+`donation_saga_outbox.fee_extras` and may attach them to PaymentIntent
+metadata (`gift_amount_cents`, `cover_fees`, `payment_method`,
+`cover_amount_cents`, `estimated_fee_cents`) without overriding `donation_id`.
+
+Recovery and batch workers (`processDueDonationSagaOutboxEvents`, admin
+replay) load stored `fee_extras` before PaymentIntent create. A lookup or
+parse failure MUST fail closed (no Stripe create). Stored extras bind
+`payment_method_types` even when the caller omits extras. An empty stored
+`{}` (GraphQL or legacy begin without a Gift quote) still omits
+`payment_method_types` and keeps `automatic_payment_methods`. Recovery MAY
+omit extras only for that empty/legacy `{}`; newly quoted Guest Giving rows
+keep stored extras including `payment_method` because `p_amount` does not
+preserve method. Stored Gift extras are immutable: a colliding
+caller quote is rejected before claim; a matching quote is not rewritten.
+
+Gift intake is USD-only. Non-USD `currency` values fail validation before
+`begin_donation_saga`. First-shot Gift intake binds the PaymentIntent to the
+quoted method (`card`/`wallet` → `payment_method_types: ["card"]`, `ach` →
+`["us_bank_account"]`).
+
+On idempotent replay (`begin_donation_saga.replayed`), Gift intake loads the
+stored `donations.amount` and `donation_saga_outbox.fee_extras` and:
+
+- returns `409` when charged cents do not match the recomputed quote
+- returns `409` when charged cents match but a stored full fee quote differs
+  from the current quote
+- continues when charged cents match and stored extras are empty/legacy `{}`
+  (or otherwise absent), passing the current quote extras so the saga can
+  persist onto empty before claim
+- returns `500` when stored extras cannot be loaded or are malformed
+- processes the existing outbox without rewriting matching stored extras
+
+Verification:
+
+1. POST the same idempotency key with a different charged amount → `409`.
+2. POST the same key with matching charged cents but different fee extras →
+   `409`.
+3. POST the same key with matching charged cents and matching extras → `200`
+   and no rewrite of stored extras.
+4. POST the same key with matching charged cents and stored `fee_extras: {}`
+   → `200` and saga called with the current quote extras.
+5. POST `currency=eur` → `400` before `begin_donation_saga`.
+6. First-shot card Gift PaymentIntents use `payment_method_types: ["card"]`
+   and omit `automatic_payment_methods`.
+7. Recovery of stored ACH extras binds `payment_method_types: ["us_bank_account"]`
+   even when the worker omits extras.
+
+Staff `POST /api/donations` does not run Gift processing-fee policy. That path
+already sends charged cents as `p_amount`.
 
 ## Outbox State Model
 
@@ -165,3 +223,13 @@ order by updated_at desc;
 - Never expose Stripe secret keys to client code.
 - Keep RLS assumptions unchanged for app reads; admin client remains server-only.
 - Do not manually delete outbox rows unless the linked donation lifecycle is fully reconciled.
+
+## Verification
+
+Confirm GraphQL Gift begin stays enqueue-only while HTTP donate and donations still process the outbox:
+
+```sh
+bunx vitest run tests/unit/graphql-gift-engagement-adapters.test.ts packages/api/tests/unit/begin-gift-intake.test.ts
+```
+
+Those tests lock `packages/graphql/handler.ts` to `amountCents: args.input.amount` with no `processDonationSagaOutboxEvent`, and they lock HTTP donate/donations to keep `processDonationSagaOutboxEvent` after `beginGiftIntake`. Donations must not convert dollars with `Math.round(amount * 100)`.

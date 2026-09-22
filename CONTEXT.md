@@ -34,6 +34,20 @@ the wire contract.
 _Avoid_: per-surface reaction forks, local-only reaction state, unpersisted
 engagement UI
 
+**Ministry Update Reaction Command**:
+The Core command module that applies or removes a Ministry Update reaction
+(like, prayer, or fire) through one atomic write and revalidates post cache
+tags when the change applied.
+_Avoid_: GraphQL or HTTP adapters calling `atomic_like_post` (and siblings)
+directly
+
+**Ministry Update Comment Command**:
+The Core command module that persists a Ministry Update comment through
+`atomic_add_post_comment`. GraphQL selects and maps the comment after it
+returns; HTTP comments POST remains a read-only demo no-op.
+_Avoid_: folding GraphQL comments onto the HTTP demo no-op; GraphQL calling
+`atomic_add_post_comment` directly
+
 **Assistant**:
 An AI agent or assistant that helps a staff member, missionary, or donor
 complete a task inside the platform (drafting, suggesting, summarizing,
@@ -188,6 +202,13 @@ behind the scenes. Guest giving is not anonymous giving and not an unknown
 donor.
 _Avoid_: account-first checkout, anonymous gift, unknown donor
 
+**Gift processing-fee policy**:
+The Core quote of estimated Stripe processing cost on a Guest Giving gift, in
+integer cents, by payment method. Checkout is a thin adapter; Gift intake
+recomputes charged cents and never trusts a client total. Distinct from tenant
+processor-cost attribution.
+_Avoid_: UI-owned Stripe rates, trusted client gross-up, "100% reaches the field"
+
 **Claimable Donor Access**:
 Donor portal access created during checkout without a password step. The donor
 later claims it through email verification or magic link. Creating it never
@@ -280,6 +301,14 @@ The durable, outbox-driven process that creates a donation's payment intent and
 recovers a stuck handoff, guarded by a [[product-idempotency-key]] so a
 business effect is never performed twice.
 _Avoid_: fire-and-forget charge, retry loop as source of truth
+
+**Gift Intake Begin Command**:
+The Core command module that starts a Gift through `begin_donation_saga`,
+returning donation and outbox ids. HTTP donate and donations adapters process
+the outbox immediately; the GraphQL Gift adapter stays enqueue-only. Amount
+units stay adapter-owned.
+_Avoid_: GraphQL calling `begin_donation_saga` directly; converting GraphQL
+amounts; starting Stripe from GraphQL createDonation
 
 **Outbox Event**:
 A durable product-owned record that background work still needs to happen,
