@@ -5,7 +5,6 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { objectFixture } from "./git-attribution-object-fixture";
-
 import {
   isHistoricalCommit,
   validateDevelopMergeProvenance,

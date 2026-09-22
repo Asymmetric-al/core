@@ -716,7 +716,12 @@ function run(command, args, options = {}) {
 }
 
 function runGitHubApi(args) {
-  return run("gh", ["api", ...args], { timeoutMs: GITHUB_API_TIMEOUT_MS });
+  const scopedArgs = args.includes("--hostname")
+    ? args
+    : ["--hostname", "github.com", ...args];
+  return run("gh", ["api", ...scopedArgs], {
+    timeoutMs: GITHUB_API_TIMEOUT_MS,
+  });
 }
 
 function mustRunGit(args) {
@@ -1213,117 +1218,63 @@ export function resolveTrustedRemoteQueryTarget({
   return canonicalGitUrl;
 }
 
-export function isReachableFromTrustedRemoteBranch(
-  sha,
-  remoteName,
-  { runCommand = run, runGitStatus: readGitStatus = runGitStatus } = {},
-) {
-  const remoteNames = collectTrustedRemoteNames(remoteName, { runCommand });
-
-  for (const trustedRemoteName of remoteNames) {
-    for (const branch of ["develop", "production"]) {
-      const remoteRef = `refs/remotes/${trustedRemoteName}/${branch}`;
-      const refResult = runCommand("git", [
-        "show-ref",
-        "--verify",
-        "--quiet",
-        remoteRef,
-      ]);
-
-      if (!refResult.ok) {
-        continue;
-      }
-
-      const status = readGitStatus([
-        "merge-base",
-        "--is-ancestor",
-        sha,
-        remoteRef,
-      ]);
-
-      if (status === 0) {
-        return true;
-      }
-
-      if (status !== 1) {
-        throw new Error(
-          `git could not compare ${sha} with trusted remote branch ${remoteRef}`,
-        );
-      }
-    }
-  }
-
-  return false;
-}
-
-export function allowExternalCommitterForLocalCommit({
-  requireTrustedOperator,
-  sha,
-  remoteName,
-  runCommand,
-  runGitStatus,
-}) {
-  if (!requireTrustedOperator) {
-    return true;
-  }
-
-  return isReachableFromTrustedRemoteBranch(sha, remoteName, {
-    runCommand,
-    runGitStatus,
-  });
-}
-
-function validateLocallyKnownPlatformCommit(metadata, remoteName) {
-  const committer = {
-    name: metadata.committerName,
-    email: metadata.committerEmail,
-  };
-
-  if (!isGitHubPlatformIdentity(committer)) {
+function validateLocallyKnownPlatformCommit(metadata, verifyProtectedHistory) {
+  if (
+    !isGitHubPlatformIdentity({
+      name: metadata.committerName,
+      email: metadata.committerEmail,
+    })
+  ) {
     return null;
   }
-
-  if (!isReachableFromTrustedRemoteBranch(metadata.sha, remoteName)) {
-    return validateCommitAttribution(metadata);
+  if (!verifyProtectedHistory(metadata.sha)) {
+    return [
+      "GitHub platform commit is not in authenticated canonical protected history",
+    ];
   }
-
-  return validateIdentity({
-    label: "GitHub platform commit author",
-    name: metadata.authorName,
-    email: metadata.authorEmail,
-    requireTrusted: false,
-    allowPlatformAlias: true,
+  const { metadata: remoteMetadata, actors } = readGitHubCommit({
+    repoSlug: CANONICAL_REPOSITORY,
+    sha: metadata.sha,
   });
+  if (
+    [
+      "sha",
+      "authorName",
+      "authorEmail",
+      "committerName",
+      "committerEmail",
+    ].some((key) => remoteMetadata[key] !== metadata[key])
+  ) {
+    return [
+      "GitHub platform metadata does not match the immutable local commit",
+    ];
+  }
+  return validateGitHubActorAttribution(
+    remoteMetadata,
+    {
+      ...actors,
+      signature: readGitHubSignature({
+        repoSlug: CANONICAL_REPOSITORY,
+        sha: metadata.sha,
+      }),
+    },
+    { allowExternalAuthor: true },
+  );
 }
 
-export function createCanonicalHistoryVerifier({
+function createCanonicalProtectedHistoryVerifier({
   repository,
   runGitHubApi: readApi = runGitHubApi,
   runGitStatus: readGitStatus = runGitStatus,
 } = {}) {
   const branchTips = new Map();
 
-  return (metadata) => {
+  return (sha) => {
     if (!isCanonicalRepositorySlug(repository)) {
       return null;
     }
 
-    for (const role of ["author", "committer"]) {
-      const name = metadata[`${role}Name`];
-      const email = metadata[`${role}Email`];
-      if (
-        typeof name !== "string" ||
-        !name.trim() ||
-        typeof email !== "string" ||
-        !email.trim() ||
-        isForbiddenGitEmail(email) ||
-        usesGitHubPlatformIdentityField({ name, email })
-      ) {
-        return null;
-      }
-    }
-
-    assertFullSha(metadata.sha, "inherited commit SHA");
+    assertFullSha(sha, "inherited commit SHA");
 
     for (const branch of ["develop", "production"]) {
       if (!branchTips.has(branch)) {
@@ -1359,16 +1310,14 @@ export function createCanonicalHistoryVerifier({
         "--no-replace-objects",
         "merge-base",
         "--is-ancestor",
-        metadata.sha,
+        sha,
         tip,
       ]);
       if (status === 0) {
         return { branch, tip };
       }
       if (status !== 1) {
-        throw new Error(
-          `canonical ${branch} ancestry unavailable for ${metadata.sha}`,
-        );
+        throw new Error(`canonical ${branch} ancestry unavailable for ${sha}`);
       }
     }
 
@@ -1376,9 +1325,43 @@ export function createCanonicalHistoryVerifier({
   };
 }
 
+export function createCanonicalHistoryVerifier({
+  repository,
+  runGitHubApi: readApi = runGitHubApi,
+  runGitStatus: readGitStatus = runGitStatus,
+  verifyProtectedHistory,
+} = {}) {
+  const verify =
+    verifyProtectedHistory ??
+    createCanonicalProtectedHistoryVerifier({
+      repository,
+      runGitHubApi: readApi,
+      runGitStatus: readGitStatus,
+    });
+  return (metadata) => {
+    if (!isCanonicalRepositorySlug(repository)) return null;
+    for (const role of ["author", "committer"]) {
+      const name = metadata[`${role}Name`];
+      const email = metadata[`${role}Email`];
+      if (
+        typeof name !== "string" ||
+        !name.trim() ||
+        typeof email !== "string" ||
+        !email.trim() ||
+        isForbiddenGitEmail(email) ||
+        usesGitHubPlatformIdentityField({ name, email })
+      ) {
+        return null;
+      }
+    }
+
+    return verify(metadata.sha);
+  };
+}
+
 function collectLocalVerification() {
   const errors = [];
-  const { remoteName, remoteQueryTarget, repoSlug, requireTrustedOperator } =
+  const { remoteQueryTarget, repoSlug, requireTrustedOperator } =
     resolveLocalRemoteContext();
   const identityOptions = { requireTrusted: requireTrustedOperator };
   const userName = mustRunGit(["config", "--get", "user.name"]);
@@ -1407,8 +1390,12 @@ function collectLocalVerification() {
 
   const checkedCommits = [];
   const inheritedCommits = [];
+  const verifyProtectedHistory = createCanonicalProtectedHistoryVerifier({
+    repository: CANONICAL_REPOSITORY,
+  });
   const verifyInheritedHistory = createCanonicalHistoryVerifier({
     repository: repoSlug,
+    verifyProtectedHistory,
   });
 
   for (const sha of collectLocalCommitShas({ remoteQueryTarget })) {
@@ -1425,18 +1412,14 @@ function collectLocalVerification() {
     const metadata = readCommitMetadata(sha);
     const platformErrors = validateLocallyKnownPlatformCommit(
       metadata,
-      remoteName,
+      verifyProtectedHistory,
     );
 
     const commitErrors =
       platformErrors ??
       validateCommitAttribution(metadata, {
         allowExternalAuthor: true,
-        allowExternalCommitter: allowExternalCommitterForLocalCommit({
-          requireTrustedOperator,
-          sha,
-          remoteName,
-        }),
+        allowExternalCommitter: !requireTrustedOperator,
       });
 
     const inherited =

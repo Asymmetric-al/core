@@ -97,6 +97,14 @@ identities, platform envelopes, local operators, or novel commits. Unmerged
 open-PR history has no exemption. The immutable baseline and identity registry
 remain unchanged.
 
+Local GitHub platform envelopes use the same fresh canonical protected-tip
+resolver, followed by matching GitHub commit metadata, immutable account checks
+and a valid GitHub-made web-flow signature. Tracking refs never authorize an
+envelope or external committer. Ordinary external commits already integrated
+into protected canonical history keep the separate inherited-history proof;
+that classification cannot bypass the platform signature path. All provider
+lookups are scoped to github.com and ordinary valid local commits stay offline.
+
 ### Use event-bound remote scopes and proof
 
 Local pre-push verification checks repository configuration, author/committer

@@ -242,6 +242,18 @@ or contradictory GitHub metadata MUST fail closed.
 - **AND** a novel disallowed commit cannot become historical or disappear from
   the checked range through a local replacement
 
+#### Scenario: A local platform envelope claims inherited history
+
+- **WHEN** a local outgoing commit uses the GitHub platform committer tuple
+- **THEN** verification requires fresh authenticated protection and exact-tip
+  ancestry proof from canonical develop or production
+- **AND** GitHub must return matching immutable commit metadata, valid author
+  and web-flow account associations, and a valid signature made by GitHub
+- **AND** local remote-tracking refs cannot authorize platform or external
+  committer exceptions, even when their configured remote URL is canonical
+- **AND** unavailable required proof fails closed while ordinary valid local
+  commits do not require a new provider lookup
+
 #### Scenario: Platform identity is forged locally
 
 - **WHEN** a local or remotely unverified commit imitates GitHub's platform name or email
