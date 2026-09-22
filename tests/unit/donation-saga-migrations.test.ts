@@ -101,4 +101,25 @@ describe("donation saga migrations", () => {
       );
     }
   });
+
+  it("writes Gift fee extras in the same begin_donation_saga insert as next_attempt_at", () => {
+    const migration = readRepoFile(
+      "supabase/migrations/20260820001000_begin_donation_saga_fee_extras.sql",
+    );
+
+    expect(migration).toMatch(
+      /DROP FUNCTION IF EXISTS public\.begin_donation_saga\(UUID, UUID, UUID, BIGINT, TEXT, UUID, UUID, TEXT, TEXT, TEXT\)/,
+    );
+    expect(migration).toMatch(/p_fee_extras JSONB DEFAULT '\{\}'::jsonb/);
+    expect(migration).toMatch(/COALESCE\(p_fee_extras, '\{\}'::jsonb\)/);
+    expect(migration).toMatch(
+      /INSERT INTO public\.donation_saga_outbox \([^)]*next_attempt_at,\s*fee_extras\s*\)/,
+    );
+    expect(migration).toMatch(
+      /REVOKE EXECUTE ON FUNCTION public\.begin_donation_saga\(UUID, UUID, UUID, BIGINT, TEXT, UUID, UUID, TEXT, TEXT, TEXT, JSONB\) FROM PUBLIC, anon, authenticated;/,
+    );
+    expect(migration).toMatch(
+      /GRANT EXECUTE ON FUNCTION public\.begin_donation_saga\(UUID, UUID, UUID, BIGINT, TEXT, UUID, UUID, TEXT, TEXT, TEXT, JSONB\) TO service_role;/,
+    );
+  });
 });
