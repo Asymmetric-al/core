@@ -161,9 +161,13 @@ Unmerged legacy commits on open PR branches receive no history exemption.
 Remote verification runs before formatting in the fast CI workflow. Ordinary
 pull requests validate the complete immutable event `base..head` graph,
 including merge parents. A same-repository PR may use the matching immutable
-event actor or PR author for an unsigned registered tuple; forks and presenter
-mismatches require the registered signer. This lets a bot or coworker update a
-PR without reassigning its owner's earlier commits.
+event actor for an unsigned registered tuple; forks and actor mismatches
+require the registered signer. PR ownership and ancestry before an update do
+not authenticate author or committer claims. A bot or coworker forwarding
+another registered identity's unsigned commits therefore needs matching
+signature proof; earlier presence on the branch grants no exception. Distinct
+registered author and committer accounts must each be authenticated; one
+signature cannot attest two different accounts, so that combination is rejected.
 
 Protected pushes reject non-fast-forwards and validate the first-parent
 integration spine so the merger or release actor is not retroactively applied

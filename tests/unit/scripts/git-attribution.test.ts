@@ -549,7 +549,7 @@ describe("git attribution verifier", () => {
     ).toEqual([]);
   });
 
-  it("keeps the PR author's earlier unsigned commits valid when a bot synchronizes the branch", () => {
+  it("requires signature proof when a bot presents the PR author's unsigned commits", () => {
     expect(
       validateGitHubActorAttribution(
         commitMetadata(),
@@ -563,7 +563,7 @@ describe("git attribution verifier", () => {
         },
         { allowEventActorProof: true },
       ),
-    ).toEqual([]);
+    ).not.toEqual([]);
   });
 
   it("rejects unsigned mixed registered author and committer identities that independently match different GitHub principals", () => {

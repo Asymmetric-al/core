@@ -316,3 +316,30 @@ describe("recorded develop base ancestry", () => {
     ).not.toEqual([]);
   });
 });
+
+describe("unsigned same-tuple collaborator claims", () => {
+  it("rejects a new unsigned Conrad tuple presented by Blake on Conrad's PR", () => {
+    expect(
+      validateGitHubActorAttribution(
+        {
+          authorName: "Conrad O",
+          authorEmail: "79217644+cobmojo@users.noreply.github.com",
+          committerName: "Conrad O",
+          committerEmail: "79217644+cobmojo@users.noreply.github.com",
+        },
+        {
+          authorLogin: "cobmojo",
+          authorId: 79217644,
+          committerLogin: "cobmojo",
+          committerId: 79217644,
+          eventActorLogin: "II-ricky-bobby-II",
+          eventActorId: 116130409,
+          pullRequestAuthorLogin: "cobmojo",
+          pullRequestAuthorId: 79217644,
+          signature: null,
+        },
+        { allowEventActorProof: true },
+      ).join("\n"),
+    ).toContain("lacks authenticated proof");
+  });
+});

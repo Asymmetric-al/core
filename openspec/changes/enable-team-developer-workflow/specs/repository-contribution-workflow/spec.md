@@ -145,9 +145,20 @@ or contradictory GitHub metadata MUST fail closed.
 #### Scenario: Registered developer presents an unsigned same-repository PR
 
 - **WHEN** an unsigned registered tuple appears in a same-repository pull request
-- **THEN** either the authenticated event actor or immutable pull-request author
-  login and numeric account ID must match that record and take responsibility
-  for presenting the change
+- **THEN** the authenticated event actor login and numeric account ID must match that record
+- **AND** pull-request ownership or earlier branch reachability alone MUST NOT authenticate the claim
+
+#### Scenario: A collaborator presents another registered identity's unsigned history
+
+- **WHEN** a bot or coworker updates a same-repository PR containing another registered identity's unsigned commits
+- **THEN** those registered claims require matching verified signature proof, even if the PR author matches or the commits predate the update
+- **AND** an unsigned same-tuple author and committer forgery is rejected
+
+#### Scenario: Author and committer are distinct registered accounts
+
+- **WHEN** a non-platform commit claims two different registered accounts as author and committer
+- **THEN** each claim requires its own matching authenticated proof
+- **AND** the current single-signature model rejects the combination because one signer cannot authenticate two distinct registered accounts
 
 #### Scenario: Registered identity requires signature proof
 

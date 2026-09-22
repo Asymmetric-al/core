@@ -118,11 +118,16 @@ failure is inherited by the already-required `ci-gate`.
 GitHub's commit `author` and `committer` account associations come from the
 self-asserted commit email, so they are consistency metadata rather than proof.
 For a same-repository PR, an exact registered author or committer claim may be
-unsigned only when either the event actor or immutable PR author matches the
-registry. This preserves earlier owner commits when a coworker or bot updates
-the branch while binding the updater's new tuple separately. Forks never receive
-this exception. When neither presenter matches, GraphQL must report a valid
-signature whose signer login and ID match every registered claim. Protected
+unsigned only when the authenticated event actor matches the registry. PR
+ownership does not authenticate a newly forged same-tuple author and committer.
+Earlier reachability is also insufficient: a failed forged commit could become
+an ancestor on the next update. Forks never receive event-actor proof. When
+the actor differs, GraphQL must report a valid signature whose signer login
+and ID match every registered claim. A bot or coworker forwarding another
+registered identity's unsigned history must obtain matching signature proof;
+there is no PR-author or before-update grandfathering. If registered author
+and committer are distinct accounts, one signature cannot match both claims;
+the current strict policy intentionally rejects that combination. Protected
 pushes use only the platform-integration path.
 `github.triggering_actor` is never attribution proof because reruns retain the
 original actor's privileges; its current immutable ID is resolved and still

@@ -489,19 +489,16 @@ function validateRegisteredIdentityProof({
 
   if (
     allowEventActorProof &&
-    [
-      { id: actors?.eventActorId, login: actors?.eventActorLogin },
-      {
-        id: actors?.pullRequestAuthorId,
-        login: actors?.pullRequestAuthorLogin,
-      },
-    ].some((account) => githubAccountMatches(identity, account))
+    githubAccountMatches(identity, {
+      id: actors?.eventActorId,
+      login: actors?.eventActorLogin,
+    })
   ) {
     return [];
   }
 
   return [
-    `${label} identity ${formatIdentity(identity)} lacks authenticated proof; require its verified signer or matching same-repository event actor or pull-request author ${formatGithubAccount(identity.githubLogin, identity.githubId)}`,
+    `${label} identity ${formatIdentity(identity)} lacks authenticated proof; require its verified signer or matching same-repository event actor ${formatGithubAccount(identity.githubLogin, identity.githubId)}`,
   ];
 }
 
@@ -629,7 +626,7 @@ export function validateGitHubActorAttribution(
     authorIdentityRecord.githubId !== committerIdentityRecord.githubId
   ) {
     errors.push(
-      "unsigned mixed registered author and committer identities require a verified signature; event-actor and pull-request-author proofs cannot independently attest two different registered identities",
+      "unsigned mixed registered author and committer identities require a verified signature; one event actor or signature cannot attest two different registered identities",
     );
   }
 
