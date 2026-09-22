@@ -166,7 +166,9 @@ Forbidden IDs and logins are checked independently across event and commit
 principals. GraphQL signature metadata is fetched for every checked commit, and
 rerun actors are resolved to immutable IDs, so an invalid or forbidden signer
 cannot hide behind otherwise-sufficient actor proof. Missing, partial, or
-malformed metadata fails closed. The result remains inside the existing
+malformed metadata fails closed. Any present invalid signature is rejected,
+including on external tuples; unsigned attributable fork contributions remain
+supported. The result remains inside the existing
 `ci-gate`; attribution does not add or replace a protected check name.
 
 The production release guard is unchanged. Direct `production` pushes still use

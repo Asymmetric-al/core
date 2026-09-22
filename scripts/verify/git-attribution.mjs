@@ -516,6 +516,10 @@ export function validateGitHubActorAttribution(
   } = {},
 ) {
   const errors = [...validateForbiddenGithubPrincipals(actors)];
+
+  if (actors?.signature && !isValidSignature(actors.signature)) {
+    errors.push("commit signature is not valid");
+  }
   const authorIdentity = {
     name: metadata.authorName,
     email: metadata.authorEmail,

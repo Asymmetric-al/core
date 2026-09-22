@@ -164,6 +164,12 @@ or contradictory GitHub metadata MUST fail closed.
 - **WHEN** a forbidden account appears as workflow actor, webhook sender, pull-request author, fork owner, rerun triggering actor, commit association, or signature signer
 - **THEN** remote attribution rejects the event independently of commit-email association or signature validity
 
+#### Scenario: An external commit has an invalid signature
+
+- **WHEN** an external author and committer have resolvable identities but GitHub returns an invalid or contradictory signature
+- **THEN** attribution rejects the commit regardless of whether either tuple is registered
+- **AND** unsigned attributable fork contributions remain supported
+
 #### Scenario: GitHub creates a platform commit
 
 - **WHEN** GitHub reports the exact `GitHub <noreply@github.com>` / `web-flow` committer path with a valid signature made by GitHub's signing key
