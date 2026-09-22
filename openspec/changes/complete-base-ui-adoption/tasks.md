@@ -13,5 +13,5 @@
 ## 3. Verification
 
 - [x] 3.1 Run focused tests, all affected consumer typechecks/lint, and frozen installation.
-- [ ] 3.2 Run full preflight and relevant browser checks; record limitations.
-- [ ] 3.3 Review the complete diff and validate OpenSpec; leave active until merged.
+- [x] 3.2 Run full preflight and relevant browser checks; record limitations.
+- [x] 3.3 Review the complete diff and validate OpenSpec; leave active until merged.
