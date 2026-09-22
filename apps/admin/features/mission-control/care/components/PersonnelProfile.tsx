@@ -21,6 +21,7 @@ import {
 import {
   Tabs,
   TabsContent,
+  TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
@@ -716,7 +717,11 @@ export function PersonnelProfile({
 
       <Tabs defaultValue="overview" className="w-full">
         <div className="flex items-center justify-between border-b border-zinc-200 mb-6 pb-px">
-          <div className="flex gap-8">
+          <TabsList
+            aria-label="Personnel profile"
+            variant="line"
+            className="gap-8 p-0 group-data-[orientation=horizontal]/tabs:h-auto"
+          >
             {[
               "overview",
               "care-thread",
@@ -727,12 +732,12 @@ export function PersonnelProfile({
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="px-0 py-3 text-sm font-semibold text-zinc-500 data-active:text-zinc-900 data-active:shadow-[0_2px_0_0_#0f172a] rounded-none transition-none capitalize"
+                className="px-0 py-3 text-sm font-semibold text-zinc-500 data-active:text-zinc-900 rounded-none transition-none capitalize group-data-[orientation=horizontal]/tabs:after:bottom-0"
               >
                 {tab.replace("-", " ")}
               </TabsTrigger>
             ))}
-          </div>
+          </TabsList>
         </div>
 
         <OverviewTabContentSection
