@@ -32,7 +32,7 @@ export function Dialog({
       <DialogContent
         className={cn(
           "rounded-2xl shadow-xl",
-          !padding && "max-w-full",
+          !padding && "max-w-full p-0",
           className,
         )}
         showCloseButton={!hideClose}

@@ -137,6 +137,7 @@ export function TaskPartnerSelect({
               aria-label="Clear associated partner"
               onClick={() => {
                 onChange("");
+                onBlur?.();
                 triggerRef.current?.focus();
               }}
             >

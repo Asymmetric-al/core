@@ -20,9 +20,11 @@ const donors = [
 function Example({
   initial = "",
   loading = false,
+  onBlur,
 }: {
   initial?: string;
   loading?: boolean;
+  onBlur?: () => void;
 }) {
   const [value, setValue] = useState(initial);
   const [open, setOpen] = useState(false);
@@ -33,6 +35,7 @@ function Example({
         value={value}
         loading={loading}
         onChange={setValue}
+        onBlur={onBlur}
         open={open}
         onOpenChange={setOpen}
       />
@@ -88,7 +91,8 @@ describe("Task partner selection", () => {
   });
 
   it("clears with a named button outside the selection trigger", async () => {
-    render(<Example initial="second" />);
+    const onBlur = vi.fn();
+    render(<Example initial="second" onBlur={onBlur} />);
     const clear = screen.getByRole("button", {
       name: "Clear associated partner",
     });
@@ -97,6 +101,7 @@ describe("Task partner selection", () => {
     expect(screen.getByLabelText("Selected partner ID").textContent).toBe(
       "none",
     );
+    expect(onBlur).toHaveBeenCalledOnce();
     await waitFor(() =>
       expect(document.activeElement).toBe(screen.getByRole("combobox")),
     );
