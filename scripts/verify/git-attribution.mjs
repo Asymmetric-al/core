@@ -1046,6 +1046,7 @@ function resolveLocalRemoteContext() {
     : parseGitHubRepoSlug(mustRunGit(["remote", "get-url", remoteName]));
   const remoteQueryTarget = resolveTrustedRemoteQueryTarget({
     remoteName,
+    repoSlug,
     runCommand: run,
   });
 
@@ -1118,8 +1119,14 @@ function collectTrustedRemoteNames(remoteName, { runCommand }) {
 
 export function resolveTrustedRemoteQueryTarget({
   remoteName,
+  repoSlug,
   runCommand = run,
 } = {}) {
+  if (repoSlug) {
+    const { owner, name } = parseRepositorySlug(repoSlug);
+    return `https://github.com/${owner}/${name}.git`;
+  }
+
   const canonicalGitUrl = `https://github.com/${CANONICAL_REPOSITORY}.git`;
 
   if (typeof remoteName === "string" && remoteName.trim()) {

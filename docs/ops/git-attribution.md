@@ -138,8 +138,9 @@ sanitized repository slug to `bun run ci:preflight`; raw remote URLs are not
 propagated. Deletions introduce no commits. Existing refs use the complete
 remote-to-local graph; new refs query the actual remote branch/tag tips, fetch
 only missing advertised histories without updating refs or `FETCH_HEAD`, and
-subtract that remote history. Commits proven ancestral to the immutable
-policy baseline remain historical. Existing history is not rewritten.
+subtract that remote history. For a fork push, the query uses a credential-free
+GitHub URL built from the actual destination slug, never a canonical `upstream`
+substitute. Commits proven ancestral to the immutable policy baseline remain historical. Existing history is not rewritten.
 
 Remote verification runs before formatting in the fast CI workflow. Ordinary
 pull requests validate the complete immutable event `base..head` graph,

@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   collectCiVerification,
+  collectOutgoingCommitShas,
+  resolveTrustedRemoteQueryTarget,
   validateGitHubActorAttribution,
 } from "../../../scripts/verify/git-attribution.mjs";
 
@@ -135,5 +137,76 @@ describe("event principal completeness", () => {
     expect(
       verify({ ASYM_GITHUB_EVENT_ACTOR_ID: "not-a-number" }).errors.join("\n"),
     ).toContain("complete valid login and immutable account id");
+  });
+});
+
+describe("new-ref destination history", () => {
+  it("excludes fork history using the actual sanitized push destination", () => {
+    const forkMerge = "3".repeat(40);
+    const canonicalTip = "2".repeat(40);
+    const descendant = "4".repeat(40);
+    const runCommand = vi.fn((_command: string, args: string[]) => ({
+      ok: true,
+      status: 0,
+      stderr: "",
+      stdout:
+        args.length === 1
+          ? "origin\nupstream\n"
+          : args.at(-1) === "upstream"
+            ? "git@github.com:Asymmetric-al/core.git"
+            : "git@github.com:external/core.git",
+    }));
+    const remoteName = resolveTrustedRemoteQueryTarget({
+      remoteName: "origin",
+      repoSlug: "external/core",
+      runCommand,
+    });
+    const runGit = vi.fn((args: string[]) => {
+      if (args[0] === "rev-parse") return descendant;
+      if (args[0] === "ls-remote")
+        return `${args.at(-1) === "https://github.com/external/core.git" ? forkMerge : canonicalTip}\trefs/heads/main`;
+      if (args[0] === "rev-list")
+        return args.includes(forkMerge)
+          ? descendant
+          : `${forkMerge}\n${descendant}`;
+      throw new Error(`Unexpected git command: ${args.join(" ")}`);
+    });
+    expect(
+      collectOutgoingCommitShas({
+        updates: [
+          {
+            localRef: "refs/heads/feature",
+            localSha: descendant,
+            remoteRef: "refs/heads/feature",
+            remoteSha: "0".repeat(40),
+          },
+        ],
+        remoteName,
+        runGit,
+        runGitStatus: () => 0,
+      }),
+    ).toEqual([descendant]);
+    expect(remoteName).toBe("https://github.com/external/core.git");
+  });
+  it("keeps an explicit canonical push bound to canonical history even with a fork fetch URL", () => {
+    expect(
+      resolveTrustedRemoteQueryTarget({
+        remoteName: "origin",
+        repoSlug: "Asymmetric-al/core",
+        runCommand: () => ({
+          ok: true,
+          status: 0,
+          stderr: "",
+          stdout: "git@github.com:external/core.git",
+        }),
+      }),
+    ).toBe("https://github.com/Asymmetric-al/core.git");
+  });
+  it("refuses an unsafe destination slug", () => {
+    expect(() =>
+      resolveTrustedRemoteQueryTarget({
+        repoSlug: "external/core?secret=value",
+      }),
+    ).toThrow("repository slug");
   });
 });

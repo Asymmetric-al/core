@@ -59,6 +59,12 @@ as if the current developer created it.
 - **WHEN** a developer pushes a new branch
 - **THEN** commits already reachable from the canonical remote are excluded and every newly introduced commit is validated
 
+#### Scenario: A contributor pushes a new fork branch
+
+- **WHEN** the pushed repository is a fork and its existing history includes commits absent from canonical Core
+- **THEN** enumeration queries a credential-free GitHub URL derived from the actual destination slug and excludes that fork's existing commits
+- **AND** canonical push identity and platform-commit trust rules remain unchanged
+
 #### Scenario: A ref is deleted
 
 - **WHEN** a push deletes a remote ref
