@@ -93,6 +93,14 @@ as if the current developer created it.
 - **THEN** local verification reports the object as checked inherited history without registering its obsolete tuple for new work
 - **AND** local operator validation, full outgoing enumeration, forbidden-identity rejection, malformed-identity rejection, and platform-envelope requirements remain unchanged
 
+#### Scenario: A full local clone lacks the authenticated protected tip
+
+- **WHEN** inherited-history or platform proof needs an authenticated protected tip whose exact object is absent from a full local clone
+- **THEN** verification fetches that exact SHA from the fixed canonical GitHub HTTPS repository at most once with a bounded timeout, without fetching tags or changing local refs or `FETCH_HEAD`
+- **AND** the fetched tip must resolve to a commit before verification repeats the immutable ancestry proof
+- **AND** a present tip with an unrelated Git error, unavailable provider proof, failed fetch, missing commit or failed ancestry proof still fails closed
+- **AND** ordinary valid local commits remain offline and do not require this fetch
+
 #### Scenario: Inherited-history proof is absent or untrusted
 
 - **WHEN** a commit has only local tracking-ref or arbitrary remote-branch reachability, is unmerged on an open PR, or lacks valid authenticated protected-branch and exact-object ancestry proof

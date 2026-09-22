@@ -1272,8 +1272,10 @@ function createCanonicalProtectedHistoryVerifier({
   repository,
   runGitHubApi: readApi = runGitHubApi,
   runGitStatus: readGitStatus = runGitStatus,
+  runCommand = run,
 } = {}) {
   const branchTips = new Map();
+  const fetchAttempts = new Set();
 
   return (sha) => {
     if (!isCanonicalRepositorySlug(repository)) {
@@ -1312,13 +1314,63 @@ function createCanonicalProtectedHistoryVerifier({
       if (tip === null) {
         continue;
       }
-      const status = readGitStatus([
+      const ancestryArgs = [
         "--no-replace-objects",
         "merge-base",
         "--is-ancestor",
         sha,
         tip,
-      ]);
+      ];
+      let status = readGitStatus(ancestryArgs);
+      if (status !== 0 && status !== 1) {
+        // A full clone may predate this fresh authenticated tip. Only an
+        // absent exact object permits fetching; other Git failures stay closed.
+        const objectStatus = readGitStatus([
+          "--no-replace-objects",
+          "rev-parse",
+          "--verify",
+          "--quiet",
+          `${tip}^{object}`,
+        ]);
+        if (objectStatus !== 1 || fetchAttempts.has(tip)) {
+          throw new Error(
+            `canonical ${branch} ancestry unavailable for ${sha}`,
+          );
+        }
+        fetchAttempts.add(tip);
+        const fetched = runCommand(
+          "git",
+          [
+            "fetch",
+            "--quiet",
+            "--no-tags",
+            "--no-prune",
+            "--no-write-fetch-head",
+            "--no-recurse-submodules",
+            "--no-auto-maintenance",
+            "--refmap=",
+            `https://github.com/${CANONICAL_REPOSITORY}.git`,
+            tip,
+          ],
+          { timeoutMs: GITHUB_API_TIMEOUT_MS },
+        );
+        if (!fetched.ok) {
+          throw new Error(`canonical protected tip fetch failed for ${branch}`);
+        }
+        if (
+          readGitStatus([
+            "--no-replace-objects",
+            "cat-file",
+            "-e",
+            `${tip}^{commit}`,
+          ]) !== 0
+        ) {
+          throw new Error(
+            `canonical protected tip remains unavailable for ${branch}`,
+          );
+        }
+        status = readGitStatus(ancestryArgs);
+      }
       if (status === 0) {
         return { branch, tip };
       }
@@ -1335,6 +1387,7 @@ export function createCanonicalHistoryVerifier({
   repository,
   runGitHubApi: readApi = runGitHubApi,
   runGitStatus: readGitStatus = runGitStatus,
+  runCommand = run,
   verifyProtectedHistory,
 } = {}) {
   const verify =
@@ -1343,6 +1396,7 @@ export function createCanonicalHistoryVerifier({
       repository,
       runGitHubApi: readApi,
       runGitStatus: readGitStatus,
+      runCommand,
     });
   return (metadata) => {
     if (!isCanonicalRepositorySlug(repository)) return null;
