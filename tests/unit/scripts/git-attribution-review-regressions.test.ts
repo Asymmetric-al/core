@@ -4,6 +4,7 @@ import {
   collectCiVerification,
   collectOutgoingCommitShas,
   resolveTrustedRemoteQueryTarget,
+  validateDevelopMergeProvenance,
   validateGitHubActorAttribution,
 } from "../../../scripts/verify/git-attribution.mjs";
 
@@ -208,5 +209,110 @@ describe("new-ref destination history", () => {
         repoSlug: "external/core?secret=value",
       }),
     ).toThrow("repository slug");
+  });
+});
+
+describe("recorded develop base ancestry", () => {
+  const baseParent = "a".repeat(40);
+  const headParent = "b".repeat(40);
+  const mergeSha = "c".repeat(40);
+  const recordedBase = "d".repeat(40);
+  const metadata = { sha: mergeSha, parentShas: [baseParent, headParent] };
+  const pullRequest = {
+    state: "closed",
+    merged_at: "2026-09-22T00:00:00Z",
+    merge_commit_sha: mergeSha,
+    base: {
+      ref: "develop",
+      sha: recordedBase,
+      repo: { full_name: "Asymmetric-al/core" },
+    },
+    head: { sha: headParent },
+  };
+
+  it("accepts an older recorded base only after proving ancestry to the exact first parent", () => {
+    const runGitStatus = vi.fn(() => 0);
+    expect(
+      validateDevelopMergeProvenance({
+        metadata,
+        pullRequests: [pullRequest],
+        runGitStatus,
+      }),
+    ).toEqual([]);
+    expect(runGitStatus).toHaveBeenCalledExactlyOnceWith([
+      "merge-base",
+      "--is-ancestor",
+      recordedBase,
+      baseParent,
+    ]);
+  });
+
+  it.each([1, 128])(
+    "rejects unrelated, descendant, or unavailable base ancestry (git exit %s)",
+    (status) => {
+      expect(
+        validateDevelopMergeProvenance({
+          metadata,
+          pullRequests: [pullRequest],
+          runGitStatus: () => status,
+        }),
+      ).not.toEqual([]);
+    },
+  );
+
+  it("accepts an exact recorded base without an ancestry lookup", () => {
+    const runGitStatus = vi.fn(() => 128);
+    expect(
+      validateDevelopMergeProvenance({
+        metadata,
+        pullRequests: [
+          { ...pullRequest, base: { ...pullRequest.base, sha: baseParent } },
+        ],
+        runGitStatus,
+      }),
+    ).toEqual([]);
+    expect(runGitStatus).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { ...pullRequest, state: "open" },
+    { ...pullRequest, merged_at: null },
+    { ...pullRequest, merge_commit_sha: "e".repeat(40) },
+    { ...pullRequest, head: { sha: "e".repeat(40) } },
+    { ...pullRequest, base: { ...pullRequest.base, ref: "production" } },
+    {
+      ...pullRequest,
+      base: { ...pullRequest.base, repo: { full_name: "external/core" } },
+    },
+    { ...pullRequest, base: { ...pullRequest.base, sha: "invalid" } },
+  ])(
+    "rejects a mismatching merge envelope before consulting ancestry: %j",
+    (candidate) => {
+      const runGitStatus = vi.fn(() => 0);
+      expect(
+        validateDevelopMergeProvenance({
+          metadata,
+          pullRequests: [candidate],
+          runGitStatus,
+        }),
+      ).not.toEqual([]);
+      expect(runGitStatus).not.toHaveBeenCalled();
+    },
+  );
+
+  it("rejects a malformed commit SHA even when the PR agrees with it", () => {
+    expect(
+      validateDevelopMergeProvenance({
+        metadata: { ...metadata, sha: "invalid" },
+        pullRequests: [
+          {
+            ...pullRequest,
+            merge_commit_sha: "invalid",
+            base: { ...pullRequest.base, sha: baseParent },
+          },
+        ],
+        runGitStatus: () => 0,
+      }),
+    ).not.toEqual([]);
   });
 });

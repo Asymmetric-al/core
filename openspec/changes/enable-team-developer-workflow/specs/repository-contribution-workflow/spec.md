@@ -113,8 +113,10 @@ the introduced first-parent integration spine between `before` and `after`.
 
 Every protected integration commit MUST be an exact two-parent GitHub platform
 merge with a valid `web-flow` signature made by GitHub. A `develop` integration
-MUST match a closed pull request and its exact base and parent transition. A
-`production` promotion MUST already be reachable from canonical `develop`.
+MUST match a closed pull request, its exact merge SHA and head parent, and a
+recorded base SHA equal or proven ancestral to the actual first parent. Missing,
+unrelated, or unavailable ancestry MUST fail closed. A `production` promotion
+MUST already be reachable from canonical `develop`.
 
 A manual dispatch on a protected ref MUST use the protected integration rules.
 A dispatch on another branch MUST inspect the full `head --not baseline` graph
@@ -154,6 +156,13 @@ or contradictory GitHub metadata MUST fail closed.
 
 - **WHEN** a GitHub-signed two-parent merge matches the exact closed `develop` pull request and parent transition
 - **THEN** protected verification accepts the integration envelope without reassigning the merger's identity to the already-verified side ancestry
+
+#### Scenario: A merged pull request records an older base
+
+- **WHEN** GitHub records a base SHA older than the exact signed merge first parent
+- **THEN** verification requires complete SHA shapes and Git ancestry proof from that recorded base to the first parent
+- **AND** exact closed-PR, merge SHA, head-parent, platform-signature, and actor requirements still apply
+- **AND** unrelated, descendant, or unavailable recorded-base ancestry is rejected
 
 #### Scenario: Production is promoted
 

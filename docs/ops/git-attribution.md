@@ -153,8 +153,10 @@ Protected pushes reject non-fast-forwards and validate the first-parent
 integration spine so the merger or release actor is not retroactively applied
 to reviewed side ancestry. Every scanned commit must be a two-parent GitHub
 platform merge with a valid GitHub `web-flow` signature. A `develop` integration
-must match the exact closed PR, base, and two parents. A `production` promotion
-must already be reachable from canonical `develop`. This is defense in depth;
+must match the exact closed PR, merge SHA, and head parent. Its recorded base
+SHA must equal or be proven ancestral to the actual first parent; missing,
+unrelated, or unavailable ancestry fails closed. A `production` promotion must
+already be reachable from canonical `develop`. This is defense in depth;
 live branch protection remains the authorization boundary and is recorded in
 `docs/ci.md#branch-protection`.
 

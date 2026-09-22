@@ -944,22 +944,38 @@ export function validateDevelopMergeProvenance({
   metadata,
   pullRequests,
   repository = CANONICAL_REPOSITORY,
+  runGitStatus: runStatus = runGitStatus,
 }) {
   const [baseParent, headParent] = metadata?.parentShas ?? [];
   const hasExactMergedPullRequest =
+    typeof metadata?.sha === "string" &&
+    FULL_SHA_PATTERN.test(metadata.sha) &&
     metadata?.parentShas?.length === 2 &&
+    FULL_SHA_PATTERN.test(baseParent) &&
+    FULL_SHA_PATTERN.test(headParent) &&
     Array.isArray(pullRequests) &&
-    pullRequests.some(
-      (pullRequest) =>
-        pullRequest?.state === "closed" &&
-        typeof pullRequest?.merged_at === "string" &&
-        pullRequest.merge_commit_sha === metadata.sha &&
-        pullRequest.base?.repo?.full_name?.toLowerCase() ===
-          repository.toLowerCase() &&
-        pullRequest.base?.ref === "develop" &&
-        pullRequest.base?.sha === baseParent &&
-        pullRequest.head?.sha === headParent,
-    );
+    pullRequests.some((pullRequest) => {
+      const recordedBase = pullRequest?.base?.sha;
+      if (
+        pullRequest?.state !== "closed" ||
+        typeof pullRequest?.merged_at !== "string" ||
+        pullRequest.merge_commit_sha !== metadata.sha ||
+        pullRequest.base?.repo?.full_name?.toLowerCase() !==
+          repository.toLowerCase() ||
+        pullRequest.base?.ref !== "develop" ||
+        typeof recordedBase !== "string" ||
+        !FULL_SHA_PATTERN.test(recordedBase) ||
+        pullRequest.head?.sha !== headParent
+      ) {
+        return false;
+      }
+
+      return (
+        recordedBase === baseParent ||
+        runStatus(["merge-base", "--is-ancestor", recordedBase, baseParent]) ===
+          0
+      );
+    });
 
   return hasExactMergedPullRequest
     ? []
