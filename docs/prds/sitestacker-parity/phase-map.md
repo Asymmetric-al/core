@@ -132,9 +132,11 @@ retains all v2 numbers (0–40) and adds 41–44; it does not renumber existing 
 
 ## The roadmap (compact mirror)
 
-Generated from the reviewed [phase inventory](../program-roadmap/phases.json).
-The [roadmap](roadmap.md) owns scope. These starting dependencies preserve current
-owner floors; every consuming capability also needs its exact source proof.
+The [roadmap](roadmap.md) master table and phase headings are canonical.
+`python3 docs/prds/program-roadmap/tools/render-phases.py --check` verifies the
+[phase inventory](../program-roadmap/phases.json) and the marked table below;
+`--write` regenerates those two projections. These starting dependencies preserve
+current owner floors; every consuming capability also needs its exact source proof.
 
 <!-- phase-inventory:start -->
 

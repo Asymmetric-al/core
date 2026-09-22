@@ -25,7 +25,7 @@ contains planning and acceptance requirements, not a claim of shipped behavior.
 | Question                                             | Authoritative artifact                                                                                                             |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Phase numbering, scope, starting floors and priority | Roadmap v3; phases 0–40 retain their numbers/slugs and 41–44 are added                                                             |
-| Compact navigation                                   | phase-map.md; its inventory mirrors phases.json and loses to the roadmap on conflict                                               |
+| Compact navigation                                   | phases.json and the marked phase-map.md inventory are generated from the roadmap master table and phase headings                   |
 | Common process builder and application split         | Workflow Studio effective contracts: 96 recipes, 352 scenarios, 26 stable WS packages with explicit checkpoint slices              |
 | Visual/code website successor                        | Hybrid Web effective contracts: 48 HW requirements, 96 paired scenarios, 27 HA packages, 18 WF journeys and 12 AU native behaviors |
 | Channel and identity successors                      | SMS 12 work packages/32 scenarios and enterprise identity 12 packages/34 scenarios with explicit profiles and qualification        |
@@ -65,7 +65,19 @@ remain disabled and their symbolic owner bindings unresolved until qualification
 
 ## Maintenance and delivery
 
-Amend canonical machine contracts and their declared projections together.
+For phase metadata, edit the canonical master table and matching phase headings
+in `docs/prds/sitestacker-parity/roadmap.md`. The repository generator derives
+`phases.json` and only the marked inventory table in `phase-map.md`, using pinned
+local Prettier. It never edits the roadmap or immutable source captures.
+
+```sh
+# Read-only is the default; --check is explicit.
+python3 docs/prds/program-roadmap/tools/render-phases.py --check
+# After a reviewed canonical phase change, regenerate both projections.
+python3 docs/prds/program-roadmap/tools/render-phases.py --write
+```
+
+Amend other canonical machine contracts and their declared projections together.
 Preserve stable phase, recipe, task, requirement, scenario and issue IDs.
 Run `bun run verify:program-roadmap` and package checks, strict current/archive
 OpenSpec validation and applicability checks, then normal `ci:preflight` before

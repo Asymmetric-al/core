@@ -50,12 +50,27 @@
       "floor": 43,
       "preMerge": 43
     },
-    "githubIssues": "7 exact published-body hashes read back; labels/title/state/native blockers unchanged"
+    "githubIssues": "7 exact published-body hashes read back; labels/title/state/native blockers unchanged",
+    "deploymentDiscipline": {
+      "scope": "separate read-only live-policy audit",
+      "result": "8 existing mismatches; no settings changed",
+      "trackingIssue": "https://github.com/Asymmetric-al/core/issues/1426",
+      "trackingIssueStateAtReadback": "OPEN",
+      "details": "Default branch, required-context names and review policy differ from the verifier contract. All inspected Vercel project controls pass."
+    },
+    "phaseProjectionGenerator": "Passed seven drift/preservation probes; read-only default; only two declared projections may be written; nominal source/capture bytes preserved."
   },
   "limits": [
     "No product implementation or provider/profile qualification is claimed.",
     "Original source-validator reports remain dated source evidence.",
     "Existing skipped unit tests remain skipped; they are not counted as passing.",
     "GitHub current-head CI and review status must be checked after publication."
-  ]
+  ],
+  "publication": {
+    "pullRequest": "https://github.com/Asymmetric-al/core/pull/1897",
+    "base": "develop",
+    "initialPublishedHead": "1dbdc935b7dba59af6258f3896bd96dde64c583a",
+    "initialState": "draft pending final maintenance correction and current-head checks",
+    "currentStatusAuthority": "Read current GitHub head, required checks, review threads and merge state; this is publication evidence, not a permanent readiness claim."
+  }
 }

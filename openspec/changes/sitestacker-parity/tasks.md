@@ -218,5 +218,5 @@
 
 - [x] Verify the 45-phase inventory, preserved predecessor floors, complete Studio
       scope, acceptance projections, ticket amendments and independent checkpoint DAGs.
-- [ ] Record exact validation and publication evidence; keep all runtime and
+- [x] Record exact validation and publication evidence; keep all runtime and
       provider qualification tasks open until their owning gates pass.
