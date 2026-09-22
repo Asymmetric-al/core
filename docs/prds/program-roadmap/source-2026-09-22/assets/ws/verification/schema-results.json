@@ -1,0 +1,126 @@
+{
+  "kind": "specification-json-schema-validation",
+  "scope": "Structural fixtures and negative schema cases only; not source binding or production execution",
+  "jsonschemaVersion": "4.26.0",
+  "checks": 29,
+  "passed": 29,
+  "failed": 0,
+  "results": [
+    {
+      "name": "workflow: JSON Schema 2020-12 meta-validation",
+      "status": "passed"
+    },
+    {
+      "name": "form: JSON Schema 2020-12 meta-validation",
+      "status": "passed"
+    },
+    {
+      "name": "operation-result: JSON Schema 2020-12 meta-validation",
+      "status": "passed"
+    },
+    {
+      "name": "BP-01.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-02.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-03.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-04.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-05.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-06.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-07.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-08.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-09.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-10.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-11.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-12.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-13.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-14.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-15.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "BP-16.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "FORM-01.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "FORM-02.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "FORM-03.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "FORM-04.json: structural schema",
+      "status": "passed"
+    },
+    {
+      "name": "Negative schema: default-enabled workflow",
+      "status": "passed"
+    },
+    {
+      "name": "Negative schema: unknown executable property",
+      "status": "passed"
+    },
+    {
+      "name": "Negative schema: raw form mapping property",
+      "status": "passed"
+    },
+    {
+      "name": "Operation result: valid uncertain non-retryable outcome",
+      "status": "passed"
+    },
+    {
+      "name": "Negative schema: uncertain outcome cannot be retry-safe",
+      "status": "passed"
+    },
+    {
+      "name": "Negative schema: confirmed outcome requires source evidence",
+      "status": "passed"
+    }
+  ]
+}

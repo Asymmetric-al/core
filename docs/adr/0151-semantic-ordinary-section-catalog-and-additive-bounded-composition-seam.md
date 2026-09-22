@@ -88,6 +88,12 @@ grammar have been established.
 > rollback, or promise that current Payload internals are permanent product
 > architecture.
 
+## Phase 42 successor planning amendment — 2026-09-22
+
+The September 22 roadmap’s HA-A1 uses the explicit Option C seam: ordinary Pages may deliberately select `asym.page-composition/2` with the exact qualified Stack/Split/Grid grammar, finite setting schemas, root/slot restrictions, depth/node/byte bounds and standard-renderer proof in [Phase 42](../prds/web-studio-hybrid/ux-and-composition.md). The preceding founder decision records the Phase 23 v1 launch baseline; its flat grammar is not a blanket prohibition on this explicitly named later successor.
+
+Version 1 remains valid without automatic wrapping, reparenting, migration on read or retroactive v2 limits. Article and specialized Phase 22 families retain their own grammars. Hero stays root-first and singular, reuse stays root-only and nonrecursive, semantic meaning remains catalog-owned, and arbitrary style/executable data remains forbidden. All editing paths, including outline drag, direct commands, copy and restore, independently validate the chosen profile. Phase 23 remains deliverable without Phase 42; later implementation must pass the recorded qualification gates.
+
 ## Consequences
 
 - Page receives nine semantic launch sections; Article receives five. Family,
@@ -107,9 +113,7 @@ grammar have been established.
 - Unknown or incompatible data fails only the candidate with actionable cause
   while raw work and the prior public generation remain intact. Historical
   releases are immutable and migrations create successor drafts.
-- Future Option C requires a separate decision defining a small named container
-  catalog, hard child/depth/node constraints, accessible editing, migration,
-  and release proof. Existing version-1 Pages remain valid.
+- Phase 42 HA-A1 now records that separate bounded-container planning profile. Hard child/depth/node constraints, accessible editing, migration and real release proof remain activation gates; existing version-1 Pages remain valid. No broader generic layout grammar is authorized.
 
 ## Rejected alternatives
 

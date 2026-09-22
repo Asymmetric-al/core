@@ -66,6 +66,12 @@ changes how source may be produced, not the proof required to admit it.
 > inaccessible motion, obscured giving, silent package substitution, mutable
 > production package pointers, or any second public truth or release authority.
 
+## Phase 42 source-author planning amendment — 2026-09-22
+
+HA-A2/A4 explicitly support ministry-controlled conventional repositories and appointed accountable maintainers through [Phase 42’s source contract](../prds/web-studio-hybrid/presentation-sdk-and-source.md). This extends the source-author channel; the preceding Phase 23 lane’s admission, runtime and publication responsibilities are retained. A ministry can replace its developer without surrendering repository control or losing current CMS content.
+
+The initial managed path verifies both current Asym scope and provider repository authority, captures exact bytes, strips credentials before isolated build execution, and supplies independent platform-controlled evidence to this same D9 owner. Git merge, customer CI, source ownership or successful build does not admit code, make it available in the managed runtime or activate a Site. After independent admission, the code is reviewed first-party presentation, not arbitrary tenant code made safe by a signature or sandbox. Ordinary editors need no Git account or source controls; separately authorized source managers use the explicit source workflow. No executable upload or runtime URL-module route is added to Web Studio.
+
 ## Consequences
 
 - Tenants may commission genuinely distinct public shells, component

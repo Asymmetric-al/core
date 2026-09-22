@@ -6733,6 +6733,33 @@ unclassified, or unmatched settlement evidence and its bounded recovery owner.
 _Avoid_: silent suspense plugs, raw provider errors as staff workflow, one
 exception blocking unrelated settlements
 
+**Workflow Studio** (Phase 34): The staff process-authoring product for
+versioned coordination definitions and runs. CORE is its independently qualified
+common capability set; MOBILIZATION, GIVING, EVENTS and CARE are source-scoped
+recipe packs. Inngest is execution infrastructure, not process or source truth.
+
+**Application** (Phase 41): The source-owned mobilization record whose accepted
+submissions, requirements, evidence and human determinations establish application
+outcomes. A Workflow Run or task completion is not an application decision.
+
+**My Journey** (Phase 41): The purpose-scoped participant view of the current
+application and onboarding work in an existing Asym application surface.
+
+**Web Studio** (Phases 23 and 42): The governed content-authoring product. Phase 23
+owns the CMS/publication foundation; Phase 42 adds visual and source-based authoring
+under the same content and publication authorities. It is distinct from Workflow Studio.
+
+**WEB-VISUAL / WEB-SOURCE / WEB-HYBRID** (Phase 42): Separately evidenced delivery
+checkpoints for native visual work, governed source delivery and their combined
+staff/developer journey. A checkpoint is not a capability grant or deployment flag.
+
+**SMS operating profile** (Phase 43): An exact qualified provider, account, sender,
+market and purpose combination. It does not imply worldwide channel availability.
+
+**Enterprise sign-in / directory integration** (Phase 44): Federated authentication
+and directory lifecycle respectively. Both retain Phase 4 identity and Phase 12
+authorization owners; neither implies business membership or permission.
+
 ## Example Dialogue
 
 Developer: "Should this workflow event include the full donor record?"

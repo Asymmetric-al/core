@@ -213,3 +213,10 @@
 - [ ] 4.1 Verify every matrix `Built?`/current-state `(v)` flag against code.
 - [ ] 4.2 Source every benchmark `(s)` to a specific SiteStacker doc page.
 - [ ] 4.3 Reconcile parity areas already governed by OpenSpec PR #462.
+
+## Roadmap v3 adoption — AL-1892
+
+- [x] Verify the 45-phase inventory, preserved predecessor floors, complete Studio
+      scope, acceptance projections, ticket amendments and independent checkpoint DAGs.
+- [ ] Record exact validation and publication evidence; keep all runtime and
+      provider qualification tasks open until their owning gates pass.

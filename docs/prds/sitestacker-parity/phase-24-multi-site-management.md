@@ -615,7 +615,7 @@ Web Studio while preserving strict domain ownership:
   Adaptive Pricing authority, or a tenant-configurable provider matrix.
 - Site types, arbitrary settings blobs, behavior-changing purpose text, bulk
   Site clone, live preset/brand inheritance, generic theme engines, arbitrary
-  CSS/HTML/JavaScript, tenant plugins, or another renderer/serving head.
+  CSS/HTML/JavaScript, tenant plugins, or another renderer/serving head. Phase 42’s qualified finite Page composition and ministry-controlled source lane consume the existing Site/brand/cohort owners; they neither move Site-wide appearance into a Page save nor create a new theme/publication authority.
 - Automatic translation, visitor runtime fallback, browser-language routing,
   translation quality scoring, generic validation/issue ledgers, translation
   workflows, bulk or scheduled locale publication, or a locale readiness

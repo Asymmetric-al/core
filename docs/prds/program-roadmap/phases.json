@@ -1,0 +1,321 @@
+{
+  "revision": 3,
+  "adoptedOn": "2026-09-22",
+  "phases": [
+    {
+      "phase": 0,
+      "slug": "baseline",
+      "name": "Baseline, Governance & Evidence",
+      "startingDependencies": "\u2014",
+      "status": "`PRD exists`"
+    },
+    {
+      "phase": 1,
+      "slug": "ownership-matrix",
+      "name": "Source-of-Truth Ownership Matrix",
+      "startingDependencies": "0",
+      "status": "`PRD exists` (ruled 2026-07-06)"
+    },
+    {
+      "phase": 2,
+      "slug": "site-locale-currency",
+      "name": "Site, Locale & Currency Foundation",
+      "startingDependencies": "1",
+      "status": "`PRD exists` (epic #477)"
+    },
+    {
+      "phase": 3,
+      "slug": "permission-floor",
+      "name": "Minimum Permission & Role-Scoped Projection Foundation",
+      "startingDependencies": "1, 2",
+      "status": "`PRD exists` (epic #489)"
+    },
+    {
+      "phase": 4,
+      "slug": "identity-claiming",
+      "name": "Identity & Account-Claiming Foundation",
+      "startingDependencies": "2, 3",
+      "status": "`PRD exists` (epic #503)"
+    },
+    {
+      "phase": 5,
+      "slug": "public-runtime",
+      "name": "Public Website Runtime Contract",
+      "startingDependencies": "2, 3, 4",
+      "status": "`PRD exists` (epic #520)"
+    },
+    {
+      "phase": 6,
+      "slug": "comms-event-model",
+      "name": "Shared Communication Event Model",
+      "startingDependencies": "2, 3, 4, 5",
+      "status": "`PRD exists` (epic #550)"
+    },
+    {
+      "phase": 7,
+      "slug": "receipt-rules-credit",
+      "name": "Receipt & Statement Compliance Rules + Donor Identity/Credit Model",
+      "startingDependencies": "**4, 6, 3** (PRD C1\u2013C3)",
+      "status": "`PRD exists` (epic #566)"
+    },
+    {
+      "phase": 8,
+      "slug": "crm-operating",
+      "name": "CRM Operating Foundation",
+      "startingDependencies": "none (build-now core)",
+      "status": "`PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)"
+    },
+    {
+      "phase": 9,
+      "slug": "crm-depth-graph",
+      "name": "Full CRM Depth & Relationship Graph",
+      "startingDependencies": "**4, 7, 3**",
+      "status": "`PRD exists` (epic #604 + #605\u2013#627)"
+    },
+    {
+      "phase": 10,
+      "slug": "sensitive-safety",
+      "name": "Sensitive-Data Classification & Restricted-Ministry Safety Foundation",
+      "startingDependencies": "**3, 9**",
+      "status": "`PRD exists` (grilled 2026-07-07; epic #628 + #629\u2013#641)"
+    },
+    {
+      "phase": 11,
+      "slug": "custom-fields",
+      "name": "Custom Fields & Custom Collections",
+      "startingDependencies": "9, 10, 3",
+      "status": "`PRD exists` (epic #645 + #646\u2013#664)"
+    },
+    {
+      "phase": 12,
+      "slug": "permission-config",
+      "name": "Full Role & Permission Configuration",
+      "startingDependencies": "3, 10, 11",
+      "status": "`PRD exists` (epic #665 + #666\u2013#687)"
+    },
+    {
+      "phase": 13,
+      "slug": "contribution-ledger",
+      "name": "Campaign, Designation, Contribution Ledger & Giving Cart",
+      "startingDependencies": "1, 2, 3, 4, 5, 7",
+      "status": "`PRD exists` (epic #690 + #691\u2013#713)"
+    },
+    {
+      "phase": 14,
+      "slug": "donor-credit-ops",
+      "name": "Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts",
+      "startingDependencies": "13, 7, 9",
+      "status": "`PRD exists` (epic #719 + #720\u2013#741)"
+    },
+    {
+      "phase": 15,
+      "slug": "gift-batch-entry",
+      "name": "Offline Gift & Batch Entry",
+      "startingDependencies": "**13**, 14, 7",
+      "status": "`PRD exists (epic #758 + #759\u2013#786)`"
+    },
+    {
+      "phase": 16,
+      "slug": "pledges-commitments",
+      "name": "Pledges & Recurring Commitments",
+      "startingDependencies": "**2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**",
+      "status": "`PRD exists` (epic #793 + #794\u2013#837; groomed-not-dispatched)"
+    },
+    {
+      "phase": 17,
+      "slug": "system-messages",
+      "name": "System Messages & Template Management",
+      "startingDependencies": "6, 2, 3, 7",
+      "status": "`PRD exists` (epic #873 + #874\u2013#905; groomed-not-dispatched)"
+    },
+    {
+      "phase": 18,
+      "slug": "document-templates",
+      "name": "Receipt & PDF Template System",
+      "startingDependencies": "7, **13**, 17",
+      "status": "`PRD exists` (epic #907 + #908\u2013#961; #908\u2013#910 ready frontier)"
+    },
+    {
+      "phase": 19,
+      "slug": "statement-operations",
+      "name": "Year-End Statement Operations",
+      "startingDependencies": "6, 7, 12, **13**, 14, 15, 17, 18",
+      "status": "`PRD exists` (epic #977 + #978\u2013#1031; blocked/not-dispatched)"
+    },
+    {
+      "phase": 20,
+      "slug": "accounting-exports",
+      "name": "Accounting Exports & Reconciliation",
+      "startingDependencies": "**2, 3, 4, 7, 12, 13, 14, 15**",
+      "status": "`PRD exists` (implementation-ready 2026-07-27; not implemented)"
+    },
+    {
+      "phase": 21,
+      "slug": "field-accounts",
+      "name": "Missionary Field Accounts & Support Balances",
+      "startingDependencies": "**1**, 3, 4, 6, **9, 10, 12**, 13, **15**, 17, 18, 20",
+      "status": "`PRD exists` (implementation-ready 2026-08-02; spec #1108; epic #1109 + lane epics #1110\u2013#1120 + P21-01\u2013P21-101 published and dependency-governed; not implemented; D1-D28 scope-frozen; D17/D27 activation requires certified Phase 29 opening-source private-byte custody and Phase 30 import-session staging; selected private-byte-bearing D10/D14/D18/D22/D24/D25/D28 and D26 package/lifecycle slices require their exact owner seams, while metadata/manual/feed paths remain separate; D28 requires Phase 29/30 only for its selected private-byte/bulk lane and otherwise weakens no owning-phase prerequisite)"
+    },
+    {
+      "phase": 22,
+      "slug": "public-ministry-pages",
+      "name": "Public Missionary & Project Page Workflow",
+      "startingDependencies": "5, 9, 10, **12**, 13, 3",
+      "status": "`PRD exists` (implementation-ready 2026-08-14; spec [#1281](https://github.com/Asymmetric-al/core/issues/1281); P22-01\u2013P22-41 / #1282\u2013#1322 published with native blockers; #1282 sole child ready frontier; [OpenSpec](../../../openspec/changes/add-public-ministry-pages/proposal.md); D1\u2013D27 scope-frozen; not implemented; activation requires certification of Phase 23 CMS, Phase 24 locale/domain, and Phase 29 media-custody/sanitization owner slices); original source PR remains unmerged; affected P25 consumers require accepted owner contracts and qualified producer implementation"
+    },
+    {
+      "phase": 23,
+      "slug": "web-studio-cms",
+      "name": "CMS / Site Planner Dynamic Content Parity",
+      "startingDependencies": "**2, 3, 5**",
+      "status": "`PRD exists` (implementation-ready 2026-08-24; spec [#1339](https://github.com/Asymmetric-al/core/issues/1339); [OpenSpec](../../../openspec/changes/add-web-studio-cms/proposal.md); D1\u2013D36 scope-frozen; not implemented); original source PR remains unmerged; affected P25 consumers require accepted owner contracts and qualified producer implementation; P10/P12/P22 are required consumer/safety seams, not blanket core merge gates (clarified 2026-09-16, #1340 at db7a5e5)"
+    },
+    {
+      "phase": 24,
+      "slug": "multi-site-management",
+      "name": "Full Multi-Site, Language & Currency Management",
+      "startingDependencies": "2, 5, 13, 20, 23",
+      "status": "`PRD exists` (implementation-ready 2026-09-01; spec [#1431](https://github.com/Asymmetric-al/core/issues/1431); [OpenSpec](../../../openspec/changes/add-multi-site-management/proposal.md); tickets [#1432\u2013#1557](https://github.com/Asymmetric-al/core/issues/1432) published and dependency-governed; P24-01/#1432 sole ready frontier; 125 successors blocked; D1\u2013D18 and D57\u2013D84 scope-frozen; D19\u2013D55 preserved cross-phase evidence; D56 deferred; not implemented); original source PR remains unmerged; affected P25 consumers require accepted owner contracts and qualified producer implementation"
+    },
+    {
+      "phase": 25,
+      "slug": "donor-portal-depth",
+      "name": "Donor Dashboard Depth",
+      "startingDependencies": "Baseline/start: 3, 4, 6, 7, 13.<br>Before affected consumer dispatch: exact P9, P10, P12, P14, P16, P17, P18, P19 and P22\u201324 producers from S04/S06 require final accepted contracts plus implemented, qualified owner seams. Q25 also requires the bounded P28/P12 guest-recipient projection and P32 external-enrollment exclusion before dispatch; neither whole future phase is a prerequisite. P22\u201324-dependent and Q25 consumers remain not dispatch-ready until their exact producer gates pass. Unaffected safe slices remain independent.",
+      "status": "`PRD exists` (spec #1563; Q01\u2013Q29 ratified, Q30 accepted; scoped source-owner prerequisites; not implemented; 88 native implementation issues #1565\u2013#1652 under #1563; no blanket dispatch readiness)"
+    },
+    {
+      "phase": 26,
+      "slug": "support-hub",
+      "name": "Support Hub & Conversation Management",
+      "startingDependencies": "6, 3, 4, 9, 17; 23 (selected lanes)",
+      "status": "`PRD exists` \u2014 [ratified specification #1656](https://github.com/Asymmetric-al/core/issues/1656); D1\u2013D40 complete, including D27-C and D29-X01; 4 native index issues #1658\u2013#1661 and 199 implementation leaves #1662\u2013#1860 under #1656; implementation and release proof outstanding"
+    },
+    {
+      "phase": 27,
+      "slug": "donor-development",
+      "name": "Donor Development & Portfolio Management",
+      "startingDependencies": "**9**, 3, 6, 13",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 28,
+      "slug": "missionary-workspace-depth",
+      "name": "Missionary Workspace Depth & Support-Raising CRM",
+      "startingDependencies": "9, 13, 16, 6, 3, 27",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 29,
+      "slug": "files-documents",
+      "name": "File Manager & Document Management",
+      "startingDependencies": "3, 9",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 30,
+      "slug": "imports-migration",
+      "name": "Imports & Migration Tools",
+      "startingDependencies": "9, 13, 11, 29, 4, 3",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 31,
+      "slug": "platform-api",
+      "name": "Platform API, Webhooks & Connector Framework",
+      "startingDependencies": "1, 3, 4, 6",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 32,
+      "slug": "newsletter-sync",
+      "name": "Mailchimp / Newsletter Sync with Suppression Handling",
+      "startingDependencies": "6, 3, 28, 4, 31",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 33,
+      "slug": "reporting-bi",
+      "name": "Reporting & BI / Report Studio",
+      "startingDependencies": "9, 13, 7, 6, 3",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 34,
+      "slug": "workflow-engine",
+      "name": "Configurable Automation & Workflow Engine",
+      "startingDependencies": "9, 11, 12, 29, 17, 6",
+      "status": "specification adopted; independent CORE qualification pending"
+    },
+    {
+      "phase": 35,
+      "slug": "contribution-triggers",
+      "name": "Spark-Style Contribution Triggers",
+      "startingDependencies": "**34**, 13, 6, 3",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 36,
+      "slug": "p2p-campaigns",
+      "name": "Peer-to-Peer & Advocacy Campaigns",
+      "startingDependencies": "5, 13, 25, 3, 22",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 37,
+      "slug": "events-groups",
+      "name": "Event / Opportunity Workflows & Group Management",
+      "startingDependencies": "5, 9, 13, 6, 29, 34, 36",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 38,
+      "slug": "member-care-ops",
+      "name": "Member Care, Crisis & Restricted-Ministry Operations",
+      "startingDependencies": "10, 3, 4, 9, 29",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 39,
+      "slug": "field-first-ux",
+      "name": "Mobile, Low-Bandwidth & Conflict-Safe Field Experience",
+      "startingDependencies": "3, 4, 9, 28",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 40,
+      "slug": "data-stewardship-ai",
+      "name": "Data Stewardship, Global Search & AI Operator Workbench",
+      "startingDependencies": "3, 4, 8, 9, 13, 30, 33",
+      "status": "roadmap scope adopted; phase grooming/qualification required"
+    },
+    {
+      "phase": 41,
+      "slug": "mobilization-onboarding",
+      "name": "Mobilization, Applications & Onboarding",
+      "startingDependencies": "34 CORE (inherits exact source floors)",
+      "status": "specification adopted; binding/qualification gates open"
+    },
+    {
+      "phase": 42,
+      "slug": "web-studio-hybrid-authoring",
+      "name": "Web Studio Hybrid Authoring & Governed Web Development",
+      "startingDependencies": "12, 23",
+      "status": "specification adopted; binding/qualification gates open"
+    },
+    {
+      "phase": 43,
+      "slug": "sms-channel-activation",
+      "name": "Governed SMS Messaging & Channel Activation",
+      "startingDependencies": "6, 12, 17, 31 (minimum)",
+      "status": "specification adopted; binding/qualification gates open"
+    },
+    {
+      "phase": 44,
+      "slug": "enterprise-identity-integration",
+      "name": "Enterprise Sign-In & Directory Integration",
+      "startingDependencies": "4, 12, 31 (minimum)",
+      "status": "specification adopted; binding/qualification gates open"
+    }
+  ]
+}

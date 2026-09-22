@@ -1,0 +1,3020 @@
+{
+  "status": "specified_not_executed",
+  "scenarios": [
+    {
+      "id": "WS-AT-001",
+      "category": "AUTH",
+      "title": "Tenant isolation",
+      "given": "Tenant A owns a run",
+      "when": "Tenant B submits its run ID",
+      "then": "Return non-enumerating denial; no state or timing-sensitive detail is disclosed",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-002",
+      "category": "AUTH",
+      "title": "Publish is not source authority",
+      "given": "Publisher can edit workflow but cannot authorize expense decisions",
+      "when": "They add a direct approval action",
+      "then": "Catalog/compiler and source service reject it",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-003",
+      "category": "AUTH",
+      "title": "Revocation after preflight",
+      "given": "A valid publication preflight exists",
+      "when": "Publisher/source grant is revoked before confirmation",
+      "then": "Confirmation fails without publication or side effect",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-004",
+      "category": "AUTH",
+      "title": "Runtime revocation",
+      "given": "An operation is queued",
+      "when": "Source capability is revoked before dispatch",
+      "then": "Operation blocks with safe reason and no forbidden call",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter.",
+      "authorityQualification": "Include NHI human-owner capability loss and departure; no old publication or delayed ownership review grants a grace period."
+    },
+    {
+      "id": "WS-AT-005",
+      "category": "AUTH",
+      "title": "Confidential existence",
+      "given": "A sealed care run exists",
+      "when": "An ordinary admin filters, searches, exports, or counts workflows",
+      "then": "No name, membership, count, or audit existence signal escapes",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-006",
+      "category": "AUTH",
+      "title": "Derived sensitive fact",
+      "given": "A care-only fact would determine an outward message",
+      "when": "A user attempts a condition over it",
+      "then": "Compilation blocks unauthorized use and derived information flow",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-007",
+      "category": "AUTH",
+      "title": "Cross-entity request",
+      "given": "A valid tenant contains two Legal Entities",
+      "when": "Workflow attempts incompatible source action across entity scopes",
+      "then": "Owning service rejects; no implicit entity/currency coercion",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-008",
+      "category": "AUTH",
+      "title": "Assignment is not permission",
+      "given": "An interviewer is assigned",
+      "when": "They request unrelated care or donor data",
+      "then": "Server projection denies unrelated data",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-009",
+      "category": "LOGIC",
+      "title": "Unknown is not false",
+      "given": "A reference clearance fact is not yet known",
+      "when": "Choose-one evaluates its branches",
+      "then": "Run waits/blocks; it does not decline or take fallback",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-010",
+      "category": "LOGIC",
+      "title": "Overlapping cases",
+      "given": "Two cases are true",
+      "when": "Choose-one evaluates",
+      "then": "Ambiguity blocks; no first-row winner",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-011",
+      "category": "LOGIC",
+      "title": "True plus unknown",
+      "given": "One exclusive case is true and another unknown",
+      "when": "Choose-one evaluates",
+      "then": "Exclusivity is not proved; no action starts",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-012",
+      "category": "LOGIC",
+      "title": "Required join category",
+      "given": "Two nonchurch references arrive; church reference is mandatory",
+      "when": "Quorum count is numerically satisfied",
+      "then": "Requirement remains unsatisfied until required source category qualifies",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-013",
+      "category": "LOGIC",
+      "title": "Unselected branch",
+      "given": "A guarded branch is known false",
+      "when": "Parallel join waits on selected work",
+      "then": "False branch is not awaited and does not count as evidence",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-014",
+      "category": "LOGIC",
+      "title": "Empty parallel selection",
+      "given": "No branch activates and onEmpty is block",
+      "when": "Node is evaluated",
+      "then": "It blocks rather than silently succeeding",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-015",
+      "category": "LOGIC",
+      "title": "Unavailable branch output",
+      "given": "A downstream input depends on an optional branch without export handling",
+      "when": "Template is published",
+      "then": "Compiler rejects the dataflow reference",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-016",
+      "category": "LOGIC",
+      "title": "No coercion",
+      "given": "String \"false\" or \"100\" appears where Boolean/integer is required",
+      "when": "Predicate evaluation is attempted",
+      "then": "Validation fails; no JavaScript truthiness",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-017",
+      "category": "LOGIC",
+      "title": "Currency-safe threshold",
+      "given": "USD threshold meets a THB fact",
+      "when": "Condition is evaluated",
+      "then": "Incompatible money context cannot pass through numerical comparison",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-018",
+      "category": "LOGIC",
+      "title": "Incomplete first-gift history",
+      "given": "An import omits earlier gifts",
+      "when": "First-gift recipe evaluates",
+      "then": "Source fact remains unknown; no fabricated welcome eligibility",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-019",
+      "category": "EVENT",
+      "title": "Duplicate event",
+      "given": "An accepted event has already created an effect",
+      "when": "Same event arrives after provider dedupe expires",
+      "then": "Permanent source semantic identity prevents duplicate effect",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-020",
+      "category": "EVENT",
+      "title": "Out-of-order commit",
+      "given": "Higher-numbered outbox row commits first",
+      "when": "Consumer advances while lower row is uncommitted",
+      "then": "Lower accepted row is eventually processed; cursor protocol does not skip it",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-021",
+      "category": "EVENT",
+      "title": "Historical import",
+      "given": "Legacy gifts are imported",
+      "when": "Workflow binding is enabled",
+      "then": "Historical effects remain dark absent explicit reviewed backfill",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-022",
+      "category": "EVENT",
+      "title": "Wrong source",
+      "given": "A raw payment provider callback exists",
+      "when": "A user attempts to treat it as posted contribution",
+      "then": "No donation stewardship enrollment until owning source qualifies facts",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-023",
+      "category": "EVENT",
+      "title": "Cross-workflow loop",
+      "given": "Workflow A triggers B and B triggers A",
+      "when": "Causation exceeds allowed budget",
+      "then": "Chain is quarantined visibly without unbounded execution",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-024",
+      "category": "EVENT",
+      "title": "Wrong correlation",
+      "given": "An old signature for a superseded agreement arrives",
+      "when": "Wait consumer processes it",
+      "then": "It cannot satisfy current agreement requirement",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-025",
+      "category": "RACE",
+      "title": "Completion before wait",
+      "given": "Reference completion commits before wait row",
+      "when": "Wait registers later",
+      "then": "Immediate source recheck discovers accepted completion",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-026",
+      "category": "RACE",
+      "title": "Completion after wait",
+      "given": "Wait row commits first",
+      "when": "Completion event arrives",
+      "then": "Consumer locates exact wait and advances it",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-027",
+      "category": "RACE",
+      "title": "Lost wake",
+      "given": "Source evidence and wait exist",
+      "when": "Immediate dispatch and event wake are lost",
+      "then": "Indexed reconciliation eventually advances from source facts",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-028",
+      "category": "RACE",
+      "title": "Two simultaneous completions",
+      "given": "Two required branches finish",
+      "when": "Both workers try to advance join",
+      "then": "One accepted transition; both evidence records preserved",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-029",
+      "category": "RACE",
+      "title": "Cancel while queued",
+      "given": "Reminder is prepared but not dispatched",
+      "when": "Run cancellation commits first",
+      "then": "Epoch/fence check suppresses stale reminder",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-030",
+      "category": "RACE",
+      "title": "Cancel after accepted send",
+      "given": "Provider accepted the message",
+      "when": "User cancels the run",
+      "then": "UI records irreversible send and cancels only remaining safe work",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-031",
+      "category": "RACE",
+      "title": "Expired lease after dispatch",
+      "given": "Worker may have sent externally then disappears",
+      "when": "Lease expires",
+      "then": "Operation becomes uncertain; no blind second send",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-032",
+      "category": "RACE",
+      "title": "Concurrent draft editors",
+      "given": "Two users edit revision 4",
+      "when": "Second writes after first creates revision 5",
+      "then": "Conflict is visible; no silent overwrite",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-033",
+      "category": "VERSION",
+      "title": "New template publication",
+      "given": "Applicant runs on version 1",
+      "when": "Version 2 is published",
+      "then": "Applicant remains on version 1",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-034",
+      "category": "VERSION",
+      "title": "Individual extra interview",
+      "given": "One applicant requires an added interview",
+      "when": "Authorized amendment is accepted",
+      "then": "Only that run changes; completed evidence remains",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-035",
+      "category": "VERSION",
+      "title": "Cosmetic layout edit",
+      "given": "Template graph is rearranged",
+      "when": "Layout is saved",
+      "then": "Execution digest and business effects remain unchanged",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-036",
+      "category": "VERSION",
+      "title": "Retired contract",
+      "given": "A referenced form/action is retired",
+      "when": "An old draft attempts publication",
+      "then": "Dependency check blocks or requires explicit compatible binding",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-037",
+      "category": "VERSION",
+      "title": "Runtime upgrade",
+      "given": "Old run uses action contract v1",
+      "when": "Deployment introduces incompatible v2",
+      "then": "Old run executes supported v1 or is controlled-blocked for migration",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-038",
+      "category": "VERSION",
+      "title": "Postcompletion evidence correction",
+      "given": "Completed onboarding evidence is revoked by its owner",
+      "when": "Correction event arrives",
+      "then": "Linked remediation is created; historical accepted decision is not rewritten",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-039",
+      "category": "TIME",
+      "title": "Business-day timing",
+      "given": "Task due uses a holiday calendar",
+      "when": "Deadline crosses weekend/holiday",
+      "then": "Proposed due time follows pinned business calendar",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-040",
+      "category": "TIME",
+      "title": "DST gap",
+      "given": "Local schedule targets a nonexistent clock time",
+      "when": "Timer is resolved",
+      "then": "Next valid instant is used and resolution recorded",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter.",
+      "scopeQualification": "This candidate DST default applies only to eligible Studio-owned clocks; CMS D13 retains explicit ambiguity choice and exact appointment rules."
+    },
+    {
+      "id": "WS-AT-041",
+      "category": "TIME",
+      "title": "Pause clocks",
+      "given": "Relative reminder and fixed document expiry coexist",
+      "when": "Run pauses",
+      "then": "Relative remaining duration freezes; fixed expiry continues",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-042",
+      "category": "TIME",
+      "title": "Outage catch-up",
+      "given": "Many routine reminders become overdue",
+      "when": "Execution recovers",
+      "then": "Policy coalesces safely; no catch-up message flood",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-043",
+      "category": "MSG",
+      "title": "Lost provider response",
+      "given": "Provider accepts message but response is lost",
+      "when": "Retry window expires",
+      "then": "Reconcile or review; do not send a new blind copy",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-044",
+      "category": "MSG",
+      "title": "Shared purpose",
+      "given": "Organization and missionary workflows request identical effect",
+      "when": "Both enqueue",
+      "then": "Owning semantic key converges to one effect or reports incompatible payload conflict",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-045",
+      "category": "MSG",
+      "title": "Suppression changed",
+      "given": "Optional message was prepared",
+      "when": "Recipient opts out before dispatch",
+      "then": "Current source policy suppresses appropriate message; required security policy remains separate",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-046",
+      "category": "MSG",
+      "title": "Webhook duplicate/order",
+      "given": "Delivery/bounce events repeat and arrive out of order",
+      "when": "Consumer updates source history",
+      "then": "Deduped source facts retain correct meaning, not last-arrival overwrite",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-047",
+      "category": "MSG",
+      "title": "Reply threading",
+      "given": "Applicant replies to an approved workflow email",
+      "when": "Inbound source accepts it",
+      "then": "Reply joins Support Hub/CRM context; no parallel workflow inbox",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-048",
+      "category": "MSG",
+      "title": "Trace minimization",
+      "given": "Private record is needed inside action",
+      "when": "Action executes and errors",
+      "then": "No raw values, signed URLs, bodies, or secrets appear in step state/logs",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-049",
+      "category": "HUMAN",
+      "title": "Protected review",
+      "given": "Reviewer task receives a checkbox completion",
+      "when": "No source approval has been accepted",
+      "then": "Financial/appointment evidence does not become approved",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-050",
+      "category": "HUMAN",
+      "title": "External scanner",
+      "given": "Email scanner follows a reference link",
+      "when": "GET occurs",
+      "then": "No consume, sign, submit, grant, or irreversible action",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-051",
+      "category": "HUMAN",
+      "title": "External scope",
+      "given": "Reference has a valid task session",
+      "when": "They request another task/applicant",
+      "then": "Non-enumerating denial; no membership granted",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-052",
+      "category": "HUMAN",
+      "title": "Double submission",
+      "given": "Mobile connection drops after accepted submit",
+      "when": "Participant retries same key",
+      "then": "Original accepted submission is returned; no duplicate evidence",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-053",
+      "category": "HUMAN",
+      "title": "Quarantined file",
+      "given": "Uploaded evidence is quarantined",
+      "when": "Review/evidence gate runs",
+      "then": "File cannot qualify; safe replacement path exists",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-054",
+      "category": "HUMAN",
+      "title": "Old revision approval",
+      "given": "Content was approved then edited",
+      "when": "Publish operation runs",
+      "then": "Exact-revision check blocks unreviewed content",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-055",
+      "category": "OPS",
+      "title": "Noisy neighbor",
+      "given": "One tenant admits a 10x optional batch",
+      "when": "Other tenants have essential due work",
+      "then": "Accepted work remains safe and agreed service targets are measured, not assumed",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-056",
+      "category": "OPS",
+      "title": "Orchestration outage",
+      "given": "Source writes succeed while Inngest is unavailable",
+      "when": "New work arrives",
+      "then": "Source receipts/outbox persist and independent outage alert fires",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-057",
+      "category": "OPS",
+      "title": "Restore safety",
+      "given": "Database backup predates sent email and grant revocation",
+      "when": "System restores",
+      "then": "Outbound remains disabled until effects/revocations/tombstones reconcile",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-058",
+      "category": "OPS",
+      "title": "Missing provider",
+      "given": "A blueprint references uncertified signing",
+      "when": "Tenant attempts activation",
+      "then": "No mock success; automatic lane stays unavailable and valid manual path is labeled",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-059",
+      "category": "OPS",
+      "title": "A11y authoring",
+      "given": "Staff uses keyboard and screen reader",
+      "when": "They create, validate and publish a permitted simple rule",
+      "then": "Complete outline path and focus/error feedback are usable",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-060",
+      "category": "OPS",
+      "title": "Poor network",
+      "given": "Participant loses connection",
+      "when": "They edit and submit",
+      "then": "Input is preserved safely; state remains pending until authoritative acceptance",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-061",
+      "category": "OPS",
+      "title": "Subflow authority",
+      "given": "Parent has narrower permissions than reusable child",
+      "when": "Child invokes protected operation",
+      "then": "Intersection applies; child cannot widen data or command authority",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-062",
+      "category": "OPS",
+      "title": "Subflow cancellation",
+      "given": "Parent stops future work",
+      "when": "Child has queued and already-dispatched work",
+      "then": "Cancellation propagates safely with irreversible work reported",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-063",
+      "category": "OPS",
+      "title": "Template import",
+      "given": "Inert portable blueprint contains foreign IDs or executable strings",
+      "when": "Tenant imports it",
+      "then": "Validation rejects unsafe content; valid import remains disabled and requires rebinding",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "WS-AT-064",
+      "category": "OPS",
+      "title": "Retention request",
+      "given": "A run contains source evidence references under hold",
+      "when": "Generic workflow timer expires",
+      "then": "No hold release/disposal; owner governs lifecycle",
+      "status": "specified_not_executed",
+      "checkpoint": "SHARED",
+      "coreProof": "Prove the shared invariant with a real qualified non-mobilization source where integration is required; pure compiler/simulation tests may use explicit synthetic fixtures. Any named application/giving/event/care business case additionally requires its exact owner checkpoint. Generic proof never certifies an unavailable domain adapter."
+    },
+    {
+      "id": "T-ADM-01-01",
+      "category": "RECIPE",
+      "recipeId": "ADM-01",
+      "title": "Exercise Staff onboarding with source-qualified inputs and prove: Policy acknowledgments, role-request refs, orientation completion, handoff acceptance",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-01-02",
+      "category": "RECIPE",
+      "recipeId": "ADM-01",
+      "title": "Change allowed configuration (Checklist, eligible role slots, orientation schedule, approved message) and prove protected constraint: Access grants remain identity-owned and require independent current authorization",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-01-03",
+      "category": "RECIPE",
+      "recipeId": "ADM-01",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Staff onboarding",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-02-01",
+      "category": "RECIPE",
+      "recipeId": "ADM-02",
+      "title": "Exercise Responsibility change and handoff with source-qualified inputs and prove: Source assignment versions and acknowledged handoff",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-02-02",
+      "category": "RECIPE",
+      "recipeId": "ADM-02",
+      "title": "Change allowed configuration (Handoff checklist, reminders, eligible fallback team) and prove protected constraint: Relationship/assignment changes cannot create permission",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-02-03",
+      "category": "RECIPE",
+      "recipeId": "ADM-02",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Responsibility change and handoff",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-03-01",
+      "category": "RECIPE",
+      "recipeId": "ADM-03",
+      "title": "Exercise Staff departure with source-qualified inputs and prove: Confirmed revocation refs, reassignment results, unresolved exception list",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-03-02",
+      "category": "RECIPE",
+      "recipeId": "ADM-03",
+      "title": "Change allowed configuration (Due dates, responsible teams, exit checklist) and prove protected constraint: No automatic financial succession, care disclosure, or retention disposal",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-03-03",
+      "category": "RECIPE",
+      "recipeId": "ADM-03",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Staff departure",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-04-01",
+      "category": "RECIPE",
+      "recipeId": "ADM-04",
+      "title": "Exercise Template ownership and periodic review with source-qualified inputs and prove: Review decision and publication/retirement reference",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-04-02",
+      "category": "RECIPE",
+      "recipeId": "ADM-04",
+      "title": "Change allowed configuration (Review cadence, review team, checklist) and prove protected constraint: Review completion cannot itself publish or change existing runs",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-04-03",
+      "category": "RECIPE",
+      "recipeId": "ADM-04",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Template ownership and periodic review",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-05-01",
+      "category": "RECIPE",
+      "recipeId": "ADM-05",
+      "title": "Exercise Stalled workflow recovery with source-qualified inputs and prove: Source recovery result or documented outstanding uncertainty",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-05-02",
+      "category": "RECIPE",
+      "recipeId": "ADM-05",
+      "title": "Change allowed configuration (Urgency within policy, eligible operator, escalation cadence) and prove protected constraint: No blind replay, invented success, or automatic skipping of required evidence",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-05-03",
+      "category": "RECIPE",
+      "recipeId": "ADM-05",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Stalled workflow recovery",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-06-01",
+      "category": "RECIPE",
+      "recipeId": "ADM-06",
+      "title": "Exercise Tenant custom-record process with source-qualified inputs and prove: Versioned form submissions, permitted custom commands, final process outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-06-02",
+      "category": "RECIPE",
+      "recipeId": "ADM-06",
+      "title": "Change allowed configuration (Allowed fields, role bindings, steps, conditions, bounded reminders) and prove protected constraint: Custom records cannot become financial, permission, or clinical shadow systems",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-06-03",
+      "category": "RECIPE",
+      "recipeId": "ADM-06",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Tenant custom-record process",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-07-01",
+      "category": "RECIPE",
+      "recipeId": "ADM-07",
+      "title": "Exercise Import review coordination with source-qualified inputs and prove: Exact source manifest approval and import results",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-07-02",
+      "category": "RECIPE",
+      "recipeId": "ADM-07",
+      "title": "Change allowed configuration (Review owner, checklist, reminder dates) and prove protected constraint: Historical imported facts remain side-effect-dark; Studio cannot accept arbitrary raw records",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-07-03",
+      "category": "RECIPE",
+      "recipeId": "ADM-07",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Import review coordination",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-08-01",
+      "category": "RECIPE",
+      "recipeId": "ADM-08",
+      "title": "Exercise Duplicate or incomplete data stewardship with source-qualified inputs and prove: Reviewed source correction/merge outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-08-02",
+      "category": "RECIPE",
+      "recipeId": "ADM-08",
+      "title": "Change allowed configuration (Eligible finding classes, owner, review cadence) and prove protected constraint: No blind merge, invented profile facts, or financial history rewriting",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-08-03",
+      "category": "RECIPE",
+      "recipeId": "ADM-08",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Duplicate or incomplete data stewardship",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-09-01",
+      "category": "RECIPE",
+      "recipeId": "ADM-09",
+      "title": "Exercise Scheduled report coordination with source-qualified inputs and prove: Report run ref and separately recorded delivery/attention results",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-09-02",
+      "category": "RECIPE",
+      "recipeId": "ADM-09",
+      "title": "Change allowed configuration (Native source schedule, allowed recipients, report parameters) and prove protected constraint: Reporting owns schedule, filters, eligibility and source totals; no duplicate report timer",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-09-03",
+      "category": "RECIPE",
+      "recipeId": "ADM-09",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Scheduled report coordination",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-10-01",
+      "category": "RECIPE",
+      "recipeId": "ADM-10",
+      "title": "Exercise Integration health recovery with source-qualified inputs and prove: Connector-owned recovery and per-operation result",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-10-02",
+      "category": "RECIPE",
+      "recipeId": "ADM-10",
+      "title": "Change allowed configuration (Owner, alert urgency, approved checklist) and prove protected constraint: No pasted credentials, raw keys, blind provider switching, or unsafe replay",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-ADM-10-03",
+      "category": "RECIPE",
+      "recipeId": "ADM-10",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Integration health recovery",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-01-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-01",
+      "title": "Exercise Initial inquiry response with source-qualified inputs and prove: Inquiry version, assignment, communication intent, discovery outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-01-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-01",
+      "title": "Change allowed configuration (Categories, role/fallback, acknowledgment, due date, follow-up) and prove protected constraint: Unknown or duplicate identity is not silently promoted to broad CRM access",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-01-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-01",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Initial inquiry response",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-02-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-02",
+      "title": "Exercise Referral intake with source-qualified inputs and prove: Referral provenance, contact eligibility, follow-up outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-02-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-02",
+      "title": "Change allowed configuration (Questions, owner, permitted cadence, expiry) and prove protected constraint: A referral does not imply marketing consent or record-sharing access",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-02-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-02",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Referral intake",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-03-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-03",
+      "title": "Exercise Missing profile information with source-qualified inputs and prove: Submitted answers and source update result",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-03-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-03",
+      "title": "Change allowed configuration (Permitted fields, responsible person, reminders) and prove protected constraint: Source-certified absence differs from unknown; no arbitrary profile overwrite",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-03-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-03",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Missing profile information",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-04-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-04",
+      "title": "Exercise Contact-information change follow-up with source-qualified inputs and prove: Identity-owned confirmation outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-04-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-04",
+      "title": "Change allowed configuration (Approved wording, staff task, allowable follow-up) and prove protected constraint: Studio cannot replace verification, reveal account existence, or trust unverified destinations",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-04-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-04",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Contact-information change follow-up",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-05-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-05",
+      "title": "Exercise Church or partner onboarding with source-qualified inputs and prove: Partner contact refs, reviewed documents, handoff",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-05-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-05",
+      "title": "Change allowed configuration (Required information, checklist, owner, review dates) and prove protected constraint: Organizational relationship does not grant member access or alter giving authorization",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-05-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-05",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Church or partner onboarding",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-06-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-06",
+      "title": "Exercise Document request and review with source-qualified inputs and prove: Private asset and exact acceptance decision",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-06-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-06",
+      "title": "Change allowed configuration (Document category, reviewer, deadline, reminders) and prove protected constraint: Upload, clean scan, and accepted evidence remain distinct",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-06-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-06",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Document request and review",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-07-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-07",
+      "title": "Exercise Agreement signing coordination with source-qualified inputs and prove: Document version, signer set, source signature evidence",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-07-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-07",
+      "title": "Change allowed configuration (Signer roles within source contract, order, reminders) and prove protected constraint: Old signatures cannot satisfy replaced documents; no certification claim from a manual scan",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-07-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-07",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Agreement signing coordination",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-08-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-08",
+      "title": "Exercise Training or policy acknowledgment with source-qualified inputs and prove: Exact training/policy version and accepted result",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-08-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-08",
+      "title": "Change allowed configuration (Curriculum, date, instructor, reminders) and prove protected constraint: Acknowledgment, attendance, assessment and accepted completion are distinct",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-08-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-08",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Training or policy acknowledgment",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-09-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-09",
+      "title": "Exercise Credential or document renewal with source-qualified inputs and prove: Current source requirement and replacement evidence",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-09-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-09",
+      "title": "Change allowed configuration (Lead time, owner, requirements, renewal reminders) and prove protected constraint: Expiry cannot cause arbitrary access/financial changes outside source policy",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-09-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-09",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Credential or document renewal",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-10-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-10",
+      "title": "Exercise Opportunity registration and waitlist with source-qualified inputs and prove: Registration/capacity outcome and participant tasks",
+      "status": "specified_not_executed",
+      "checkpoint": "EVENTS"
+    },
+    {
+      "id": "T-GEN-10-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-10",
+      "title": "Change allowed configuration (Intake questions, response deadline, role routing) and prove protected constraint: Event service owns atomic capacity and payment classification",
+      "status": "specified_not_executed",
+      "checkpoint": "EVENTS"
+    },
+    {
+      "id": "T-GEN-10-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-10",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Opportunity registration and waitlist",
+      "status": "specified_not_executed",
+      "checkpoint": "EVENTS"
+    },
+    {
+      "id": "T-GEN-11-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-11",
+      "title": "Exercise Trip readiness and changes with source-qualified inputs and prove: Per-participant evidence and authorized readiness decision",
+      "status": "specified_not_executed",
+      "checkpoint": "EVENTS"
+    },
+    {
+      "id": "T-GEN-11-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-11",
+      "title": "Change allowed configuration (Checklists, team roles, deadlines, approved messages) and prove protected constraint: Participant payments and donations remain distinct; Studio cannot infer payment or refunds",
+      "status": "specified_not_executed",
+      "checkpoint": "EVENTS"
+    },
+    {
+      "id": "T-GEN-11-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-11",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Trip readiness and changes",
+      "status": "specified_not_executed",
+      "checkpoint": "EVENTS"
+    },
+    {
+      "id": "T-GEN-12-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-12",
+      "title": "Exercise Post-event follow-up with source-qualified inputs and prove: Source attendance, debrief, next-action decision",
+      "status": "specified_not_executed",
+      "checkpoint": "EVENTS"
+    },
+    {
+      "id": "T-GEN-12-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-12",
+      "title": "Change allowed configuration (Questions, cadence, follow-up owner) and prove protected constraint: Attendance alone does not authorize marketing or certify training",
+      "status": "specified_not_executed",
+      "checkpoint": "EVENTS"
+    },
+    {
+      "id": "T-GEN-12-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-12",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Post-event follow-up",
+      "status": "specified_not_executed",
+      "checkpoint": "EVENTS"
+    },
+    {
+      "id": "T-GEN-13-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-13",
+      "title": "Exercise Shared-inbox routing with source-qualified inputs and prove: Source conversation and assignment outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-13-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-13",
+      "title": "Change allowed configuration (Topic/language/source-safe CRM conditions, team, fallback) and prove protected constraint: No second inbox, broad sender auto-create, or assignment-derived access",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-13-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-13",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Shared-inbox routing",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-14-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-14",
+      "title": "Exercise Support acknowledgment with source-qualified inputs and prove: Source eligibility, communication intent and thread correlation",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-14-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-14",
+      "title": "Change allowed configuration (Business-hours wording, response expectation, approved sender) and prove protected constraint: No autoresponder loops; not every inbound message deserves acknowledgment",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-14-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-14",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Support acknowledgment",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-15-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-15",
+      "title": "Exercise Support response-target escalation with source-qualified inputs and prove: Source target occurrence and response result",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-15-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-15",
+      "title": "Change allowed configuration (Native target policy, calendar, eligible escalation roles) and prove protected constraint: Studio must not create a parallel SLA clock or suppress required source attention",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-15-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-15",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Support response-target escalation",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-16-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-16",
+      "title": "Exercise Waiting-on-requester and reopen with source-qualified inputs and prove: Source conversation transition and accepted follow-up",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-16-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-16",
+      "title": "Change allowed configuration (Follow-up interval within policy, reminder maximum, eligible owner) and prove protected constraint: A reply or snooze is not resolution; old queued reminders must be fenced",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-16-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-16",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Waiting-on-requester and reopen",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-17-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-17",
+      "title": "Exercise Department handoff with source-qualified inputs and prove: Source transfer and receiving-owner acknowledgment",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-17-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-17",
+      "title": "Change allowed configuration (Receiving role, checklist, response time) and prove protected constraint: Internal notes cannot be delivered as customer messages; no automatic broad record sharing",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-17-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-17",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Department handoff",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-18-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-18",
+      "title": "Exercise Sensitive conversation routing with source-qualified inputs and prove: Opaque accepted restricted handoff",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-GEN-18-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-18",
+      "title": "Change allowed configuration (Authorized destination and nonrevealing message) and prove protected constraint: Care content and existence cannot leak to ordinary support staff or reports",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-GEN-18-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-18",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Sensitive conversation routing",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-GEN-19-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-19",
+      "title": "Exercise Donor/account service request with source-qualified inputs and prove: Verified request and independently authorized source outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-19-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-19",
+      "title": "Change allowed configuration (Intake questions, owner and approved messages) and prove protected constraint: No generic task-approved refund, recurring restart, or identity change",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-19-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-19",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Donor/account service request",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-20-01",
+      "category": "RECIPE",
+      "recipeId": "GEN-20",
+      "title": "Exercise Quarantine and inbound/delivery recovery with source-qualified inputs and prove: Source review/recovery and separately recorded message state",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-20-02",
+      "category": "RECIPE",
+      "recipeId": "GEN-20",
+      "title": "Change allowed configuration (Responsible team, urgency within source rules) and prove protected constraint: No silent message deletion, internal-note leak, raw provider replay or loop bypass",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-GEN-20-03",
+      "category": "RECIPE",
+      "recipeId": "GEN-20",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Quarantine and inbound/delivery recovery",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-DON-01-01",
+      "category": "RECIPE",
+      "recipeId": "DON-01",
+      "title": "Exercise First organization gift welcome with source-qualified inputs and prove: Qualifying contribution and first-gift fact, source communication, task result",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-01-02",
+      "category": "RECIPE",
+      "recipeId": "DON-01",
+      "title": "Change allowed configuration (Welcome publication, follow-up owner/due date, approved channels) and prove protected constraint: No inference from incomplete import history; official receipt remains independent",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-01-03",
+      "category": "RECIPE",
+      "recipeId": "DON-01",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for First organization gift welcome",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-02-01",
+      "category": "RECIPE",
+      "recipeId": "DON-02",
+      "title": "Exercise First designation gift introduction with source-qualified inputs and prove: Source designation-first fact and permitted recipient projection",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-02-02",
+      "category": "RECIPE",
+      "recipeId": "DON-02",
+      "title": "Change allowed configuration (Designation content, responsible role, cadence) and prove protected constraint: Anonymous identity and restricted-worker aliases remain protected",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-02-03",
+      "category": "RECIPE",
+      "recipeId": "DON-02",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for First designation gift introduction",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-03-01",
+      "category": "RECIPE",
+      "recipeId": "DON-03",
+      "title": "Exercise Threshold or special-gift follow-up with source-qualified inputs and prove: Source amount/currency and task acknowledgment",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-03-02",
+      "category": "RECIPE",
+      "recipeId": "DON-03",
+      "title": "Change allowed configuration (Currency threshold, inclusive boundary, owner, timing) and prove protected constraint: No cross-currency scalar or inferred donor intent",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-03-03",
+      "category": "RECIPE",
+      "recipeId": "DON-03",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Threshold or special-gift follow-up",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-04-01",
+      "category": "RECIPE",
+      "recipeId": "DON-04",
+      "title": "Exercise Anonymous-gift awareness with source-qualified inputs and prove: Source anonymity projection and requested summary",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-04-02",
+      "category": "RECIPE",
+      "recipeId": "DON-04",
+      "title": "Change allowed configuration (Whether to notify, grouping, authorized recipients) and prove protected constraint: Donor identity cannot appear in public/missionary payload, task, URL, or trace",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-04-03",
+      "category": "RECIPE",
+      "recipeId": "DON-04",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Anonymous-gift awareness",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-05-01",
+      "category": "RECIPE",
+      "recipeId": "DON-05",
+      "title": "Exercise Tribute acknowledgment with source-qualified inputs and prove: Recognition source and delivery result",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-05-02",
+      "category": "RECIPE",
+      "recipeId": "DON-05",
+      "title": "Change allowed configuration (Wording, source-permitted recipients, delivery preference) and prove protected constraint: Legal donor and tribute recipient are different; no inappropriate tax receipt",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-05-03",
+      "category": "RECIPE",
+      "recipeId": "DON-05",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Tribute acknowledgment",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-06-01",
+      "category": "RECIPE",
+      "recipeId": "DON-06",
+      "title": "Exercise DAF and soft-credit stewardship with source-qualified inputs and prove: Source recognition refs and recorded outreach",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-06-02",
+      "category": "RECIPE",
+      "recipeId": "DON-06",
+      "title": "Change allowed configuration (Owner, wording, cadence) and prove protected constraint: Recognition does not rewrite legal donor or receipt eligibility",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-06-03",
+      "category": "RECIPE",
+      "recipeId": "DON-06",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for DAF and soft-credit stewardship",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-07-01",
+      "category": "RECIPE",
+      "recipeId": "DON-07",
+      "title": "Exercise Matching-gift follow-up with source-qualified inputs and prove: Match evidence, reviewed case result, posted contribution links if any",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-07-02",
+      "category": "RECIPE",
+      "recipeId": "DON-07",
+      "title": "Change allowed configuration (Questions, owner, follow-up dates) and prove protected constraint: No match money before source posted contribution or source-qualified completion",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-07-03",
+      "category": "RECIPE",
+      "recipeId": "DON-07",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Matching-gift follow-up",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-08-01",
+      "category": "RECIPE",
+      "recipeId": "DON-08",
+      "title": "Exercise Refund or correction communication with source-qualified inputs and prove: Confirmed source outcome and communication purpose identity",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-08-02",
+      "category": "RECIPE",
+      "recipeId": "DON-08",
+      "title": "Change allowed configuration (Approved content and owner) and prove protected constraint: No workflow-controlled refund, legal-donor change, or invented completion",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-08-03",
+      "category": "RECIPE",
+      "recipeId": "DON-08",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Refund or correction communication",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-09-01",
+      "category": "RECIPE",
+      "recipeId": "DON-09",
+      "title": "Exercise New recurring commitment orientation with source-qualified inputs and prove: Source commitment transition and separate received-gift facts",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-09-02",
+      "category": "RECIPE",
+      "recipeId": "DON-09",
+      "title": "Change allowed configuration (Content within source contract, owner, optional follow-up) and prove protected constraint: No duplicate state notice, payment retry, or claim that scheduled means received",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-09-03",
+      "category": "RECIPE",
+      "recipeId": "DON-09",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for New recurring commitment orientation",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-10-01",
+      "category": "RECIPE",
+      "recipeId": "DON-10",
+      "title": "Exercise Recurring occurrence attention with source-qualified inputs and prove: Exact occurrence transition, source eligibility and recovery result",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-10-02",
+      "category": "RECIPE",
+      "recipeId": "DON-10",
+      "title": "Change allowed configuration (Staff routing and permitted escalation) and prove protected constraint: No second dunning/retry sequence; pause is not failure; absent gift is not debt",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-10-03",
+      "category": "RECIPE",
+      "recipeId": "DON-10",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Recurring occurrence attention",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-11-01",
+      "category": "RECIPE",
+      "recipeId": "DON-11",
+      "title": "Exercise Recurring pause or end follow-up with source-qualified inputs and prove: Exact source lifecycle transition",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-11-02",
+      "category": "RECIPE",
+      "recipeId": "DON-11",
+      "title": "Change allowed configuration (Optional relationship follow-up and approved wording) and prove protected constraint: Canceled authority cannot be resurrected; restart needs fresh authorization",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-11-03",
+      "category": "RECIPE",
+      "recipeId": "DON-11",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Recurring pause or end follow-up",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-12-01",
+      "category": "RECIPE",
+      "recipeId": "DON-12",
+      "title": "Exercise Fixed-pledge milestones with source-qualified inputs and prove: Pledge fulfillment/eligibility evidence",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-12-02",
+      "category": "RECIPE",
+      "recipeId": "DON-12",
+      "title": "Change allowed configuration (Narrow or disable source reminder policy, owner, approved wording) and prove protected constraint: Reminder program remains opt-in/off by default and within source maximum",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-12-03",
+      "category": "RECIPE",
+      "recipeId": "DON-12",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Fixed-pledge milestones",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-13-01",
+      "category": "RECIPE",
+      "recipeId": "DON-13",
+      "title": "Exercise Contribution inactivity review with source-qualified inputs and prove: Report basis/coverage, consent decision, review outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-13-02",
+      "category": "RECIPE",
+      "recipeId": "DON-13",
+      "title": "Change allowed configuration (Lookback scope, review owner, cooldown, eligible message) and prove protected constraint: No person-level lapsed label or override of recurring source health",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-13-03",
+      "category": "RECIPE",
+      "recipeId": "DON-13",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Contribution inactivity review",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-DON-14-01",
+      "category": "RECIPE",
+      "recipeId": "DON-14",
+      "title": "Exercise Cultivation stages and next actions with source-qualified inputs and prove: Source stage transition and next task",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-DON-14-02",
+      "category": "RECIPE",
+      "recipeId": "DON-14",
+      "title": "Change allowed configuration (Allowed stage preset, task cadence, owner) and prove protected constraint: Stage is not access, legal donor, commitment, or money truth",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-DON-14-03",
+      "category": "RECIPE",
+      "recipeId": "DON-14",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Cultivation stages and next actions",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-DON-15-01",
+      "category": "RECIPE",
+      "recipeId": "DON-15",
+      "title": "Exercise Ask/proposal and appeal coordination with source-qualified inputs and prove: Exact proposal/appeal approval and source response",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-DON-15-02",
+      "category": "RECIPE",
+      "recipeId": "DON-15",
+      "title": "Change allowed configuration (Source-permitted reviewer routing, audience filters, cadence) and prove protected constraint: Never-ask/contact restrictions and explicit currency/entity remain binding",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-DON-15-03",
+      "category": "RECIPE",
+      "recipeId": "DON-15",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Ask/proposal and appeal coordination",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-DON-16-01",
+      "category": "RECIPE",
+      "recipeId": "DON-16",
+      "title": "Exercise Church relationship and milestone review with source-qualified inputs and prove: Reviewed relationship facts and next-action record",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-DON-16-02",
+      "category": "RECIPE",
+      "recipeId": "DON-16",
+      "title": "Change allowed configuration (Milestone choice, contact owner, questions, cadence) and prove protected constraint: Relationship milestones do not supply permission or marketing consent",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-DON-16-03",
+      "category": "RECIPE",
+      "recipeId": "DON-16",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Church relationship and milestone review",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MOB-01-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-01",
+      "title": "Exercise Inquiry through discovery with source-qualified inputs and prove: Discovery submission and source disposition",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-01-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-01",
+      "title": "Change allowed configuration (Program routes, coordinator, questions, response targets) and prove protected constraint: No automatic missionary membership from inquiry",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-01-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-01",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Inquiry through discovery",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-02-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-02",
+      "title": "Exercise Application submission and review with source-qualified inputs and prove: Exact form and accepted submission versions",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-02-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-02",
+      "title": "Change allowed configuration (Fields, conditional sections, coordinator, reminders) and prove protected constraint: Answers map only to permitted application/CRM fields; no overwrite of history",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-02-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-02",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Application submission and review",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-03-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-03",
+      "title": "Exercise Reference collection with source-qualified inputs and prove: Accepted reference evidence per required category",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-03-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-03",
+      "title": "Change allowed configuration (Questionnaires, required categories/count, reminder cadence) and prove protected constraint: Required church reference cannot be replaced by arbitrary any-two; restricted data stays sealed",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-03-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-03",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Reference collection",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-04-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-04",
+      "title": "Exercise Interviews and assessments with source-qualified inputs and prove: Interview occurrence and accepted assessment versions",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-04-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-04",
+      "title": "Change allowed configuration (Interview kinds, parallel/sequence order, forms, deadlines) and prove protected constraint: Calendar end is not completed interview; assignment grants no extra record access",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-04-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-04",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Interviews and assessments",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-05-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-05",
+      "title": "Exercise Screening coordination with source-qualified inputs and prove: Source screening determination without private contents in workflow state",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-05-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-05",
+      "title": "Change allowed configuration (Eligible reviewer, required evidence, reminders) and prove protected constraint: No AI approval, public clinical upload, or unqualified screening provider",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-05-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-05",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Screening coordination",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-06-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-06",
+      "title": "Exercise Decision and conditional acceptance with source-qualified inputs and prove: Exact decision and approved conditions",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-06-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-06",
+      "title": "Change allowed configuration (Decision roles within policy, condition tasks, wording) and prove protected constraint: No task checkbox, elapsed timer, or broad admin bypass of decision authority",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-06-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-06",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Decision and conditional acceptance",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-07-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-07",
+      "title": "Exercise Appointment agreements with source-qualified inputs and prove: Current agreement and signer evidence",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-07-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-07",
+      "title": "Change allowed configuration (Document sets, signer routing, dates) and prove protected constraint: Acceptance is not signing; superseded document signatures do not qualify",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-07-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-07",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Appointment agreements",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-08-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-08",
+      "title": "Exercise Account and operational setup with source-qualified inputs and prove: Identity/operations source outcomes and accepted handoff",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-08-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-08",
+      "title": "Change allowed configuration (Checklist, departments, due dates) and prove protected constraint: No direct account grants, Field Account creation, financial succession, or permission from template role",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-08-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-08",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Account and operational setup",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-09-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-09",
+      "title": "Exercise Training and orientation with source-qualified inputs and prove: Accepted completion or independently authorized waiver evidence",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-09-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-09",
+      "title": "Change allowed configuration (Curriculum, prerequisites, instructor, deadlines) and prove protected constraint: Attendance/acknowledgment is not certified completion; nonwaivable rules remain",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-09-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-09",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Training and orientation",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-10-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-10",
+      "title": "Exercise Final readiness and handoff with source-qualified inputs and prove: Final readiness approval and receiving-owner acknowledgment",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-10-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-10",
+      "title": "Change allowed configuration (Optional checklist and receiving role) and prove protected constraint: Accepted, onboarded, ready, and deployed remain distinct source milestones",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-10-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-10",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Final readiness and handoff",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-11-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-11",
+      "title": "Exercise Hold, withdrawal, and reapplication with source-qualified inputs and prove: Source lifecycle outcome and explicit new application lineage",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-11-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-11",
+      "title": "Change allowed configuration (Pauseable reminder settings, owner, approved messages) and prove protected constraint: Completed history and grants remain source-owned; withdrawal is not delete",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-11-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-11",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Hold, withdrawal, and reapplication",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-12-01",
+      "category": "RECIPE",
+      "recipeId": "MOB-12",
+      "title": "Exercise Individual plan amendment with source-qualified inputs and prove: Approved amendment digest, evidence coverage and future-work changes",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-12-02",
+      "category": "RECIPE",
+      "recipeId": "MOB-12",
+      "title": "Change allowed configuration (Eligible extra steps, owner, deadline, permitted waivers) and prove protected constraint: No retroactive erase, duplicate sends, or weakening of nonwaivable requirements",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-MOB-12-03",
+      "category": "RECIPE",
+      "recipeId": "MOB-12",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Individual plan amendment",
+      "status": "specified_not_executed",
+      "checkpoint": "MOBILIZATION"
+    },
+    {
+      "id": "T-FIN-01-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-01",
+      "title": "Exercise Offline gift/batch exception follow-up with source-qualified inputs and prove: Exact exception and accepted source correction",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-01-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-01",
+      "title": "Change allowed configuration (Owner, reminders, exception urgency within policy) and prove protected constraint: No raw money edits, fake donor identity, or automatic posting",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-01-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-01",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Offline gift/batch exception follow-up",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-02-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-02",
+      "title": "Exercise Receipt/statement delivery remediation with source-qualified inputs and prove: Current artifact plus source delivery/exception result",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-02-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-02",
+      "title": "Change allowed configuration (Review owner, allowed delivery preferences) and prove protected constraint: No regenerated legal facts or duplicated official document",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-02-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-02",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Receipt/statement delivery remediation",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-03-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-03",
+      "title": "Exercise Year-end statement operations coordination with source-qualified inputs and prove: Statement source run, item-authoritative outcomes, separate fulfillment",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-03-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-03",
+      "title": "Change allowed configuration (Native profile settings, eligible recipients, staffing checklist) and prove protected constraint: Studio cannot freeze population, change totals, or own the source run schedule",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-03-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-03",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Year-end statement operations coordination",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-04-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-04",
+      "title": "Exercise Accounting handoff review with source-qualified inputs and prove: Source-approved release and independently recorded delivery outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-04-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-04",
+      "title": "Change allowed configuration (Checklist, authorized owner, notifications) and prove protected constraint: No arbitrary journal, provider replay, or Studio-created release",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-04-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-04",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Accounting handoff review",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-05-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-05",
+      "title": "Exercise Reconciliation investigation with source-qualified inputs and prove: Source discrepancy and accepted resolution",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-05-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-05",
+      "title": "Change allowed configuration (Owner, evidence request, escalation) and prove protected constraint: Task complete is not bank/QBO/Xero reconciliation",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-05-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-05",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Reconciliation investigation",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-06-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-06",
+      "title": "Exercise Support cycle close preparation with source-qualified inputs and prove: Finance-closed source cycle and exact through-date",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-06-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-06",
+      "title": "Change allowed configuration (Native cadence and reviewer notification) and prove protected constraint: No close from checklist, no recomputed balance, no silent currency conversion",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-06-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-06",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Support cycle close preparation",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-07-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-07",
+      "title": "Exercise Support plan review with source-qualified inputs and prove: Source-approved Plan Version and projection consent",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-07-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-07",
+      "title": "Change allowed configuration (Reviewer within contract, checklist, dates) and prove protected constraint: Fundraising goal, balance, compensation, and plan remain separate",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-07-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-07",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Support plan review",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-08-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-08",
+      "title": "Exercise Expense evidence follow-up with source-qualified inputs and prove: Exact claim/evidence version and source resolution decision",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-08-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-08",
+      "title": "Change allowed configuration (Notification routing and bounded reminder policy only) and prove protected constraint: No choosing protected reviewer, auto approval, claimant fact authoring, or custom financial case state",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-08-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-08",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Expense evidence follow-up",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-09-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-09",
+      "title": "Exercise Expense review coordination with source-qualified inputs and prove: Source assignment snapshot and claim-level decision",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-09-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-09",
+      "title": "Change allowed configuration (Native source review settings and permitted notifications) and prove protected constraint: Self/AI/timeout/automatic approval prohibited; report task does not approve every claim",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-09-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-09",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Expense review coordination",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-10-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-10",
+      "title": "Exercise Advance and reimbursement follow-up with source-qualified inputs and prove: Source obligation, settlement and external-payment evidence",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-10-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-10",
+      "title": "Change allowed configuration (Responsible team and follow-up wording) and prove protected constraint: No payment execution, assumed settlement, or treating missed amount as collectible debt",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-10-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-10",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Advance and reimbursement follow-up",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-11-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-11",
+      "title": "Exercise Uncertain external handoff investigation with source-qualified inputs and prove: Exact source/provider reconciliation outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-11-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-11",
+      "title": "Change allowed configuration (Operational owner and alert urgency) and prove protected constraint: No blind retry, provider switching, assumed paid, or timer release of reserved coverage",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-11-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-11",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Uncertain external handoff investigation",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-12-01",
+      "category": "RECIPE",
+      "recipeId": "FIN-12",
+      "title": "Exercise Worker/designation retirement coordination with source-qualified inputs and prove: Source exit manifest and independently accepted downstream decisions",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-12-02",
+      "category": "RECIPE",
+      "recipeId": "FIN-12",
+      "title": "Change allowed configuration (Checklist, owners, communication routing) and prove protected constraint: No automatic money redirection, canceled-donor authorization revival, hold release, or record disposal",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-FIN-12-03",
+      "category": "RECIPE",
+      "recipeId": "FIN-12",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Worker/designation retirement coordination",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-01-01",
+      "category": "RECIPE",
+      "recipeId": "MPD-01",
+      "title": "Exercise Gift-driven missionary thank-you with source-qualified inputs and prove: Source gift purpose and shared interaction/task outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-MPD-01-02",
+      "category": "RECIPE",
+      "recipeId": "MPD-01",
+      "title": "Change allowed configuration (Eligible gift situations, due date, grouping preference) and prove protected constraint: No anonymous-donor disclosure or duplicated organization message",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-MPD-01-03",
+      "category": "RECIPE",
+      "recipeId": "MPD-01",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Gift-driven missionary thank-you",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-MPD-02-01",
+      "category": "RECIPE",
+      "recipeId": "MPD-02",
+      "title": "Exercise Supporter outreach sequence with source-qualified inputs and prove: Source stage and next-action record",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-02-02",
+      "category": "RECIPE",
+      "recipeId": "MPD-02",
+      "title": "Change allowed configuration (Organization-approved preset, cadence, questions) and prove protected constraint: Never-ask/current consent and relationship visibility remain binding",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-02-03",
+      "category": "RECIPE",
+      "recipeId": "MPD-02",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Supporter outreach sequence",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-03-01",
+      "category": "RECIPE",
+      "recipeId": "MPD-03",
+      "title": "Exercise Referral follow-up with source-qualified inputs and prove: Referral source, eligibility and interaction outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-03-02",
+      "category": "RECIPE",
+      "recipeId": "MPD-03",
+      "title": "Change allowed configuration (Cadence, owner, approved questions) and prove protected constraint: Referral does not grant broad CRM enumeration or newsletter consent",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-03-03",
+      "category": "RECIPE",
+      "recipeId": "MPD-03",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Referral follow-up",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-04-01",
+      "category": "RECIPE",
+      "recipeId": "MPD-04",
+      "title": "Exercise Coaching check-in with source-qualified inputs and prove: Check-in version, coaching feedback and next action",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-04-02",
+      "category": "RECIPE",
+      "recipeId": "MPD-04",
+      "title": "Change allowed configuration (Cadence, questions, eligible coach, agreed targets) and prove protected constraint: Coach access is explicit and redacted; no raw supporter/care detail",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-04-03",
+      "category": "RECIPE",
+      "recipeId": "MPD-04",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Coaching check-in",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-05-01",
+      "category": "RECIPE",
+      "recipeId": "MPD-05",
+      "title": "Exercise Goal/plan compare and review with source-qualified inputs and prove: Explicit source goal decision and provenance",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-05-02",
+      "category": "RECIPE",
+      "recipeId": "MPD-05",
+      "title": "Change allowed configuration (Review timing and coaching owner) and prove protected constraint: No live synchronization of finance Plan, goal, commitment, balance or compensation",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-05-03",
+      "category": "RECIPE",
+      "recipeId": "MPD-05",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Goal/plan compare and review",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-06-01",
+      "category": "RECIPE",
+      "recipeId": "MPD-06",
+      "title": "Exercise Named support attention review with source-qualified inputs and prove: Source occurrence/health transition and task outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-MPD-06-02",
+      "category": "RECIPE",
+      "recipeId": "MPD-06",
+      "title": "Change allowed configuration (Task owner and permitted cadence) and prove protected constraint: No person-level lapsed label, inferred debt or second dunning sequence",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-MPD-06-03",
+      "category": "RECIPE",
+      "recipeId": "MPD-06",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Named support attention review",
+      "status": "specified_not_executed",
+      "checkpoint": "GIVING"
+    },
+    {
+      "id": "T-MPD-07-01",
+      "category": "RECIPE",
+      "recipeId": "MPD-07",
+      "title": "Exercise Personal appeal milestone and close with source-qualified inputs and prove: Source appeal outcome and acknowledged follow-up",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-07-02",
+      "category": "RECIPE",
+      "recipeId": "MPD-07",
+      "title": "Change allowed configuration (Milestones, task cadence, allowed audience) and prove protected constraint: Currency/entity basis and source permission remain fixed",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-07-03",
+      "category": "RECIPE",
+      "recipeId": "MPD-07",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Personal appeal milestone and close",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-08-01",
+      "category": "RECIPE",
+      "recipeId": "MPD-08",
+      "title": "Exercise Ministry Update drafting reminder with source-qualified inputs and prove: Submitted update revision and handoff",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-08-02",
+      "category": "RECIPE",
+      "recipeId": "MPD-08",
+      "title": "Change allowed configuration (Cadence, author, optional editor) and prove protected constraint: No automatic publication or raw donor email; communication remains source-owned",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-MPD-08-03",
+      "category": "RECIPE",
+      "recipeId": "MPD-08",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Ministry Update drafting reminder",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-01-01",
+      "category": "RECIPE",
+      "recipeId": "COM-01",
+      "title": "Exercise Ministry Update editorial publication with source-qualified inputs and prove: Exact revision, source approval, publication and distinct distribution outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-01-02",
+      "category": "RECIPE",
+      "recipeId": "COM-01",
+      "title": "Change allowed configuration (Editors, review steps, schedule within source contract) and prove protected constraint: Approval for an old revision cannot publish changed content; restricted visibility persists",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-01-03",
+      "category": "RECIPE",
+      "recipeId": "COM-01",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Ministry Update editorial publication",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-02-01",
+      "category": "RECIPE",
+      "recipeId": "COM-02",
+      "title": "Exercise Missionary/project page change with source-qualified inputs and prove: Exact CMS revision and source publication decision",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-02-02",
+      "category": "RECIPE",
+      "recipeId": "COM-02",
+      "title": "Change allowed configuration (Reviewer routing, checklist, approved wording) and prove protected constraint: Public identity and operational identity remain distinct; no publication bypass",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-02-03",
+      "category": "RECIPE",
+      "recipeId": "COM-02",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Missionary/project page change",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-03-01",
+      "category": "RECIPE",
+      "recipeId": "COM-03",
+      "title": "Exercise New page preparation with source-qualified inputs and prove: Approved source/public identity mapping and published revision",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-03-02",
+      "category": "RECIPE",
+      "recipeId": "COM-03",
+      "title": "Change allowed configuration (Template, author/reviewer, checklist) and prove protected constraint: Source existence is not permission to disclose a restricted worker",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-03-03",
+      "category": "RECIPE",
+      "recipeId": "COM-03",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for New page preparation",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-04-01",
+      "category": "RECIPE",
+      "recipeId": "COM-04",
+      "title": "Exercise Restricted-worker content review with source-qualified inputs and prove: Source safety determination and exact publication evidence",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-04-02",
+      "category": "RECIPE",
+      "recipeId": "COM-04",
+      "title": "Change allowed configuration (Eligible reviewers and additional nonwaiving tasks) and prove protected constraint: Mandatory safety checks cannot be removed; content and run existence are restricted",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-04-03",
+      "category": "RECIPE",
+      "recipeId": "COM-04",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Restricted-worker content review",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-05-01",
+      "category": "RECIPE",
+      "recipeId": "COM-05",
+      "title": "Exercise Translation and locale publication with source-qualified inputs and prove: Exact translation and locale publication",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-05-02",
+      "category": "RECIPE",
+      "recipeId": "COM-05",
+      "title": "Change allowed configuration (Locales, translator/reviewer, dates) and prove protected constraint: One locale publication does not imply all locales approved or alter identity/currency",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-05-03",
+      "category": "RECIPE",
+      "recipeId": "COM-05",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Translation and locale publication",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-06-01",
+      "category": "RECIPE",
+      "recipeId": "COM-06",
+      "title": "Exercise Seasonal scheduling and stale-content review with source-qualified inputs and prove: Source schedule/review decision and publication state",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-06-02",
+      "category": "RECIPE",
+      "recipeId": "COM-06",
+      "title": "Change allowed configuration (Native dates, content classes, review owner) and prove protected constraint: Studio cannot duplicate CMS scheduling or create another published flag",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-06-03",
+      "category": "RECIPE",
+      "recipeId": "COM-06",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Seasonal scheduling and stale-content review",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-07-01",
+      "category": "RECIPE",
+      "recipeId": "COM-07",
+      "title": "Exercise Comment/media moderation with source-qualified inputs and prove: Source moderation outcome and separate notification",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-07-02",
+      "category": "RECIPE",
+      "recipeId": "COM-07",
+      "title": "Change allowed configuration (Routing, target response interval, approved notices) and prove protected constraint: Malware/privacy protections remain mandatory; no AI-only harmful-content decision",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-07-03",
+      "category": "RECIPE",
+      "recipeId": "COM-07",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Comment/media moderation",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-08-01",
+      "category": "RECIPE",
+      "recipeId": "COM-08",
+      "title": "Exercise Page retirement and safe redirection with source-qualified inputs and prove: Source retirement/redirect decision and financial approval reference if required",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-08-02",
+      "category": "RECIPE",
+      "recipeId": "COM-08",
+      "title": "Change allowed configuration (Reviewer, checklist, approved explanation) and prove protected constraint: No automatic designation or money redirection from content changes",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-08-03",
+      "category": "RECIPE",
+      "recipeId": "COM-08",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Page retirement and safe redirection",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-09-01",
+      "category": "RECIPE",
+      "recipeId": "COM-09",
+      "title": "Exercise Newsletter and welcome communications with source-qualified inputs and prove: Source audience eligibility, exact publication, delivery and reply refs",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-09-02",
+      "category": "RECIPE",
+      "recipeId": "COM-09",
+      "title": "Change allowed configuration (Content, eligible audience filters, schedule through owner) and prove protected constraint: Donation alone is not subscription consent; unsubscribes remain effective",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-09-03",
+      "category": "RECIPE",
+      "recipeId": "COM-09",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Newsletter and welcome communications",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-10-01",
+      "category": "RECIPE",
+      "recipeId": "COM-10",
+      "title": "Exercise Message/sender failure remediation with source-qualified inputs and prove: Source readiness/suppression outcome and exact intent disposition",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-10-02",
+      "category": "RECIPE",
+      "recipeId": "COM-10",
+      "title": "Change allowed configuration (Owner, urgency, approved checklist) and prove protected constraint: No unsafe fallback sender, template, duplicate send or newsletter resubscribe",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-COM-10-03",
+      "category": "RECIPE",
+      "recipeId": "COM-10",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Message/sender failure remediation",
+      "status": "specified_not_executed",
+      "checkpoint": "CORE"
+    },
+    {
+      "id": "T-CARE-01-01",
+      "category": "RECIPE",
+      "recipeId": "CARE-01",
+      "title": "Exercise Confidential intake with source-qualified inputs and prove: Opaque care-intake acceptance and authorized handoff",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-01-02",
+      "category": "RECIPE",
+      "recipeId": "CARE-01",
+      "title": "Change allowed configuration (Eligible care role, safe acknowledgment, follow-up interval) and prove protected constraint: No ordinary-admin existence signal or clinical facts in workflow state",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-01-03",
+      "category": "RECIPE",
+      "recipeId": "CARE-01",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Confidential intake",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-02-01",
+      "category": "RECIPE",
+      "recipeId": "CARE-02",
+      "title": "Exercise Routine care check-in with source-qualified inputs and prove: Source check-in and follow-up acknowledgment",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-02-02",
+      "category": "RECIPE",
+      "recipeId": "CARE-02",
+      "title": "Change allowed configuration (Cadence, source-approved questions, carer) and prove protected constraint: Care notes are not CRM notes; routing does not grant access",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-02-03",
+      "category": "RECIPE",
+      "recipeId": "CARE-02",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Routine care check-in",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-03-01",
+      "category": "RECIPE",
+      "recipeId": "CARE-03",
+      "title": "Exercise Care-team handoff with source-qualified inputs and prove: Source access/assignment versions and acknowledged handoff",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-03-02",
+      "category": "RECIPE",
+      "recipeId": "CARE-03",
+      "title": "Change allowed configuration (Eligible receiving role, checklist, timing) and prove protected constraint: No transitive access from team membership or broad staff hierarchy",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-03-03",
+      "category": "RECIPE",
+      "recipeId": "CARE-03",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Care-team handoff",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-04-01",
+      "category": "RECIPE",
+      "recipeId": "CARE-04",
+      "title": "Exercise Home assignment or sabbatical preparation with source-qualified inputs and prove: Separately scoped source transition and care acknowledgments",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-04-02",
+      "category": "RECIPE",
+      "recipeId": "CARE-04",
+      "title": "Change allowed configuration (Checklists, dates, ordinary/clinical separation) and prove protected constraint: No release of care information to logistics or finance",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-04-03",
+      "category": "RECIPE",
+      "recipeId": "CARE-04",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Home assignment or sabbatical preparation",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-05-01",
+      "category": "RECIPE",
+      "recipeId": "CARE-05",
+      "title": "Exercise Return-to-field preparation with source-qualified inputs and prove: Source readiness decision and receiving-owner acknowledgment",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-05-02",
+      "category": "RECIPE",
+      "recipeId": "CARE-05",
+      "title": "Change allowed configuration (Checklist, eligible roles, schedule) and prove protected constraint: No automated medical fitness decision, inferred clearance, or unauthorized disclosure",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-05-03",
+      "category": "RECIPE",
+      "recipeId": "CARE-05",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Return-to-field preparation",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-06-01",
+      "category": "RECIPE",
+      "recipeId": "CARE-06",
+      "title": "Exercise Crisis coordination with source-qualified inputs and prove: Source incident actions and acknowledgments, not inferred proof of life",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-06-02",
+      "category": "RECIPE",
+      "recipeId": "CARE-06",
+      "title": "Change allowed configuration (Authorized response roles, acknowledgment timing, approved contact tree) and prove protected constraint: Workflow cannot grant emergency access, prove safety, or replace emergency services; alternate communication is required",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-06-03",
+      "category": "RECIPE",
+      "recipeId": "CARE-06",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Crisis coordination",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-07-01",
+      "category": "RECIPE",
+      "recipeId": "CARE-07",
+      "title": "Exercise After-action and emergency-access review with source-qualified inputs and prove: Source post-incident review and access outcome",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-07-02",
+      "category": "RECIPE",
+      "recipeId": "CARE-07",
+      "title": "Change allowed configuration (Review owner and schedule) and prove protected constraint: Sensitive-read history is itself restricted; task completion is not access revocation",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-07-03",
+      "category": "RECIPE",
+      "recipeId": "CARE-07",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for After-action and emergency-access review",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-08-01",
+      "category": "RECIPE",
+      "recipeId": "CARE-08",
+      "title": "Exercise Confidential offboarding and privacy request with source-qualified inputs and prove: Source-authorized response/disposition and handoff evidence",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-08-02",
+      "category": "RECIPE",
+      "recipeId": "CARE-08",
+      "title": "Change allowed configuration (Safe communication and authorized task timing) and prove protected constraint: No export-as-erasure, blanket archive, hold release, or clinical record disposal timer",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    },
+    {
+      "id": "T-CARE-08-03",
+      "category": "RECIPE",
+      "recipeId": "CARE-08",
+      "title": "Replay the accepted source occurrence and race a permitted cancellation/amendment; prove one accepted outcome without duplicate effects for Confidential offboarding and privacy request",
+      "status": "specified_not_executed",
+      "checkpoint": "CARE"
+    }
+  ],
+  "coverage": {
+    "crossCutting": 64,
+    "recipe": 288,
+    "total": 352
+  }
+}

@@ -63,7 +63,7 @@ exact task, not only this routing table.
 | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Platform intent / boundaries                    | `openspec/specs/platform-*/spec.md`; accepted owner amendments remain explicit.                                                                                             |
 | CRM ownership                                   | `docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md`, `openspec/specs/crm-core/spec.md`, Phase 1 ownership matrix. Asym Postgres owns CRM truth.                  |
-| Program phase architecture                      | `docs/prds/sitestacker-parity/roadmap.md` v2 and renumbering map; `phase-map.md` is its orientation mirror.                                                                 |
+| Program phase architecture                      | `docs/prds/sitestacker-parity/roadmap.md` v3 (45 phases, adopted 2026-09-22) and renumbering map; `phase-map.md` is its orientation mirror.                                 |
 | Identity / permissions / restricted data        | Phase 3/4/10/12 PRDs and relevant OpenSpec. A relationship or shared email is not an access grant.                                                                          |
 | Contributions / designations / Giving Campaigns | Phase 13 ledger/giving-cart PRD, with explicit later owner amendments. Giving Campaign is an effort, never a Fund/designation.                                              |
 | Contribution credits                            | Phase 14; credit/recognition does not manufacture received money or legal-donor authority.                                                                                  |
@@ -81,6 +81,18 @@ exact task, not only this routing table.
 
 The detailed record ownership matrix is
 [`phase-01-source-of-truth-ownership-matrix.md`](../prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md).
+
+## Roadmap and Studio adoption — 2026-09-22
+
+AL-1892 adopts the founder-supplied 45-phase roadmap as scoped planning direction.
+The [program index](../prds/program-roadmap/README.md) identifies canonical
+Workflow Studio, hybrid Web Studio, SMS and enterprise identity packages.
+Their effective graphs correct the original all-pack and Git-gated task chains;
+immutable source artifacts remain evidence, not executable implementation plans.
+Phase 41 owns application decisions, Phase 34 common coordination, and Phase 42
+explicit successors to existing CMS/brand boundaries. Existing source owners and
+qualification gates remain authoritative. No supplied validator result proves
+Core runtime or provider acceptance.
 
 ## Canonical authoring and evidence
 
@@ -159,10 +171,12 @@ Keep these separate from a new founder decision:
   are execution/access gates, not unresolved CRM/product architecture.
 - PR #1329's final fee-snapshot/replay documentation is reconciled in companion
   branch `docs/AL-1861-pr-1329-contract`, with its own OpenSpec/ADR/runbook
-  reconciliation against head `134310f29e68f77888e462f37aaf101d7d4c567d`. This
-  unmerged runtime PR is not imported here, and the companion changes remain
-  local/uncommitted. Preserve its persisted-quote rails
-  and distinguish legacy sagas; do not apply a future runbook to current code.
+  reconciliation against head `134310f29e68f77888e462f37aaf101d7d4c567d`. The original
+  companion remains a dated local capture. By 2026-09-22, current develop
+  contains related fee-extras and documentation through merged PR #1331 while
+  #1329 remains open. Inspect exact current source and commit ancestry rather
+  than using the open PR state as proof of absence. Preserve persisted-quote
+  rails and distinguish legacy sagas; do not apply future runbooks to old code.
 
 No new product choice was identified as necessary for these documentation
 corrections. If future qualification invalidates a premise, record the precise

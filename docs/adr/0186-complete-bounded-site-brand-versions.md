@@ -26,9 +26,6 @@ whole-candidate validation precede the existing expected-head release path;
 failure preserves current public output and restore creates a newly proved
 successor through the applicable release authority.
 
-A separately governed, source-controlled certified Presentation Package lane
-may exist only under its own accepted contract and qualification. It is not a
-Web Studio code upload and D59 grants it no exception from Core's governing UI,
-security, accessibility, or release rules. This preserves genuine ministry
+The Phase 42 HA-A2/A4 planning contract now names the separately governed ministry-controlled source lane into D9 certified Presentation Packages. Its exact source, build and admission qualification remains required. It is not a Web Studio code upload and D59 grants it no exception from Core’s governing UI, security, accessibility or release rules. Phase 42 HA-A1 Page-instance layout/variant settings remain on their editorial axis; Site-wide appearance remains this complete qualified Brand Version and uses the existing cohort/release owner. A Page save never publishes Site brand, and a source deployment never activates it. This preserves genuine ministry
 brand distinction without creating a Tenant plugin platform or a parallel
 public authority.

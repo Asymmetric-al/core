@@ -1,0 +1,97 @@
+{
+  "dialect": "asym.form/1",
+  "formId": "FORM-02",
+  "version": 1,
+  "status": "reference_blueprint",
+  "purpose": "mobilization",
+  "subject": "application",
+  "defaultEnabled": false,
+  "submissionOwnerContract": "mobilization.application.submit@1",
+  "partialSave": true,
+  "retentionOwnerContract": "mobilization.form-retention@1",
+  "pages": [
+    {
+      "id": "background",
+      "title": "About your application",
+      "fields": [
+        {
+          "id": "preferred_name",
+          "label": "Preferred name",
+          "kind": "short_text",
+          "required": true,
+          "purpose": "mobilization",
+          "classification": "confidential",
+          "mapping": {
+            "ownerContract": "mobilization.application.submit@1",
+            "fieldKey": "preferred_name"
+          },
+          "maxLength": 200
+        },
+        {
+          "id": "sending_church",
+          "label": "Sending church or ministry",
+          "kind": "short_text",
+          "required": true,
+          "purpose": "mobilization",
+          "classification": "confidential",
+          "mapping": {
+            "ownerContract": "mobilization.application.submit@1",
+            "fieldKey": "sending_church"
+          },
+          "maxLength": 200
+        },
+        {
+          "id": "motivation",
+          "label": "What has led you to explore this opportunity?",
+          "kind": "long_text",
+          "required": false,
+          "purpose": "mobilization",
+          "classification": "confidential",
+          "mapping": {
+            "ownerContract": "mobilization.application.submit@1",
+            "fieldKey": "motivation"
+          },
+          "maxLength": 4000
+        }
+      ]
+    },
+    {
+      "id": "availability",
+      "title": "Availability",
+      "fields": [
+        {
+          "id": "available_from",
+          "label": "Earliest available date",
+          "kind": "date",
+          "required": true,
+          "purpose": "mobilization",
+          "classification": "confidential",
+          "mapping": {
+            "ownerContract": "mobilization.application.submit@1",
+            "fieldKey": "available_from"
+          }
+        },
+        {
+          "id": "training_experience",
+          "label": "Relevant experience or training",
+          "kind": "long_text",
+          "required": false,
+          "purpose": "mobilization",
+          "classification": "confidential",
+          "mapping": {
+            "ownerContract": "mobilization.application.submit@1",
+            "fieldKey": "training_experience"
+          },
+          "maxLength": 4000
+        }
+      ]
+    }
+  ],
+  "submissionRules": {
+    "serverValidation": true,
+    "immutableAcceptedSnapshot": true,
+    "hiddenValues": "exclude_from_submission_and_effects",
+    "csrfRequired": true,
+    "idempotencyRequired": true
+  }
+}

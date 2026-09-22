@@ -1,0 +1,143 @@
+{
+  "blueprints": [
+    {
+      "id": "BP-01",
+      "recipeId": "GEN-01",
+      "phase": 34,
+      "checkpoint": "CORE",
+      "path": "blueprints/BP-01.json"
+    },
+    {
+      "id": "BP-02",
+      "recipeId": "DON-01",
+      "phase": 35,
+      "checkpoint": "GIVING",
+      "path": "blueprints/BP-02.json"
+    },
+    {
+      "id": "BP-03",
+      "recipeId": "ADM-01",
+      "phase": 34,
+      "checkpoint": "CORE",
+      "path": "blueprints/BP-03.json"
+    },
+    {
+      "id": "BP-04",
+      "recipeId": "MOB-02",
+      "phase": 41,
+      "checkpoint": "MOBILIZATION",
+      "path": "blueprints/BP-04.json"
+    },
+    {
+      "id": "BP-05",
+      "recipeId": "MOB-08",
+      "phase": 41,
+      "checkpoint": "MOBILIZATION",
+      "path": "blueprints/BP-05.json"
+    },
+    {
+      "id": "BP-06",
+      "recipeId": "FIN-08",
+      "phase": 34,
+      "checkpoint": "CORE",
+      "path": "blueprints/BP-06.json"
+    },
+    {
+      "id": "BP-07",
+      "recipeId": "MPD-04",
+      "phase": 34,
+      "checkpoint": "CORE",
+      "path": "blueprints/BP-07.json"
+    },
+    {
+      "id": "BP-08",
+      "recipeId": "COM-01",
+      "phase": 34,
+      "checkpoint": "CORE",
+      "path": "blueprints/BP-08.json"
+    },
+    {
+      "id": "BP-09",
+      "recipeId": "CARE-01",
+      "phase": 38,
+      "checkpoint": "CARE",
+      "path": "blueprints/BP-09.json"
+    },
+    {
+      "id": "BP-10",
+      "recipeId": "GEN-13",
+      "phase": 34,
+      "checkpoint": "CORE",
+      "path": "blueprints/BP-10.json"
+    },
+    {
+      "id": "BP-11",
+      "recipeId": "GEN-06",
+      "phase": 34,
+      "checkpoint": "CORE",
+      "path": "blueprints/BP-11.json"
+    },
+    {
+      "id": "BP-12",
+      "recipeId": "GEN-10",
+      "phase": 37,
+      "checkpoint": "EVENTS",
+      "path": "blueprints/BP-12.json"
+    },
+    {
+      "id": "BP-13",
+      "recipeId": "DON-10",
+      "phase": 35,
+      "checkpoint": "GIVING",
+      "path": "blueprints/BP-13.json"
+    },
+    {
+      "id": "BP-14",
+      "recipeId": "ADM-06",
+      "phase": 34,
+      "checkpoint": "CORE",
+      "path": "blueprints/BP-14.json"
+    },
+    {
+      "id": "BP-15",
+      "recipeId": "DON-03",
+      "phase": 35,
+      "checkpoint": "GIVING",
+      "path": "blueprints/BP-15.json"
+    },
+    {
+      "id": "BP-16",
+      "recipeId": "GEN-09",
+      "phase": 34,
+      "checkpoint": "CORE",
+      "path": "blueprints/BP-16.json"
+    }
+  ],
+  "forms": [
+    {
+      "id": "FORM-01",
+      "phase": 34,
+      "checkpoint": "CORE",
+      "sourcePath": "form-blueprints/FORM-01.json"
+    },
+    {
+      "id": "FORM-02",
+      "phase": 41,
+      "checkpoint": "MOBILIZATION",
+      "sourcePath": "form-blueprints/FORM-02.json"
+    },
+    {
+      "id": "FORM-03",
+      "phase": 41,
+      "checkpoint": "MOBILIZATION",
+      "sourcePath": "form-blueprints/FORM-03.json"
+    },
+    {
+      "id": "FORM-04",
+      "phase": 34,
+      "checkpoint": "CORE",
+      "sourcePath": "form-blueprints/FORM-04.json"
+    }
+  ],
+  "bindingMeaning": "Inert candidate definitions; resolve every alias, permission, purpose, source version and provider gate before publication. Required capability labels are not runtime flags or grants."
+}

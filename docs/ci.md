@@ -66,6 +66,15 @@ bun run ci:preflight
 16. `build` (with CI-compatible env defaults for local parity)
 17. `test:unit`
 
+For edits to the adopted roadmap and Studio packets, also run
+`bun run verify:program-roadmap` in the canonical WSL/Linux workspace before
+publication. This read-only Python 3/Node check verifies source hashes, all45
+phase entries, predecessor dependency floors, recipe/requirement/scenario
+coverage, declared generated views, independent checkpoint graphs and local
+links. It never executes the supplied reference scripts or claims runtime
+qualification. It is a scoped documentation check in addition to the unchanged
+preflight stage sequence.
+
 Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage order),
 `tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
 `tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` (app unit smoke paths).

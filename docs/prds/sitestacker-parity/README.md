@@ -89,16 +89,18 @@ bolted-on module or push admin depth into donor/missionary surfaces.
 
 ## How work is sequenced
 
-- The current build order is **[`roadmap.md`](./roadmap.md) (Roadmap v2,
-  adopted 2026-07-07)** — 41 phases (0–40) in seven dependency lanes, with
+- The current phase architecture is **[`roadmap.md`](./roadmap.md) (Roadmap v3,
+  adopted 2026-09-22)** — 45 phases (0–44) in eight dependency lanes, with
   the v1→v2 renumbering map. [`phase-map.md`](./phase-map.md) is the short
   orientation mirror of it. The original post-Phase-0 order in
   [`phase-00-baseline.md`](./phase-00-baseline.md) was **provisional** and is
   superseded; phase-00 remains the origin of the firm, locked "B needs A
   first" dependencies. Any pre-2026-07-07 document citing a phase number
   above 9 uses v1 numbering — decode via the roadmap's map.
-- Each area graduates to its own detailed PRD + OpenSpec change **when it is
-  actually being built**, not before.
+- Each area needs a detailed accepted PRD and OpenSpec contract **before
+  dispatch**. Planning may precede implementation; adopted specifications do
+  not prove runtime completion. Workflow CORE precedes prioritized Phase 41;
+  Phase 42 is an independent content lane after exact source gates.
 - **Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit
   Model)** is the final Lane-1 foundation phase (groomed 2026-07-05; Phases
   2–6 precede it in dependency order — see [`phase-map.md`](./phase-map.md)).
@@ -128,8 +130,18 @@ bolted-on module or push admin depth into donor/missionary surfaces.
 
 ## Files in this program
 
+- [Complete program adoption](../program-roadmap/README.md): source provenance,
+  shared integration rules, source-owner obligations and ticket impact.
+- [Workflow Studio](../workflow-studio/README.md): Phase 34 CORE and the
+  Phase 41/35/37/38 packs, all recipes, source bindings and acceptance cases.
+- [Hybrid Web Studio](../web-studio-hybrid/README.md): Phase 42 visual/source/hybrid
+  checkpoints and explicit Phase 23/24 successor boundaries.
+- [Governed SMS](../governed-sms/README.md) and
+  [enterprise identity](../enterprise-identity/README.md): Phases 43/44
+  qualification-gated channel and identity successors.
+
 - [`README.md`](./README.md) — this charter.
-- [`roadmap.md`](./roadmap.md) — **Roadmap v2 (source of truth for phase
+- [`roadmap.md`](./roadmap.md) — **Roadmap v3 (source of truth for phase
   architecture):** the full 41-phase table with slugs and dependencies, the
   v1→v2 renumbering map, dependency lanes/parallelism, and per-phase scope
   sections. **Read this (plus `phase-map.md`) before writing a PRD, issues,

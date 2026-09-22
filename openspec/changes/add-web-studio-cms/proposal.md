@@ -178,7 +178,7 @@ audience, and incident-bound read-only Engine Diagnostics.
 
 ## Non-Goals
 
-- A generic website-builder schema, arbitrary layout/style system, rich-text or
+- A generic website-builder schema or arbitrary layout/style system. The explicit Phase 42 bounded composition/2 successor is separately scoped and does not gate native Phase 23. Unqualified rich-text or
   query DSL, redirect engine, workflow builder, audience/personalization engine,
   SEO/head/JSON-LD editor, or tenant plugin marketplace.
 - Raw Payload accounts, roles, Admin, REST, GraphQL, Local API, jobs, hooks,

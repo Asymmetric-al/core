@@ -1,0 +1,61 @@
+{
+  "verifiedOn": "2026-09-22",
+  "scope": "Documentation integrity guard behavior; no product runtime or provider qualification",
+  "negativeProbes": [
+    {
+      "case": "source-hash",
+      "result": "rejected as required",
+      "filesystemMutation": false
+    },
+    {
+      "case": "asset-hash",
+      "result": "rejected as required",
+      "filesystemMutation": false
+    },
+    {
+      "case": "missing-phase",
+      "result": "rejected as required",
+      "filesystemMutation": false
+    },
+    {
+      "case": "web-backward-dependency",
+      "result": "rejected as required",
+      "filesystemMutation": false
+    },
+    {
+      "case": "connector-cycle",
+      "result": "rejected as required",
+      "filesystemMutation": false
+    }
+  ],
+  "developCommit": "c236455724a819ec800104be3e81f563da3de86b",
+  "prerequisiteCommit": "2e8f95d193926f080c38b293653b215a7642ef37",
+  "checks": {
+    "programRoadmap": "passed: 45 phases; 52 exact assets; retained predecessor floors; all operative local paths",
+    "workflowStudio": "passed: 96 recipes; 352 scenarios; 26 packages / 39 slices; 105 symbolic bindings retained; six generated projections",
+    "webStudio": "passed: 48 requirements; 96 scenarios; 14 integration cases; 27 packages / 38 scopes; 18 journeys; 12 native behaviors; six synchronized views",
+    "extendedChannelsIdentity": "passed: 24 packages; 66 original acceptance cases and exact OpenSpec mappings",
+    "crossProductCases": {
+      "workflow": 19,
+      "web": 14,
+      "extended": 12,
+      "integrationGuide": 12
+    },
+    "strictOpenSpec": "65 current items passed; archive validation passed",
+    "deltaApplicability": "55 changes checked, no files written",
+    "links": "local paths and operative Markdown anchors checked",
+    "ciPreflight": "all 17 stages passed; 584 unit files passed, 2 skipped; 4401 tests passed, 4 skipped",
+    "shadscan": {
+      "baseline": 43,
+      "floor": 43,
+      "preMerge": 43
+    },
+    "githubIssues": "7 exact published-body hashes read back; labels/title/state/native blockers unchanged"
+  },
+  "limits": [
+    "No product implementation or provider/profile qualification is claimed.",
+    "Original source-validator reports remain dated source evidence.",
+    "Existing skipped unit tests remain skipped; they are not counted as passing.",
+    "GitHub current-head CI and review status must be checked after publication."
+  ]
+}

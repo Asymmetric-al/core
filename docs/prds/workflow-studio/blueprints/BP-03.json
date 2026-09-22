@@ -1,0 +1,109 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-03",
+  "recipeId": "ADM-01",
+  "name": "Staff onboarding with source-owned access",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "staff_onboarding",
+  "subject": "staff_onboarding",
+  "enrollment": {
+    "mode": "once_per_subject",
+    "triggerContract": "identity.staff-onboarding.accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {},
+    "tasks": {
+      "manager_review": "identity.staff-role-review@1",
+      "orientation": "operations.staff-orientation@1",
+      "handoff": "operations.staff-handoff@1"
+    },
+    "evidence": {
+      "policy_ack": "identity.staff-policy-ack@1",
+      "access_confirmed": "identity.request-authorized-outcome@1"
+    },
+    "actions": {
+      "access_request": "identity.request-approved-access-setup@1"
+    },
+    "roles": {
+      "manager": "roles.staff-manager@1",
+      "participant": "roles.staff-onboarding-subject@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "crm",
+    "documents",
+    "identity",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": ["staff_flow"]
+    }
+  ],
+  "root": {
+    "id": "staff_flow",
+    "kind": "sequence",
+    "label": "Staff flow",
+    "steps": [
+      {
+        "id": "confirm_responsibility",
+        "kind": "task",
+        "label": "Confirm responsibility",
+        "contract": "manager_review",
+        "role": "manager"
+      },
+      {
+        "id": "policy_acknowledgment",
+        "kind": "evidence",
+        "label": "Policy acknowledgment",
+        "contract": "policy_ack",
+        "role": "participant"
+      },
+      {
+        "id": "request_access",
+        "kind": "action",
+        "label": "Request access",
+        "contract": "access_request",
+        "inputs": {}
+      },
+      {
+        "id": "confirm_access",
+        "kind": "evidence",
+        "label": "Confirm access",
+        "contract": "access_confirmed",
+        "role": "manager"
+      },
+      {
+        "id": "orientation",
+        "kind": "task",
+        "label": "Orientation",
+        "contract": "orientation",
+        "role": "participant"
+      },
+      {
+        "id": "receiving_handoff",
+        "kind": "task",
+        "label": "Receiving handoff",
+        "contract": "handoff",
+        "role": "manager"
+      },
+      {
+        "id": "staff_done",
+        "kind": "finish",
+        "label": "Staff done",
+        "lifecycle": "complete",
+        "outcome": "staff_onboarding_complete"
+      }
+    ]
+  }
+}

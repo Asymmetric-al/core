@@ -1523,9 +1523,7 @@ resolved one decision at a time.
 - D1 Reusable Sections are a separate visible, root-level, same-scope,
   one-level, non-recursive reference. They are not ordinary local sections and
   do not introduce nested reuse.
-- Version 1 is one flat ordered composition under an implicit root. This is a
-  deliberate permanent-valid representation, not a scattered provider-array
-  assumption or an accidental promise that composition can never evolve.
+- Version 1 is one flat ordered composition under an implicit root and remains permanently valid. The 2026-09-22 Phase 42 HA-A1 planning amendment uses the explicitly reserved successor seam for ordinary-Page composition/2 Stack/Split/Grid, with exact slot/depth/node/size controls and qualified standard rendering. It does not wrap or rewrite v1, expand Article or specialized Phase 22 families, permit recursive reuse, or make the native Phase 23 lane depend on Phase 42. See [the exact successor grammar](../web-studio-hybrid/ux-and-composition.md) and [adoption decisions](../web-studio-hybrid/decisions.md); runtime qualification remains open.
 - Each local section has stable lineage-local identity, stable semantic type,
   explicit schema version, and typed content. Duplicate or cross-Page copy
   creates a fresh identity and re-proves every reference.
@@ -1928,9 +1926,8 @@ proofs and will be resolved one at a time.
 - The package is exact Tenant × environment × Site bound. Cross-Site or
   cross-Tenant reuse requires a separate explicit compatible binding and proof;
   it is never inferred or wildcarded.
-- The package version is immutable and content-addressed. No active or retained
-  historical generation resolves `latest`, a database-held import path, a
-  remote URL, or mutable package code.
+- The package version is immutable and content-addressed. No active or retained historical generation resolves `latest`, a database-held import path, a remote URL, or mutable package code.
+- The 2026-09-22 Phase 42 HA-A2/A4 planning amendment explicitly supports ministry-controlled conventional source and appointed accountable maintainers. A verified Git connection and isolated exact-source build feed this same D9 independent first-party admission. Ordinary editorial work requires no repository; source ownership grants neither CMS/CRM access nor qualification, runtime availability or Site activation. D10 and D1 retain their exact release authority. See [source delivery](../web-studio-hybrid/presentation-sdk-and-source.md).
 
 ### Package authority and protected platform capabilities
 

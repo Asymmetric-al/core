@@ -198,8 +198,7 @@ fields.
 
 The launch catalog is closed and versioned. Page admits Hero, Rich Text, Media,
 Gallery, Call to Action, Cards, FAQ, Quote, and Impact Statistics. Article
-admits Rich Text, Media, Gallery, Quote, and Call to Action. Composition is one
-flat ordered sequence under an implicit root. Each section has stable lineage-
+admits Rich Text, Media, Gallery, Quote, and Call to Action. Phase 23 composition/1 remains one flat ordered sequence under an implicit root. Each section has stable lineage-
 local identity, exact type and schema version, and typed semantic content.
 
 Hero is Page-only, first and singular. Impact Statistics are editorial claims,
@@ -208,7 +207,7 @@ typed owner references. Presentation packages own qualified rendering, while
 code owns semantic DOM order, heading structure, baseline spacing, responsive
 reflow, and accessibility floors. Future capability requires additive catalog
 evolution with retained readers; no dormant generic children, rows, columns,
-arbitrary styles, nested builder, or best-effort unknown block meaning ships.
+arbitrary styles, generic nested builder, or best-effort unknown block meaning ships. Phase 42 HA-A1 explicitly supplies the later bounded Page composition/2 profile; its qualified Stack/Split/Grid nodes do not rewrite v1 or expand Article. The native Phase 23 lane remains independent of hybrid editor/source delivery. See [the successor grammar](../../../docs/prds/web-studio-hybrid/ux-and-composition.md).
 
 A Reusable Section contains exactly one family-qualified semantic leaf other
 than Hero, including its bounded repeater. It is exact Tenant × environment ×
@@ -225,7 +224,7 @@ qualified for one exact Tenant × environment × Site. Its immutable manifest
 binds provenance, source commit, accountable human owner, support terms,
 compatibility, renderer registry, assets and CSP, dependencies, SBOM and
 licenses, performance/cost budgets, accessibility, no-JavaScript and failure
-fallbacks, and qualification evidence.
+fallbacks, and qualification evidence. Phase 42 HA-A2/A4 adds ministry-controlled repositories and appointed maintainers as a verified source-author channel into this same independent first-party admission; it creates no tenant self-certification, direct executable upload or source-to-public authority.
 
 The package consumes only the serialized Public Presentation View Model and
 narrow registered capability islands. It cannot import raw Payload, Supabase,

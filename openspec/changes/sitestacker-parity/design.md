@@ -28,7 +28,8 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
   of the 25 areas is specified in its own change + PRD when it is built.
 - **One roadmap governs phase architecture (added 2026-07-07, Roadmap v2).**
   The phase set/numbering/ordering/dependencies live in
-  `docs/prds/sitestacker-parity/roadmap.md` (41 phases, 0–40, seven lanes);
+  `docs/prds/sitestacker-parity/roadmap.md` (v3 adopted 2026-09-22: 45 phases,
+  0–44, eight lanes; v2 numbering retained);
   `phase-map.md` mirrors it and loses on conflict. Rationale: the program
   re-sequenced once already (v1→v2 renumbered every phase above 9); without a
   single source of truth plus a mandatory renumbering-map + congruence-sweep

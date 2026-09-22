@@ -224,7 +224,7 @@ SHALL remain source-owned and separate.
 The launch catalog SHALL contain Hero, Rich Text, Media, Gallery, Call to
 Action, Cards, FAQ, Quote and Impact Statistics. Page SHALL admit all nine;
 Article SHALL admit only Rich Text, Media, Gallery, Quote and Call to Action.
-Composition SHALL be one flat ordered sequence under an implicit root. Each
+Phase 23 composition/1 SHALL remain one flat ordered sequence under an implicit root. Each
 section SHALL have stable lineage-local identity, exact type/schema version and
 typed semantic content. Duplication SHALL create fresh identity and repeat
 proof.
@@ -233,9 +233,9 @@ Hero SHALL be Page-only, first and singular. Impact Statistics SHALL be
 editorial claims rather than CRM, giving or financial truth. Media and Call to
 Action SHALL reference owning systems. Every move SHALL have named keyboard-
 accessible controls and removal SHALL be recoverable. Catalog evolution SHALL
-be additive and separately qualified with retained readers. No dormant generic
-children, rows, columns, arbitrary styles, nesting, unbounded provider blocks or
-best-effort unknown public meaning SHALL ship.
+be additive and separately qualified with retained readers. The Phase 23 v1 writer SHALL reject dormant generic children, rows, columns and nesting. Arbitrary styles, unbounded provider blocks and best-effort unknown public meaning SHALL remain forbidden in every profile.
+
+Phase 42 HA-A1 MAY add the explicitly selected bounded ordinary-Page composition/2 profile through this successor seam, subject to its exact Stack/Split/Grid grammar and qualification. It SHALL preserve v1 meaning without automatic wrapping, reparenting or retroactive limits; retain Article and specialized-family restrictions; and keep Hero and reusable references root-only. Native Phase 23 delivery SHALL NOT depend on the hybrid editor, Git delivery or optional Workflow Studio.
 
 #### Scenario: An editor composes a family-qualified Page
 
@@ -248,7 +248,7 @@ best-effort unknown public meaning SHALL ship.
 #### Scenario: Unknown or invalid section data is encountered
 
 - **GIVEN** a source contains an unknown schema version, invalid Hero placement,
-  arbitrary style/layout field, nested content or unsafe reference
+  arbitrary style/layout field, nested v1 content, unqualified v2 structure or unsafe reference
 - **WHEN** it is saved, imported, migrated, previewed or compiled
 - **THEN** the affected successor fails closed with one exact cause
 - **AND** unknown retained source is quarantined privately rather than silently
@@ -293,7 +293,7 @@ release impact.
 
 A `Presentation Package` SHALL be source-controlled presentation code admitted
 as first-party only after qualification for one exact Tenant × environment ×
-Site. Its immutable/content-addressed manifest SHALL include provenance, source
+Site. Phase 42 HA-A2/A4 SHALL allow verified ministry-controlled source with appointed accountable maintainers to feed this same independent admission boundary; source ownership, Git merge, build success and runtime availability SHALL NOT confer CMS access or Site activation. Ordinary editing SHALL NOT require a repository. Its immutable/content-addressed manifest SHALL include provenance, source
 commit, accountable human owner, support terms, compatibility, renderer
 registry, assets/CSP, dependencies, SBOM/licenses, performance and cost budgets,
 no-JavaScript/failure fallbacks, accessibility and evidence. Tenant-uploaded

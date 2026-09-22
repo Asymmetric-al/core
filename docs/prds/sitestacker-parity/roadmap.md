@@ -1,144 +1,59 @@
-# Asym Missions Platform — Program Roadmap (v2)
+# Asym Missions Platform — Program Roadmap (v3)
 
-## Documentation reconciliation — 2026-09-16
+Adopted 2026-09-22 under [AL-1892](https://github.com/Asymmetric-al/core/issues/1892)
+from the founder-supplied complete roadmap. This revision has **45 phases (0–44)**.
+Phases 0–40 keep their numbers and stable slugs; Phases 41–44 are additions.
+No historical issue or accepted earlier-phase contract is silently renumbered.
 
-AL-1861 adopts the ratified Phase 22–26 planning packages together on this
-reconciliation branch, preserving their owner amendments and qualification
-boundaries. The original source PRs [#1323](https://github.com/Asymmetric-al/core/pull/1323),
-[#1340](https://github.com/Asymmetric-al/core/pull/1340),
-[#1558](https://github.com/Asymmetric-al/core/pull/1558),
-[#1564](https://github.com/Asymmetric-al/core/pull/1564) and
-[#1657](https://github.com/Asymmetric-al/core/pull/1657) remain unmerged as of this
-snapshot. Their open state does not erase the decisions adopted here, and this
-documentation change does not implement, activate or dispatch product work.
+## Authority and adoption
 
-Use the [document-authority guide](../../ai/document-authority.md) and
-[reconciliation source manifest](../../ai/audits/2026-09-16-documentation-reconciliation-sources.json)
-to distinguish integrated planning from exact source captures. Prior source-PR
-states, ticket frontiers, check results and publication restrictions are dated
-evidence; current implementation requires the accepted owning contracts and
-qualified producer seams. Read the current phase entries cumulatively; a later
-phase never silently replaces another domain's authority.
+This file owns phase architecture and scope. [phase-map.md](phase-map.md) is its
+compact mirror. Detailed current PRDs, accepted owner amendments, OpenSpec and
+source contracts govern their exact domains; a later consumer cannot acquire
+source authority through shorthand. Phases 0–26 below retain their detailed
+reconciled contracts, including stronger dependencies than the supplied orientation
+summaries. The [adoption index](../program-roadmap/README.md) routes the complete
+Studio packages, evidence, source assets, unresolved decisions and ticket impact.
 
-_The source-of-truth roadmap for the SiteStacker parity program and the full
-Asym product build-out. Adopted 2026-07-07._
-
-> **Precedence.** This file is the **source of truth for phase architecture:
-> the phase set, numbering, ordering, dependencies, and per-phase scope
-> summaries.** [`phase-map.md`](./phase-map.md) remains the short orientation
-> guide and mirrors this file's table; if the two ever disagree, **this file
-> wins** and the mirror must be fixed. Binding product boundaries still live in
-> OpenSpec (`platform-boundaries`, `platform-surfaces`,
-> `platform-product-intent`, `platform-principles`) and
-> [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md);
-> nothing here overrides them. Groomed phase PRDs
-> (`phase-00` … `phase-09`) remain the binding scope for their phases — this
-> roadmap frames them, it does not re-open them.
+This is accepted planning direction, not proof of implementation, provider
+qualification, deployment or activation. Phases 22–26 remain the integrated
+planning contracts imported by AL-1861/PR #1891; original source PR merge state
+is separate. All current source and release gates remain required.
 
 ## How to read this roadmap
 
-- **Phase numbers = current build order.** A lower number is groomed and built
-  before a higher number **unless the dependency column says otherwise** —
-  dependencies gate starts, not numbers. Lanes (below) show what can run in
-  parallel.
-- **Every phase has a stable slug** (e.g. `custom-fields`). New PRDs, issues,
-  and tickets must cite phases as **"Phase N (Name)"** — never a bare number —
-  so any future re-sequencing can be swept mechanically.
-- **Renumbering governance:** if the program ever re-sequences again, the
-  change lands as a new roadmap revision with an old→new mapping table (like
-  [the v1→v2 map below](#renumbering-map-v1--v2)), plus a same-commit
-  congruence sweep of every PRD, doc, and open GitHub issue that cites a moved
-  number. Partial renumbering is forbidden.
-- **Statuses are conservative.** `PRD exists` means a groomed PRD file is in
-  this folder — it does **not** mean built or live. `future (needs PRD)` means
-  the phase is recognized and scoped here at roadmap depth only; everything in
-  its section is **direction, not commitment** until the phase is groomed.
-  `Built?`/`Live?` truth for existing code lives in
-  [`parity-matrix.md`](./parity-matrix.md).
-- **Per-phase sections are roadmap-depth, not PRDs.** They exist so that (a)
-  nothing is forgotten, (b) grooming starts from a complete feature inventory,
-  and (c) earlier phases can reserve the right seams. Where the best build
-  approach is genuinely unsettled, the section says so explicitly under **Open
-  questions** — those are resolved by research + founder decision when the
-  phase is groomed, not silently assumed here.
+- Phase numbers identify stable scope. **Dependencies gate delivery, not numeric order.**
+- Prioritize **Phase 41 (Mobilization, Applications & Onboarding)** immediately
+  after **Phase 34 CORE (Workflow Studio)**. Other packs do not block CORE.
+- **Phase 42 (Web Studio Hybrid Authoring & Governed Web Development)** is an
+  independent content lane after its exact CMS, permission and source gates;
+  it does not wait for Phases 34, 40 or 41. WEB-VISUAL does not wait for Git.
+- Phase 31's minimum connection capability does not depend on its SMS or
+  enterprise consumers. Phase 32 native email does not wait for SMS.
+- Cite phases as **Phase N (Name)**, preserve stable work/requirement identifiers,
+  and bind each capability to actual qualified owners before dispatch.
+- Read the [integration guide](../program-roadmap/integration-guide.md),
+  [shared delivery and completion contract](../program-roadmap/delivery-contract.md)
+  and [retained owner requirements](../program-roadmap/owner-constraints.md).
+  A structural test or available fixture does not qualify the runtime.
 
-## Executive summary — what v2 changes and why
+## What v3 changes
 
-Roadmap v2 replaces the 34-phase (0–33) v1 ordering that lived in
-`phase-map.md`. **Phases 0–9 are unchanged** — they are the committed,
-groomed program of record (PR #465) and v2 is congruent with them. From
-Phase 10 up, v2 makes **five ordering corrections** and adds **seven new
-phases** (34 → 41 phases, numbered 0–40):
-
-**Ordering corrections** (each is a dependency-safety argument, not taste):
-
-1. **Sensitive-ministry safety moves ahead of extensibility.** A new safety
-   foundation (Phase 10) lands immediately after CRM depth, **before** custom
-   fields (11), full permissions (12), and public missionary pages (22).
-   Restricted-country workers and member-care confidentiality need a data
-   classification model **before** tenants can mint arbitrary fields or
-   publish missionary content — otherwise custom fields become a leak path
-   that no later phase can fully repair.
-2. **Donor credit operations move ahead of offline batch entry.** v1 had
-   batch entry before soft-credit/DAF handling; that is backwards — batch
-   entry must capture DAF, soft-credit, tribute, and matching-gift facts at
-   the moment of entry, so the credit operations phase (14) now precedes
-   batch entry (15).
-3. **System messages / template management moves much earlier** (v1 Phase 24
-   → v2 Phase 17). Pledge reminders (16), receipt/PDF rendering (18),
-   statement delivery (19), and workflow notifications (34) all need governed
-   templates; putting the template product after statements meant statements
-   would ship on ungoverned ad-hoc sends.
-4. **Donor development moves ahead of Missionary Workspace depth** (v1 Phase
-   33 → v2 Phase 27, before workspace depth at 28). The missionary workspace
-   exposes a **safe slice of support-raising operations** — portfolios,
-   appeals, referrals, partner health. Those concepts must exist as
-   staff-side truth first, or the workspace invents its own parallel models.
-5. **The workflow engine moves ahead of events/opportunities** (engine at 34,
-   events at 37). Trips, trainings, applications, and registrations are
-   workflow-driven products; building an Event Hub before workflow truth
-   exists would create a second, duplicate process engine.
-
-**New phases** (each was hidden inside another phase in v1, and each hides a
-different data model, permission model, or provider boundary that deserves
-its own grooming):
-
-- **Phase 10 — Sensitive-Data Classification & Restricted-Ministry Safety
-  Foundation** (the early safety layer; full member-care operations stay
-  later, at 38).
-- **Phase 21 — Missionary Field Accounts & Support Balances** (deputized
-  fundraising operations: finance-closed organization-controlled support
-  balances, expense obligations, and external payment evidence — distinct
-  from donation, accounting, and payroll truth).
-- **Phase 26 — Support Hub & Conversation Management** (inbound
-  email/conversations/routing — distinct from outbound comms truth).
-- **Phase 31 — Platform API, Webhooks & Connector Framework** (one governed
-  integration spine before provider-specific syncs multiply).
-- **Phase 38 — Member Care, Crisis & Restricted-Ministry Operations** (the
-  deep care product on top of the Phase 10 foundation).
-- **Phase 39 — Mobile, Low-Bandwidth & Conflict-Safe Field Experience** (the
-  field-reality hardening pass as a product contract, not an afterthought).
-- **Phase 40 — Data Stewardship, Global Search & AI Operator Workbench**
-  (deliberately last: AI assistance is only safe on top of stable truth,
-  permissions, and audit).
-
-**Inputs evaluated.** v2 was produced by evaluating the external
-"asym_missions_crm_parity_phase_architecture_v5" roadmap document (2026-07-07)
-against the committed program, the repo, and fresh research. v5's structural
-corrections were adopted; its errors were **not**: v2 fixes a dependency cycle
-in v5 (its File Manager phase depended on its Platform API phase, which
-depended on Imports, which depended on File Manager), trims spurious
-dependencies (e.g. mobile UX does not depend on imports), converts v5's
-forward references into explicit "enhanced by" links, and keeps committed
-Phase 0–9 titles exactly as their PRDs state them.
+Workflow Studio now separates its 57-recipe CORE from MOBILIZATION (12), GIVING
+(15), EVENTS (3) and CARE (9). Phase 41 owns application evidence and decisions;
+Phase 34 owns common coordination. Phase 42 adds governed visual and source-based
+Web authoring while preserving Phase 23 CMS and Phase 24 Site owners. Phase 43
+adds separately qualified SMS channel, conversation and outreach checkpoints;
+Phase 44 adds sign-in, directory and operations checkpoints. Phase 32 includes
+organization campaigns and Phase 33 includes governed dashboard composition.
+Native behavior remains complete without optional Studio enrollment.
 
 ## The master phase table
 
-Legend — **Hard deps**: must ship first (a number in **bold** is a firm,
-locked dependency from `phase-00-baseline.md`). **Soft / consumes**: improves
-or feeds this phase but does not gate its start; "enhanced by" links point
-forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
-`grilling in progress` / `future (needs PRD)`.
+Starting dependencies retain current accepted floors. The exact source capability,
+owner acceptance, privacy and release gates also apply; optional downstream
+consumers are never whole-phase prerequisites of their own foundations.
+`PRD exists` and `specification adopted` describe planning, never shipped behavior.
 
 <!-- prettier-ignore -->
 | # | Slug | Phase | Hard deps | Soft / consumes / enhanced by | Owner surface / system | Status |
@@ -170,37 +85,24 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **24** | `multi-site-management` | [Full Multi-Site, Language & Currency Management](./phase-24-multi-site-management.md) | 2, 5, 13, 20, 23 | 17 | Tenant settings, Web Studio, Contributions settings | `PRD exists` (implementation-ready 2026-09-01; spec [#1431](https://github.com/Asymmetric-al/core/issues/1431); [OpenSpec](../../../openspec/changes/add-multi-site-management/proposal.md); tickets [#1432–#1557](https://github.com/Asymmetric-al/core/issues/1432) published and dependency-governed; P24-01/#1432 sole ready frontier; 125 successors blocked; D1–D18 and D57–D84 scope-frozen; D19–D55 preserved cross-phase evidence; D56 deferred; not implemented); original source PR remains unmerged; affected P25 consumers require accepted owner contracts and qualified producer implementation |
 | **25** | `donor-portal-depth` | [Donor Dashboard Depth](./phase-25-donor-dashboard-depth.md) | Baseline/start: 3, 4, 6, 7, 13.<br>Before affected consumer dispatch: exact P9, P10, P12, P14, P16, P17, P18, P19 and P22–24 producers from S04/S06 require final accepted contracts plus implemented, qualified owner seams. Q25 also requires the bounded P28/P12 guest-recipient projection and P32 external-enrollment exclusion before dispatch; neither whole future phase is a prerequisite. P22–24-dependent and Q25 consumers remain not dispatch-ready until their exact producer gates pass. Unaffected safe slices remain independent. | 17/19 are required for affected consumers, not optional enhancements; apply the scoped producer gates in the preceding cell. | Donor Portal | `PRD exists` (spec #1563; Q01–Q29 ratified, Q30 accepted; scoped source-owner prerequisites; not implemented; 88 native implementation issues #1565–#1652 under #1563; no blanket dispatch readiness) |
 | **26** | `support-hub` | Support Hub & Conversation Management | 6, 3, 4, 9, 17; 23 (selected lanes) | — | Support Hub, communication services, `packages/api` | `PRD exists` — [ratified specification #1656](https://github.com/Asymmetric-al/core/issues/1656); D1–D40 complete, including D27-C and D29-X01; 4 native index issues #1658–#1661 and 199 implementation leaves #1662–#1860 under #1656; implementation and release proof outstanding |
-| **27** | `donor-development` | Donor Development & Portfolio Management _(beyond-parity differentiator)_ | **9**, 3, 6, 13 | consumes 14, 16; 26; enhanced by 33, 34 | Mission Control CRM (Development) | `future (needs PRD)` (was v1 Phase 33) |
-| **28** | `missionary-workspace-depth` | Missionary Workspace Depth & Support-Raising CRM | 9, 13, 16, 6, 3, 27 | 26 | Missionary Workspace | `future (needs PRD)` for the full phase; unimplemented. [Q25 only](./phase-25-donor-dashboard-depth/contracts/experience.md#ex16--qualification-rollout-and-retained-proof) defines an adopted bounded P28/P12 guest-origin newsletter-recipient projection; not general Phase 28 readiness. |
-| **29** | `files-documents` | File Manager & Document Management | 3, 9 | 18, 26, the shipped workflow-orchestration runtime | Documents/File Manager, CRM, Workflows, Web Studio | `future (needs PRD)` |
-| **30** | `imports-migration` | Imports & Migration Tools | 9, 13, 11, 29, 4, 3 | 14 | Mission Control Data Tools | `future (needs PRD)` |
-| **31** | `platform-api` | Platform API, Webhooks & Connector Framework | 1, 3, 4, 6 | 9, 13 | Platform API, Integrations, Admin | `future (needs PRD)` — **new in v2** |
-| **32** | `newsletter-sync` | Mailchimp / Newsletter Sync with Suppression Handling | 6, 3, 28, 4, 31 | — | Missionary Workspace settings, MC integrations | `future (needs PRD)` for the full phase; unimplemented. [Q25 only](./phase-25-donor-dashboard-depth/contracts/experience.md#ex16--qualification-rollout-and-retained-proof) defines an adopted bounded P32 external-enrollment exclusion; no newsletter-sync implementation or general Phase 32 readiness. |
-| **33** | `reporting-bi` | Reporting & BI / Report Studio | 9, 13, 7, 6, 3 | 11, 15, 16, 30 | Report Studio | `future (needs PRD)` — deps allow an early start (see lanes) |
-| **34** | `workflow-engine` | Configurable Automation & Workflow Engine | 9, 11, 12, 29, 17, 6 | 13 (registration fees), 33 | Automations/Workflows in Mission Control | `future (needs PRD)` |
-| **35** | `contribution-triggers` | Spark-Style Contribution Triggers | **34**, 13, 6, 3 | 33 | Automations, Contributions | `future (needs PRD)` (confirmed separate from 34) |
-| **36** | `p2p-campaigns` | Peer-to-Peer & Advocacy Campaigns | 5, 13, 25, 3, 22 | — | Public Website, Donor Portal, Contributions | `future (needs PRD)` |
-| **37** | `events-groups` | Event / Opportunity Workflows & Group Management | 5, 9, 13, 6, 29, 34, 36 | 10 | Event Hub, Public Website, CRM, Workflows | `future (needs PRD)` |
-| **38** | `member-care-ops` | Member Care, Crisis & Restricted-Ministry Operations | 10, 3, 4, 9, 29 | 6, 12, 26, 34 | Member Care, Mission Control, security-sensitive projections | `future (needs PRD)` — **new in v2** |
-| **39** | `field-first-ux` | Mobile, Low-Bandwidth & Conflict-Safe Field Experience | 3, 4, 9, 28 | 31 | Cross-surface UX, `packages/api` concurrency contracts | `future (needs PRD)` — **new in v2** |
-| **40** | `data-stewardship-ai` | Data Stewardship, Global Search & AI Operator Workbench | 3, 4, 8, 9, 13, 30, 33 | 6, 11, 34 | Mission Control, Data Tools, Search, AI Assist | `future (needs PRD)` — **new in v2** |
-
-**Phase 26 activation qualifier.** Phase 23 is a required owning-phase
-prerequisite for the selected Help/contact/form and Public Guidance lanes, with
-qualification at each actual consumer seam before that lane activates. It is
-not a blanket prerequisite for all Support work: core inbox/work/CRM paths keep
-their own dependencies, and Internal Staff guides remain Support-owned
-operational content rather than CMS Pages. The
-[ratified Phase 26 specification](./phase-26-support-hub-conversation-management.md)
-sets the exact boundaries and proof gates; this qualifier grants no activation
-or implementation authority.
-
-**Out of scope (deliberate):** **child sponsorship** (tracked as an
-out-of-scope row in [`parity-matrix.md`](./parity-matrix.md)).
-**Adjacent-but-not-in-program:** platform SaaS operations (tenant
-provisioning/self-signup, the platform's own subscription billing, plan
-gating) — real work, but it is platform business infrastructure, not
-missions-org capability, and is tracked outside this parity roadmap.
+| **27** | `donor-development` | [Donor Development & Portfolio Management](#phase-27) | **9**, 3, 6, 13 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **28** | `missionary-workspace-depth` | [Missionary Workspace Depth & Support-Raising CRM](#phase-28) | 9, 13, 16, 6, 3, 27 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **29** | `files-documents` | [File Manager & Document Management](#phase-29) | 3, 9 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **30** | `imports-migration` | [Imports & Migration Tools](#phase-30) | 9, 13, 11, 29, 4, 3 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **31** | `platform-api` | [Platform API, Webhooks & Connector Framework](#phase-31) | 1, 3, 4, 6 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **32** | `newsletter-sync` | [Mailchimp / Newsletter Sync with Suppression Handling](#phase-32) | 6, 3, 28, 4, 31 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **33** | `reporting-bi` | [Reporting & BI / Report Studio](#phase-33) | 9, 13, 7, 6, 3 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **34** | `workflow-engine` | [Configurable Automation & Workflow Engine](#phase-34) | 9, 11, 12, 29, 17, 6 | Exact source gates; optional consumers never back-gate foundations | Workflow Studio | specification adopted; independent CORE qualification pending |
+| **35** | `contribution-triggers` | [Spark-Style Contribution Triggers](#phase-35) | **34**, 13, 6, 3 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **36** | `p2p-campaigns` | [Peer-to-Peer & Advocacy Campaigns](#phase-36) | 5, 13, 25, 3, 22 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **37** | `events-groups` | [Event / Opportunity Workflows & Group Management](#phase-37) | 5, 9, 13, 6, 29, 34, 36 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **38** | `member-care-ops` | [Member Care, Crisis & Restricted-Ministry Operations](#phase-38) | 10, 3, 4, 9, 29 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **39** | `field-first-ux` | [Mobile, Low-Bandwidth & Conflict-Safe Field Experience](#phase-39) | 3, 4, 9, 28 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **40** | `data-stewardship-ai` | [Data Stewardship, Global Search & AI Operator Workbench](#phase-40) | 3, 4, 8, 9, 13, 30, 33 | Exact source gates; optional consumers never back-gate foundations | Existing source-owned surfaces | roadmap scope adopted; phase grooming/qualification required |
+| **41** | `mobilization-onboarding` | [Mobilization, Applications & Onboarding](#phase-41) | 34 CORE (inherits exact source floors) | Exact source gates; optional consumers never back-gate foundations | Mobilize / My Journey | specification adopted; binding/qualification gates open |
+| **42** | `web-studio-hybrid-authoring` | [Web Studio Hybrid Authoring & Governed Web Development](#phase-42) | 12, 23 | Exact source gates; optional consumers never back-gate foundations | Web Studio | specification adopted; binding/qualification gates open |
+| **43** | `sms-channel-activation` | [Governed SMS Messaging & Channel Activation](#phase-43) | 6, 12, 17, 31 (minimum) | Exact source gates; optional consumers never back-gate foundations | Communications / Support Hub | specification adopted; binding/qualification gates open |
+| **44** | `enterprise-identity-integration` | [Enterprise Sign-In & Directory Integration](#phase-44) | 4, 12, 31 (minimum) | Exact source gates; optional consumers never back-gate foundations | People & access / connections | specification adopted; binding/qualification gates open |
 
 ## Renumbering map (v1 → v2)
 
@@ -245,63 +147,22 @@ the phase **name**.
 
 ## Dependency lanes & parallelism
 
-Lanes group phases by what they lean on. Earlier lanes are foundations for
-later ones; **lanes overlap in time** — a phase starts when its hard
-dependencies ship, not when its number comes up. Within a lane, lower numbers
-generally precede higher ones.
+| **Lane**                                | **Phases** | **Intended result**                                                                                                       |
+| --------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Foundations and governance              | 0–7        | Ownership, Site/locale/currency context, identity, public runtime, communication and receipt/credit rules.                |
+| CRM and safety                          | 8–12       | Operational visibility, Party graph, classification, custom data and current capabilities.                                |
+| Giving and finance                      | 13–21      | Contributions, recognition, batches, commitments, messages, documents, statements, accounting and Field Accounts.         |
+| Public web and content                  | 22–24, 42  | Governed ministry pages, CMS, Site/locale/domain management and hybrid visual/developer authoring.                        |
+| Engagement and stewardship              | 25–28      | Donor self-service, Support Hub, donor development and missionary support-raising.                                        |
+| Data and integration                    | 29–33      | Document custody, migration, APIs/connectors, newsletter synchronization and reporting.                                   |
+| Workflows and advanced operations       | 34–41      | Shared automation, giving triggers, P2P, events, care, field resilience, stewardship assistance and mobilization.         |
+| Extended channels and enterprise access | 43–44      | Qualified SMS messaging, two-way communication, text-to-give, organization-managed staff sign-in and directory lifecycle. |
 
-| Lane                                              | Phases | Theme                                                                                                                                 |
-| ------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **A — Foundations & governance**                  | 0–7    | Truth ownership, site/locale/currency context, permission floor, identity, public runtime, communication history, finance/legal rules |
-| **B — CRM backbone & safety**                     | 8–12   | CRM operations health, the Party graph, sensitive-data safety, custom fields, full permissions                                        |
-| **C — Money & finance backbone**                  | 13–21  | Designation ledger, donor credit, batch entry, pledges, templates, statements, accounting, field accounts                             |
-| **D — Public web & content**                      | 22–24  | Public ministry pages, Web Studio/CMS depth, multi-site/language/currency management                                                  |
-| **E — Engagement & stewardship surfaces**         | 25–28  | Donor portal depth, Support Hub, donor development, missionary workspace depth                                                        |
-| **F — Data, documents, integrations & reporting** | 29–33  | Files, imports, platform API/connectors, newsletter sync, Report Studio                                                               |
-| **G — Automation & advanced operations**          | 34–40  | Workflow engine, contribution triggers, P2P, events, member care, field-first UX, AI workbench                                        |
-
-**What can run in parallel once Phase 9 ships** (the current frontier):
-
-- **Lane B remainder (10 → 11 → 12)** and **Lane C start (13 → 14 → …)** are
-  independent chains and can be groomed/built in parallel.
-- **Phase 17 (System Messages)** needs only 6 + 2 + 3 + 7 — it can run alongside
-  either chain.
-- **Phase 23 (Web Studio/CMS)** has hard implementation dependencies
-  **2 + 3 + 5** and can start when those foundations qualify. Phase 10, 12 and
-  22 remain required at affected consumer/safety seams, not blanket core merge
-  gates. The ordinary Phase 23 core does not wait for the original P22 PR to
-  merge; an integration cannot activate without its exact qualified owner.
-- **Phase 31 (Platform API framework)** needs only 1/3/4/6 hard — its spine
-  can also be pulled forward if integration pressure demands, though its
-  useful payload grows with 9 + 13.
-- **Phase 33 (Reporting)** can start once 13 (and ideally 16) ship — its
-  number reflects priority relative to the engagement surfaces, not a
-  dependency wall.
-
-**Firm, locked dependencies** (from
-[`phase-00-baseline.md`](./phase-00-baseline.md), carried through v2 —
-do not reorder around them):
-
-- CRM foundation precedes CRM depth, custom fields, and anything reading CRM
-  relationships (with the ADR-0001 softening: for Phase 9, "CRM foundation"
-  means the Asym system-of-record + Phase 4 isolation + Phase 7 party spine,
-  not the Phase 8 operating layer).
-- The giving pipeline (**Phase 13**) precedes offline batch (15), pledges
-  (16), receipt/statement **rendering and operations** (18–19), and exports
-  (20) — with the **rules-first inversion**: the receipt/statement _rules_
-  foundation (Phase 7) came _earlier_ than the ledger, and the ledger is
-  built to produce the gift facts those rules evaluate.
-- The automation engine (**Phase 34**) precedes contribution triggers
-  (**Phase 35**).
+**Intentional exclusions.** Child sponsorship and its specific prayer-calendar/letter-writing product are outside this program; ordinary missionary–donor correspondence remains covered by communications, Support Hub and the workspace. Tenant self-signup/provisioning, Asym's own subscription billing and commercial plan management are adjacent platform-business work, not silently included here. A hosted IDE, hosted OpenCode/BYOK product, arbitrary tenant server runtime and app marketplace are not prerequisites of the web-development plan.
 
 ## The phases in depth
 
-Phases 0–9 are the committed program of record — their sections here are
-orientation summaries; the PRDs are binding. Phases 10–40 are roadmap-depth:
-complete feature inventories and boundaries so grooming starts from
-everything, with open questions marked instead of guessed.
-
----
+<a id="phase-00"></a>
 
 ### Phase 0 — Baseline, Governance & Evidence (`baseline`)
 
@@ -320,6 +181,8 @@ outstanding — all parity-matrix `Live?` cells stay `unconf` until it runs.
 **Guardrail.** Never claim live behavior without Lane 2 confirmation.
 
 ---
+
+<a id="phase-01"></a>
 
 ### Phase 1 — Source-of-Truth Ownership Matrix (`ownership-matrix`)
 
@@ -340,6 +203,8 @@ PRD** — no record type ships without an owner row.
 
 ---
 
+<a id="phase-02"></a>
+
 ### Phase 2 — Site, Locale & Currency Foundation (`site-locale-currency`)
 
 **What it is.** Puts **Site, locale, currency, Entry Method, and Source
@@ -359,6 +224,8 @@ none of them re-model context.
 
 ---
 
+<a id="phase-03"></a>
+
 ### Phase 3 — Minimum Permission & Role-Scoped Projection Foundation (`permission-floor`)
 
 **What it is.** The security **floor**: allow-listed, role-scoped
@@ -377,6 +244,8 @@ export, Phase 30's imports, Phase 33's reports, and Phase 31's API all flow
 through this governance.
 
 ---
+
+<a id="phase-04"></a>
 
 ### Phase 4 — Identity & Account-Claiming Foundation (`identity-claiming`)
 
@@ -398,6 +267,8 @@ later phase inherits this separation.
 
 ---
 
+<a id="phase-05"></a>
+
 ### Phase 5 — Public Website Runtime Contract (`public-runtime`)
 
 **What it is.** Settles where public pages run, how domains resolve, how
@@ -415,6 +286,8 @@ Phase 23 (Web Studio depth), Phase 36 (P2P pages), and Phase 37 (event
 pages) all render inside this contract.
 
 ---
+
+<a id="phase-06"></a>
 
 ### Phase 6 — Shared Communication Event Model (`comms-event-model`)
 
@@ -434,6 +307,8 @@ sync (32), and the CRM Comms tab (Phase 9 socket) all write and read this
 one spine. A send that skips it is a defect by definition.
 
 ---
+
+<a id="phase-07"></a>
 
 ### Phase 7 — Receipt & Statement Compliance Rules + Donor Identity/Credit Model (`receipt-rules-credit`)
 
@@ -456,6 +331,8 @@ model; Phases 18–19 render the approved facts. Templates never decide
 receipt truth.
 
 ---
+
+<a id="phase-08"></a>
 
 ### Phase 8 — CRM Operating Foundation (`crm-operating`)
 
@@ -490,6 +367,8 @@ data-health catalog this phase defines.
 
 ---
 
+<a id="phase-09"></a>
+
 ### Phase 9 — Full CRM Depth & Relationship Graph (`crm-depth-graph`)
 
 **What it is.** The real CRM build — the People & Churches backbone. Party
@@ -513,6 +392,8 @@ sockets are the contract: Comms (6), Custom Fields (11), Files (29),
 Workflows (34), Events (37), External IDs (30/31), Donor Development (27).
 
 ---
+
+<a id="phase-10"></a>
 
 ### Phase 10 — Sensitive-Data Classification & Restricted-Ministry Safety Foundation (`sensitive-safety`)
 
@@ -625,6 +506,8 @@ treated as Art. 9 data or only flagged subsets.
 
 ---
 
+<a id="phase-11"></a>
+
 ### Phase 11 — Custom Fields & Custom Collections (`custom-fields`)
 
 > **Ratified PRD:** [`phase-11-custom-fields-custom-collections.md`](./phase-11-custom-fields-custom-collections.md)
@@ -697,6 +580,8 @@ admin form-layout tooling.
 
 ---
 
+<a id="phase-12"></a>
+
 ### Phase 12 — Full Role & Permission Configuration (`permission-config`)
 
 > **PRD:** [`phase-12-full-role-permission-configuration.md`](./phase-12-full-role-permission-configuration.md)
@@ -759,6 +644,8 @@ whether record-level named-person grants (Phase 10/38's mechanism) get admin
 UI here or stay API-managed until Phase 38.
 
 ---
+
+<a id="phase-13"></a>
 
 ### Phase 13 — Campaign, Designation, Contribution Ledger & Giving Cart (`contribution-ledger`)
 
@@ -877,6 +764,8 @@ publication phases.
 
 ---
 
+<a id="phase-14"></a>
+
 ### Phase 14 — Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts (`donor-credit-ops`)
 
 > **PRD:** [`phase-14-donor-credit-operations.md`](./phase-14-donor-credit-operations.md)
@@ -943,6 +832,8 @@ consumes Phase 14 read models for portfolio ranking. No open roadmap-level
 choice remains.
 
 ---
+
+<a id="phase-15"></a>
 
 ### Phase 15 — Offline Gift & Batch Entry (`gift-batch-entry`)
 
@@ -1013,6 +904,8 @@ attribution sub-grid; and securities ship through the first-class generic
 noncash lifecycle. No open roadmap-level choice remains.
 
 ---
+
+<a id="phase-16"></a>
 
 ### Phase 16 — Pledges & Recurring Commitments (`pledges-commitments`)
 
@@ -1098,6 +991,8 @@ section; implementation details are pinned in the Phase 16 PRD, ADRs, dated
 congruence package, research evidence, and OpenSpec delta.
 
 ---
+
+<a id="phase-17"></a>
 
 ### Phase 17 — System Messages & Template Management (`system-messages`)
 
@@ -1190,6 +1085,8 @@ dispatched. Epic #873 and children #874–#905 are published and blocked; no
 
 ---
 
+<a id="phase-18"></a>
+
 ### Phase 18 — Receipt & PDF Template System (`document-templates`)
 
 **What this phase is (plain language).** One governed Generated Document
@@ -1246,6 +1143,8 @@ and children #908–#961 are published: #908–#910 form the approved
 further dispatch.
 
 ---
+
+<a id="phase-19"></a>
 
 ### Phase 19 — Year-End Statement Operations (`statement-operations`)
 
@@ -1341,6 +1240,8 @@ evidence remain pending.
 
 ---
 
+<a id="phase-20"></a>
+
 ### Phase 20 — Accounting Exports & Reconciliation (`accounting-exports`)
 
 > **Controlling implementation-ready amendment (2026-07-27):**
@@ -1433,6 +1334,8 @@ expense handoff, provider cutover, and currency/FX boundaries are resolved in
 the implementation-ready Phase 20 specification.
 
 ---
+
+<a id="phase-21"></a>
 
 ### Phase 21 — Missionary Field Accounts & Support Balances (`field-accounts`)
 
@@ -2679,6 +2582,8 @@ runtime and production authorization are not claimed.
 
 ---
 
+<a id="phase-22"></a>
+
 ### Phase 22 — Public Missionary & Project Page Workflow (`public-ministry-pages`)
 
 **Status.** `PRD exists` — implementation-ready planning, not implemented. The founder accepted the completed
@@ -3144,6 +3049,8 @@ governed by the published issue graph and each ticket's live blockers.
 
 ---
 
+<a id="phase-23"></a>
+
 ### Phase 23 — CMS / Site Planner Dynamic Content Parity (`web-studio-cms`)
 
 **Status.** `PRD exists` — implementation-ready planning, not implemented.
@@ -3223,16 +3130,17 @@ or override D2 or Phase 10 safety.
 **Phase 24 D59 integration.** Phase 24 owns the ordinary self-service Site-
 brand management experience and complete bounded Site Brand Versions; it does
 not create another renderer or serving head. Under Phase 23's adopted
-Presentation Package/Public Site Generation contracts, Phase 24 consumes their qualified presentation choices and release authority. Staff-
-supplied code remains prohibited, and any certified package lane must be
-explicitly reconciled with the repository's governing Base Maia/Base UI
-contract before implementation.
+Presentation Package/Public Site Generation contracts, Phase 24 consumes their qualified presentation choices and release authority. Staff-supplied executable uploads and runtime scripts remain prohibited. Phase 42 HA-A2/A4 now explicitly supplies the ministry-controlled conventional source lane into independent D9 admission; ordinary editors need no source tooling, and authorized source managers gain no publication or CMS authority from repository control. The complete Asym authoring shell preserves the governing Base Maia/Base UI contract.
+
+**Phase 42 bounded successor.** HA-A1 explicitly uses D7’s reserved composition evolution seam for qualified ordinary-Page composition/2 Stack/Split/Grid. Flat v1 stays valid without automatic wrapping or retroactive limits; Article and specialized Phase 22 grammars remain unchanged. HA-A3 adds a replaceable isolated composer over the same canonical document, D12 save and D25 review owners. Native Phase 23 must remain usable without Phase 42, Git delivery or optional Workflow Studio; see [the complete successor contract](../web-studio-hybrid/README.md).
 
 Phase 24 D66 governs public Site Locale publication; Payload localized
 status remains experimental/default-off editor convenience and never Core's
 readiness or serving authority.
 
 ---
+
+<a id="phase-24"></a>
 
 ### Phase 24 — Full Multi-Site, Language & Currency Management (`multi-site-management`)
 
@@ -3336,8 +3244,7 @@ never live inheritance or Site authority for the account brand. The applicable
 public-Site release authority pins one exact qualified version; drafts and
 failures have no public effect, and D59 creates no second renderer, theme store,
 serving head, or approval workflow. Navigation,
-content, media, account, message, legal, payment, and authorization owners keep
-their facts.
+content, media, account, message, legal, payment, and authorization owners keep their facts. Phase 42’s finite Page-instance layout/settings remain on the editorial axis; its source deployment does not publish this Site Brand Version or change the current locale cohort. The existing D1/D10 and D59 release paths remain controlling.
 
 **Phase 24 D60 resolution.** Each applicable Site setup/readiness view shows one
 quiet, read-only **Messages** summary derived by Phase 17 for the exact current
@@ -3508,9 +3415,7 @@ exists, the confirmation shows a numeric unavailable total only from a complete
 safe aggregate; otherwise it says **Some** and never exposes hidden items. Every
 generated label uses the complete Site Locale display label. A ready action creates one immutable
 Site Locale Public Release through D66's minimal Public Site Generation
-contract. This does not accept the broader unmerged Phase 23 Presentation
-Package proposal; an accepted compatible generation owner is consumed rather
-than duplicated. Publication uses current authorization, expected heads, semantic idempotency, short-
+contract. D66 does not acquire D9 package admission or D10 design-activation authority: it consumes the accepted compatible generation owner. The adopted Phase 23 planning contract and Phase 42 successor remain separate from their original source PR merge state and from implementation qualification; no second generation owner is introduced. Publication uses current authorization, expected heads, semantic idempotency, short-
 transaction CAS, business receipt, audit, and outbox—or changes nothing. The UI
 shows **Publishing** until the exact public URL, language menu, canonical/
 alternate metadata, and sitemap acknowledge the same generation. Search-engine
@@ -3974,6 +3879,8 @@ to its Phase 12/17 activation boundary.
 
 ---
 
+<a id="phase-25"></a>
+
 ### Phase 25 — Donor Dashboard Depth (`donor-portal-depth`)
 
 **Status.** The complete
@@ -4067,6 +3974,8 @@ retain the decision and research context without certifying runtime behavior.
 
 ---
 
+<a id="phase-26"></a>
+
 ### Phase 26 — Support Hub & Conversation Management (`support-hub`)
 
 **Status and authority.** D1–D40, including D27-C and D29-X01, are fully
@@ -4151,1825 +4060,1843 @@ and dependent lanes activate only after their recorded evidence gates pass.
 
 ---
 
+<a id="phase-27"></a>
+
 ### Phase 27 — Donor Development & Portfolio Management (`donor-development`)
 
-**What this phase is (plain language).** The staff-side relationship-
-cultivation product (this program's **beyond-parity differentiator** —
-SiteStacker has nothing here): development officers and regional reps work
-assigned portfolios of major donors and church partners through a
-cultivation pipeline, record asks, follow a next-action cadence, and watch
-engagement scores — the RE NXT / Salesforce Nonprofit Cloud capability
-rebuilt missions-first. Moved ahead of Missionary Workspace depth (28)
-because the workspace exposes a **safe slice of these same concepts**; build
-the truth once, staff-side first.
+<a id="phase-27-what-this-phase-is"></a>
 
-**Why it sits here.** Hard on Phase 9 (the graph + staff-assignment edges +
-reserved sockets), with the ledger (13); consumes credit ops (14) and
-commitments (16); Support Hub context (26) enriches it; reporting (33) and
-workflows (34) enhance it later.
+#### What this phase is
 
-**What it covers** (the three-object domain reserved by Phase 9 A12):
+The staff-side relationship-development product. Development officers, regional representatives and church-relations staff can organize their assigned relationships, prepare an ask, record the response and maintain an appropriate next action. This is a planned beyond-parity capability: the goal is a useful missions-oriented cultivation system, not just more fields on a donor record.
 
-- **Portfolios as derived views** over active staff-assignment edges (roles
-  as data: donor_rep / regional_rep / church_relations / mobilizer) —
-  rule-based auto-assignment + manual override, assignment history, **no
-  stored portfolio table**.
-- **Pipeline enrollments** carrying cultivation stage — one enrollment
-  primitive with **stage presets**: staff preset (identification →
-  qualification → cultivation → solicitation → stewardship) and the
-  missionary MPD preset (Phase 28 reuses this object, different preset;
-  never fork the model per surface).
-- **Ask/proposal records**: asked/expected/funded amounts + status + owner
-  (the RE NXT opportunity pattern), tied to Phase 13 campaigns/designations;
-  pipeline rollups by status and owner; projection-accuracy metrics. Every
-  monetary ask carries an explicit currency and Legal Entity/campaign scope.
-  Rollups remain same-currency and same-entity unless Phase 33 supplies a
-  visibly labelled reporting conversion.
-- **Next-action discipline**: every active enrollment has a next task with a
-  due date; **portfolio health metrics** (untouched prospects, stage aging,
-  overdue actions) — research shows 55–65% of prospects in naive portfolios
-  are never visited; health metrics are the fix, not bigger lists.
-- **Engagement scoring v1**: transparent RFM bands recomputed on schedule,
-  score-drop alerts as tasks; advisory input to stage, never the stage.
-  (Fills the Phase 9 Overview socket that ships with placeholder data.)
-- **Appeals (org-scope)**: goal + Excluded/Asked/Committed/Received/Given
-  buckets (MPDX model; collapse Received/Given if same-database processing
-  makes the distinction moot — decide at grooming), list + kanban views,
-  segment export. Goals and buckets use explicit currency lanes; Phase 27
-  never sums unlike currencies into one scalar.
-- **Church-partnership development**: org-party pipelines (sending/
-  supporting church cultivation) as a first-class preset.
-- **Donor brief**: pre-meeting summary generated from the party record
-  (giving, commitments, interactions, relationships).
+**Primary surface:** Mission Control, with shared development records later projected into the missionary workspace. **Stable slug:** `donor-development`.
 
-**Boundaries & guardrails.** Cultivation stage is never a lifecycle status
-and never authorization. Asks are never edges or custom fields. Suppression
-(never-ask, do_not_contact) blocks ask suggestions and appeal inclusion via
-the one consent authority. AI next-best-action/wealth screening explicitly
-deferred post-parity — deterministic cadence first.
+<a id="phase-27-why-it-sits-here"></a>
 
-**Open questions for grooming.** Interaction-visibility policy when a donor
-is in both a staff portfolio and a missionary's supporter list (staff see
-all; missionary sees own + shared? — decide precisely); ask approval
-workflows; per-tenant stage-preset customization latitude; which leadership
-rollups land here vs Phase 33.
+#### Why it sits here
+
+**Starting dependencies:** Phases 9, 3, 6 and 13. The CRM graph, approved projections, communication history and contribution facts must exist first. Consume the exact Phase 14 recognition and Phase 16 commitment contracts for those features; Phase 26 supplies permitted conversation context. Reporting in Phase 33 and optional workflows in Phase 34 enhance the product without gating its native operation. Phase 28 follows because staff and missionaries must reuse the same cultivation model.
+
+<a id="phase-27-what-it-covers"></a>
+
+#### What it covers
+
+**Portfolios and responsibility.** Derive portfolios from active staff-assignment relationships and saved views. Support rule-based assignment, authorized manual override, transfer and assignment history. Use the accepted role vocabulary, including donor representative, regional representative, church relations and mobilizer; do not create a second stored portfolio membership model.
+
+**Cultivation enrollments.** Use one shared enrollment primitive with an organization-approved stage preset. The staff preset covers identification, qualification, cultivation, solicitation and stewardship. Phase 28 uses a support-raising preset on the same object. Preserve stage history and distinguish a cultivation enrollment from a Workflow Studio run.
+
+**Asks and proposals.** Record the ask, expected response, requested and expected amounts, source-confirmed funding, status and responsible person. Link the appropriate campaign or designation. Provide owner/stage rollups and forecast-versus-outcome comparison, always retaining Legal Entity, currency and the meaning of each amount. An ask is a business record, not a relationship edge or a custom field.
+
+**Next-action discipline.** Every active enrollment has a next task and due date, or an explicit actionable exception. Show overdue actions, untouched relationships, time in stage and missing owners. Native reminders and source-backed task creation must work without installing an optional workflow.
+
+**Appeals and church partnerships.** Support organization-level appeals with a goal, permitted audience and response buckets: Excluded, Asked, Committed, Received and Given, subject to the bucket decision below. Provide list and kanban views and governed segment export. Treat sending and supporting churches as organization Parties with a first-class partnership preset.
+
+**Relationship context.** Produce a pre-meeting brief from authorized giving, commitments, interactions and relationships. Provide transparent recency/frequency/monetary bands, scheduled recomputation and source-backed score-change attention. Explain the inputs and coverage; an advisory score must not change a stage automatically or pretend to measure the value of a relationship.
+
+<a id="phase-27-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+Phase 9 retains Party identity, relationships, assignments, shared tasks and record-shell conventions. This phase owns cultivation enrollments, asks, appeals and their business meaning. Phase 13 owns received gifts; Phase 14 owns recognition; Phase 16 owns commitments; Phases 6 and 17 own communication eligibility, content and delivery. Read these facts rather than copying them into new authorities.
+
+Expose accepted development events and bounded commands for DON-14–DON-16 and the development portion of WS-18 in Phase 34. Share a source-purpose identity between native and configurable follow-up so one intended task or message is not created twice. Supply governed measures to Phase 33. Website content may consume only an independently qualified public projection, never an internal portfolio or donor brief.
+
+**Extended-channel consumption.** Any SMS cultivation or appeal follow-up consumes Phase 43 through the communication owner and exact recipient purpose; a relationship stage or ask never grants phone consent. Directory-driven staff changes in Phase 44 use Phase 12 authority and source-owned reassignment, not automatic portfolio or financial succession. Native development remains independent of both optional capabilities.
+
+<a id="phase-27-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Start with one complete journey: assign a prospect, enroll them, prepare an ask, record the response and complete the next action. Then add appeals, church presets, health views and authorized rollups. Reuse the shared CRM record shell, saved views, filters and task controls; use TanStack Table/Virtual for the lists and the established server-command boundary for business changes.
+
+Show why a person is in a portfolio, who is responsible and what is due next. Assignment changes must preserve accountability rather than silently dropping pending work. Label unknown source coverage and stale scores. Do not require staff to open the workflow diagram to perform ordinary cultivation.
+
+<a id="phase-27-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+Cultivation stage, assignment labels and relationship membership never grant access. Never-ask and contact restrictions exclude prohibited ask suggestions, appeal inclusion and dispatch. A proposed ask or a commitment is not received money. No silent currency conversion or duplicated financial total is permitted. Deterministic follow-up is required; wealth screening and autonomous next-best-action decisions are not part of this phase.
+
+<a id="phase-27-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Prove the full prospect-to-ask-to-follow-up journey through real source services and the staff interface. Include unauthorized portfolio enumeration, stale assignment, concurrent stage edits, contact suppression between preparation and dispatch, duplicate task delivery and explicit entity/currency rollups. A missing next action must be visible and repairable.
+
+Prove that native development work remains usable with Phases 34 and 42 unavailable. Replace reached placeholder scores or shadow objects only after a retained-data census, with history-preserving migration and source-linked recovery. Release with accessible list/kanban operation, understandable status and a representative staff pilot.
+
+<a id="phase-27-open-decisions"></a>
+
+#### Open decisions
+
+Resolve stage-preset customization, ask-review rules, shared interaction visibility between staff and missionaries, score inputs and completeness, and which rollups require materialization. Decide whether Received and Given describe distinct real events; combine them only when the accepted same-system process makes them identical. Record these decisions before the affected feature is implemented, without reopening the earlier identity, consent or financial contracts.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 27 owner obligations](../program-roadmap/owner-constraints.md#phase-27) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
+
+<a id="phase-28"></a>
 
 ### Phase 28 — Missionary Workspace Depth & Support-Raising CRM (`missionary-workspace-depth`)
 
-**What this phase is (plain language).** The missionary's personal
-support-raising (MPD) home — the MPDX/TntConnect capability rebuilt
-first-party. Because Asym owns both the org CRM **and** the missionary's
-supporter data in one database, DonorHub-style middleware is not required for
-normal Asym operation: a gift lands and the missionary's thank-you task exists
-in near-real-time. Phase 21 D8 and Phase 31 nevertheless preserve one optional,
-tenant-controlled, read-only continuity feed for a certified DonorHub pathway
-or an explicitly authorized installed-base MPDX organization without making
-either provider a source of truth.
+<a id="phase-28-what-this-phase-is"></a>
 
-**Why it sits here.** After the kernel exists: parties (9), ledger (13),
-commitments (16), comms (6), projections (3), and the shared cultivation
-objects (27), with Phase 10 safety and the exact authorized Phase 21 source
-projections available when their tenant-selected modules are active.
+#### What this phase is
 
-**What it covers.**
+A missionary's practical support-raising home: keep up with supporters, pursue referrals, plan personal appeals, see commitments separately from received gifts and know what follow-up is needed. The product should connect organizational giving operations and personal relationship work without making the missionary maintain another CRM or wait for a second system to synchronize.
 
-- **MPD funnel** on the shared enrollment object (preset: Never Contacted →
-  Ask in Future → Contact for Appointment → Appointment Scheduled → Call for
-  Decision → Partner-Financial/Special/Prayer) with the **terminal/
-  suppression tail** (Not Interested, Unresponsive, Never Ask, Research
-  Abandoned, Expired Referral) — Never Ask wired into the consent gate.
-- **Optional commitment tracking vs goal**: when a tenant uses commitments or
-  goals, preserve multiple concurrent commitments per
-  partner (TntConnect's single-pledge limit is a known pain — beat it),
-  source-authoritative Phase 16 commitment and occurrence attention states
-  (frequency math, grace windows, and ambiguity rules specced precisely), and
-  a distinct first-gift event. Attention belongs to the named commitment or
-  occurrence; a partner or donor is never labelled “lapsed.” Multi-currency
-  commitments, progress, and goals remain explicit per-currency lanes unless
-  a separately governed reporting conversion exists; they are never
-  collapsed into a source-authoritative cross-currency scalar.
-- **Gift-event-driven automatic tasks** (the flagship differentiator,
-  Inngest fan-out from Phase 6/13 events): thank first gift, thank
-  special/above-commitment gift, review a named Phase 16 attention transition,
-  celebrate fulfillment — idempotent and permanently semantic-deduped at every
-  generated task/send. Phase 28 owns task and audience purpose; Phase 16 owns
-  communication eligibility, Phase 17 owns governed content and sender
-  profile, and Phase 6 owns dispatch and communication history.
-- **Personal appeals + referrals**: appeals over their supporters (five-
-  bucket model shared with 27); referrals as "referred by" **edges in the
-  Phase 9 graph** (never a text field) with expiry timeout and source
-  reporting.
-- **Newsletter list management**: Physical/Email/Both/None per contact +
-  invalid-address flags; clean segment exports (print partners) and
-  consent-gated sends through Phases 17 and 6; **newsletter-preference seam**
-  (Phase 9 Contact tab) fulfilled here; Mailchimp sync itself is Phase 32.
-  Phase 28 never calls Resend or another transport directly.
-- **Dashboard**: a bounded, role-safe composition that may include monthly
-  support vs goal, gained/lost this week/month, a 13-month trend,
-  commitments/occurrences needing attention, appeal progress, and only the
-  Phase 21 modules published for the exact Support Assignment by the current
-  Support Workspace Publication Profile Version and authorized for the current
-  principal by Phase 12. A Support Assignment Participant Membership alone
-  grants nothing. Each module requires its own current source, configuration,
-  and authorization. Activity, goal, commitment, Plan, balance,
-  Balance Coverage, and Reserve Position remain independent. A tenant that
-  does not use commitments or publish balances sees no empty or zero-valued
-  cards. When the balance family is enabled, every authorized parallel
-  Finance-confirmed Field Account Balance is simultaneously discoverable,
-  separately ISO-labelled, and independently through-dated; there is no
-  authoritative converted aggregate or selector-only discovery. The projection
-  may also show provisional support recorded since close,
-  next-compensation date/status/tenant-visible amount only from the exact
-  Compensation Funding Plan Version, Compensation Funding Decision, External
-  Compensation Result, and External Payment Occurrence safe projection,
-  optional policy-derived ministry-expense capacity, and expense/reimbursement
-  progress. It consumes D3's exact assessment
-  presentation—including the quiet No-Assessment state, bounded tenant-selected
-  detail mode, canonical gross/assessment/support-credited values, and
-  period-level components—without resolving profiles or recalculating
-  assessment from gifts. Phase 28 never recomputes or relabels these facts from
-  gifts, commitments, support-raising goals, or accounting records.
-- **Coaching/accountability views** with **PII redaction by design**
-  (coach sees weekly appointments vs target, dials, new partners, support
-  gained/lost, trends — initials + amounts only; read-only, invite-based;
-  weekly qualitative self-report) — redaction enforced in the Phase 3
-  projection layer, not component code; targets org-configurable, not
-  hard-coded to one org's methodology.
-- **Goal setting**: the Phase 28 Support-Raising Goal Version owns the
-  fundraising/coaching goal, MPD start/end dates, and weekly targets—the
-  denominators for coaching metrics. An authorized user may explicitly create
-  a new Phase 28 Goal Version from an Approved Support Plan Version with exact
-  provenance. Later Plan changes produce only a compare/update suggestion;
-  neither authority live-synchronizes or rewrites the other. Phase 21
-  separately owns finance-closed Support Cycles, assessments, compensation
-  funding coverage, and optional policy-derived ministry-expense capacity.
-  Phase 22 D6 may reference one exact compatible Goal Version for a page's
-  optional public metric, but Phase 28 never makes that goal public, changes a
-  page profile, or silently updates a released denominator. A new goal version
-  becomes public only through Phase 22's normal prospective page release.
-- **Interaction log shared with staff** (one log, permission-scoped
-  visibility — the same phone call is never logged twice or lost).
+**Primary surface:** Missionary Workspace, with permission-scoped staff and coaching views. **Stable slug:** `missionary-workspace-depth`.
 
-**Boundaries & guardrails.** The workspace is not a second Mission Control:
-it can only see/enumerate parties with an active supporter-or-referral
-relationship to that missionary (Phase 9 guardrail), with approved exports
-obeying donor privacy and suppression. Org-owned data stays org-owned. The
-optional Phase 21 D8/Phase 31 continuity feed is an outbound, read-only
-transition lane for an incumbent external tool, not middleware inside the
-Asym-native workspace. Phase 28 contributes no feed resource until its
-relationship/contactability purpose contract is separately ratified.
+<a id="phase-28-why-it-sits-here"></a>
 
-**Open questions for grooming.** Private prospect contacts (personal
-network, not yet org CRM) — allowed? promotion/dedupe workflow, staff
-visibility rules; coach identity (staff role vs external invite); Gmail/
-calendar sync scope (MPDX parity) vs manual logging v1.
+#### Why it sits here
+
+**Starting dependencies:** Phases 9, 13, 16, 6, 3 and 27. Reuse the shared development objects rather than creating another pipeline. Consume exact Phase 21 financial projections, Phase 22 public-content operations and the accepted Phase 25/12 newsletter-recipient purpose where required. Phase 26 adds conversation context. Optional workflows, gift-trigger customization and external newsletter sync arrive through Phases 34, 35 and 32 respectively; native workspace work must not wait for them.
+
+<a id="phase-28-what-it-covers"></a>
+
+#### What it covers
+
+**Support-raising pipeline.** Use Phase 27's enrollment model with a support-raising preset: Never Contacted, Ask in Future, Contact for Appointment, Appointment Scheduled, Call for Decision and Partner-Financial/Special/Prayer. Include explicit terminal or suppressed dispositions such as Not Interested, Unresponsive, Never Ask, Research Abandoned and Expired Referral. Never Ask is enforced by the consent owner, not just a column label.
+
+**Commitments and goals.** Support multiple concurrent commitments per partner, distinct currencies, support goals, support-raising start/end dates and weekly activity targets. Display expected versus received support using the commitment owner's frequency, coverage and currentness rules. A missing gift, paused schedule and genuinely late occurrence must not be conflated.
+
+**Native gift-driven work.** Create source-qualified tasks to thank a first gift, acknowledge a special or above-commitment gift, review permitted missed-support attention and celebrate fulfillment. Record completed interactions once. Native tasks are required product behavior, consent- and privacy-aware, with durable identities that later optional automations reuse.
+
+**Appeals, referrals and interaction history.** Reuse the appeal response model over the missionary's allowed supporters. Referrals use the accepted relationship graph, source provenance, expiry and follow-up. Maintain one interaction log with the agreed staff/missionary visibility policy; the same call should not need separate entries in separate products.
+
+**Newsletter work.** Provide Physical, Email, Both and None preferences, invalid-address visibility, print segments and governed native email preparation/sending. Use source-owned audiences and templates. Mailchimp synchronization is Phase 32, not a second implementation here. The newsletter-recipient purpose accepted by Phases 25/12 remains separate from broader supporter access.
+
+**Dashboard and coaching.** Show monthly support against goal, gains/losses over selected periods, a 13-month trend, source-qualified support attention, appeal progress and the exact authorized Field Account projection. Offer invited, read-only coaching views with approved redaction, activity-versus-target measures, trends, weekly qualitative check-ins and agreed next actions. Organization-configurable goals must not impose one agency's methodology on every tenant.
+
+**Field resources.** Include the already-planned internal resource-sharing and region/world-map entry points only through qualified document and public-safe geography projections. Their precise first-release scope remains a decision below; they cannot expose restricted locations.
+
+<a id="phase-28-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+Phase 27 owns cultivation and appeal meaning; Phase 9 owns Parties, referrals, interactions and shared tasks; Phases 13/16 own giving and commitment facts. Phase 21 supplies only the authorized Support Assignment, currency and through-date projection. A fundraising goal is not a finance Support Plan, balance, compensation amount or instruction to move money.
+
+Use Phase 22 for Ministry Update submission and public-page changes. Later Web Studio authoring may improve that interface without taking over the specialized content owner. Phase 34 adds approved outreach, referral, coaching, goal-review, appeal and update-reminder recipes; Phase 35 adds configurable MPD-01 and MPD-06 gift/recurring recipes. Share effect identities across missionary and organization follow-up while retaining genuinely distinct intended communications.
+
+**Extended-channel and sign-in boundaries.** Phase 43 may add qualified SMS purposes without converting newsletter recipients into broadly visible supporters or changing the native email requirement. Phase 44 affects only the exact source-authorized staff/worker access context; an IdP group cannot grant a Support Assignment, coaching visibility or another person’s supporter roster. Preserve native newsletter independence from the Phase 32 campaign/external-sync product.
+
+<a id="phase-28-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Deliver the permitted supporter list, relationship detail, next action and one source-qualified gift task first. Then add commitments/goals, appeals/referrals, coaching and newsletter operations. Keep daily work phone-friendly and allow server-backed save/resume for permitted forms. Show what is saved, pending, unavailable or stale without inventing a successful financial or communication outcome.
+
+Reuse the shared list, record, form and task components. Enforce redaction and restricted enumeration in server projections, including totals and search suggestions. A participant-only My Journey session from Phase 34 is not a missionary-workspace account. A newsletter-recipient relationship does not reveal the supporter roster or giving history.
+
+<a id="phase-28-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+The workspace is not a second Mission Control. Supporter/referral access is limited by the accepted source contract, and organization-owned records remain organization-owned. Giving does not create marketing consent; coaching membership does not expose raw supporter or care records. Do not synchronize fundraising goals into finance plans or treat an absent installment as debt. Public aliases and anonymous-donor protections apply to tasks, notifications and exports as well as screens.
+
+<a id="phase-28-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Prove a missionary can review permitted support, complete a thank-you once, pursue a referral, update an appeal and share only the approved coaching projection. Test duplicate events, anonymous gifts, revoked relationships, consent changes, multiple commitments/currencies and stale financial coverage. Prove newsletter-recipient-only access cannot widen into support or giving access.
+
+Exercise poor-network and repeated-submit behavior through real owner services. Native tasks must work with optional workflows disabled. Migrate any reached personal-task or supporter-data duplicates through an explicit source-preserving cutover; retain a useful manual interaction path during provider outages.
+
+<a id="phase-28-open-decisions"></a>
+
+#### Open decisions
+
+Decide whether private prospects are allowed, how they are promoted/deduplicated and what staff can see. Set the external-coach assurance and redaction policy, exact activity metrics, resource-library/region scope and measured UX budgets. Decide which calendar/email connections or TntConnect/MPDX continuity feeds are required, using Phases 21/31 where applicable. Do not represent an unbuilt connector or unsettled access policy as available.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 28 owner obligations](../program-roadmap/owner-constraints.md#phase-28) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
+
+<a id="phase-29"></a>
 
 ### Phase 29 — File Manager & Document Management (`files-documents`)
 
-**What this phase is (plain language).** One common storage-object and access
-layer for files the platform touches: CRM attachments, workflow uploads (visa
-scans, reference letters), missionary resources, donor-document artifacts,
-public media, expense evidence, and import files. It is not the semantic home
-for every document. The owning domain retains logical identity, legal meaning,
-versions/currentness, relationships, and purpose-retention policy; the storage
-provider holds **bytes**, while Phase 29 owns immutable byte identity,
-storage/access mechanics, malware hygiene, and access audit.
+<a id="phase-29-what-this-phase-is"></a>
 
-**Why it sits here.** After Phase 9 (files attach to parties — the reserved
-Files socket) and Phase 3 (permissioned access); before imports (30, which
-ingest files), workflows (34, file-request tasks), and member care (38,
-restricted documents). Phase 18 may store exact generated artifacts here;
-Phase 21 D10 requires a bounded Phase-29-compatible private receipt-byte seam
-before expense evidence can ship; Phase 29 later adopts that seam into this
-common lifecycle. Phase 21 may likewise adopt Compensation Handoff Package
-bytes; Phase 26 supplies conversation attachments. None transfers semantic
-authority.
+#### What this phase is
 
-**What it covers.**
+One governed document service for CRM attachments, applicant evidence, missionary resources, donor documents, import files and public media custody. Staff should find and share the right file without confusing a public image, confidential document or executable development artifact. Asym owns classification, access, provenance and retention; storage providers hold bytes.
 
-- **One storage-object/access model**: immutable digest and byte identity,
-  owner-domain and owner-record reference, kind, Phase 10 classification,
-  owner-supplied retention-policy reference, storage class, and provenance;
-  signed, expiring access URLs; download audit for confidential/restricted
-  tiers. Domain-specific document or evidence state remains in its owner.
-- **Resolve the dual-storage accident**: the repo currently runs Supabase
-  Storage buckets (profiles, document-uploads, email-assets, PDF studio)
-  _and_ a parallel Cloudinary signed-upload pipeline (with a duplicated
-  module) with no ownership rule — this phase rules which provider owns
-  what (recommendation at grooming: media-optimized public assets vs
-  private documents) and documents it in the ownership matrix.
-- **Folders/organization** (SiteStacker File Manager parity: nested
-  folders, path-based linking), per-domain attachment surfaces (the Phase 9
-  record-shell Files tab lights up), bulk operations.
-- **Public media vs private documents as different classes** with different
-  defaults (public assets cacheable; private docs signed-URL only,
-  classification-gated).
-- **Photo hygiene pipeline** (with Phase 10): EXIF/geolocation scrubbing on
-  upload for worker-linked media; review gates for restricted workers.
-- **Retention execution** under owner policy: care files, generated documents,
-  expense evidence, and imports can have different legal lives. Phase 29
-  applies holds and executes the owning domain's authorized disposition,
-  feeding the Phase 6 redact-not-delete posture and future DSAR tooling (40);
-  it never invents or overrides purpose retention.
-- **Generated-document artifact storage** (18): Phase 18 exclusively owns the
-  Logical Document, immutable Generated Document Versions, current canonical
-  accessible PDF, purpose-retention version, and evidence-only revision
-  history. Phase 29 stores and serves exact immutable bytes. It cannot retitle
-  or replace semantic identity, mark a version current, expose prior revisions
-  as donor choices, or choose their disposal.
-- **Expense-evidence byte lifecycle** (21): Phase 29 supplies the private
-  storage, access, malware-hygiene, retention, and deletion mechanics for
-  receipt images and other expense evidence. Phase 21 owns the expense
-  evidence's business meaning, immutable Receipt Evidence Asset identity,
-  exact Claim Version/item coverage links, qualification,
-  approval/correction state, and accounting-ready coverage. The D10
-  predecessor seam and Phase 29 lifecycle use the same opaque byte identity;
-  adoption is not a file rewrite. Moving or deleting bytes cannot silently
-  rewrite that source truth.
-- **Expense-collaboration evidence retrieval** (21): D24 reuses the same
-  private-byte lifecycle; it does not create a helper file store. Phase 21 owns
-  the exact claim/item/split/evidence collaboration scope, Evidence Access
-  Projection Version, current purpose authorization, assignment lifecycle, and
-  action provenance. Phase 29 owns immutable byte identity, private storage,
-  malware hygiene, retention, hold, quarantine, disposition, access audit, and
-  short-lived requester-authorized delivery. Retrieval must be non-public and
-  non-cacheable, and reusable bearer URLs are forbidden. Revocation blocks
-  future retrieval without claiming that bytes already delivered can be
-  recalled; storage movement or deletion cannot create, expand, or rewrite
-  D24 assignment, consent, approval, submission, payment, Field Account, or
-  accounting truth.
-- **Expense-resolution evidence boundary** (21): D25 reuses the exact D10
-  Receipt Evidence identity and D24/Phase 12 current-access contract; it creates
-  no file store, duplicate evidence asset, or new byte family. Phase 29 owns
-  immutable bytes, scan, private retrieval, access audit, retention, hold,
-  quarantine, and authorized disposition. D25 owns only typed evidence
-  references and source-attributed coordination. Storage movement, deletion,
-  quarantine, or access failure cannot supply a claimant response, prove
-  evidence unavailable or sufficient, resolve a case, satisfy a downstream
-  disposition, or trigger a financial correction.
-- **Phase 21 records-package byte lifecycle** (21): D26 owns its six closed
-  record-family meanings, Records Schedule Contract and Binding Versions,
-  per-record Retention Resolutions, successor-impact coverage, package schema
-  and selected content, Coverage Manifest, representation labels, and business
-  completeness. Phase 29 alone owns immutable private package bytes, encrypted
-  staging, scan/quarantine, copy inventory, authenticated streaming and access
-  audit, short package-byte expiry, owner-authorized hold/disposition
-  execution, provider-copy outcomes, backup treatment, and restore suppression.
-  A download, print, Tenant External Copy Assertion, or expired staging copy
-  cannot make Phase 29 infer completeness, legal sufficiency, verified
-  destination custody, source retention, hold release, or source disposal.
-- **Prospective-expense-evidence byte lifecycle** (21): D22 quotes,
-  itineraries, estimates, budgets, and other plan evidence use a separate
-  Phase 21 semantic identity from D10 Receipt Evidence. Phase 29 owns immutable
-  byte identity, private storage/retrieval, malware hygiene, access audit,
-  retention, hold, quarantine, and disposition; Phase 21 owns meaning,
-  request-version coverage, classification purpose, and decision lineage.
-  Bytes cannot become a claim, receipt, approval, reservation, reimbursement,
-  payment, or accounting fact. Evidence-bearing D22 activation waits for the
-  certified private-byte seam; an attachment-free manual plan path remains
-  complete wherever the tenant's winning policy permits it.
-- **Travel-route and location-evidence byte lifecycle** (21): route files,
-  optional GPS artifacts, odometer images, map-provider evidence, destinations,
-  and similar D18 travel inputs are separately purpose-labelled expense evidence,
-  not generic attachments. Phase 29 owns private byte identity, malware/file
-  hygiene, short-lived purpose-bound retrieval, access audit, tenant-visible
-  retention, holds, quarantine, and disposition. Phase 21 owns their evidence
-  meaning, exact claim/item coverage, qualification, calculation lineage, and
-  retention purpose; Phase 10 supplies the strictest worker/location
-  classification and egress floor. A manual evidence path remains available,
-  and no broad export, support view, ordinary approved artifact, or accounting
-  package receives raw route/GPS content by default.
-- **Travel cumulative-admission evidence byte lifecycle** (21): any D28
-  predecessor export, attestation support, associated-scope proof, or continuing-
-  completeness feed artifact remains private purpose-labelled calculation-
-  admission evidence. Phase 29 owns immutable byte identity, malware/file
-  hygiene, short-lived authorized retrieval, access audit, retention, hold,
-  quarantine, and disposition. Phase 21 owns the Opening Cumulative State,
-  Capacity Key Contract, evidence class, pool/group meaning, Admission Manifest,
-  first-use authority, correction, and containment. A file, digest, upload,
-  restore, or storage result cannot prove zero or completeness, admit native
-  calculation, create a historical claim, or establish downstream financial
-  truth.
-- **Compensation-handoff byte lifecycle** (21): Phase 29 stores and serves the
-  exact immutable artifact bytes, enforces private access and access audit, and
-  executes disposition under Phase 21's retention purpose. Phase 21 retains
-  Compensation Handoff Package semantic identity, schema, content digest,
-  source coverage, currentness, provider-operation lineage, and retention
-  authority. Moving or disposing bytes cannot turn a decision into payroll,
-  payment, or accounting truth.
-- **Organization-card activity file lifecycle** (21): Phase 29 supplies private
-  byte storage, malware and sensitive-card-data hygiene, short-lived authorized
-  access, access audit, retention, hold, quarantine, and disposition mechanics
-  for Organization Card Activity File Assets. Phase 21 owns their purpose,
-  immutable identity, Organization Card Source and Import Profile relationship,
-  manifest linkage, parser provenance, transaction meaning, and retention
-  reference. Moving, quarantining, or disposing bytes cannot rewrite accepted
-  transaction evidence, assignments, coverage, corrections, claims, approval,
-  payment, accounting, or reconciliation truth.
-- **Field Account opening-evidence byte lifecycle** (21): Phase 29 supplies
-  private byte storage, content identity, malware/file hygiene, short-lived
-  authorized retrieval, access audit, retention, hold, quarantine, and
-  disposition mechanics for artifacts in a Phase 21 D17 Opening Source Package.
-  Phase 21 owns source precedence, package and manifest identity, source-fact
-  dispositions, exact-history qualification, cohort reconciliation,
-  conservation, activation, corrections, evidence-purpose retention, and what
-  remains structurally inert reference history. Moving, restoring,
-  quarantining, or disposing bytes cannot activate Field Accounts, alter an
-  Opening Position, make reference history authoritative, replay side effects,
-  or create accounting truth. Opening evidence is never public storage.
-- **Public Ministry Media byte lifecycle** (22): Phase 22 D9 owns the semantic
-  Public Ministry Media Asset, page/locale placement meaning, release
-  eligibility, exact Page Release Manifest pin, where-used meaning, and
-  withdrawal intent. Phase 29 supplies the compatible private Upload Intake,
-  immutable Sanitized Media Master and derivative byte custody, scanning and
-  bounded transformation execution, copy inventory, access, quarantine, hold,
-  retention, and disposal evidence. It must preserve D9's opaque identities,
-  discarded-source-name, private-origin, no-public-original, immutable-
-  generation, independent-output-proof, and scope-isolation invariants. Moving,
-  restoring, purging, or deleting bytes cannot release a page, establish
-  safety, rewrite a placement, or prove external forgetting. Existing generic
-  media rows, filename-bearing serializers, mutable provider objects, and raw
-  public URLs are not grandfathered as D9 assets or evidence.
-  D14 may select only the exact current D9-certified social derivative and
-  contextual placement text pinned by its release coverage. Phase 29 owns byte
-  custody and processing evidence, not search eligibility, share presentation,
-  permalink posture, external cache state, or completed-sharing truth.
-  D25 editorial prose, semantic versions, and the bounded recovery buffer remain
-  private Payload content; Phase 29 gains no editorial-text family,
-  actionability, retention-policy, or scratch-cleanup authority from D25.
+**Primary surface:** Mission Control File Manager and embedded document controls across the product. **Stable slug:** `files-documents`.
 
-**Boundaries & guardrails.** Storage providers hold bytes only. Phase 29 owns
-generic storage-object metadata, signed access, and access audit; the source
-domain owns business meaning, versions/currentness, relationships,
-authorization purpose, legal status, and retention policy. No direct-to-bucket
-access from clients outside the signed flow, and filenames/folders never
-define domain truth.
+<a id="phase-29-why-it-sits-here"></a>
 
-**Open questions for grooming.** Exact certified scanning/processing/storage
-provider choices and operational thresholds; upload size/type policy for
-non-D9 surfaces; whether missionary resources (org → field distribution) ship
-here or with 28; and CDN implementation within D9's already-ratified private-
-origin, opaque-resolver, immutable-release, and honest-withdrawal constraints.
+#### Why it sits here
+
+**Starting dependencies:** Phases 3 and 9, with the existing safety, identity and permission requirements applied to each document class. This phase supplies upstream capabilities for imports, workflows, mobilization, events, care and custom web development. Generated artifacts from Phase 18 and conversation attachments from Phase 26 are consumers. Document processing uses the existing execution substrate and does not depend on Phase 34 or Phase 42 being complete.
+
+<a id="phase-29-what-it-covers"></a>
+
+#### What it covers
+
+**Document identity and organization.** Maintain the source owner, attachment purpose, classification, retention class, provenance, exact byte version and authorized metadata. Provide folders, search, permitted bulk operations and embedded attachments, including the CRM Files area. Folder placement and a human-readable path organize a document; they do not grant access or replace its stable identity.
+
+**Upload and evidence lifecycle.** Provide bounded upload initiation, finalization, integrity checks, malware scanning/quarantine, accepted byte custody and exact-version retrieval. Make each state visible and retry-safe. Uploaded, malware-clean, reviewed, signed and accepted are distinct facts; the relevant business owner decides whether evidence satisfies a requirement.
+
+**Public media custody.** Produce qualified renditions, preserve asset lineage and support privacy-safe public delivery. Apply worker-linked metadata and EXIF/geolocation hygiene and required safety review. Phase 23's logical public-media catalog and Site-use qualification remain separate from generalized physical custody. Placement-local alt text, caption and crop are not global file metadata.
+
+**Private document access.** Require current user/purpose authorization before issuing expiring access. Protect originals, previews, filenames, metadata and confidential download audit. Support revocation, attachment removal and source-specific access requirements without exposing a reusable public URL.
+
+**Generated and imported records.** Register receipts, statements and other generated artifacts with their source/version lineage; the registry does not create their legal or financial meaning. Preserve Phase 21's private-byte and record-custody contracts, including qualified opening-source evidence, and Phase 30's staging-only role.
+
+**Development artifacts.** Supply the minimum controlled custody profiles for Phase 42 source captures, build artifacts, manifests and retained renderer versions. These are not public media by default. Keep ordinary upload preview/scan processing distinct from explicitly authorized source execution in an isolated build environment.
+
+**Retention, holds and disposition.** Use the approved purpose-specific schedules and holds for care, finance, imports and other documents. Track references from active, candidate, scheduled and recovery generations. Purge only after complete source-use and policy proof; incomplete or stale zero-use counts are not permission to delete. Preserve truthful partial-deletion and unknown-outcome records.
+
+<a id="phase-29-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+The business domain owns the document's meaning and accepted evidence; this phase owns the qualified custody, access and disposition operations. Phase 10 supplies safety/classification, Phase 12 capability decisions, Phase 23 logical public media, Phase 18 generated-document facts and Phases 34/41 evidence references. Events and care consume narrower purpose profiles, not general folder access.
+
+Expose exact-version upload, currentness, quarantine and retrieval outcomes through stable source contracts. Workflow records and events carry authorized references, never bytes or reusable signed URLs. Phase 42 consumes custody without transferring package admission or public activation here. Supply governance evidence to data stewardship and reporting through permission-safe projections.
+
+**Channel and enterprise evidence custody.** Register any retained sender-registration or identity-connection evidence only under its exact source purpose and retention policy. Credential secrets remain with their credential owner, and raw authentication assertions, directory payloads and SMS bodies do not become ordinary searchable File Manager documents. Deprovisioning or source disconnect cannot erase held financial evidence; access revocation still applies to future reads.
+
+<a id="phase-29-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+First census actual providers, buckets, code paths and retained records. Choose a deliberate custody allocation instead of preserving multiple pipelines by accident. Do not treat historical provider mentions as a current deployment inventory. Keep physical paths and backend choices internal to the service.
+
+Deliver an end-to-end private attachment journey, then public rendition and generated-artifact registration, then specialized evidence and development-artifact profiles. Reuse shared pickers and file-status controls. Explain why a file cannot be used and direct recovery to the scan, rights, access or business-review owner rather than exposing raw storage consoles.
+
+<a id="phase-29-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No direct client bucket access outside the qualified signed flow; no public originals for private evidence. A clean scan does not certify a signature or application requirement. Moving a file cannot bypass classification or erase retained history. No age-only purge of an admitted renderer or financial artifact. Do not build another CMS media library, business-approval service or source-code execution platform inside the File Manager.
+
+<a id="phase-29-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Prove real upload/finalize/scan/retrieve behavior, cross-tenant and cross-purpose denial, expiry and revocation, malicious/oversized files, repeated finalization, interruption and incomplete deletion. Verify a public rendition cannot expose private originals or unsafe metadata. Test rights withdrawal against a previously prepared publication candidate.
+
+Prove required artifact retention across active, preview, scheduled, recovery and held references. Register source-linked recovery and storage-failure operations before enabling dependent workflows. Complete a bounded migration with reconciled metadata/byte integrity and one access authority; no silent dual custody or lost source lineage.
+
+<a id="phase-29-open-decisions"></a>
+
+#### Open decisions
+
+Select the storage/provider allocation, scanning service, per-purpose size/type limits, preview formats, public delivery profile, resource-library scope and retention schedules with the owning teams. Qualify the exact source/build-artifact profiles and current access behavior. Legal or records-policy questions remain owner decisions; this roadmap does not supply universal disposal periods or a compliance certificate.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 29 owner obligations](../program-roadmap/owner-constraints.md#phase-29) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
+
+<a id="phase-30"></a>
 
 ### Phase 30 — Imports & Migration Tools (`imports-migration`)
 
-**What this phase is (plain language).** Every prospective tenant arrives
-with a legacy database — usually SiteStacker. This phase is the embedded
-migration product: upload a file, get guided column mapping, see per-row
-validation in a fixable grid, **dry-run** the whole import, review
-fuzzy-duplicate matches with confidence tiers, commit in the background, and
-undo only work that remains safely reversible. Because there are no production
-users, this tool is also the **demo-seed pipeline** — dogfooded from day one.
+<a id="phase-30-what-this-phase-is"></a>
 
-**Why it sits here.** Target schemas must exist first: parties (9), ledger
-(13), custom fields (11 — SiteStacker parity even auto-generates import
-templates from the field catalog), files (29), identity/merge (4).
+#### What this phase is
 
-**What it covers.**
+The embedded migration product for bringing an organization's legacy data into Asym safely. Staff upload a file, understand the proposed mapping and effects, resolve errors and duplicates, commit authorized changes, and reconcile what actually arrived. The SiteStacker migration kit is a named delivery requirement, not an incidental example.
 
-- **Import wizard** to the 2026 embedded-importer bar (Flatfile/OneSchema/
-  Dromo): CSV/XLSX upload, deterministic mapping suggestions with
-  tenant-confirmed remembered mappings, template generation from the live
-  field catalog, in-grid validation with bulk fix-up, annotated error
-  downloads. A later AI enhancement must use Phase 40's suggestion ledger,
-  classification, evidence, and human-commit contract; imported PII never
-  leaves its governed boundary merely to improve mapping. Build-vs-embed is
-  decided at grooming.
-- **Dry-run/preview**: exactly what would be created/updated/skipped/merged,
-  per-row detail, before anything commits.
-- **Dedupe everywhere, consistently**: matching rules (exact/fuzzy per
-  field) separated from duplicate actions (block/warn/queue); a
-  match-confidence review queue (auto-merge high band only, human review
-  middle band) — the **same rules firing across UI entry, API writes, and
-  bulk import** (Salesforce's Data-Loader-bypasses-rules inconsistency is
-  the named anti-pattern), reusing the Phase 4 merge contract and Phase 9
-  duplicate surfaces.
-- **Stable external/source IDs** on all importable records: re-import
-  updates instead of duplicating; cross-system reconciliation. Every imported
-  financial root also pins exact Tenant, Legal Entity, currency, source
-  system, and stable external ID. None is inferred from Site, provider, or a
-  default entity.
-- **Provenance + rollback**: every import batch tagged on created/updated
-  records; time-boxed batch undo with before-image capture only while no
-  immutable downstream coverage exists. If an issued document, fulfillment
-  application, Field Account entry, Accounting Release, provider operation,
-  or external transfer covers a fact, undo is blocked and the owning domain's
-  append-only successor/correction path applies, including Phase 20
-  compensation where applicable. The undo-after-merge hazard (Planning Center
-  documents it deleting real people) is explicitly blocked.
-- **Background processing** via Inngest: chunked, progress-reported,
-  row-level failure isolation, resumable; **batch-origin event suppression**
-  (an import must not fan out ten thousand automation emails).
-- **Owner-domain import adapters**: parties, relationships, historic gifts,
-  commitments, custom fields/entities, files, and content activate only after
-  the target phase and its typed import command exist; Phase 30 never defines
-  a target domain's schema or bypasses its invariants. Source-authoritative
-  Field Account opening/history and expense records, if supported, enter only
-  through owner-domain commands. For Phase 21 D17, Phase 29 owns private byte
-  identity, storage/access, malware hygiene, and access audit. Phase 30 owns
-  import-session/upload UX and transport, replaceable parsing, mapping
-  mechanics, chunked resumable staging, and review mechanics only. Phase 21
-  owns source precedence and mapping admissibility, the complete Tenant × Legal Entity ×
-  ISO-currency cohort, exact-history certification, five-way coverage
-  disposition, residual Opening Position, conservation, independently live
-  coverage carry-forward, first-close predecessor cursor, manifest,
-  activation, and correction. General fuzzy matching or auto-merge is forbidden
-  for Phase 21 D17 financial identity. A Phase 30 import `commit`, `complete`, or `undo`
-  state never implies Field Account activation, and imported exact or reference
-  history remains side-effect-dark. An import never writes a balance scalar or
-  replays historic Accounting Releases into QBO/Xero. Adoption of prior
-  accounting history obeys Phase 20 D17's
-  source-family-specific Posting Ownership Cutover: exact half-open ownership
-  intervals, a source-complete coverage manifest, preserved previous-owner
-  evidence, and optional gap-only backfill for proved-unposted work—never
-  dual-write, fuzzy adoption, or whole-backlog replay. Phase 20 and Phase 21
-  boundaries remain independently authoritative even when intentionally
-  aligned.
-- **D28 cumulative-travel adoption remains owner-controlled**: Phase 30 may
-  provide a downloadable opaque-ID template, private upload session, parsing,
-  mapping, chunked resumable staging, row validation, and correction-file
-  mechanics for a large opening census. Phase 21 alone defines qualifying
-  quantity, source period/unit/pool/group semantics, evidence class, opening and
-  continuity dispositions, complete Admission Manifest, first-use CAS,
-  correction, and external fallback. A Phase 30 dry run, commit, complete, or
-  undo state cannot prove opening zero or prospective completeness, activate
-  native D18 calculation, fabricate predecessor claims, or alter an admitted
-  cumulative pool.
-- **Operational source ingestion remains owner-domain work**: recurring intake
-  of one operational source artifact under a fixed, certified source contract—
-  including Phase 21 organization-card activity under D14—is owned by that
-  source domain, not by this general migration workbench. Phase 30 may not
-  reinterpret, heuristically deduplicate, destructively undo, replay, or bypass
-  Phase 21 card evidence, manifest, assignment, coverage, correction, or
-  approval invariants.
-- **The SiteStacker migration kit as a named deliverable**: field-catalog
-  bootstrap from a SiteStacker entity export, mapping presets for its basic
-  CRM fields, donations/pledges/relationship import order, and
-  **reconciliation reports** with record counts and Legal-Entity-partitioned,
-  per-currency control totals proving migration fidelity. Unlike currencies
-  are never summed into one “dollar total.” Migration friction is
-  SiteStacker's moat; this is the battering ram.
+**Primary surface:** Mission Control Data Tools. **Stable slug:** `imports-migration`.
 
-**Boundaries & guardrails.** Imports write through each owning domain's typed
-service (authorization, validation, consent, dedupe, classification,
-idempotency, and audit) — never raw table loads. Historic-giving imports never
-mint receipts for pre-platform gifts. The Phase 21 D8 outbound continuity feed
-and every Phase 31 resnapshot/reset are not imports or migrations. A resnapshot
-rebuilds only the recipient-scoped export projection and delivery cursor from
-current source-authoritative versions; it never writes Phase 14, 16, 21, or 28
-truth, destructively merges records, or erases or claims deletion of
-provider-owned work.
+<a id="phase-30-why-it-sits-here"></a>
 
-Phase 21 D26 outbound records archives, offboarding retrieval, browser
-downloads, and custody delivery are not imports or migration transport. Phase
-30 may provide no outbound destination adapter, package staging, transfer
-claim, or disposition authority; any optional certified external destination
-uses Phase 31 while Phase 29 retains byte custody and Phase 21 retains package
-meaning.
+#### Why it sits here
 
-**Open questions for grooming.** Importer build-vs-embed; the reversible undo
-window for otherwise eligible work; whether historic gifts live in the main
-ledger with a source flag or a linked historic store (reports/progress bars
-must include them either way — decide with 13/33).
+**Starting dependencies:** Phases 9, 13, 11, 29, 4 and 3. Real target owners, the field catalog, file custody and identity/merge rules must exist before data can be accepted. Consume Phase 14 recognition where supported. Each additional target requires only its exact owner contract; the import transport does not wait for every future application module.
+
+<a id="phase-30-what-it-covers"></a>
+
+#### What it covers
+
+**Upload and mapping.** Support CSV/XLSX intake, source-specific templates generated from the field catalog, remembered tenant mappings, row-level validation, bulk correction and annotated error downloads. Mapping assistance may propose matches, but staff review determines the accepted plan; optional AI is not a prerequisite.
+
+**Dry-run and reviewed commit.** Produce a no-write plan showing records to create, update, skip or queue for merge, dependencies, warnings and expected totals. Bind the plan to exact source bytes, mapping/version, scope and target revisions. Reprove authority and affected target state at commit; a changed target is a conflict, not permission to overwrite newer work.
+
+**Consistent duplicate handling.** Separate matching rules from permitted actions. Use the accepted exact/fuzzy identity evidence, confidence review and source-owned merge command across UI entry, APIs and bulk import. Do not make import an alternate path around classification, consent or duplicate controls. Any automated merge must already be permitted by the identity owner.
+
+**Stable source identities and provenance.** Preserve external IDs, source system, batch identity, occurrence and recorded times, historical/cutover disposition and coverage. Reimport converges on the same permitted target identity instead of creating another copy. Provide per-record lineage and reconciliation against the source export.
+
+**Recoverable processing.** Use bounded durable batches with per-row outcomes, progress, restart and failure isolation. Record accepted work before dispatch. Preserve late-committing records and do not advance a cursor past unprocessed lower-order work. Historic data stays outward-effect-dark: no mass welcome, first-gift trigger, account grant or new receipt merely because a row was imported.
+
+**Target coverage.** Plan Parties, relationships, historic gifts, commitments, custom fields/collections, files and content in the correct owner-defined order. Additional application targets use Phase 41; finance opening evidence uses Phase 21. Target readiness, not a generic upload success, determines what can be committed.
+
+**SiteStacker migration kit.** Include field-catalog bootstrap, source mapping presets, relationship and contribution/commitment sequencing, exception guidance and reconciliation reports. Check record counts and financial totals by Legal Entity, original currency and source basis; do not collapse them into an arbitrary converted scalar.
+
+**Reversal and correction.** Show what can be safely undone, what needs a compensating source operation and what is irreversible. Retain permitted before-images and batch provenance where required. Reversal must not delete a real Party after merge, erase later staff edits or rewind financial history.
+
+<a id="phase-30-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+Phase 30 owns transport, staging, mappings, plans and import-run evidence. Target services own validation and business acceptance. Phase 4 owns identity/merge; Phase 11 owns custom-data semantics; contribution and finance owners retain all money rules. Resolve historic giving within the accepted source model rather than inventing a shadow ledger.
+
+CMS imports use Phase 23's governed no-write import plan and create private D12 draft successors only. Phase 42's composition/schema evolution remains catalog-owned. Git source capture is not a database import, and a developer database must never replace current CMS content. Workflow template portability belongs to Phase 34 and is inert configuration, not operational-record migration.
+
+**SMS and directory import scope.** Historic phones and provider subscription flags remain evidence to classify, not automatic SMS consent. Historic identity/directory mappings do not create staff membership, reactivate revoked grants or merge principals by email. Any migration into Phase 43/44 invokes the exact source acceptance and current-proof contracts, preserves adverse history and stays outward-effect-dark until a separately authorized activation.
+
+<a id="phase-30-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Begin with a complete low-risk source-to-Party import and exact repeat import, then add relationship/custom-data and source-qualified money/document/content targets. Keep preview and commit separate and make uncertainty visible per row. Long operations must recover after a closed browser without requiring a fresh import identity.
+
+Use the shared accessible grid and file controls. Choose an embedded importer or native implementation only after evaluating the required data boundary, source validation hooks and lifecycle. Provide clear counts for accepted, rejected, pending and unchanged work, with a cause-owned next action rather than a generic failed batch.
+
+<a id="phase-30-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No raw table loads, implicit publication, synthetic source success or mass outward replay. Importing a historical gift never creates a new tax receipt. A source event marked historical cannot become prospective by changing a displayed timestamp. Reviewed backfill is a separate bounded operation. Do not promise universal time-window undo, permanent dual writers or lossless transformation of unknown data; quarantine unresolved records for a visible disposition.
+
+<a id="phase-30-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Prove exact reimport, changed mapping, duplicate identity, revoked scope, stale plan, partial failure, interrupted batch and concurrent target edits. Use real database tests for idempotency, scope, commit boundaries and late commits. Verify source counts, relationships and native-currency totals, plus zero unintended send, enrollment, payment or public effect.
+
+Run a representative SiteStacker migration with reviewed exceptions and recovery. Census actual retained state before migration; fresh-build assumptions are not a substitute for evidence. Publish target-specific reversal and reconciliation procedures before tenant use.
+
+<a id="phase-30-open-decisions"></a>
+
+#### Open decisions
+
+Choose importer build-versus-adopt, the first supported source export profiles, mapping-assistance data handling, per-target chunking and safe reversal policies. Resolve unsupported legacy fields and whether a target supports update, append, merge or reference-only import. Any uncertainty in historic finance, media rights or identity is decided by its existing owner, not by this transport phase.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 30 owner obligations](../program-roadmap/owner-constraints.md#phase-30) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
+
+<a id="phase-31"></a>
 
 ### Phase 31 — Platform API, Webhooks & Connector Framework (`platform-api`)
 
-**What this phase is (plain language).** The governed way for the outside
-world to talk to Asym: a versioned public REST API, signed webhooks, scoped
-tokens, and a per-tenant connector registry — **one integration spine**
-built before provider-specific syncs multiply into one-off code.
-SiteStacker ships a versioned API + webhooks (and its dead developer-docs
-site is a cautionary tale — ours live in-repo and published).
+<a id="phase-31-what-this-phase-is"></a>
 
-**Why it sits here.** Needs the foundations (1/3/4/6), Phase 10
-classification, and Phase 12's central capability model; its useful payload
-grows with 9 + 13. It precedes Mailchimp (32) so the first real connector
-rides the framework instead of defining it ad hoc.
+#### What this phase is
 
-**What it covers.**
+The governed way external systems connect to Asym. Deliver a documented API, reliable signed events and a reusable connection framework so newsletter sync, legacy feeds and web-source delivery do not become isolated integrations with different security and recovery rules.
 
-- **Versioned REST API**: date-pinned versions per tenant/token (the Stripe
-  model — additive changes safe, per-request override header, isolated
-  downgrade transforms), OpenAPI spec + generated docs from day one,
-  published deprecation policy.
-- **AuthN/Z**: OAuth2 client-credentials for org integrations +
-  fine-grained expiring PATs (GitHub model: resource- and
-  permission-scoped, last-used tracking, org policy controls); everything
-  resolves through the same Phase 12 capability evaluator used by first-party
-  surfaces rather than a parallel access model, then through Phase 3
-  projections — **external consumers get governed projections and events,
-  never raw tables**; Phase 10 classification is enforced in serialization.
-- **Rate limiting**: per-tenant and per-token token buckets, 429 +
-  Retry-After + limit headers, separate read/write buckets.
-- **Webhooks to the Standard Webhooks spec**: HMAC-SHA256 signing
-  (id.timestamp.payload), replay windows, ~8-attempt exponential backoff,
-  per-endpoint event-type filtering, auto-disable on sustained failure,
-  delivery logs + manual replay, secret rotation. (Svix-hosted vs
-  Inngest-backed delivery decided at grooming.)
-- **Event contract registry**: typed, versioned, thin-to-medium payloads in
-  a consistent envelope (CloudEvents-style id/source/type/time), published
-  catalog with compatibility guarantees.
-- **Connector registry** in Mission Control: installed integrations per
-  tenant, provider links (generalizing `crm_record_links` — this phase
-  co-owns the Phase 9 External-IDs socket with imports), granted scopes,
-  connection health, last sync/delivery status, enable/disable, full audit.
-  Embedded-iPaaS primitives (Nango-style managed OAuth) evaluated
-  build-vs-buy.
-- **API/audit trail** queryable by tenant admins; sensitive-field access
-  flagged.
-- **First concrete feed consumer**: Phase 21 D8's recipient-scoped Missionary
-  Support Feed Projection. Phase 21 owns the Missionary Support Activity and
-  Support Balances source projections plus their finance-safe external field
-  floor; Phase 14 and Phase 16 retain supporter and commitment truth; Phase 28
-  contributes relationship/contactability only after a separate ratified
-  purpose contract. The feed subject is one exact Support Assignment, not a
-  Party participant, household, relationship, or access grant. Phase 31 owns
-  the recipient-scoped composite, complete
-  scoped snapshot, monotonic change cursor, reset/resnapshot protocol, signed
-  reconciliation hints where certified, provider mappings, and delivery
-  evidence. Later candidates include read-only Phase 20 accounting evidence
-  where explicitly authorized and church-management syncs. Phase 20 remains
-  the only Stripe/QBO/Xero authorization, delivery, and recovery doorway;
-  Phase 31 must not generalize that provider-specific financial authority into
-  a second connector. Financial projections carry explicit Legal Entity,
-  currency, source, and as-of semantics and never expose provider credentials.
-- **Optional future Public Ministry measurement adapter**: Phase 22 D15 owns
-  only its suppression-safe aggregate facts and local report. Phase 31 may later
-  certify one external analytics mapping/egress lane only after exact purpose,
-  fields, consent or objection posture, provider, region, retention, deletion,
-  and observed-versus-modeled behavior are proved. It may never export D15's
-  transient occurrences, identifiers, raw request data, replay, or a generic
-  tenant-authored event payload and cannot reinterpret external results as
-  people, shares, conversions, gifts, attribution, settlement, or payment.
-- **Optional D26 records destination**: only after D26's complete browser lane
-  exists, Phase 31 may certify a tenant-owned storage destination using
-  provider-native authorization, exact destination identity, least privilege,
-  package-manifest write and readback, integrity, ambiguity-safe retry, drift,
-  revocation, residency, preserved holds/restrictions, and exit behavior.
-  Phase 21 owns package and custody semantics; Phase 29 owns staged bytes;
-  Phase 31 owns connection and transport evidence. There is no launch-time
-  Drive/Dropbox/Box/SharePoint/S3/SFTP marketplace, raw-key flow, or claim that
-  upload acceptance proves durable custody.
+**Primary surface:** Mission Control Integrations, developer documentation and server integration services. **Stable slug:** `platform-api`.
 
-**Boundaries & guardrails.** Connectors cannot bypass permissions or
-source-of-truth rules. A feed exports governed projections and stable
-references; it does not create another contribution ledger, Field Account
-subledger, accounting release, or final reconciliation. A reset or resnapshot
-can replace only disposable Phase 31 projection/delivery state; it cannot write
-an owning source, erase provider-owned records, or claim downstream deletion.
-No GraphQL, no
-tenant-authored server-side scripting, no third-party app marketplace —
-post-parity. Don't hand-roll the importer grid, webhook delivery, and
-connector OAuth simultaneously (each is a whole company's product — the
-build-vs-buy triage is a grooming deliverable).
+<a id="phase-31-why-it-sits-here"></a>
 
-**Open questions for grooming.** Webhook delivery build-vs-buy; whether the
-public API v1 is read-only with writes trailing. Phase 21 D8 is the first
-concrete feed consumer; its provider activation still requires an authorized
-design partner and production certification.
+#### Why it sits here
+
+**Starting dependencies:** Phases 1, 3, 4 and 6. The integration foundation can be delivered independently; its useful resource catalog grows as CRM, contribution and other source owners qualify their operations. Phase 32 consumes it. Phase 42 needs its minimum connection, credential and revocation contracts for the Git lane, not completion of every public API resource or connector.
+
+<a id="phase-31-what-it-covers"></a>
+
+#### What it covers
+
+**Versioned public API.** Provide source-owned resource operations, OpenAPI definitions, generated developer documentation, pagination/error conventions and a published compatibility/deprecation policy. Retain date-pinned tenant/token versions and explicit request-version selection as the proposed design to qualify; transformation behavior must not change business meaning or authorization.
+
+**Integration identity and access.** Support the approved organization client-credential and fine-grained expiring token patterns. Use Phase 12's current principal and capability rules, including applicable non-human-owner restrictions. Show granted scope, last use, expiry, rotation and revocation. API callers receive approved projections and source commands, never raw database or Payload authority.
+
+**Capacity and delivery controls.** Apply tenant- and token-scoped limits, separate read/write budgets, Retry-After and useful failure feedback. Accept essential durable work without silent loss; queue or reject additional work truthfully according to the owning contract. Provider limits do not become a reason to drop accepted source intent.
+
+**Signed webhooks.** Publish a typed, versioned event catalog, endpoint-specific subscriptions, timestamped signature/replay protection, secret rotation and delivery evidence. Include bounded exponential retry, failure alerting, endpoint suspension and authorized redelivery using the original event identity. Preserve source occurrence time separately from delivery attempts.
+
+**Connection registry.** Track installed integrations, provider links, exact scopes, connection state, health, latest successful work, failures and repair. Share external-ID conventions with Phase 30 and the CRM's External IDs surface. Credentials remain server-side under the connection owner; ordinary UI and job payloads store references only.
+
+**Source-specific adapters.** Support the required seams for newsletter sync, read-only continuity feeds, accounting handoffs and selected future signing/screening services. Phase 20 retains accounting delivery decisions; provider support is not a generic permission to move money. Start with a concrete design-partner use case, not an abstract marketplace.
+
+**Text-to-give handoff.** Preserve the planned SMS-keyword-to-secure-checkout-link seam with source code and giving context intact. Any SMS provider/channel enablement uses its existing consent and compliance owner; this is not a new payment route or a requirement to build native SMS giving.
+
+**Minimum Git connection contract.** Supply exact provider/repository identity, credential custody, current Asym authority, provider authorization, binding generation, revocation, durable event acceptance and recovery. Phase 42 owns the presentation-specific GitHub App journey and capture/build behavior. Neither repository control nor Asym administration proves the other domain's permission.
+
+<a id="phase-31-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+The framework owns connection and transport facts. Each source domain owns its resources, action eligibility, business effect identity and outcome. External events, internal dispatch envelopes and application commands may share infrastructure but are not interchangeable permission surfaces.
+
+Phase 34 uses only registered purpose-qualified connector actions, not raw HTTP nodes. Internal first-party orchestration remains independent of a public API launch. Phase 21/28 continuity feeds preserve their exact read-only source rules. Phase 42 consumes the minimum Git capabilities while ordinary visual editing remains independent. Newly introduced e-signature or screening profiles require separate source evidence before use.
+
+**Explicit extended consumers.** Phase 43 owns actual SMS channel operation and completes the text-to-give consumer using the existing giving resolver. Phase 44 consumes the minimum scoped connection, credential and audit interfaces for enterprise identity, but owns federation/provisioning semantics. The shared framework and unrelated integrations remain complete without either consumer. Callback verification is provider-specific, not one generic signature algorithm assumed to fit GitHub, messaging and SCIM.
+
+<a id="phase-31-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Deliver one end-to-end connection and source operation with visible scope, event delivery, failure and revocation. Then add the API/resource catalog and additional provider adapters. Decide build-versus-adopt for OAuth/token lifecycle and webhook delivery alongside Phase 30's importer choice; do not accidentally build three unrelated infrastructure products.
+
+Make connection state understandable: connected does not mean synchronized, delivered or business-complete. A repair should name the owner and affected operation. Preserve accepted requests across downtime and reconcile missed/out-of-order events through bounded source readback. Treat incoming payloads as untrusted and validate signature, schema, event action and scope before scheduling work.
+
+<a id="phase-31-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No tenant-authored server scripts, arbitrary SQL/HTTP workflow actions, raw provider-console replay, general GraphQL product or app marketplace in this phase. Do not expose pasted secrets in Workflow Studio. A source outage is not proof of deletion or authorization loss; explicit disconnection must still fence future work immediately while external cleanup is reconciled separately. Redelivery cannot weaken current access or silently change the original effect.
+
+<a id="phase-31-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Prove scoped API reads/writes, cross-tenant denial, token expiry/rotation/revocation, raw-body signature verification, replay protection and accepted-before-acknowledge behavior. Exercise duplicate, missed, late and out-of-order events, provider throttling, endpoint failure, lost acknowledgements and unknown outcomes. Verify logs, counts and status pages do not leak private payloads or unrelated resources.
+
+Qualify the minimum Git contract with forged callback/installation evidence and stale events after reconnect; the concrete source adapter is tested again in Phase 42. Release each connector profile only with its source-specific contract, operating limits, documentation and safe recovery path.
+
+<a id="phase-31-open-decisions"></a>
+
+#### Open decisions
+
+Confirm API versioning details, first resource/consumer, initial write scope, webhook transport and retry budget, managed OAuth use and the exact provider permission profiles. Standard Webhooks, Svix-style delivery and managed-connector tooling are evaluation inputs, not assumed installed services. Keep provider-specific support, licensing and operational limits explicit rather than promising universal integrations.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 31 owner obligations](../program-roadmap/owner-constraints.md#phase-31) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
+
+<a id="phase-32"></a>
 
 ### Phase 32 — Mailchimp / Newsletter Sync with Suppression Handling (`newsletter-sync`)
 
-**What this phase is (plain language).** Missionaries keep partner
-newsletter lists in Mailchimp; this phase lets them sync **permitted**
-partner contacts safely — without ever overriding an unsubscribe, leaking a
-suppressed donor, or importing provider state as truth. Today the repo has
-**zero Mailchimp integration** (a static settings card implies one — a
-misleading placeholder to remove or wire).
+<a id="phase-32-what-this-phase-is"></a>
 
-**Why it sits here.** The first real outbound connector on the Phase 31
-framework, exposed through the Phase 28 workspace (newsletter list
-management), governed by Phase 3 export policy, Phase 6 suppression/history,
-and Phase 17 message governance.
+#### What this phase is
 
-**What it covers.**
+A reliable external newsletter bridge for ministries that use Mailchimp. It should export only an authorized audience, preserve unsubscribe and privacy decisions in both directions, and make drift and failed synchronization repairable. It is not a second CRM or a replacement for native Asym newsletter work.
 
-- **Permitted-audience computation**: only parties with an active
-  supporter relationship to the missionary AND export-eligible under
-  consent/suppression policy (never-ask, do_not_contact, bounce, complaint
-  all exclude).
-- **Strictest-suppression-wins, both directions**: Mailchimp unsubscribes
-  land in Asym as channel-scoped suppression facts (Phase 6); Asym
-  suppressions are pushed/enforced on export; a missionary can never
-  override a donor unsubscribe.
-- **One-way identity**: Asym never overwrites party identity from Mailchimp;
-  provider links via the connector registry.
-- **Sync operations UX**: per-sync results, failures, drift visibility;
-  provider rate-limit handling; audience/tag mapping.
-- **Provider-agnostic seam**: the Phase 6 unsubscribe landing and the
-  newsletter-preference model stay provider-neutral so a second ESP (or
-  native Resend newsletters) doesn't re-architect anything.
+**Primary surface:** Missionary Workspace settings and Mission Control Integrations. **Stable slug:** `newsletter-sync`.
 
-**Boundaries & guardrails.** Mailchimp is a provider, never communication or
-CRM truth. For an Asym-native newsletter, Phase 28 owns audience and purpose,
-Phase 17 owns governed content and sender profile, and Phase 6 owns consent,
-dispatch, and communication history; Resend is transport only. Phase 32 is the
-external-ESP bridge.
+<a id="phase-32-why-it-sits-here"></a>
 
-**Open questions for grooming.** Org-level Mailchimp accounts vs
-per-missionary accounts (auth topology); whether campaign/open metrics flow
-back into partner "newsletter health" (28); native-newsletter-vs-ESP
-long-term posture.
+#### Why it sits here
+
+**Starting dependencies:** Phases 6, 3, 28, 4 and 31. Native audience/preference meaning, identity and the connection framework must be available before an external provider can receive contacts. Phase 17 governs native message content where used. The accepted Phase 25/28/12 recipient-purpose rules and Phase 32 external-enrollment exclusion are mandatory for affected audience paths.
+
+<a id="phase-32-what-it-covers"></a>
+
+#### What it covers
+
+**Permitted audience.** Compute membership from the approved source relationship and newsletter purpose, then apply current consent, export permission, address validity and suppression. A supporter relationship alone does not authorize export. A recipient-only purpose accepted for native Asym access does not automatically authorize external enrollment; preserve the exact accepted exclusion.
+
+**Audience and tag mapping.** Let an authorized user select the permitted provider audience and supported tags, review the intended scope and inspect proposed additions/removals. Keep stable provider links without copying provider identity over the canonical Party. Source identity repair and recipient consent are separate operations.
+
+**Bidirectional suppression.** Land qualified provider unsubscribe, bounce and complaint evidence in the existing communication/consent owner. Push and enforce Asym restrictions on export. Apply the stricter applicable suppression and never re-subscribe someone merely to repair drift, reconnect an account or complete a workflow.
+
+**Operational sync.** Provide initial synchronization, incremental updates, source/provider drift visibility, per-item results, rate-limit handling and cause-owned recovery. Preserve original work identities through duplicate events and interrupted runs. Show accepted work, provider acceptance and confirmed membership separately when the provider contract distinguishes them.
+
+**Future provider seam.** Keep newsletter preferences, unsubscribe handling and audience eligibility provider-neutral so another qualified email provider can be added without reworking the CRM. Optional campaign/open metrics must remain labelled provider evidence and must not become proof of reading, consent or relationship strength.
+
+<a id="phase-32-organization-wide-communication-campaigns"></a>
+
+##### Organization-wide communication campaigns
+
+**Complete product responsibility.** In addition to every external newsletter-sync obligation in this chapter, Phase 32 delivers organization-wide communication campaigns in Mission Control. This is the campaign/newsletter ownership explicitly reserved by the Phase 17 contract, not another System Messages product. Phase 28 retains independently usable missionary newsletter preparation and sending through shared lower-level communication primitives. Organization campaigns must not require a missionary persona, a Mailchimp account or an enabled Workflow Studio template. The native campaign and the external-sync lanes reuse source-governed audiences without becoming two competing audience or delivery authorities. \[R-COM-01\]
+
+**Campaign versus appeal versus giving campaign.** The communication campaign owns its purpose, content, reviewed audience/send occurrence and communication outcomes. Phase 27 owns an appeal and its relationship-development response; Phase 13 owns a giving campaign and authoritative contribution attribution. Link those records through permitted references and Source Codes instead of putting send status on a giving campaign, copying gift totals into an email record, or treating a tracked click as received money. Reported fundraising response uses the qualified source basis and retains uncertainty; it is not proof that the communication caused the gift.
+
+**Author, review and release.** Staff select a permitted purpose, Site/locale where relevant, sender/reply identity, audience and content. Reuse the qualified structured email editor, layouts and safe variables without adding human-authored campaigns to the system-message catalog. Provide draft history, revision conflict handling, synthetic preview, controlled test recipients, exact audience/content review, scheduling, stop and repeat-as-a-deliberately-new-occurrence. Explain authorization, affected recipient count, exclusions, stale or incomplete audience evidence and potential external export before committing. Routine review follows the owning proportional policy; do not impose an invented universal second approver.
+
+**Audience and occurrence integrity.** Separate a saved segment definition from a specific reviewed send population. Pin the selected definition, scope, permissible source basis and bounded recipient manifest or equivalent qualified immutable selection at admission. Recheck current recipient/contact/consent restrictions before delivery and record exclusions, without silently adding later segment matches. Resolve duplicate destinations, shared mailboxes, anonymity and locale through the recipient owner, not arbitrary first-row matching. A full browser refresh, repeated schedule action or resumed worker keeps the same occurrence identity; intentionally repeating the campaign creates a separate reviewed occurrence.
+
+**One delivery path per intended effect.** Native sends cross Phase 6 with the originating campaign, recipient, purpose and exact content identity. An external provider campaign is available only after its connector proves the corresponding source ownership, eligible audience, outcome correlation, suppression, stop and unknown-outcome contract; a generic provider Broadcasts call is not that proof. Never run both a provider-owned broadcast and a per-recipient Core loop for the same occurrence. Mailchimp audience synchronization alone does not establish an Asym-controlled campaign scheduler or deliverability claim. Provider-native authoring, when supported, must be labelled as an external lane with honest evidence limits. \[T-07, C-08\]
+
+**Timing and recovery.** The campaign owner records its exact not-before time, intended content, audience, expiry, responsible authority and cancellation generation. Use shared execution infrastructure rather than a second scheduler. Pause/stop contains work not yet admitted to transport, preserves accepted outcomes and distinguishes unsent, suppressed, failed and unknown recipients. Reconcile uncertain sends before retry or switching providers. Required system notices, personal missionary work and approved native email must continue independently during a campaign/provider outage.
+
+**Preferences and outcomes.** Present organization topics and channel purposes clearly; internal segmentation is not recipient consent. A donor can withdraw one applicable topic without an accidental unrelated opt-out, subject to broader hard restrictions that still win. Provider opens/clicks remain imperfect provider observations, not proof of reading, identity or consent. Outcome screens show the original send basis, source time, counts by actual state, permitted per-recipient evidence and source-linked repair. Reports use Phase 33's shared definitions. \[T-07\]
+
+**SMS integration.** Phase 43 supplies an individually qualified SMS channel for the same organizational campaign purpose, with separate phone/consent/registration/timing proof. Email permission cannot populate the SMS audience. The campaign's email and external-newsletter scope remains complete without Phase 43; its SMS lane becomes available only when both owners' contracts are qualified. The joint campaign-to-SMS adapter and SMS acceptance close within Phase 43, not as a new mandatory exit gate on Phase 32. No combined email/SMS setting invents permission or silently duplicates a communication.
+
+<a id="phase-32-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+Phase 28 owns native newsletter-list operations and preparation/sending; Phases 6/17 own consent, communication intent/history and governed content; Phase 31 owns connection credentials and lifecycle. This phase owns external synchronization and its evidence, not a new consent field or independent audience authority.
+
+Workflow Studio may coordinate an approved campaign handoff or a connection-repair task. Web forms use their source-qualified consent operation. Neither a donation, public form occurrence, Git commit, relationship change nor workflow enrollment can create newsletter permission by inference. Native and external messages need distinct intentional source purposes, not duplicate copies of the same send.
+
+<a id="phase-32-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Deliver a reviewed audience-to-provider sync, then a provider unsubscribe returning to Asym, before adding broad automation. Explain excluded recipients without disclosing data outside the viewer's scope. Show what will leave Asym, which account receives it and why it is allowed.
+
+Provide source-linked repair for invalid addresses, revoked provider access, mapping errors and uncertain membership. Reconnect must not reset suppressions or mark all historical work as new. A disconnected provider must not break native newsletter preferences or the permitted native sending path.
+
+<a id="phase-32-campaign-implementation-and-completion"></a>
+
+##### Campaign implementation and completion
+
+Build complete slices in order: native organization campaign draft and synthetic review; exact permitted audience and one real Phase 6 send; scheduled/partial/uncertain-outcome operations; source-coded appeal/giving attribution; then individually qualified external-provider and SMS adapters. Shared authoring/dispatch primitives needed by Phase 28 must remain below the Phase 32 product boundary, so adding organization campaigns cannot create a Phase 28↔32 cycle. Keep stable slug newsletter-sync and all existing external-sync obligations; UI may explain the broader communication-campaign scope.
+
+Logical records include campaign definition/revisions, reviewed send occurrence, audience evidence, source-effect links, scheduling/cancellation facts and governed outcome projections. Reuse existing equivalents before adding storage. Same-tenant references, immutable accepted identity, expected-revision checks, current permission and retention apply throughout. A campaign row is not a second communication ledger. Route shared business logic through packages/api and approved browser collections/hooks; reuse the existing Email Studio and list controls.
+
+<a id="phase-32-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No provider-driven Party overwrite, donor roster export by broad administrator assumption, second campaign scheduler or independently editable unsubscribe flag. Identity, permission to view a contact, permission to export and marketing consent remain distinct. Do not relabel a failed provider response as an empty successful audience or automatically fail over to another sender when a prior send is uncertain.
+
+<a id="phase-32-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Test suppression changes during export, unsubscribe-before/after-sync races, invalid destinations, duplicate and out-of-order webhooks, partial batches and reconnect. Prove recipient-only, anonymous and restricted records cannot enter a prohibited external audience. Verify the source rules survive Party corrections and provider-link replacement.
+
+Run a representative end-to-end tenant sync with per-recipient evidence, safe diagnostics and recovery. Native operations must continue during external provider downtime. Do not claim an integration exists merely because a settings card or provider SDK is present.
+
+<a id="phase-32-campaign-acceptance-cases"></a>
+
+##### Campaign acceptance cases
+
+| **Case**  | **Additional required Phase 32 evidence**                                                                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| COM-AT-01 | Organization staff create, review and send a native campaign without a missionary account, Mailchimp or optional Workflow Studio.                                               |
+| COM-AT-02 | Exact reviewed population stays attributable; later segment additions are not silently enrolled and withdrawals before dispatch suppress the affected effects.                  |
+| COM-AT-03 | Shared/duplicate addresses, anonymous or restricted records, wrong locale and insufficient recipient purpose cannot widen disclosure.                                           |
+| COM-AT-04 | Revision conflict, duplicate start, response loss and resumed scheduling preserve one intended occurrence and one recipient effect; a deliberate repeat is separately reviewed. |
+| COM-AT-05 | Stop/partial failure/unknown delivery remains honest; no blind replacement send, provider failover or simultaneous provider-broadcast/Core-loop execution occurs.               |
+| COM-AT-06 | Source-coded giving response reconciles with Phase 13/27/33; opens, clicks, pledges and gifts remain distinct and no unsupported causal claim is displayed.                     |
+| COM-AT-07 | Native Phase 28 newsletters and Phase 32 email work with external sync/SMS absent; an SMS recipient requires the exact Phase 43 permission and readiness.                       |
+| COM-AT-08 | Staff complete audience/content review, scheduling, outcome inspection and safe recovery with real source services, keyboard/screen-reader access and a representative pilot.   |
+
+<a id="phase-32-open-decisions"></a>
+
+#### Open decisions
+
+Resolve organization-level versus per-missionary provider accounts, supported audience/tag mappings, conflict and removal policy, allowed metrics and the initial sync scale. Reconfirm the exact recipient-purpose exclusion from the accepted predecessor contracts before implementation. Provider authentication and plan limitations require qualification; no broader enrollment scope is implied by a new connection.
+
+**Open implementation decisions.** Resolve the first organization audience/purpose catalog, approved campaign author/reviewer roles, exact shared-address deduplication policy, calendar/expiry rules, native and provider-native scope, attribution basis, retention and measured send-volume/cost limits. Resend Broadcasts/Segments/Topics and Mailchimp capabilities are evaluation evidence, not permission to duplicate their contact databases or bypass the Phase 6 spine. The mandatory native organization campaign journey must be completed even if an optional external adapter remains unsupported.
 
 ---
+
+<a id="phase-33"></a>
 
 ### Phase 33 — Reporting & BI / Report Studio (`reporting-bi`)
 
-**What this phase is (plain language).** Answers for staff: "who gave to
-the Kenya project last quarter," "which church relationships need review,"
-"how is monthly support trending" — as a real product: a **standard report library first**
-(SiteStacker ships 20+ standard donor reports — that's the parity bar),
-then a constrained custom builder, saved/scheduled report runs, and
-permission-aware exports.
+<a id="phase-33-what-this-phase-is"></a>
 
-**Why it sits here.** After the permission, classification, and core-data
-foundations exist (3/6/7/9/10/12/13). Its framework may start then; each
-standard report module activates only after its source-owning phase exists
-(including 15/16/19/20/21/30). Its number reflects priority relative to the
-engagement surfaces, not a license to invent missing source truth.
+#### What this phase is
 
-**What it covers.**
+A reporting product that gives staff dependable answers without assembling spreadsheets from conflicting sources. Deliver standard ministry reports first, then a constrained custom builder, saved reports, governed exports and scheduled delivery. The parity target is useful organizational reporting; the beyond-parity goal is consistent definitions across finance, relationship work, workflows and future assistance.
 
-- **Standard report library**: giving (by donor/fund/campaign/source),
-  named Phase 16 commitment/occurrence health, contribution-inactivity
-  segments, church/org giving, missionary support progress, Field Account
-  activity/balances by explicit currency, expense operations, batch/deposit,
-  Accounting Release evidence, and statement runs — each permission-aware and
-  exportable; enumerated against SiteStacker's catalog at grooming. Reports do
-  not turn an attention state into a person-level “lapsed” label.
-- **Semantic layer** (the architecture keystone): metrics, dimensions,
-  joins, and access rules defined once, tenant + role security compiled
-  into every emitted query (the Cube-core pattern; build-vs-adopt at
-  grooming) — dashboards, scheduled runs, exports, **and any future AI
-  (40)** consume the same governed definitions. Embedded per-seat BI
-  (Metabase-class) is ruled out by economics for donor-scale viewers;
-  the UI is ours (shadcn + TanStack Table over the semantic layer).
-- **Custom report builder** (second): constrained field pickers over the
-  semantic layer, custom fields included (11), saved reports with
-  visibility scoping (reusing the Phase 9 saved-view machinery).
-- **Scheduled reports**: Phase 33 owns the schedule, report snapshot, recipient
-  eligibility, and purpose; Phase 17 owns and prepares the governed message,
-  while Phase 6 dispatches and records it with Resend as transport only.
-  **Permissions are
-  evaluated per recipient at generation time** (QuickSight pattern), with
-  delivery history.
-- **Report permissions as their own model** (create vs save vs schedule vs
-  send — the Salesforce lesson), on Phase 12 capabilities.
-- **Read models**: reconciled, documented read models/rollups where live
-  OLTP queries can't serve (decided per report; no shadow warehouse in v1).
+**Primary surface:** Mission Control Report Studio, with approved projections reused elsewhere. **Stable slug:** `reporting-bi`.
 
-**Boundaries & guardrails.** Reports read source truth + approved read
-models; they never own records. Exports obey Phase 3 + Phase 10 policy
-(classification-aware columns). Comparisons must state the exact source,
-version, Legal Entity, recognition/posting basis, currency, and as-of time;
-contribution, Field Account, processor-payout, Bank Match, and Accounting
-Release values are not blended into one authoritative total. Numbers must
-agree with finance surfaces (19/20/21) when comparing like-for-like facts,
-but Phase 33 never becomes final bank or QBO/Xero reconciliation.
+<a id="phase-33-why-it-sits-here"></a>
 
-A Phase 33 report export is a current governed analytical projection, not a
-Phase 21 D26 Records Export Package, records-retention artifact, offboarding
-archive, or custody transfer. Report filters and scheduled runs never define
-archival completeness, source-family watermarks, original-byte coverage,
-retention, hold, or disposition.
+#### Why it sits here
 
-Phase 33 conversions, custom metrics, report filters, materialized read models,
-or dashboards never become a Phase 22 D6 public-progress source, denominator,
-automatic fallback, or authoritative converted total. Phase 22 consumes only
-the exact source-owned Phase 13, Phase 16, and Phase 28 contracts ratified by D6.
+**Starting dependencies:** Phases 9, 13, 7, 6 and 3. The phase can start when those source facts exist; its number is not a requirement to wait for every engagement surface. Custom fields, recognition, batches, commitments and imports enrich reporting through their exact owners. Workflow, mobilization and hybrid-web measures register when Phases 34, 41 and 42 provide them, without becoming prerequisites for base reports.
 
-**Open questions for grooming.** Semantic-layer build-vs-adopt (Cube Core
-vs in-house definitions); which rollups are materialized vs live;
-donor/missionary-facing report surfaces (portal impact views ride the same
-layer?); analytics-scale story if a tenant outgrows OLTP.
+<a id="phase-33-what-it-covers"></a>
+
+#### What it covers
+
+**Standard report library.** Include giving by donor, designation, campaign and source; organization/church giving; recognition where applicable; commitment and recurring health; source-qualified inactivity and missed-support attention; missionary support progress; batch/deposit views; and statement-run operations. Enumerate the actual required SiteStacker report outcomes during phase planning rather than treating a competitor report count as acceptance.
+
+**One semantic layer.** Define metrics, dimensions, joins, time/coverage rules and access once. Dashboards, custom reports, exports, scheduled runs and AI questions use these governed definitions. Preserve Legal Entity, currency, source basis, original versus derived facts and through-date; unknown coverage is not zero and commitments are not received cash.
+
+**Constrained custom reports.** Offer permitted fields, dimensions, filters, grouping and ordering, including qualified custom fields. Reuse saved-view and visibility conventions. Do not expose arbitrary SQL or unconstrained joins. Explain what the report measures and why rows or fields are unavailable.
+
+**Saved and scheduled delivery.** Separate capabilities to create, save, share, schedule and send. Generate each recipient's authorized projection using current permissions and the exact report definition/snapshot. Deliver through Phases 6/17 with source-linked history and failure recovery. A report schedule remains report-owned rather than being duplicated by Workflow Studio.
+
+**Read models and exports.** Use documented, reconciled read models or rollups when live queries cannot meet the admitted workload. Exports retain definition, input basis, generation time, coverage, access and artifact lineage. A saved file or stale rollup does not become financial authority.
+
+**Operational reporting.** Add source-governed run age, wait time, missing owner, overdue work, blocked cause, accepted handoff, suppressed optional communication and unknown outcome measures. Web development measures distinguish capture, build, admission, runtime availability, activation and convergence. Incomplete usage counts cannot authorize publication or deletion.
+
+<a id="phase-33-configurable-personal-and-shared-dashboards"></a>
+
+##### Configurable personal and shared dashboards
+
+**User outcome.** An operations lead, development officer or finance user can assemble the permitted reports, metrics, saved lists and source-owned work summaries needed for the day into a personal or shared dashboard. SiteStacker advertises configurable dashboards, and HubSpot documents practical add/filter/reorder/clone/share controls. Adopt that bounded outcome inside Report Studio rather than creating another general-purpose Workspace Studio or arbitrary application builder. \[C-01, C-09\]
+
+**One widget catalog and semantic layer.** Register a finite set of metric, chart, report-table, saved-view list and source-linked work-summary widgets. Each declares its approved query/report or source projection, compatible filters, time/currency/entity basis, freshness, permission purpose and resource cost. Dashboard configuration stores layout and qualified references, not SQL, executable code, arbitrary HTML, private snapshots, iframe URLs or a new copy of source records. The report and list owners retain their definitions and action boundaries.
+
+**Composition and everyday controls.** Support creating from a safe preset or blank, adding/removing widgets, changing approved size/layout roles, ordering, duplicating, renaming, setting a personal default and sharing view/edit configuration where authorized. Provide explicit Move controls and a readable stacked layout for keyboard, single-pointer and narrow-screen use. Removing a widget does not delete its report or saved view. A copied dashboard is independently editable and records its source provenance without silently copying access grants or private cached results.
+
+**Sharing does not share data.** Separate the ability to manage dashboard configuration from permission to run each underlying query. Evaluate every widget for the current viewer, tenant, purpose, classification and entity scope. Never use the creator's cached results or a privileged run-as-owner identity to make sharing appear convenient. Unauthorized widget names, counts, drill-throughs and failure messages must not reveal sealed work. A user who loses scope cannot continue seeing a previously loaded dashboard through a stale client or shared URL.
+
+**Filters with honest meaning.** Offer only filters that the selected widgets explicitly support. Show which widgets an overall date, currency, Legal Entity, Site, assignment or saved-view filter affects; never silently reinterpret incompatible metrics. Preserve original currency and source coverage. A visible total without current source data remains unavailable/stale rather than zero. Filters and layout changes do not mutate source state or redefine a report. Drill-through opens only independently authorized source rows, not a privileged aggregate expansion.
+
+**Persistence, performance and recovery.** Store a versioned dashboard definition with expected-revision saves and safe conflict recovery, plus per-user layout/default preferences where useful. Bound simultaneous widget queries, refresh frequency, export workload and per-tenant resource use. Reuse TanStack Query for server projections, Table/Virtual for grids and Store only for local layout interaction; do not reuse React Flow or Puck as a new executable dashboard grammar. Superseded or unavailable source definitions produce cause-owned repair, not silent substitution with a different metric. Late responses after a tenant or permission-context change must be discarded.
+
+**Delivery and export.** A dashboard link preserves configuration, not access. Any supported scheduled digest or snapshot goes through the existing Phase 33 recipient-specific reporting contract, Phase 29 artifact custody and Phase 6 delivery. Recheck current recipient authority and record exact definition/source basis. Do not add an independent dashboard timer, make a screenshot a financial source, or export private widgets merely because the dashboard itself is shared.
+
+<a id="phase-33-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+Source domains own records and final business outcomes. Reporting owns the meaning and execution of approved queries and the evidence for its output. Finance reports must reconcile with the authoritative contribution, credit, statement, accounting and Field Account owners rather than implement another ledger. Phase 29 supplies export custody; Phase 30 supplies import provenance and history coverage.
+
+Phase 35's historical/inactivity conditions consume a named completeness-qualified projection, not an ad hoc person-level lapsed flag. Phase 40's numerical answers use this same semantic layer. Private repository names, preview metadata, care existence and restricted source attributes remain protected in counts, facets, filters, searches and exports—not only in report detail rows.
+
+<a id="phase-33-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Build a small complete set of reconciled standard reports with accessible tables, readable dates/currencies and safe downloads. Then expose the constrained builder and scheduling over the same definitions. Use the Core UI system and TanStack Table/Virtual; do not introduce an independent embedded BI permission model or per-viewer product by assumption.
+
+Each report shows its definition, filters, source time and completeness. Distinguish no matching data from missing source coverage or failed generation. Let staff move from an authorized aggregate to its source records without exposing unauthorized siblings. Record workload budgets and prevent a large tenant report from starving other tenants.
+
+<a id="phase-33-dashboard-implementation-and-completion"></a>
+
+##### Dashboard implementation and completion
+
+Deliver one useful personal dashboard over qualified standard reports and saved lists, then current-viewer sharing, compatible filters, accessible composition and source-linked recovery. Adding this capability does not delay standard reconciled reports or require all future module widgets. Every required initial widget must use the existing semantic/source owner and pass its real permission and data tests; a set of static mock cards is not dashboard completion.
+
+<a id="phase-33-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+Reports never write source truth. Do not combine incomparable currencies, count soft credits as new money, label a scheduled commitment received or treat a stale result as current. A report recipient must be authorized at generation and applicable delivery/access boundaries. No shadow warehouse, unrestricted SQL builder or separate AI analytics engine is required by this phase.
+
+<a id="phase-33-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Prove selected standard reports against authoritative fixtures and real source totals, including credits, corrections, refunds, historical coverage and separate currencies/entities. Test forbidden joins, restricted counts, stale definitions, current permission loss, concurrent source changes, scheduled-delivery duplication and reproducible export evidence.
+
+Qualify the admitted dataset and query/cost profile. Make failure and stale-result recovery source-linked and independently usable without Workflow Studio or AI. The custom builder is complete only when its output uses the same definitions and security as standard reports.
+
+<a id="phase-33-dashboard-acceptance-cases"></a>
+
+##### Dashboard acceptance cases
+
+| **Case**   | **Additional required Phase 33 evidence**                                                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DASH-AT-01 | A staff user creates, edits and saves a useful dashboard using real qualified reports/lists without SQL, custom code or another application builder.          |
+| DASH-AT-02 | Two viewers of one shared dashboard see only their own current authorized data; creator cache, run-as-owner and hidden-widget labels cannot leak scope.       |
+| DASH-AT-03 | Compatible global filters apply as described; incompatible widgets are clearly identified and retain correct currency, entity, dates and source completeness. |
+| DASH-AT-04 | Removing/copying/reordering widgets preserves backing reports, source identity and permission; concurrent layout changes show a recoverable conflict.         |
+| DASH-AT-05 | Revocation, tenant switching and late query responses clear or fence old private projections, including counts, exports and drill-through.                    |
+| DASH-AT-06 | Stale/failed/retired source definitions remain distinguishable from no data; repair cannot replace a metric silently or write business truth.                 |
+| DASH-AT-07 | Query fan-out, refresh, snapshot/export and scheduled recipient projection satisfy the approved load profile and existing delivery/retention controls.        |
+| DASH-AT-08 | Keyboard, non-drag pointer, screen-reader and narrow-screen users can compose and use the dashboard; a representative staff pilot completes the daily job.    |
+
+<a id="phase-33-open-decisions"></a>
+
+#### Open decisions
+
+Select the first complete report catalog, semantic-layer implementation, materialized versus live projections, workload limits and export formats. Cube-style semantic tooling and an in-house catalog are alternatives to evaluate, not assumed dependencies. Decide which donor/missionary projections are needed and what larger-scale architecture is justified by measured data volumes.
+
+**Open implementation decisions.** Select the initial presets/widget catalog, allowed layout sizes, personal-versus-shared defaults, filter compatibility rules, whether dashboard-specific snapshots are needed, and measured concurrency/refresh budgets. Confirm the actual safe source projections before exposing a module widget. Do not introduce arbitrary embeds, a second report permission model, or universal micro-application creation under the dashboard label.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 33 owner obligations](../program-roadmap/owner-constraints.md#phase-33) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
+
+<a id="phase-34"></a>
 
 ### Phase 34 — Configurable Automation & Workflow Engine (`workflow-engine`)
 
-**What this phase is (plain language).** SiteStacker **Motion 2** parity —
-the staff-configurable process builder that runs mobilization: an applicant
-applies, forms are filled, references are requested, a coach is assigned,
-files are collected, stages complete, and everyone sees their dashboard. A
-workflow is a hierarchy of **stages (landmarks), tasks, and triggers**
-assigned to **roles**; each run is an **engagement**. Notably, WMTek
-recommends clients _pay hourly consultants_ to build their first Motion
-workflow — true self-service configurability is the parity-plus opening.
+<a id="phase-34-what-this-phase-is"></a>
 
-**Why it sits here.** After the primitives it composes: parties (9), custom
-fields (11), permissions (12), files (29), templates (17), comms (6).
-Events (37) deliberately come after, so trips/registrations reuse this
-engine instead of growing a second one.
+#### What this phase is
 
-**What it covers.**
+Workflow Studio is the shared Mission Control product for designing and operating workflows across Asym. A small team can change a reminder or handoff without programming; an operations lead can build a longer process with tasks, evidence, branches and responsible roles. The same definition becomes clear operational work for staff and an appropriate next action for each participant.
 
-- **Workflow truth in Asym Postgres, Inngest as pure execution** (the
-  Inngest Workflow-Kit pattern the shipped runtime already embodies):
-  versioned workflow _definitions_ (in-flight runs keep their version) and
-  _runs/engagements_ as tenant data; the engine is a state-machine
-  interpreter over a fixed catalog of coded actions. The existing runtime —
-  tenant-scoped event envelope with sensitive-key rejection, durable
-  dispatch ledger, recovery scans, notification policy, staff console — is
-  the execution substrate, already classified durable.
-- **Motion-parity building blocks**: nestable stages; task types (Form,
-  File Request → Phase 29, Message → Phase 17, Note → party notes,
-  Relationship task → Phase 9 edges, e.g. assign-a-coach); triggers on task
-  completed/assigned/due, stage completion, specific form answers, and
-  delays (relative or form-date-derived); actions including assign task,
-  send message, dashboard notification, redirect (incl. to checkout),
-  engagement-status change, record-type/group/relationship changes.
-- **Primary roles** (participants — optionally with a paid registration
-  fee via the ledger) and **secondary roles** (staff bound via CRM
-  relationships — a coach receives their applicant's tasks); per-role
-  dashboards as product surfaces (not hand-built pages); engagement
-  statuses (Active/On-hold/Discontinued/Complete).
-- **Form builder**: JSON-schema-as-data (SurveyJS/Form.io convergence) with
-  conditional logic, multi-page, partial save/resume, calculated fields —
-  writing only through governed domain APIs; **tokenized external-
-  participant links** (references complete a questionnaire with no
-  account — pre-login token infrastructure).
-- **Donor-journey automation** on the same trigger+condition+action
-  vocabulary (query/segment enrollment, Virtuous-style; programmatic
-  contribution-inactivity definitions from settled ledger facts, never a
-  person-, Party-, commitment-, or recurring-line `lapsed` state),
-  consolidating the existing
-  `mission-control-automations` foundation (rule schema/compiler/evaluator
-  already in the repo) and Support Hub's `support_automation_rules` into
-  **one** rules vocabulary — three parallel engines is the named failure
-  mode.
-- **Enrollment governance** (HubSpot lessons): loop prevention by default,
-  one active enrollment per record per workflow, explicit re-enrollment,
-  **simulation/test mode** before activation; flowchart-first authoring UX
-  encoded in the product (SiteStacker leaves it to consultants).
-- **Mobilization as the flagship use case**: applicant pipelines,
-  references, coaching — the missions org's core process.
+This phase delivers a complete usable Studio, not just a canvas or execution infrastructure. Mobilization is a major consumer, but its application records and full business journey belong to Phase 41.
 
-**Boundaries & guardrails.** Inngest never owns process truth. Forms write
-through product services with permission checks. Workflow messages are
-consent-gated templates (17). Applicant/care-sensitive workflows respect
-Phase 10 classification. A workflow may request a permitted Phase 21 command
-through the domain service and observe its result; it cannot write Field
-Account entries, approve expense truth, generate an Accounting Release, or
-mutate provider-delivery state directly.
+**Primary surface:** Mission Control Workflow Studio, contextual entry points in other products and purpose-scoped participant views in the existing application surfaces. **Stable slug:** `workflow-engine`.
 
-**Phase 24 D31–D43 Tasks Hub and authorization compatibility.** When a Phase 34 workflow action
-appears in the shared Tasks Hub, the workflow run/stage/task record remains its
-authoritative source. A control such as **Complete interview review** must be
-the exact Phase 34 source command with current role, evidence, consequence, and
-expected-head checks; only its successful source receipt closes the projected
-task. A generic Tasks Hub checkbox, task status, notification read, timer, or
-Inngest run cannot advance a workflow. A separately defined human follow-up
-may use task-owned completion only when it is not the workflow source action or
-stage-transition truth.
+<a id="phase-34-why-it-sits-here"></a>
 
-Any future Phase 34 responsibility change shown in Tasks Hub must likewise be
-the exact source-owned D33-style command: resolve only currently eligible
-destinations, re-prove actor/target/scopes/heads at commit, append an immutable
-successor generation/receipt, preserve continuing engagement, and distinguish
-named handoff from no-successor return/Needs assignment. Tasks Hub cannot edit
-a generic assignee, and Website eligibility/routes are not copied into
-Mobilize. A broader workflow delegation, queue, acceptance, availability, or
-bulk-transfer product requires its own Phase 34 decision and evidence.
+#### Why it sits here
 
-If a future Mobilize source-return genuinely needs actor-selected recovery
-context, it may reuse D34's source-owned envelope only after its own evidence-
-backed decision defines the exact trigger, closed vocabulary, recovery use,
-visibility, retention, authorization, and non-effects. Tasks Hub never copies
-or interprets the Website v1 codes, and Mobilize never inherits them from a
-task title, policy kind, source link, or module name. Inngest receives only the
-source-transition identifier and remains projection/reconciliation execution,
-not context or routing authority.
+**Starting dependencies:** Phases 9, 11, 12, 29, 17 and 6, including their inherited requirements. Every selected action also needs its exact source capability implemented and qualified. Phase 35 contribution triggers, Phase 37 event recipes, Phase 38 care recipes and Phase 41 applications consume this Studio; none may become a prerequisite of its core through package imports, startup registration, fixtures or final acceptance.
 
-D35 contributes only reusable mechanics: an authoritative source-owned
-ownerless-work lane, a versioned bounded responsibility-intent route, complete/
-zero/indeterminate recipient resolution, one shared task identity with personal
-assignment/engagement, source receipts, identifier-only outbox, and monotonic
-reconciliation. Phase 34 and Mobilize inherit no Website policy mode, member,
-Site behavior, label, D34 code, action capability, eligibility predicate, or
-default audience. A future source must separately prove its ownerless-work
-state, lane, recovery action, audience, visibility, retention, channels, and
-policy. Inngest remains optional execution and never becomes workflow,
-responsibility, authorization, lane, or idempotency truth.
+Prioritize Phase 41 immediately after this phase in the mobilization lane. Web Studio's native publication, scheduling and recovery remain independent. Phase 42's hybrid editor and Git delivery neither gate this phase nor become its responsibility.
 
-D36 contributes reusable prospective-cutover and explicit-current-adoption
-mechanics only: a separately authorized permission-safe impact, immutable
-product-owned application/cohort/result ledger, per-source-occurrence atomic
-differential routing, continuing engagement, durable replay, and resumable
-status. Phase 34 does not inherit D36’s Website cohort, policy, members, task
-role, result copy, no-Site-override decision, or current-work capability. A
-future Phase 34 source must define whether policy changes are prospective,
-whether existing work may be adopted, the exact cohort/authority/privacy
-boundary, and truthful correction/rollback behavior. Inngest may page accepted
-identifier-only members but never defines or authorizes the adoption.
+<a id="phase-34-what-it-covers"></a>
 
-D37 fixes the Website-specific D36 cohort as the complete compatible
-pre-cutover Tenant set proved from authoritative source occurrence heads and a
-closed code-owned producer/version catalog. Preparation has no effect; unknown
-completeness blocks confirmation; an atomic normalized seal precedes member
-claims; and actor visibility, Sites, filters, tasks, recipient qualification,
-and client selection never define membership. One separate Tenant-wide
-application capability authorizes only the operation and exact complete
-aggregate item/assignment impact required for consent, not source detail or
-recipient authority. Phase 34 and Mobilize inherit none of D37's Website
-catalog, cohort, capability, cutover, aggregate disclosure, or UI semantics.
-Each future source must make its own evidence-backed cohort/privacy/action
-decision; optional Inngest remains identifier-only execution.
+#### What it covers
 
-D38 makes the D37 action one zero-by-default, `explicit_only` Phase 12
-capability. Grant administration is separate from possession and requires a
-current same-Tenant `permissions.manage_grants` decision within live scope and
-ceiling. Owner/Admin/staff/Web Studio/policy/Site/source/coordinator/task/
-support state never implies it; grants bind the Active Tenant Assignment; and
-current EffectiveAccess owns deduplicated holder/provenance truth. Zero holders
-leaves prospective policy and Needs assignment complete and creates no task,
-notification, reminder, or fallback.
+**One library with honest customization.** Provide Templates, Runs, Needs attention and My Work. Distinguish Editable workflow, Automation and Managed by \[source product\]. The first permits approved steps and branches; the second configures allowed event/action combinations; the third opens native protected settings or coordination commands. Finance, Support Hub, development, communications and missionary screens link to filtered views of the same library.
 
-Revocation, expiry, assignment end, suspension, or applicable delegation end
-makes the affected source inert and fences later uncommitted D37 effects only
-when final post-change EffectiveAccess no longer contains D38, without
-rewriting committed source/task history.
-The Phase 12 People & access/My Access product owns grant/revoke UX; Website,
-Tasks Hub, Phase 34, Mobilize, and Inngest own no grant roster or authorization
-shortcut and inherit no D38 atom automatically.
+**Complete authoring.** Support starter selection, permitted blank definitions, duplication, contextual action/field pickers, roles, parameters, forms, schedules, validation, simulation, publication comparison, activation, archive and safe export/import. A starter explains outcome, prerequisites, recipients and external effects. It installs as an inert draft; required source bindings remain visible until resolved.
 
-D39 permits both a typed direct assignment-capability grant for a specific
-active staff assignment and a governed flat **Access group** grant for a stable
-job function through the one Phase 12 EffectiveAccess/provenance/epoch model.
-Both are optional, additive, deduplicated sources; every human edge binds an
-exact same-Tenant Active Tenant Assignment, and group assignment is one
-relationship rather than per-member fanout. No Website group, seeded holder,
-Team/task/coordinator/Mobilize mapping, external/dynamic/nested membership, or
-Inngest authority is introduced.
+**One structured definition.** Use the versioned `asym.workflow/1` language as canonical meaning. A pure compiler produces the normalized syntax tree, derived execution graph, semantic digest, exact source dependencies, risk/purpose classification and diagnostics. React Flow coordinates, zoom, selection and stage layout are presentation only. Guided sentences, canvas and outline operate over the same definition; a simple view must not discard a structure it cannot express.
 
-A group carrying D38 is protected authorization state. Group capability
-changes require `permissions.manage_grants` within a live assignable-capability
-ceiling; member add/activation separately requires exact scoped
-`permissions.manage_membership` with a live ceiling covering the complete group
-bundle and revision. Ordinary Team ownership and self-membership cannot create
-authority. Any Phase 34 or Mobilize use of groups must make its own domain
-decision and may reuse only this central authorization primitive—not Website's
-D38 capability, group, membership, or UX semantics.
+**Supported process constructs.** Include sequence, shared task, evidence request, registered action, durable wait, exclusive choice, selected parallel branches, exact-version nonrecursive subflow and declared finish outcome. Validate node identity, legal placement, input/output types, output availability, references, role fallback, joins and workload bounds. Initial certified parallel work uses all-required joins. Any/quorum joins require independently proved required-branch and remaining-work policies before activation; no freehand loops or unbounded fan-out.
 
-D40 permits one deliberately reviewed **separate direct grant** while an exact
-staff assignment already receives D38 through current group paths. The person-
-access surface shows every current source first and states that present ability
-is unchanged while future survival changes. It requires a fresh minimized
-reason, explicit unpreselected independent duration, current grant authority/
-ceiling and self/SoD/quorum checks, and a complete current group-source-set
-proof.
+**Typed facts and decisions.** Every fact declares meaning, owner, subject, version, scope, completeness, freshness, classification and permitted purpose/audience. Conditions distinguish true, false and unknown; access denial blocks evaluation instead of pretending a value is absent. An exclusive branch requires proven exclusivity, not the first convenient match. Selected branches and past decisions freeze for their occurrence; current access, suppression and source eligibility still apply before effects.
 
-The command reuses D39's typed direct relation. It records immutable overlap-
-creation provenance in audit/receipt evidence, advances the Tenant epoch once,
-and creates no backup table, new permission kind, source priority, automatic
-handoff/cleanup, notification, task, or Inngest authority. Relevant source
-change before commit conflicts; later group loss leaves the independent direct
-source current. Final EffectiveAccess loss alone fences D37. Phase 34 and
-Mobilize inherit none of this Website capability or creation UX.
+**Subject-aware enrollment.** A run may concern a conversation, document requirement, contribution, occurrence or application—not always a person. Apply once-per-subject, once-per-event or one-active-per-subject within tenant, environment and template lineage. Publishing another version cannot restart the same journey. New applications have their own identities; Party corrections and merges preserve source lineage rather than reenrolling all work. Historical imports remain outward-effect-dark unless a distinct reviewed backfill is authorized.
 
-D41 keeps current source truth distinct from historical origin after the final
-group path ends. Current People & access and My Access presentation says
-**Direct grant** or **Granted directly to you** with the direct source's own end
-condition. Authorized expanded **Why this person has access** / **Why you have
-access** provenance retains
-**Added for continuity**, the immutable event-time overlap evidence, and later
-source history according to D42's viewer/purpose policy. Ending or
-returning a group path changes the current source list through Phase 12's
-existing epoch but never converts, reissues, retags, or renews the direct grant;
-if optional history is unavailable, canonical current access remains truthful.
-Operational search/export classifies the source as direct, and no current
-continuity badge, shadow state, conversion worker, task, notification,
-recertification timer, staff score, or Inngest authority is introduced.
+**Shared tasks, forms and evidence.** Adopt the canonical shared task owner and source exceptions rather than create a second inbox. Deliver bounded multi-page forms, conditional fields/groups, server validation, partial save/resume, immutable submission versions and approved mappings. Only named source-approved calculations are allowed. File bytes and quarantine remain Phase 29; a source reviewer decides whether evidence qualifies. Task completion, clean upload, accepted evidence, communication outcome and business decision are separate facts.
 
-D42 admits four server-derived Phase 12 history projections only:
-`access.self_explanation`, `access.membership_change_review`,
-`access.grant_governance`, and `access.security_audit`. The holder receives the
-safe **Added for continuity · [date]** explanation; membership review receives
-only the surviving direct source/end; exact grant governance receives only
-floor-permitted minimized evidence; and full typed authorization evidence
-requires current `permissions.audit.read`. Bulk audit export additionally
-requires `permissions.audit.export`. A withheld event-time source label renders
-**Protected access group**; protected reason/actor values are omitted. One
-request uses one purpose and exact Active Tenant Assignment, never a multi-hat
-or role union. Raw/browser, support/service, task/notification, ordinary
-Website/reporting, analytics, AI, cache, and current-access export paths receive
-no continuity fields. D42 changes no grant, task, workflow, or current-access
-truth; D43 alone decides the holder's safe correction action.
+**Roles and participant access.** Resolve a responsibility to an eligible person, an approved team queue or Needs assignment. Ambiguity does not select the first database row; assignment never grants access. Provide attributable reassignment and delegation. Reusable purpose-scoped participant sessions and tasks live within existing identity/application boundaries. Applicants and referees receive their Phase 41-specific bindings later, without a fourth app or automatic donor/missionary membership.
 
-D43 gives the exact current subject of one D40 continuity-created direct source
-one quiet **Ask for an access review** action. The current source/end remains
-first; an inline Base Maia/Base UI form asks only **Why should this access be
-reviewed?**, requires trimmed 1–500-code-point protected plain text, warns
-against private personal/ministry/donor/care/security/location detail, and says
-submission does not change access. A committed result persists as **Review
-requested. Your access has not changed.** The subject may withdraw while
-pending. Current access and request history remain separate: a subject-only
-**My access requests** section retains safe outcomes after a removed or expired
-source disappears from current access.
+**Publication and run management.** Use revision-aware draft saving and visible conflicts. A server-issued expiring preflight binds the exact definition, source references, scope, audience impact and required review; final publication rechecks them. Published definitions are immutable. Publishing, enabling future enrollment and changing existing runs are separate actions. Runs pin compatible definition/action versions and support pause/resume, safe discontinuation, reassignment, allowed deadline changes, source-linked reconciliation and reviewed future-plan amendment.
 
-D43 reuses one typed Phase 12 `permission_change_request` kind,
-`holder_direct_grant_review`, contract version 1. It creates no Website-local
-request table or generic workflow. One exact Tenant/assignment/direct source has
-at most one `pending_review` episode; terminal states are `withdrawn`,
-`resolved_kept`, `resolved_removed`, or `no_longer_applicable`. Same-Tenant
-composite keys, immutable event/receipt history, state constraints, semantic
-idempotency, current-head compare-and-swap, forced RLS, hardened command
-boundaries, and privileged-path parity prevent retargeting, duplicate terminal
-outcomes, and caller-controlled attribution. Protected request/decision text is
-never copied to tasks, notifications, email, logs, search, analytics, AI,
-Realtime, or ordinary export.
+**Individual variation.** Preview the consequences before changing one run: added or canceled tasks, deadlines, evidence reuse, messages, required review and irreversible work already admitted. Record the reason and accepted plan revision. Completed source history remains intact. A held business disposition requires its source-approved successor; it is not the same as pausing operational work. Nonwaivable requirements cannot be removed through the graph editor.
 
-The permission-filtered Phase 12 **Access requests** source lane displays D43
-as **Review current access**; periodic **Access reviews** remains the separate
-recertification-campaign area. Actionable lane rows, personal-recipient
-eligibility, and both decisions require current exact-scope
-`permissions.manage_grants` authority within the live ceiling plus existing
-Phase 12 floor/self/SoD/quorum/last-authority controls. D42 audit/review-read
-authority, role names, the original grantor, a task, notification, support, or
-deep link grants nothing.
+**Simulation and portability.** Run the real evaluator against synthetic adapters and a virtual clock with no live transport or credentials. Imported templates contain no active grants, real participant IDs, code or run data; validate and rebind them into disabled drafts. Retain supported action/dialect versions for active runs, with explicit migration or safe discontinuation rather than hidden reinterpretation. A pinned subflow has a linked child engagement, only the permitted delegated authority and its own completion; old child evidence is reusable only after exact source-equivalence proof.
 
-Review reloads current sources and the D37/post-removal consequence. **Keep
-direct access** requires a fresh holder-safe explanation and changes no grant or
-epoch. **Remove direct access** asks for no duplicate prose and invokes the one
-locked Phase 12 grant-state command; exact source end, request outcome, audit,
-receipt, one epoch advance, and identifier-only projection intent commit
-atomically. Other sources remain independent, and the holder is told whether
-access survives another way. If the source ends first, the request becomes
-non-actionable and converges to `no_longer_applicable`, shown as **Direct access
-ended before review**.
+<a id="phase-34-ownership-and-integrations"></a>
 
-Each pending D43 request is one ADR-0183 source-work occurrence. Phase 12 owns
-request status/actionability/decision/closure; Tasks Hub may later present one
-shared task identity with recipient engagement only after D44, and every generic
-task mutation rejects. The **Access requests** lane and holder history work with
-no personal route or Tasks Hub. Optional Inngest execution is identifier-only,
-post-commit, fire-time-reauthorized projection/reconciliation; it owns no human
-wait, request, reviewer, access, decision, idempotency, or completion. D44 alone
-decides optional personal routing among already-authorized grant managers.
+#### Ownership and integrations
 
-D44 keeps that source lane complete and adds one optional Tenant route for D43
-personal responsibility. A Tenant deliberately chooses **Use the shared Access
-requests lane only** or one to three unique, unordered, co-equal current Active
-Tenant Assignments as **Access request coordinators**. A new selection must
-currently qualify for D43 grant-decision work in at least one live Tenant scope;
-every exact request then independently narrows that configured set. Selection
-grants no permission or decision authority; every request re-proves current
-`permissions.manage_grants`, ceiling, floor, scope, assignment, and
-requester exclusion. Complete zero or indeterminate resolution routes nobody
-and never broadcasts or guesses a fallback.
+**Core execution components.** Use `@xyflow/react` for the workflow diagram and Core's shared Inngest client, serve endpoint, dispatch ledger, claims and recovery infrastructure. Do not create an Inngest application or deployed function per tenant/template. Workflow Kit is reference material, not a competing business engine. Postgres owns process records; the executor's run state and trace retention do not define process truth or lifetime.
 
-The compact policy summary lives in **People & access → Access requests**, with
-one responsive Base Maia Sheet, a progressive server-filtered picker, and a
-fresh aggregate consequence review before save. A confirmed immutable policy
-revision applies to all current and future pending requests. Continuing
-recipients preserve engagement, newly admitted recipients receive fresh
-personal responsibility, removed recipients end as **Coordinator responsibility
-changed**, and an unchanged effective set creates no churn. D44 changes no
-request, grant, duration, or authorization epoch.
+**Source actions and permissions.** The coded action registry declares allowed subjects, exact input/output schema, source owner, capability, purpose, classification, semantic effect identity, human/automation eligibility, retry/reconciliation policy and simulation/real-test behavior. Bind automation authority to the existing Phase 12 non-human identity model with an active human owner and the live intersection of that owner's current capabilities. Owner departure or capability loss stops affected work; an authorized transfer must revalidate authority.
 
-Tasks Hub is not the only attention path. The same current Phase 12 recipient
-generation drives one source-backed task assignment and one independent
-ADR-0027/Phase 17 staff Notification Center projection. Newly opened requests
-use `holder_access_review_requested_v1`. When a route or eligibility change
-admits a coordinator to existing pending work, individual tasks still
-materialize but the bell receives only one safe aggregate
-`access_request_responsibility_updated_v1` item per recipient and source-owned
-responsibility-application generation. That generation pins the route revision,
-current eligibility/authorization basis, admission cause, and sealed child set.
-Both deep-link to fresh People & access authorization and copy no
-protected request, reason, grant, capability, or group detail. Task engagement,
-notification engagement, channel delivery, and D43 closure remain independent.
-D45 adds one optional immediate email sibling for each exact contract; the
-published Tenant Delivery Plan defaults Off. One
-`profile.access_governance_attention@1` family selection governs both D44
-`staff_email` slots atomically; mixed per-key On/Off is invalid while each key
-keeps separate semantics and rendering. The exact coordinator's
-self-managed `preference.access_request_responsibility_email@1` uses the
-canonical Phase 17 tuple of Tenant, Active Tenant Assignment, Party, registered
-role/surface, contract family, and email channel and is `inherit | disabled`:
-absence/`inherit` follows deliberate Tenant On, `disabled` narrows
-it, and neither can broaden Tenant Off. Email requires all
-current source, recipient, authorization, contactability/suppression,
-locale/publication, sender/reply, Tenant Resend, and dispatch proof. Failure or
-absence sends nothing and leaves source, task, and required in-product attention
-unchanged. Widening is future-only; current narrowing suppresses any not-yet-
-submitted optional email, while accepted mail is non-retractable. The generic email has one authenticated
-People & access link and no protected source/grant detail, inline decision,
-secret URL, attachment, or tracking. New work is at most one email per admitted
-recipient generation; a current-work route application is at most one grouped
-email per recipient/application generation, never one per child request.
+**Native business owners.** Identity, consent, giving, financial approval, recurring recovery, receipts, accounting, public release and records disposal retain their existing commands and policies. There is no general Mark paid, Approve expense, Grant role, Set any status, Write table or Provider replay action. Preserve any narrowly approved source separation-of-duties rules rather than substituting a generic Studio policy.
 
-Tenant delivery configuration stays in the Phase 17 System Messages Delivery
-Plan; the D44 coordinator card shows only a quiet delivery summary/link. A
-coordinator manages only their own preference under **Settings →
-Notifications**, with required in-product shown as always on, email truthfully
-shown as following the current organization setting unless the recipient turns
-it off, explicit **Save changes**, persistent future-only status, and truthful
-Tenant-disabled/unready states. Tenant administrators cannot inspect, edit, or
-override another person's opt-out. Unavailable future channels are not placeholder switches.
-Push, Slack, Teams, Google Chat, SMS, reminders, digests, and escalation each
-require an independent source/channel contract and proof; there is no generic
-channel array or rule DSL. D46 records no automatic reminder while D43 has no
-source-owned due instant, expiry, risk transition, SLA, or other ratified
-temporal requirement. D47 permits a bounded candidate to become evidence-
-qualified and a separately activated, Tenant-default-Off profile to become a
-Phase 12 source policy for at most
-one courtesy occurrence without Due/Overdue, SLA, escalation, no-response, or
-access meaning; it activates no policy or reminder now.
-Accordingly this phase adds no reminder key, row, field, timer, schedule,
-Inngest sleep, Tenant setting, or placeholder UI; elapsed age is not an implied
-deadline or urgency signal. A future reminder remains compatible only through a
-separately ratified Phase 12 temporal occurrence with exact time/calendar,
-semantic identity, cancellation/supersession, recipient, authorization,
-durable-idempotency, late-usefulness, and recovery rules. Optional Inngest may execute
-identifier-only claims/reconciliation but never owns the route, recipient,
-preference, task, notification, request, provider identity, authorization,
-idempotency, reminder time, cancellation, or outcome.
+**Communication and public entry.** Owning domains choose audience and purpose; Phase 17 supplies governed publications/sender/reply plans and Phase 6 supplies dispatch, eligibility and history. Support Hub retains threads, quarantine, internal-note privacy and response clocks. Public intake uses Phase 23's durable occurrence and one Primary Outcome; do not add a second form ledger or silently extend upload/payment-free public launch forms. Private participant forms remain app-owned.
 
-If later activated after clock and channel decisions, the cadence policy stays
-separate from the D44 coordinator policy and Phase 17 Delivery Plan. It uses
-only code-owned bounded choices and never creates a second Tasks Hub task.
-D48 now fixes first application: the first successful non-Off policy boundary
-and genuine D43 request creation share one Phase 12 source order, and only a
-creation ordered after that boundary may atomically retain cadence admission.
-Existing requests never enter through age, timestamp comparison, current policy
-join, task/notification state, migration, replay, restore, or Apply-current.
-Ordinary absence/Off is expected exclusion; an asserted-active proof failure
-safely records no admission without blocking the valid D43 request. Exact
-committed replay preserves the original result.
+**Domain delivery.** This phase owns 57 recipes: administration/common operations, development, permitted missionary coordination, content/documents and protected finance coordination. Phase 35 owns 15 gift/recurring recipes; Phase 37 owns 3 event recipes; Phase 38 owns 9 sensitive recipes; Phase 41 owns 12 mobilization recipes. The complete recipe register and WS-01–WS-26 allocation are included later in this document. Delivery ownership never substitutes for exact source readiness.
 
-D49 now binds each one possible source occurrence atomically to the complete
-exact then-current D44 responsibility generation for that request. Each sealed
-member carries the exact D44 recipient-generation identity plus Active Tenant
-Assignment; a concurrent route change yields the complete old or new set, and
-the same ordering works when the optional D44 row is absent. Proved zero is a
-terminal empty cohort. Indeterminate leaves the same occurrence unreleased with
-append-only attempt evidence and may retry to one terminal result; it never
-releases a partial set or fallback. After sealing, only a gap-free D44
-continuation may retain a member and every source/channel effect may only narrow
-its relevant subset—later additions, restored eligibility, remove-then-readd,
-and recreated assignments cannot join. No reminder task is created.
+**Qualified extended channels and directory events.** Expose an SMS action only after its exact Phase 43 purpose/channel proof and the existing source message contract are available; do not activate every recipe by adding a channel enum. Phase 44 deactivation reaches the native permission owner directly and stops affected human-owner-dependent NHI actions. Optional workflow checklists may coordinate staff handoff but cannot delay revocation, grant access, collect credentials or own SSO configuration. CORE remains complete with both new phases absent.
 
-D50 now selects one immutable request-anchored elapsed eligibility instant. A
-fresh trusted database source-created instant is captured exactly once after
-D48's serialized policy winner is proved and becomes authoritative only with
-the successful D43 source transaction. The exact admitted duration identity/
-revision and bounded whole elapsed seconds derive one finite absolute UTC not-
-before instant. A later approved “day” is exactly 86,400 seconds; civil/
-working-day arithmetic, PostgreSQL day/month interval fields, Tenant/session
-zones, DST, weekends, holidays, D44 changes, tasks, providers, and executors do
-not move it. Early workers do nothing; late workers attempt the same occurrence
-subject to later cancellation/usefulness, and D49 seals the then-current cohort
-at the actual successful seal commit. Source-created, eligible, seal,
-presentation, submission, and delivery times remain distinct; not-before is no
-Due/Overdue state or send promise. No D50 runtime/schema/UI/OpenSpec artifact is
-added.
+<a id="phase-34-implementation-and-user-experience"></a>
 
-Phase 24 D51 now makes cadence Off an immediate source-fenced narrowing. A
-successful Active-to-Off publication advances a separate monotonic cancellation
-epoch in one O(1) Phase 12 commit. D48 admissions pin the epoch; non-Off edits do
-not advance it, and re-enable retains it, so old D50 timing remains stable while
-fenced work never resumes or catches up. D49 seal and every registered
-irreversible descendant admission re-prove the epoch. Off-first prevents the
-boundary; boundary-first preserves truthful history. For local presentation the
-boundary is atomic queryable release, not read. For the currently governed
-email step it is Phase 6's provider-submission attempt fence before external
-I/O, not provider acceptance; after Off, existing ambiguous/provider evidence
-may reconcile but no further provider call or false recall is permitted. Each
-future channel must separately register and prove its own product-owned
-boundary and finality semantics.
+#### Implementation and user experience
 
-Off creates no request/task/access mutation, cancellation task/notification,
-unread reset, current-work census/count, or synchronous fanout. The later
-complete Base Maia editor uses a local draft and one inline consequence review
-with **Turn off courtesy reminders** and **Cancel**, not an autosaving switch,
-nested dialog, typed phrase, protected impact list, or provider-status UI. D51
-adds no runtime/schema/UI/OpenSpec artifact.
+**Advance work safely.** Load authorized source facts and the current run/plan/fences, compute a pure plan, then apply a short revision-checked transaction that records new work and dispatch intent. Recheck source versions; never hold database locks during provider I/O. Use committed outbox acknowledgements or another qualified commit-aware cursor so a later transaction cannot hide an earlier uncommitted event.
 
-Phase 24 D52 now makes late usefulness one finite source-owned admission
-interval rather than a scheduler/provider retry rule. Every later activated
-complete timing profile pairs positive finite whole-second wait and
-usefulness values; D48/D50 pin them and derive immutable finite UTC
-`not_before` and `useful_until` in the successful D43 source transaction. D49
-seal and each still-unreleased member/channel irreversible admission require a
-fresh trusted primary-database claim inside the half-open interval
-`not_before <= claim_instant < useful_until`, the matching D51 epoch, and every
-current source, member, authorization, privacy, and channel gate. Equality at
-the upper bound expires the work.
+**Wait without losing completion.** Persist a wait, schedule an immediate post-commit source recheck, consume source completion events and run indexed overdue reconciliation. This covers completion before registration, after registration and lost wakeups. A timeout may remind, escalate or hold within policy; it never approves a requirement.
 
-Expiry closes unresolved work without release, replacement, or catch-up. D49
-indeterminate remains historical indeterminate rather than guessed zero; a
-sealed cohort remains history while every unreleased descendant expires
-independently. A local item released in time follows ADR-0027 and D43
-actionability rather than disappearing at `useful_until`. Email still
-**Prepared definitely unsubmitted** is suppressed; a pre-expiry **Submission
-may have begun** attempt's one admitted initial provider call may start, finish,
-or reconcile later only as the immediate bounded continuation of the same pre-
-I/O critical section with its envelope already prepared; a stalled/restarted
-process makes no call or retry. Expiry allows no new attempt, follow-up call,
-replacement, rekey, resend, or recall claim. Provider TTL
-may only narrow delivery. Inngest may wake/reconcile identifiers but owns no
-clock, source transition, idempotency, or terminal result.
+**Prevent duplicate external effects.** The effect-owning domain assigns a permanent semantic identity across native behavior, workflows, retries and publication changes. A provider deduplication cache is only supplemental. Same identity with incompatible payload blocks for review. Expired leases after possible dispatch mean Outcome unknown, not permission to send again. Cancellation winning before source admission prevents work; admitted effects may be irreversible. Record valid late outcomes while stopping unauthorized future actions.
 
-The future editor adds no separate grace-period control, expiry countdown,
-Due/Overdue or missed badge, task date, catch-up action, provider/worker status,
-or cancellation notification. Each visible cadence card is one complete timing
-profile and says **If Asym cannot create the reminder soon enough, it skips it
-instead of sending it late.** D52 changes no request, task, access, read state,
-or historical effect and adds no runtime/schema/UI/OpenSpec artifact. D53 and
-D47's representative-evidence gate must admit exact complete timing pairs
-before activation.
+**Respect source clocks.** Store timezone, calendar version, anchor, time interpretation, due instant and cancellation generation. Distinguish elapsed time, local dates and business intervals. Pause only pauseable relative clocks; fixed expiries continue. Coalesce missed reminders instead of flooding recipients. CMS appointments, Support response clocks, report schedules and financial/recurring operations remain source-owned. The native CMS organization's completed scheduling authorization is not a general exemption from Studio's current human-owner authority.
 
-Phase 24 D53 keeps cadence **Off by normative absence** until each exact
-complete `(wait_for_seconds, useful_for_seconds)` pair passes D47's
-preregistered representative-evidence gate. A passing result creates only an
-evidence-qualified proposal for founder/product ratification; it creates no
-runtime profile, key, row, flag, policy, plan, step, worker, setting,
-placeholder, or evidence workflow. Evidence stays privacy-minimized and
-version-controlled outside product runtime. Each exact pair qualifies under an
-immutable `research_candidate_id` and preregistered protocol version, while
-compatible current baseline evidence may be reused. Material timing or
-semantic/interaction changes require new qualification; meaning-preserving
-editorial, accessibility, and localization corrections do not.
+**Minimize data and bound work.** Events, step returns, cancellation inputs, logs and concurrency keys contain only approved identifiers and safe routing information—not names, free text, documents, signed URLs, source records or secrets. Opaque metadata may still require restricted-purpose provider qualification. Use bounded continuations, fair queues, cost measurements and protected capacity for essential source work. Never drop accepted events to satisfy optional workflow limits.
 
-Only a separate full activation package that closes D46–D55 source semantics,
-stable content and every proposed channel, authorization/RLS/privacy,
-retention, accessibility/localization, concurrency/idempotency, load,
-migration/mixed-version, disable/repair, OpenSpec, manifest, tests, and release
-proof may add an immutable code-owned activated profile identity and
-exact whole-second pair. Tenant policy references an activated identity only;
-trusted server code resolves timing. Tenant rows, callers, imports, support
-tools, workers, providers, and experiments cannot author or mutate values.
-Temporary rollout/kill controls may narrow only after activation and require an
-owner and removal criteria; they cannot become product truth.
+**Make work understandable.** Provide a guided Purpose → Start → Scope and people → Steps → Review and test → Publish path, plus canvas/inspector and full outline editing. The run timeline names the real wait, responsible person and next action. Use explicit milestones rather than an arbitrary progress percentage. Lazy-load the canvas; keep participant routes light. Keyboard and single-pointer non-drag operations, screen readers and poor-network submissions are required at this phase, not deferred to Phase 39.
 
-Ordinary profile retirement blocks new policy selection/reselection only; a
-Tenant's current selected head continues prospective D43 source admission until
-deliberate change. D55 now makes urgent safety withdrawal one irreversible exact-
-profile platform disposition that preserves selected heads while effective
-cadence becomes Off. D56 must still ratify its authority/evidence-review rule
-before first activation.
+**Permission and instance previews.** Reuse Phase 12's approved view-as/impersonation controls where that contract permits them, with audit, bounded duration and required consent. Synthetic role and run previews do not confer real source permissions or permit live effect testing.
 
-Before activation, users see no cadence UI, empty state, disabled option, beta
-badge, or teaser. After activation, the D44/D47-governed future route-addressable
-**People & access → Access requests → Settings** surface shows one quiet vertical **Courtesy reminders** radio fieldset with
-only the Tenant's current effective Off choice—whether represented by absence
-or an explicit later policy revision—and fully activated complete profiles. A retired profile is
-absent from new choices and new selection APIs but remains truthfully visible in
-a separate read-only **Current setting** summary outside the selectable radio
-choices wherever a Tenant's policy head still references it. One choice represents the full pair. Concise helper text explains that one
-courtesy reminder may be created only while a request is still waiting, sets
-no due date or access change, and is skipped if too late. An available,
-collapsed-by-default **How timing works** disclosure contains the D48–D52 detail
-and renders the selected pair in plain language: **Eligible after [wait]; if it
-cannot be created within the next [usefulness], it is skipped.** It never shows
-internal field names. The governed explicit
-Save/Cancel, prospective-change warning, expected-head conflict handling,
-durable receipt, persistent success, and lost-response recovery apply. No
-autosave, modal-only warning, arbitrary duration, second usefulness control,
-countdown, evidence score, or provider state appears.
+**Protect limited access.** Reuse protected-action exchange with an opaque high-entropy secret stored hashed, exact task/recipient/tenant purpose, expiry, rotation, revocation and non-enumerating errors. Neutral GET must not consume a link or submit/sign/approve when scanned. Deliberate exchange and every later retrieval/submission recheck authority. Stronger restricted assessment access is separately qualified; a bearer link is not a universal care-access method.
 
-Later decisions must still define external channels, remaining content,
-withdrawal authority/evidence review, and activation/rollback;
-exact bounded values remain deliberately unselected until candidate research
-qualifies a pair under D47/D53. Future UX belongs in the D44/D47-governed People & access
-→ Access requests governance area. First enable, non-Off interval edits,
-and re-enable use **Applies only to access review requests created after you
-save. Requests already waiting aren't included. This doesn't set a due date or
-change access.** Selecting Off instead uses D51's current-and-future inline
-consequence review and **Turn off courtesy reminders** action. Its recipient
-summary is **Recipients** / **Access request
-coordinators responsible when the reminder occurs.** Later changes may stop
-delivery but never redirect that occurrence; if nobody qualifies, the request
-stays in Access requests. It performs no current-request census, recipient
-picker, or roster preview and exposes no channel matrix,
-custom calendar, recurrence builder, backlog action, or phantom control before
-activation. The future timing summary is **After the request has been waiting
-for [selected interval]**; the required available **How timing works** disclosure explains that
-timing starts at new request creation, runs continuously including weekends,
-is not restarted by time-zone or coordinator changes, and exposes the selected
-complete wait/usefulness effect in plain language. Ordinary staff see no
-countdown, promised send time, worker status, or internal clock terminology.
+<a id="phase-34-boundaries-and-guardrails"></a>
 
-Phase 24 D54 selects one distinct required in-product reminder item per exact
-still-qualified D49 sealed member after full activation. It means only that the
-same current access review is still waiting at the admitted courtesy point; it
-is not a resend, deadline, escalation, awareness claim, decision, access change,
-or task mutation. The activation generation assigns/registers its stable key and
-reminder-specific source-end rule; D54 names/reserves neither and adds no current
-artifact.
+#### Boundaries and guardrails
 
-An eligible matching `holder_access_review_requested_v1` child and the reminder
-use one deterministic, rebuildable **Access-review attention group** for the
-same Tenant, exact D43 episode, recipient, role/surface/privacy boundary, and
-uninterrupted D44 responsibility lineage. The multi-request
-`access_request_responsibility_updated_v1` aggregate never joins. When no
-eligible initial child exists, the reminder is a complete one-child group and no
-history is fabricated or backfilled. Each child keeps its own occurrence,
-applicability, engagement, and history. Only the new child receives fresh unread
-state; the group owns no engagement/source/task/access truth and contributes at
-most one derived badge count.
+No tenant JavaScript, SQL, JSONPath, arbitrary network node, pasted provider key, autonomous AI approval or replacement business ledger. Derived conditions inherit the source's sensitivity unless the source explicitly supplies a safer projection. Ordinary staff must not infer sealed work from names, counts, search, My Work, logs or empty states. A financial amount comparison requires compatible currency, Legal Entity and amount basis.
 
-Future release is one atomic D43/D48/D49/D51/D52/current authorization/privacy/
-uniqueness/group-attachment decision. D43 resolution ends applicable children
-under their own rules; D51 Off after release ends only reminder active/unread
-contribution, and D52 bounds first release rather than history. The future item
-uses ordinary **Attention**, the Phase 17 source-actionable presentation policy,
-safe **Access review is still waiting** copy, and one reauthorized People &
-access action. It contains no person, reason, capability, grant/provenance,
-authority, decision, location, ministry, or member-care detail and creates no
-second task.
+Essential native behavior works without a starter or an enabled tenant workflow. Web Studio AU01–AU12 remain fixed product behavior, not optional tenant recipes. Care content stays with Phase 38; application meaning stays with Phase 41. A simulated green node, task checkbox or provider acknowledgment cannot supply missing source evidence.
 
-The Notification Center reuses Phase 17 and Base Maia/Base UI, with visually and
-programmatically equivalent grouping/order, semantic list/heading/disclosure
-structure, independent unread states, quiet arrival, and keyboard, screen-
-reader, forced-color, reflow/zoom, localization/RTL/CJK, mobile, and low-
-bandwidth proof. It does not copy the hardcoded demo bell, add a generic thread/
-conversation/grouping DSL, rely on avatars/color/proximity, or show inline
-Keep/Remove, task controls, urgency, due/overdue, sounds, focus theft, or toast-
-only history.
+<a id="phase-34-acceptance-and-release"></a>
 
-D45's initial-email family plan is not inherited. Local reminder presentation
-is required; every external reminder channel remains absent/not-applicable until
-separately admitted. D54 changes no runtime, key, manifest/census count, profile,
-plan, step, schema/RLS, OpenSpec, route, worker, telemetry, or UI now. Current
-counts remain 20 Target Live candidates and 20 Reserved keys.
+#### Acceptance and release
 
-Phase 24 D55 preserves Tenant intent while making one unsafe timing-profile
-revision terminally non-executable. One append-only, irreversible, exact-profile
-platform safety withdrawal makes every Tenant reference effectively Off without
-editing a Tenant head, publishing mass Off successors, selecting a fallback, or
-performing a Tenant census/fanout. It is distinct from ordinary retirement,
-D51 Tenant Off, provider pause, and temporary rollout/kill flags. It cannot be
-cleared; recovery requires a separately evidenced/activated successor and each
-Tenant's deliberate Save, with no historical catch-up.
+Deliver real non-mobilization tracers first: qualified intake/shared-task follow-up, then private document request/review with the actual purpose owner. Add complete authoring, forms and limited participant work, simulation/publication, long waits, run amendments and version compatibility. Prove the generic product with Phase 41 and Phase 42 modules unavailable; later application or hybrid-web proof cannot replace this core evidence.
 
-Every selection, D43 admission, D49 seal, local release, and external
-irreversible-effect boundary atomically checks current product-owned withdrawal
-state. Missing/unknown/stale/mixed-version state fails closed only for reminder
-effects while requests, initial attention, and tasks remain usable. Fence-first
-blocks admission/release; a selection/admission that won first stays truthful but
-all not-yet-irreversible descendants close safety-withdrawn/no-release. A released
-local reminder loses active/unread contribution without changing its initial
-sibling or source work. Definitely unsubmitted external work suppresses; an
-already admitted **Submission may have begun** call only completes/reconciles
-under its frozen identity and never retries, rekeys, falls back, or claims recall.
+Run compiler/property tests, real Postgres grants/RLS/composite-reference/CAS/outbox/lease races, source-adapter tests, privacy and revocation matrices, and browser/accessibility journeys. Include completion-before-wait, lost wakes, replay beyond provider caches, cancellation-versus-dispatch, unknown outcomes, historical imports, changed preflights, dead dependencies and active-run upgrades. Retain the 64 cross-cutting scenarios and each assigned recipe's three source tests; the complete program catalog contains 352 specified tests, not an assertion of passing implementation.
 
-The future settings editor separates selected from effective truth. A withdrawn
-selected profile appears outside choices as **Selected: [profile label]**,
-**Status: Unavailable for safety**, **Effective: Off**, and **Courtesy reminders
-are off. Existing access requests, tasks, and access are unchanged. This setting
-will not restart.** A secondary **Choose a new setting** action opens the
-ordinary choices with no replacement preselected. Cancel preserves the head;
-explicit Save chooses Off or another activated profile. There is no disabled
-radio, automatic substitute, internal jargon, incident detail, task,
-notification, email, banner, modal, toast, or mass Tenant alert. Safe status is
-accessible, localized, mobile/reflow-complete, and distinct from D42-restricted
-actor/evidence detail.
+Qualify the documented starting complexity and load profile before activation: 250 expanded nodes, depth 8, 10 branches per group, subflow depth 4, 25 external participants per request and 100 planned operations per advance. The supplied initial measurements target p95 local feedback under 100 ms, authoritative participant acceptance under 1 second excluding uploads/providers, and normal source-to-task lag under 10 seconds at p95/60 seconds at p99. Test 100 tenants, 100,000 dormant runs, 10,000 due operations and a 10× burst tenant. These are proposed qualification targets requiring an approved profile, not promises of existing capacity.
 
-D55 adds no runtime, key, profile, withdrawal row, manifest/census entry,
-plan/step, schema/RLS, OpenSpec, UI, flag, worker, telemetry, or automatic
-trigger. Current counts remain 20 Target Live candidates and 20 Reserved keys.
+Release with a representative pilot, source-linked exceptions, independent outage detection, safe canary activation and runbooks for missing work, bad definitions, revoked owners and uncertain effects. Database restoration starts with outward effects disabled; reconcile effect identities, revocations and disposal records before reopening. CORE closes independently; the all-pack acceptance rollup cannot gate it backwards.
 
-D25 ships complete without Phase 34. A later workflow may subscribe to an exact
-D25 occurrence, mirror a follow-up task, and invoke only an already permitted
-typed D25 or source-owner command through the authoritative service. It cannot
-add causes, actions, states, SLAs, financial meanings, select a reviewer, author
-claimant facts, resolve a case, satisfy a Downstream Impact Manifest, or mutate
-any owner-domain truth. Timer or task completion is never case completion.
+<a id="phase-34-open-decisions"></a>
 
-D26 also ships complete without Phase 34. A later workflow may mirror a
-records-review or offboarding reminder and invoke only an independently
-authorized typed Phase 21 or Phase 29 command. It cannot decide legal
-applicability, author or weaken a schedule, release a hold, dispose a copy,
-mark export coverage complete, record a tenant assertion as another actor, or
-verify destination custody. Timer, task, or workflow completion supplies none
-of those facts.
+#### Open decisions
 
-**Open questions for grooming.** Definition-versioning UX for staff;
-per-role dashboard composition surface; whether Support Hub rules migrate
-onto this engine or stay scoped; background-check/e-sign integrations
-(Checkr/SignNow-class) — connector seams via 31.
+Resolve exact shared task/record reuse, participant admission, action/fact bindings, selected provider plan/data handling, deployment limits, retention and retained-state migration. The supplied defaults for debounce, preflight/link expiry, reminders and retry budgets are proposals to qualify within source policy, not universal tenant or legal rules. Determine the actual manual/provider profiles for signing and other evidence with their owners. Do not invent missing application, care, finance or public-source services inside the Studio.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 34 owner obligations](../program-roadmap/owner-constraints.md#phase-34) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
+
+**Implementation packet:** [complete workflow-studio contract](../workflow-studio/README.md).
 
 ---
+
+<a id="phase-35"></a>
 
 ### Phase 35 — Spark-Style Contribution Triggers (`contribution-triggers`)
 
-**What this phase is (plain language).** Gift-driven automation: first-time
-gift → welcome series; large gift → notify the rep; contribution inactivity →
-an appropriately consented re-engagement path. SiteStacker calls this Spark.
-It is a **trigger catalog on top of the Phase 34 engine**. Contribution
-triggers react to _settled contribution facts_ only, never raw Stripe events.
-Any recurring-failure or recurring-health action consumes an explicit typed
-Phase 16 occurrence/health transition; it never infers one from an absent gift
-and never owns payment retry, dunning, or a duplicate recovery sequence.
+<a id="phase-35-what-this-phase-is"></a>
 
-**Why it sits here.** Firm, locked: the engine (34) precedes it. Also needs
-the ledger (13) and comms (6).
+#### What this phase is
 
-**What it covers.**
+The configurable gift-stewardship pack on Workflow Studio. Staff can arrange appropriate welcome, acknowledgment and relationship follow-up from authoritative contribution, recognition and recurring facts. This is the roadmap's Spark-style outcome, delivered through the shared engine rather than another automation application.
 
-- **Contribution event conditions** (the Spark condition set, rebuilt on
-  our facts): first-time gift (global/per-campaign), amount ranges,
-  online/offline entry method, anonymous, recurring first/last occurrence,
-  schedule-modified, soft credit, tribute, source code, site/channel,
-  affiliated person.
-- **Actions**: enroll in workflow/journey, send templated message
-  (consent-gated), create task (rep/missionary), change record
-  type/tags, dashboard notification. A send prompted by a Phase 16 transition
-  must use Phase 16's recorded domain-transition meaning and purpose-specific recipient projection, the Phase 6 dispatch spine,
-  Phase 17 content, and the same permanent semantic dedupe key; Phase 35 cannot
-  create a second message for the same meaning.
-- **Timing modes**: immediate (event-fired) and scheduled/batch (cron-
-  evaluated conditions like "no settled gift in N months"), as distinct
-  evaluation modes (CiviRules pattern). That condition is explicitly
-  **contribution inactivity**, not a person-, Party-, pledge-, or recurring-
-  line `lapsed` state, and it cannot override Phase 16's multi-axis health.
-- **Idempotency everywhere**: settled-fact triggers with dedupe keys;
-  refund/adjustment compensations never re-fire welcome journeys.
-- **Trigger observability**: per-rule fire history, dry-run against
-  historical data, kill switch.
+**Primary surface:** Workflow Studio, Contributions and contextual donor/missionary follow-up. **Stable slug:** `contribution-triggers`.
 
-**Boundaries & guardrails.** Contribution rules fire from settled contribution
-facts only. Recurring-state rules may consume only named Phase 16 transitions
-and remain downstream of Phase 16 recovery and communication-eligibility
-policy. Every send crosses the Phase 6 consent/dispatch gate and the permanent
-semantic-dedupe fence; no Phase 35 rule schedules a provider retry or duplicates
-a Phase 16 state-change notice. The open question from the matrix (thin catalog
-vs distinct surface) is resolved **at Phase 34 grooming** and recorded here.
+<a id="phase-35-why-it-sits-here"></a>
+
+#### Why it sits here
+
+**Starting dependencies:** Phases 34, 13, 6 and 3. The workflow engine must precede the trigger pack. Recognition and recurring recipes require their exact Phase 14/16 owners; history-dependent conditions require a completeness-qualified source/reporting projection. Existing missionary tasks from Phase 28 remain native and do not wait for this pack. There is no Phase 42 dependency.
+
+<a id="phase-35-what-it-covers"></a>
+
+#### What it covers
+
+**First and special gifts.** Support organization-first and designation-first qualifying gifts, same-currency threshold/special-gift attention and privacy-safe anonymous-gift awareness. Define the exact source basis, subject and occurrence; incomplete history cannot prove a first gift.
+
+**Recognition and service follow-up.** Include tribute acknowledgments, donor-advised-fund and soft-credit stewardship, matching-gift evidence follow-up, and communication after a source-confirmed refund or correction. Keep the legal donor, recognition party and message recipient distinct. A match expectancy is not received money.
+
+**Commitment and recurring attention.** Coordinate new-commitment orientation, named occurrence/health attention, pause/end follow-up and fixed-pledge milestones. Use the source's eligibility, opt-in and timing rules; do not create a second charging, dunning or reminder program.
+
+**Inactivity review.** Use a source-qualified historical cohort with explicit lookback, coverage and contact restrictions. Freeze the reviewed cohort and create permitted human relationship work. Do not create a universal person-level Lapsed status or override source recurring health.
+
+**Configuration and visibility.** Provide purpose-named triggers, approved conditions, eligible owners, messages, cadence, prospective activation, dry-run, fire history and disable controls. Conditions may use source-approved entry method, source code, designation/campaign, amount, anonymity, recognition and recurring occurrence. Actions use the shared registry: permitted tasks, messages, notifications, enrollment and only explicitly approved record changes.
+
+**Recipe scope.** Deliver DON-01–DON-13 plus configurable MPD-01 and MPD-06: 15 recipes. DON-14–DON-16 remain development integrations in Phase 34, not a reason to delay the generic Studio until this phase.
+
+<a id="phase-35-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+Phase 13 owns contribution facts; Phase 14 recognition; Phase 16 accepted commitment/occurrence state; Phases 6/17 communications; Phase 27 cultivation; Phase 28 native missionary follow-up; Phase 34 definitions and execution. This phase supplies source-certified trigger bindings and templates, not financial state.
+
+Coordinate the same intended effect across native staff, organizational stewardship and missionary follow-up through the owning domain's semantic identity. Preserve different intentional messages while rejecting conflicting bodies for one effect. Public forms and custom web designs cannot bypass donor intent, source money rules or consent.
+
+**SMS stewardship is a separately qualified channel.** A giving event never creates phone consent or sender registration. The same intended communication retains its source purpose and duplicate-prevention identity when a permitted channel plan includes Phase 43. A suppressed or uncertain SMS is not permission to resend by email, and ordinary gift stewardship remains usable without SMS or enterprise identity.
+
+<a id="phase-35-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Implement one source-certified gift trigger through task creation and permitted communication, including replay and suppression, before expanding the catalog. Separate event-driven triggers from scheduled cohort evaluation. Show the qualifying source event, why the rule matched, which work was accepted and which communication was suppressed or remains unknown.
+
+Use the shared guided/canvas/outline editor and simulation; no separate rule DSL or template store. Thresholds show currency and inclusive/exclusive boundaries. Installation is disabled until an authorized tenant reviews recipients, timing and actual source readiness.
+
+<a id="phase-35-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No raw Stripe event as a user-authored gift fact; no direct financial correction, replay, role grant, canceled-authority revival or receipt creation. Posted, settled and qualifying follow the source's exact meaning, not a universal timestamp. Refunds/adjustments must not restart a welcome journey. Required notices, official receipts, payment recovery and source-controlled pledge reminders remain native even when this pack is disabled.
+
+<a id="phase-35-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Run all 45 recipe tests plus relevant shared scenarios through real source services. Test incomplete history, imports, anonymous/recognition projections, multiple currencies, adjusted/refunded gifts, paused and canceled commitments, contact suppression at dispatch and duplicate native/Studio work. Replay beyond provider caches must not produce a second business effect.
+
+Use a representative tenant pilot and prospective rollout. Keep source receipts and accepted work when new enrollment is disabled; reconcile uncertain effects rather than replay the donor lifecycle. This phase closes the GIVING checkpoint without becoming a prerequisite of CORE.
+
+<a id="phase-35-open-decisions"></a>
+
+#### Open decisions
+
+Set source-compatible qualifying definitions, available conditions, cohort completeness, thresholds, cooldowns and optional cadence during phase planning and tenant activation. Determine which supplementary recurring communications the source permits. A missing historical projection or provider evidence blocks the affected recipe; it must not be replaced by a guessed query or a green mock.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 35 owner obligations](../program-roadmap/owner-constraints.md#phase-35) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
+
+<a id="phase-36"></a>
 
 ### Phase 36 — Peer-to-Peer & Advocacy Campaigns (`p2p-campaigns`)
 
-**What this phase is (plain language).** Supporters become fundraisers: a
-donor creates a personal page ("my birthday for the Kenya well"), teams
-rally around goals, leaderboards and thermometers drive momentum — while
-staff keep moderation, financial truth, and attribution. The **same engine
-powers trip-participant fundraising in Phase 37** — one P2P core (campaign
-→ team → personal page → attributed ledger lines), built once.
+<a id="phase-36-what-this-phase-is"></a>
 
-**Why it sits here.** After public runtime (5), the ledger (13), donor
-portal (25 — "My Campaigns"), and public pages (22).
+#### What this phase is
 
-**What it covers.**
+A supporter-facing fundraising product. A donor creates a personal campaign page, a team rallies around a shared goal, and staff moderate the presentation while gift attribution and money remain trustworthy. The same core supports participant fundraising for events and trips without building another fundraising system.
 
-- **Fundraiser page lifecycle**: donor-created from a parent campaign,
-  org-defined default content, edit permissions and optional
-  edit-approval, admin edit/deactivate (ServiceReef-style moderation
-  controls).
-- **Teams**: captains, team goals rolling up member pages, join via
-  invite/link. Every campaign/team/page goal uses one explicit reporting
-  currency and Legal Entity scope; a labelled Phase 33 reporting conversion
-  may compare lanes but never becomes contribution truth.
-- **Attribution**: unique share links auto-crediting gifts to the
-  fundraiser (as influence/soft credit — 14), plus **admin repair tooling**
-  for unattributed/misattributed gifts (a documented operational pain
-  across P2P platforms); source codes survive checkout (13). Repair tooling
-  invokes Phase 14's append-only credit/attribution correction command and
-  never edits a posted gift, designation, or source-code fact in place.
-- **Gamification**: thermometers, countdowns, individual/team leaderboards,
-  milestones, partitioned by the campaign reporting currency rather than
-  silently summing unlike currencies.
-- **Fee handling consumes existing authorities**: the donor-facing fee-cover
-  choice and gross gift remain Phase 13 truth; exact processor cost,
-  organization-absorbed default, and optional designation-borne uncovered-cost
-  effect follow Phase 20 D19. Phase 36 may present those approved choices but
-  cannot create another fee formula, net a gift in place, or infer a Field
-  Account effect.
-- Donor-portal "My Campaigns" management (25 socket).
+**Primary surface:** Public website, Donor Portal My Campaigns and Mission Control campaign operations. **Stable slug:** `p2p-campaigns`.
 
-**Boundaries & guardrails.** Donor-created pages are moderated projections;
-contribution truth stays in the ledger; fundraiser pages for restricted
-workers inherit Phase 10 publication rules.
+<a id="phase-36-why-it-sits-here"></a>
 
-**Open questions for grooming.** Fundraiser page creation open to all
-donors vs invited; personal-page media moderation depth; offline gifts
-credited to a fundraiser's total.
+#### Why it sits here
+
+**Starting dependencies:** Phases 5, 13, 25, 3 and 22. Public runtime, contributions, donor identity/projections and governed page behavior must be available. Use exact Phase 14 recognition/attribution contracts where required. Phase 37 consumes this fundraising core for trips; Phase 42 may improve its qualified presentation but is not a prerequisite or a new money owner.
+
+<a id="phase-36-what-it-covers"></a>
+
+#### What it covers
+
+**Personal fundraising pages.** Create a page from a parent campaign with organization-approved starting content. Support the accepted donor edit, staff review, moderation, deactivation and retirement lifecycle. Provide permissions and clear status for draft, review and public work rather than making every edit live implicitly.
+
+**Teams.** Support captain responsibilities, team goals, invitations/joining and rollups of eligible personal pages. Reuse the accepted group/relationship model where applicable; preserve the Phase 37 shared-group boundary rather than inventing an unrelated platform-wide group system.
+
+**Attribution and repair.** Carry source-coded share links through checkout and retain their connection to the fundraiser and parent campaign. Use the source's influence/soft-credit model rather than transferring legal gift ownership. Provide authorized repair for missing or incorrect attribution with evidence and retained history.
+
+**Progress and participation.** Deliver goal thermometers, countdowns, permitted individual/team leaderboards and milestones. Totals reconcile to the approved contribution basis and treatment of corrections, refunds and eligible offline gifts. Respect anonymity, restricted-worker presentation and participant visibility in rankings and aggregate views.
+
+**Giving and donor management.** Use the existing giving/cart and donor-covers-fees behavior; do not introduce donor tipping or another checkout. Donors manage their permitted pages through the existing My Campaigns surface. Staff can moderate and close pages without deleting contribution records.
+
+**Trip-fundraising reuse.** Make campaign/team/personal-page and attribution capabilities available to Phase 37. A registration, participant balance and fundraising goal remain distinct. Event deadlines and over-fundraising policy are source-approved integrations, not hidden edits to accepted gifts.
+
+<a id="phase-36-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+Public runtime and safety remain Phases 5/10; specialized public-page behavior remains Phase 22; Phase 25 owns authenticated donor context; Phase 13 owns gifts and allocation; Phase 14 owns recognition. This phase owns fundraising participation, page lifecycle and the source-qualified attribution relationships it introduces.
+
+Use existing document/media and communication owners rather than local upload or mail pipelines. Any custom presentation consumes the approved public model; it cannot read private donor details or alter campaign totals. Group data and event participation must use the single accepted membership contract when shared.
+
+**Text-to-give and fundraising attribution.** A Phase 43 keyword or approved campaign link may lead into this phase’s existing public fundraiser/checkout handoff using the qualified source code. It cannot create a fundraiser account, subscribe a visitor to outreach, change the legal donor or authorize a recurring gift. Fundraiser participation and an external identity-provider group remain separate from permission.
+
+<a id="phase-36-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Start with one donor creating a page, staff reviewing it, a visitor giving through its link and the donor seeing the correct result. Add teams, rankings and attribution repair over that same behavior. Make personal-versus-team-versus-campaign scope explicit, particularly when editing goals or closing pages.
+
+Use accessible public and donor controls, clear fee wording and source-labelled progress. A removed page should have an owner-defined public disposition and retain its history. Do not imply that retirement refunds, redirects or reallocates funds unless the existing source explicitly authorizes that separate operation.
+
+<a id="phase-36-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+Fundraiser pages are moderated presentation and attribution, not contribution or legal-donor authority. No duplicate ledger, receipt model, mutable progress counter as truth or unqualified public media path. Source codes must survive checkout. Restricted-worker protections apply to URLs, media, rankings, social previews and notifications, not just body text.
+
+<a id="phase-36-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Prove page creation/review/publication, current donor access, share-link attribution through real checkout, team aggregation and source-safe retirement. Test duplicate contribution events, refunds/adjustments, anonymous donors, stale moderation, unauthorized page edits and source-code loss. Verify all displayed totals against the owning contribution basis.
+
+Include mobile and keyboard completion, governance of media and public safety, and staff recovery of an attribution error. Preserve financial history during migration or page closure. The phase remains usable without hybrid web development or event registration.
+
+<a id="phase-36-open-decisions"></a>
+
+#### Open decisions
+
+Decide open versus invite-only fundraiser creation, media/moderation depth, captain permissions, offline-gift attribution, leaderboard visibility and goal/deadline/over-funding policies. Resolve any shared-group implementation detail against the accepted CRM/group contract. Do not invent charitable-treatment rules or silently change earlier contribution policy to simplify the interface.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 36 owner obligations](../program-roadmap/owner-constraints.md#phase-36) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
+
+<a id="phase-37"></a>
 
 ### Phase 37 — Event / Opportunity Workflows & Group Management (`events-groups`)
 
-**What this phase is (plain language).** The **mobilization** product:
-short-term trips, trainings, retreats, and recurring local-serving
-opportunities — published as opportunities, applied to through workflow
-pipelines, staffed as team rosters with capacity and deadlines, funded
-through the ledger, documented (passports/waivers), and communicated with
-as groups. Purpose-built tools (ManagedMissions, ServiceReef) converge on
-exactly this shape; SiteStacker ships events/opportunities as dynamic
-content + workflow-driven applicant management, so this is required parity.
+<a id="phase-37-what-this-phase-is"></a>
 
-**Why it sits here.** Deliberately **after the workflow engine (34)** —
-applications, references, approvals, and document collection _are_
-workflows; building an Event Hub earlier would create a duplicate process
-engine. Also needs public runtime (5), parties (9), ledger (13), comms (6),
-files (29).
+#### What this phase is
 
-**What it covers.**
+The operations product for trainings, retreats, short-term trips and other serving opportunities. Staff can publish an opportunity, manage registration and capacity, organize participants, collect required evidence and communicate clearly. Application-based opportunities reuse mobilization; ordinary registration remains its own simpler path.
 
-- **Opportunity model** spanning the serving spectrum: one-day events,
-  recurring local roles, trainings, multi-week trips; publishable via
-  Phase 23 dynamic lists; auto open/close by date; capacity (max/remaining)
-  first-class; fund/designation mapping per opportunity (GL stays clean —
-  20).
-- **Application pipelines on Phase 34**: reusable form/question libraries,
-  reference requests (tokenized external forms), background-check/e-sign
-  integration seams, approval stages, per-role dashboards.
-- **Trip money, two distinct types** (the domain's critical nuance):
-  **non-deductible participant payments** (deposits, installments with due
-  dates + reminders, application fees; refundable per policy) vs
-  **deductible third-party donations** to org-controlled trip funds
-  soft-credited to the participant — separate Phase 13 contribution objects.
-  Phase 7 owns receipt eligibility/legal facts; Phase 14 owns recognition and
-  acknowledgment purpose/audience facts; Phase 17 owns governed message
-  content; Phase 18 owns any canonical document artifact; and Phase 6 owns
-  dispatch/history. Phase 22/23 presentation consumes those approved
-  source-owned fields and cannot decide deductibility. Each payment or
-  donation pins the exact Legal Entity, designation/payment purpose, and
-  currency before confirmation; mixed-entity or mixed-currency carts use
-  explicit donor-confirmed Phase 13 groups rather than inferring ownership
-  from a trip or Site.
-- **Per-participant fundraising** via the Phase 36 P2P engine
-  (registration-with-fundraising hybrids: pay, raise-by-date commitment, or
-  both; donate buttons auto-disappear after deadline; over-fundraising
-  policy).
-- **Rosters & groups**: team rosters, leaders, capacity; **the Phase 9
-  groups ruling lands here** — `party_kind='group'` reserved value +
-  ONE shared `group_memberships` table (D3 R3), covering teams, regions,
-  and event participation; participant dashboards (per-currency payment and
-  fundraising progress, schedule, documents due). Any converted comparison is
-  visibly labelled Phase 33 reporting, not source truth.
-- **Document collection** (29): passports, waivers, insurance — collected
-  via workflow file-request tasks, tracked per participant, classification-
-  aware (identity docs are confidential-tier).
-- **Group communication**: Phase 37 owns the audience and purpose, Phase 17
-  owns governed content and sender profile, and Phase 6 owns dispatch and
-  communication history for whole-team or individual messages.
-- **Trip-expense handoff without a side ledger**: Phase 37 owns opportunity,
-  trip, participant, budget-context, and cost-allocation intent. Phase 21 owns
-  expense capture, evidence, approval, reimbursement/payment coverage, and
-  any Field Account effect; Phase 20 alone owns the accounting-ready handoff
-  and QBO/Xero delivery.
+**Primary surface:** Mission Control Event Hub, public opportunity pages and purpose-scoped participant views. **Stable slug:** `events-groups`.
 
-**Boundaries & guardrails.** Event payments use the contribution ledger —
-never a side money path. Event workflows use the Phase 34 engine — never a
-bespoke pipeline. Trip budgets and expense summaries are operational context,
-not another Field Account or general ledger. Restricted-country trips inherit
-Phase 10 rules (public opportunity pages for sensitive destinations use
-generalized geography).
+<a id="phase-37-why-it-sits-here"></a>
 
-**Open questions for grooming.** Volunteer management depth (background-
-check policy per tenant); recurring local-serving roles v1 or fast-follow;
-launch depth for leader-entered trip budgets and the Phase 21 command surface;
-registrant-becomes-party dedupe flow.
+#### Why it sits here
+
+**Starting dependencies:** Phases 5, 9, 13, 6, 29, 34 and 36, preserving the supplied program gate. Common primitives may be developed in parallel under their own owner proof, but an earlier independently released plain-registration profile requires an explicit scheduling decision; it is not silently authorized by this reconciliation. Only selected application, reference, screening or onboarding lanes require the exact Phase 41 capability. Plain registration does not depend on the entire mobilization product. Phase 41's ordinary application path does not depend back on Event Hub.
+
+<a id="phase-37-what-it-covers"></a>
+
+#### What it covers
+
+**Opportunity model and publication.** Represent the supported one-day, recurring local, training and multi-week trip profiles with dates, deadlines, capacity, approved location and fund/designation context. Use qualified public pages and Phase 23 dynamic lists. Date-driven opening/closing and public availability remain source-owned; a private roster is not CMS content.
+
+**Registration and capacity.** Own registration, reservation, seat offer, offer expiry, waitlist, cancellation and accepted disposition. Capacity allocation must be atomic and fair within the selected policy. A waitlisted person is not confirmed because a workflow finishes. Repeated submissions and acceptance-versus-expiry races must conserve seats.
+
+**Application-based admission.** Use Phase 41 application identities, references, requirements and reviewed decisions, with Phase 34 forms, tasks and participant access. Do not fork the application/evidence model for trips. A required screening or signing profile remains unavailable until its source is qualified or an explicitly permitted manual alternative is accepted.
+
+**Participant money.** Keep participant fees, deposits, installments and refunds distinct from third-party donations to an organization-controlled trip fund. Use the qualified source payment, classification, receipt and accounting contracts. The phase must settle the actual treatment with its finance owner before activation; a generic event template cannot decide deductibility or financial control.
+
+**Fundraising.** Reuse Phase 36 personal/team fundraising, including supported pay/raise/both participation profiles, deadlines, giving-page availability and over-funding disposition. A fundraising total does not become a participant payment or available balance by inference.
+
+**Groups and rosters.** Implement the accepted shared group and membership contract reserved by Phase 9, covering relevant teams, regions and participation without parallel membership tables. Provide eligible leaders, controlled rosters, attendance and authorized participant dashboards showing source-labelled schedule, financial context, fundraising progress and documents due.
+
+**Readiness and communication.** Collect passports, waivers, insurance and training evidence through the private document/task owners. Track currentness and reviewed completion separately from upload. Send team or individual messages through the communication owner. Record event changes, departure readiness, debrief/survey and permitted follow-up without treating attendance as marketing consent or training certification.
+
+<a id="phase-37-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+This phase owns opportunity/registration/capacity/group/attendance facts and its authorized readiness outcomes. Phase 34 coordinates work; Phase 41 owns selected application decisions; Phase 29 owns private bytes; Phases 13/7/18/20 own payment, receipt and accounting meaning; Phase 36 owns fundraising.
+
+Deliver GEN-10–GEN-12 and the event portion of WS-21 on the shared Studio. Public listing/design integrations use the existing qualified source catalog; custom components never own seats, rosters, money or access. Clinical contents stay with Phase 38 and expose only an allowed determination to the selected application path.
+
+**Optional SMS and enterprise participation.** Registration does not establish SMS consent. A permitted reminder uses the exact Phase 43 route and recipient purpose; an IdP login only establishes its separately admitted access context. Neither channel delivery nor staff provisioning confirms a seat, application, payment or readiness decision. Event operation without these optional profiles remains required.
+
+<a id="phase-37-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Deliver simple registration through confirmed/waitlisted disposition first, including a real capacity race and cancellation. Then add participant evidence, groups, communications and source-qualified money/fundraising. Add the application lane only when its exact Phase 41 services are ready.
+
+Show registration, application, payment, fundraising and readiness as separate statuses with a clear next action. Keep sensitive evidence out of public pages and broad group messages. Participant journeys must work on a phone with server save/resume, repeated-submit safety and understandable uncertainty after a dropped connection.
+
+<a id="phase-37-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No bespoke workflow engine, side payment ledger, source-free approval or arbitrary roster sharing. Public restricted-country opportunities use approved generalized geography. Fees and donations cannot be merged into one unlabeled number. A task or deadline cannot allocate a seat, authorize a refund, complete screening or certify training. Relationship/group membership never supplies permission by itself.
+
+<a id="phase-37-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Prove seat allocation under concurrent registrations, waitlist offers, expiry-versus-acceptance, cancellation and late payment evidence. Test separate payment/donation attribution, source-safe refunds, evidence expiry/revocation, unauthorized roster access and repeated participant submission. Validate publication and source-coded giving handoffs under the existing public-safety rules.
+
+Run the three event recipes' nine tests and relevant shared/conditional application scenarios. Demonstrate a complete staff/participant journey and source-owned recovery. The EVENTS checkpoint closes here; it does not gate Phase 34 CORE backwards. No required selected application or screening path may be called complete while its adapter is a mock.
+
+<a id="phase-37-open-decisions"></a>
+
+#### Open decisions
+
+Resolve recurring local-serving and volunteer scope, registration/Party dedupe, waitlist ordering and offer windows, participant-payment profiles, qualified signing/screening, group permissions and leader-side trip budgeting versus Phase 21. Use actual organizational/jurisdiction policy for financial classification; preserve all previously accepted money and identity contracts.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 37 owner obligations](../program-roadmap/owner-constraints.md#phase-37) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
+
+<a id="phase-38"></a>
 
 ### Phase 38 — Member Care, Crisis & Restricted-Ministry Operations (`member-care-ops`)
 
-**What this phase is (plain language).** The confidential care product on
-the Phase 10 rails: member-care staff manage counseling/health/crisis
-records that even org admins cannot read by default; care teams are
-assigned per worker; crisis events (evacuation, detention, medical) run
-with break-glass access and post-incident review; restricted-ministry
-operating rules (publication delays, content review) get their operations
-UI. This is the **most sensitive data in the entire platform** — clinical-
-grade boundaries, or counselors won't use it and the org's GDPR Art. 9
-posture collapses.
+<a id="phase-38-what-this-phase-is"></a>
 
-**Why it sits here.** On the Phase 10 foundation (classification, named
-grants, read audit, break-glass primitive), with parties (9), permissions
-(3, deepened by 12), and files (29); comms (6), Support Hub (26), and
-workflows (34) enrich it.
+#### What this phase is
 
-**What it covers.**
+The confidential care and crisis product. Authorized carers can coordinate support and retain appropriate records without exposing counseling, health or sensitive ministry details to ordinary staff. Crisis responders can use explicit emergency authority and accountable communication rather than treating broad administration as permission to see everything.
 
-- **Confidential case module**: care records sealed by default
-  (named-participant grants — the Salesforce Compliant-Data-Sharing
-  analog); care notes are **never** ordinary CRM notes; per-case
-  participant lists with roles.
-- **Provider-type modeling** (licensed counselor vs lay carer) and
-  **limits-of-confidentiality acknowledgment** captured at intake (both
-  parties know reporting limits before care starts); duty-to-warn/
-  mandatory-report escalation paths — explicit, acknowledged, audited.
-- **Crisis operations**: contingency plans and proof-of-life data as
-  Restricted-tier documents (29); emergency contact trees; **break-glass
-  activation UI** (mandatory justification, real-time alert, post-incident
-  access review queue); crisis event logging and after-action records.
-- **Care-team assignment** (staff-assignment edges, role-qualified) and
-  care caseload views; care-sensitive indicators surfaced to general staff
-  only as the Phase 10-approved summary chip (structural member-care
-  exclusion from Phase 9 general surfaces carries through).
-- **Candidate-screening data** (psychological assessments from
-  mobilization workflows, 34/37) landing as Restricted with its own
-  retention schedule.
-- **Compliance evidence surfaces**: per-tier retention/deletion enforcement
-  reports, appropriate-policy-document support (ICO), DSAR/erasure tooling
-  that correctly excludes data whose disclosure endangers third parties.
-- **Audit of the audit**: sensitive-read logs are themselves confidential
-  (who is in counseling is confidential) with their own tier and retention.
+**Primary surface:** A purpose-gated care area and crisis operations within the approved Asym surface arrangement. **Stable slug:** `member-care-ops`.
 
-**Boundaries & guardrails.** Care truth is not general CRM. Leadership
-cannot silently unseal counselor notes (the trust-failure mode); whatever
-unseal authority exists is explicit, disclosed at intake, and audited.
-Cross-tenant sharing of restricted worker data: export-with-consent only.
-Care notes, case membership, crisis details, and sensitive-read history never
-enter a Phase 21 Approved Expense Snapshot, Phase 20 Accounting-Ready Expense
-Handoff, Accounting Release, provider artifact, or QBO/Xero payload. Expense
-operations may carry only the minimum approved business-purpose evidence
-allowed by the Phase 10 egress policy.
+<a id="phase-38-why-it-sits-here"></a>
 
-A D26 tenant business-record archive is not an individual's subject-access,
-portability, correction, restriction, or erasure response. Phase 38 privacy-
-request authority may constrain or request owner-filtered D26 records, but it
-cannot treat an unredacted tenant archive as the response or use export as
-deletion or hold authority.
+#### Why it sits here
 
-**Open questions for grooming.** Sealing default depth (invisible vs
-visible-with-audit for org owners — tenant-configurable within a floor?);
-break-glass authority configuration; retention defaults per record class;
-whether care staff get a separate surface or a gated Mission Control area.
+**Starting dependencies:** Phases 10, 3, 4, 9 and 29. The classification, identity, projection and private-file foundations must exist first. Deep capability decisions use Phase 12. Communication and Support Hub integrations consume their exact source contracts. Native care remains usable without optional automation; the nine care coordination recipes additionally require the Phase 34 primitives and restricted-purpose provider qualification.
+
+<a id="phase-38-what-it-covers"></a>
+
+#### What it covers
+
+**Sealed care records.** Maintain source-owned intake, cases, care notes and participant grants with restricted defaults. General CRM notes are not a place for clinical content. Record the authorized purpose and each participant's current role, including differences between licensed professionals and lay carers where applicable.
+
+**Confidentiality and duty-related policy.** Capture the approved limits of confidentiality and relevant intake acknowledgments. Define source-governed escalation and reporting procedures with the responsible organizational/legal owner. The software must not invent a universal clinical or jurisdictional rule from a generic checklist.
+
+**Care teams and continuity.** Use qualified staff-assignment relationships, named access and controlled handoff. Provide authorized caseload, check-in and follow-up views. General staff see only the specifically approved nonrevealing summary, if any; ordinary administrators must not infer sealed work from counts, names or notifications.
+
+**Crisis operations.** Support contingency records, emergency contact trees, source-authorized proof-of-life information, incident coordination and after-action review. Break-glass access is time-bounded, justified, alerted, audited and reviewed through the existing safety authority. Maintain a tested alternate communication path independent of optional automation.
+
+**Restricted-ministry operations.** Apply required publication restrictions, review and delayed/safe handoff through the public-safety owners. Ordinary logistics may connect to sealed work only through an approved minimal handoff that does not reveal clinical or restricted details.
+
+**Candidate assessments.** Retain clinical/psychological assessment contents requested by Phase 41 or Phase 37 in the qualified care source with purpose-specific access and retention. Application/registration records receive only the permitted determination/reference. Neither workflow execution nor a general file picker may expose the raw assessment.
+
+**Records stewardship.** Provide approved retention/hold/disposition evidence and privacy-request handling that respects third-party and safety restrictions. Sensitive-read audit is itself protected. A broad search or export request must not bypass the care owner merely because it is called administration or data stewardship.
+
+**Coordination recipes.** Deliver CARE-01–CARE-08 plus GEN-18 and WS-23: nine sealed coordination recipes. Workflow Studio stores only approved references and purpose-safe outcomes; care decisions and accepted records remain here.
+
+<a id="phase-38-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+Phase 10 owns the shared safety floor and emergency primitive; Phase 12 current capabilities; Phase 29 private custody. This phase owns care records, qualified reviewers, clinical/assessment content, care decisions, crisis dispositions and their records policy. Phase 34 coordinates approved work only.
+
+Support Hub must remove or contain inappropriate ordinary exposure before a qualified sensitive handoff. Phase 41's ordinary applications need not wait for care; an application that actually requires a clinical determination cannot progress without its exact qualified source or a source-authorized alternative. No requirement is silently waived because a provider is unavailable.
+
+**Extended integration privacy.** Ordinary SMS profiles exclude clinical and restricted context, and an enterprise connection administrator receives no implicit care access. Directory revocation uses current named-purpose grants; a provider outage or user departure never deletes sealed history. Any genuinely necessary future care communication profile needs its own explicit owner/provider/retention evidence, not a quiet expansion of Phase 43.
+
+<a id="phase-38-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Build the private intake-to-named-carer journey and prove exclusion from ordinary surfaces before adding crisis and automated coordination. Keep permissions understandable to authorized carers and disclosure-safe to everyone else. Separate records, operational tasks, clinical determinations and communication evidence.
+
+Test every output path: list, count, search, autocomplete, My Work, exports, audit, notifications and telemetry. Qualify metadata handling, retention, access and residency for any external execution provider; identifier-only payloads alone do not establish confidentiality. Use safe source-native recovery and manual work during outages.
+
+<a id="phase-38-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+Leadership or broad tenant administration cannot silently unseal counselor records. No clinical content in ordinary CRM fields, workflow state, Web Studio, developer fixtures, public previews, Git or AI prompts. An automation cannot grant break-glass access, assert proof of life, make a clinical decision or dispose held records. Cross-tenant sharing requires its own explicitly permitted source process, not a general connector shortcut.
+
+<a id="phase-38-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Prove current named grants and revocation, sealed intake/handoff, download protection and zero unauthorized existence disclosure across all surfaces. Exercise emergency access expiry, required alerts, retrospective review and the alternate crisis communication path. Test assessment handoff to a selected application without copying private contents.
+
+Run the nine recipes' 27 tests plus restricted source, provider-handling and shared negative scenarios. Activate only qualified purposes with a representative authorized-care pilot and approved records/recovery procedures. CARE closes independently from CORE; a general Studio safety test is not proof that a care provider or clinical workflow is qualified.
+
+<a id="phase-38-open-decisions"></a>
+
+#### Open decisions
+
+Resolve sealing floors, any permitted general summary, care-surface placement, professional-versus-lay role policy, emergency authority, privacy-request/disclosure rules and purpose-specific retention. Obtain the required clinical, organizational and legal decisions from their responsible owners. Do not label this phase legally or clinically certified from specifications or automated tests alone.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 38 owner obligations](../program-roadmap/owner-constraints.md#phase-38) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
+
+<a id="phase-39"></a>
 
 ### Phase 39 — Mobile, Low-Bandwidth & Conflict-Safe Field Experience (`field-first-ux`)
 
-**What this phase is (plain language).** Missionaries work from phones on
-bad connections. This phase is the **field-reality hardening pass as a
-product contract**: the workspace and key staff flows become genuinely
-usable on mobile over slow/intermittent networks, a small named set of
-field workflows (log an interaction, complete a task, draft a note) queue
-offline and sync safely — and **money paths are never offline-writable**.
+<a id="phase-39-what-this-phase-is"></a>
 
-**Why it sits here.** Last-but-one on purpose: the 2026 consensus is that
-full local-first sync (CRDTs, through-the-DB sync) is **over-engineering**
-for a server-authoritative, RLS-multi-tenant CRM. The realistic sweet spot
-— read-path caching + optimistic idempotency-keyed write queues for named
-workflows — needs the workflows (28) and API idempotency contracts to
-exist first.
+#### What this phase is
 
-**What it covers.**
+The field-resilience phase. Missionaries and appropriate staff can use the product reliably on phones and intermittent connections, with a small explicitly approved set of offline actions and clear recovery when connectivity returns. This extends baseline mobile usability; it does not excuse earlier phases from delivering accessible, responsive interfaces.
 
-- **PWA shell** (Serwist — the standard Next.js App Router toolchain):
-  installable workspace, app-shell precache, runtime caching, offline
-  detection.
-- **Read-path resilience**: TanStack DB persistence (SQLite-WASM adapters)
-  for the missionary's permitted slice (partners, tasks, commitments) —
-  server-authoritative, schema-version-controlled re-sync. Before the device
-  posture is certified, only non-sensitive projections may persist locally.
-- **Offline write queue for a small named set** of workflows via
-  `@tanstack/offline-transactions`: client-generated idempotency keys,
-  exponential backoff, ordered replay for dependent ops, **visible
-  pending/synced state** ($synced/$origin row metadata → WhatsApp-style
-  indicators).
-- **D22 offline boundary**: only a visibly device-local, non-authoritative
-  Prospective Expense Plan Draft may be resumed offline after the device-
-  security contract is certified. Submit, withdraw, request-information,
-  review, decide, reserve, apply coverage, release, correct, and notify remain
-  online, server-confirmed actions; they are never offline-queued or rendered
-  optimistically as committed.
-- **D25 offline boundary**: a visibly device-local response text draft may be
-  retained only under the certified device contract and must remain labelled
-  **Not sent**. Evidence upload/finalization, response submission, withdrawal,
-  request-another-review, source correction, Resolution Occurrence, downstream
-  disposition, and case completion remain online and server-confirmed. The UI
-  never shows **Sent**, **Complete**, approved, paid, or financially corrected
-  before authoritative commit.
-- **D26 offline boundary**: package request, scope preview, manifest seal,
-  authorization reproof, external-copy assertion, verified transfer, hold, and
-  disposition remain online and server-confirmed. A deliberate authenticated
-  download may create an external device copy that Asym cannot recall, but a
-  service worker or ordinary offline cache must never silently retain archive
-  bytes; offline UI cannot claim **Stored**, **Verified**, **Complete**, or
-  **Transferred**.
-- **Conflict policy per entity, decided up front** (TanStack DB explicitly
-  does not solve conflicts): LWW-safe fields vs must-surface fields with
-  human-readable choices — no silent merges.
-- **Low-bandwidth budgets** as acceptance criteria (payload sizes,
-  image variants, skeleton behavior) across donor/missionary/staff
-  field-relevant routes.
-- **Escalation ladder documented** (Electric's four tiers): if a future
-  need demands true bidirectional mobile sync, PowerSync-class engines are
-  the evaluated path — not an ad-hoc rebuild.
+**Primary surface:** Field-relevant missionary and staff experiences, shared client infrastructure and source command recovery. **Stable slug:** `field-first-ux`.
 
-**Boundaries & guardrails.** Writes stay server-authoritative through the
-existing API. Donations, receipts, batch commits, and any money mutation
-are **never** offline-queued (pessimistic confirmation only). Restricted-
-tier data (10/38) is never persisted to device caches. Confidential or partner
-PII cannot persist until encrypted-at-rest storage and key handling,
-device/session binding, logout and revocation wipe, TTL expiry, remote
-invalidation, schema-migration safety, and a lost-device threat test all pass.
-Failure falls back to online-only or non-sensitive cached projections, never
-plaintext convenience storage.
+<a id="phase-39-why-it-sits-here"></a>
 
-**Open questions for grooming.** The exact named offline-write set and the
-implementation selected to meet the fixed device-security contract above;
-whether staff batch entry gets an offline mode (recommend no — money).
+#### Why it sits here
+
+**Starting dependencies:** Phases 3, 4, 9 and 28. Permitted records and stable source commands must exist before device persistence and replay can be safe. Use Phase 31 where a selected integration needs it. Workflow Studio and Mobilization already owe usable phone journeys; Web Studio already owes its supported narrow-screen authoring and review tasks.
+
+<a id="phase-39-what-it-covers"></a>
+
+#### What it covers
+
+**Installable field shell.** Qualify a PWA/app-shell and cache strategy for the supported Next.js/runtime configuration. Keep offline detection and a readable recovery state. Cache policies must distinguish public assets from authorized private projections.
+
+**Bounded read resilience.** Persist only the approved permitted slice, with schema/version control, expiry, resynchronization, context isolation and explicit device-data policy. A cached result shows its age and cannot establish current financial, permission or evidence truth.
+
+**Named offline actions.** Evaluate the previously identified interaction logging, task completion and draft-note cases individually. Each allowed action needs a client operation identity, server reauthorization, ordered replay where dependent, bounded retries and a visible pending/synced/conflict result. Offline submission is a request waiting for acceptance, not a committed source fact.
+
+**Conflict policy.** Define behavior per entity and field: safe automatic resolution where explicitly approved, otherwise a human-readable comparison. Preserve meaningful unsent input; do not silently merge incompatible recipient, financial, access or approval changes. Stale replay and deleted/revoked sources must produce a safe disposition rather than recreating them.
+
+**Low-bandwidth delivery.** Set and measure route payload, image, loading and interaction budgets for real devices and network profiles. Avoid loading the workflow canvas or developer tooling on participant/read routes. Explain which tasks remain available and which require a connection.
+
+**Context loss and recovery.** Clear private caches on logout or lost scope according to the device policy, fence delayed responses and revalidate at reconnect. Separate acknowledged server saves from in-memory input and queued operations. No interface should promise device-loss recovery for data it never durably saved.
+
+<a id="phase-39-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+All writes remain with the existing source API and current permission authority. TanStack Query and approved DB collections supply bounded client projections; they are not a new database authority. Workflow tasks and participant forms retain their own submission/evidence rules. Financial views remain source-labelled, including their currency and through-date.
+
+Web Studio D12 and Phase 42 remain online-authoritative: private CMS drafts, source code, exact previews and publication do not enter a persistent offline mutation queue. Phase 34/41 participant server save/resume is not permission to cache restricted evidence. Public caching cannot reveal private application or care content.
+
+**Online-only channel and identity control.** SMS enrollment/dispatch, sender/provider changes, SSO enforcement, SCIM provisioning and access grants remain online-authoritative. Device caches cannot preserve revoked staff access or turn a queued local preference edit into current send permission. Reconnect reauthorizes exact operations and fences late old-context responses through the existing owners.
+
+<a id="phase-39-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Start with the named field journeys and measure the actual failure modes before choosing persistence technology. Qualify candidate PWA, TanStack DB, SQLite-WASM or offline-transaction libraries against the repository's supported stack. An earlier library mention is an evaluation option, not proof of production fit.
+
+Deliver one approved offline action through queue, reconnect, server acceptance and conflict recovery before broadening the set. Show useful status without requiring technical vocabulary. A source refusal remains visible and actionable rather than endlessly retried. Keep a straightforward online path and a safe option to abandon an unsent request.
+
+<a id="phase-39-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No offline money mutation, batch posting, approval, public publication, account grant, protected-action exchange or restricted evidence submission. Restricted/care data is not persisted in device caches. Do not introduce blanket last-write-wins, a universal CRDT or an ad hoc bidirectional database sync engine. More ambitious synchronization requires a separate evidence-backed decision.
+
+<a id="phase-39-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Test normal and slow connections, prolonged disconnect, response loss after commit, repeated replay, dependency ordering, schema upgrade, device/context loss, permission revocation and expired caches. Prove a stale offline operation cannot re-create revoked access or overwrite newer conflicting source work.
+
+Measure complete mobile tasks, keyboard/assistive-technology use and the named bandwidth budgets. Release only the supported offline set with wipe, retention, sync-failure and rollback procedures. Verify finance, care and CMS publication remain online-only.
+
+<a id="phase-39-open-decisions"></a>
+
+#### Open decisions
+
+Choose the exact offline action allowlist, cache contents and lifetime, device encryption/logout wipe posture, supported browsers/devices, network targets and conflict rules. Decide whether any additional staff journey merits offline support; financial batch entry remains excluded unless an explicit future source decision changes that boundary. Escalate to a dedicated sync engine only when measured requirements justify it.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 39 owner obligations](../program-roadmap/owner-constraints.md#phase-39) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
+
+<a id="phase-40"></a>
 
 ### Phase 40 — Data Stewardship, Global Search & AI Operator Workbench (`data-stewardship-ai`)
 
-**What this phase is (plain language).** The capstone: help staff **find,
-clean, explain, and act on** everything — governed global search across all
-record types, data-quality queues as a continuous practice, and an
-AI-assisted workbench where the machine _suggests_ (duplicate merges,
-record summaries, next-action drafts, anomaly flags) and a **human commits
-every change**. Deliberately last: AI on top of unstable truth,
-permissions, or audit summarizes garbage confidently.
+<a id="phase-40-what-this-phase-is"></a>
 
-The generalized workbench remains deliberately last. Phase 21 D10 pulls forward
-only the small shared execution foundation needed by earlier bounded features:
-AI Provider Connections, write-only Credential Revisions, closed Feature
-Purposes, prospective capability-certified AI Capability Binding Versions,
-minimum-data Egress Manifests, immutable Invocation Evidence, and the
-non-authoritative Suggestion Version contract. Phase 40 consumes and extends
-that foundation; it does not create a second key store, model router, egress
-ledger, or suggestion authority.
+#### What this phase is
 
-**Why it sits here.** Hard on the permission/identity floors (3/4), health
-infrastructure (8), Phase 10 classification, Phase 12 capabilities, mature
-truth (9/13), imports (30 — the data it stewards), and reporting (33 — the
-semantic layer AI must speak through); custom fields (11) and workflows (34 —
-the actions it drafts) enrich it.
+The governed find-and-improve layer across Asym: search permitted records, investigate data-quality problems and use assistance to prepare useful suggestions. Staff remain in control of consequential changes. The beyond-parity aim is less fragmented work and better source-linked decisions, not an agent that can silently rewrite the CRM.
 
-**What it covers.**
+**Primary surface:** Mission Control global search, Data Tools and the operator workbench. **Stable slug:** `data-stewardship-ai`.
 
-- **Global search**: cross-record-type, permission-governed (Phase 3/10
-  compiled into the query — restricted tiers excluded from indexing per the
-  Phase 10 ruling), extending the Phase 9 Cmd-K foundation platform-wide. It
-  may consume D13's already-admitted public Directory Projection and typed card
-  references in the future, but cannot widen D2 reach, Phase 10 safety, Page
-  Family, Site/locale scope, or public indexed fields. D13 launches without a
-  dedicated external-search authority; a later Phase 40 engine remains a new
-  proof-gated adapter over owner-domain projections, never a retroactive D13
-  prerequisite or parallel public catalog.
-- **Phase 22 D25 independence:** D25's action resolver, recovery buffer, and
-  bounded reference-safe cleanup launch as deterministic owner-contract
-  behavior. Phase 40 cannot classify stale editorial work, inspect drafts,
-  operate recovery, or become an authority or prerequisite for D25.
-- **Data-quality queues as continuous control** (not periodic cleanup):
-  duplicate suggestions (prevent-at-entry + real-time detect + small
-  governed merges), completeness/staleness/consistency checks, growing the
-  Phase 8 data-health foundation into a product.
-- **AI suggestion ledger** (the architecture keystone): every AI output is
-  a _suggestion record_ with provenance (model, prompt version, inputs),
-  confidence, and **evidence links back to source records**; a human commit
-  creates the actual audited mutation — **AI never writes canonical truth
-  directly**. Approval invokes the owning domain's existing typed command with
-  fresh authorization, current-version/CAS checks, validation, idempotency,
-  and append-only correction rules. A stale suggestion fails safely and must
-  be re-previewed; the suggestion itself grants no authority. Suggested vs
-  confirmed data is a first-class distinction.
-- **Shared AI control-plane continuation**: add generalized feature purposes
-  only through the D10 code-owned registry and current capability-certification
-  process. Reuse Provider Connections, Credential Revisions, Binding Versions,
-  Egress Manifests, Invocation Evidence, purpose budgets, health, revocation,
-  and kill switches. Feature domains still own suggestion interpretation and
-  acceptance commands; a Phase 40 workbench never gains generic write
-  authority.
-- **Tiered autonomy + review-by-exception**: conservative thresholds first;
-  expand only as override rates drop (<~30%); human corrections captured as
-  feedback, not discarded. Advisory-first merge (the shipped Dynamics 365
-  pattern: AI pre-selects surviving values with reasoning; a click
-  commits).
-- **Governed AI access to numbers**: any natural-language analytics speaks
-  **only through the Phase 33 semantic layer** (tenant/role security
-  compiled in — cross-tenant queries impossible to construct).
-- **Operator assists**: record summaries, donor briefs (27's generator,
-  AI-drafted), next-action drafts, anomaly flags (giving-pattern changes) —
-  all consent- and classification-aware (restricted/care data excluded from
-  AI features per the Phase 10 open-question ruling, resolved by then).
-- **Governance rails** (EU AI Act Art. 12 / NIST AI RMF convergence):
-  append-only hash-chained audit of AI-driven decisions recording actor
-  type (human/AI/system); the four-element guardrail set — permission,
-  approval, audit trail, **kill switch**.
+<a id="phase-40-why-it-sits-here"></a>
 
-**Boundaries & guardrails.** AI suggests; an authorized human may invoke the
-owning domain command. No generic AI mutation path to party, gift, document,
-Field Account, or accounting truth exists—structurally, not by policy.
-Care/restricted data never enters model context. AI may summarize
-already-authorized finance evidence through Phase 33, but cannot approve an
-expense, create or change a Field Account entry, choose a Legal Entity or
-accounting destination, release or retry an Accounting Release, resolve an
-ambiguous Bank Match, reconnect a provider, select a posting period, or attest
-provider readback.
+#### Why it sits here
 
-**Open questions for grooming.** Which capability-certified providers/models
-serve the generalized Phase 40 purposes under tenant data-processing
-agreements and D10 bindings; which suggestion domains ship v1 (dedupe +
-summaries recommended); search infrastructure
-(Postgres FTS/pg_trgm scale-up vs dedicated engine) — decided with real
-data volumes.
+**Starting dependencies:** Phases 3, 4, 8, 9, 13, 30 and 33. Identity, permissions, source facts, import provenance and report meaning must be reliable first. Custom fields, communications and workflows add qualified capabilities. Hybrid Web Studio and Mobilization remain complete without an AI provider or this workbench.
+
+<a id="phase-40-what-it-covers"></a>
+
+#### What it covers
+
+**Governed global search.** Extend the CRM search foundation across approved record types and source projections. Apply tenant, capability, classification and purpose to indexing, query, counts and navigation. Restricted sources excluded by the safety contract stay out; a hidden result must not leak through snippets, counts or autocomplete.
+
+**Continuous data-quality work.** Provide source-linked queues for duplicate suggestions, missing/inconsistent information, stale records and qualified anomalies. Reuse Phase 8 findings, Phase 4 merge and the appropriate source correction commands. Findings describe evidence and uncertainty; they do not become a second version of the record.
+
+**Suggestion records.** Retain the proposed action, permitted source references, model/prompt-policy version where used, evidence, confidence or evaluation information and human disposition. Clearly distinguish suggested from confirmed data. A human commit invokes the same current authorized source operation as manual work.
+
+**Operator assistance.** Support the approved initial domains, such as record summaries, donor briefs, duplicate-review preparation, next-action drafts and source-qualified anomaly explanations. Numerical answers use only Phase 33's governed semantic definitions. Claims should identify their source basis rather than fabricate missing facts.
+
+**Workflow and content assistance.** A workflow draft or amendment uses the same typed catalog, simulation and human publication path as manual editing. Any in-product CMS assistance uses the same content schema, exact revision, preview and release owner. External coding agents remain a developer's source-workflow choice; hosted IDE/OpenCode/BYOK is not silently added here.
+
+**Governance and evaluation.** Provide permission checks, review, provenance, an appropriate audit record, scoped containment and provider disable controls. Evaluate unsupported claims, unsafe actions, prompt injection, leakage, user overrides and usefulness before expanding any assisted capability. The product remains usable without inference.
+
+<a id="phase-40-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+The workbench owns suggestions, search projections and stewardship coordination. Existing domains own records, access, business decisions and repair. Phase 33 owns metric meaning; Phase 34 owns workflow definition/publication; Phases 23/42 own content and qualified presentation; Phase 41 owns application decisions. No suggestion ledger can approve its own effect.
+
+Inbound email, forms, imported text and source files are untrusted content, not instructions granting an agent authority. Source retrieval and any external model egress must respect current permission, purpose and data-processing rules. Care/restricted material remains excluded from these assistance paths under the accepted boundary.
+
+**Channel and identity assistance.** Assistance may explain a permitted delivery failure, draft safe wording or summarize an authorized connection repair, but cannot infer phone consent, resolve identity by email, grant directory access or send autonomously. Inbound texts and directory attributes are untrusted content. Credentials, full assertions and prohibited message/evidence bodies do not enter a model prompt or global search index.
+
+<a id="phase-40-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Deliver useful governed search and deterministic data-quality queues first. Add assistance at one stable source seam with source-visible review and a measured evaluation set. Show what will change, why it is proposed and what is unknown; let users correct or dismiss without mutating source truth.
+
+Use one source command and audit path for human and assisted work. Reprove scope and expected revision when a suggestion is accepted; a once-authorized draft cannot be replayed after revocation. Keep model failure, search failure and source refusal distinct. Do not make staff memorize a new permission or record vocabulary to use the workbench.
+
+<a id="phase-40-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No direct AI writes to Party, gift, permission, care, screening or publication truth; no unrestricted database or provider tool. A high confidence score is not approval. No new analytical SQL path bypasses Phase 33. Do not send private code, operational records or evidence to a model by convenience. Any later autonomy expansion needs an explicit policy and source decision, not a threshold copied from a vendor example.
+
+<a id="phase-40-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Prove source-authorized search across record types, revocation and restricted-existence exclusion. Test prompt injection and hostile retrieved content, forbidden egress, stale suggestions, changed source revisions, source citation accuracy and zero unauthorized effects. Numerical results must reconcile with the same reporting definitions used elsewhere.
+
+Demonstrate a human-reviewed correction through the real owner, with safe rejection and recovery. Qualify the selected model/provider purpose, retention, costs and evaluation set before use. Release with deterministic alternatives, scoped disablement and accountable monitoring; never call the system correct merely because a model produces plausible text.
+
+<a id="phase-40-open-decisions"></a>
+
+#### Open decisions
+
+Choose the first suggestion domains, search infrastructure and scale, provider/model/data-processing arrangements, evaluation criteria, retention and assistance budgets. Define any additional allowed context explicitly. Audit implementation and autonomy policy must follow the actual source requirements; the roadmap does not assert legal certification or authorize autonomous approval.
+
+#### Existing owner requirements
+
+Read the [complete retained Phase 40 owner obligations](../program-roadmap/owner-constraints.md#phase-40) together with this chapter. These preserve the precise source semantics omitted by roadmap summaries.
 
 ---
 
-## Features the roadmap must not miss (cross-phase checklist)
+<a id="phase-41"></a>
 
-Compiled from the SiteStacker documentation sweep and domain research —
-every item maps to a phase (the "won't build" items are explicit rulings,
-not omissions). Grooming for the named phase must check its items off.
+### Phase 41 — Mobilization, Applications & Onboarding (`mobilization-onboarding`)
 
-- **Recurring-gift ops toolkit** (13/16/25): expiring-card surfacing,
-  provider- and policy-authorized exact-occurrence recovery, pre-charge
-  reminders, staff-side prospective recurring edits, and commitment
-  reconciliation — never a generic failed-payment rerun. Stripe automates
-  parts (account updater, smart retries); the staff-facing views remain parity
-  requirements without duplicating Phase 16 authority.
-- **Historic giving** (30 + 13/33): imported legacy gifts feeding the same
-  reports and progress bars without minting receipts — model decided at
-  Phase 30 grooming.
-- **Workflow payments** (34/37 + 13): application/registration fees inside
-  workflows bridge to the ledger — named at both groomings so the coupling
-  isn't missed.
-- **Reference requests** (34): tokenized external forms, pre-login
-  infrastructure.
-- **Future text-to-give activation** (6/13/17/31): an inbound SMS keyword may
-  produce a pre-filled source-coded checkout link only after provider,
-  channel-scoped consent, STOP/HELP, abuse, and tenant 10DLC/toll-free
-  readiness are proof-gated through the Phase 17 transport-dark reservation
-  and Phase 6 history contract. It is not launch scope or a shortcut around
-  SMS compliance.
-- **Saved views / configurable grids everywhere** (9 → all): one shared
-  platform capability (built in Phase 9), reused by contributions,
-  reports, support — never rebuilt per surface.
-- **Generated-document templates as a shared service** (18): receipts,
-  statements, and acknowledgments use the Phase 18 canonical document
-  contract. Phase 20 Accounting Delivery Packages, CSV/IIF artifacts, and
-  provider-native imports remain Phase 20-owned and are not Phase 18 exports.
-- **Change log / API logs** (12/31): tenant-admin-visible audit surfaces.
-- **Crons/jobs visibility** (8): tenant-admin-visible scheduled-job health
-  (the Inngest console generalized) with failure alerting.
-- **Staff SSO (SAML/OIDC)** (12): decided at Phase 12 grooming.
-- **Impersonation with guardrails** (12 + 34): admin + workflow-instance
-  impersonation for testing — audited, time-bound.
-- **Multi-language system messages** (17/24): per-site-channel language +
-  per-language templates is the SiteStacker bar.
-- **Donor portal completeness** (25): giving history, recurring
-  self-service, wallet, statements, profile, My Campaigns.
-- **Public REST API + webhooks with failure alerting** (31).
-- **World-map / region modules, internal resource sharing** (28): workspace
-  extras — groomed with Phase 28.
-- **Prayer calendar & letter-writing** — **won't build** as
-  child-sponsorship-adjacent features (child sponsorship is out of scope);
-  missionary–donor correspondence is covered by 6/17/26/28. Recorded here
-  so the omission is a decision.
-- **Public-content audiences and time windows** (23): Phase 23 D13 owns
-  exact-revision publish and unpublish appointments through D1; D24 fixes one
-  exact public audience. Authenticated or segmented experiences remain
-  app-owned surfaces, not CMS visibility conditions.
-- **Platform-adjacent (outside this program):** tenant provisioning/
-  self-signup, the platform's own SaaS billing, plan gating.
+<a id="phase-41-what-this-phase-is"></a>
 
-<!-- END OF PER-PHASE SECTIONS -->
+#### What this phase is
 
-## Terminology & translation rules
+The complete application-to-handoff product. A coordinator guides a person from inquiry through application, references, interviews, a reviewed decision and preparation for service. The applicant sees understandable next steps in My Journey. This phase supplies the actual application domain and decisions, not just templates pointing to unspecified future services.
 
-When reading competitor or legacy material (including SiteStacker docs, MPDX,
-CiviCRM, and older internal drafts), translate into Core glossary terms
-(root `CONTEXT.md`) before writing PRDs or issues. Never import a competitor
-term when Core already has an equivalent.
+**Primary surface:** Mission Control Mobilization and the existing app's distinct participant mode. **Stable slug:** `mobilization-onboarding`.
 
-| External term                                                | Core term                                                          | Rule                                                                                                       |
-| ------------------------------------------------------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| SiteStacker "People" / MPDX "contact" / CiviCRM "individual" | **Party** with `party_kind = 'person'`                             | `person` is the canonical value for a human. Do not adopt "constituent" or "contact" as Core record terms. |
-| SiteStacker "Group"                                          | **Party** with `party_kind = 'org'` or `'household'`               | A church is `org_type = 'church'`; a household is its own `party_kind`.                                    |
-| "Channel"                                                    | **Entry Method** or **Source Code** (by meaning)                   | Entry Method = how a gift physically entered; Source Code = what motivated/attributed it.                  |
-| "Relationship"                                               | **Stored edge** or **derived edge**                                | Stored = a `crm_relationships` row; derived = computed from source truth (ledger, household membership).   |
-| "Portfolio" / "account list"                                 | **Staff-assignment edges** + saved views                           | Assignment is data; display roles are never authorization.                                                 |
-| "Appeal"                                                     | **Donor-development appeal**                                       | Connects to Source Codes, communication events, tasks, and contribution attribution.                       |
-| Provider record ID                                           | **Provider link**                                                  | A link to an external object — never identity, never operational truth.                                    |
-| "Case"                                                       | **Support Hub conversation** or **member-care record** (by domain) | Do not import "case" as a generic term; the two domains have opposite visibility defaults.                 |
-| "Moves management"                                           | **Donor development** (cultivation pipeline)                       | Cultivation stage is never a lifecycle status and never authorization.                                     |
+<a id="phase-41-why-it-sits-here"></a>
+
+#### Why it sits here
+
+**Starting dependency:** Phase 34, including its inherited identity, CRM, safety, permission, communication and private-file floors. This phase is the next prioritized delivery after Workflow Studio; its number does not place it after Phase 40.
+
+Selected setup paths consume exact Phase 21/28 services; connected signing/screening uses a qualified Phase 31/provider profile. Clinical assessments require the relevant Phase 38 determination. These are conditional requirements for the paths that use them, not blanket prerequisites for ordinary applications. Phase 42 hybrid web development and Phase 37 event registration do not gate this product.
+
+<a id="phase-41-what-it-covers"></a>
+
+#### What it covers
+
+**Application identity and requirements.** Own inquiry/application identity, program-scoped requirements, accepted submissions, evidence qualification, decisions, conditions, preparation, readiness and handoff. Reuse Party and identity owners. One Party may have multiple independently scoped applications. A new application, resubmission, Party correction and workflow amendment are distinct operations.
+
+**Inquiry and discovery — MOB-01.** Accept an authorized inquiry, assign a coordinator, acknowledge it through the communication owner and record discovery with an explicit proceed, follow-up, refer or close disposition. Public entry uses the existing qualified intake; an inquiry does not create missionary membership.
+
+**Application and correction — MOB-02.** Bind a versioned multi-page form with conditional sections, server save/resume, accessible validation and immutable accepted submissions. Request corrections as attributable successors. Map answers only to the application or an independently permitted CRM command; private answers never become public CMS content.
+
+**References — MOB-03.** Record nominations, permitted contact purpose, required categories and quantities. Use the shared limited-task access and questionnaire mechanisms, then have the source qualify the evidence. A required church reference cannot be replaced by any two unrelated references or a completed graph node.
+
+**Interviews and screening — MOB-04/05.** Assign eligible interviewers, coordinate appointments, retain exact submitted assessment versions and obtain the authorized review. Calendar end is not interview completion. Screening uses required consent and a certified provider or a clearly labelled permitted manual path; a workflow condition or AI output never issues clearance. Clinical contents stay with their qualified restricted owner.
+
+**Decision and conditions — MOB-06.** Prepare an exact evidence/version bundle for the authorized human decision: acceptance, conditional acceptance, deferral or decline. Keep internal deliberation restricted and publish only approved participant wording. Conditions are identifiable requirements with source-proved satisfaction or an explicitly permitted waiver. Nonwaivable requirements remain binding regardless of broad administrator access or provider availability.
+
+**Appointment agreements — MOB-07.** Bind accepted terms to exact document versions and required signers. Superseded signatures do not satisfy a replacement agreement. A reviewed scanned signature remains manual evidence rather than a claimed certified electronic signature. Agreement replacement and missing signer recovery must be explicit.
+
+**Operational setup — MOB-08.** Coordinate identity, finance, workspace and operations through their approved commands, recording each independent outcome and receiving owner. Acceptance alone cannot grant a role, create a Field Account, appoint a payee, redirect support or publish a worker page. Keep unresolved required setup visible.
+
+**Training and orientation — MOB-09.** Assign the approved plan, exact course/policy versions, prerequisites and eligible instructors. Distinguish attendance, acknowledgment, assessment and accepted completion. Prior learning or waiver needs source-approved equivalence and review, not a copied completed task.
+
+**Readiness and receiving handoff — MOB-10.** Recheck required evidence for identity, purpose, version, expiry and revocation. Record final authorized readiness separately from receiving-team acknowledgment. Accepted, appointed, onboarded, ready and deployed are different milestones; finishing a workflow does not create deployment truth.
+
+**Hold, withdrawal and reapplication — MOB-11.** Distinguish paused execution from a held business disposition. Apply source lifecycle decisions, stop optional future requests safely, handle clocks, revoke affected limited sessions and preserve accepted history. Reapplication creates a new application identity with lineage; evidence reuse requires current source equivalence.
+
+**Individual variation — MOB-12.** Reuse Phase 34's amendment preflight to add an interview, change eligible future work or request a permitted waiver for one applicant. Show tasks, deadlines, evidence coverage, messages and irreversible effects before committing. Preserve completed work, reasons and required reviews; do not duplicate sends or weaken nonwaivable requirements.
+
+<a id="phase-41-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+Phase 34 owns the workflow language, compiler, React Flow/outline editing, execution, common tasks/forms, participant access and amendment machinery. This phase implements the application-specific records, accepted evidence, decisions and complete My Journey. Create the necessary bounded source service under the established API ownership boundary where no compatible owner exists; symbolic aliases are not a delivered business domain.
+
+Reuse Phases 4/12 for identity/capabilities, 9 for Party and relationships, 29 for private bytes, and 6/17 for communication. Phase 23's public occurrence/Primary Outcome contract remains the entry boundary; do not retrofit private uploads into public launch forms. Phase 37 owns opportunity capacity, registrations, rosters and attendance while consuming this phase only for its selected application lanes.
+
+A clinical path stores only the permitted determination/reference from Phase 38. If that exact required source is unavailable, the application cannot silently pass. Ordinary applications remain independent of care, and source-approved alternatives must be named and truthfully labelled.
+
+**Participant communication and staff identity.** Optional SMS reminders consume Phase 43’s exact purpose; private application evidence is not placed in texts. Phase 44 organization sign-in may serve independently authorized staff, but applicant/referee sessions keep their existing limited identity boundary. Provisioning, delivery, application acceptance, appointment and receiving-team handoff remain distinct facts.
+
+<a id="phase-41-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+Deliver complete narrow journeys in order: inquiry/application; reference/interview/screening evidence; decision and conditions; agreements/preparation/setup; readiness/handoff; lifecycle and individual variation. Use real services, protected participant routes and staff review queues at each step, not a final integration ticket expected to supply missing ownership.
+
+The coordinator sees applications, source-backed milestones, next required action, missing owner, evidence review and handoff. Applicants see only their permitted tasks, saved/submitted items, corrections, contact and approved milestones. Referees, trainers and interviewers receive only their qualified purpose. Spouse, coach, donor status or assignment does not reveal another application or private assessment.
+
+Use Phase 34's scanner-safe neutral link entry, deliberate protected exchange, current session checks and revocation. Forms resume from server drafts and repeated submission is safe on poor networks. A private participant route is not a personalized public CMS page or another login system.
+
+<a id="phase-41-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No duplicate Party, financial account, workflow engine, form store, task authority or permission system. Application stage is not authority, a task is not evidence, and an accepted applicant is not automatically appointed, funded, ready or deployed. Clinical notes do not enter application fields, ordinary counts, email or orchestration state. A required review cannot be bypassed by editing the process or waiting for a timeout.
+
+<a id="phase-41-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+Retain all 12 MOB recipes and their 36 tests, application-specific shared scenarios, BP-04/BP-05 journey coverage and the relevant integration cases. Prove a complete application-to-receiving-handoff journey, conditional acceptance, missing required reference category, concurrent decisions, expired/revoked evidence and superseded agreements.
+
+Exercise scanner links, same request submitted twice, lost response/wake, withdrawal versus dispatch, new application lineage, per-applicant amendments and old-version compatibility. Verify tenant/purpose isolation, no private evidence in executor state and complete keyboard/screen-reader/poor-network mobile use. A full applicant/staff pilot is required here, separate from Phase 34's non-mobilization pilot.
+
+Release with source-safe recovery, reviewed manual/provider profiles and explicit enrollment containment. Disabling optional enrollment must preserve accepted work, source history and current access controls. MOBILIZATION closes independently and never becomes a backward gate on CORE.
+
+<a id="phase-41-open-decisions"></a>
+
+#### Open decisions
+
+Set exact application/program policies, requirement and waiver contracts, evidence equivalence, participant assurance, screening/signing profiles, retention and source-compatible schema/command names. Clarify any real organizational appointment and receiving-handoff rules rather than assuming one universal ministry process. Resolve genuine predecessor incompatibilities explicitly through the accepted owner process without rewriting the already-ticketed phases.
+
+**Implementation packet:** [complete workflow-studio contract](../workflow-studio/README.md).
+
+---
+
+<a id="phase-42"></a>
+
+### Phase 42 — Web Studio Hybrid Authoring & Governed Web Development (`web-studio-hybrid-authoring`)
+
+<a id="phase-42-what-this-phase-is"></a>
+
+#### What this phase is
+
+One Web Studio where staff create and maintain supported websites visually while a ministry-appointed developer supplies custom presentation through conventional source files and Git. Visual-first, code-first and mixed work share one canonical content system. The decisive outcome is that staff can still edit the supported text, media and layouts after a developer redesigns the site.
+
+Payload stays private CMS machinery; Core Postgres remains operational CRM truth. This is not another CMS, a Payload-based CRM, a hosted coding platform or a replacement Workflow Studio.
+
+**Primary surface:** Web Studio in Mission Control, isolated composer/preview surfaces, a public presentation SDK and governed source-delivery services. **Stable slug:** `web-studio-hybrid-authoring`.
+
+<a id="phase-42-why-it-sits-here"></a>
+
+#### Why it sits here
+
+**Starting dependencies:** Phases 12 and 23, including their inherited source requirements. Exact Phase 24 Site/locale/brand/cohort operations and Phase 29 media/artifact custody gate their consuming paths. Phase 31's minimum connection, credential and revocation contracts are required for Git delivery, not for standard visual authoring.
+
+Run this as an independent content lane when those capabilities are ready; it does not wait for Phases 34, 39, 40 or 41. The already-ticketed native CMS must remain usable without this phase. Keep three accountable checkpoints: WEB-VISUAL for a complete standard-renderer editing product, WEB-SOURCE for conventional development and governed source delivery, and WEB-HYBRID for the actual redesign-to-staff-handoff integration.
+
+<a id="phase-42-what-it-covers"></a>
+
+#### What it covers
+
+**A coherent staff workspace.** Keep normal Content/Pages/Media navigation at an explicit Site and exact locale. Provide a persistent title/scope/save/preview/publication bar, synchronized canvas and outline, insertion controls and a selected-node Content/Appearance inspector. Narrow layouts switch panels deliberately. Ordinary creation and editing require no repository, GitHub account or developer settings on every Page.
+
+**One content and save model.** Project the provider-neutral composition document into a replaceable visual adapter; bounded edit intents produce the same canonical document. Editing and movement preserve stable node IDs; duplication/cross-lineage copy creates fresh IDs. Puck state, DOM positions, source filenames and field labels are not a second stored document or identity model. Retain the qualified D11/Lexical prose grammar, exact source references and existing family restrictions.
+
+**Bounded visual composition.** Add the explicitly adopted `asym.page-composition/2` profile for ordinary Pages. Existing flat composition/1 documents remain valid without automatic wrapping, reparenting or new retroactive limits. Articles remain prose-first and restricted; specialized Phase 22 resources keep their own grammar. Hero stays first, root-only and at most one; reusable references stay root-only, same-Site/exact-locale and nonrecursive.
+
+| **Layout** | **Allowed placement and contents**                                                                                            | **Staff controls**                                                         |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Stack      | Root or eligible Split slot. Root Stack may contain leaves, Split or Grid within two container levels. No Stack inside Stack. | Width role, gap, surface and alignment.                                    |
+| Split      | Root or root Stack. Start/end slots contain eligible leaves or one Stack where depth permits; no Split/Grid inside Split.     | Equal, wide-start or wide-end intent; gap and vertical alignment.          |
+| Grid       | Root or root Stack; eligible leaves only.                                                                                     | Two-, three- or four-column intent and gap; code owns responsive collapse. |
+
+No container contains Hero or reusable references. One logical order supplies DOM, keyboard, screen-reader and collapsed-mobile order; RTL affects logical alignment, not identity. Store finite intent rather than per-device coordinates. Width roles are narrow/content/wide; spacing compact/comfortable/roomy; surface default/muted/emphasis; inline alignment start/center. No arbitrary CSS, class name, style bag, script, breakpoint array or alternate mobile tree enters canonical content.
+
+Preserve the supplied proposed qualification limits: 64 root entries, 128 expanded nodes including reuse, two container levels, 16 children per Stack/Split slot, 12 Grid items, one reusable expansion level and 512 KiB canonical UTF-8 JSON. Existing semantic/prose/repeater limits still apply and may be stricter. Empty structurally safe layout shells may save with diagnostics; publication requires complete content. Unsafe or out-of-scope structure is rejected, not stored under the excuse of an unfinished draft.
+
+**Media, reuse and locale editing.** Select exact owner-qualified media/renditions and retain usage-local alt text, caption, crop and decorative treatment. Dynamic content stores permitted source references or selection intent, not copied donor, missionary or financial records. Shared sections open their separately authorized resource and show allowed impact; a Page lease cannot edit the shared resource implicitly. Locale work starts blank or from an explicitly selected revision and remains independent, without fallback or source overwrites.
+
+**Appearance and content separation.** Page instance variants change only that instance. Site appearance/brand/settings belong to their separate approved axis and explain affected scope. Package settings are a finite admitted schema of booleans, bounded ranges, enums and qualified references; additional text meaning belongs in catalog-approved content. A Page save cannot move routes, edit Navigation, change a shared section or activate a Site design.
+
+**A professional developer project.** Supply a conventional ministry-controlled TypeScript/TSX presentation project with styles/assets, manifest, lockfile, tests, synthetic or explicitly approved safe fixtures, local preview, debugging, setup and maintenance documentation. A fresh clone must work without Core private source, production credentials, hosted AI or a proprietary IDE. Developers can use their preferred editor and external coding agent within the same source and fixture boundary.
+
+**Public SDK and editable bindings.** Export versioned public semantic view types, safe media/link references, deterministic presentation helpers, finite settings and registered capability-island interfaces. Separate public/server-rendering and editor/client entry points. Bind stable semantic type/version and renderer key to supported fields/settings/families/locales. Test that an edited headline or image actually changes rendered output; accepting a prop or finding a DOM node is not proof of editability. Arbitrary React cannot be promised automatic visual round-tripping.
+
+**Repository connection and lifecycle.** Connect verified ministry-controlled source through a narrowly scoped GitHub App using both Asym permission and provider repository authority. Bind immutable repository identity, tenant/environment/project, approved package root and revocation generation. Verify callbacks and installation relationships; matching emails, repository URLs and posted installation IDs are not grants. Rename updates labels; ownership/control changes require verification; disconnect stops new intake without deleting acknowledged content or retained safe artifacts.
+
+**Exact source capture and builds.** Resolve an authorized source selection once to immutable commit/tree and bounded bytes. Trusted fetching may hold the narrow token; remove credential-bearing Git metadata and secrets before any package script executes. Validate paths, symlinks, expansion and source policy; unsupported submodules or LFS-dependent bytes are rejected rather than silently omitted. Build only in a qualified isolated nonproduction environment with controlled dependency acquisition, egress, caches, resource limits and tenant fairness.
+
+**Independent package admission.** Submitted tests are diagnostics, not the final oracle. Run platform-controlled conformance, source-boundary, binding, security, accessibility, locale, SSR/no-JS/hydration, dependency/license and recovery checks. Retain exact artifact/source/lock/toolchain digests, evidence, maintainer/support window, compatibility and rights. Existing D9 is the sole package admission owner; source authors cannot self-certify by rewriting their checks. An admitted package is reviewed first-party code, not an arbitrary tenant program made safe by a signature or static scan.
+
+**Three preview modes.** Distinguish disposable developer-fixture preview, unsaved working visual feedback and the fixed exact review candidate. D25 review binds deliberately selected acknowledged content, dependencies, package/settings/brand, media, locale and compatible runtime. It is complete-or-unavailable, private, no-store/noindex and reauthorized per request. Candidate-local links and 404s never fall through to Live, and opaque IDs are not bearer permissions. Giving, forms, sends, subscriptions, tracking and consequential downloads are inert in preview.
+
+**Controlled release and restoration.** Content/composition uses D1 with admitted code and no source rebuild. Site-wide design uses the approved appearance owner and D10 complete-locale-cohort activation. New executable packages first become available through a controlled managed application build/registry retaining required old versions; that deployment does not activate a Site. Restore creates a newly qualified successor over current compatible content and safety, not a database rewind or mutable active-theme pointer.
+
+**Native automation.** Retain all 12 fixed AU behaviors: autosave; acknowledged preview refresh; source discovery/reconciliation; build/qualification; candidate preparation; exact scheduled publication; public projection convergence; adverse safety containment; compatibility/impact refresh; repository lifecycle; dispatch/unknown-outcome recovery; and preview expiry/retained-artifact maintenance. AU01/AU02 are editor/request behavior. Background work uses existing shared infrastructure, not a tenant-authored DSL, per-tenant cron, another queue platform or Payload Jobs publishing runner.
+
+<a id="phase-42-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+Phase 23 remains the content/catalog/editorial/reuse and publication owner: D1 public generation, D9 package admission, D10 design activation, D12 acknowledged revisions/leases, D13 exact appointments and D25 review candidates. Phase 24 owns Site, domain, locale and brand lifecycle; Phase 10 current public safety; Phase 29 qualified bytes; Phase 31 connections. This phase adds compatible authoring and development paths through those owners, not duplicate tickets or authorities.
+
+Record HA-A1–HA-A4 as the explicit later-phase successor decisions: bounded Page composition; ministry-controlled source authorship; the Puck/isolated-origin adapter; and capture/build delivery into existing admission/release. These are local decision labels, not allocated or automatically ratified ADR numbers. Preserve the earlier flat grammar, first-party admission, identity, source safety and complete-cohort release. A genuine incompatible decision must be resolved before implementation rather than hidden in a library choice.
+
+Use the existing API/business boundary with the private Payload adapter remaining in the admin application. Inject that adapter at the application composition root; shared packages must not import admin runtime code. A proposed SDK path is not proof that a package exists. Browser collections/hooks supply approved projections only; multi-table saves and releases use source commands.
+
+Phase 34 may coordinate permitted exact-revision editorial review and link to owner-managed operations, but COM recipe delivery remains with its existing phase. Native CMS work and hybrid authoring remain usable with optional tenant workflows disabled. Conversely, disabling hybrid authoring must not stop the qualified native CMS.
+
+**Enterprise session and source authority.** Any Phase 44 staff sign-in policy is enforced by the same current permission/session owner before editing, preview access, connection changes and publication. Revocation fences the applicable composer lease and stale responses without equating IdP control to ministry GitHub authority. A valid organization-owned D13 appointment retains its own completed-authorization semantics; no blanket directory cleanup silently cancels it. Native visual and code-development lanes remain independent of enterprise sign-in and SMS.
+
+<a id="phase-42-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+**Qualify the real adapter.** Start with Puck core as the leading candidate, using its composition, fields, slots, localization and outline APIs through one bounded adapter. Confine any experimental override surface and prove upgrades. Rediscover and pin one coherent Payload-v4-compatible Next/React/editor/toolchain cohort; an old internal pin, vendor page or public documentation for another major cannot qualify it. No forced peers, mixed channels, silent major downgrade or raw-Admin fallback.
+
+**Prove one physical commit.** Editorial content, source revision, lease/authority proof, receipt and required dispatch intent must commit or roll back in one qualified physical Postgres transaction. A Payload request and a separate Supabase HTTP/RPC call are not atomic merely because they share an identifier. Demonstrate the chosen adapter/connection with rollback injection and response-loss tests before writes ship.
+
+**Keep saving truthful.** Coalesce a single save stream; Save now and keyboard save flush it without publishing. Only the exact receipt establishes Saved. Stop successor saves on unknown outcome and recover the original receipt or replay the identical command/key. Two tabs from one person remain separate sessions. Takeover checkpoints and fences the old lease. Compare Started from, Current draft and Your unsaved work instead of silently merging. Never imply unsent memory will survive losing the device or tab.
+
+**Isolate the whole composer.** Run one coherent composer context on a separately qualified origin from the privileged shell. Puck's internal same-origin viewport is not that boundary. The shell retains broad authentication context, connection credentials, scope, receipt handling and publication controls. Only independently admitted renderers receive the minimum authorized editorial projection; unreviewed source uses separate synthetic previews.
+
+**Constrain the bridge.** Validate exact origin, window source, channel nonce, sequence, schema, size and node membership for select/set-field/insert/move/duplicate/remove/layout-setting intents. No message publishes, installs source, fetches arbitrary URLs, obtains secrets or grants permissions. Server validation remains independent. Test browser engines and blocked third-party cookies. Use an equally isolated full-page composer when needed, not a same-origin downgrade. Isolation alone does not prove an admitted renderer's edit intention came from a human.
+
+**Retain exact review meaning.** Later drafts or source commits remain excluded from an existing candidate until an explicit successor is prepared. They do not silently rewrite review or automatically invalidate it merely by existing. Current rights/safety, authority, relevant compatibility, cohort and expected-head proof still control. Code availability, admission, review, deployment, activation and delivery convergence are separate states.
+
+**Keep scheduled intent source-owned.** D13 appointments bind exact reviewed publish/unpublish intent, civil time, IANA zone, chosen offset and resolved UTC not-before instant. Preserve at most one unresolved kind per Page/locale and publish-before-unpublish order. Use its six-day execution handoff and shared overdue reconciliation. Routine initiator departure alone does not erase the organization's completed appointment authorization; explicit invalidation does. Separate Studio actions still obey Phase 12's live human-owner ceiling.
+
+**Recover work and retain required artifacts.** Authenticate raw Git events, accept them durably before acknowledging, and reconcile missed/out-of-order delivery. Use permanent source identities and claim fences beyond provider caches. Cancellation fences favorable commits before best-effort external termination; unknown attempts reconcile before retry. Keep source/capture/admission/history and artifacts needed by active, candidate, scheduled, recovery or held generations. Incomplete use evidence blocks purge; source disconnection does not retire the Site.
+
+**Migrate without competing writers.** Census reached prototype content and current owners. Deploy compatible readers before new writers, prepare no-write transforms against exact revisions and commit only authorized private successors. Unknown data remains repairable; staff edits invalidate the affected plan rather than being overwritten. Retire incompatible alternate writers at the qualified switch. Do not copy a development database over editorial truth or maintain permanent dual-authority drafts.
+
+<a id="phase-42-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No arbitrary runtime customer code, URL modules, eval, uploaded executable production bundles, tenant plugins, raw Payload product API, private operational data in renderer props, unrestricted network/process/filesystem/server-action imports or another public authority. Package CSS cannot style the privileged shell. Essential public content remains server-rendered/no-JS capable; enhancements respect reduced motion and meaningful reading order.
+
+No public personalized CMS audience, independent Git-backed content copy, CMS draft per code branch or automatic source-to-production publication. Content paths do not inherit a new universal two-person review simply because executable code needs admission. TanStack Highlight may show safe read-only excerpts; it is not an IDE. Hosted OpenCode/BYOK, model billing and independently hosted frontends remain outside this phase's required scope.
+
+Repository ownership is not ownership of every dependency, font or image, nor a promise to export a standalone Asym platform. Record the actual rights to build, serve and retain artifacts and provide a practical maintainer-replacement/export explanation. Current safety withdrawal overrides a previously working design.
+
+<a id="phase-42-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+**WEB-VISUAL.** Prove create/edit/layout/media/reuse/locale/preview/publish/schedule/recover with a standard admitted renderer while Git credentials and the custom build service are absent. Include actual adapter round-trip, complete isolated browser flow, physical transactions, migration, accessibility and staff evidence. An outline-only limited rollout is not completion of the promised visual product.
+
+**WEB-SOURCE.** Prove fresh-clone setup, normal debugging and tests, exact verified Git capture, credential-free isolated execution, independent D9 admission, controlled runtime availability, source replacement and recovery. Test hostile install scripts, metadata/private-network access, archive expansion, symlink escape, cache poisoning and source-controlled false green tests.
+
+**WEB-HYBRID.** Activate a real custom redesign through D10, then have representative staff independently edit supported fields and layouts, change media, identify unpublished work, preview, publish when permitted and recover a mistake without Git. Prove complete-locale atomicity, deployment skew, current safety, source disconnection and retained-artifact use. A hardcoded “editable” headline must fail binding qualification, not be explained away during training.
+
+Retain all 48 HW requirements and 96 paired scenarios, 18 WF journeys, 12 AU automations, 27 HA work packages and Q01–Q09. The reference registers below keep them identifiable. Split common visual operations, convergence, migration and usability proof from custom-source proof so final integration does not block the basic visual checkpoint backwards. The whole phase remains incomplete until all three checkpoints and required profiles pass.
+
+Run real restricted-role database/transaction/concurrency tests, actual pinned browser/SSR/no-JS/preview and bridge tests, source/build security, restore/upgrade, source-adapter and production-shaped capacity tests. Include keyboard and single-pointer non-drag controls, screen readers, touch, 320px reflow, 400% zoom, forced colors, reduced motion, RTL/CJK, long translations, missing assets and poor networks. Safe source invariants can block release; arbitrary accessibility scores must not become a new editorial policing system.
+
+Release with cause-owned operations, scoped source/build/admission pause, preview revocation and public-safety containment. Keep ordinary safe edits and existing safe public generations available during unrelated build failures. Numeric test profiles are engineering proposals to adopt and measure, not current performance or customer SLA claims.
+
+<a id="phase-42-open-decisions"></a>
+
+#### Open decisions
+
+Qualify the exact dependency cohort, physical transaction adapter, catalog mapping, SDK distribution, composer origin/authentication/deployment, Git App permission profile, source-repository scope, build provider/image/egress/cache policy, artifact custody/rights/retention and representative staff/developer test group. One repository belongs to one Tenant; this isolation rule is not a one-repository-per-Tenant count limit. Qualify the exact repository/project/Site relationship without inventing a commercial restriction.
+
+Preserve the proposed capacity evaluation basis: 10 tenants × 3 Sites × 2 locales × 1,000 Pages; 100 concurrent editors including 20 in one tenant; 10 global/2 per-tenant builds; captured source ceilings of 100 MiB compressed, 500 MiB expanded and 10,000 files; a 2-vCPU/4-GiB/10-minute build envelope; and a 20-MiB compressed package excluding separately qualified media. Proposed feedback targets are p95 save server processing at 500 ms and local interaction at 100 ms, with a 1-Mbps/256-kbps, 300-ms-RTT test network, disconnect and lost-response cases. Confirm or explicitly amend these before qualification; no unmeasured larger profile is implied.
+
+For each unresolved choice record the responsible owner, selected contract/version, permitted data, failure behavior, proof and activation/requalification conditions. Do not fill an evidence gap with an invented API, provider guarantee, admitted version or successful benchmark.
+
+**Implementation packet:** [complete web-studio-hybrid contract](../web-studio-hybrid/README.md).
+
+---
+
+<a id="phase-43"></a>
+
+### Phase 43 — Governed SMS Messaging & Channel Activation (`sms-channel-activation`)
+
+<a id="phase-43-what-this-phase-is"></a>
+
+#### What this phase is
+
+**The complete text-messaging channel for eligible ministry communication.** An organization can qualify a sender, collect appropriate permission, send an approved notice or campaign, receive and answer a conversation, honor withdrawal, and understand delivery and cost. Text-to-give returns the existing secure giving link; it never collects payment details in a text message. The product is useful to a small donor-services team without requiring a workflow designer or a provider console for routine work.
+
+Primary surfaces: Mission Control communication settings and delivery operations; Support Hub for conversations; Phase 32 campaign authoring; existing recipient preference surfaces where their source contract permits SMS. Stable slug: sms-channel-activation. The full phase includes the qualified channel, two-way support, campaign delivery, and text-to-give journeys described here. A restricted channel pilot is not completion of that whole scope.
+
+**Existing commitment and new delivery.** Phase 17 D9, ADR-0028 and issue #892 deliberately reserve evidence while making SMS execution structurally impossible. This phase is the accountable later successor: it adds actual channel operation through the same authorities. It does not rewrite Phase 17's completed specification/ticket scope or reinterpret a historical Planned state as consent, registration or permission to send. New operational records, capability names and provider choices below require the normal phase PRD/OpenSpec adoption and implementation proof. \[R-SMS-01\]
+
+**Benchmark and design basis.** SiteStacker advertises text marketing; its dated text-to-give guide describes a third-party keyword reply carrying a giving link. Virtuous documents a guided, verified toll-free SMS setup, while HubSpot exposes quiet-hour deferral and understandable send timing. Asym adopts the useful outcomes, not a competitor's provider, country coverage, blanket consent attestation or ability to bypass a safety floor. These are documented offerings, not independently tested competitor behavior. \[C-01–C-05\]
+
+<a id="phase-43-why-it-sits-here"></a>
+
+#### Why it sits here
+
+Starting dependencies: Phases 6, 12, 17 and the minimum Phase 31 connection/credential contracts, including the inherited identity, Party/contact, classification and consent foundations. Build the channel only against the actual qualified source contracts, not the current email-only consent function or a provider SDK's defaults. Phase 26's conversation contract gates the two-way Support Hub lane; Phases 5 and 13 gate the text-to-give handoff; Phase 32's campaign occurrence and audience contracts gate organization-wide marketing delivery. Each is a capability-specific prerequisite rather than permission to block unrelated foundation work.
+
+**Delivery positions.** SMS-CHANNEL proves registration, consent, safe dispatch, withdrawal, evidence and recovery. SMS-CONVERSATIONS proves ordinary inbound and staff reply work. SMS-OUTREACH proves a complete Phase 32 campaign and source-coded text-to-give. All three are required for full Phase 43 completion. The Phase 31 integration foundation closes without SMS; its text-to-give consumer closes here. Phase 32's email and external-newsletter lanes close without SMS; only its SMS delivery profile consumes this phase. Neither dependency may become a startup import or all-channel acceptance cycle.
+
+**Optional consumers.** Phases 28, 34, 35, 37 and 41 may expose individually qualified SMS purposes after the channel exists. They do not automatically gain a new delivery step or permission to contact every known phone. Phase 38 crisis and clinical work remains outside the ordinary SMS profile; the existing alternate crisis communication plan is not replaced by a carrier-delivery badge. Phase 44 sign-in is independent: enabling ministry SMS does not enable SMS authentication or weaken required assurance.
+
+<a id="phase-43-what-it-covers"></a>
+
+#### What it covers
+
+**Supported operating profiles.** Publish a closed, versioned support matrix for provider, customer-account topology, originating sender type, destination market, message purpose, inbound capability, language/encoding, registration requirements and operational limits. Qualify at least one complete two-way profile serving the selected pilot market before activation; record the actual supported combinations rather than claiming worldwide support. Twilio is a researched candidate, not a committed dependency. Number purchase, porting, registration and provider charges require an authorized operator and an exact consequence review. Unsupported routes remain unavailable, not silently sent through another country or shared sender. \[T-01, T-02\]
+
+**Sender setup and maintenance.** Guide an authorized administrator through organization/account authority, the exact sender and use case, required disclosures, registration evidence, connection credentials, callback proof, monitored reply destination and a controlled canary. Show separate pending, rejected, stale, disconnected and ready components with a cause-owned next action. Registration observations are evidence about the exact route; an administrator cannot type Approved. Preserve number ownership, porting/replacement and retirement history. A sender change requires fresh scope/consent compatibility proof and cannot reset suppression or transfer another ministry's identity.
+
+**Five independent eligibility axes.** Retain platform capability, exact sender-route readiness, affirmative recipient consent, recipient preference, and suppression/withdrawal as separate facts. A useful Ready summary is derived from their current qualified combination, not a new mutable authorization Boolean. Each producer must additionally prove its business purpose, recipient authority, content, timing and current source conditions. A donor receipt or urgent reminder is not an exemption from the existing absolute do-not-contact or SMS-withdrawal floor. Required notices remain governed by their source-approved alternative handling rather than an improvised SMS override. \[R-SMS-01\]
+
+**Phone identity and enrollment.** Reuse the contact owner's exact phone revision, normalization and evidence. Format validity, apparent mobile capability, provider-observed origin, possession verification, identity, and consent are different facts. Enrollment records tenant, Party, phone revision, sender, use case, message class, disclosure version, method, source, time, market, actor and lineage as required by the existing contract. Present a clear voluntary choice and a separate way to decline without losing unrelated functionality. Imported phone lists, gifts, email subscriptions, notes, prior messages, relationship labels and staff assertions do not establish SMS consent. Changed numbers, shared household phones, reassignment and Party corrections require the appropriate current proof; they never silently transfer a private conversation or another person's permission.
+
+**Withdrawal, HELP and renewed permission.** Process standard opt-out keywords and reasonable withdrawal through the source suppression owner before ordinary conversation automation. A known sender/phone withdrawal must be enforceable even when Party matching is unresolved. Repeated or reordered evidence cannot erase a newer restriction. HELP is assistance, not subscription. START or a provider unblock does not recreate all the required purpose-specific consent; renewed permission needs the documented evidence and current phone binding. A broad withdrawal is not narrowed merely because the campaign has several topics. Any exceptional statutory or carrier confirmation is a separately approved, minimal provider-control response, not permission for another promotional send. \[R-SMS-01, T-01, T-03\]
+
+**One response authority for control keywords.** Determine whether the provider has already sent the STOP/HELP response. For a Twilio profile, use its documented OptOutType evidence and configured Messaging Service behavior, rather than unconditionally sending a second confirmation. Preserve Core's own withdrawal evidence through provider service, account and sender changes; provider suppression is an additional enforcement layer, not the only record. Unknown or inconsistent provider control state blocks favorable resubscription and produces an actionable reconciliation case. \[T-02, T-03\]
+
+**System notices and human messages.** Each code-originated notice uses a meaning-specific Phase 17 contract and an explicitly qualified SMS step. Required/optional steps, recipient policy and whole-message recovery remain source-owned. Human-authored support replies and campaigns use their owning composition and purpose contracts outside the system-message catalog, while delivery still goes through Phase 6. No generic transactional label may transform marketing into a protected notice. The initial qualified use cases must demonstrate a real source-backed notice, staff conversation and organization campaign, not only a provider test send.
+
+**Content, links and language.** Provide readable sender identity, required withdrawal/help wording, safe typed personalization, locale handling and the exact link destination. Validate the fully rendered recipient-specific text, including mandatory wording and substituted variables. Show segment count and estimated cost for the selected route and encoding; Unicode and concatenated-message boundaries need actual encoder tests. Do not silently truncate, transliterate, replace a person's name, omit disclosure, or change a protected link to meet a segment budget. Provider smart-encoding behavior must be disabled or explicitly qualified against exact prepared-content meaning. Links use approved source destinations; no arbitrary shortened redirect, private record identifier or reusable signed document URL. \[T-04\]
+
+**Timing, pressure and budgets.** Record the source occurrence, intended business deadline, not-before instant, recipient time-zone evidence, applicable quiet-hour policy/version, expiration and cancellation generation. Show when deferred work is expected to send. A phone's country code or area code does not prove the recipient's current zone. Unknown zone handling must be conservative and explicit in the qualified profile. At dispatch, recheck the current permitted window; expire stale notices instead of delivering a flood after an outage. Coordinate optional contact pressure across campaigns and workflows without suppressing source-required non-SMS handling. Separate message admission, provider throughput, segment cost estimates and observed charges; these are not donor funds or the contribution ledger.
+
+**Two-way Support Hub.** Resolve tenant and sender from an authenticated provider/account binding, then record the inbound occurrence through the conversation owner. Preserve provider message identity, route and exact external correspondent; normalize a phone only through the contact contract. Ambiguous matching creates a restricted review task, not automatic Party creation, account claiming or disclosure of an existing conversation. SMS has no email References chain: threading and reopening require an explicit route/correspondent/conversation-epoch policy. Sender reassignment must not attach a new person's messages to old private history. Reuse assignment, collision-safe send, internal-note separation, quarantine, status and response clocks. Unknown attachments or MMS cannot enter an unqualified byte-fetch path; show a safe unsupported-content result.
+
+**Requested public text-to-give.** A keyword may request one source-approved public checkout link with the tenant, Site, source code, designation and giving context preserved. The giving owner validates the destination at use; a keyword cannot authorize a charge, an amount, a saved payment method, account access or a future marketing series. Unknown correspondents require an explicit additive Phase 3/6 requested-response contract before this lane ships: a provider-authenticated inbound request supplies evidence only for its narrow response, without fabricating Party enrollment or reusable consent. Keep that evidence distinct from Phase 17's Party-bound marketing/notice permission. Bound repeat requests, prevent loops and unsafe disclosure, and honor current route/withdrawal policy. The public link contains no account-specific bearer authority; a scanner GET does not donate or subscribe. \[C-03, T-01\]
+
+**Organization campaign delivery.** Phase 32 supplies the reviewed content and audience/send occurrence. This phase supplies the SMS route, eligibility and channel evidence. Preview excluded and uncertain recipients, expected segments, cost and timing; create no live effects during preview. Stop can prevent not-yet-admitted work but cannot recall messages accepted by a provider. A recipient's opt-out between review and release removes that effect without silently widening the audience elsewhere. Do not send the same occurrence through both a provider broadcast and an independent per-recipient loop.
+
+<a id="phase-43-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+**One responsibility for each fact.** Phase 3/6 retains consent, suppression, recipient-specific intent and communication history; Phase 4/9 retains identity and contact meaning; Phase 12 retains the sole permission decision point. Phase 17 owns system content and channel-plan admission. Phase 26 owns conversations and their content-retention policy. Phase 31 owns connection and credential lifecycle. This phase owns channel profiles, sender-route qualification, provider-specific execution/evidence interpretation and the supported channel experience, extending those owners rather than replacing them. Phase 32 owns campaign/audience occurrences, and Phases 5/13 own giving.
+
+Logical records below describe required semantics, not approved physical table or API names. Census existing storage first. Every new owned record needs an ownership-matrix row, exact writer, same-scope references, retention policy, conflict rule and repair path. Provider accounts and message IDs are external references, never Core tenant or business-effect identity.
+
+| **Record or contract**                          | **Owner and minimum binding**                                                                   | **Required integrity**                                                                                             |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| SMS operating profile and activation evidence   | Channel owner; exact provider/route/market/purpose/schema and evidence generation               | Code-qualified profile; no tenant switch that bypasses proof; explicit withdrawal and requalification              |
+| Sender-route and registration versions          | Connection/channel owners; tenant, environment, sender, provider account, use case and market   | Same-scope references; immutable observations and attributable succession; current readiness is derived            |
+| Phone and permission evidence                   | Existing contact and consent owners; exact phone revision and purpose                           | No permission transfer on merge, number change, import or reconnect; suppression remains independently enforceable |
+| Prepared communication and business receipt     | Phase 6; source occurrence, purpose, recipient, channel, exact body/reference and route version | Permanent semantic identity, conflict on changed payload, current read authorization; no parallel SMS history      |
+| Dispatch attempts and provider observations     | Phase 6 with channel adapter; exact request, attempt, route and provider message reference      | Append-only evidence; legal state transitions; uncertain submission cannot become retryable by lease expiry        |
+| Inbound occurrence and conversation binding     | Phase 26 with authenticated channel ingress                                                     | Scope-complete duplicate prevention; correspondent epoch; no false account identity from a telephone number        |
+| Keyword routing and requested-response evidence | Channel/intake owner plus giving resolver                                                       | Exact public source binding and purpose; no charge, private access or ongoing subscription as a side effect        |
+| Pressure, usage and repair projections          | Channel operations; source-labelled counts and observed provider cost                           | Derived, permission-safe, currency-labelled where relevant; no financial authority or payload-bearing logs         |
+
+**Database and privacy integrity.** Require trusted non-null tenant/environment scope, same-scope contact/connection/source references, uniqueness for the exact business receipt and inbound occurrence, constrained transitions and revision/fence checks. Apply the existing coarse tenant RLS/grant posture plus the sole current PDP on privileged and browser-facing paths. Raw sender credentials, consent proof, phone identities and message content stay outside generic client collections, search and orchestration logs. Append-only evidence is subject to lawful source-owned retention; it is not an infinite-content archive.
+
+**Repository placement.** Use shared auth/session helpers from packages/auth, business operations and source adapters in packages/api, approved browser projections in packages/database, and shared controls in packages/ui. A communications/sms subtree is a proposed placement to reconcile with the actual Phase 6 module; it is not a claim that the folder or public API exists. App routes stay thin. The inspected packages/api/src/email/consent.ts is an email-only legacy precedent, not an SMS decision engine. Follow the exact base-maia/Base UI system and the repository's current pinned dependency and test commands. \[R-CORE-01–R-CORE-04\]
+
+**Execution and external disclosure.** Reuse the existing Inngest dispatch/claim infrastructure with bounded coded handlers. Events and step results contain approved opaque references only, not numbers, message bodies, consent documents, signed URLs or credentials. Restricted metadata requires its own data-handling qualification. The service may load an authorized prepared body inside the effect-owning boundary; it must not return that body into orchestration history. Do not add an Inngest app per tenant, a universal provider abstraction, or a workflow-owned send endpoint.
+
+<a id="phase-43-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+**Atomic local admission, qualified remote work.** Prepare and commit the source request, exact eligibility evidence, receipt and required outbox intent in a short transaction. Final source admission serializes relevant withdrawal/cancellation/currentness checks. External I/O occurs after commit under the existing claim/fence protocol. Record what cancellation can still prevent. A withdrawal accepted before final admission prevents the send; one arriving after irreversible submission cannot be represented as recalling it. Provider delivery evidence does not prove that a human read, agreed, donated or completed a task.
+
+**Unknown outcomes and retry.** Retain one permanent source-purpose identity across UI retries, workflow/native callers and provider-cache expiry. Same identity with incompatible content blocks. A timeout after possible provider acceptance, including a lost response before a message ID is stored, becomes Outcome unknown. Query exact supported correlation evidence or hold for controlled review; matching only phone, body and approximate time is not proof. Do not assume the selected provider's message-create endpoint supports an arbitrary idempotency header. Qualify its actual behavior; an unresolved old attempt cannot trigger a new provider, sender or fresh-key retry. Core can prove its own admission invariants, not promise globally exactly-once carrier delivery. \[T-05\]
+
+**Authenticated ingress.** Validate callbacks using the exact provider protocol and SDK under the pinned version. For Twilio, signed form requests depend on the public request URL and parameters; JSON uses its documented body-validation arrangement. A generic raw-body HMAC or a fabricated mandatory timestamp is not an interchangeable verifier. Derive the external URL from trusted deployment configuration, not arbitrary forwarded headers. Bind the verified account and destination route before accepting payload scope; retain durable occurrence IDs and duplicate protection. Acknowledge only accepted work, with a bounded response time. Preserve privacy-safe rejected-event evidence without logging secrets or raw hostile text. \[T-06\]
+
+**Critical intake remains available.** Withdrawal and authenticated outcome intake need protected capacity independent of campaign budgets, subscription limits and optional workflow availability. The platform may stop new sends while still accepting restrictions and late outcomes. Where the exact provider protocol permits, commit suppression immediately and defer ordinary thread processing. If durable acceptance fails, return the protocol's truthful retry/failure response and alert rather than falsely acknowledging a lost opt-out.
+
+**Default user journey.** Use Set up sender → Prove readiness → Choose purpose/audience → Compose → Review → Send or schedule → Inspect outcomes. Keep advanced registration and provider diagnostics behind permission-scoped details. Routine staff see the sender, why a recipient is eligible or excluded, the exact intended timing and the next recovery action. Show registration pending separately from campaign queued. A safe canary uses explicitly consented controlled recipients and cannot inherit a real donor segment.
+
+**Implementation packages.** Each package includes its own current contract, migration where needed, permission proof, real tests, accessible UI, observability and recovery; the last package does not retroactively supply missing safety. IDs are planning identifiers, not created GitHub issues. Reconcile ticket overlap before publishing a new backlog.
+
+| **Package** | **Complete implementation outcome**                                                                    | **Predecessors within this phase**   | **Acceptance cases** |
+| ----------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------ | -------------------- |
+| SMS-W01     | Census source contracts, preserve transport-dark generation, adopt exact successor and support profile | None; foundation owners required     | SMS-AT-01, 02        |
+| SMS-W02     | Governed account/sender setup, exact registration evidence, credential rotation and visible readiness  | W01                                  | AT-03, 04, 22        |
+| SMS-W03     | Phone-purpose enrollment, withdrawal, re-consent and current eligibility through existing owners       | W01                                  | AT-05–09             |
+| SMS-W04     | Authenticated durable ingress and control-keyword handling, including overload protection              | W02, W03                             | AT-08, 10, 11, 20    |
+| SMS-W05     | Exact prepared text, encoding/segment proof, time-window/deadline and budget preflight                 | W02, W03                             | AT-12–14             |
+| SMS-W06     | Phase 6 dispatch, permanent identities, provider evidence and ambiguity recovery                       | W04, W05                             | AT-15–18             |
+| SMS-W07     | Qualified source notice through its explicit Phase 17 contract, without workflow dependency            | W06                                  | AT-02, 19            |
+| SMS-W08     | Complete Support Hub inbound, assignment, safe reply and correspondent lifecycle                       | W04, W06; exact Phase 26 contract    | AT-21–23             |
+| SMS-W09     | Public keyword-to-giving-link with bounded unknown-correspondent requested-response contract           | W04, W06; exact Phase 5/13 contracts | AT-24, 25            |
+| SMS-W10     | Organization campaign send/schedule/stop and source-labelled outcomes                                  | W06; Phase 32 occurrence contract    | AT-16, 26, 27        |
+| SMS-W11     | Consent-preserving migration, route replacement, privacy disposition and safe restore                  | W07–W10                              | AT-28–30             |
+| SMS-W12     | All-profile load, accessibility, user pilot, independent outage monitoring and release evidence        | W11                                  | AT-20, 31, 32        |
+
+<a id="phase-43-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No second CRM, consent flag, communication history, Support Hub, financial ledger or SMS workflow language. No number-based account claiming, hidden group texting that reveals other recipients, automatic marketing enrollment, donor-controlled provider replay, or broad Force send capability. Provider purchase/usage records do not alter donations, receipts or Asym subscription billing. Human authorship does not exempt application-mediated texts from applicable provider and legal rules. \[T-01\]
+
+No clinical, counseling, restricted-worker identity/location, passport, banking or other prohibited private content in the ordinary SMS profile, even behind a short link. Inbound sensitive material is untrusted input and follows the existing containment/handoff owner. Its arrival cannot expose sealed context to a general agent. No emergency-service, guaranteed-delivery, end-to-end-encryption, universal jurisdiction-compliance or authentication-factor claim is made by shipping this phase. MMS, WhatsApp, RCS, voice, native payment-by-text and unsupported international senders require separate explicitly approved profiles or scope.
+
+Phase 17 preservation. Keep historical evidence-only semantics and negative fixtures. The successor must replace a blanket runtime absence assertion only through an explicit, scoped architecture/contract change: old/inactive profiles still cannot create work; a new qualified profile can execute only the enumerated purposes and channels whose proofs pass. Do not delete the non-inference, withdrawal, exact phone, tenant-isolation or privacy tests to make activation green.
+
+<a id="phase-43-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+**Every case below is specified, not executed.** Pair real provider/profile evidence with database and browser tests. Mocks can exercise error handling but cannot certify sender registration, callbacks, phone control, carrier outcomes or production delivery. Required profiles and their quantitative workloads must be approved before measurement; record actual versions, countries, account arrangements, controlled test recipients and evidence scope.
+
+| **Case**  | **Required observable proof**                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SMS-AT-01 | With only the Phase 17 generation or an unqualified profile, every SMS creation path remains unavailable; existing evidence still reads correctly.            |
+| SMS-AT-02 | Activating one exact source purpose does not activate another purpose, tenant, sender, country or channel; missing required proof rejects before work exists. |
+| SMS-AT-03 | A real verified setup reaches usable readiness; partial/rejected/stale registration and forged account ownership never do.                                    |
+| SMS-AT-04 | Secret rotation and route replacement preserve current scope; copied ciphertext, another tenant's account and revoked credentials fail safely.                |
+| SMS-AT-05 | Explicit enrollment captures the required disclosure and phone-purpose evidence; a gift, email opt-in, imported number or staff checkbox alone cannot enroll. |
+| SMS-AT-06 | Shared, corrected, reassigned and changed phones do not inherit private threads or old consent; ambiguous identity remains a visible unresolved state.        |
+| SMS-AT-07 | A do-not-contact change or source eligibility loss between preview and admission prevents the affected send, including a required/urgent-labelled request.    |
+| SMS-AT-08 | STOP and reasonable withdrawal suppress before ordinary follow-up, including unresolved Party matching, repeated events and adverse orderings.                |
+| SMS-AT-09 | HELP changes no permission; START/provider-unblock without complete fresh applicable evidence cannot resume recurring outreach.                               |
+| SMS-AT-10 | Provider-generated control response is recorded without a duplicate platform response; ordinary acknowledgments cannot loop with another autoresponder.       |
+| SMS-AT-11 | Real signature validation covers trusted proxy URL construction, all required parameters, JSON variants, tampering, replay and wrong-account routing.         |
+| SMS-AT-12 | Fully personalized text crosses GSM/Unicode/concatenation boundaries correctly; no truncation, protected-link change or hidden encoding rewrite occurs.       |
+| SMS-AT-13 | Quiet hours, unknown zone, daylight-saving boundaries, source expiration and delayed recovery produce the documented not-before/expired outcomes.             |
+| SMS-AT-14 | Budget and provider throttling truthfully defer/refuse new optional work without dropping accepted intent or blocking withdrawal ingestion.                   |
+| SMS-AT-15 | Double submit, response loss, concurrent native/Studio requests and replay beyond provider caches preserve one semantic effect identity.                      |
+| SMS-AT-16 | Cancel/withdrawal versus admission has a deterministic boundary; already-submitted work remains truthfully irreversible or uncertain.                         |
+| SMS-AT-17 | Provider acceptance with a lost response, including no stored provider ID, cannot cause a fresh-key retry or automatic route/provider failover.               |
+| SMS-AT-18 | Late, duplicate and reordered delivery observations do not invent reading or business completion; incompatible evidence requires reconciliation.              |
+| SMS-AT-19 | One actual source-backed system notice succeeds with optional Workflow Studio absent; existing required email/in-product behavior stays intact.               |
+| SMS-AT-20 | Fault and overload drills retain all durably accepted restrictions and outcomes, enforce fair capacity and expose independently detected outages.             |
+| SMS-AT-21 | An inbound message, assignment, collision-safe staff reply and later response work through the actual Support Hub and one communication history.              |
+| SMS-AT-22 | A sender port, reassignment, disconnect or ownership change cannot attach a new correspondent to prior private conversation history.                          |
+| SMS-AT-23 | Internal notes, raw attachments, sealed-care context and unrelated recipient details cannot escape through SMS, exports, previews or diagnostics.             |
+| SMS-AT-24 | Known and unknown keyword requesters receive only a permitted source-coded public giving link; no Party claim, consent enrollment or payment occurs.          |
+| SMS-AT-25 | A retired designation, changed route, malicious keyword/URL, repeated request and link scanner cannot misdirect a gift or perform a hidden action.            |
+| SMS-AT-26 | A reviewed campaign sends only currently eligible intended recipients, shows exact exclusions and does not execute twice through native/provider lanes.       |
+| SMS-AT-27 | Schedule/change/stop and partial campaign failure retain original occurrence identity and truthful per-recipient outcomes without blocking email-only work.   |
+| SMS-AT-28 | Import or provider migration retains provenance and restrictions; incomplete legacy evidence remains unconsented rather than silently repaired.               |
+| SMS-AT-29 | Privacy/retention and backup restore preserve minimal required restriction/effect evidence without resurrecting removed content or repeating messages.        |
+| SMS-AT-30 | Killing new SMS sends preserves withdrawal, authenticated late-outcome intake, authorized history and recovery; reconnect does not replay old campaigns.      |
+| SMS-AT-31 | Real administrator, campaign author and support agent complete their jobs with keyboard, screen reader and narrow-screen layouts.                             |
+| SMS-AT-32 | The approved provider/market profile completes all three checkpoints with measured performance/cost, operating runbooks and a representative tenant pilot.    |
+
+**Release evidence.** Record local commit/receipt correctness, exact source-adapter qualifications, provider request/response and callback behavior, actual browser accessibility, controlled recipient tests and a production-shaped load profile. Set admitted recipient counts, simultaneous campaigns, route throughput, maximum queue age, callback response budget, pressure limits and cost ceilings from expected tenants and provider evidence before activation. Report p95/p99 measurements and observed backlog-drain behavior, not a generic SMS SLA. A failed mandatory profile remains incomplete even if a smaller pilot works.
+
+**Operations and recovery.** Provide playbooks for registration rejection, expired evidence, lost credential, unknown submission, wrong-recipient suspicion, provider outage, abuse, number transfer, withdrawal dispute and privacy/backup restore. Investigate using authorized source references rather than raw-provider-console replay. Restore begins outbound-disabled; reconcile suppressions, route generations, consent and prior attempts before reopening. New-sends shutdown must not shut down critical safety intake. Assign named operational and compliance owners, escalation paths and an independently tested monitoring mechanism.
+
+<a id="phase-43-open-decisions"></a>
+
+#### Open decisions
+
+Before dispatch, record the chosen pilot market, originating sender type, provider and account/billing ownership; the exact sender/use-case registration program; permitted source notice and campaign classes; recipient-phone assurance; required disclosure and renewed-permission policy; handling of shared numbers; unknown-zone timing; provider request idempotency/correlation; retention, residency and support-safe content; safe unknown-correspondent requested-response contract; throughput, spending limits and operational ownership. Each decision needs an owner, selected contract/version, evidence, failure behavior and requalification trigger. A generic later developer choice is not permission to leave these gates undefined at release.
+
+**Legal and carrier qualification is time-sensitive and distinct from software tests.** The September 2026 review included FCC DA 26-12, which extends only the identified cross-topic informational revocation requirement to January 31, 2027; it is not a delay of every consent or withdrawal rule. Obtain current jurisdiction-specific review for the actual ministry/use case, including applicable nonprofit treatment, carrier/provider restrictions and privacy obligations. Core's stronger recorded withdrawal and do-not-contact floors remain binding unless their own authorized successor contract changes them; this roadmap supplies no universal legal exemption or compliance certificate. \[L-01, T-01\]
+
+**Implementation packet:** [complete governed-sms contract](../governed-sms/README.md).
+
+---
+
+<a id="phase-44"></a>
+
+### Phase 44 — Enterprise Sign-In & Directory Integration (`enterprise-identity-integration`)
+
+<a id="phase-44-what-this-phase-is"></a>
+
+#### What this phase is
+
+**Organization-managed staff access without a second identity or permission system.** A ministry connects its organizational identity provider, tests sign-in, safely binds existing people, provisions approved staff access and reliably removes it when someone leaves. The same person may separately remain a donor or belong to another tenant; enterprise sign-in must not merge those identities or permissions merely because an email address matches.
+
+Primary surfaces: Mission Control administration for Sign-in & Directory, existing shared application sign-in/callbacks, My Access and source-owned access-recovery views. Stable slug: enterprise-identity-integration. Supabase Auth remains the authentication engine; Phase 12 remains the only authorization decision point. This phase owns enterprise connection, federation admission, directory synchronization and identity-provider lifecycle, not a new CRM, HR system, tenant-signup product or authorization engine.
+
+**Existing commitment and new delivery.** Phase 12 D9/§J and issue #686 ratify an inert SSO/SCIM configuration home and one safety-critical deactivation adapter, while explicitly deferring full identity-provider integration. This phase completes that handoff under a separately adopted successor contract. Earlier configuration rows, a social-login button or a successfully parsed SAML assertion do not prove enterprise sign-in or directory lifecycle is delivered. The current shared auth code is implementation evidence, not proof that the target Phase 12 substrate already exists. \[R-ID-01, R-ID-02, R-CORE-03\]
+
+**Benchmark and design basis.** SiteStacker's SAML documentation identifies Google and Azure configurations. HubSpot documents connection testing, optional/required SSO and SCIM provisioning, demonstrating that administration and account lifecycle are part of the user-facing product. Asym should provide similarly understandable setup and recovery while keeping its stronger tenant, principal, sensitive-grant and source-ownership boundaries. Vendor email matching, role-name mapping or broad administrator exceptions are not imported as authority. \[C-02, C-06, C-07\]
+
+<a id="phase-44-why-it-sits-here"></a>
+
+#### Why it sits here
+
+Starting dependencies: Phases 4 and 12, plus the minimum Phase 31 connection/credential/audit capabilities actually used. Their inherited Party, privacy, classification, governed communication and causal-revocation contracts remain binding. Shared connection tooling does not become a new permission authority. The enterprise foundation can proceed without the whole public API catalog, SMS, Workflow Studio, Mobilization or hybrid Web Studio.
+
+**Capability checkpoints.** ID-SIGNIN proves one complete connection, sign-in, existing-account transition and enforced staff-access policy. ID-DIRECTORY proves the selected provisioning/group/deactivation lifecycle with current source authority. ID-OPERATIONS proves renewal, reconciliation, containment, recovery, migration and real administrator/staff use. All are required for full phase completion. The already-required Phase 12 deactivation behavior remains independently available without the new enterprise interface; Phase 44 cannot become a backward blocker for Phase 12.
+
+**Initial profile direction.** Use Supabase project-level SAML as the first federation path and qualify Microsoft Entra ID and Google Workspace sign-in profiles for the SiteStacker parity outcome. Qualify a complete SCIM 2.0 provisioning profile with Microsoft Entra ID, including Users, the required supported Group operations and deactivation. Okta and additional providers/protocols may join the certified matrix only with their own evidence; they are not implied by SAML/SCIM labels. Google SAML support does not itself prove arbitrary Google directory provisioning works. Preserve reserved OIDC configuration without silently activating a second federation stack. Exact product plans, runtime support and supported operations are pre-build qualification decisions, not assumed services. \[I-01, I-03, C-02\]
+
+<a id="phase-44-what-it-covers"></a>
+
+#### What it covers
+
+**Verified organization connection.** An authorized tenant administrator creates a connection in the exact tenant/environment, supplies or retrieves bounded provider metadata, proves administrative control, reviews issuer/entity identity and redirect settings, and tests with a controlled account. Record provider identifier, connection identity, approved domains for discovery, protocol/profile, trust versions, capability evidence, operational owner and recovery posture. Domain verification assists discovery; it never proves tenant membership or permission. A Site domain, company email suffix or posted provider identifier cannot claim another tenant's connection.
+
+**Connection lifecycle and enforcement.** Support draft, verification/test, available, required-for-selected-staff, degraded, suspended, retiring and disconnected semantics as explicit versioned policies, without collapsing connection health into access permission. First test; then permit a bounded pilot; then enable required sign-in only after account-impact and recovery proof. Explain which staff assignments and surfaces are affected. A valid non-SSO session must not bypass the required-SSO policy by entering through another app or old callback. Policy changes re-evaluate current sessions through the existing governance epoch. Do not change a shared Supabase project's global settings in a way that silently affects unrelated tenants.
+
+**Safe staff sign-in.** Prefer the application-initiated SAML flow using the supported PKCE/session mechanism. Provider launch tiles may link to Asym's sign-in entry so the application starts that flow. Do not disable PKCE merely to make unsolicited identity-provider-initiated SAML work: Supabase currently documents that limitation. Bind the request to exact connection, tenant, approved redirect, browser/session challenge, nonce/state where applicable and expiry. The protocol library/engine must validate issuer, audience, recipient, correlation, time, signature and replay according to its supported profile. A successful authentication creates a verified principal context, not an automatic broad role. \[I-01\]
+
+**Trusted authentication evidence.** Resolve the exact verified Supabase user/session and provider binding server-side. Distinguish authentication method, provider, authentication time, assurance and tenant assignment. Do not authorize from user-editable metadata, email domain, an unverified JWT, the first element of an authentication-method array, a role string or a client tenant selector. A provider ID is not a tenant ID. Current Phase 12 checks continue on every protected request and consequential operation; a trusted login token is not a permanent permission snapshot. \[R-ID-02, R-CORE-03\]
+
+**Existing accounts and identity succession.** Inventory existing local/social/SSO principals, Party links, tenant assignments, invitations, active sessions and protected grants before enforcement. Supabase's documented SAML behavior allows the same email on separate regular and SSO accounts and does not provide their automatic/manual identity linking. Therefore implement the supported Phase 4 owner-approved binding or principal-succession journey rather than claiming a provider merge exists. Require evidence of the intended existing identity and new connection identity, show affected access and retain exact historical principals and authorship. Suspend and re-attest sensitive grants as the existing identity-change contract requires. Do not edit Supabase auth internals, merge Parties, union grants or attach financial history by email alone. Missing safe existing-account transition keeps the affected enforcement profile incomplete. \[I-01, R-ID-01\]
+
+**Several roles and tenants.** Keep the human, Party, authentication principal, Active Tenant Assignment, Support Assignment participation, workspace access and operational responsibility distinct. Deprovisioning in tenant A must not delete a global human/Party, another tenant's membership, donated gifts or the person's independent donor authority. A provider's user-wide session cleanup may require reauthentication more broadly; disclose and test that technical effect separately from permission scope. Reauthentication in tenant B must never restore access in A. A spouse, team relationship or shared email address is not an enterprise account-binding rule.
+
+**Admission and just-in-time behavior.** Define whether a certified connection uses pre-provisioned membership, existing approved invitations, or an explicitly authorized bounded just-in-time admission policy. Default unknown identities to no operational access. A preapproved ordinary starter may be applied only through the existing membership/capability owner under current policy; an inert default_membership_role column is not a sufficient grant. Do not create a tenant or populate a real organization merely because an IdP authenticated someone. Concurrent SCIM provisioning and first login must converge on the same exact external-subject binding without duplicate principals or accidental grants.
+
+**SCIM service and protocol truth.** Deliver the exact SCIM 2.0 endpoints and representations required by each certified profile: honest ServiceProviderConfig/Schema/ResourceType discovery where applicable; stable Users and supported Groups; bounded filtering/pagination; required create/read/update/PATCH/deactivate behavior; appropriate status/error responses; concurrency/version behavior; and explicit unsupported-operation responses. Publish the actual supported attributes, operators and PATCH shapes. Do not claim full RFC support while silently ignoring a required operation. Protocol compatibility must be demonstrated with the real identity provider, not only handcrafted HTTP requests. \[I-03, I-04, I-05\]
+
+**Scoped external identity.** Use server-owned resource IDs and immutable source bindings scoped to tenant, environment, connection/directory generation and external subject. SCIM externalId and mutable userName/email serve their defined protocol purposes; neither is a globally unique Core identity. Never let a client select another tenant by body attributes. Where a provider uses an email-shaped or otherwise mutable NameID, qualify a non-reassigned persistent subject or stable directory/attribute binding instead of pretending the email is permanent. The profile must demonstrate renamed and recycled identifiers; missing stable binding blocks automatic admission. Attribute changes update only approved identity-source fields; they do not rewrite legal donor names, CRM ownership, worker status or clinical records. Omitted, null, replaced and removed values follow the exact supported PATCH semantics. Changes that alter bound identity trigger the existing re-evaluation rules rather than retaining sensitive grants unexamined.
+
+**Source-governed group mapping.** Map verified external group identities to explicitly approved flat Asym groups through Phase 12 commands. A rename changes a display label, not the grant target. Preview affected principals and permission consequences before approving a mapping or changing its scope. Preserve direct versus directory-derived membership provenance so removal of one mapping does not erase an unrelated grant, while tenant deprovisioning still invokes the full existing tenant-scoped revocation contract. Do not infer access from group-name similarity or flatten unknown nested memberships by guess. Do not activate reserved nested-groups or ABAC-condition engines as a side effect of SCIM support.
+
+**Sensitive access remains separately governed.** Directory provisioning can request only source-approved membership outcomes. It cannot grant security clearance, bypass maker-checker rules, activate a privileged just-in-time grant, self-approve a protected action or manufacture a named-person care grant. The same None/View/Manage/Admin explanation may be reused for configuration, but the existing capability registry and final subtractive privacy/safety/entity/purpose floors enforce the result. A source group labeled Finance does not prove financial or donor instruction authority.
+
+**Deactivation and reactivation.** An authenticated applicable active=false or certified equivalent invokes the existing Phase 12 revocation operation for the affected tenant assignments and current session/stream invalidation. Record source-observed time when known, local received time, local access-denied time and provider-cleanup outcome separately. Do not wait for a workflow, human task, campaign budget or bulk-change approval to enforce a valid received revocation. Deleting a SCIM resource retires that external admission and access under policy; it does not erase CRM/financial history. Reactivation is a fresh authorized lifecycle transition with current admission and grant proof, not revival of all former grants.
+
+**Lifecycle-aware retries.** The Phase 12 seam's deactivation-only deduplication is not sufficient for a full deactivate → reactivate → deactivate lifecycle if reused as a permanent connection/subject/Boolean key. Define an exact command/source generation and lifecycle-aware receipt so redelivery of the same revocation is harmless but a later genuine revocation always applies. SCIM does not promise a universal caller-supplied event sequence or idempotency header: do not require an invented field for interoperability. Serialize relevant subject updates, use supported conditional versions or current source reconciliation, and prevent stale positive updates from overriding a known deactivation. If authoritative ordering cannot be proved, hold reactivation for the approved recovery/admission path and return an honest protocol result. \[R-ID-01, I-03\]
+
+**Directory reconciliation.** Show the configured scope, last successful synchronization, source freshness, pending changes, mismatches and failed users/groups. Provider silence or an incomplete page of results does not prove deletion. A reconciled complete snapshot may propose changes only under the approved scope policy; it is not a blanket replacement of Core memberships. Large planned local mapping changes need an impact review, but upstream accidental-deletion protection is a separate provider control and must never cause Core to acknowledge an unapplied individual revocation as successful. Unmatched deactivation records remain visible security exceptions and retain a source-scoped negative admission fence, so a late create or first login cannot bypass a previously received leaver signal. Only an explicitly authorized, currently proved successor can clear that fence; these events cannot be dropped as harmless empty results. \[I-06\]
+
+**MFA, sessions and assurance.** SSO means federation, not automatically strong enough authentication for every Asym action. Qualify how the chosen provider/Supabase profile conveys authentication method, freshness and required assurance, and use the existing step-up policy. Do not treat any claimed AuthnContext as verified Core assurance or introduce SMS MFA merely because Phase 43 exists. Current Supabase documentation says SAML Single Logout is not supported and notes that session controls are evaluated during refresh; local causal authorization must therefore deny revoked access even while a cryptographically valid access token exists. Provider logout is not the sole access-revocation mechanism. \[I-01, I-02\]
+
+**Recovery and administrator continuity.** Before required SSO is enabled, exercise the existing Phase 12 recovery/break-glass path with qualified administrators and accountable audit. Avoid a permanent unaudited password bypass, a shared master account or a broad support back door. Recovery is time-bound, purpose-scoped, reauthenticated and visible to its authorized owner, with a documented return to normal enforcement. Ordinary last-owner configuration safeguards must coexist with the source's emergency/deprovisioning rules: do not silently retain an unsafe person's access just to preserve an owner count. Resolve any real policy conflict through the existing authorization owner before this profile ships.
+
+**Connection rotation, replacement and exit.** Support certificate/metadata rotation with a reviewed bounded overlap and explicit retirement of old trust; reverify issuer/control changes. Replacement IdPs/directories use a reviewed binding and identity-transition plan, not a changed URL on a live record. Suspending a connection fences new favorable sign-ins/provisioning according to policy while retaining safe revocation/recovery operations. Only currently authenticated or already durably accepted negative work may continue; retired credentials do not become a permanent deprovisioning back door. Routine provider outage is not evidence that users were deleted. Disconnection does not delete business history, silently enable password access, or revoke another tenant's connection. Record who maintains certificates, receives warnings and can authorize replacement.
+
+<a id="phase-44-ownership-and-integrations"></a>
+
+#### Ownership and integrations
+
+**Authentication versus business access.** packages/auth retains the shared session and callback machinery; Supabase Auth verifies the supported federation flow. Phase 4 owns identity binding and claiming. Phase 12's resolveProjection and existing grant-state operations own effective access, epochs, assignment scope and sensitive-grant policy. Phase 31 supplies narrowly scoped connection/credential lifecycle. This phase owns enterprise connection/admission settings, source binding, provisioned-resource mapping and synchronization evidence. A directory supplies observations or permitted requests; it never becomes the final authorization engine. \[R-CORE-01, R-CORE-02, R-ID-02\]
+
+**Logical records and interfaces.** Extend the existing inert configuration home wherever its qualified shape fits. Proposed details must be reconciled with implemented predecessor contracts; do not create parallel sso_connection or group stores because a different name is easier. Non-human connector credentials obey the current Phase 12 owner/purpose limits; negative-event processing and recovery need an explicitly qualified service capability, not a broad service-role exception.
+
+| **Record or contract**                           | **Minimum meaning**                                                                                                     | **Integrity and authority**                                                                                 |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Enterprise connection and trust versions         | Exact tenant/environment, provider identity, protocol/profile, issuer, trust, owner and lifecycle                       | Same-scope keys; versioned trust; no arbitrary metadata URL or mutable enabled flag as complete proof       |
+| Staff sign-in policy                             | Exact affected assignments/purposes, admitted providers, enforcement mode, exceptions and generation                    | Changed only by current authority; checked server-side across app entry points; no global tenant inference  |
+| External-subject binding                         | Connection/directory generation, immutable external subject, local auth principal and approved Party/assignment linkage | Unique exact binding; no email-only link; current identity proof and historical attribution preserved       |
+| Provisioned resource and command receipt         | Stable SCIM resource identity, externalId, source scope/version, requested operation and authoritative result           | Idempotent lifecycle-aware application; no silent unsupported PATCH; no cross-tenant body selector          |
+| External group mapping and membership provenance | Stable external group, selected existing Asym group and attributable membership contribution                            | Flat approved mappings through Phase 12; no label-derived capability or destructive full replacement        |
+| Revocation and reconciliation evidence           | Source/received/enforced times, exact affected assignments, denial receipt and cleanup outcome                          | Deny-first local authority, durable unmatched exceptions, no Boolean-only lifetime deduplication            |
+| Identity transition and enforcement preflight    | Reviewed old/new bindings, expected versions, impacted access, required re-attestation and recovery proof               | Current source commit; no permission union, provider identity-table hack or history rewrite                 |
+| Operational/recovery audit                       | Authorized policy/trust changes, test results, containment, certificate expiry and recovery use                         | Minimal protected evidence; no passwords, tokens, full assertions or unrestricted directory payload archive |
+
+**Database and egress integrity.** New tenant-scoped records require non-null trusted scope, same-tenant/environment connection and subject references, uniqueness for exact external bindings, revision-aware mutations, minimal append-only audit and explicit retention/disposition. Browser roles cannot enumerate raw identity, mapping, assertion or credential records. Use the existing coarse tenant RLS/grant posture as defense in depth and enforce fine-grained permission through the sole PDP, including privileged service paths; no provider-derived RLS policy may become a second authorization model.
+
+**Core implementation boundaries.** App sign-in/callback routes reuse or re-export shared contracts; they do not each construct a new provider client. Business persistence and authorization composition remain in packages/api, with browser-safe query hooks in packages/database and shared administrative controls in packages/ui. A proposed enterprise-identity subtree is a placement decision, not an existing API claim. Keep provider SDK/management credentials server-side in the established environment/secret boundary. The inspected packages/auth/context.ts demonstrates current Supabase/Next session handling but its prototype role/context shape cannot substitute for the future effective-access token. \[R-CORE-01–R-CORE-03\]
+
+**Downstream effects.** Source-backed deactivation must invalidate cached private projections, protected streams and queued work whose authority depends on the revoked principal. Phase 34 non-human automation grants retain their live human-owner ceiling; do not transfer ownership automatically. Existing source appointments whose completed organization authorization legitimately survives routine initiator departure, such as the qualified Web Studio D13 contract, remain governed by that owner rather than a blanket delete-all-jobs rule. Finance, mobilization and care histories remain immutable or corrected through their owners; directory changes do not redirect support, appoint successors or erase records.
+
+<a id="phase-44-implementation-and-user-experience"></a>
+
+#### Implementation and user experience
+
+**Start with proof of the substrate.** Read the current Phase 4/12 contracts, issue #686, nearest AGENTS.md, actual callback/session code, group mutation functions, epoch/stream behavior, credential registry and migrations. Classify real code, forward contracts and obsolete paths. Verify supported Supabase project-level SAML capabilities, plan/region limitations, SDK/runtime cohort and provider test configuration before choosing the adapter. Do not implement a new identity service solely because old source still has coarse role checks.
+
+**Metadata and federation security.** Use the qualified protocol engine instead of custom SAML cryptography or a handwritten XML parser. Bound metadata retrieval, document size, redirects, permitted endpoints and trust updates; reject private-network/metadata-service fetches, external entities, malformed XML and unapproved algorithms. Validate the intended issuer/audience/recipient and exact assertion/request relationship with replay and expiry tests. Keep authentication artifacts out of URLs, analytics, logs and long-term generic audit; retain only the approved minimal evidence. Configuration testing must not grant production administrator access. \[I-01, R-ID-02\]
+
+**SCIM access and request integrity.** Use a dedicated tenant/connection-scoped credential with only certified provisioning operations, secure transport, rotation, revocation and audit. Never expose a project service key as the SCIM token. The endpoint resolves scope from that verified credential and configured path, not body-provided tenant values. Reject arbitrary password, grant, role or business-data writes and return standards-compatible errors for unsupported attributes/operations. Protect filtering and pagination from injection, unbounded queries and cross-scope enumeration. Limit payloads and group changes without losing valid received negative security events.
+
+**Transactions and external identity creation.** Commit local mapping, membership/grant changes, epoch, receipt and required outbox intent through the appropriate owning transaction. Supabase administrative identity creation and a separate business-database request are not automatically one transaction. Where external creation is required, use a recoverable operation with a stable subject binding and no effective access until local authority accepts it. A partially created authentication account stays unentitled and visible for source-owned repair; retry cannot create another privileged principal. Preserve lock order and compare-and-swap expectations across native and directory mutations.
+
+**Truthful synchronization and revocation.** Provider-directory polling latency is not the same as Core enforcement latency. Measure and show both where observable. Preserve Phase 12's applicable immediate/managed-stream bound after local accepted revocation; verify its actual implementation instead of relying on JWT expiry or changing a project-wide timeout. Killing an expired connection must not cause already authenticated late positive requests to reactivate it. A recovery or reconnect needs a new verified generation and an explicit plan for retained revocation evidence.
+
+**Usable administration.** Guide the operator through Connect → Test → Review affected accounts → Enable a pilot → Require for selected staff → Monitor. Present separate controls for sign-in, directory provisioning, group mapping and recovery. Staff see which organization they are signing into and a safe next action for denied access, wrong account, expired invitation or provider failure without learning internal principal terminology. Preserve user work through reauthentication where its source permits, but never replay a consequential mutation automatically with a new identity.
+
+**Implementation packages.** Each package includes the relevant source contract, tests, migration, current access checks, accessible user journey, observability and recovery. The identifiers below are planning labels, not GitHub issues or completed implementation.
+
+| **Package** | **Complete implementation outcome**                                                                    | **Predecessors within this phase** | **Acceptance cases** |
+| ----------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------- | -------------------- |
+| EID-W01     | Qualify current identity/PDP substrate, reserved seams, exact support matrix and adopted successor     | None; foundation owners required   | EID-AT-01, 02        |
+| EID-W02     | Verified connection/trust configuration and nonprivileged end-to-end test setup                        | W01                                | AT-03, 04, 21        |
+| EID-W03     | Shared application-initiated SAML callback/session path and exact provider/tenant binding              | W02                                | AT-05–08             |
+| EID-W04     | Reviewed existing-account transition and concurrent login/provisioning identity convergence            | W03                                | AT-09–12             |
+| EID-W05     | Scoped SCIM protocol, discovery, Users lifecycle, current source mutation and honest errors            | W01, W02                           | AT-13–15             |
+| EID-W06     | Stable group mappings, reviewed permission impact and source-provenanced membership changes            | W05                                | AT-16–18             |
+| EID-W07     | Lifecycle-aware deactivation/reactivation, current epoch/stream denial and unmatched-event recovery    | W04–W06                            | AT-19, 20, 22, 23    |
+| EID-W08     | Optional/required staff enforcement, tested step-up and controlled administrator recovery              | W04, W07                           | AT-08, 24–26         |
+| EID-W09     | Complete directory reconciliation, operational freshness and safe mapping-change review                | W06, W07                           | AT-27, 28            |
+| EID-W10     | Certificate/provider succession, scoped disconnection, privacy and restore controls                    | W08, W09                           | AT-21, 29, 30        |
+| EID-W11     | Downstream authority propagation through source tasks, workflows, finance and content                  | W07, W10; exact selected consumers | AT-31, 32            |
+| EID-W12     | Certified provider interoperability, accessibility, fault/load tests, user pilot and operating release | W11                                | AT-33, 34            |
+
+<a id="phase-44-boundaries-and-guardrails"></a>
+
+#### Boundaries and guardrails
+
+No replacing Supabase Auth, bypassing Phase 12, trusting group names, merging by email, sharing credentials, automatically granting broad membership, or copying an IdP directory into the CRM as a new system of record. No public account enumeration through domain discovery or provider errors. No tenant-wide social-login toggle presented as enterprise SSO. Directory provision/deprovision does not create marketing consent, a missionary appointment, a care determination, compensation/payee authority, donor authority or a financial write.
+
+**Only the explicitly adopted SSO and provisioning successors activate.** Reserved nested groups, arbitrary ABAC conditions, bulk permission widening, unrelated NHI sender constraints and enterprise commercial features stay under their existing owners and activation rules. This phase must not quietly implement all the reserved fields in issue #686. Recovery does not grant access to sealed care or bypass an independent financial approval.
+
+**Protective behavior is not optional automation.** Validated deactivation cannot depend on an enabled Workflow Studio template or wait for a staffing handoff. Manual ordinary group changes, directory changes and protected emergency changes must converge through the same grant-state owner, with their distinct required authority. Retain old-generation inertness tests alongside new qualified-profile tests; do not simply disable assertSsoInert or remove identity-change safety fixtures globally.
+
+<a id="phase-44-acceptance-and-release"></a>
+
+#### Acceptance and release
+
+**All cases are specified, not executed.** Demonstrate real provider behavior in controlled test tenants and the actual authenticated application/database stack. Source code, green documentation checks or a successful vendor-console login are insufficient. Record supported provider plans, metadata/profile versions, schemas, credential custody, exact identity-transition policy and evidence for each completed profile.
+
+| **Case**  | **Required observable proof**                                                                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EID-AT-01 | The Phase 12 reserved generation remains inert for sign-in/provision-up while its qualified active=false safety adapter still works independently.                                                            |
+| EID-AT-02 | One adopted enterprise profile cannot activate a different protocol, nested groups, ABAC, tenant provisioning or another tenant's connection.                                                                 |
+| EID-AT-03 | A real administrator configures and tests the correct tenant/provider; spoofed domains, posted provider IDs and wrong-account control cannot bind.                                                            |
+| EID-AT-04 | Hostile metadata, private-network URLs, invalid trust, replayed assertions, expired signatures and audience/recipient mismatches fail safely.                                                                 |
+| EID-AT-05 | Application-initiated SAML and an IdP bookmark through that path preserve PKCE and the approved redirect without a separate app-local auth client.                                                            |
+| EID-AT-06 | Verified provider/session evidence binds the correct principal and tenant; user metadata, email domain, role label and array ordering cannot grant access.                                                    |
+| EID-AT-07 | A new authenticated but unadmitted identity has no operational permissions; any permitted starter uses the current approved membership command.                                                               |
+| EID-AT-08 | Required SSO applies across relevant protected app routes and existing sessions; an old password/social token or alternate callback cannot bypass it.                                                         |
+| EID-AT-09 | Existing regular and SSO accounts sharing an email require the approved proof/binding transition; they do not silently merge or union grants.                                                                 |
+| EID-AT-10 | Identity/email succession preserves attribution, protects financial history and suspends/re-attests sensitive grants under the predecessor contract.                                                          |
+| EID-AT-11 | Concurrent first login, SCIM creation, repeated callback and response loss converge on one source binding without duplicate privileged accounts.                                                              |
+| EID-AT-12 | Partial external-auth creation before local acceptance remains unentitled and recoverable; an orphaned provider account cannot acquire authority.                                                             |
+| EID-AT-13 | The real selected IdP completes supported SCIM discovery, lookup, create, update and PATCH cases with correct resource and error semantics.                                                                   |
+| EID-AT-14 | Credential/body/path scope mismatch, cross-tenant external IDs, token replay after rotation and unbounded/hostile filters cannot enumerate or mutate.                                                         |
+| EID-AT-15 | Null/omitted/removed attributes, case rules, pagination and supported version conditions match the declared profile; unsupported operations never report false success.                                       |
+| EID-AT-16 | Stable external group IDs map only to approved flat groups; a rename, recycled name, nested group or forged claim cannot expand permissions.                                                                  |
+| EID-AT-17 | Removing a mapping removes its attributable membership effect without erasing unrelated grants; the existing privacy/purpose/entity floors still subtract.                                                    |
+| EID-AT-18 | Directory changes cannot self-approve clearance, sensitive elevation, named care access or a financial operation through a friendly group label.                                                              |
+| EID-AT-19 | Received active=false denies applicable tenant assignments within the existing Phase 12 enforcement bound and invalidates protected streams and queued user authority.                                        |
+| EID-AT-20 | Deactivate → reactivate → deactivate is processed correctly; duplicate old messages and stale positive updates cannot swallow the second revocation.                                                          |
+| EID-AT-21 | Certificate rotation, expired metadata and issuer/provider replacement use exact reviewed trust generations; no unrelated tenant is changed.                                                                  |
+| EID-AT-22 | Unmatched deactivation is durably visible, repairable and fences a later first login/create; valid negative security events are not delayed by optional workflow or campaign limits.                          |
+| EID-AT-23 | SCIM deletion/deactivation in tenant A does not delete Party/gifts or tenant B authority; any broader provider reauthentication effect is accurately disclosed.                                               |
+| EID-AT-24 | Required assurance and step-up are actually proved; SSO, asserted MFA, SMS availability and provider logout cannot substitute for local authorization.                                                        |
+| EID-AT-25 | A tested authorized administrator recovery works during IdP failure without a permanent shared bypass or automatic sealed-data access.                                                                        |
+| EID-AT-26 | Last-owner protection and legitimate emergency/deprovisioning follow the approved owner policy; unsafe access is not retained silently for convenience.                                                       |
+| EID-AT-27 | Incomplete directory snapshots, provider silence, removed scope and upstream deletion quarantine remain visible uncertainty, not mass local deletion.                                                         |
+| EID-AT-28 | Reviewed mapping changes show exact impact; concurrent native edits or changed authorization invalidate stale plans instead of overwriting current grants.                                                    |
+| EID-AT-29 | Disconnect/reconnect and provider transition fence old positive work, reject newly presented retired credentials, retain accepted safe revocation/recovery and do not automatically enable password fallback. |
+| EID-AT-30 | Privacy and backup restore retain required minimal revocation/identity evidence without restoring deleted contents, old tokens or revoked memberships.                                                        |
+| EID-AT-31 | A revoked workflow human owner cannot authorize a queued NHI action; no automation ownership or task responsibility transfers by directory inference.                                                         |
+| EID-AT-32 | Legitimate organization-owned content appointments follow their source policy; directory changes cannot erase finance/care history or redirect money.                                                         |
+| EID-AT-33 | Administrator and staff finish setup, sign-in, denied-access recovery and required migration using keyboard, screen reader and narrow-screen layouts.                                                         |
+| EID-AT-34 | All selected Entra/Google sign-in and selected SCIM profiles complete the three checkpoints, production-shaped fault/load tests and documented user pilot.                                                    |
+
+**Operating evidence.** Measure connection lookup, callback completion, concurrent sign-in/provisioning, directory batch size, largest group update, local revocation propagation, stream closure, reconciliation backlog and cross-tenant workload isolation. State source-event latency separately from received-to-denied latency. Approve the quantitative profile before testing and report observed results; do not invent a universal upstream synchronization SLA. Repeat the deactivate/reactivate cycle and old-session access attempt against the actual session and database implementation.
+
+**Rollout and containment.** Release by exact tenant/connection/profile with a tested optional pilot before mandatory staff enforcement. Preserve a source-authorized recovery path, existing donor/public access and unrelated tenants. Shut down new positive federation/provisioning independently from required negative-event processing and recovery. Restore with favorable admission disabled until connection generations, identity bindings, revocations and memberships are reconciled. Retiring old trust or readers requires evidence that required sessions/history and recovery no longer depend on them.
+
+**Runbooks.** Include failed setup, wrong-account login, an existing-account collision, unexpected JIT admission, invalid SCIM PATCH, group drift, unmatched leaver, delayed upstream deactivation, lost certificate, IdP outage, malicious metadata, compromised connector credential, last-owner loss and backup restore. Each names the responsible source owner, safe diagnostic evidence, exact supported operation and escalation. No runbook should repair by editing auth tables, deleting a Party or clearing a governance epoch manually.
+
+<a id="phase-44-open-decisions"></a>
+
+#### Open decisions
+
+Resolve the exact Supabase project/plan/runtime cohort and provider profiles; SAML initiation and assurance evidence; existing-account binding/succession supported by Phase 4; pilot enforcement scope; whether bounded JIT admission is allowed; SCIM authentication and supported verbs/attributes/filter/PATCH/version behavior; immutable external identity source; group-mapping approval and provenance; lifecycle ordering/reactivation proof; provider-wide versus tenant-scoped session cleanup; certificate overlap/rotation; connection-owner departure; negative-event service authority; recovery personnel and procedure; retention/residency; and the approved quantitative load/revocation profile.
+
+Each decision needs an accountable owner, concrete selected behavior, evidence and a safe unresolved state. Library/provider gaps must be resolved through the supported adapter or an explicit source-compatible successor before the affected required profile can close; a successful new-user demo cannot stand in for migration or deprovisioning. Do not promise unsupported SAML Single Logout, automatic account linking, arbitrary OIDC providers, every SCIM feature, or instantaneous receipt of upstream directory changes. Refresh current vendor and standards evidence at build and before activation. \[I-01–I-06\]
+
+<a id="roadmap-recipe-register"></a>
+
+**Implementation packet:** [complete enterprise-identity contract](../enterprise-identity/README.md).
+
+---
 
 ## Governance — how this roadmap changes
 
-- **This file changes by roadmap revision** (v2 → v3 …), each with an
-  executive summary of deltas, an updated mapping table if numbers move, and
-  a same-commit congruence sweep. Small factual updates (a phase gets its
-  PRD; an epic number lands) are normal edits, not revisions.
-- **Grooming order recommendation** (updated 2026-07-07): Phase 8 is
-  re-groomed (#603 complete); **next is Phase 10** (the sensitive-data safety
-  foundation) before any Phase 11 grooming; the money lane (13) can be groomed
-  in parallel with 10–12. Phase 9's PRD is the live pattern for how deep a
-  phase grooming should go.
-- **Every new PRD starts here:** read this roadmap's phase section + the
-  phase-map guardrails + the Core glossary; translate all competitor
-  terminology; extend the Phase 1 ownership matrix if the phase introduces a
-  new record type; and reserve seams for the later phases its section names.
-- **Related documents:** [`README.md`](./README.md) (charter),
-  [`parity-matrix.md`](./parity-matrix.md) (25-area tracking),
-  [`phase-map.md`](./phase-map.md) (orientation mirror),
-  [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md),
-  OpenSpec (`openspec/specs/**`, `openspec/changes/sitestacker-parity/`),
-  root `CONTEXT.md` (glossary).
+Update this roadmap, phase-map and structured phase inventory together. Preserve
+stable phase slugs and existing ticket IDs. Any future renumbering requires an
+explicit old→new map and a same-change sweep of affected documents and issues.
+Scope additions do not prove runtime delivery, and new phase adoption does not
+reopen predecessor tickets. Read the [adoption and source-disposition record](../program-roadmap/README.md)
+and the current [document-authority guide](../../ai/document-authority.md).

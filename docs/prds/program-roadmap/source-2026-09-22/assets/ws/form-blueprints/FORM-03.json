@@ -1,0 +1,103 @@
+{
+  "dialect": "asym.form/1",
+  "formId": "FORM-03",
+  "version": 1,
+  "status": "reference_blueprint",
+  "purpose": "reference_assessment",
+  "subject": "reference_request",
+  "defaultEnabled": false,
+  "submissionOwnerContract": "mobilization.reference.submit@1",
+  "partialSave": true,
+  "retentionOwnerContract": "mobilization.form-retention@1",
+  "pages": [
+    {
+      "id": "relationship",
+      "title": "Your relationship with the applicant",
+      "fields": [
+        {
+          "id": "relationship",
+          "label": "How do you know the applicant?",
+          "kind": "short_text",
+          "required": true,
+          "purpose": "reference_assessment",
+          "classification": "confidential",
+          "mapping": {
+            "ownerContract": "mobilization.reference.submit@1",
+            "fieldKey": "relationship"
+          },
+          "maxLength": 200
+        },
+        {
+          "id": "known_since",
+          "label": "When did you first know them?",
+          "kind": "date",
+          "required": true,
+          "purpose": "reference_assessment",
+          "classification": "confidential",
+          "mapping": {
+            "ownerContract": "mobilization.reference.submit@1",
+            "fieldKey": "known_since"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reference",
+      "title": "Your reference",
+      "fields": [
+        {
+          "id": "strengths",
+          "label": "What strengths have you observed?",
+          "kind": "long_text",
+          "required": false,
+          "purpose": "reference_assessment",
+          "classification": "confidential",
+          "mapping": {
+            "ownerContract": "mobilization.reference.submit@1",
+            "fieldKey": "strengths"
+          },
+          "maxLength": 4000
+        },
+        {
+          "id": "follow_up_requested",
+          "label": "Would you like the coordinator to contact you privately?",
+          "kind": "boolean",
+          "required": true,
+          "purpose": "reference_assessment",
+          "classification": "confidential",
+          "mapping": {
+            "ownerContract": "mobilization.reference.submit@1",
+            "fieldKey": "follow_up_requested"
+          }
+        },
+        {
+          "id": "private_reply_email",
+          "label": "Where should the coordinator contact you?",
+          "kind": "email",
+          "required": true,
+          "purpose": "reference_assessment",
+          "classification": "confidential",
+          "mapping": {
+            "ownerContract": "mobilization.reference.submit@1",
+            "fieldKey": "private_reply_email"
+          },
+          "maxLength": 200,
+          "visibleWhen": {
+            "fieldId": "follow_up_requested",
+            "operator": "eq",
+            "values": [
+              true
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "submissionRules": {
+    "serverValidation": true,
+    "immutableAcceptedSnapshot": true,
+    "hiddenValues": "exclude_from_submission_and_effects",
+    "csrfRequired": true,
+    "idempotencyRequired": true
+  }
+}

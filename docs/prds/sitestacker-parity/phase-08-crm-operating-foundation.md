@@ -2,7 +2,7 @@
 
 > **Program:** SiteStacker Parity · **Phase:** 8 · **Status:** Re-groomed (grill-with-docs, 2026-07-07; ADR-0001, #603) · **Base:** `develop`
 > **Subtitle:** _CRM Operations Observability & Data-Health Foundation_
-> **Roadmap:** [`roadmap.md`](./roadmap.md) slot 8 (Roadmap v2). Phase 40 (Data Stewardship / AI) hard-depends on the data-health-signal catalog this phase defines.
+> **Roadmap:** [`roadmap.md`](./roadmap.md) slot 8 (Roadmap v3; unchanged numbering). Phase 40 (Data Stewardship / AI) hard-depends on the data-health-signal catalog this phase defines.
 > **Dependencies (re-derived at the #603 re-groom):** **no hard prerequisite** for the build-now core — it observes Asym's own already-shipped runtime and the Phase-4 merge queue. **Phase 9** gates the party-graph-health sockets; **Phase 6** gates the emailed-alert seam + the missing-consent socket. See [Dependency Ledger](#dependency-ledger).
 > **Supersedes:** `docs/prds/sitestacker-parity/phase-01-crm-operating-foundation.md` (tombstoned separately).
 > **Charter / roadmap / matrix:** `README.md`, `roadmap.md`, `phase-map.md`, `parity-matrix.md`

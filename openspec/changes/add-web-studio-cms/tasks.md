@@ -96,21 +96,19 @@ formal evidence closure.
 ## 4. D7-D11 Semantic Content Reuse Presentation And Rich Text
 
 - [ ] 4.1 Add the exact launch semantic section catalog and family admission
-      profiles with flat ordering, lineage-local identities, typed schemas,
+      profiles with Phase 23 v1 flat ordering, lineage-local identities, typed schemas,
       accessible movement, recoverable removal, and Hero constraints.
 - [ ] 4.2 Add type-specific semantic/reference validation, editorial-only
       Impact Statistics, typed Media/Call-to-Action references, and additive
       catalog-version migration/retained-reader contracts.
-- [ ] 4.3 Reject generic nested builders, dormant rows/columns/children,
-      arbitrary style fields, unknown public rendering, and provider block
-      catalogs outside explicit evolution.
+- [ ] 4.3 Reject generic nested builders and dormant rows/columns/children in Phase 23 v1, plus arbitrary style fields, unknown public rendering and unqualified provider blocks in every profile. Preserve the explicit Phase 42 HA-A1 bounded successor seam without implementing it as a Phase 23 prerequisite.
 - [ ] 4.4 Add exact-scope one-leaf Reusable Sections, explicit create/select,
       fresh placement identities, View uses, Change every use, Make a local
       copy, coherent shared release, retirement, and reference-safe retention.
 - [ ] 4.5 Add source-controlled Site-bound Presentation Package manifests,
       first-party qualification, public view-model/capability-island isolation,
       human ownership, supply-chain evidence, accessibility/performance/no-JS
-      proof, and last-known-good failure containment.
+      proof, and last-known-good failure containment. Phase 42 verified ministry-controlled source consumes this owner; do not duplicate admission or require Git delivery for native CMS completion.
 - [ ] 4.6 Add staff actual-content package preview and design-intent approval
       without package source, dependency, CSP or deployment controls.
 - [ ] 4.7 Add complete current-locale-cohort Site Presentation Activation

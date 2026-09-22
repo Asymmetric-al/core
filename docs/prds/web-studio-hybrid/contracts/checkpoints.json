@@ -1,0 +1,62 @@
+{
+  "phase": 42,
+  "slug": "web-studio-hybrid-authoring",
+  "runtimeStatus": "not-implemented",
+  "moduleDependencies": {
+    "WEB-VISUAL": [
+      "phase-12",
+      "phase-23",
+      "exact-phase-24-operations",
+      "exact-phase-29-custody"
+    ],
+    "WEB-SOURCE": [
+      "qualified-common-foundations",
+      "phase-31-minimum-git-connection",
+      "exact-phase-29-custody"
+    ],
+    "WEB-HYBRID": ["WEB-VISUAL", "WEB-SOURCE"]
+  },
+  "forbiddenFoundationDependencies": [
+    "phase-34",
+    "phase-39",
+    "phase-40",
+    "phase-41",
+    "phase-43",
+    "phase-44"
+  ],
+  "nativeAutomationIds": [
+    "AU01",
+    "AU02",
+    "AU03",
+    "AU04",
+    "AU05",
+    "AU06",
+    "AU07",
+    "AU08",
+    "AU09",
+    "AU10",
+    "AU11",
+    "AU12"
+  ],
+  "editorRequestAutomationIds": ["AU01", "AU02"],
+  "workflowStudioEnrollmentRequired": false,
+  "qualifiedNativeCmsRequiresHybridModule": false,
+  "releaseRequires": ["WEB-VISUAL", "WEB-SOURCE", "WEB-HYBRID"],
+  "checkpoints": [
+    {
+      "id": "WEB-VISUAL",
+      "exitTask": "HA-6.4@WEB-VISUAL",
+      "scope": "Standard admitted renderer and actual visual product. Git credentials, source capture/build service and optional Workflow Studio are absent. Include real saving, media/reuse/locale, preview, publication, schedules, containment, recovery, migration, accessibility, capacity and representative staff proof applicable to this task."
+    },
+    {
+      "id": "WEB-SOURCE",
+      "exitTask": "HA-6.4@WEB-SOURCE",
+      "scope": "Conventional developer/source delivery: fresh clone, SDK, verified exact capture, credential-free isolated build, independent D9 admission, managed runtime availability, source replacement and operations. Shared visual foundations are consumed individually; this scope does not activate a Site."
+    },
+    {
+      "id": "WEB-HYBRID",
+      "exitTask": "HA-6.4@WEB-HYBRID",
+      "scope": "Actual custom redesign through D10 followed by independent staff editing/publication/recovery. Re-prove exact content preservation, complete locale cohort, runtime skew, current safety, disconnection and retention with the admitted custom artifact."
+    }
+  ]
+}

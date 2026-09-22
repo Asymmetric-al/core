@@ -156,7 +156,8 @@
     "prepare": "husky",
     "postinstall": "node scripts/dedupe-tanstack-db.mjs && node scripts/repair-workspace-links.mjs",
     "verify:phase25-spec": "bun docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth/tools/render-stories.mjs",
-    "verify:openspec-deltas": "node scripts/verify/openspec-delta-compatibility.mjs"
+    "verify:openspec-deltas": "node scripts/verify/openspec-delta-compatibility.mjs",
+    "verify:program-roadmap": "python3 docs/prds/program-roadmap/tools/verify.py && python3 docs/prds/program-roadmap/tools/verify-extensions.py && python3 docs/prds/workflow-studio/tools/render.py --check && python3 docs/prds/workflow-studio/tools/verify.py && node docs/prds/web-studio-hybrid/tools/verify-package.mjs"
   },
   "dependencies": {
     "@asym/api": "workspace:*",

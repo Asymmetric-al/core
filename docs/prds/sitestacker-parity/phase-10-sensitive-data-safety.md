@@ -2,7 +2,7 @@
 
 > **Program:** SiteStacker Parity · **Phase:** 10 · **Status:** Groomed + founder-grilled (grill-with-docs, 2026-07-07; G1–G7 ratified) · **Base:** `develop`
 > **Subtitle:** _The safety rails — classification, dual identity, the publication firewall, identity-access grants + break-glass — before custom fields and public pages can create unclassifiable data._
-> **Roadmap:** [`roadmap.md`](./roadmap.md) slot 10 (Roadmap v2). **Gates:** Phase 11 (Custom Fields) and Phase 22 (Public Missionary Pages) must not build before this lands.
+> **Roadmap:** [`roadmap.md`](./roadmap.md) slot 10 (Roadmap v3; unchanged numbering). **Gates:** Phase 11 (Custom Fields) and Phase 22 (Public Missionary Pages) must not build before this lands.
 > **Hard prerequisites:** **Phase 3** (`field_policies` + the subtract-only projection resolver + export governance + audit spine — this phase _extends_ it) and **Phase 9** (the party graph + record shell classification attaches to). **Soft:** Phase 4 (identity/merge), Phase 5 (the public choke-point + cache invalidation the firewall/scrub reuse — a groomed Phase-5 deliverable that builds ahead of this phase), Phase 6 (the alert seam for break-glass).
 > **Charter / roadmap / matrix:** `README.md`, `roadmap.md`, `phase-map.md`, `parity-matrix.md`. Decision log: scratchpad `phase10-safety-grill.md` (G1–G7 + AM1–AM18 + the adversarial pass).
 

@@ -145,3 +145,10 @@ platform boundaries already warn against.
   `add-statement-studio`, `add-statement-operations`
 - No product code changes or issue dispatch (this change is specification and
   governance only).
+
+## Roadmap v3 adoption — 2026-09-22
+
+AL-1892 preserves phases 0–40 and adds 41–44, adopts complete Studio packages,
+and updates the existing phase-architecture requirement. Phase 34 CORE and
+Phase 42 visual delivery have independent qualification checkpoints. No
+product implementation or predecessor issue dispatch is implied.

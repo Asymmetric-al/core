@@ -330,12 +330,10 @@ Acceptance criteria:
 - Page admits Hero, Rich Text, Media, Gallery, Call to Action, Cards, FAQ,
   Quote, and Impact Statistics; Article admits Rich Text, Media, Gallery,
   Quote, and Call to Action.
-- One flat ordered sequence has stable lineage-local section identities,
-  versioned typed content, accessible move controls, and recoverable removal.
+- Phase 23 composition/1 remains one flat ordered sequence with stable lineage-local section identities, versioned typed content, accessible move controls, and recoverable removal. Phase 42 HA-A1 adds an explicitly selected bounded composition/2 Page profile through D7’s successor seam; v1 remains valid without wrapping, rewriting or retroactive v2 caps, and Article retains its restricted grammar.
 - Hero is Page-only, first, and singular; every type enforces its semantic and
   reference rules on all write paths.
-- No dormant rows, columns, arbitrary style fields, generic children, nesting,
-  or best-effort unknown block rendering ships.
+- The Phase 23 v1 writer rejects dormant rows/columns, generic children and nested composition. Arbitrary styles, unqualified layout, recursive reuse and best-effort unknown rendering remain prohibited in every profile. The exact qualified Phase 42 Stack/Split/Grid grammar is a separate successor, not a generic builder or a prerequisite of native CMS delivery.
 - Catalog evolution is explicit and additive, with retained readers/migrations
   for every released version.
 
@@ -373,8 +371,7 @@ Acceptance criteria:
   consent, and publication authority are unavailable.
 - The package consumes only the serialized Public Presentation View Model and
   registered capability islands; new authorable meaning requires D7 evolution.
-- Staff review actual candidate content with locale/family/device/reduced-motion
-  controls and never manage source, npm, CSP, or deployment configuration.
+- Ordinary editors review actual candidate content with locale/family/device/reduced-motion controls without managing source, npm, CSP or deployment configuration. Phase 42 HA-A2/A4 separately supports authorized ministry-controlled repositories and appointed maintainers; that source-control grant does not certify code, grant CMS access or publish a Site.
 - Accessibility, SSR/no-JS, deterministic hydration, isolation, cost,
   performance, failure containment, and last-known-good recovery all qualify.
 
@@ -981,44 +978,44 @@ and ADR-0145 through ADR-0180 are normative architecture and may not be reduced
 to provider defaults. This table is the implementation index, not a replacement
 for those authorities.
 
-| Decision | Non-negotiable implementation boundary                                                                              |
-| -------- | ------------------------------------------------------------------------------------------------------------------- |
-| D1       | Stable Page identity; separate exact revisions; deterministic closure compiler; immutable generation; one CAS head. |
-| D2       | Placement owns locale parent/segment/order; paths and descendant effects derive and activate atomically.            |
-| D3       | Page-identity predecessors plus one exact internal repair; no general redirect engine or chains.                    |
-| D4       | Versioned semantic Navigation remains separate from hierarchy and is selected only by D1.                           |
-| D5       | Code-owned Primary/Footer purposes; terminal Links or one-level non-linking Groups only.                            |
-| D6       | Immutable Page/Article family; inert versioned starter provenance; Phase 22 families stay source-owned.             |
-| D7       | Closed typed flat semantic catalog; no generic builder; additive versioned evolution only.                          |
-| D8       | Explicit shallow Site/locale reuse; generation manifests, not reverse indexes, own release impact.                  |
-| D9       | First-party certified Site package; serialized public view model and narrow capability islands only.                |
-| D10      | Exact complete-locale-cohort design activation; all heads advance or none; design authority only.                   |
-| D11      | One versioned prose grammar and qualified Lexical adapter; provider-neutral compiled projection.                    |
-| D12      | One acknowledged Working Revision and fenced Active Editor Lease per exact resource scope.                          |
-| D13      | Exact one-time appointment; Core owns long horizon, Inngest the bounded execution horizon, D1 the effect.           |
-| D14      | Versioned code catalog and source-discriminated semantic intent; certified owner projections only.                  |
-| D15      | Exactly automatic, featured-first, or fully chosen curation; stable identities and adverse suppression.             |
-| D16      | One link-native window protocol and independent URL channel per list; progressive enhancement only.                 |
-| D17      | Disposable exact-public search projection with synchronous adverse filter and durable convergence.                  |
-| D18      | Five-level authority-free organization plus Unfiled; folders never drive scope, lifecycle, or public output.        |
-| D19      | Small release-bound Topic profile with stable IDs and hard catalog/assignment bounds.                               |
-| D20      | Bounded semantic personal/shared views; application never widens current record access.                             |
-| D21      | Whole-identity, reference-aware, non-cascading Trash; private restore; tightly proved purge.                        |
-| D22      | Sparse exact-locale lineages, explicit starts, Payload fallback disabled, independent locale release.               |
-| D23      | Manifest-driven independent target draft; no sync, authority transfer, or public effect.                            |
-| D24      | Exact code-owned `public`; auth-invariant output; private content stays in app-owned surfaces.                      |
-| D25      | Immutable private candidate over pinned inputs; complete or unavailable; side-effect-dark and never authority.      |
-| D26      | Versioned purpose profile; one Primary Outcome; durable occurrence before independent child delivery.               |
-| D27      | Tenant-wide logical media identity; immutable custody; current Site qualification; usage-local presentation.        |
-| D28      | Locale-exact generated metadata plus exactly three overrides; D1 owns all public head output.                       |
-| D29      | Coherent private export; no-write sealed import plan; fresh privileged commit creates D12 drafts only.              |
-| D30      | Supabase/Phase 12 authority; actor and registered service ports; read-only incident diagnostics.                    |
-| D31      | Rebuildable exception projection; source proof owns resolution; recovery is typed, fenced, and rare.                |
-| D32      | Three quiet assistance classes; no score/policing; only pre-existing source invariants can block release.           |
-| D33      | Provider-neutral numeric profile with exact Vercel evidence, unit cost, fairness, and shedding order.               |
-| D34      | Re-discover official Payload v4 state; admit one exact coherent qualified cohort, preferably stable.                |
-| D35      | Read-only census, clean target, optional one-time semantic transform, one switch, complete retirement.              |
-| D36      | Frozen decisions and owner seams; explicit amendments only; evidence-gated handoff and claims.                      |
+| Decision | Non-negotiable implementation boundary                                                                                   |
+| -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| D1       | Stable Page identity; separate exact revisions; deterministic closure compiler; immutable generation; one CAS head.      |
+| D2       | Placement owns locale parent/segment/order; paths and descendant effects derive and activate atomically.                 |
+| D3       | Page-identity predecessors plus one exact internal repair; no general redirect engine or chains.                         |
+| D4       | Versioned semantic Navigation remains separate from hierarchy and is selected only by D1.                                |
+| D5       | Code-owned Primary/Footer purposes; terminal Links or one-level non-linking Groups only.                                 |
+| D6       | Immutable Page/Article family; inert versioned starter provenance; Phase 22 families stay source-owned.                  |
+| D7       | Phase 23 flat v1 catalog; Phase 42 HA-A1 explicitly qualifies bounded Page v2 without rewriting v1 or expanding Article. |
+| D8       | Explicit shallow Site/locale reuse; generation manifests, not reverse indexes, own release impact.                       |
+| D9       | First-party certified Site package; serialized public view model and narrow capability islands only.                     |
+| D10      | Exact complete-locale-cohort design activation; all heads advance or none; design authority only.                        |
+| D11      | One versioned prose grammar and qualified Lexical adapter; provider-neutral compiled projection.                         |
+| D12      | One acknowledged Working Revision and fenced Active Editor Lease per exact resource scope.                               |
+| D13      | Exact one-time appointment; Core owns long horizon, Inngest the bounded execution horizon, D1 the effect.                |
+| D14      | Versioned code catalog and source-discriminated semantic intent; certified owner projections only.                       |
+| D15      | Exactly automatic, featured-first, or fully chosen curation; stable identities and adverse suppression.                  |
+| D16      | One link-native window protocol and independent URL channel per list; progressive enhancement only.                      |
+| D17      | Disposable exact-public search projection with synchronous adverse filter and durable convergence.                       |
+| D18      | Five-level authority-free organization plus Unfiled; folders never drive scope, lifecycle, or public output.             |
+| D19      | Small release-bound Topic profile with stable IDs and hard catalog/assignment bounds.                                    |
+| D20      | Bounded semantic personal/shared views; application never widens current record access.                                  |
+| D21      | Whole-identity, reference-aware, non-cascading Trash; private restore; tightly proved purge.                             |
+| D22      | Sparse exact-locale lineages, explicit starts, Payload fallback disabled, independent locale release.                    |
+| D23      | Manifest-driven independent target draft; no sync, authority transfer, or public effect.                                 |
+| D24      | Exact code-owned `public`; auth-invariant output; private content stays in app-owned surfaces.                           |
+| D25      | Immutable private candidate over pinned inputs; complete or unavailable; side-effect-dark and never authority.           |
+| D26      | Versioned purpose profile; one Primary Outcome; durable occurrence before independent child delivery.                    |
+| D27      | Tenant-wide logical media identity; immutable custody; current Site qualification; usage-local presentation.             |
+| D28      | Locale-exact generated metadata plus exactly three overrides; D1 owns all public head output.                            |
+| D29      | Coherent private export; no-write sealed import plan; fresh privileged commit creates D12 drafts only.                   |
+| D30      | Supabase/Phase 12 authority; actor and registered service ports; read-only incident diagnostics.                         |
+| D31      | Rebuildable exception projection; source proof owns resolution; recovery is typed, fenced, and rare.                     |
+| D32      | Three quiet assistance classes; no score/policing; only pre-existing source invariants can block release.                |
+| D33      | Provider-neutral numeric profile with exact Vercel evidence, unit cost, fairness, and shedding order.                    |
+| D34      | Re-discover official Payload v4 state; admit one exact coherent qualified cohort, preferably stable.                     |
+| D35      | Read-only census, clean target, optional one-time semantic transform, one switch, complete retirement.                   |
+| D36      | Frozen decisions and owner seams; explicit amendments only; evidence-gated handoff and claims.                           |
 
 ### Shared engineering contract
 
@@ -1105,7 +1102,7 @@ claim becomes **Live** or **Confirmed** until its applicable evidence exists.
   authoring layout/style or rich-text grammars, workflow/approval DSLs,
   audience/personalization builders, arbitrary SEO/head/JSON-LD/crawler
   controls, or a general redirect engine. D9 certified source-controlled bespoke
-  presentation remains in scope.
+  presentation remains in scope. Phase 42’s [bounded hybrid successor](../web-studio-hybrid/README.md) consumes these owners independently; it does not make native Phase 23 completion depend on Git builds or Workflow Studio.
 - Raw Payload Admin/accounts/roles, public REST/GraphQL/Local API, v3 fallback,
   dual engine authority, mutable public reads, or permanent multiversion/
   compatibility abstractions.
