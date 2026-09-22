@@ -296,6 +296,7 @@ describe("forward-only attribution baseline", () => {
       }),
     ).toBe(true);
     expect(runGitStatus).toHaveBeenCalledWith([
+      "--no-replace-objects",
       "merge-base",
       "--is-ancestor",
       REMOTE_SHA_A,

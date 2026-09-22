@@ -79,6 +79,11 @@ boundary blocks enumeration rather than hiding outgoing ancestors.
 The identity registry records the immutable `develop` commit on which the new
 policy began. A candidate is historical only when Git proves it is an ancestor
 of that baseline. Dates, messages, and first-parent shortcuts are not trusted.
+All verifier Git commands disable replacement objects and read legacy grafts
+from the OS null device rather than repository or environment-selected files.
+This covers range
+selection, identity metadata, baseline and provenance ancestry, so replacement
+refs cannot change the evidence while the original objects are pushed.
 This preserves current history while still checking a newly created side commit
 rooted in older history.
 

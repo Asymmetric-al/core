@@ -242,6 +242,7 @@ describe("recorded develop base ancestry", () => {
       }),
     ).toEqual([]);
     expect(runGitStatus).toHaveBeenCalledExactlyOnceWith([
+      "--no-replace-objects",
       "merge-base",
       "--is-ancestor",
       recordedBase,

@@ -225,6 +225,14 @@ or contradictory GitHub metadata MUST fail closed.
 - **WHEN** GitHub reports the exact `GitHub <noreply@github.com>` / `web-flow` committer path with a valid signature made by GitHub's signing key
 - **THEN** the platform committer is accepted without being treated as a human developer
 
+#### Scenario: Local replacement objects alter attribution evidence
+
+- **WHEN** local replacement refs or legacy graft files substitute baseline ancestry, an outgoing
+  parent graph, commit identity metadata, or merged-PR base ancestry
+- **THEN** verification reads and walks the original immutable Git objects
+- **AND** a novel disallowed commit cannot become historical or disappear from
+  the checked range through a local replacement
+
 #### Scenario: Platform identity is forged locally
 
 - **WHEN** a local or remotely unverified commit imitates GitHub's platform name or email

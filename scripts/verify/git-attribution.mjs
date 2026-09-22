@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
+import { devNull } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -250,6 +251,7 @@ export function isHistoricalCommit({ sha, baselineSha, runGitStatus }) {
   }
 
   const status = runGitStatus([
+    "--no-replace-objects",
     "merge-base",
     "--is-ancestor",
     sha,
@@ -678,7 +680,18 @@ export function validateCommitAttribution(
 }
 
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, {
+  // Attribution describes the immutable objects that Git will transmit, not
+  // local replacement graphs or substituted author/committer metadata.
+  const commandArgs =
+    command === "git" && args[0] !== "--no-replace-objects"
+      ? ["--no-replace-objects", ...args]
+      : args;
+  const result = spawnSync(command, commandArgs, {
+    // Legacy graft files also rewrite ancestry, independently of replace refs.
+    env:
+      command === "git"
+        ? { ...process.env, GIT_GRAFT_FILE: devNull }
+        : process.env,
     cwd: options.cwd,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
@@ -993,8 +1006,13 @@ export function validateDevelopMergeProvenance({
 
       return (
         recordedBase === baseParent ||
-        runStatus(["merge-base", "--is-ancestor", recordedBase, baseParent]) ===
-          0
+        runStatus([
+          "--no-replace-objects",
+          "merge-base",
+          "--is-ancestor",
+          recordedBase,
+          baseParent,
+        ]) === 0
       );
     });
 
