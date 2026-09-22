@@ -79,6 +79,16 @@ of that baseline. Dates, messages, and first-parent shortcuts are not trusted.
 This preserves current history while still checking a newly created side commit
 rooted in older history.
 
+Local existing-ref pushes also retain already-integrated canonical objects in
+the checked set. An ordinary tuple failure can be classified as inherited only
+with a fresh authenticated GitHub response proving protection of the exact
+canonical `develop` or `production` branch and ancestry to its full tip SHA.
+Local remote-tracking refs and replacement objects cannot supply this proof.
+The lookup is lazy, fails closed, and never exempts forbidden or malformed
+identities, platform envelopes, local operators, or novel commits. Unmerged
+open-PR history has no exemption. The immutable baseline and identity registry
+remain unchanged.
+
 ### Use event-bound remote scopes and proof
 
 Local pre-push verification checks repository configuration, author/committer

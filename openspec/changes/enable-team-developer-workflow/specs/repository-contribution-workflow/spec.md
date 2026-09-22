@@ -81,6 +81,18 @@ as if the current developer created it.
 - **WHEN** a scanned commit is proven to be an ancestor of the immutable policy baseline
 - **THEN** it is treated as historical and is not re-attributed
 
+#### Scenario: An existing feature branch imports protected canonical history
+
+- **WHEN** a scanned ordinary commit fails current tuple validation but a fresh authenticated GitHub response identifies a protected canonical `develop` or `production` tip and Git proves that exact commit is ancestral to that full tip SHA
+- **THEN** local verification reports the object as checked inherited history without registering its obsolete tuple for new work
+- **AND** local operator validation, full outgoing enumeration, forbidden-identity rejection, malformed-identity rejection, and platform-envelope requirements remain unchanged
+
+#### Scenario: Inherited-history proof is absent or untrusted
+
+- **WHEN** a commit has only local tracking-ref or arbitrary remote-branch reachability, is unmerged on an open PR, or lacks valid authenticated protected-branch and exact-object ancestry proof
+- **THEN** it receives no inherited-history exemption and required unavailable or malformed proof fails closed
+- **AND** commits that satisfy current tuple validation need no additional protected-branch API request
+
 ### Requirement: Public contribution remains supported
 
 The workflow SHALL distinguish canonical-repository push authority from

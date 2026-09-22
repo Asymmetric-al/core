@@ -44,9 +44,10 @@ actor. Those legacy identities remain rejected in every contribution mode.
 
 ## Internal and external contribution paths
 
-- **Internal canonical pushes:** the local operator and every non-platform
-  committer must use a registered tuple. The hook validates the complete outgoing
-  commit set for every pushed ref, not arbitrary inherited `HEAD` history.
+- **Internal canonical pushes:** the local operator and every newly introduced
+  non-platform committer must use a registered tuple. The hook validates the
+  complete outgoing commit set for every pushed ref, including proof for any
+  inherited canonical history described below.
 - **Carried external authors:** an internal committer may integrate a parseable,
   non-forbidden external author's reviewed work without rewriting its author.
 - **External fork pull requests:** authors and committers do not need canonical
@@ -140,7 +141,22 @@ remote-to-local graph; new refs query the actual remote branch/tag tips, fetch
 only missing advertised histories without updating refs or `FETCH_HEAD`, and
 subtract that remote history. For a fork push, the query uses a credential-free
 GitHub URL built from the actual destination slug, never a canonical `upstream`
-substitute. Commits proven ancestral to the immutable policy baseline remain historical. Existing history is not rewritten.
+substitute. Commits proven ancestral to the immutable policy baseline remain
+historical. Existing history is not rewritten.
+
+An existing feature branch can import commits already integrated into canonical
+`develop` or `production` after that baseline. If an ordinary commit's tuple no
+longer satisfies current policy, local verification requires a fresh authenticated
+GitHub API response for one of those exact canonical branches, confirms it is
+protected, and proves the commit is ancestral to the returned full tip SHA.
+Local tracking refs, arbitrary remote branches, and Git replacement objects do
+not supply that proof. Verified objects remain in the reported checked set and
+are identified as inherited history; their old tuples are not registered for
+new work. Forbidden or malformed identities and GitHub platform envelopes retain
+their existing checks. Unavailable or invalid required proof fails closed.
+Ordinary commits that already pass do not need this additional API request.
+Local operator checks and full outgoing enumeration always remain in force.
+Unmerged legacy commits on open PR branches receive no history exemption.
 
 Remote verification runs before formatting in the fast CI workflow. Ordinary
 pull requests validate the complete immutable event `base..head` graph,

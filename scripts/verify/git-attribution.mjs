@@ -1256,9 +1256,89 @@ function validateLocallyKnownPlatformCommit(metadata, remoteName) {
   });
 }
 
+export function createCanonicalHistoryVerifier({
+  repository,
+  runGitHubApi: readApi = runGitHubApi,
+  runGitStatus: readGitStatus = runGitStatus,
+} = {}) {
+  const branchTips = new Map();
+
+  return (metadata) => {
+    if (!isCanonicalRepositorySlug(repository)) {
+      return null;
+    }
+
+    for (const role of ["author", "committer"]) {
+      const name = metadata[`${role}Name`];
+      const email = metadata[`${role}Email`];
+      if (
+        typeof name !== "string" ||
+        !name.trim() ||
+        typeof email !== "string" ||
+        !email.trim() ||
+        isForbiddenGitEmail(email) ||
+        usesGitHubPlatformIdentityField({ name, email })
+      ) {
+        return null;
+      }
+    }
+
+    assertFullSha(metadata.sha, "inherited commit SHA");
+
+    for (const branch of ["develop", "production"]) {
+      if (!branchTips.has(branch)) {
+        const response = readApi([
+          "--hostname",
+          "github.com",
+          `repos/${CANONICAL_REPOSITORY}/branches/${branch}`,
+        ]);
+        let payload;
+        try {
+          payload = response.ok ? JSON.parse(response.stdout) : null;
+        } catch {
+          payload = null;
+        }
+        if (
+          payload?.name !== branch ||
+          typeof payload.protected !== "boolean" ||
+          typeof payload.commit?.sha !== "string" ||
+          !FULL_SHA_PATTERN.test(payload.commit.sha)
+        ) {
+          throw new Error(
+            `canonical protected branch proof unavailable or invalid for ${branch}`,
+          );
+        }
+        branchTips.set(branch, payload.protected ? payload.commit.sha : null);
+      }
+
+      const tip = branchTips.get(branch);
+      if (tip === null) {
+        continue;
+      }
+      const status = readGitStatus([
+        "--no-replace-objects",
+        "merge-base",
+        "--is-ancestor",
+        metadata.sha,
+        tip,
+      ]);
+      if (status === 0) {
+        return { branch, tip };
+      }
+      if (status !== 1) {
+        throw new Error(
+          `canonical ${branch} ancestry unavailable for ${metadata.sha}`,
+        );
+      }
+    }
+
+    return null;
+  };
+}
+
 function collectLocalVerification() {
   const errors = [];
-  const { remoteName, remoteQueryTarget, requireTrustedOperator } =
+  const { remoteName, remoteQueryTarget, repoSlug, requireTrustedOperator } =
     resolveLocalRemoteContext();
   const identityOptions = { requireTrusted: requireTrustedOperator };
   const userName = mustRunGit(["config", "--get", "user.name"]);
@@ -1286,6 +1366,10 @@ function collectLocalVerification() {
   );
 
   const checkedCommits = [];
+  const inheritedCommits = [];
+  const verifyInheritedHistory = createCanonicalHistoryVerifier({
+    repository: repoSlug,
+  });
 
   for (const sha of collectLocalCommitShas({ remoteName, remoteQueryTarget })) {
     if (
@@ -1315,11 +1399,17 @@ function collectLocalVerification() {
         }),
       });
 
-    errors.push(...commitErrors.map((error) => `${sha}: ${error}`));
+    const inherited =
+      commitErrors.length > 0 ? verifyInheritedHistory(metadata) : null;
+    if (inherited) {
+      inheritedCommits.push({ sha, ...inherited });
+    } else {
+      errors.push(...commitErrors.map((error) => `${sha}: ${error}`));
+    }
     checkedCommits.push(sha);
   }
 
-  return { errors, checkedCommits, userEmail, userName };
+  return { errors, checkedCommits, inheritedCommits, userEmail, userName };
 }
 
 export function collectCiCommitShas({
@@ -1629,6 +1719,11 @@ function main() {
       console.log(
         `Local Git identity: ${result.userName} <${result.userEmail}>`,
       );
+      for (const { sha, branch, tip } of result.inheritedCommits) {
+        console.log(
+          `Inherited canonical history: ${sha} (${branch} at ${tip})`,
+        );
+      }
     }
 
     return 0;
