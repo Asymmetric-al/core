@@ -259,6 +259,12 @@ or contradictory GitHub metadata MUST fail closed.
 - **WHEN** a local or remotely unverified commit imitates GitHub's platform name or email
 - **THEN** attribution verification rejects the commit
 
+#### Scenario: A commit has a large provider diff
+
+- **WHEN** GitHub returns a valid commit whose file patches or message exceed the verifier's subprocess output buffer
+- **THEN** the verifier projects only the commit SHA, raw Git author and committer, associated account logins and immutable numeric IDs, and parent records inside the GitHub CLI before buffering its output
+- **AND** absent or malformed identity and parent metadata, mismatched commit SHAs, and invalid signatures continue to fail closed under the same attribution policy
+
 #### Scenario: GitHub metadata is unavailable in required CI
 
 - **WHEN** a REST or GraphQL call fails, returns errors or partial data, or cannot resolve required proof

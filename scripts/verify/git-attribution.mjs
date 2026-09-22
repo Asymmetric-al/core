@@ -773,7 +773,13 @@ function readCommitMetadata(sha) {
 }
 
 function readGitHubCommit({ repoSlug, sha }) {
-  const result = runGitHubApi([`repos/${repoSlug}/commits/${sha}`]);
+  // Drop patches, messages, and profiles before Node buffers gh stdout.
+  // Keep every identity and parent field used by attribution validation.
+  const result = runGitHubApi([
+    `repos/${repoSlug}/commits/${sha}`,
+    "--jq",
+    "{sha, commit: (.commit | {author, committer}), author: (.author | {id, login}), committer: (.committer | {id, login}), parents}",
+  ]);
 
   if (!result.ok) {
     throw new Error(
