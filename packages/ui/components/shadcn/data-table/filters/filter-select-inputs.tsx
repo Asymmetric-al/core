@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, ChevronsUpDown, Search, X } from "lucide-react";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, type Ref } from "react";
 
 import { cn } from "../../../../lib/utils";
 import { Badge } from "../../badge";
@@ -53,13 +53,20 @@ function matchesFilterOption(option: FilterOption, query: string) {
   );
 }
 
-function FilterSearch({ label }: { label: string }) {
+function FilterSearch({
+  label,
+  inputRef,
+}: {
+  label: string;
+  inputRef?: Ref<HTMLInputElement>;
+}) {
   return (
     <InputGroup className="m-2 mb-0 h-10 w-auto rounded-xl border-2 border-border/70 bg-background shadow-none">
       <InputGroupAddon>
         <Search className="text-muted-foreground/60" />
       </InputGroupAddon>
       <ComboboxInput
+        ref={inputRef}
         aria-label={`Search ${label}`}
         placeholder="Search..."
         className="text-sm"
@@ -165,6 +172,7 @@ export function FilterMultiSelectInput({
 }: FilterSelectInputProps) {
   const items = useFilterItems(field);
   const anchorRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const selectedValues = Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string")
@@ -248,14 +256,17 @@ export function FilterMultiSelectInput({
         className="w-[260px] border border-border/60 shadow-xl"
         sideOffset={8}
       >
-        <FilterSearch label={field.label} />
+        <FilterSearch label={field.label} inputRef={searchInputRef} />
         <FilterOptions multiple />
         {selectedValues.length > 0 && (
           <div className="border-t border-border/60 p-2 pt-1">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onChange([])}
+              onClick={() => {
+                searchInputRef.current?.focus();
+                onChange([]);
+              }}
               className="h-8 w-full rounded-xl text-xs font-medium"
             >
               Clear all

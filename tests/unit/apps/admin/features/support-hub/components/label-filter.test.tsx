@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -115,5 +116,29 @@ describe("support label filter", () => {
     );
     expect(screen.getByRole("dialog", { name: "Manage labels" })).toBeTruthy();
     await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+  });
+
+  it("returns focus to search when clearing removes the focused button", async () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByRole("combobox", { name: "Labels" }));
+    const search = await screen.findByRole("combobox", {
+      name: "Search labels",
+    });
+    const clear = screen.getByRole("button", { name: "Clear filters" });
+    act(() => clear.focus());
+    expect(document.activeElement).toBe(clear);
+
+    fireEvent.click(clear);
+
+    expect(screen.getByLabelText("Labels value").textContent).toBe("[]");
+    await waitFor(() => expect(document.activeElement).toBe(search));
+    expect(screen.getByRole("listbox")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Clear filters" })).toBeNull();
+    fireEvent.change(search, { target: { value: "Urgent" } });
+    fireEvent.keyDown(search, { key: "ArrowDown" });
+    fireEvent.keyDown(search, { key: "Enter" });
+    expect(screen.getByLabelText("Labels value").textContent).toBe(
+      '["urgent"]',
+    );
   });
 });

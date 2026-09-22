@@ -45,6 +45,7 @@ function matchesLabel(label: SupportLabel, query: string) {
  * driven by the support route-state hook.
  */
 export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
+  const searchRef = React.useRef<HTMLInputElement>(null);
   const { data: labels } = useSupportLabels();
   const [open, setOpen] = React.useState(false);
   const [isManagerOpen, setIsManagerOpen] = React.useState(false);
@@ -97,6 +98,7 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
               <Search />
             </InputGroupAddon>
             <ComboboxInput
+              ref={searchRef}
               aria-label="Search labels"
               placeholder="Search labels..."
             />
@@ -122,7 +124,10 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
                 variant="ghost"
                 size="sm"
                 className="h-8 w-full justify-center text-xs font-medium"
-                onClick={() => onValueChange([])}
+                onClick={() => {
+                  searchRef.current?.focus();
+                  onValueChange([]);
+                }}
               >
                 Clear filters
               </Button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, PlusCircle, Search } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 
 import { Badge } from "../badge";
 import { Button } from "../button";
@@ -35,6 +35,7 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
   options,
   disabled = false,
 }: DataTableFacetedFilterProps<TData, TValue>) {
+  const searchRef = useRef<HTMLInputElement>(null);
   const facets = column?.getFacetedUniqueValues();
   const selectedValues = new Set(column?.getFilterValue() as string[]);
   const items = useMemo(
@@ -113,6 +114,7 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
             <Search className="text-muted-foreground/60" />
           </InputGroupAddon>
           <ComboboxInput
+            ref={searchRef}
             aria-label={searchLabel}
             placeholder={`${searchLabel}...`}
             className="text-sm"
@@ -144,7 +146,10 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => column?.setFilterValue(undefined)}
+              onClick={() => {
+                searchRef.current?.focus();
+                column?.setFilterValue(undefined);
+              }}
               className="h-8 w-full rounded-xl text-sm font-medium"
             >
               Clear filters

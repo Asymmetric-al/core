@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -120,5 +121,29 @@ describe("table faceted filter", () => {
     render(<Harness disabled />);
     fireEvent.click(screen.getByRole("combobox", { name: "Status" }));
     expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("returns focus to search when the focused clear button is removed", async () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByRole("combobox", { name: "Status" }));
+    const search = await screen.findByRole("combobox", {
+      name: "Search status",
+    });
+    const clear = screen.getByRole("button", { name: "Clear filters" });
+    act(() => clear.focus());
+    expect(document.activeElement).toBe(clear);
+
+    fireEvent.click(clear);
+
+    expect(screen.getByLabelText("Filters").textContent).toBe("[]");
+    await waitFor(() => expect(document.activeElement).toBe(search));
+    expect(screen.getByRole("listbox")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Clear filters" })).toBeNull();
+    fireEvent.change(search, { target: { value: "Active" } });
+    fireEvent.keyDown(search, { key: "ArrowDown" });
+    fireEvent.keyDown(search, { key: "Enter" });
+    expect(screen.getByLabelText("Filters").textContent).toBe(
+      '[{"id":"status","value":["a"]}]',
+    );
   });
 });

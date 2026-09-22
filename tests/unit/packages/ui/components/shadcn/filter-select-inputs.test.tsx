@@ -138,4 +138,29 @@ describe("filter comboboxes", () => {
     expect(screen.getByLabelText("Filter value").textContent).toBe("[]");
     expect(screen.queryByText("3 selected")).toBeNull();
   });
+  it("keeps focus in the search after the focused Clear all button unmounts", async () => {
+    render(<ControlledFilter multiple initialValue={["a"]} />);
+    fireEvent.click(screen.getByRole("combobox", { name: "Status" }));
+    const search = await screen.findByRole("combobox", {
+      name: "Search Status",
+    });
+    await waitFor(() => expect(document.activeElement).toBe(search));
+    const clear = screen.getByRole("button", { name: "Clear all" });
+    clear.focus();
+    expect(document.activeElement).toBe(clear);
+    fireEvent.click(clear);
+
+    expect(screen.getByLabelText("Filter value").textContent).toBe("[]");
+    await waitFor(() => expect(document.activeElement).toBe(search));
+    expect(screen.getByRole("listbox")).toBeTruthy();
+    fireEvent.change(search, { target: { value: "Pending" } });
+    fireEvent.keyDown(search, { key: "ArrowDown" });
+    await waitFor(() =>
+      expect(search.getAttribute("aria-activedescendant")).toBe(
+        screen.getByRole("option", { name: /Pending/ }).id,
+      ),
+    );
+    fireEvent.keyDown(search, { key: "Enter" });
+    expect(screen.getByLabelText("Filter value").textContent).toBe('["p"]');
+  });
 });
