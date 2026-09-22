@@ -338,17 +338,7 @@ describe("getAuthContext E2E bypass", () => {
           }),
         }),
       }),
-      schema: () => ({
-        from: () => ({
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                eq: () => Promise.resolve({ data: [] }),
-              }),
-            }),
-          }),
-        }),
-      }),
+      rpc: () => Promise.resolve({ data: [], error: null }),
     });
 
     const { cookies } = await import("next/headers");
