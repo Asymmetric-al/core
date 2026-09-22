@@ -520,6 +520,7 @@ export function validateGitHubActorAttribution(
   if (actors?.signature && !isValidSignature(actors.signature)) {
     errors.push("commit signature is not valid");
   }
+
   const authorIdentity = {
     name: metadata.authorName,
     email: metadata.authorEmail,
@@ -1358,6 +1359,26 @@ function optionalEventValue(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function validateEventGithubPrincipal(label, login, id) {
+  if (login === null && id === null) {
+    return [];
+  }
+
+  if (
+    typeof login !== "string" ||
+    !/^[A-Za-z0-9-]+(?:\[bot\])?$/.test(login) ||
+    !hasImmutableGithubId(id) ||
+    !Number.isSafeInteger(Number(id)) ||
+    Number(id) <= 0
+  ) {
+    return [
+      `${label} must provide a complete valid login and immutable account id`,
+    ];
+  }
+
+  return [];
+}
+
 export function collectCiVerification({
   collectCommitShas = collectCiCommitShas,
   environment = process.env,
@@ -1437,7 +1458,34 @@ export function collectCiVerification({
     triggeringActorId: triggeringActor.id,
     triggeringActorLogin: triggeringActor.login,
   };
-  const errors = [...validateForbiddenGithubPrincipals(eventActors)];
+  const errors = [
+    ...validateForbiddenGithubPrincipals(eventActors),
+    ...[
+      ["workflow actor", eventActors.eventActorLogin, eventActors.eventActorId],
+      [
+        "webhook sender",
+        eventActors.eventSenderLogin,
+        eventActors.eventSenderId,
+      ],
+      [
+        "pull request author",
+        eventActors.pullRequestAuthorLogin,
+        eventActors.pullRequestAuthorId,
+      ],
+      [
+        "pull request head owner",
+        eventActors.headOwnerLogin,
+        eventActors.headOwnerId,
+      ],
+      [
+        "workflow triggering actor",
+        eventActors.triggeringActorLogin,
+        eventActors.triggeringActorId,
+      ],
+    ].flatMap(([label, login, id]) =>
+      validateEventGithubPrincipal(label, login, id),
+    ),
+  ];
   const checkedCommits = [];
   const protectedIntegration =
     eventName !== "pull_request" &&

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { validateGitHubActorAttribution } from "../../../scripts/verify/git-attribution.mjs";
+import {
+  collectCiVerification,
+  validateGitHubActorAttribution,
+} from "../../../scripts/verify/git-attribution.mjs";
 
 const externalIdentity = {
   authorName: "External Contributor",
@@ -62,4 +65,75 @@ describe("external commit signature validity", () => {
       ).toEqual([]);
     },
   );
+});
+
+describe("event principal completeness", () => {
+  const headSha = "1".repeat(40);
+  const environment: Record<string, string> = {
+    ASYM_GITHUB_EVENT_NAME: "pull_request",
+    ASYM_GITHUB_BASE_SHA: "2".repeat(40),
+    ASYM_GITHUB_HEAD_SHA: headSha,
+    ASYM_GITHUB_HEAD_REPOSITORY: "external/core",
+    ASYM_GITHUB_REPOSITORY: "Asymmetric-al/core",
+    ASYM_GITHUB_REF_NAME: "1/merge",
+    ASYM_GITHUB_REF_TYPE: "branch",
+    ASYM_GITHUB_EVENT_ACTOR_LOGIN: "external-contributor",
+    ASYM_GITHUB_EVENT_ACTOR_ID: "1234567",
+  };
+  function verify(overrides: Record<string, string>) {
+    return collectCiVerification({
+      environment: { ...environment, ...overrides },
+      collectCommitShas: () => [headSha],
+      isHistorical: () => false,
+      readCommit: () => ({
+        metadata: { ...externalIdentity, sha: headSha },
+        actors: externalActors,
+      }),
+      readSignature: () => null,
+    });
+  }
+
+  for (const principal of [
+    "EVENT_SENDER",
+    "PULL_REQUEST_AUTHOR",
+    "HEAD_OWNER",
+  ]) {
+    it.each([
+      ["renamed-forbidden-account", ""],
+      ["renamed-forbidden-account", "not-a-number"],
+      ["", "1234567"],
+      ["invalid/login", "1234567"],
+    ])(`rejects incomplete or malformed ${principal}: %s / %s`, (login, id) => {
+      expect(
+        verify({
+          [`ASYM_GITHUB_${principal}_LOGIN`]: login,
+          [`ASYM_GITHUB_${principal}_ID`]: id,
+        }).errors.join("\n"),
+      ).toContain("complete valid login and immutable account id");
+    });
+    it(`accepts a complete valid ${principal}`, () => {
+      expect(
+        verify({
+          [`ASYM_GITHUB_${principal}_LOGIN`]: "external-contributor",
+          [`ASYM_GITHUB_${principal}_ID`]: "1234567",
+        }).errors,
+      ).toEqual([]);
+    });
+    it(`continues to reject a renamed forbidden ${principal} by immutable ID`, () => {
+      expect(
+        verify({
+          [`ASYM_GITHUB_${principal}_LOGIN`]: "renamed-forbidden-account",
+          [`ASYM_GITHUB_${principal}_ID`]: "53842349",
+        }).errors.join("\n"),
+      ).toContain("is forbidden");
+    });
+  }
+  it("preserves absent optional event principals", () => {
+    expect(verify({}).errors).toEqual([]);
+  });
+  it("rejects a malformed required event actor ID", () => {
+    expect(
+      verify({ ASYM_GITHUB_EVENT_ACTOR_ID: "not-a-number" }).errors.join("\n"),
+    ).toContain("complete valid login and immutable account id");
+  });
 });

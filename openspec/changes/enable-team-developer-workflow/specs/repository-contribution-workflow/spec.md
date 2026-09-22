@@ -170,6 +170,12 @@ or contradictory GitHub metadata MUST fail closed.
 - **THEN** attribution rejects the commit regardless of whether either tuple is registered
 - **AND** unsigned attributable fork contributions remain supported
 
+#### Scenario: An event principal is partially identified
+
+- **WHEN** an event supplies either a principal login or immutable numeric account ID without a complete valid pair
+- **THEN** attribution rejects the event even if the commit has independent valid signature proof
+- **AND** a complete renamed forbidden principal remains rejected by immutable ID
+
 #### Scenario: GitHub creates a platform commit
 
 - **WHEN** GitHub reports the exact `GitHub <noreply@github.com>` / `web-flow` committer path with a valid signature made by GitHub's signing key
