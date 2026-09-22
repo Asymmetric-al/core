@@ -110,6 +110,9 @@ full history. Ordinary pull requests audit the complete immutable event
 
 Protected-branch pushes use the immutable `before`/`after` transition, reject
 non-fast-forwards, and audit the introduced first-parent integration spine.
+For a nonempty transition, the oldest introduced spine commit must have the
+exact before SHA as its first parent. General DAG ancestry alone is insufficient;
+a zero-length transition introduces no commits.
 Every scanned commit must be a two-parent GitHub platform merge with a valid
 `web-flow` signature made by GitHub. A `develop` integration must also bind to
 the exact closed pull request, base, and parent transition. A `production`

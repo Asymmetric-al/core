@@ -1486,10 +1486,25 @@ export function collectCiCommitShas({
       throw new Error("protected-branch update is not a fast-forward");
     }
 
-    return splitCommitShas(
+    const commits = splitCommitShas(
       runGit(["rev-list", ...ancestryArgs, `${baseSha}..${headSha}`]),
       "GitHub event range",
     );
+    if (protectedIntegration && eventName === "push" && baseSha !== headSha) {
+      // A DAG ancestor can sit only on a merge's side branch. The oldest
+      // introduced first-parent commit must instead extend the exact before SHA.
+      const oldest = commits.at(-1);
+      if (
+        !oldest ||
+        runGit(["--no-replace-objects", "rev-parse", `${oldest}^1`]).trim() !==
+          baseSha
+      ) {
+        throw new Error(
+          "protected-branch before SHA is not on the after first-parent spine",
+        );
+      }
+    }
+    return commits;
   }
 
   if (refType !== "branch" || !refName) {

@@ -1338,7 +1338,9 @@ describe("git attribution verifier", () => {
     const baseSha = "1".repeat(40);
     const headSha = "2".repeat(40);
     const childSha = "3".repeat(40);
-    const runGit = vi.fn(() => `${headSha}\n${childSha}\n`);
+    const runGit = vi.fn((args: string[]) =>
+      args.includes("rev-parse") ? baseSha : `${headSha}\n${childSha}\n`,
+    );
 
     expect(
       collectCiCommitShas({
@@ -1362,10 +1364,15 @@ describe("git attribution verifier", () => {
       runGit,
       runGitStatus: () => 0,
     });
-    expect(runGit).toHaveBeenLastCalledWith([
+    expect(runGit).toHaveBeenCalledWith([
       "rev-list",
       "--first-parent",
       `${baseSha}..${headSha}`,
+    ]);
+    expect(runGit).toHaveBeenLastCalledWith([
+      "--no-replace-objects",
+      "rev-parse",
+      `${childSha}^1`,
     ]);
 
     collectCiCommitShas({

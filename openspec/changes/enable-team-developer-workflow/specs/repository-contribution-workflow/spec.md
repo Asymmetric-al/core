@@ -181,6 +181,15 @@ or contradictory GitHub metadata MUST fail closed.
 - **WHEN** a protected update is non-fast-forward or its integration spine contains a direct commit, locally created merge, invalid platform envelope, or unexpected transition
 - **THEN** remote attribution rejects the update
 
+#### Scenario: Protected before SHA is only a side ancestor
+
+- **WHEN** a protected push's before SHA is reachable from its after SHA only
+  through a merge side parent
+- **THEN** verification rejects the transition because before is not on the
+  after commit's first-parent spine
+- **AND** normal first-parent integrations and identical before/after updates
+  remain supported without changing platform-signature requirements
+
 #### Scenario: Reviewed side ancestry enters develop
 
 - **WHEN** a GitHub-signed two-parent merge matches the exact closed `develop` pull request and parent transition
