@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createDonationPaymentIntent } from "../../src/donate/payment-intent";
+import {
+  createDonationPaymentIntent,
+  mergeDonationPaymentIntentMetadata,
+  pickGiftProcessingFeeMetadata,
+} from "../../src/donate/payment-intent";
 
 /**
  * TDD — server-side PaymentIntent leg of the donate flow (money path).
@@ -45,6 +49,7 @@ describe("createDonationPaymentIntent", () => {
     expect(body.currency).toBe("usd");
     expect(body.customer).toBe("cus_9");
     expect(body.automatic_payment_methods).toEqual({ enabled: true });
+    expect(body.payment_method_types).toBeUndefined();
     expect(body.metadata).toMatchObject({
       donation_id: "don-1",
       fund_id: "fund-1",
@@ -82,6 +87,28 @@ describe("createDonationPaymentIntent", () => {
     expect(body.metadata).toEqual({ donation_id: "don-1" });
   });
 
+  it("binds Gift intake card and wallet quotes to card PaymentIntents", async () => {
+    const { stripe, create } = mockStripe();
+    await createDonationPaymentIntent(stripe, {
+      ...baseParams,
+      paymentMethodTypes: ["card"],
+    });
+    const [body] = create.mock.calls[0]!;
+    expect(body.payment_method_types).toEqual(["card"]);
+    expect(body.automatic_payment_methods).toBeUndefined();
+  });
+
+  it("binds Gift intake ACH quotes to us_bank_account PaymentIntents", async () => {
+    const { stripe, create } = mockStripe();
+    await createDonationPaymentIntent(stripe, {
+      ...baseParams,
+      paymentMethodTypes: ["us_bank_account"],
+    });
+    const [body] = create.mock.calls[0]!;
+    expect(body.payment_method_types).toEqual(["us_bank_account"]);
+    expect(body.automatic_payment_methods).toBeUndefined();
+  });
+
   it("rejects a non-positive or non-integer amount before calling Stripe", async () => {
     const { stripe, create } = mockStripe();
     await expect(
@@ -91,5 +118,56 @@ describe("createDonationPaymentIntent", () => {
       createDonationPaymentIntent(stripe, { ...baseParams, amountCents: 12.5 }),
     ).rejects.toThrow();
     expect(create).not.toHaveBeenCalled();
+  });
+});
+
+describe("pickGiftProcessingFeeMetadata", () => {
+  it("keeps known Gift processing-fee policy keys and drops spoofed claim identity", () => {
+    expect(
+      pickGiftProcessingFeeMetadata({
+        gift_amount_cents: "10000",
+        cover_fees: "true",
+        payment_method: "card",
+        cover_amount_cents: "330",
+        estimated_fee_cents: "320",
+        donation_id: "spoofed-donation",
+        user_id: "spoofed-actor",
+        empty: "",
+      }),
+    ).toEqual({
+      gift_amount_cents: "10000",
+      cover_fees: "true",
+      payment_method: "card",
+      cover_amount_cents: "330",
+      estimated_fee_cents: "320",
+    });
+  });
+});
+
+describe("mergeDonationPaymentIntentMetadata", () => {
+  it("writes claim identity last so Gift processing-fee extras cannot override donation_id", () => {
+    expect(
+      mergeDonationPaymentIntentMetadata({
+        donationId: "don-claim",
+        donorId: "donor-claim",
+        missionaryId: "miss-claim",
+        fundId: "fund-claim",
+        tenantId: "tenant-claim",
+        actorUserId: "actor-claim",
+        extra: {
+          gift_amount_cents: "10000",
+          donation_id: "spoofed-donation",
+          user_id: "spoofed-actor",
+        },
+      }),
+    ).toEqual({
+      gift_amount_cents: "10000",
+      donation_id: "don-claim",
+      donor_id: "donor-claim",
+      missionary_id: "miss-claim",
+      fund_id: "fund-claim",
+      tenant_id: "tenant-claim",
+      user_id: "actor-claim",
+    });
   });
 });

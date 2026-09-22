@@ -93,7 +93,7 @@ it does not own delivery. The production path is:
 ```txt
 email_templates/email_template_versions
   -> merge-tag validation and substitution
-  -> sendEmail(...) in packages/email/resend.ts
+  -> sendEmail(...) in packages/email/resend.ts (deep module: packages/email/resend/send.ts)
   -> email_send_logs
   -> Resend webhook events
 ```
@@ -110,7 +110,12 @@ expose decrypted API keys to the client.
 Use this map when extending behavior:
 
 - Sending API/client surface:
-  - `packages/email/resend.ts`
+  - `packages/email/resend.ts` — public barrel; keep importing from here
+  - `packages/email/resend/send.ts` — Prepared message send and retries
+  - `packages/email/resend/webhook.ts` — Resend webhook authority verification
+  - `packages/email/resend/inbound.ts` — inbound retrieval (body is not in the webhook)
+  - `packages/email/resend/validate.ts` — Tenant-owned Resend connection validation
+  - `packages/email/resend/sdk.ts` — sole `new Resend(...)` construction
   - `packages/email/types.ts`
   - `packages/email/constants.ts`
 - Tenant integration state + key management:
@@ -126,7 +131,7 @@ Use this map when extending behavior:
   - `packages/api/src/email/webhooks/resend.ts`
 - Inbound retrieval and attachment handling:
   - `packages/api/src/email/webhooks/resend.ts`
-  - `packages/email/resend.ts`
+  - `packages/email/resend.ts` (deep module: `packages/email/resend/inbound.ts`)
 - Admin integration routes/UI wiring:
   - `apps/admin/app/api/email/connect/route.ts`
   - `apps/admin/app/api/email/test-send/route.ts`

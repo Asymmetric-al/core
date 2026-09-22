@@ -807,7 +807,7 @@ export interface UpdatePreferencesRequest {
 // =============================================================================
 
 export interface ResendWebhookEnvelope<TData = Record<string, unknown>> {
-  type: ResendEventType;
+  type: string;
   created_at: string;
   data: TData;
 }
