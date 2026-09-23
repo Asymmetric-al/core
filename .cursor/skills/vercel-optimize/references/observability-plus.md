@@ -90,7 +90,7 @@ vercel link --yes --project <project-name-or-id> --cwd <app-dir>
 
 Add `--team <team-id-or-slug>` when the team is known. If the user supplied both app path and project name, run the link command instead of asking them what to do.
 
-For `forbidden` and `project_not_found`, ask the user to run `vercel switch <team>` or verify the project ID before presenting the Observability Plus choice.
+For `forbidden` and `project_not_found`, ask the user to confirm the exact Vercel project and team/personal scope before presenting the Observability Plus choice.
 
 For `project_disabled`, do not present it as a team subscription problem. Ask the user to enable Observability Plus for this project, then re-run.
 

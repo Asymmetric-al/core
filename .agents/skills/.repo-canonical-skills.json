@@ -3,12 +3,22 @@
   "canonicalSkills": [
     "accessibility-review",
     "anim",
+    "animate",
+    "animate-expo",
     "animation-vocabulary",
     "apple-design",
     "ask-matt",
+    "ask-sonner",
     "babysit",
     "base-ui",
     "bendc-frontend-guidelines",
+    "better-accessibility",
+    "better-colors",
+    "better-interface",
+    "better-layout",
+    "better-typography",
+    "better-ui",
+    "better-writing",
     "cache-components",
     "check-compiler-errors",
     "code-review",
@@ -18,17 +28,22 @@
     "control-cli",
     "control-ui",
     "create-agent",
+    "design-an-interface",
+    "design-taste-frontend",
     "deslop",
     "diagnosing-bugs",
     "domain-model",
     "domain-modeling",
+    "edit-article",
     "emil-design-eng",
     "emil-design-engineering",
+    "emil-prototype",
     "eve",
     "find-animation-opportunities",
     "find-skills",
     "fix-ci",
     "fix-merge-conflicts",
+    "frontend-design",
     "get-pr-comments",
     "grill-for-unknowns",
     "grill-me",
@@ -43,6 +58,7 @@
     "inngest",
     "inngest-agents",
     "inngest-api",
+    "inngest-api-cli",
     "inngest-brownfield-audit",
     "inngest-durable-functions",
     "inngest-events",
@@ -52,15 +68,19 @@
     "inngest-setup",
     "inngest-steps",
     "inngest-v3-v4-migration",
+    "interface-review",
     "loop-on-ci",
     "make-pr-easy-to-review",
     "migrate-to-shoehorn",
     "moai-library-shadcn",
+    "mobile-native",
     "motion",
+    "nestjs-best-practices",
     "new-branch-and-pr",
     "nextjs-app-router",
     "nextjs-supabase-auth",
     "npm-deps-cleanup",
+    "obsidian-vault",
     "openspec-apply-change",
     "openspec-archive-change",
     "openspec-explore",
@@ -70,6 +90,7 @@
     "openspec-verify-change",
     "payloadcms-cms-migration",
     "payloadcms-payload",
+    "pick-ui-library",
     "playwright-best-practices",
     "playwright-cli",
     "pr-review-canvas",
@@ -79,6 +100,7 @@
     "react-component-dev",
     "react-doctor",
     "rechart",
+    "redesign-existing-projects",
     "repo-entry",
     "request-refactor-plan",
     "research",
@@ -93,6 +115,7 @@
     "supabase",
     "supabase-postgres-best-practices",
     "tdd",
+    "test-driven-development",
     "thermo-nuclear-code-quality-review",
     "tiptap",
     "to-spec",
@@ -106,7 +129,9 @@
     "wayfinder",
     "weekly-review",
     "what-did-i-get-done",
-    "workflow-from-chats"
+    "workflow-from-chats",
+    "write-swift",
+    "writing-great-skills"
   ],
   "canonicalSkillFiles": {
     "accessibility-review": [
@@ -115,6 +140,18 @@
     ],
     "anim": [
       "SKILL.md"
+    ],
+    "animate": [
+      "RECIPES.md",
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "animate-expo": [
+      "RECIPES.md",
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
     ],
     "animation-vocabulary": [
       "SKILL.md",
@@ -127,7 +164,15 @@
       "references/upstream.md"
     ],
     "ask-matt": [
+      "PHASE-BOUNDARIES.md",
       "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "ask-sonner": [
+      "API.md",
+      "SKILL.md",
+      "references/LICENSE.md",
       "references/upstream.md"
     ],
     "babysit": [
@@ -144,6 +189,75 @@
       "references/readme-original.md",
       "references/upstream.md"
     ],
+    "better-accessibility": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "focus-and-keyboard.md",
+      "forms.md",
+      "hit-areas.md",
+      "motion-and-zoom.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "screen-readers.md",
+      "semantics-and-aria.md"
+    ],
+    "better-colors": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "color-formats.md",
+      "color-usage.md",
+      "contrast.md",
+      "palette-generation.md",
+      "palette-structure.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "token-naming.md"
+    ],
+    "better-interface": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "review-format.md"
+    ],
+    "better-layout": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "grouping-and-alignment.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "spacing-and-adaptivity.md"
+    ],
+    "better-typography": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "choosing-fonts.md",
+      "css-cheat-sheet.md",
+      "details-and-accessibility.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "spacing-and-sizing.md",
+      "variable-fonts-and-opentype.md",
+      "wrapping-and-punctuation.md"
+    ],
+    "better-ui": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "animations.md",
+      "enter-exit.md",
+      "icon-transitions.md",
+      "icons.md",
+      "performance.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "surfaces.md"
+    ],
+    "better-writing": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "cache-components": [
       "SKILL.md"
     ],
@@ -153,19 +267,42 @@
     ],
     "code-review": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "codebase-design": [
       "DEEPENING.md",
       "DESIGN-IT-TWICE.md",
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "commit": [
       "SKILL.md"
     ],
     "components-build": [
-      "SKILL.md"
+      "AGENTS.md",
+      "README.md",
+      "SKILL.md",
+      "references/upstream.md",
+      "rules/_sections.md",
+      "rules/_template.md",
+      "rules/accessibility.md",
+      "rules/as-child.md",
+      "rules/composition.md",
+      "rules/data-attributes.md",
+      "rules/definitions.md",
+      "rules/design-tokens.md",
+      "rules/documentation.md",
+      "rules/marketplaces.md",
+      "rules/npm.md",
+      "rules/overview.md",
+      "rules/polymorphism.md",
+      "rules/principles.md",
+      "rules/registry.md",
+      "rules/state.md",
+      "rules/styling.md",
+      "rules/types.md"
     ],
     "control-cli": [
       "SKILL.md",
@@ -180,12 +317,22 @@
       "reference.md",
       "references/upstream.md"
     ],
+    "design-an-interface": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "design-taste-frontend": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "deslop": [
       "SKILL.md",
       "references/upstream.md"
     ],
     "diagnosing-bugs": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md",
       "scripts/hitl-loop.template.sh"
     ],
@@ -196,6 +343,11 @@
     "domain-modeling": [
       "ADR-FORMAT.md",
       "CONTEXT-FORMAT.md",
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/upstream.md"
+    ],
+    "edit-article": [
       "SKILL.md",
       "references/upstream.md"
     ],
@@ -216,6 +368,12 @@
       "touch-accessibility.md",
       "ui-polish.md"
     ],
+    "emil-prototype": [
+      "PICKER.md",
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "eve": [
       "SKILL.md",
       "references/upstream.md"
@@ -235,11 +393,17 @@
       "SKILL.md",
       "references/upstream.md"
     ],
+    "frontend-design": [
+      "LICENSE.txt",
+      "SKILL.md",
+      "references/upstream.md"
+    ],
     "get-pr-comments": [
       "SKILL.md",
       "references/upstream.md"
     ],
     "grill-for-unknowns": [
+      ".claude-plugin/plugin.json",
       "LICENSE",
       "README.md",
       "SKILL.md",
@@ -254,14 +418,17 @@
     ],
     "grill-me": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "grill-with-docs": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "grilling": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "idempotency-handling": [
@@ -277,41 +444,62 @@
     "impeccable": [
       "SKILL.md",
       "agents/impeccable_asset_producer.toml",
+      "agents/impeccable_documenter.toml",
+      "agents/impeccable_finish_reviewer.toml",
       "agents/impeccable_manual_edit_applier.toml",
       "agents/openai.yaml",
       "reference/adapt.md",
+      "reference/adapt.native.md",
+      "reference/android.md",
       "reference/animate.md",
       "reference/audit.md",
+      "reference/audit.native.md",
       "reference/bolder.md",
       "reference/brand.md",
       "reference/clarify.md",
       "reference/codex.md",
       "reference/colorize.md",
+      "reference/craft-floor.md",
       "reference/craft.md",
       "reference/critique.md",
+      "reference/degraded/asset-producer.md",
+      "reference/degraded/documenter.md",
+      "reference/degraded/finish-reviewer.md",
+      "reference/degraded/manual-edit-applier.md",
       "reference/delight.md",
       "reference/distill.md",
+      "reference/doctor.md",
       "reference/document.md",
       "reference/extract.md",
+      "reference/generate.md",
       "reference/harden.md",
       "reference/hooks.md",
       "reference/init.md",
       "reference/interaction-design.md",
+      "reference/ios.md",
       "reference/layout.md",
+      "reference/live-setup.md",
       "reference/live.md",
+      "reference/new-work.md",
       "reference/onboard.md",
+      "reference/operate.md",
       "reference/optimize.md",
       "reference/overdrive.md",
       "reference/polish.md",
       "reference/product.md",
       "reference/quieter.md",
+      "reference/routing.md",
       "reference/shape.md",
       "reference/typeset.md",
+      "reference/visualize.md",
       "references/upstream.md",
+      "scripts/VERSION",
       "scripts/command-metadata.json",
       "scripts/context-signals.mjs",
       "scripts/context.mjs",
       "scripts/critique-storage.mjs",
+      "scripts/data/font-index-failures.json",
+      "scripts/data/font-index.json",
       "scripts/detect-csp.mjs",
       "scripts/detect.mjs",
       "scripts/detector/browser/injected/index.mjs",
@@ -337,6 +525,8 @@
       "scripts/hook-before-edit.mjs",
       "scripts/hook-lib.mjs",
       "scripts/hook.mjs",
+      "scripts/impeccable",
+      "scripts/impeccable.cmd",
       "scripts/lib/design-parser.mjs",
       "scripts/lib/impeccable-config.mjs",
       "scripts/lib/impeccable-paths.mjs",
@@ -344,6 +534,7 @@
       "scripts/lib/target-args.mjs",
       "scripts/live-accept.mjs",
       "scripts/live-browser-dom.js",
+      "scripts/live-browser-ignores.js",
       "scripts/live-browser-session.js",
       "scripts/live-browser.js",
       "scripts/live-commit-manual-edits.mjs",
@@ -378,6 +569,7 @@
     ],
     "implement": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "improve": [
@@ -397,6 +589,7 @@
     "improve-codebase-architecture": [
       "HTML-REPORT.md",
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "inngest": [
@@ -411,7 +604,11 @@
     ],
     "inngest-api": [
       "SKILL.md",
-      "references/agent-friction.md"
+      "references/rest-api-v2.md"
+    ],
+    "inngest-api-cli": [
+      "SKILL.md",
+      "references/cli-commands.md"
     ],
     "inngest-brownfield-audit": [
       "SKILL.md"
@@ -446,6 +643,14 @@
     "inngest-v3-v4-migration": [
       "SKILL.md"
     ],
+    "interface-review": [
+      "SKILL.md",
+      "agents/openai.yaml",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "removed-signals.md",
+      "scope-resolution.md"
+    ],
     "loop-on-ci": [
       "SKILL.md",
       "references/upstream.md"
@@ -456,14 +661,66 @@
     ],
     "migrate-to-shoehorn": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "moai-library-shadcn": [
       "SKILL.md",
       "reference-links.md"
     ],
+    "mobile-native": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "motion": [
       "SKILL.md"
+    ],
+    "nestjs-best-practices": [
+      "SKILL.md",
+      "references/upstream.md",
+      "rules/_sections.md",
+      "rules/_template.md",
+      "rules/api-use-dto-serialization.md",
+      "rules/api-use-interceptors.md",
+      "rules/api-use-pipes.md",
+      "rules/api-versioning.md",
+      "rules/arch-avoid-circular-deps.md",
+      "rules/arch-feature-modules.md",
+      "rules/arch-module-sharing.md",
+      "rules/arch-single-responsibility.md",
+      "rules/arch-use-events.md",
+      "rules/arch-use-repository-pattern.md",
+      "rules/db-avoid-n-plus-one.md",
+      "rules/db-use-migrations.md",
+      "rules/db-use-transactions.md",
+      "rules/devops-graceful-shutdown.md",
+      "rules/devops-use-config-module.md",
+      "rules/devops-use-logging.md",
+      "rules/di-avoid-service-locator.md",
+      "rules/di-interface-segregation.md",
+      "rules/di-liskov-substitution.md",
+      "rules/di-prefer-constructor-injection.md",
+      "rules/di-scope-awareness.md",
+      "rules/di-use-interfaces-tokens.md",
+      "rules/error-handle-async-errors.md",
+      "rules/error-throw-http-exceptions.md",
+      "rules/error-use-exception-filters.md",
+      "rules/micro-use-health-checks.md",
+      "rules/micro-use-patterns.md",
+      "rules/micro-use-queues.md",
+      "rules/perf-async-hooks.md",
+      "rules/perf-lazy-loading.md",
+      "rules/perf-optimize-database.md",
+      "rules/perf-use-caching.md",
+      "rules/security-auth-jwt.md",
+      "rules/security-rate-limiting.md",
+      "rules/security-sanitize-output.md",
+      "rules/security-use-guards.md",
+      "rules/security-validate-all-input.md",
+      "rules/test-e2e-supertest.md",
+      "rules/test-mock-external-services.md",
+      "rules/test-use-testing-module.md"
     ],
     "new-branch-and-pr": [
       "SKILL.md",
@@ -476,6 +733,10 @@
       "SKILL.md"
     ],
     "npm-deps-cleanup": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "obsidian-vault": [
       "SKILL.md",
       "references/upstream.md"
     ],
@@ -535,9 +796,72 @@
       "reference/QUERIES.md",
       "references/upstream.md"
     ],
+    "pick-ui-library": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "playwright-best-practices": [
       "SKILL.md",
-      "references/upstream.md"
+      "advanced/authentication-flows.md",
+      "advanced/authentication.md",
+      "advanced/clock-mocking.md",
+      "advanced/mobile-testing.md",
+      "advanced/multi-context.md",
+      "advanced/multi-user.md",
+      "advanced/network-advanced.md",
+      "advanced/third-party.md",
+      "architecture/pom-vs-fixtures.md",
+      "architecture/test-architecture.md",
+      "architecture/when-to-mock.md",
+      "browser-apis/browser-apis.md",
+      "browser-apis/iframes.md",
+      "browser-apis/service-workers.md",
+      "browser-apis/websockets.md",
+      "core/annotations.md",
+      "core/assertions-waiting.md",
+      "core/configuration.md",
+      "core/fixtures-hooks.md",
+      "core/global-setup.md",
+      "core/locators.md",
+      "core/page-object-model.md",
+      "core/projects-dependencies.md",
+      "core/test-data.md",
+      "core/test-suite-structure.md",
+      "core/test-tags.md",
+      "debugging/console-errors.md",
+      "debugging/debugging.md",
+      "debugging/error-testing.md",
+      "debugging/flaky-tests.md",
+      "frameworks/angular.md",
+      "frameworks/nextjs.md",
+      "frameworks/react.md",
+      "frameworks/vue.md",
+      "infrastructure-ci-cd/ci-cd.md",
+      "infrastructure-ci-cd/docker.md",
+      "infrastructure-ci-cd/github-actions.md",
+      "infrastructure-ci-cd/gitlab.md",
+      "infrastructure-ci-cd/other-providers.md",
+      "infrastructure-ci-cd/parallel-sharding.md",
+      "infrastructure-ci-cd/performance.md",
+      "infrastructure-ci-cd/reporting.md",
+      "infrastructure-ci-cd/test-coverage.md",
+      "references/upstream.md",
+      "testing-patterns/accessibility.md",
+      "testing-patterns/api-testing.md",
+      "testing-patterns/browser-extensions.md",
+      "testing-patterns/canvas-webgl.md",
+      "testing-patterns/component-testing.md",
+      "testing-patterns/drag-drop.md",
+      "testing-patterns/electron.md",
+      "testing-patterns/file-operations.md",
+      "testing-patterns/file-upload-download.md",
+      "testing-patterns/forms-validation.md",
+      "testing-patterns/graphql-testing.md",
+      "testing-patterns/i18n.md",
+      "testing-patterns/performance-testing.md",
+      "testing-patterns/security-testing.md",
+      "testing-patterns/visual-regression.md"
     ],
     "playwright-cli": [
       "SKILL.md",
@@ -573,6 +897,11 @@
     "rechart": [
       "SKILL.md"
     ],
+    "redesign-existing-projects": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
     "repo-entry": [
       "SKILL.md"
     ],
@@ -582,6 +911,7 @@
     ],
     "research": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "resend-cli": [
@@ -590,6 +920,7 @@
       "references/auth.md",
       "references/automations.md",
       "references/broadcasts.md",
+      "references/careers.md",
       "references/contact-properties.md",
       "references/contacts.md",
       "references/domains.md",
@@ -597,6 +928,7 @@
       "references/error-codes.md",
       "references/logs.md",
       "references/segments.md",
+      "references/suppressions.md",
       "references/templates.md",
       "references/topics.md",
       "references/upstream.md",
@@ -605,6 +937,7 @@
     ],
     "resolving-merge-conflicts": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "reui": [
@@ -637,6 +970,7 @@
     ],
     "setup-matt-pocock-skills": [
       "SKILL.md",
+      "agents/openai.yaml",
       "domain.md",
       "issue-tracker-github.md",
       "issue-tracker-gitlab.md",
@@ -646,9 +980,11 @@
     ],
     "setup-pre-commit": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "supabase": [
+      "CHANGELOG.md",
       "SKILL.md",
       "assets/feedback-issue-template.md",
       "references/skill-feedback.md",
@@ -656,6 +992,7 @@
     ],
     "supabase-postgres-best-practices": [
       "AGENTS.md",
+      "CHANGELOG.md",
       "CLAUDE.md",
       "SKILL.md",
       "references/_contributing.md",
@@ -696,9 +1033,16 @@
     ],
     "tdd": [
       "SKILL.md",
+      "agents/openai.yaml",
       "mocking.md",
       "references/upstream.md",
       "tests.md"
+    ],
+    "test-driven-development": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md",
+      "writing-good-tests.md"
     ],
     "thermo-nuclear-code-quality-review": [
       "SKILL.md",
@@ -710,16 +1054,19 @@
     ],
     "to-spec": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "to-tickets": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "triage": [
       "AGENT-BRIEF.md",
       "OUT-OF-SCOPE.md",
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "ubiquitous-language": [
@@ -814,6 +1161,7 @@
       "references/implementation.md",
       "references/nextjs.md",
       "references/patterns.md",
+      "references/troubleshooting.md",
       "references/upstream.md"
     ],
     "verify-this": [
@@ -826,6 +1174,7 @@
     ],
     "wayfinder": [
       "SKILL.md",
+      "agents/openai.yaml",
       "references/upstream.md"
     ],
     "weekly-review": [
@@ -837,6 +1186,16 @@
       "references/upstream.md"
     ],
     "workflow-from-chats": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "write-swift": [
+      "SKILL.md",
+      "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "writing-great-skills": [
+      "GLOSSARY.md",
       "SKILL.md",
       "references/upstream.md"
     ]

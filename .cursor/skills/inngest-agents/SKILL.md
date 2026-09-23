@@ -1,6 +1,6 @@
 ---
 name: inngest-agents
-description: Use when building durable AI agents or agentic workflows with Inngest and AgentKit, including model calls, tool calls, multi-agent networks, human approval, realtime progress, provider rate limits, and crash-safe execution. Covers AgentKit, `step.ai`, `step.run`, `step.waitForEvent`, native realtime, and when to use lower-level Inngest primitives instead of an in-memory agent loop.
+description: Use when building durable AI agents or agentic workflows with Inngest and AgentKit, including model calls, tool calls, multi-agent networks, human approval, realtime progress, provider rate limits, crash-safe execution, and Agent Evals handoff. Covers AgentKit, `step.ai`, `step.run`, `step.waitForEvent`, native realtime, and when to use lower-level Inngest primitives instead of an in-memory agent loop. Use `inngest-agent-evals` with this skill when the user wants scoring, sessions, experiments, deferred scorers, or outcome-based evaluation for the agent.
 ---
 
 # Inngest Agents
@@ -20,6 +20,7 @@ Official references:
 - AgentKit agents: https://agentkit.inngest.com/concepts/agents
 - `createAgent`: https://agentkit.inngest.com/reference/create-agent
 - AI inference and `step.ai`: https://www.inngest.com/docs/features/inngest-functions/steps-workflows/step-ai-orchestration
+- Agent Evals: https://www.inngest.com/docs/learn/agent-evals
 - AgentKit realtime hooks: https://www.inngest.com/changelog/2025-09-24-agentkit-use-agent
 
 ## Copyable Example
@@ -65,7 +66,8 @@ Use this shape unless the repo already has a stronger established pattern:
 6. Use `step.waitForEvent` or `step.waitForSignal` for human approval and
    external callbacks.
 7. Publish durable progress with native realtime.
-8. Apply flow control at the function level for provider and tenant limits.
+8. Add sessions and scores when the agent outcome needs to be evaluated later.
+9. Apply flow control at the function level for provider and tenant limits.
 
 ## Basic AgentKit Function
 
@@ -164,6 +166,15 @@ For v4 native realtime:
 
 For AgentKit-specific UI hooks, check the installed `@inngest/agent-kit`
 version and current docs before wiring `useAgent` or `useChat`.
+
+## Agent Evals
+
+Use `inngest-agent-evals` when the user asks to score an agent, compare prompts
+or models, track user feedback, group runs by conversation/ticket, or debug
+agent quality over time. In durable agent workflows, add `meta.sessions` at the
+event that starts or connects the user flow, use direct scoring for signals
+known during the run, and use deferred scorers for product outcomes that arrive
+later.
 
 ## Flow Control and Cost
 

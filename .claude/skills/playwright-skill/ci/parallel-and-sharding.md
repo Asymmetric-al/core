@@ -177,7 +177,7 @@ export const test = base.extend<{}, WorkerFixtures>({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: `worker-user-${workerInfo.workerIndex}`,
-        password: process.env.TEST_PASSWORD,
+        password: process.env.TEST_PASSWORD, // pragma: allowlist secret
       }),
     });
     const { token } = await response.json();
@@ -235,7 +235,27 @@ test('create order', async ({ page }, testInfo) => {
 });
 ```
 
-### Pattern 6: Dynamic Shard Count Based on Test Count
+### Pattern 6: Serializing Tests on a Shared Resource (`lock`, Playwright 1.63+)
+
+**Use when**: Tests are safe to parallelize in general, but a few of them contend over one resource — a singleton account setting, a rate-limited third-party sandbox, a shared feature flag — and must not overlap with each other.
+
+Before 1.63 the options were coarse: drop to `workers: 1`, or put the contending tests in one file with `test.describe.serial()`, which also forces them into a fixed order and fails the rest of the block when one fails. A named lock is narrower.
+
+```javascript
+test('update user settings', { lock: 'user-settings' }, async ({ page }) => {
+  // never runs at the same time as other tests holding 'user-settings'
+});
+```
+
+Tests holding the same lock name never run concurrently, regardless of which file or worker they live in. Everything else in the suite keeps running in parallel.
+
+**Choose the lock name for the resource, not the feature.** `'user-settings'` is right if that is the row being mutated. Naming it after the spec file recreates `describe.serial()` with extra steps.
+
+**A lock is not isolation.** It prevents overlap; it does not reset state between holders. Each test still has to leave the resource in a state the next holder can use, or seed what it needs. See Pattern 5 above.
+
+**Prefer removing the contention first.** A lock serializes part of your suite, and every locked test is a test that cannot scale with more workers. If the shared resource can be made per-test — a unique account, a scoped feature flag, a seeded record — do that instead and keep full parallelism.
+
+### Pattern 7: Dynamic Shard Count Based on Test Count
 
 **Use when**: You want to automatically adjust shard count based on how many tests exist, rather than hardcoding.
 **Avoid when**: Your test count is stable and a fixed shard count works well.

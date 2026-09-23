@@ -43,7 +43,7 @@ button:focus-visible {
 
 ## Form Design: The Non-Obvious
 
-**Placeholders aren't labels.** They disappear on input. Always use visible `<label>` elements. **Validate on blur**, not on every keystroke (exception: password strength). Place errors **below** fields with `aria-describedby` connecting them.
+**Placeholders aren't labels.** They disappear on input. Always use visible `<label>` elements. **Validate on blur**, not on every keystroke (exception: password strength). Place errors **below** fields with `aria-describedby` connecting them. <!-- pragma: allowlist secret -->
 
 ## Loading States
 

@@ -19,9 +19,9 @@ Apps where user accounts and security are core (login systems, identity provider
 
 **Essential:**
 - Email verification
-- Password reset
+- Password reset // pragma: allowlist secret
 - OTP / 2FA codes
-- Security alerts (new device, password change)
+- Security alerts (new device, password change) // pragma: allowlist secret
 - Account update notifications
 
 **Optional:**
@@ -34,7 +34,7 @@ Apps focused on content delivery and subscriptions.
 
 **Essential:**
 - Email verification
-- Password reset
+- Password reset // pragma: allowlist secret
 - Welcome email (must not be promotional)
 - Subscription confirmation
 
@@ -48,7 +48,7 @@ Apps where users buy products or services.
 
 **Essential:**
 - Email verification
-- Password reset
+- Password reset // pragma: allowlist secret
 - Welcome email (must not be promotional)
 - Order confirmation
 - Shipping notifications
@@ -66,7 +66,7 @@ Apps with paid subscription tiers and ongoing billing.
 
 **Essential:**
 - Email verification
-- Password reset
+- Password reset // pragma: allowlist secret
 - Welcome email (must not be promotional)
 - OTP / 2FA codes
 - Security alerts
@@ -85,7 +85,7 @@ Apps handling money, payments, or sensitive financial data.
 
 **Essential:**
 - Email verification
-- Password reset
+- Password reset // pragma: allowlist secret
 - OTP / 2FA codes (required for sensitive actions)
 - Security alerts (all types)
 - Account update notifications
@@ -103,7 +103,7 @@ Apps focused on user interaction and community features.
 
 **Essential:**
 - Email verification
-- Password reset
+- Password reset // pragma: allowlist secret
 - Welcome email (must not be promotional)
 - Security alerts
 
@@ -118,7 +118,7 @@ Apps targeting developers with API access and integrations.
 
 **Essential:**
 - Email verification
-- Password reset
+- Password reset // pragma: allowlist secret
 - OTP / 2FA codes
 - Security alerts
 - API key notifications (creation, expiration)
@@ -136,7 +136,7 @@ Apps handling protected health information.
 
 **Essential:**
 - Email verification
-- Password reset
+- Password reset // pragma: allowlist secret
 - OTP / 2FA codes (required)
 - Security alerts (all types, detailed)
 - Account update notifications
@@ -191,11 +191,11 @@ Apps handling protected health information.
 - Warn about sharing codes
 - Provide "I didn't request this" link
 
-#### Password Reset
+#### Password Reset // pragma: allowlist secret
 
-**When to send:** When user requests password reset.
+**When to send:** When user requests password reset. // pragma: allowlist secret
 
-**Purpose:** Allow user to securely reset forgotten password.
+**Purpose:** Allow user to securely reset forgotten password. // pragma: allowlist secret
 
 **Content should include:**
 - Reset link (with token)
@@ -208,11 +208,11 @@ Apps handling protected health information.
 - Link expires quickly (1 hour)
 - Include IP address and location if available
 - Provide "I didn't request this" link
-- Don't include the old password
+- Don't include the old password // pragma: allowlist secret
 
 #### Security Alerts
 
-**When to send:** When security-relevant events occur (login from new device, password change, etc.).
+**When to send:** When security-relevant events occur (login from new device, password change, etc.). // pragma: allowlist secret
 
 **Purpose:** Notify user of account security events.
 
@@ -251,7 +251,7 @@ Apps handling protected health information.
 
 #### Account Update Notifications
 
-**When to send:** When user changes account settings (email, password, profile, etc.).
+**When to send:** When user changes account settings (email, password, profile, etc.). // pragma: allowlist secret
 
 **Purpose:** Confirm account changes and provide security notice.
 
