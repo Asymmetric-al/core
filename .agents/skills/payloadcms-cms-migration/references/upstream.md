@@ -2,7 +2,8 @@
 source_name: payloadcms/skills (cms-migration)
 source_url: https://github.com/payloadcms/skills
 license: MIT
-last_reviewed: 2026-05-23
+last_reviewed: 2026-09-16
+skills_lock_hash: f1799f2471e4d1a35189a6af406677ffb1bc1f83f0681ce0f6a6c7d0fc75c594
 ---
 
 # Upstream: payloadcms-cms-migration

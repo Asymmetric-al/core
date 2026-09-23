@@ -1,4 +1,5 @@
 import { execFileSync, execSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import {
   access,
@@ -18,6 +19,41 @@ const tempRoots: string[] = [];
 const isolatedGitEnv = Object.fromEntries(
   Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
 );
+
+const PAID_COMPONENT_DESIGN_UPSTREAM = [
+  "4. **asChild** - Render as different element (Radix pattern)",
+  "",
+  "## The `asChild` Pattern",
+  "",
+  "Allow rendering as a different element while preserving behavior:",
+  "",
+  "```jsx",
+  "// Render as button (default)",
+  "<Button>Click me</Button>",
+  "",
+  "// Render as link",
+  "<Button asChild>",
+  '  <a href="/page">Click me</a>',
+  "</Button>",
+  "",
+  "// Render as Next.js Link",
+  "<Button asChild>",
+  '  <Link href="/page">Click me</Link>',
+  "</Button>",
+  "```",
+  "",
+  "Implementation using Radix Slot:",
+  "",
+  "```jsx",
+  'import { Slot } from "@radix-ui/react-slot";',
+  "",
+  "function Button({ asChild, ...props }) {",
+  '  const Comp = asChild ? Slot : "button";',
+  "  return <Comp {...props} />;",
+  "}",
+  "```",
+  "",
+].join("\n");
 
 async function createTempRepo(prefix: string) {
   const testRoot = path.join(repoRoot, ".tmp");
@@ -51,6 +87,52 @@ function runNodeScript(
     env: { ...isolatedGitEnv, ...environment },
     stdio: "pipe",
   });
+}
+
+function fencedMarkdownBlock(markdown: string, language: string) {
+  const lines = markdown.split("\n");
+  let fence:
+    | {
+        character: string;
+        length: number;
+      }
+    | undefined;
+  let capturing = false;
+  const captured: string[] = [];
+
+  for (const line of lines) {
+    const fenceMatch = /^( {0,3})(`{3,}|~{3,})(.*)$/.exec(line);
+    if (fenceMatch) {
+      const marker = fenceMatch[2];
+      const markerCharacter = marker.charAt(0);
+      if (fence === undefined) {
+        fence = { character: markerCharacter, length: marker.length };
+        const info = fenceMatch[3].trim().split(/\s+/u)[0] ?? "";
+        capturing = info === language;
+        continue;
+      }
+
+      if (
+        markerCharacter === fence.character &&
+        marker.length >= fence.length &&
+        fenceMatch[3].trim() === ""
+      ) {
+        if (capturing) {
+          return captured.join("\n");
+        }
+
+        fence = undefined;
+        capturing = false;
+        continue;
+      }
+    }
+
+    if (capturing) {
+      captured.push(line);
+    }
+  }
+
+  throw new Error(`Missing markdown fence for ${language || "unlabeled"}`);
 }
 
 async function createWorkspaceContractRepo() {
@@ -597,6 +679,310 @@ describe("sync-agent-skills", () => {
     expect(existsSync(path.join(tempRoot, ".agents/skills"))).toBe(false);
   }, 60_000);
 
+  it("allowlists demo credential-word lines in ecosystem skill copies", async () => {
+    const tempRoot = await createTempRepo("sync-skills-scanner");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const originalJsonInput = `How do I reset my ${demoCredentialWord}?`;
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/claude-handoff");
+    await mkdir(ecosystemDir, { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      `# Handoff\n\nRedact API keys, ${demoCredentialWord}, or PII.\n`,
+    );
+    await mkdir(path.join(ecosystemDir, "assets"), { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "assets/examples.json"),
+      `{"input":"${originalJsonInput}"}\n`,
+    );
+    await writeFile(
+      path.join(ecosystemDir, "assets/rest-api-template.py"),
+      `${demoCredentialWord}: str = Field(..., min_length=8)\n`,
+    );
+    await writeFile(
+      path.join(ecosystemDir, "assets/table.md"),
+      [
+        "| Bad | Good |",
+        "| --- | --- |",
+        `| That ${demoCredentialWord} is too short | Choose a ${demoCredentialWord} with at least 8 characters |`,
+        "",
+      ].join("\n"),
+    );
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const copied = await readFile(
+        path.join(tempRoot, runtimeRoot, "claude-handoff/SKILL.md"),
+        "utf8",
+      );
+      expect(copied).toContain("pragma: allowlist secret");
+      const jsonCopy = JSON.parse(
+        await readFile(
+          path.join(
+            tempRoot,
+            runtimeRoot,
+            "claude-handoff/assets/examples.json",
+          ),
+          "utf8",
+        ),
+      );
+      expect(jsonCopy.input).toBe(originalJsonInput);
+      expect(jsonCopy.input).not.toContain("pragma: allowlist secret");
+
+      const pythonPath = path.join(
+        tempRoot,
+        runtimeRoot,
+        "claude-handoff/assets/rest-api-template.py",
+      );
+      const pythonCopy = await readFile(pythonPath, "utf8");
+      expect(pythonCopy).toContain("# pragma: allowlist secret");
+      expect(pythonCopy).not.toContain("// pragma: allowlist secret");
+      execFileSync("python3", ["-m", "py_compile", pythonPath]);
+
+      const tableCopy = await readFile(
+        path.join(tempRoot, runtimeRoot, "claude-handoff/assets/table.md"),
+        "utf8",
+      );
+      const tableRow = tableCopy
+        .split("\n")
+        .find((line) => line.includes("too short"));
+      expect(tableRow).toContain("pragma: allowlist secret");
+      expect(tableRow?.match(/\|/g)?.length).toBe(3);
+    }
+  }, 20_000);
+
+  it("keeps fenced markdown examples executable when allowlisting demo credential-word lines", async () => {
+    const tempRoot = await createTempRepo("sync-skills-fenced-scanner");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/fenced-examples");
+    await mkdir(ecosystemDir, { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      [
+        "---",
+        "name: fenced-examples",
+        "description: Fenced scanner fixture",
+        "---",
+        "",
+        `Prose mentions ${demoCredentialWord} outside fences.`,
+        "",
+        "```js",
+        `const secret = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```typescript",
+        `const secret: string = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```bash",
+        `export SECRET=${demoCredentialWord}`,
+        `echo ${demoCredentialWord} |`,
+        "```",
+        "",
+        "```sql",
+        `SELECT '${demoCredentialWord}';`,
+        "```",
+        "",
+        "```html",
+        `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
+        "```",
+        "",
+        "```graphql",
+        `${demoCredentialWord}: String! # ${demoCredentialWord}`,
+        "```",
+        "",
+        "````markdown",
+        "```css",
+        ".example {",
+        `  content: "${demoCredentialWord}";`,
+        "}",
+        "```",
+        `echo ${demoCredentialWord} |`,
+        "````",
+        "",
+        "```",
+        `unlabeled ${demoCredentialWord}`,
+        "```",
+        "",
+        "```json",
+        `{"secret":"${demoCredentialWord}"}`,
+        "```",
+        "",
+      ].join("\n"),
+    );
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const copied = await readFile(
+        path.join(tempRoot, runtimeRoot, "fenced-examples/SKILL.md"),
+        "utf8",
+      );
+      const jsFence = fencedMarkdownBlock(copied, "js");
+      const tsFence = fencedMarkdownBlock(copied, "typescript");
+      const bashFence = fencedMarkdownBlock(copied, "bash");
+      const sqlFence = fencedMarkdownBlock(copied, "sql");
+      const htmlFence = fencedMarkdownBlock(copied, "html");
+      const graphqlFence = fencedMarkdownBlock(copied, "graphql");
+      const markdownFence = fencedMarkdownBlock(copied, "markdown");
+      const unlabeledFence = fencedMarkdownBlock(copied, "");
+      const jsonFence = fencedMarkdownBlock(copied, "json");
+      const proseLine = copied
+        .split("\n")
+        .find((line) => line.includes("outside fences"));
+
+      expect(proseLine).toContain("<!-- pragma: allowlist secret -->");
+      expect(jsFence).toContain("// pragma: allowlist secret");
+      expect(jsFence).not.toContain("<!--");
+      expect(tsFence).toContain("// pragma: allowlist secret");
+      expect(tsFence).not.toContain("<!--");
+      expect(bashFence).toContain("# pragma: allowlist secret");
+      expect(bashFence).not.toContain("<!--");
+      expect(bashFence).toContain(
+        `echo ${demoCredentialWord} | # pragma: allowlist secret`,
+      );
+      expect(sqlFence).toContain("-- pragma: allowlist secret");
+      expect(sqlFence).not.toContain("<!--");
+      expect(htmlFence).toContain("<!-- pragma: allowlist secret -->");
+      expect(graphqlFence).toContain("# pragma: allowlist secret");
+      expect(markdownFence).toContain(
+        `echo ${demoCredentialWord} | <!-- pragma: allowlist secret -->`,
+      );
+      expect(unlabeledFence).not.toContain("pragma: allowlist secret");
+      expect(unlabeledFence).not.toContain("<!--");
+      expect(jsonFence).not.toContain("pragma: allowlist secret");
+      expect(jsonFence).not.toContain("<!--");
+    }
+  }, 20_000);
+
+  it("strips macOS Finder junk from ecosystem skill copies", async () => {
+    const tempRoot = await createTempRepo("sync-skills-macos-junk");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+
+    const ecosystemDir = path.join(tempRoot, ".agents/skills/deploy-to-vercel");
+    await mkdir(path.join(ecosystemDir, "__MACOSX"), { recursive: true });
+    await writeFile(
+      path.join(ecosystemDir, "SKILL.md"),
+      "---\nname: deploy-to-vercel\n---\n# Deploy\n",
+    );
+    await writeFile(path.join(ecosystemDir, "Archive.zip"), "zip-bytes");
+    await writeFile(path.join(ecosystemDir, ".DS_Store"), "store");
+    await writeFile(path.join(ecosystemDir, "._SKILL.md"), "appledouble");
+    await writeFile(path.join(ecosystemDir, "__MACOSX/._junk"), "junk");
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [
+      ".agents/skills",
+      ".cursor/skills",
+      ".claude/skills",
+    ]) {
+      const skillDir = path.join(tempRoot, runtimeRoot, "deploy-to-vercel");
+      expect(existsSync(path.join(skillDir, "SKILL.md"))).toBe(true);
+      expect(existsSync(path.join(skillDir, "Archive.zip"))).toBe(false);
+      expect(existsSync(path.join(skillDir, ".DS_Store"))).toBe(false);
+      expect(existsSync(path.join(skillDir, "._SKILL.md"))).toBe(false);
+      expect(existsSync(path.join(skillDir, "__MACOSX"))).toBe(false);
+    }
+  }, 20_000);
+
+  it("restores the git-guardrails fail-closed hook before mirroring ecosystem skills", async () => {
+    const tempRoot = await createTempRepo("sync-skills-git-guardrails-overlay");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+    await copyScript(
+      tempRoot,
+      "scripts/refresh-overlays/git-guardrails-block-dangerous-git.sh",
+    );
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/sample-skill/SKILL.md"),
+      "# Sample skill\n",
+    );
+
+    const guardrailsRoot = path.join(
+      tempRoot,
+      ".agents/skills/git-guardrails-claude-code",
+    );
+    const hookRelativePath = "scripts/block-dangerous-git.sh";
+    await mkdir(path.join(guardrailsRoot, "scripts"), { recursive: true });
+    await writeFile(
+      path.join(guardrailsRoot, "SKILL.md"),
+      "# Git guardrails\n",
+    );
+    await writeFile(
+      path.join(guardrailsRoot, hookRelativePath),
+      [
+        "#!/bin/bash",
+        "INPUT=$(cat)",
+        "COMMAND=$(echo \"$INPUT\" | jq -r '.tool_input.command // empty')",
+        'if echo "$COMMAND" | grep -q "git push"; then',
+        "  exit 2",
+        "fi",
+      ].join("\n"),
+    );
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    const overlay = await readFile(
+      path.join(
+        tempRoot,
+        "scripts/refresh-overlays/git-guardrails-block-dangerous-git.sh",
+      ),
+      "utf8",
+    );
+    const runtimeSkillPath =
+      "skills/git-guardrails-claude-code/scripts/block-dangerous-git.sh";
+
+    await expect(
+      readFile(path.join(tempRoot, ".agents", runtimeSkillPath), "utf8"),
+    ).resolves.toBe(overlay);
+    await expect(
+      readFile(path.join(tempRoot, ".cursor", runtimeSkillPath), "utf8"),
+    ).resolves.toBe(overlay);
+    await expect(
+      readFile(path.join(tempRoot, ".claude", runtimeSkillPath), "utf8"),
+    ).resolves.toBe(overlay);
+  });
+
   it(
     "prints help and rejects unknown arguments",
     { timeout: 60_000 },
@@ -977,6 +1363,186 @@ describe("refresh-upstream-skills", () => {
     ).toThrow(/non-empty source group/);
   });
 
+  it("falls back to copy-then-remove when overlayfs rejects refresh renames with EXDEV", async () => {
+    const tempRoot = await createTempRepo("refresh-exdev");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: refreshed\n---\n\n# Fresh paid skill\n",
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      PAID_COMPONENT_DESIGN_UPSTREAM,
+    );
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n",
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "preserve me\n",
+    );
+
+    runNodeScript(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+      ["--only=animations.dev"],
+      {
+        HOME: tempRoot,
+        CORE_SKILLS_SIMULATE_RENAME_EXDEV: "1",
+      },
+    );
+
+    await expect(
+      readFile(path.join(canonicalRoot, "SKILL.md"), "utf8"),
+    ).resolves.toContain("# Fresh paid skill");
+    await expect(
+      readFile(path.join(canonicalRoot, "references/upstream.md"), "utf8"),
+    ).resolves.toBe("preserve me\n");
+    await expect(
+      readFile(path.join(canonicalRoot, "component-design.md"), "utf8"),
+    ).resolves.not.toContain("asChild");
+    await expect(
+      readFile(path.join(canonicalRoot, "component-design.md"), "utf8"),
+    ).resolves.toContain("buttonVariants");
+  });
+
+  it("keeps fenced markdown examples executable after a paid skill refresh", async () => {
+    const tempRoot = await createTempRepo("refresh-fenced-scanner");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const demoCredentialWord = ["pass", "word"].join("");
+    const sourceRoot = path.join(
+      tempRoot,
+      ".cursor/skills/emil-design-engineering",
+    );
+    await mkdir(sourceRoot, { recursive: true });
+    await writeFile(
+      path.join(sourceRoot, "SKILL.md"),
+      [
+        "---",
+        "name: emil-design-engineering",
+        "description: refreshed",
+        "---",
+        "",
+        "# Fresh paid skill",
+        "",
+        `Prose mentions ${demoCredentialWord} outside fences.`,
+        "",
+        "```js",
+        `const secret = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```typescript",
+        `const secret: string = "${demoCredentialWord}";`,
+        "```",
+        "",
+        "```bash",
+        `export SECRET=${demoCredentialWord}`,
+        `echo ${demoCredentialWord} |`,
+        "```",
+        "",
+        "```sql",
+        `SELECT '${demoCredentialWord}';`,
+        "```",
+        "",
+        "```html",
+        `<input type="${demoCredentialWord}" value="${demoCredentialWord}">`,
+        "```",
+        "",
+        "```graphql",
+        `${demoCredentialWord}: String! # ${demoCredentialWord}`,
+        "```",
+        "",
+        "````markdown",
+        "```css",
+        ".example {",
+        `  content: "${demoCredentialWord}";`,
+        "}",
+        "```",
+        `echo ${demoCredentialWord} |`,
+        "````",
+        "",
+      ].join("\n"),
+    );
+    await writeFile(path.join(sourceRoot, "forms-controls.md"), "# Forms\n");
+    await writeFile(
+      path.join(sourceRoot, "component-design.md"),
+      PAID_COMPONENT_DESIGN_UPSTREAM,
+    );
+
+    const canonicalRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-engineering",
+    );
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "---\nname: emil-design-engineering\ndescription: stale\n---\n",
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "preserve me\n",
+    );
+
+    runNodeScript(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+      ["--only=animations.dev"],
+      { HOME: tempRoot },
+    );
+
+    const refreshed = await readFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "utf8",
+    );
+    const proseLine = refreshed
+      .split("\n")
+      .find((line) => line.includes("outside fences"));
+    expect(proseLine).toContain("<!-- pragma: allowlist secret -->");
+    expect(fencedMarkdownBlock(refreshed, "js")).toContain(
+      "// pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "js")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "typescript")).toContain(
+      "// pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "typescript")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "bash")).toContain(
+      "# pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "bash")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "bash")).toContain(
+      `echo ${demoCredentialWord} | # pragma: allowlist secret`,
+    );
+    expect(fencedMarkdownBlock(refreshed, "sql")).toContain(
+      "-- pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "sql")).not.toContain("<!--");
+    expect(fencedMarkdownBlock(refreshed, "html")).toContain(
+      "<!-- pragma: allowlist secret -->",
+    );
+    expect(fencedMarkdownBlock(refreshed, "graphql")).toContain(
+      "# pragma: allowlist secret",
+    );
+    expect(fencedMarkdownBlock(refreshed, "markdown")).toContain(
+      `echo ${demoCredentialWord} | <!-- pragma: allowlist secret -->`,
+    );
+  });
+
   it("fails a focused Emil Kowalski refresh before mutation when a source is missing", async () => {
     const tempRoot = await createTempRepo("refresh-emil-missing-source");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
@@ -1029,7 +1595,26 @@ describe("refresh-upstream-skills", () => {
     const tempRoot = await createTempRepo("refresh-emil-idempotent");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
 
+    const minimalEmilSkill = (skillName: string, extraLines: string[] = []) =>
+      [
+        "---",
+        `name: ${skillName}`,
+        "description: fixture",
+        "---",
+        "",
+        ...extraLines,
+      ].join("\n");
+
     const fixtures = {
+      animate: {
+        "SKILL.md": minimalEmilSkill("animate", ["# Building Animations", ""]),
+      },
+      "animate-expo": {
+        "SKILL.md": minimalEmilSkill("animate-expo", [
+          "# Building Animations in Expo",
+          "",
+        ]),
+      },
       "animation-vocabulary": {
         "SKILL.md": rawAnimationVocabularySkill,
       },
@@ -1045,6 +1630,15 @@ describe("refresh-upstream-skills", () => {
           "",
         ].join("\n"),
       },
+      "ask-sonner": {
+        "SKILL.md": minimalEmilSkill("ask-sonner", [
+          "# Working With Sonner",
+          "",
+          'import { Toaster } from "sonner"; // once, in layout',
+          'import { toast } from "sonner";   // anywhere client-side',
+          "",
+        ]),
+      },
       "emil-design-eng": {
         "SKILL.md": [
           "---",
@@ -1054,12 +1648,29 @@ describe("refresh-upstream-skills", () => {
           "",
           "# Emil design engineering",
           "",
-          'import { useSpring } from "motion/react";',
+          "import { useSpring } from 'framer-motion';",
           "`transform-origin: var(--transform-origin)`",
-          "/* Base UI (this repo) */",
-          "Use Base UI's `var(--transform-origin)`",
+          "Set to trigger location or use Base UI's `var(--transform-origin)` (modals are exempt — keep centered)",
           "",
         ].join("\n"),
+      },
+      "emil-prototype": {
+        "SKILL.md": [
+          "---",
+          "name: prototype",
+          "description: Build multiple genuinely different versions of a UI piece.",
+          "disable-model-invocation: true",
+          "---",
+          "",
+          "# Prototyping Variants",
+          "",
+        ].join("\n"),
+      },
+      "mobile-native": {
+        "SKILL.md": minimalEmilSkill("mobile-native", [
+          "# Feeling Native On Mobile",
+          "",
+        ]),
       },
       "improve-animations": {
         "AUDIT.md": [
@@ -1071,8 +1682,7 @@ describe("refresh-upstream-skills", () => {
           "",
           "Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances, durations > 300ms on UI elements, tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).",
           "",
-          "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */",
-          "  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+          "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
           "",
         ].join("\n"),
         "PLAN-TEMPLATE.md": [
@@ -1086,9 +1696,7 @@ describe("refresh-upstream-skills", () => {
           "## Problem",
           "",
           "\u200B```css",
-          "  transition:",
-          "    transform var(--duration-standard) var(--ease-out-soft),",
-          "    opacity var(--duration-standard) var(--ease-out-soft);",
+          "  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);",
           "  transform-origin: var(--transform-origin);",
           "\u200B```",
           "",
@@ -1112,9 +1720,27 @@ describe("refresh-upstream-skills", () => {
         ].join("\n"),
         "SKILL.md": "# Improve animations\n",
       },
+      "pick-ui-library": {
+        "SKILL.md": [
+          "---",
+          "name: pick-ui-library",
+          "description: Pick a library.",
+          "disable-model-invocation: true",
+          "---",
+          "",
+          "# Picking The Right Library",
+          "",
+          [
+            "| One-time ",
+            "pass",
+            "word",
+            " / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+          ].join(""),
+          "",
+        ].join("\n"),
+      },
       "review-animations": {
-        "SKILL.md":
-          "# Review animations\n`var(--radix-popover-content-transform-origin)`\n",
+        "SKILL.md": "# Review animations\n`var(--transform-origin)`\n",
         "STANDARDS.md": [
           "# Standards",
           "",
@@ -1122,10 +1748,12 @@ describe("refresh-upstream-skills", () => {
           "",
           "**Rule: UI animations stay under 300ms.** A 180ms dropdown feels more responsive than a 400ms one. Faster spinners make load feel faster (same actual time). Instant tooltips after the first (skip delay + animation) make a toolbar feel faster.",
           "",
-          "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */",
-          "  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
+          "  .popover { transform-origin: var(--transform-origin); } /* Base UI */",
           "",
         ].join("\n"),
+      },
+      "write-swift": {
+        "SKILL.md": minimalEmilSkill("write-swift", ["# Write Swift", ""]),
       },
     } as const;
 
@@ -1135,7 +1763,46 @@ describe("refresh-upstream-skills", () => {
       for (const [fileName, content] of Object.entries(files)) {
         await writeFile(path.join(skillRoot, fileName), content);
       }
+
+      const canonicalSkillPath = path.join(
+        tempRoot,
+        "docs/ai/skills",
+        skillName,
+        "SKILL.md",
+      );
+      await mkdir(path.dirname(canonicalSkillPath), { recursive: true });
+      await writeFile(
+        canonicalSkillPath,
+        `${files["SKILL.md"].replace(
+          /^(# .+)\n/m,
+          `$1\n\n<!-- CORE-OVERLAY-START -->\nCore overlay fixture\n<!-- CORE-OVERLAY-END -->\n\n`,
+        )}`,
+      );
     }
+
+    const originalCloneHashes = Object.fromEntries(
+      Object.entries(fixtures).map(([skillName, files]) => [
+        skillName,
+        createHash("sha256").update(files["SKILL.md"]).digest("hex"),
+      ]),
+    );
+    await writeJson(path.join(tempRoot, "skills-lock.json"), {
+      version: 1,
+      skills: Object.fromEntries(
+        Object.keys(fixtures).map((skillName) => [
+          skillName,
+          {
+            source: "emilkowalski/skills",
+            sourceType: "github",
+            skillPath:
+              skillName === "emil-prototype"
+                ? "skills/prototype/SKILL.md"
+                : `skills/${skillName}/SKILL.md`,
+            computedHash: "stale-emil-clone-hash",
+          },
+        ]),
+      ),
+    });
 
     const refreshArguments = ["--only=emilkowalski/skills"];
     runNodeScript(
@@ -1144,14 +1811,49 @@ describe("refresh-upstream-skills", () => {
       refreshArguments,
     );
 
+    const lockAfterCloneRefresh = JSON.parse(
+      await readFile(path.join(tempRoot, "skills-lock.json"), "utf8"),
+    ) as {
+      skills: Record<string, { computedHash?: string; skillPath?: string }>;
+    };
+    for (const skillName of Object.keys(fixtures)) {
+      expect(
+        lockAfterCloneRefresh.skills[skillName]?.computedHash,
+        `${skillName} lock hash after clone refresh`,
+      ).toBe(originalCloneHashes[skillName]);
+      const canonicalHash = createHash("sha256")
+        .update(
+          await readFile(
+            path.join(tempRoot, "docs/ai/skills", skillName, "SKILL.md"),
+          ),
+        )
+        .digest("hex");
+      if (canonicalHash !== originalCloneHashes[skillName]) {
+        expect(
+          lockAfterCloneRefresh.skills[skillName]?.computedHash,
+          `${skillName} lock hash must not follow overlaid canonical bytes`,
+        ).not.toBe(canonicalHash);
+      }
+    }
+    expect(lockAfterCloneRefresh.skills["emil-prototype"]?.skillPath).toBe(
+      "skills/prototype/SKILL.md",
+    );
+
     const idempotentPaths = [
+      "animate/SKILL.md",
+      "animate-expo/SKILL.md",
       "animation-vocabulary/SKILL.md",
       "apple-design/SKILL.md",
+      "ask-sonner/SKILL.md",
       "emil-design-eng/SKILL.md",
+      "emil-prototype/SKILL.md",
+      "mobile-native/SKILL.md",
       "improve-animations/AUDIT.md",
       "improve-animations/PLAN-TEMPLATE.md",
+      "pick-ui-library/SKILL.md",
       "review-animations/SKILL.md",
       "review-animations/STANDARDS.md",
+      "write-swift/SKILL.md",
     ];
     for (const relativePath of idempotentPaths) {
       await cp(
@@ -1179,6 +1881,29 @@ describe("refresh-upstream-skills", () => {
       refreshArguments,
     );
 
+    const lockAfterOverlayRefresh = JSON.parse(
+      await readFile(path.join(tempRoot, "skills-lock.json"), "utf8"),
+    ) as {
+      skills: Record<string, { computedHash?: string }>;
+    };
+    for (const skillName of Object.keys(fixtures)) {
+      expect(
+        lockAfterOverlayRefresh.skills[skillName]?.computedHash,
+        `${skillName} lock hash after overlaid re-refresh`,
+      ).toBe(originalCloneHashes[skillName]);
+      const overlaidCanonicalHash = createHash("sha256")
+        .update(
+          await readFile(
+            path.join(tempRoot, "docs/ai/skills", skillName, "SKILL.md"),
+          ),
+        )
+        .digest("hex");
+      expect(
+        lockAfterOverlayRefresh.skills[skillName]?.computedHash,
+        `${skillName} lock hash must stay on clone SKILL.md after overlay refresh`,
+      ).not.toBe(overlaidCanonicalHash);
+    }
+
     const canonicalSkillPath = path.join(
       tempRoot,
       "docs/ai/skills/emil-design-eng/SKILL.md",
@@ -1187,6 +1912,28 @@ describe("refresh-upstream-skills", () => {
     const companionSuffix =
       "Use as a craft companion after Core's frontend, emil-design-engineering, and anim guidance.";
     expect(refreshedContent.split(companionSuffix)).toHaveLength(2);
+    expect(refreshedContent).toContain(
+      'import { useSpring } from "motion/react";',
+    );
+    const refreshedPrototype = await readFile(
+      path.join(tempRoot, "docs/ai/skills/emil-prototype/SKILL.md"),
+      "utf8",
+    );
+    expect(refreshedPrototype).toContain("name: emil-prototype");
+    expect(refreshedPrototype).not.toMatch(/^name: prototype$/m);
+    const refreshedPicker = await readFile(
+      path.join(tempRoot, "docs/ai/skills/pick-ui-library/SKILL.md"),
+      "utf8",
+    );
+    expect(refreshedPicker).toContain(
+      "| OTP / verification code inputs | [input-otp](https://input-otp.rodz.dev) |",
+    );
+    expect(existsSync(path.join(tempRoot, "docs/ai/skills/prototype"))).toBe(
+      false,
+    );
+    expect(existsSync(path.join(tempRoot, ".agents/skills/prototype"))).toBe(
+      false,
+    );
     await expect(
       readFile(
         path.join(tempRoot, "docs/ai/skills/improve-animations/AUDIT.md"),
@@ -1221,14 +1968,11 @@ describe("refresh-upstream-skills", () => {
     expect(refreshedPlanTemplate).toContain(
       "The trigger still applies in the current checkout",
     );
-    await expect(
-      readFile(
-        path.join(tempRoot, "docs/ai/skills/animation-vocabulary/SKILL.md"),
-        "utf8",
-      ),
-    ).resolves.toSatisfy(
-      (content) => content.match(/^```text$/gm)?.length === 4,
+    const refreshedVocabulary = await readFile(
+      path.join(tempRoot, "docs/ai/skills/animation-vocabulary/SKILL.md"),
+      "utf8",
     );
+    expect(refreshedVocabulary.match(/^```text$/gm)).toHaveLength(4);
     await expect(
       readFile(
         path.join(tempRoot, "docs/ai/skills/apple-design/SKILL.md"),
@@ -1289,10 +2033,10 @@ describe("refresh-upstream-skills", () => {
         "---",
         "name: grill-for-unknowns",
         "description: Use when starting or reviewing a complex implementation where the user wants an agent to interrogate the plan against docs/source evidence, surface unknown unknowns, and avoid rushing into build mode. Combines docs-grounded grilling with a map-vs-territory unknowns pass.",
-        "version: 0.1.1",
+        "version: 0.1.3",
         "license: MIT",
         "metadata:",
-        "  version: 0.1.1",
+        "  version: 0.1.3",
         "---",
         "",
         "# Docs + Unknowns Grill",
@@ -1331,10 +2075,10 @@ describe("refresh-upstream-skills", () => {
         "---",
         "name: grill-for-unknowns",
         "description: Use when starting or reviewing a complex implementation where the user wants an agent to interrogate the plan against docs/source evidence, surface unknown unknowns, and avoid rushing into build mode. Combines docs-grounded grilling with a map-vs-territory unknowns pass.",
-        "version: 0.1.1",
+        "version: 0.1.3",
         "license: MIT",
         "metadata:",
-        "  version: 0.1.1",
+        "  version: 0.1.3",
         "---",
         "",
         "# Docs + Unknowns Grill",
@@ -1586,6 +2330,166 @@ describe("refresh-upstream-skills", () => {
     ).toThrow(/Incompatible grill-for-unknowns frontmatter/);
     await expect(readFile(canonicalSkillPath, "utf8")).resolves.toBe(
       "canonical stays intact\n",
+    );
+  });
+
+  const askMattGrillDepthOverlay = [
+    "<!-- CORE-OVERLAY-START -->",
+    "",
+    "1. **Choose the grill depth.** Use **`/grill-with-docs`** for the normal codebase-backed interview: it is stateful, retaining what it learns in `CONTEXT.md` and ADRs. Use **`/grill-for-unknowns` instead** only when the user explicitly requests its map-vs-territory pass, blindspot/unknown-unknown discovery, unknown-known prototypes, or a subagent launch packet; it owns that session's grilling loop, so do not also run `/grilling` or `/grill-with-docs`. (No codebase? Use `/grill-me` — see Standalone.)",
+    "<!-- CORE-OVERLAY-END -->",
+  ].join("\n");
+
+  const askMattUpstreamBody = [
+    "---",
+    "name: ask-matt",
+    "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+    "disable-model-invocation: true",
+    "---",
+    "",
+    "# Ask Matt",
+    "",
+    "You don't remember every skill, so ask.",
+    "",
+    "## The main flow: idea → ship",
+    "",
+    "The route most work travels. You have an idea and want it built.",
+    "",
+    "1. **`/grill-with-docs`** sharpens the idea by interview. Start here whenever you are **working in a working directory**: it's stateful, retaining what it learns in `CONTEXT.md` and ADRs. (No working directory? Use `/grill-me` instead, covered under Standalone. Both run the same `/grilling` primitive; `grill-with-docs` is the one that leaves a paper trail, which makes it the better of the two whenever a repo is there to leave it in.)",
+    "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+    "",
+    "## Standalone",
+    "",
+    "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
+    "",
+  ].join("\n");
+
+  const askMattCanonicalSkill = [
+    "---",
+    "name: ask-matt",
+    "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+    "disable-model-invocation: true",
+    "---",
+    "",
+    "# Ask Matt",
+    "",
+    "You don't remember every skill, so ask.",
+    "",
+    "## The main flow: idea → ship",
+    "",
+    "The route most work travels. You have an idea and want it built.",
+    "",
+    askMattGrillDepthOverlay,
+    "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+    "",
+    "## Standalone",
+    "",
+    "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
+    "",
+  ].join("\n");
+
+  function askMattOverlayPlacement(content: string) {
+    return {
+      heading: content.indexOf("## The main flow: idea → ship"),
+      overlay: content.indexOf("<!-- CORE-OVERLAY-START -->"),
+      stepTwo: content.indexOf("2. **Branch"),
+    };
+  }
+
+  it("restores the Ask Matt grill-depth overlay under the main flow after a CLI add", async () => {
+    const tempRoot = await createTempRepo("refresh-ask-matt-main-flow");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/ask-matt/SKILL.md",
+    );
+    const canonicalRoot = path.join(tempRoot, "docs/ai/skills/ask-matt");
+    await mkdir(path.dirname(sourceSkillPath), { recursive: true });
+    await writeFile(sourceSkillPath, askMattUpstreamBody);
+    await mkdir(path.join(canonicalRoot, "references"), { recursive: true });
+    await writeFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      askMattCanonicalSkill,
+    );
+    await writeFile(
+      path.join(canonicalRoot, "references/upstream.md"),
+      "# Core provenance\n",
+    );
+
+    runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+      "--only=mattpocock/skills",
+    ]);
+
+    const refreshed = await readFile(
+      path.join(canonicalRoot, "SKILL.md"),
+      "utf8",
+    );
+    const placement = askMattOverlayPlacement(refreshed);
+    expect(placement.heading).toBeGreaterThan(-1);
+    expect(placement.overlay).toBeGreaterThan(placement.heading);
+    expect(placement.stepTwo).toBeGreaterThan(placement.overlay);
+    expect(refreshed).toContain("/grill-for-unknowns");
+    expect(refreshed).toContain("/writing-great-skills");
+    expect(refreshed).not.toContain("/writing-for-agents");
+    expect(refreshed).not.toContain(
+      "1. **`/grill-with-docs`** sharpens the idea by interview.",
+    );
+    await expect(
+      readFile(path.join(canonicalRoot, "references/upstream.md"), "utf8"),
+    ).resolves.toBe("# Core provenance\n");
+  });
+
+  it("fails closed when the Ask Matt overlay is restored after the H1 instead of the main flow", async () => {
+    const tempRoot = await createTempRepo("refresh-ask-matt-misplaced-overlay");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const misplacedSource = [
+      "---",
+      "name: ask-matt",
+      "description: Ask which skill or flow fits your situation. A router over the skills in this repo.",
+      "disable-model-invocation: true",
+      "---",
+      "",
+      "# Ask Matt",
+      "",
+      askMattGrillDepthOverlay,
+      "",
+      "You don't remember every skill, so ask.",
+      "",
+      "## The main flow: idea → ship",
+      "",
+      "The route most work travels. You have an idea and want it built.",
+      "",
+      "1. **`/grill-with-docs`** sharpens the idea by interview. Start here whenever you are **working in a working directory**: it's stateful, retaining what it learns in `CONTEXT.md` and ADRs. (No working directory? Use `/grill-me` instead, covered under Standalone. Both run the same `/grilling` primitive; `grill-with-docs` is the one that leaves a paper trail, which makes it the better of the two whenever a repo is there to leave it in.)",
+      "2. **Branch: can you settle every question in conversation?** If a question needs a runnable answer, detour through a prototype.",
+      "",
+      "## Standalone",
+      "",
+      "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
+      "",
+    ].join("\n");
+
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/ask-matt/SKILL.md",
+    );
+    const canonicalSkillPath = path.join(
+      tempRoot,
+      "docs/ai/skills/ask-matt/SKILL.md",
+    );
+    await mkdir(path.dirname(sourceSkillPath), { recursive: true });
+    await writeFile(sourceSkillPath, misplacedSource);
+    await mkdir(path.dirname(canonicalSkillPath), { recursive: true });
+    await writeFile(canonicalSkillPath, askMattCanonicalSkill);
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+        "--only=mattpocock/skills",
+      ]),
+    ).toThrow(/main flow/);
+    await expect(readFile(canonicalSkillPath, "utf8")).resolves.toBe(
+      askMattCanonicalSkill,
     );
   });
 });

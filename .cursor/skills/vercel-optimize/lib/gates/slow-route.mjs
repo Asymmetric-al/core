@@ -12,12 +12,12 @@ const ERROR_RATE_DISQUALIFY_THRESHOLD = 0.5;
 
 export const metadata = {
   id: 'slow_route',
-  threshold: '(p95 > 500 AND inv >= 1400) OR (p95 > 1500 AND inv >= 250); disqualified when 5xx rate > 50%',
+  threshold: '(p95 > 500 AND inv >= 1400) OR (p95 > 1500 AND inv >= 250); disqualified when 5xx rate > 50%; Vercel Workflow runtime endpoints are hard-gated',
   billingDimension: 'function-duration',
   scope: 'route',
   sourceCitation: 'vercel-optimize gate threshold',
   description:
-    'Routes with p95 function duration above 500ms at meaningful traffic (>=1,400 invocations in window), OR catastrophically slow routes (>1500ms p95 at any volume >=250). High duration drives both function-duration cost and user-perceived latency. Investigate sequential awaits, slow external APIs, missing caching, N+1 patterns. Routes with >50% 5xx rate are disqualified — those are reliability problems, not performance tuning targets, and surface via route_errors instead.',
+    'Routes with p95 function duration above 500ms at meaningful traffic (>=1,400 invocations in window), OR catastrophically slow routes (>1500ms p95 at any volume >=250). High duration drives both function-duration cost and user-perceived latency. Investigate sequential awaits, slow external APIs, missing caching, N+1 patterns. Routes with >50% 5xx rate are disqualified — those are reliability problems, not performance tuning targets, and surface via route_errors instead. Vercel Workflow runtime endpoints (`/.well-known/workflow/v1/*`) are hard-gated before launch because long-running step/flow requests are expected orchestration, not app-route bottlenecks.',
 };
 
 export function gate(signals) {

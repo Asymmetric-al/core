@@ -17,7 +17,9 @@ page.getByTestId('checkout-summary')                 // 7. Test ID (last semanti
 page.locator('css=.legacy-widget >> internal:role=button') // 8. CSS/XPath (last resort)
 ```
 
-## Playwright 1.59 Locator Helpers
+## Recent Locator Helpers (Playwright 1.59+)
+
+> Playwright 1.60 also adds a `description` option to `getByRole()` for disambiguating controls with the same name — see [Role-Based Locators](#disambiguating-by-accessible-description-description-playwright-160) below.
 
 Playwright 1.59 added two useful locator-discovery helpers:
 
@@ -60,6 +62,23 @@ test('pick a locator during debugging', async ({ page }) => {
 ```
 
 Review the suggested locator before keeping it. Prefer rewriting it to `getByRole()` or another semantic locator if that makes the test clearer.
+
+### `locator.visible()` For Visible-Only Matching (Playwright 1.63+)
+
+`locator.visible()` returns a locator narrowed to visible elements only. It replaces the `:visible` CSS pseudo-class, which was Playwright-specific syntax that only worked inside `locator()` strings and could not be chained onto a semantic locator.
+
+```javascript
+await page.locator('button').visible().click();
+```
+
+**Use it for genuinely duplicated UI**, not to paper over strict-mode violations. A responsive layout that renders both a desktop nav and a mobile nav, hiding one by media query, is the real case: both match `getByRole('link', { name: 'Settings' })`, exactly one is visible, and `.visible()` says so directly.
+
+```javascript
+// Responsive layout renders both navs; only one is visible at this viewport
+await page.getByRole('link', { name: 'Settings' }).visible().click();
+```
+
+**When it is the wrong tool**: if two visible elements match, `.visible()` does not help and you still get a strict-mode violation. Scope with chaining or `filter()` instead — see [Locator Chaining and Filtering](#locator-chaining-and-filtering). And if an element is hidden because the app has not finished rendering, `.visible()` narrows the match at query time rather than waiting for the right one to appear; assert on the expected element instead.
 
 ### `locator.normalize()` For Refactors
 
@@ -173,6 +192,34 @@ test('role-based locators cover most UI elements', async ({ page }) => {
 });
 ```
 
+#### Disambiguating by accessible description (`description`, Playwright 1.60+)
+
+When two controls share the same accessible name but differ by their accessible *description* (`aria-describedby` / `aria-description`), Playwright 1.60's `description` option on `getByRole()` (and the other `getBy*` roles) targets the right one without falling back to CSS.
+
+**TypeScript**
+```typescript
+// Two "Delete" buttons, distinguished by their helper text / aria-describedby
+await page
+  .getByRole('button', { name: 'Delete', description: 'Permanently removes this project' })
+  .click();
+
+// Pair it with `exact` for tight matching
+await page.getByRole('link', {
+  name: 'Download',
+  description: 'PDF, 2.3 MB',
+  exact: true,
+}).click();
+```
+
+**JavaScript**
+```javascript
+await page
+  .getByRole('button', { name: 'Delete', description: 'Permanently removes this project' })
+  .click();
+```
+
+Reach for `description` only when `name` + `role` (and `exact`) can't disambiguate — it's a precise tool, not a default.
+
 ### Label-Based Locators
 
 **Use when**: Targeting form fields that have associated `<label>` elements or `aria-label`.
@@ -190,8 +237,8 @@ test('fill a registration form using labels', async ({ page }) => {
   await page.getByLabel('First name').fill('Jane');
   await page.getByLabel('Last name').fill('Doe');
   await page.getByLabel('Email address').fill('jane@example.com');
-  await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass');
-  await page.getByLabel('Confirm password').fill('s3cure!Pass');
+  await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass'); // pragma: allowlist secret
+  await page.getByLabel('Confirm password').fill('s3cure!Pass'); // pragma: allowlist secret
   await page.getByLabel('I agree to the terms').check();
 
   await page.getByRole('button', { name: 'Create account' }).click();
@@ -209,8 +256,8 @@ test('fill a registration form using labels', async ({ page }) => {
   await page.getByLabel('First name').fill('Jane');
   await page.getByLabel('Last name').fill('Doe');
   await page.getByLabel('Email address').fill('jane@example.com');
-  await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass');
-  await page.getByLabel('Confirm password').fill('s3cure!Pass');
+  await page.getByLabel('Password', { exact: true }).fill('s3cure!Pass'); // pragma: allowlist secret
+  await page.getByLabel('Confirm password').fill('s3cure!Pass'); // pragma: allowlist secret
   await page.getByLabel('I agree to the terms').check();
 
   await page.getByRole('button', { name: 'Create account' }).click();
@@ -609,7 +656,7 @@ test('handle dynamic content without manual waits', async ({ page }) => {
 | Button | `getByRole('button', { name })` | `getByRole('button', { name: 'Submit' })` | Matches `<button>`, `<input type="submit">`, `role="button"` |
 | Link | `getByRole('link', { name })` | `getByRole('link', { name: 'Home' })` | Matches any `<a href>` regardless of styling |
 | Text input | `getByRole('textbox', { name })` | `getByRole('textbox', { name: 'Email' })` | Matches by accessible name (label) |
-| Password input | `getByLabel()` | `getByLabel('Password')` | Password fields have no distinct role; label is the best match |
+| Password input | `getByLabel()` | `getByLabel('Password')` | Password fields have no distinct role; label is the best match | // pragma: allowlist secret
 | Checkbox | `getByRole('checkbox', { name })` | `getByRole('checkbox', { name: 'Agree' })` | Also use `.check()` / `.uncheck()` instead of `.click()` |
 | Radio button | `getByRole('radio', { name })` | `getByRole('radio', { name: 'Express' })` | Group radios with `getByRole('radiogroup')` |
 | Select/dropdown | `getByRole('combobox', { name })` | `getByRole('combobox', { name: 'Country' })` | Native `<select>` maps to combobox role |

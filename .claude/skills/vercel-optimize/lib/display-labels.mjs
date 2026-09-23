@@ -59,6 +59,11 @@ const REQUEST_COUNT_KINDS = new Set([
 const PUBLIC_ASSIGNMENT_LABELS = new Map([
   ...SIGNAL_LABELS,
   ['deepDive.latency.p95', 'deepDive latency p95'],
+  ['deepDive.cpu.p95', 'deepDive CPU p95'],
+  ['deepDive.ttfb.p95', 'deepDive TTFB p95'],
+  ['cpu.p95', 'CPU p95'],
+  ['latency.p95', 'latency p95'],
+  ['ttfb.p95', 'TTFB p95'],
   ['cache_result', 'cache result'],
   ['http_status', 'HTTP status'],
   ['error_code', 'error code'],

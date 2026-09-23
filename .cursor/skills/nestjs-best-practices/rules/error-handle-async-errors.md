@@ -62,7 +62,7 @@ export class UsersService {
 
     // Explicitly catch and log errors
     this.emailService.sendWelcome(user.email).catch((error) => {
-      this.logger.error('Failed to send welcome email', error.stack);
+      this.logger.error("Failed to send welcome email", error.stack);
       // Optionally queue for retry
     });
 
@@ -75,14 +75,14 @@ export class UsersService {
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
 
-  @OnEvent('order.created')
+  @OnEvent("order.created")
   async handleOrderCreated(event: OrderCreatedEvent): Promise<void> {
     try {
       await this.processOrder(event);
     } catch (error) {
-      this.logger.error('Failed to process order', { event, error });
+      this.logger.error("Failed to process order", { event, error });
       // Don't rethrow - would crash the process
-      await this.deadLetterQueue.add('order.created', event);
+      await this.deadLetterQueue.add("order.created", event);
     }
   }
 }
@@ -92,13 +92,13 @@ export class OrdersService {
 export class CleanupService {
   private readonly logger = new Logger(CleanupService.name);
 
-  @Cron('0 0 * * *')
+  @Cron("0 0 * * *")
   async dailyCleanup(): Promise<void> {
     try {
       await this.cleanupService.run();
-      this.logger.log('Daily cleanup completed');
+      this.logger.log("Daily cleanup completed");
     } catch (error) {
-      this.logger.error('Daily cleanup failed', error.stack);
+      this.logger.error("Daily cleanup failed", error.stack);
       // Alert or retry logic
     }
   }
@@ -107,14 +107,14 @@ export class CleanupService {
 // Global unhandled rejection handler in main.ts
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const logger = new Logger('Bootstrap');
+  const logger = new Logger("Bootstrap");
 
-  process.on('unhandledRejection', (reason, promise) => {
-    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.on("unhandledRejection", (reason, promise) => {
+    logger.error("Unhandled Rejection at:", promise, "reason:", reason);
   });
 
-  process.on('uncaughtException', (error) => {
-    logger.error('Uncaught Exception:', error);
+  process.on("uncaughtException", (error) => {
+    logger.error("Uncaught Exception:", error);
     process.exit(1);
   });
 

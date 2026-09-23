@@ -18,11 +18,11 @@ export class ProductsService {
   async getPopular(): Promise<Product[]> {
     // Runs complex aggregation query EVERY request
     return this.productsRepo
-      .createQueryBuilder('p')
-      .leftJoin('p.orders', 'o')
-      .select('p.*, COUNT(o.id) as orderCount')
-      .groupBy('p.id')
-      .orderBy('orderCount', 'DESC')
+      .createQueryBuilder("p")
+      .leftJoin("p.orders", "o")
+      .select("p.*, COUNT(o.id) as orderCount")
+      .groupBy("p.id")
+      .orderBy("orderCount", "DESC")
       .limit(20)
       .getMany();
   }
@@ -31,7 +31,7 @@ export class ProductsService {
 // Cache everything without thought
 @Injectable()
 export class UsersService {
-  @CacheKey('users')
+  @CacheKey("users")
   @CacheTTL(3600)
   @UseInterceptors(CacheInterceptor)
   async findAll(): Promise<User[]> {
@@ -51,9 +51,7 @@ export class UsersService {
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        stores: [
-          new KeyvRedis(config.get('REDIS_URL')),
-        ],
+        stores: [new KeyvRedis(config.get("REDIS_URL"))],
         ttl: 60 * 1000, // Default 60s
       }),
     }),
@@ -70,7 +68,7 @@ export class ProductsService {
   ) {}
 
   async getPopular(): Promise<Product[]> {
-    const cacheKey = 'products:popular';
+    const cacheKey = "products:popular";
 
     // Try cache first
     const cached = await this.cache.get<Product[]>(cacheKey);
@@ -85,13 +83,13 @@ export class ProductsService {
   // Invalidate cache on changes
   async updateProduct(id: string, dto: UpdateProductDto): Promise<Product> {
     const product = await this.productsRepo.save({ id, ...dto });
-    await this.cache.del('products:popular'); // Invalidate
+    await this.cache.del("products:popular"); // Invalidate
     return product;
   }
 }
 
 // Decorator-based caching with auto-interceptor
-@Controller('categories')
+@Controller("categories")
 @UseInterceptors(CacheInterceptor)
 export class CategoriesController {
   @Get()
@@ -100,10 +98,10 @@ export class CategoriesController {
     return this.categoriesService.findAll();
   }
 
-  @Get(':id')
+  @Get(":id")
   @CacheTTL(60 * 1000) // 1 minute
-  @CacheKey('category')
-  findOne(@Param('id') id: string): Promise<Category> {
+  @CacheKey("category")
+  findOne(@Param("id") id: string): Promise<Category> {
     return this.categoriesService.findOne(id);
   }
 }
@@ -113,12 +111,12 @@ export class CategoriesController {
 export class CacheInvalidationService {
   constructor(@Inject(CACHE_MANAGER) private cache: Cache) {}
 
-  @OnEvent('product.created')
-  @OnEvent('product.updated')
-  @OnEvent('product.deleted')
+  @OnEvent("product.created")
+  @OnEvent("product.updated")
+  @OnEvent("product.deleted")
   async invalidateProductCaches(event: ProductEvent) {
     await Promise.all([
-      this.cache.del('products:popular'),
+      this.cache.del("products:popular"),
       this.cache.del(`product:${event.productId}`),
     ]);
   }

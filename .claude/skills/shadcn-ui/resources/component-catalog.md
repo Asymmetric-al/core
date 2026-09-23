@@ -86,7 +86,7 @@ Text input field.
 npx shadcn@latest add input
 ```
 
-**Types**: text, email, password, number, tel, url
+**Types**: text, email, password, number, tel, url // pragma: allowlist secret
 **Use cases**: Forms, search bars, filters
 **Dependencies**: None
 

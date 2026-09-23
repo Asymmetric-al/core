@@ -463,7 +463,7 @@ playwright-cli run-code "async page => {
 playwright-cli run-code "async page => {
   await page.goto('https://example.com/login');
   await page.fill('input[name=email]', 'user@example.com');
-  await page.fill('input[name=password]', 'secret');
+  await page.fill('input[name=password]', 'secret'); // pragma: allowlist secret
   await page.click('button[type=submit]');
   await page.waitForURL('**/dashboard');
   await page.context().storageState({ path: 'auth.json' });

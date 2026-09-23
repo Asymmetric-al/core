@@ -1,6 +1,6 @@
 ---
 name: inngest-brownfield-audit
-description: Use when analyzing an existing TypeScript or JavaScript codebase to decide where and how to introduce Inngest. Covers repository discovery, framework and package detection, finding durability gaps in HTTP handlers, webhooks, cron jobs, queues, long-running jobs, AI agents, polling loops, and side-effect-heavy code, then producing and implementing an incremental integration plan.
+description: Use when analyzing an existing TypeScript or JavaScript codebase to decide where and how to introduce Inngest. Covers repository discovery, framework and package detection, finding durability gaps in HTTP handlers, webhooks, cron jobs, queues, long-running jobs, AI agents, Agent Evals, polling loops, eval loops, and side-effect-heavy code, then producing and implementing an incremental integration plan.
 ---
 
 # Inngest Brownfield Audit
@@ -26,7 +26,9 @@ Use this skill for requests like:
 
 If the user is starting from scratch instead of a brownfield repo, use
 `inngest-setup`, `inngest-durable-functions`, `inngest-events`,
-`inngest-steps`, and, for AI workflows, the agent patterns in this skill.
+`inngest-steps`, and, for AI workflows, the agent patterns in this skill. Use
+`inngest-agent-evals` when the request includes scoring, sessions, experiments,
+deferred scorers, Insights, or outcome-based evaluation.
 
 ## Audit Loop
 
@@ -60,8 +62,9 @@ If the user is starting from scratch instead of a brownfield repo, use
      processing, embeddings, bulk email, imports, ETL, sync jobs, polling loops,
      retries, and external API calls.
    - Search for AI agent shapes: tool loops, LLM calls, streaming tokens,
-     human approval, multi-step reasoning, vector search, eval loops, and
-     provider calls that need rate limits or retry-safe state.
+     human approval, multi-step reasoning, vector search, eval loops, scoring,
+     experiment assignment, user-feedback signals, and provider calls that need
+     rate limits or retry-safe state.
 
 4. **Classify each candidate.**
    - **P0:** user-visible loss, duplicate charge/email/action, timeout, missed
@@ -99,17 +102,18 @@ generated/vendor folders.
 
 ## Brownfield Decision Matrix
 
-| Existing shape                                        | Inngest fit                             | Primary primitives                                 |
-| ----------------------------------------------------- | --------------------------------------- | -------------------------------------------------- |
-| HTTP handler does slow side effects before responding | Emit event, return fast                 | `inngest.send`, event trigger, `step.run`          |
-| Webhook must acknowledge quickly but process reliably | Verify signature, emit idempotent event | Event ID, `step.run`, retries                      |
-| Cron job loses progress midway                        | Cron-triggered durable function         | Cron trigger, page-level `step.run`, flow control  |
-| Polling loop waits for external async work            | Durable wait or durable poll            | `step.waitForEvent`, `step.sleep`, `step.run`      |
-| Large fan-out exceeds request/serverless limits       | Split orchestration and item work       | `step.sendEvent`, per-item function, concurrency   |
-| External API hits 429s                                | Move limits to function config          | `throttle`, `rateLimit`, `concurrency`             |
-| Human review can take days                            | Persist the wait in Inngest             | `step.waitForEvent`, timeout, realtime             |
-| AI agent/tool loop needs retry-safe progress          | One step per tool/model boundary        | `step.ai`, `step.run`, `step.sleep`, realtime      |
-| Existing queue only hides fragile work                | Replace queue boundary gradually        | Event trigger, idempotency, function-level retries |
+| Existing shape                                        | Inngest fit                             | Primary primitives                                                         |
+| ----------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------- |
+| HTTP handler does slow side effects before responding | Emit event, return fast                 | `inngest.send`, event trigger, `step.run`                                  |
+| Webhook must acknowledge quickly but process reliably | Verify signature, emit idempotent event | Event ID, `step.run`, retries                                              |
+| Cron job loses progress midway                        | Cron-triggered durable function         | Cron trigger, page-level `step.run`, flow control                          |
+| Polling loop waits for external async work            | Durable wait or durable poll            | `step.waitForEvent`, `step.sleep`, `step.run`                              |
+| Large fan-out exceeds request/serverless limits       | Split orchestration and item work       | `step.sendEvent`, per-item function, concurrency                           |
+| External API hits 429s                                | Move limits to function config          | `throttle`, `rateLimit`, `concurrency`                                     |
+| Human review can take days                            | Persist the wait in Inngest             | `step.waitForEvent`, timeout, realtime                                     |
+| AI agent/tool loop needs retry-safe progress          | One step per tool/model boundary        | `step.ai`, `step.run`, `step.sleep`, realtime                              |
+| AI workflow needs production evals                    | Attach outcome signals to durable runs  | `meta.sessions`, `step.score`, `createScorer`, `defer`, `group.experiment` |
+| Existing queue only hides fragile work                | Replace queue boundary gradually        | Event trigger, idempotency, function-level retries                         |
 
 ## Integration Plan Format
 

@@ -443,7 +443,7 @@ test.describe('Pinia auth store (tested through UI)', () => {
 
     await page.getByRole('link', { name: 'Sign in' }).click();
     await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Password').fill('password123');
+    await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
 
     await page.waitForURL('/dashboard');

@@ -2,7 +2,7 @@
 source_name: supabase/agent-skills (supabase-postgres-best-practices)
 source_url: https://github.com/supabase/agent-skills
 license: MIT
-last_reviewed: 2026-04-09
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: Supabase Postgres best practices

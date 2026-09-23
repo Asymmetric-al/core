@@ -143,7 +143,7 @@ export default defineConfig({
 
 ### Pattern 3: Merge Request Pipelines with Environment Variables
 
-**Use when**: Tests need secrets (API keys, passwords) and should only run on merge requests or the default branch.
+**Use when**: Tests need secrets (API keys, passwords) and should only run on merge requests or the default branch. // pragma: allowlist secret
 **Avoid when**: Tests are fully self-contained with no external dependencies.
 
 ```yaml
@@ -160,7 +160,7 @@ test:e2e:
   stage: test
   variables:
     BASE_URL: $STAGING_URL
-    TEST_PASSWORD: $TEST_PASSWORD
+    TEST_PASSWORD: $TEST_PASSWORD // pragma: allowlist secret
     API_KEY: $API_KEY
   before_script:
     - npm ci
@@ -185,7 +185,7 @@ test:e2e:
 **Setting variables in GitLab:**
 Navigate to **Settings > CI/CD > Variables** and add:
 - `STAGING_URL` -- not masked, not protected
-- `TEST_PASSWORD` -- masked, protected
+- `TEST_PASSWORD` -- masked, protected // pragma: allowlist secret
 - `API_KEY` -- masked, protected
 
 ### Pattern 4: Multi-Browser Testing with Child Pipelines
@@ -269,7 +269,7 @@ test:e2e:
     CI: "true"
     DATABASE_URL: "postgresql://postgres:postgres@db:5432/test"
     REDIS_URL: "redis://cache:6379"
-    POSTGRES_PASSWORD: "postgres"
+    POSTGRES_PASSWORD: "postgres" // pragma: allowlist secret
     POSTGRES_DB: "test"
   before_script:
     - npm ci
