@@ -47,6 +47,7 @@ describe("feature branch handoffs", () => {
       ["Agent A", "agent-a@example.test", "Human One", "one@example.test"],
       ["Human One", "one@example.test", "Agent A", "agent-a@example.test"],
       ["Agent B", "agent-b@example.test", "Agent C", "agent-c@example.test"],
+      ["Agent C", "agent-c@example.test", "Agent D", "agent-d@example.test"],
     ];
     for (const [
       index,
@@ -66,8 +67,8 @@ describe("feature branch handoffs", () => {
       });
     }
     const head = git(cwd, ["rev-parse", "HEAD"]);
-    expect(git(cwd, ["log", "-4", "--format=%G?"]).replaceAll("\n", "")).toBe(
-      "NNNN",
+    expect(git(cwd, ["log", "-5", "--format=%G?"]).replaceAll("\n", "")).toBe(
+      "NNNNN",
     );
     const runCommand = vi.fn(() => ({ status: 0 }));
     const result = runPrePush({
