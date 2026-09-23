@@ -174,7 +174,10 @@ async function main() {
     );
     const triggeredByPassRate = verifiable >= REGEN_MIN_CLAIMS && passRate < REGEN_PASS_RATE_THRESHOLD;
     const cacheSafetyFailures = claimsWithResults.filter(
-      (r) => r.disposition === 'failed' && r.claim?.type === 'cache_vary_matches_dynamic_inputs'
+      (r) => r.disposition === 'failed' && (
+        r.claim?.type === 'cache_vary_matches_dynamic_inputs' ||
+        r.claim?.type === 'cache_vary_cardinality_safe'
+      )
     );
     const semanticSafetyFailures = claimsWithResults.filter(
       (r) => r.disposition === 'failed' && (
@@ -188,6 +191,7 @@ async function main() {
         r.claim?.type === 'image_response_headers_citation' ||
         r.claim?.type === 'next_image_priority_api_for_version' ||
         r.claim?.type === 'next_cache_components_route_segment_config' ||
+        r.claim?.type === 'next_route_revalidate_static_prereq' ||
         r.claim?.type === 'next_cache_tag_invalidation_supported' ||
         r.claim?.type === 'cache_rec_not_error_dominated_or_acknowledged' ||
         r.claim?.type === 'cache_control_header_syntax' ||
@@ -234,7 +238,7 @@ async function main() {
       regenBriefHint: triggeredByContradiction
         ? 'Sub-agent recommended toggling on a project setting that is already enabled. Re-spawn with the project-config Strengths block highlighted; the rec must drop the contradictory step and keep only the actionable parts.'
         : triggeredByCacheSafety
-          ? 'Sub-agent recommended CDN caching for output that varies by Vercel geolocation. Re-spawn with the cache safety failure highlighted; the rec must include the correct Vary header (for example X-Vercel-IP-Country) or abstain.'
+          ? 'Sub-agent recommended CDN caching with unsafe or missing Vary behavior. Re-spawn with the cache safety failure highlighted; the rec must use a low-cardinality Vary header that matches the dynamic inputs, or abstain.'
           : triggeredBySemanticSafety
             ? 'Sub-agent made a framework-semantic claim that failed deterministic checks. Re-spawn with the failure highlighted; the rec must either add version-correct code/citations/runtime evidence or abstain.'
         : 'Re-spawn the sub-agent with this rec\'s topFailures injected as feedback. Re-emit the rec only if regenPassRate >= originalPassRate AND citation count not gutted.',

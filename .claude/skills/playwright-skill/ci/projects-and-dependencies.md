@@ -175,7 +175,7 @@ const authFile = 'playwright/.auth/user.json';
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!);
+  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await page.context().storageState({ path: authFile });
@@ -254,19 +254,19 @@ export default defineConfig({
 // tests/auth.setup.ts
 import { test as setup, expect } from '@playwright/test';
 
-const credentials: Record<string, { email: string; password: string }> = {
-  admin: { email: 'admin@example.com', password: process.env.ADMIN_PASSWORD! },
-  editor: { email: 'editor@example.com', password: process.env.EDITOR_PASSWORD! },
+const credentials: Record<string, { email: string; password: string }> = { // pragma: allowlist secret
+  admin: { email: 'admin@example.com', password: process.env.ADMIN_PASSWORD! }, // pragma: allowlist secret
+  editor: { email: 'editor@example.com', password: process.env.EDITOR_PASSWORD! }, // pragma: allowlist secret
 };
 
 setup('authenticate', async ({ page }, testInfo) => {
   const role = testInfo.project.use.userRole as string;
   const authFile = testInfo.project.use.storageStatePath as string;
-  const { email, password } = credentials[role];
+  const { email, password } = credentials[role]; // pragma: allowlist secret
 
   await page.goto('/login');
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill(password);
+  await page.getByLabel('Password').fill(password); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   await page.context().storageState({ path: authFile });

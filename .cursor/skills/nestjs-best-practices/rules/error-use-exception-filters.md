@@ -13,16 +13,16 @@ Never catch exceptions and manually format error responses in controllers. Use N
 
 ```typescript
 // Manual error handling in controllers
-@Controller('users')
+@Controller("users")
 export class UsersController {
-  @Get(':id')
-  async findOne(@Param('id') id: string, @Res() res: Response) {
+  @Get(":id")
+  async findOne(@Param("id") id: string, @Res() res: Response) {
     try {
       const user = await this.usersService.findById(id);
       if (!user) {
         return res.status(404).json({
           statusCode: 404,
-          message: 'User not found',
+          message: "User not found",
         });
       }
       return res.json(user);
@@ -30,7 +30,7 @@ export class UsersController {
       console.error(error);
       return res.status(500).json({
         statusCode: 500,
-        message: 'Internal server error',
+        message: "Internal server error",
       });
     }
   }
@@ -41,10 +41,10 @@ export class UsersController {
 
 ```typescript
 // Use built-in and custom exceptions
-@Controller('users')
+@Controller("users")
 export class UsersController {
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<User> {
+  @Get(":id")
+  async findOne(@Param("id") id: string): Promise<User> {
     const user = await this.usersService.findById(id);
     if (!user) {
       throw new NotFoundException(`User #${id} not found`);
@@ -58,9 +58,9 @@ export class UserNotFoundException extends NotFoundException {
   constructor(userId: string) {
     super({
       statusCode: 404,
-      error: 'Not Found',
+      error: "Not Found",
       message: `User with ID "${userId}" not found`,
-      code: 'USER_NOT_FOUND',
+      code: "USER_NOT_FOUND",
     });
   }
 }
@@ -103,7 +103,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const message =
       exception instanceof HttpException
         ? exception.message
-        : 'Internal server error';
+        : "Internal server error";
 
     this.logger.error(
       `${request.method} ${request.url}`,

@@ -11,7 +11,7 @@ This skill sets up Inngest in a TypeScript project from scratch, covering instal
 
 ## Prerequisites
 
-- Node.js 18+ (Node.js 22.4+ r ecommended for WebSocket support)
+- Node.js 18+ (Node.js 22.4+ recommended for WebSocket support)
 - TypeScript project
 - Package manager (npm, yarn, pnpm, or bun)
 

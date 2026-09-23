@@ -92,6 +92,73 @@ const { data: contacts, error: listErr } = await resend.contacts.list({
 });
 ```
 
+## Bulk Import from CSV
+
+Import many contacts at once from a CSV file (`POST /contacts/imports`, `multipart/form-data`). Imports run **asynchronously**: `create` returns an import id immediately, then poll `get` until `status` is `completed` (or `failed`).
+
+### SDK Methods (Node.js)
+
+| Operation | Method | Notes |
+|-----------|--------|-------|
+| Create | `resend.contacts.imports.create({ file, columnMap?, onConflict?, segments?, topics? })` | `file` is a `Blob`/`File` (CSV). Returns `{ id }` |
+| Get | `resend.contacts.imports.get(id)` | Status + counts. `id` is a positional string — not `{ id }` |
+| List | `resend.contacts.imports.list({ limit?, after?, before?, status? })` | `status` filters by `queued` / `in_progress` / `completed` / `failed` |
+
+```typescript
+import { readFile } from 'node:fs/promises';
+
+const file = new Blob([await readFile('contacts.csv')], { type: 'text/csv' });
+
+const { data, error } = await resend.contacts.imports.create({
+  file,
+  // 'upsert' (default) updates existing contacts; 'skip' leaves them unchanged
+  onConflict: 'upsert',
+  segments: [{ id: 'seg_abc123' }],
+});
+if (error) {
+  console.error(error);
+  return;
+}
+
+// Imports are async — poll until processing finishes
+const { data: imp } = await resend.contacts.imports.get(data.id);
+console.log(imp.status, imp.counts);
+// e.g. 'completed' { total: 1200, created: 800, updated: 300, skipped: 75, failed: 25 }
+
+// List past imports, newest first; filter by status and paginate with after/before
+const { data: imports } = await resend.contacts.imports.list({ status: 'completed', limit: 20 });
+```
+
+### CSV columns
+
+Without `columnMap`, columns are matched by the lowercase names `email` (required), `first_name`, `last_name`, `unsubscribed` — **matching is case-sensitive**, so a CSV with `Email` / `First Name` headers returns `422 validation_error` ("CSV missing required email column"). Map non-standard headers explicitly:
+
+```typescript
+await resend.contacts.imports.create({
+  file,
+  columnMap: {
+    email: 'Email',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    properties: { plan: { column: 'Plan', type: 'string' } },
+  },
+});
+```
+
+> The SDK accepts camelCase (`firstName`, `lastName`); the raw `multipart/form-data` field is `column_map` with snake_case keys (`first_name`, `last_name`). `column_map`, `segments`, and `topics` are sent as JSON-encoded strings. Maximum file size is 100 MB.
+
+Properties that aren't already defined on your contacts are created automatically when you map them in the import; no need to pre-register them.
+
+### Raw HTTP
+
+```bash
+curl -X POST 'https://api.resend.com/contacts/imports' \
+  -H 'Authorization: Bearer re_xxxxxxxxx' \
+  -F 'file=@contacts.csv;type=text/csv' \
+  -F 'column_map={"email":"Email","first_name":"First Name"}' \
+  -F 'on_conflict=upsert'
+```
+
 ## Common Mistakes
 
 | Mistake | Fix |
@@ -102,3 +169,6 @@ const { data: contacts, error: listErr } = await resend.contacts.list({
 | Expecting property deletion with empty string | Set property value to `null` to delete it |
 | Not checking `error` in Node.js | SDK returns `{ data, error }`, does not throw — always destructure and check |
 | Forgetting `email` is required on create | `email` is the only required field — all others are optional |
+| CSV import returns 422 "missing required email column" | Column matching is case-sensitive lowercase (`email`, `first_name`, `last_name`) — pass `columnMap` for headers like `Email` / `First Name` |
+| Calling `imports.get({ id })` | `imports.get(id)` takes a positional string, unlike `contacts.get({ id })` |
+| Treating an import as synchronous | `create` returns an id immediately — poll `imports.get(id)` until `status` is `completed` |

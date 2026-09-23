@@ -52,11 +52,11 @@ playwright-cli -s=viewer open https://app.example.com/login
 
 # All commands in a session are isolated
 playwright-cli -s=admin fill e1 "admin@company.com"
-playwright-cli -s=admin fill e2 "admin-password"
+playwright-cli -s=admin fill e2 "admin-password" // pragma: allowlist secret
 playwright-cli -s=admin click e3
 
 playwright-cli -s=viewer fill e1 "viewer@company.com"
-playwright-cli -s=viewer fill e2 "viewer-password"
+playwright-cli -s=viewer fill e2 "viewer-password" // pragma: allowlist secret
 playwright-cli -s=viewer click e3
 ```
 
@@ -151,6 +151,37 @@ playwright-cli -s=checkout-debug click e4
 `playwright-cli show` opens the dashboard for bound browsers so you can see active sessions, inspect status, and jump into the ones that matter.
 
 For Playwright Test workflows, set `PLAYWRIGHT_DASHBOARD=1` before running tests if you want test browsers to appear in the dashboard as well.
+
+## Attaching to a Real Browser Without Overrides (`connectOverCDP({ noDefaults })`, Playwright 1.60+)
+
+When you attach to an *already-running* browser over CDP — your everyday Chrome started with `--remote-debugging-port`, for example — Playwright normally applies its own defaults to the default context (download behavior, focus emulation, media emulation). That can disturb a browser you're actively using.
+
+Playwright 1.60 adds the `noDefaults` option so you can attach without changing the browser's behavior.
+
+```typescript
+import { chromium } from 'playwright';
+
+async function main() {
+  // Attach to a daily-driver Chrome (launched with --remote-debugging-port=9222)
+  // without Playwright overriding download/focus/media behavior.
+  const browser = await chromium.connectOverCDP('http://localhost:9222', {
+    noDefaults: true,
+  });
+
+  const context = browser.contexts()[0];
+  const page = context.pages()[0] ?? (await context.newPage());
+
+  console.log(await page.title());
+
+  // Detach without closing the user's browser
+  await browser.close();
+}
+
+main();
+```
+
+**Use when**: Inspecting or driving a real, user-owned browser where Playwright's default overrides would be intrusive.
+**Avoid when**: You launched the browser for testing — the defaults (deterministic downloads, focus/media emulation) are usually what you want, so omit `noDefaults`.
 
 ## Persistent Profiles
 
@@ -317,7 +348,7 @@ playwright-cli close-all
 # Log in once and save state
 playwright-cli -s=login open https://app.example.com/login
 playwright-cli -s=login fill e1 "user@example.com"
-playwright-cli -s=login fill e2 "password123"
+playwright-cli -s=login fill e2 "password123" // pragma: allowlist secret
 playwright-cli -s=login click e3
 playwright-cli -s=login state-save auth.json
 playwright-cli -s=login close

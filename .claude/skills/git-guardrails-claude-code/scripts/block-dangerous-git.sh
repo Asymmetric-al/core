@@ -1,4 +1,8 @@
 #!/bin/bash
+# CORE-OVERLAY: fail-closed hook JSON parsing and `git checkout -- .` /
+# `git restore -- .` patterns. Upstream git-guardrails uses a fail-open jq
+# one-liner and literal `git checkout .` / `git restore .` only. Restore this
+# overlay after refreshing mattpocock/skills git-guardrails-claude-code.
 
 INPUT=$(cat)
 

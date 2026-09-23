@@ -24,7 +24,7 @@ Understanding the difference between transactional and marketing emails is cruci
 - Can be sent without explicit opt-in (with limitations)
 
 **Examples:**
-- Password reset links
+- Password reset links // pragma: allowlist secret
 - Order confirmations
 - Account verification
 - OTP/2FA codes
@@ -126,7 +126,7 @@ For a complete catalog of transactional emails and recommended combinations by a
 
 **Quick reference - Essential emails for most apps:**
 1. **Email verification** - Required for account creation
-2. **Password reset** - Required for account recovery
+2. **Password reset** - Required for account recovery // pragma: allowlist secret
 3. **Welcome email** - Good user experience
 
 The catalog includes detailed guidance for:

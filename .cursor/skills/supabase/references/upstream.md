@@ -2,7 +2,7 @@
 source_name: supabase/agent-skills (supabase)
 source_url: https://github.com/supabase/agent-skills
 license: MIT
-last_reviewed: 2026-05-23
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: Supabase agent skill

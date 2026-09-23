@@ -179,7 +179,7 @@ export function LoginForm() {
       sx={{ display: "flex", flexDirection: "column", gap: 2 }}
     >
       <TextField label="Email" type="email" required />
-      <TextField label="Password" type="password" required />
+      <TextField label="Password" type="password" required /> // pragma: allowlist secret
       <Button variant="contained" type="submit">
         Sign In
       </Button>
@@ -203,8 +203,8 @@ export function LoginForm() {
         <Input id="email" type="email" required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input id="password" type="password" required />
+        <Label htmlFor="password">Password</Label> // pragma: allowlist secret
+        <Input id="password" type="password" required /> // pragma: allowlist secret
       </div>
       <Button type="submit">Sign In</Button>
     </form>

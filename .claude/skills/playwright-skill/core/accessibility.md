@@ -27,6 +27,10 @@ const pageTree = await page.ariaSnapshot();
 
 // Or scope it to one region
 const dialogTree = await page.getByRole('dialog', { name: 'Checkout' }).ariaSnapshot();
+
+// Playwright 1.60+: assert the whole page's aria tree, and capture bounding boxes
+await expect(page).toMatchAriaSnapshot();
+const treeWithBoxes = await page.ariaSnapshot({ boxes: true });
 ```
 
 ## Patterns
@@ -88,6 +92,46 @@ test('checkout dialog exposes the expected accessibility structure', async ({ pa
 });
 ```
 
+### Page-Level Aria Snapshot Assertions (Playwright 1.60+)
+
+**Use when**: You want to assert the whole page's accessibility tree against a stored snapshot, or you need element bounding boxes alongside the tree (useful for AI/agent consumption and layout-aware checks).
+**Avoid when**: A scoped locator assertion is enough — whole-page snapshots are broad and change often. Prefer asserting a stable region.
+
+Playwright 1.60 lets `expect(page).toMatchAriaSnapshot()` run at the **page level** (equivalent to asserting against `page.locator('body')`), and adds a `boxes` option to `ariaSnapshot()` that appends each element's bounding box.
+
+**TypeScript**
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('home page matches its aria snapshot', async ({ page }) => {
+  await page.goto('/');
+
+  // Page-level assertion — no need to target body explicitly.
+  // First run writes the snapshot; later runs compare against it.
+  await expect(page).toMatchAriaSnapshot();
+});
+
+test('capture aria tree with bounding boxes', async ({ page }) => {
+  await page.goto('/dashboard');
+
+  // `boxes: true` appends each node's [x, y, width, height] to the snapshot
+  const treeWithBoxes = await page.ariaSnapshot({ boxes: true });
+  expect(treeWithBoxes).toContain('heading "Dashboard"');
+});
+```
+
+**JavaScript**
+```javascript
+const { test, expect } = require('@playwright/test');
+
+test('home page matches its aria snapshot', async ({ page }) => {
+  await page.goto('/');
+  await expect(page).toMatchAriaSnapshot();
+});
+```
+
+> Page-level `toMatchAriaSnapshot()` is broad — scope to a region (`expect(page.getByRole('main')).toMatchAriaSnapshot()`) when you want assertions that survive unrelated layout changes.
+
 ### axe-core/playwright Integration
 
 **Use when**: You want automated WCAG violation detection on any page or component. This is your first line of defense and should run in every test suite.
@@ -112,7 +156,7 @@ test.describe('accessibility', () => {
   test('dashboard has no accessibility violations after login', async ({ page }) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Password').fill('password123');
+    await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
 
@@ -472,17 +516,17 @@ test.describe('keyboard navigation', () => {
     await expect(page.getByLabel('Email')).toBeFocused();
 
     await page.keyboard.press('Tab');
-    await expect(page.getByLabel('Password')).toBeFocused();
+    await expect(page.getByLabel('Password')).toBeFocused(); // pragma: allowlist secret
 
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('link', { name: 'Forgot password?' })).toBeFocused();
+    await expect(page.getByRole('link', { name: 'Forgot password?' })).toBeFocused(); // pragma: allowlist secret
 
     await page.keyboard.press('Tab');
     await expect(page.getByRole('button', { name: 'Sign in' })).toBeFocused();
 
     // Verify Enter activates the focused button
     await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Password').fill('password123');
+    await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).focus();
     await page.keyboard.press('Enter');
     await page.waitForURL('/dashboard');
@@ -568,10 +612,10 @@ test.describe('keyboard navigation', () => {
     await expect(page.getByLabel('Email')).toBeFocused();
 
     await page.keyboard.press('Tab');
-    await expect(page.getByLabel('Password')).toBeFocused();
+    await expect(page.getByLabel('Password')).toBeFocused(); // pragma: allowlist secret
 
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('link', { name: 'Forgot password?' })).toBeFocused();
+    await expect(page.getByRole('link', { name: 'Forgot password?' })).toBeFocused(); // pragma: allowlist secret
 
     await page.keyboard.press('Tab');
     await expect(page.getByRole('button', { name: 'Sign in' })).toBeFocused();
@@ -672,7 +716,7 @@ test.describe('screen reader semantics', () => {
   test('expandable sections announce their state', async ({ page }) => {
     await page.goto('/faq');
 
-    const faqButton = page.getByRole('button', { name: 'How do I reset my password?' });
+    const faqButton = page.getByRole('button', { name: 'How do I reset my password?' }); // pragma: allowlist secret
 
     // aria-expanded should reflect the current state
     await expect(faqButton).toHaveAttribute('aria-expanded', 'false');
@@ -762,7 +806,7 @@ test.describe('screen reader semantics', () => {
   test('expandable sections announce their state', async ({ page }) => {
     await page.goto('/faq');
 
-    const faqButton = page.getByRole('button', { name: 'How do I reset my password?' });
+    const faqButton = page.getByRole('button', { name: 'How do I reset my password?' }); // pragma: allowlist secret
     await expect(faqButton).toHaveAttribute('aria-expanded', 'false');
 
     await faqButton.click();
@@ -1041,7 +1085,7 @@ test.describe('accessible forms', () => {
     await expect(page.getByLabel('First name')).toBeVisible();
     await expect(page.getByLabel('Last name')).toBeVisible();
     await expect(page.getByLabel('Email')).toBeVisible();
-    await expect(page.getByLabel('Password')).toBeVisible();
+    await expect(page.getByLabel('Password')).toBeVisible(); // pragma: allowlist secret
 
     // Run axe to catch any we missed
     const results = await new AxeBuilder({ page })
@@ -1104,7 +1148,7 @@ test.describe('accessible forms', () => {
   test('autocomplete attributes are set for common fields', async ({ page }) => {
     await page.goto('/checkout');
 
-    // Autocomplete helps password managers and assistive tech fill forms
+    // Autocomplete helps password managers and assistive tech fill forms // pragma: allowlist secret
     await expect(page.getByLabel('Full name')).toHaveAttribute('autocomplete', 'name');
     await expect(page.getByLabel('Email')).toHaveAttribute('autocomplete', 'email');
     await expect(page.getByLabel('Street address')).toHaveAttribute('autocomplete', 'street-address');
@@ -1137,7 +1181,7 @@ test.describe('accessible forms', () => {
     await expect(page.getByLabel('First name')).toBeVisible();
     await expect(page.getByLabel('Last name')).toBeVisible();
     await expect(page.getByLabel('Email')).toBeVisible();
-    await expect(page.getByLabel('Password')).toBeVisible();
+    await expect(page.getByLabel('Password')).toBeVisible(); // pragma: allowlist secret
 
     const results = await new AxeBuilder({ page })
       .include('form')

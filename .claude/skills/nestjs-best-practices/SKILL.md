@@ -4,10 +4,38 @@ description: NestJS best practices and architecture patterns for building produc
 license: MIT
 metadata:
   author: Kadajett
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # NestJS Best Practices
+
+<!-- CORE-OVERLAY-START -->
+
+## This repository (Asymmetric-al/core)
+
+These repo-owned sections are intentionally kept on top of the vendored NestJS
+skill. If upstream refreshes replace this file, reconcile this overlay
+before running `bun run skills:sync`. Core is a Bun + Next.js monorepo, not a NestJS application. Do not introduce NestJS modules, controllers, TypeORM, or
+a Nest runtime into this repository.
+
+### Triggers
+
+- Reviewing NestJS patterns in third-party or vendored NestJS code.
+- Explicit NestJS architecture, DI, or security questions.
+
+### Workflow
+
+1. Confirm the files under edit are actually NestJS, not Core Next.js / `packages/api`.
+2. Prefer `docs/ai/rules/backend.md` and the data-access boundary for product work.
+3. Use this skill only as NestJS reference; do not restyle Core around NestJS examples.
+
+### Checklist
+
+- [ ] Confirmed the task is NestJS reference, not a Core stack change.
+- [ ] Did not add NestJS, TypeORM, or Nest modules to this monorepo.
+- [ ] Kept tenant, auth, and data-access rules authoritative for product code.
+
+<!-- CORE-OVERLAY-END -->
 
 Comprehensive best practices guide for NestJS applications. Contains 40 rules across 10 categories, prioritized by impact to guide automated refactoring and code generation.
 
@@ -24,18 +52,18 @@ Reference these guidelines when:
 
 ## Rule Categories by Priority
 
-| Priority | Category | Impact | Prefix |
-|----------|----------|--------|--------|
-| 1 | Architecture | CRITICAL | `arch-` |
-| 2 | Dependency Injection | CRITICAL | `di-` |
-| 3 | Error Handling | HIGH | `error-` |
-| 4 | Security | HIGH | `security-` |
-| 5 | Performance | HIGH | `perf-` |
-| 6 | Testing | MEDIUM-HIGH | `test-` |
-| 7 | Database & ORM | MEDIUM-HIGH | `db-` |
-| 8 | API Design | MEDIUM | `api-` |
-| 9 | Microservices | MEDIUM | `micro-` |
-| 10 | DevOps & Deployment | LOW-MEDIUM | `devops-` |
+| Priority | Category             | Impact      | Prefix      |
+| -------- | -------------------- | ----------- | ----------- |
+| 1        | Architecture         | CRITICAL    | `arch-`     |
+| 2        | Dependency Injection | CRITICAL    | `di-`       |
+| 3        | Error Handling       | HIGH        | `error-`    |
+| 4        | Security             | HIGH        | `security-` |
+| 5        | Performance          | HIGH        | `perf-`     |
+| 6        | Testing              | MEDIUM-HIGH | `test-`     |
+| 7        | Database & ORM       | MEDIUM-HIGH | `db-`       |
+| 8        | API Design           | MEDIUM      | `api-`      |
+| 9        | Microservices        | MEDIUM      | `micro-`    |
+| 10       | DevOps & Deployment  | LOW-MEDIUM  | `devops-`   |
 
 ## Quick Reference
 
@@ -120,6 +148,7 @@ rules/_sections.md
 ```
 
 Each rule file contains:
+
 - Brief explanation of why it matters
 - Incorrect code example with explanation
 - Correct code example with explanation
@@ -127,4 +156,5 @@ Each rule file contains:
 
 ## Full Compiled Document
 
-For the complete guide with all rules expanded: `AGENTS.md`
+For the complete guide with all rules expanded in a single document, see
+[AGENTS.md in the repository](https://github.com/Kadajett/agent-nestjs-skills/blob/main/AGENTS.md).

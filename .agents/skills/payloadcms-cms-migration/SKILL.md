@@ -1,37 +1,9 @@
 ---
-name: payloadcms-cms-migration
-description: "Interactive CMS-to-Payload migration workflow: analyze exports, design collection configs, field mapping. Vendored from payloadcms/skills (cms-migration). Use when migrating from WordPress, Contentful, Strapi, Sanity, Webflow, or similar into Payload."
-metadata:
-  owner: core
-  last_updated: 2026-05-23
-  status: active
-  author: payloadcms
-  version: "1.0.0"
-  upstream:
-    url: https://github.com/payloadcms/skills
-    repo: payloadcms/skills
-    path: skills/cms-migration
-license: MIT
+name: cms-migration
+description: Use when user wants to migrate content from another CMS (WordPress, Contentful, Strapi, Sanity, Webflow, etc.) to Payload CMS
 ---
 
 # CMS Migration to Payload
-
-Interactive workflow to design Payload collections from source CMS data. Config-first approach: establish the data structure through conversation before any data import.
-
-## Triggers
-
-Use this skill when migrating content models or exports from another CMS into
-Payload, including WordPress, Contentful, Strapi, Sanity, Webflow, custom
-JSON/CSV exports, or a legacy in-house CMS.
-
-## Do not use when
-
-- The task is ordinary Payload application development in this repo; use
-  `docs/ai/skills/payloadcms-payload/SKILL.md`.
-- The task is only Supabase schema, RLS, Auth, Storage, or Edge Functions work;
-  use the Supabase skills and nested Supabase instructions instead.
-- The task asks to import production/customer data into the repo. Do not commit
-  customer exports or secrets.
 
 ## This repository (Asymmetric-al/core)
 
@@ -44,6 +16,8 @@ behavior and security. **Supabase schema, RLS, and Auth** follow
 **`docs/ai/skills/supabase/SKILL.md`** and **`supabase/AGENTS.md`**. Design
 Payload collections so application code continues to respect
 **`docs/guides/architecture/data-access-boundary.md`**.
+
+Interactive workflow to design Payload collections from source CMS data. Config-first approach: establish the data structure through conversation before any data import.
 
 ## Workflow
 

@@ -4,7 +4,7 @@ source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/v
 source_type: github
 upstream_path: cursor-team-kit/skills/verify-this/
 skills_lock_hash: c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de
-last_reviewed: 2026-06-26
+last_reviewed: 2026-09-23
 ---
 
 # Upstream: verify-this
@@ -13,7 +13,7 @@ Canonical copy in this repo: `docs/ai/skills/verify-this/` (mirrored to `.cursor
 
 - **Repository:** https://github.com/cursor/plugins
 - **Ref:** `main`
-- **Commit reviewed:** `0452e08a314c03621ec5ac1324f1ad1dd824f1a4`
+- **Commit reviewed:** `70b2dc8b4b85c8d5648624ca40d692c421fff32f`
 - **Upstream path:** `cursor-team-kit/skills/verify-this/`
 - **Lock skillPath:** `cursor-team-kit/skills/verify-this/SKILL.md`
 - **Computed hash:** `c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de`

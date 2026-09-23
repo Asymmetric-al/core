@@ -34,7 +34,7 @@ Use this doc when editing or running:
 - Canonical skills: `docs/ai/skills/*/SKILL.md`.
 - Generated mirrors: `.agents/skills/`, `.cursor/skills/`, `.claude/skills/`. Do not hand-edit mirrors.
 - Successful `skills:verify` leaves `git status` unchanged. Drift message: run `bun run skills:sync` and commit mirror updates.
-- Overlayfs can reject same-directory `rename` of lower-layer skill directories with `EXDEV`. `scripts/sync-agent-skills.mjs` falls back to copy then remove. Tests set `CORE_SKILLS_SIMULATE_RENAME_EXDEV=1` to exercise that path.
+- Overlayfs can reject same-directory `rename` of lower-layer skill directories with `EXDEV`. `scripts/sync-agent-skills.mjs` and `scripts/refresh-upstream-skills.mjs` fall back to copy then remove. Tests set `CORE_SKILLS_SIMULATE_RENAME_EXDEV=1` to exercise that path.
 
 ## Checklist
 

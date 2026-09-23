@@ -31,13 +31,13 @@ import { type Page, type Locator } from '@playwright/test';
 
 export class LoginPage {
   readonly usernameInput: Locator;
-  readonly passwordInput: Locator;
+  readonly passwordInput: Locator; // pragma: allowlist secret
   readonly submitButton: Locator;
   readonly errorMessage: Locator;
 
   constructor(private readonly page: Page) {
     this.usernameInput = page.getByLabel('Username');
-    this.passwordInput = page.getByLabel('Password');
+    this.passwordInput = page.getByLabel('Password'); // pragma: allowlist secret
     this.submitButton = page.getByRole('button', { name: 'Sign in' });
     this.errorMessage = page.getByRole('alert');
   }
@@ -46,9 +46,9 @@ export class LoginPage {
     await this.page.goto('/login');
   }
 
-  async login(username: string, password: string) {
+  async login(username: string, password: string) { // pragma: allowlist secret
     await this.usernameInput.fill(username);
-    await this.passwordInput.fill(password);
+    await this.passwordInput.fill(password); // pragma: allowlist secret
     await this.submitButton.click();
   }
 }
@@ -65,7 +65,7 @@ export class LoginPage {
   constructor(page) {
     this.page = page;
     this.usernameInput = page.getByLabel('Username');
-    this.passwordInput = page.getByLabel('Password');
+    this.passwordInput = page.getByLabel('Password'); // pragma: allowlist secret
     this.submitButton = page.getByRole('button', { name: 'Sign in' });
     this.errorMessage = page.getByRole('alert');
   }
@@ -74,9 +74,9 @@ export class LoginPage {
     await this.page.goto('/login');
   }
 
-  async login(username, password) {
+  async login(username, password) { // pragma: allowlist secret
     await this.usernameInput.fill(username);
-    await this.passwordInput.fill(password);
+    await this.passwordInput.fill(password); // pragma: allowlist secret
     await this.submitButton.click();
   }
 }
@@ -92,7 +92,7 @@ import { LoginPage } from './pages/login.page';
 test('successful login redirects to dashboard', async ({ page }) => {
   const loginPage = new LoginPage(page);
   await loginPage.goto();
-  await loginPage.login('admin', 'password123');
+  await loginPage.login('admin', 'password123'); // pragma: allowlist secret
 
   await expect(page).toHaveURL('/dashboard');
 });
@@ -274,18 +274,18 @@ export class LoginPage {
   }
 
   /** Returns DashboardPage on success. Call only when credentials are valid. */
-  async loginAs(username: string, password: string): Promise<DashboardPage> {
+  async loginAs(username: string, password: string): Promise<DashboardPage> { // pragma: allowlist secret
     await this.page.getByLabel('Username').fill(username);
-    await this.page.getByLabel('Password').fill(password);
+    await this.page.getByLabel('Password').fill(password); // pragma: allowlist secret
     await this.page.getByRole('button', { name: 'Sign in' }).click();
     await this.page.waitForURL('/dashboard');
     return new DashboardPage(this.page);
   }
 
   /** Use for invalid credential tests -- stays on login page. */
-  async loginExpectingError(username: string, password: string) {
+  async loginExpectingError(username: string, password: string) { // pragma: allowlist secret
     await this.page.getByLabel('Username').fill(username);
-    await this.page.getByLabel('Password').fill(password);
+    await this.page.getByLabel('Password').fill(password); // pragma: allowlist secret
     await this.page.getByRole('button', { name: 'Sign in' }).click();
   }
 }
@@ -323,17 +323,17 @@ export class LoginPage {
   }
 
   /** @returns {Promise<DashboardPage>} */
-  async loginAs(username, password) {
+  async loginAs(username, password) { // pragma: allowlist secret
     await this.page.getByLabel('Username').fill(username);
-    await this.page.getByLabel('Password').fill(password);
+    await this.page.getByLabel('Password').fill(password); // pragma: allowlist secret
     await this.page.getByRole('button', { name: 'Sign in' }).click();
     await this.page.waitForURL('/dashboard');
     return new DashboardPage(this.page);
   }
 
-  async loginExpectingError(username, password) {
+  async loginExpectingError(username, password) { // pragma: allowlist secret
     await this.page.getByLabel('Username').fill(username);
-    await this.page.getByLabel('Password').fill(password);
+    await this.page.getByLabel('Password').fill(password); // pragma: allowlist secret
     await this.page.getByRole('button', { name: 'Sign in' }).click();
   }
 }
@@ -350,7 +350,7 @@ test('user can navigate from login to settings', async ({ page }) => {
   const loginPage = new LoginPage(page);
   await loginPage.goto();
 
-  const dashboard = await loginPage.loginAs('admin', 'password123');
+  const dashboard = await loginPage.loginAs('admin', 'password123'); // pragma: allowlist secret
   const settings = await dashboard.gotoSettings();
 
   await expect(page).toHaveURL('/settings');
@@ -427,7 +427,7 @@ import { test, expect } from './fixtures';
 
 test('successful login redirects to dashboard', async ({ loginPage, page }) => {
   await loginPage.goto();
-  await loginPage.login('admin', 'password123');
+  await loginPage.login('admin', 'password123'); // pragma: allowlist secret
 
   await expect(page).toHaveURL('/dashboard');
 });
@@ -445,7 +445,7 @@ export const test = base.extend<{ authenticatedDashboard: DashboardPage }>({
     // Setup: navigate and authenticate
     await page.goto('/login');
     await page.getByLabel('Username').fill('admin');
-    await page.getByLabel('Password').fill('password123');
+    await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL('/dashboard');
 
@@ -786,7 +786,7 @@ class AppPage {
   async login() { /* ... */ }
   async addToCart() { /* ... */ }
   async checkout() { /* ... */ }
-  async changePassword() { /* ... */ }
+  async changePassword() { /* ... */ } // pragma: allowlist secret
   async viewAnalytics() { /* ... */ }
   // 40 more methods...
 }
@@ -799,9 +799,9 @@ Fix: Split by page or feature. One class per logical page. Compose shared UI int
 ```typescript
 // BAD: page object owns the assertion
 class LoginPage {
-  async loginAndVerify(username: string, password: string) {
+  async loginAndVerify(username: string, password: string) { // pragma: allowlist secret
     await this.usernameInput.fill(username);
-    await this.passwordInput.fill(password);
+    await this.passwordInput.fill(password); // pragma: allowlist secret
     await this.submitButton.click();
     // This assertion belongs in the test, not here
     await expect(this.page).toHaveURL('/dashboard');
@@ -810,9 +810,9 @@ class LoginPage {
 
 // GOOD: page object performs action, test asserts
 class LoginPage {
-  async login(username: string, password: string) {
+  async login(username: string, password: string) { // pragma: allowlist secret
     await this.usernameInput.fill(username);
-    await this.passwordInput.fill(password);
+    await this.passwordInput.fill(password); // pragma: allowlist secret
     await this.submitButton.click();
   }
 }
@@ -892,7 +892,7 @@ await expect(cartPage.itemCount).toHaveText('1');
 // BAD: test manipulates locators directly
 const loginPage = new LoginPage(page);
 await loginPage.usernameInput.fill('admin');
-await loginPage.passwordInput.fill('secret');
+await loginPage.passwordInput.fill('secret'); // pragma: allowlist secret
 await loginPage.submitButton.click();
 
 // GOOD: test calls an action

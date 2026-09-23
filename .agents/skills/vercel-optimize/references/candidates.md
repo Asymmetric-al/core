@@ -6,7 +6,7 @@
 
 The deterministic threshold expressions that turn observability signals into investigation candidates. Pure JS, no LLM. Thresholds live in `lib/gates/*.mjs`.
 
-Total gates: 15. Budget cap: `MAX_CODE_CANDIDATES = 6`. Gate version: `1.7.0`.
+Total gates: 15. Budget cap: `MAX_CODE_CANDIDATES = 6`. Gate version: `1.8.0`.
 
 ## Gates
 
@@ -144,12 +144,12 @@ Configured kinds emitted from scanner output. Each requires a minimum match coun
 
 ### `slow_route`
 
-- **Threshold**: `(p95 > 500 AND inv >= 1400) OR (p95 > 1500 AND inv >= 250); disqualified when 5xx rate > 50%`
+- **Threshold**: `(p95 > 500 AND inv >= 1400) OR (p95 > 1500 AND inv >= 250); disqualified when 5xx rate > 50%; Vercel Workflow runtime endpoints are hard-gated`
 - **Billing dimension**: function-duration
 - **Scope**: route
 - **Source citation**: `vercel-optimize gate threshold`
 
-Routes with p95 function duration above 500ms at meaningful traffic (>=1,400 invocations in window), OR catastrophically slow routes (>1500ms p95 at any volume >=250). High duration drives both function-duration cost and user-perceived latency. Investigate sequential awaits, slow external APIs, missing caching, N+1 patterns. Routes with >50% 5xx rate are disqualified — those are reliability problems, not performance tuning targets, and surface via route_errors instead.
+Routes with p95 function duration above 500ms at meaningful traffic (>=1,400 invocations in window), OR catastrophically slow routes (>1500ms p95 at any volume >=250). High duration drives both function-duration cost and user-perceived latency. Investigate sequential awaits, slow external APIs, missing caching, N+1 patterns. Routes with >50% 5xx rate are disqualified — those are reliability problems, not performance tuning targets, and surface via route_errors instead. Vercel Workflow runtime endpoints (`/.well-known/workflow/v1/*`) are hard-gated before launch because long-running step/flow requests are expected orchestration, not app-route bottlenecks.
 
 ---
 
