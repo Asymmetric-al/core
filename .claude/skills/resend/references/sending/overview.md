@@ -110,7 +110,7 @@ For more help with deliverability, install the email-best-practices skill with `
 | Practice | Why |
 |----------|-----|
 | **Use subdomains** | Send transactional from `notifications.acme.com`, marketing from `mail.acme.com` — protects reputation |
-| **Disable tracking for transactional** | Open/click tracking can trigger spam filters for password resets, receipts, etc. |
+| **Disable tracking for transactional** | Open/click tracking can trigger spam filters for password resets, receipts, etc. | // pragma: allowlist secret
 
 ## Tracking (Opens & Clicks)
 

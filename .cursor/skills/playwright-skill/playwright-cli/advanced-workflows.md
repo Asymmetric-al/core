@@ -86,9 +86,9 @@ playwright-cli run-code "async page => {
   // Handle Google OAuth in the popup
   await popup.fill('input[type=email]', 'user@gmail.com');
   await popup.click('#identifierNext');
-  await popup.waitForSelector('input[type=password]', { state: 'visible' });
-  await popup.fill('input[type=password]', 'password');
-  await popup.click('#passwordNext');
+  await popup.waitForSelector('input[type=password]', { state: 'visible' }); // pragma: allowlist secret
+  await popup.fill('input[type=password]', 'password'); // pragma: allowlist secret
+  await popup.click('#passwordNext'); // pragma: allowlist secret
 
   // Popup closes after auth, main page redirects
   await popup.waitForEvent('close');
@@ -621,7 +621,7 @@ playwright-cli tracing-start
 playwright-cli goto https://app.example.com/login
 playwright-cli snapshot
 playwright-cli fill e1 "test@example.com"
-playwright-cli fill e2 "password123"
+playwright-cli fill e2 "password123" // pragma: allowlist secret
 playwright-cli click e3
 playwright-cli state-save auth-state.json
 

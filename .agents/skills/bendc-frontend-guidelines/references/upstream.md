@@ -1,7 +1,7 @@
 ---
 source_name: bendc/frontend-guidelines
 source_url: https://github.com/bendc/frontend-guidelines
-last_reviewed: 2026-05-23
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: bendc frontend guidelines

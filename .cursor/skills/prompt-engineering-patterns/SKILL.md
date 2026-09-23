@@ -183,7 +183,7 @@ from langchain_chroma import Chroma
 # Create example selector with semantic similarity
 example_selector = SemanticSimilarityExampleSelector.from_examples(
     examples=[
-        {"input": "How do I reset my password?", "output": "Go to Settings > Security > Reset Password"},
+        {"input": "How do I reset my password?", "output": "Go to Settings > Security > Reset Password"}, // pragma: allowlist secret
         {"input": "Where can I see my order history?", "output": "Navigate to Account > Orders"},
         {"input": "How do I contact support?", "output": "Click Help > Contact Us or email support@example.com"},
     ],

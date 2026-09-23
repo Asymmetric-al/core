@@ -1,6 +1,6 @@
 # Transactional Email Best Practices
 
-Clear, actionable emails that users expect and need—password resets, confirmations, OTPs.
+Clear, actionable emails that users expect and need—password resets, confirmations, OTPs. // pragma: allowlist secret
 
 ## Core Principles
 
@@ -14,7 +14,7 @@ Clear, actionable emails that users expect and need—password resets, confirmat
 
 | ✅ Good | ❌ Bad |
 |---------|--------|
-| Reset your password for [App] | Action required |
+| Reset your password for [App] | Action required | // pragma: allowlist secret
 | Your order #12345 has shipped | Update on your order |
 | Your 2FA code for [App] | Security code: 12345 |
 | Verify your email for [App] | Verify your email |
@@ -71,7 +71,7 @@ Avoid `noreply@` - users reply to transactional emails.
 **Buttons:**
 - Large, tappable (44x44px+)
 - Contrasting colors
-- Clear action text ("Reset Password", "Verify Email")
+- Clear action text ("Reset Password", "Verify Email") // pragma: allowlist secret
 - HTTPS links only
 
 ## Error Handling
@@ -87,6 +87,6 @@ Avoid `noreply@` - users reply to transactional emails.
 - Provide support contact
 
 **"I didn't request this":**
-- Include in password resets, OTPs, security alerts
+- Include in password resets, OTPs, security alerts // pragma: allowlist secret
 - Link to security contact
 - Log clicks for monitoring

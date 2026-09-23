@@ -88,13 +88,15 @@ The strongest locator. It mirrors how assistive technology and real users percei
 - Resilient to markup refactors (class names, tag changes)
 - Enforces accessible markup -- if the locator breaks, your accessibility broke too
 - Works across frameworks (React, Vue, Angular, plain HTML)
-- Supports filtering by `name`, `level`, `checked`, `pressed`, `expanded`, `selected`
+- Supports filtering by `name`, `level`, `checked`, `pressed`, `expanded`, `selected`, and (Playwright 1.60+) `description`
 
 **Cons**
 - Requires the element to have a valid ARIA role (implicit or explicit)
-- Can match multiple elements when names are duplicated -- scope with chaining
+- Can match multiple elements when names are duplicated -- scope with chaining, `exact`, or `description`
 
 **When it fails**: Custom components with `<div>` soup and no ARIA roles. Fix the component first; add `getByTestId()` only if you cannot change the markup.
+
+**Disambiguating duplicates (Playwright 1.60+)**: when two controls share a name, prefer scoping/chaining first; if they differ only by accessible description (`aria-describedby`), use the `description` option rather than dropping to CSS — `getByRole('button', { name: 'Delete', description: 'Removes this project' })`. See [core/locators.md](locators.md#disambiguating-by-accessible-description-description-playwright-160).
 
 ---
 
@@ -103,7 +105,7 @@ The strongest locator. It mirrors how assistive technology and real users percei
 Queries by the associated `<label>` text. This is often the most readable locator for form fields.
 
 **Pros**
-- Extremely readable: `getByLabel('Password')` tells you exactly what field
+- Extremely readable: `getByLabel('Password')` tells you exactly what field // pragma: allowlist secret
 - Works with `<label for="...">`, wrapping `<label>`, and `aria-labelledby`
 
 **Cons**

@@ -62,7 +62,7 @@ export class UsersService {
 
   async createUser(data: CreateUserDto) {
     const user = await this.userRepo.save(data);
-    this.eventEmitter.emit('user.created', user);
+    this.eventEmitter.emit("user.created", user);
     return user;
   }
 }
@@ -70,7 +70,7 @@ export class UsersService {
 // orders.service.ts
 @Injectable()
 export class OrdersService {
-  @OnEvent('user.created')
+  @OnEvent("user.created")
   handleUserCreated(user: User) {
     // React to user creation without direct dependency
   }

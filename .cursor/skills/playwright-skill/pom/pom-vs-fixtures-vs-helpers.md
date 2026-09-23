@@ -244,7 +244,7 @@ type MyFixtures = {
   checkoutPage: CheckoutPage;
   dashboardPage: DashboardPage;
   authenticatedPage: ReturnType<typeof base['page']> extends Promise<infer P> ? P : never;
-  testUser: { email: string; password: string; id: string };
+  testUser: { email: string; password: string; id: string }; // pragma: allowlist secret
   apiClient: { get: (path: string) => Promise<Response>; post: (path: string, data: unknown) => Promise<Response> };
 };
 
@@ -267,7 +267,7 @@ export const test = base.extend<MyFixtures>({
     const response = await request.post('/api/test/users', {
       data: {
         email: `test-${Date.now()}@example.com`,
-        password: 'TestPass123!',
+        password: 'TestPass123!', // pragma: allowlist secret
       },
     });
     const user = await response.json();
@@ -283,7 +283,7 @@ export const test = base.extend<MyFixtures>({
   authenticatedPage: async ({ page, testUser }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(testUser.email);
-    await page.getByLabel('Password').fill(testUser.password);
+    await page.getByLabel('Password').fill(testUser.password); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page).toHaveURL('/dashboard');
 
@@ -352,7 +352,7 @@ const test = base.extend({
     const response = await request.post('/api/test/users', {
       data: {
         email: `test-${Date.now()}@example.com`,
-        password: 'TestPass123!',
+        password: 'TestPass123!', // pragma: allowlist secret
       },
     });
     const user = await response.json();
@@ -365,7 +365,7 @@ const test = base.extend({
   authenticatedPage: async ({ page, testUser }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(testUser.email);
-    await page.getByLabel('Password').fill(testUser.password);
+    await page.getByLabel('Password').fill(testUser.password); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign in' }).click();
     await expect(page).toHaveURL('/dashboard');
 
@@ -427,7 +427,7 @@ export function generateEmail(prefix = 'test'): string {
 export function generateUser(overrides: Partial<TestUser> = {}): TestUser {
   return {
     email: generateEmail(),
-    password: 'TestPass123!',
+    password: 'TestPass123!', // pragma: allowlist secret
     firstName: 'Test',
     lastName: 'User',
     ...overrides,
@@ -436,7 +436,7 @@ export function generateUser(overrides: Partial<TestUser> = {}): TestUser {
 
 interface TestUser {
   email: string;
-  password: string;
+  password: string; // pragma: allowlist secret
   firstName: string;
   lastName: string;
 }
@@ -510,7 +510,7 @@ function generateEmail(prefix = 'test') {
 function generateUser(overrides = {}) {
   return {
     email: generateEmail(),
-    password: 'TestPass123!',
+    password: 'TestPass123!', // pragma: allowlist secret
     firstName: 'Test',
     lastName: 'User',
     ...overrides,
@@ -623,7 +623,7 @@ type Fixtures = {
   loginPage: LoginPage;
   dashboardPage: DashboardPage;
   checkoutPage: CheckoutPage;
-  testUser: { email: string; password: string; id: string };
+  testUser: { email: string; password: string; id: string }; // pragma: allowlist secret
   authenticatedPage: import('@playwright/test').Page;
 };
 
@@ -653,7 +653,7 @@ export const test = base.extend<Fixtures>({
   // Composed fixture: depends on page object + resource fixture
   authenticatedPage: async ({ loginPage, testUser }, use) => {
     await loginPage.goto();
-    await loginPage.signIn(testUser.email, testUser.password);
+    await loginPage.signIn(testUser.email, testUser.password); // pragma: allowlist secret
     await use(loginPage.page);
   },
 });
@@ -728,7 +728,7 @@ const test = base.extend({
 
   authenticatedPage: async ({ loginPage, testUser }, use) => {
     await loginPage.goto();
-    await loginPage.signIn(testUser.email, testUser.password);
+    await loginPage.signIn(testUser.email, testUser.password); // pragma: allowlist secret
     await use(loginPage.page);
   },
 });
@@ -787,7 +787,7 @@ class LoginPage {
   async createTestUser() { /* API call to create user */ }
   async deleteTestUser() { /* API call to delete user */ }
   async seedDatabase() { /* database setup */ }
-  async signIn(email: string, password: string) { /* UI interaction */ }
+  async signIn(email: string, password: string) { /* UI interaction */ } // pragma: allowlist secret
 }
 ```
 
@@ -803,7 +803,7 @@ class LoginPage {
 // BAD: no methods, no encapsulation — just a bag of locators
 class LoginPage {
   emailInput = this.page.getByLabel('Email');
-  passwordInput = this.page.getByLabel('Password');
+  passwordInput = this.page.getByLabel('Password'); // pragma: allowlist secret
   submitButton = this.page.getByRole('button', { name: 'Sign in' });
 
   constructor(private page: Page) {}
@@ -813,7 +813,7 @@ class LoginPage {
 test('login', async ({ page }) => {
   const login = new LoginPage(page);
   await login.emailInput.fill('user@example.com');
-  await login.passwordInput.fill('pass');
+  await login.passwordInput.fill('pass'); // pragma: allowlist secret
   await login.submitButton.click();
 });
 ```
@@ -831,9 +831,9 @@ class LoginPage {
     await this.page.goto('/login');
   }
 
-  async signIn(email: string, password: string) {
+  async signIn(email: string, password: string) { // pragma: allowlist secret
     await this.page.getByLabel('Email').fill(email);
-    await this.page.getByLabel('Password').fill(password);
+    await this.page.getByLabel('Password').fill(password); // pragma: allowlist secret
     await this.page.getByRole('button', { name: 'Sign in' }).click();
     await this.page.waitForURL('**/dashboard');
   }

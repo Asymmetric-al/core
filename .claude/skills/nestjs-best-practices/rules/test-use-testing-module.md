@@ -13,24 +13,24 @@ Use `@nestjs/testing` module to create isolated test environments with mocked de
 
 ```typescript
 // Instantiate services manually without DI
-describe('UsersService', () => {
-  it('should create user', async () => {
+describe("UsersService", () => {
+  it("should create user", async () => {
     // Manual instantiation bypasses DI
     const repo = new UserRepository(); // Real repo!
     const service = new UsersService(repo);
 
-    const user = await service.create({ name: 'Test' });
+    const user = await service.create({ name: "Test" });
     // This hits the real database!
   });
 });
 
 // Test implementation details
-describe('UsersController', () => {
-  it('should call service', async () => {
+describe("UsersController", () => {
+  it("should call service", async () => {
     const service = { create: jest.fn() };
     const controller = new UsersController(service as any);
 
-    await controller.create({ name: 'Test' });
+    await controller.create({ name: "Test" });
 
     expect(service.create).toHaveBeenCalled(); // Tests implementation, not behavior
   });
@@ -41,9 +41,9 @@ describe('UsersController', () => {
 
 ```typescript
 // Use Test.createTestingModule for proper DI
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, TestingModule } from "@nestjs/testing";
 
-describe('UsersService', () => {
+describe("UsersService", () => {
   let service: UsersService;
   let repo: jest.Mocked<UserRepository>;
 
@@ -70,10 +70,10 @@ describe('UsersService', () => {
     jest.clearAllMocks();
   });
 
-  describe('create', () => {
-    it('should save and return user', async () => {
-      const dto = { name: 'John', email: 'john@test.com' };
-      const expectedUser = { id: '1', ...dto };
+  describe("create", () => {
+    it("should save and return user", async () => {
+      const dto = { name: "John", email: "john@test.com" };
+      const expectedUser = { id: "1", ...dto };
 
       repo.save.mockResolvedValue(expectedUser);
 
@@ -83,35 +83,35 @@ describe('UsersService', () => {
       expect(repo.save).toHaveBeenCalledWith(dto);
     });
 
-    it('should throw on duplicate email', async () => {
-      repo.findOne.mockResolvedValue({ id: '1', email: 'test@test.com' });
+    it("should throw on duplicate email", async () => {
+      repo.findOne.mockResolvedValue({ id: "1", email: "test@test.com" });
 
       await expect(
-        service.create({ name: 'Test', email: 'test@test.com' }),
+        service.create({ name: "Test", email: "test@test.com" }),
       ).rejects.toThrow(ConflictException);
     });
   });
 
-  describe('findById', () => {
-    it('should return user when found', async () => {
-      const user = { id: '1', name: 'John' };
+  describe("findById", () => {
+    it("should return user when found", async () => {
+      const user = { id: "1", name: "John" };
       repo.findOne.mockResolvedValue(user);
 
-      const result = await service.findById('1');
+      const result = await service.findById("1");
 
       expect(result).toEqual(user);
     });
 
-    it('should throw NotFoundException when not found', async () => {
+    it("should throw NotFoundException when not found", async () => {
       repo.findOne.mockResolvedValue(null);
 
-      await expect(service.findById('999')).rejects.toThrow(NotFoundException);
+      await expect(service.findById("999")).rejects.toThrow(NotFoundException);
     });
   });
 });
 
 // Testing guards and interceptors
-describe('RolesGuard', () => {
+describe("RolesGuard", () => {
   let guard: RolesGuard;
   let reflector: Reflector;
 
@@ -124,22 +124,24 @@ describe('RolesGuard', () => {
     reflector = module.get<Reflector>(Reflector);
   });
 
-  it('should allow when no roles required', () => {
+  it("should allow when no roles required", () => {
     const context = createMockExecutionContext({ user: { roles: [] } });
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(undefined);
+    jest.spyOn(reflector, "getAllAndOverride").mockReturnValue(undefined);
 
     expect(guard.canActivate(context)).toBe(true);
   });
 
-  it('should allow admin for admin-only route', () => {
-    const context = createMockExecutionContext({ user: { roles: ['admin'] } });
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin']);
+  it("should allow admin for admin-only route", () => {
+    const context = createMockExecutionContext({ user: { roles: ["admin"] } });
+    jest.spyOn(reflector, "getAllAndOverride").mockReturnValue(["admin"]);
 
     expect(guard.canActivate(context)).toBe(true);
   });
 });
 
-function createMockExecutionContext(request: Partial<Request>): ExecutionContext {
+function createMockExecutionContext(
+  request: Partial<Request>,
+): ExecutionContext {
   return {
     switchToHttp: () => ({
       getRequest: () => request,
