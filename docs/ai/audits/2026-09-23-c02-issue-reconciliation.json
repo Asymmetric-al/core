@@ -212,7 +212,7 @@
       "originalSha256": "7b21bcd54cc7cdeb24e929a36dae6a2372356ab91d2108f68c34719629f9a9a8",
       "publishedSha256": "a7647066eb1fd9671c0e129f9a70ad2a13f7838d64913d6e58cbf4ac4087c108",
       "readbackSha256": "a7647066eb1fd9671c0e129f9a70ad2a13f7838d64913d6e58cbf4ac4087c108",
-      "title": "[Phase 15] Deposit grouping â€” undeposited-funds spine & the deposit-state axis",
+      "title": "[Phase 15] Deposit grouping — undeposited-funds spine & the deposit-state axis",
       "bodyCharacters": 17820,
       "metadataPreserved": true,
       "nativeDependenciesPreserved": {
@@ -244,7 +244,7 @@
       "originalSha256": "c658051234f76e20c14d2bb7b8d43573c5a656ca6581f1406168bbda63458f28",
       "publishedSha256": "cc4a5f39d5a5a5b9bcf07b46cd51b56e293a53d000d384e68fea072b08ae3232",
       "readbackSha256": "cc4a5f39d5a5a5b9bcf07b46cd51b56e293a53d000d384e68fea072b08ae3232",
-      "title": "[Phase 15] Send-acknowledgments gate (NF3) â€” the one human release edge",
+      "title": "[Phase 15] Send-acknowledgments gate (NF3) — the one human release edge",
       "bodyCharacters": 17945,
       "metadataPreserved": true,
       "nativeDependenciesPreserved": {
@@ -260,7 +260,7 @@
       "originalSha256": "a7a94364e5e614dfcc60b53e9f72cfea54d06289a29753e7197f5984b7898b48",
       "publishedSha256": "0169314388ba574b1edbc4a3bb5c768f8043661e02752be9024a076a940ef3bf",
       "readbackSha256": "0169314388ba574b1edbc4a3bb5c768f8043661e02752be9024a076a940ef3bf",
-      "title": "[Phase 15] Consolidated safety-test tier â€” the one money-integrity CI gate",
+      "title": "[Phase 15] Consolidated safety-test tier — the one money-integrity CI gate",
       "bodyCharacters": 17231,
       "metadataPreserved": true,
       "nativeDependenciesPreserved": {
@@ -272,10 +272,10 @@
   ],
   "sourceHashes": {
     "docs/adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md": "3d72bd0f8edbd00d38e25aa3662944fbdea1c5a15386d3e5f40213618494d691",
-    "docs/prds/sitestacker-parity/phase-13-campaign-designation-contribution-ledger-giving-cart.md": "867e4b5fcf1811ba063f7e7efaa350133960316ef96ba3e0574573abe1b71f3c",
-    "docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md": "92215a3ee96e8ecefeb4eaa6344565514e820e810716a0358ef53da2dfc138e5",
-    "docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md": "9662cad45df5eacaeed0d83e7599e3f3058b11c141bb5c0e5a2802ad8f2cf63d",
-    "openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md": "b9720ee7d3273e558f6673fbbd25eea6fbd77e7c4b0d58f9f82abb2f3e28c6cc"
+    "docs/prds/sitestacker-parity/phase-13-campaign-designation-contribution-ledger-giving-cart.md": "139b514af5726fe0b0a6d7744462def760318ff05bbb8afe3b127030f33b1461",
+    "docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md": "72ccbde35bba464599189ea00f4d9fbc2f8e471a0e19511d867716c64ce37982",
+    "docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md": "5085a833b3268498570da8c4b41e16887334ebcd8f54dc75b46e9e73fb504b95",
+    "openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md": "54b5c4bd594098a4ee4023cfdbb26aacfd542c02ddf51de1f96cc05cb4410457"
   },
   "evidenceLimit": "Exact source and issue readback evidence, not implementation, provider, database, migration or activation proof.",
   "initialPublicationIssues": [
@@ -480,7 +480,7 @@
       "originalSha256": "4e9f00fedb3eec5b4acc42b993ef494869bda8c9220d9ad95877d0e610ca2718",
       "publishedSha256": "7b21bcd54cc7cdeb24e929a36dae6a2372356ab91d2108f68c34719629f9a9a8",
       "readbackSha256": "7b21bcd54cc7cdeb24e929a36dae6a2372356ab91d2108f68c34719629f9a9a8",
-      "title": "[Phase 15] Deposit grouping â€” undeposited-funds spine & the deposit-state axis",
+      "title": "[Phase 15] Deposit grouping — undeposited-funds spine & the deposit-state axis",
       "bodyCharacters": 17820,
       "metadataPreserved": true,
       "nativeDependenciesPreserved": {
@@ -512,7 +512,7 @@
       "originalSha256": "471b6f97d3abf27ea4cbc1de87f1b59d1d3923289c5d1b1251125d9e92677474",
       "publishedSha256": "c658051234f76e20c14d2bb7b8d43573c5a656ca6581f1406168bbda63458f28",
       "readbackSha256": "c658051234f76e20c14d2bb7b8d43573c5a656ca6581f1406168bbda63458f28",
-      "title": "[Phase 15] Send-acknowledgments gate (NF3) â€” the one human release edge",
+      "title": "[Phase 15] Send-acknowledgments gate (NF3) — the one human release edge",
       "bodyCharacters": 17945,
       "metadataPreserved": true,
       "nativeDependenciesPreserved": {
@@ -528,7 +528,7 @@
       "originalSha256": "7392491f32c054785c36d9b17bb7c86b373e791a172cbdd0bd0d2bef77e162a1",
       "publishedSha256": "a7a94364e5e614dfcc60b53e9f72cfea54d06289a29753e7197f5984b7898b48",
       "readbackSha256": "a7a94364e5e614dfcc60b53e9f72cfea54d06289a29753e7197f5984b7898b48",
-      "title": "[Phase 15] Consolidated safety-test tier â€” the one money-integrity CI gate",
+      "title": "[Phase 15] Consolidated safety-test tier — the one money-integrity CI gate",
       "bodyCharacters": 17231,
       "metadataPreserved": true,
       "nativeDependenciesPreserved": {
@@ -544,5 +544,142 @@
     "predecessorMergedAt": "2026-09-23T03:31:11Z",
     "baseCommit": "ea8086cf398fb20878994f5979cbeea7959a1845",
     "reason": "PR1897 merged the earlier reconciliation while the C02 follow-up was being prepared. Only the C02 source-carrier link in these16 bodies was corrected to PR1901; historical1897 citations remain. The initial publication and current readback are both retained."
+  },
+  "titleEncodingCorrection": {
+    "reason": "Restore titles from explicit UTF-8 provider captures; an earlier Windows locale decode corrupted em dashes in three titles. No GitHub titles or body hashes changed.",
+    "observedAt": "2026-09-23T04:45:54.768473+00:00",
+    "correctedIssues": [780, 783, 785]
+  },
+  "currentBodyReadbackConfirmedAt": "2026-09-23T04:45:54.768498+00:00",
+  "sourceHashesAtPublication": {
+    "docs/adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md": "3d72bd0f8edbd00d38e25aa3662944fbdea1c5a15386d3e5f40213618494d691",
+    "docs/prds/sitestacker-parity/phase-13-campaign-designation-contribution-ledger-giving-cart.md": "867e4b5fcf1811ba063f7e7efaa350133960316ef96ba3e0574573abe1b71f3c",
+    "docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md": "92215a3ee96e8ecefeb4eaa6344565514e820e810716a0358ef53da2dfc138e5",
+    "docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md": "9662cad45df5eacaeed0d83e7599e3f3058b11c141bb5c0e5a2802ad8f2cf63d",
+    "openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md": "b9720ee7d3273e558f6673fbbd25eea6fbd77e7c4b0d58f9f82abb2f3e28c6cc"
+  },
+  "openSpecProjectionProof": {
+    "helper": "@fission-ai/openspec@1.9.0 core/specs-apply.js buildUpdatedSpec (read-only)",
+    "operations": {
+      "added": 2,
+      "modified": 1,
+      "removed": 0,
+      "renamed": 0
+    },
+    "originalRequirementCount": 15,
+    "effectiveRequirementCount": 17,
+    "preservedUnrelatedRequirements": [
+      "Contribution Operations Core Owns Staff Gift Actions",
+      "High-Risk Contribution Actions Require A Granular Capability And Reason",
+      "Contribution Operation Audit Is Canonical And Cross-Surface",
+      "Stripe Remains Payment Authority For Refund And Provider State",
+      "Donor-Visible Contribution State Uses The Same Truth",
+      "Donor Correction Communications Use Governed Content and Shared Dispatch",
+      "Bulk Contribution Actions Use The Single-Action Contract",
+      "Contribution Operations Protect Donor Trust Through Corrections",
+      "Contribution Operations Prefer Shared System Behavior",
+      "Contribution Operation Completion Requires Trustworthy Feedback",
+      "Donor Correction Notifications Are Clear And Accountable",
+      "Mission Control Contribution Operations Has Gift-First And Donor-First Entry Points",
+      "Contribution Detail Shows Operational And Donor-Visible Consequences",
+      "Staff Contribution Search Supports Gift Operations"
+    ],
+    "originalScenariosPreserved": true,
+    "originalMoneyIdentityScenarioBytesPreserved": true,
+    "originalRefundProviderCorrectionClassesPreserved": true,
+    "postedMetadataRequiresSeparateOwner": true,
+    "draftInPlaceRequiresSourceAuthorization": true,
+    "postedResetDoesNotUnlock": true,
+    "previousAddedOnlyDeltaFailsEffectivePermissionCheck": true,
+    "effectiveStrictValidation": {
+      "valid": true,
+      "issues": [
+        {
+          "level": "INFO",
+          "path": "requirements[0]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[1]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[2]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[3]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[4]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[6]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[7]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[13]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[14]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[15]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        },
+        {
+          "level": "INFO",
+          "path": "requirements[16]",
+          "message": "Requirement text is very long (>500 characters). Consider breaking it down."
+        }
+      ],
+      "summary": {
+        "errors": 0,
+        "warnings": 0,
+        "info": 11
+      }
+    },
+    "deterministicRebuild": true,
+    "idempotentReapply": {
+      "added": 0,
+      "modified": 0,
+      "removed": 0,
+      "renamed": 0
+    },
+    "durableUnchanged": true,
+    "durableSha256": "1c6d01768007ebd4b8d6f14afe2ec8f8872804885d37bdf920a6bb043428e11a",
+    "deltaSha256": "54b5c4bd594098a4ee4023cfdbb26aacfd542c02ddf51de1f96cc05cb4410457",
+    "effectiveSpecSha256": "e469e87925266c80584f6f925ffe6b5f8041d5a1a5a30485562c722911ebe256",
+    "noRepositorySpecAppliedOrArchived": true,
+    "durablePath": "openspec/specs/contribution-operations/spec.md",
+    "deltaPath": "openspec/changes/sitestacker-parity/specs/contribution-operations/spec.md"
+  },
+  "sourceReviewFollowup": {
+    "verifiedAt": "2026-09-23T04:50:45.021779+00:00",
+    "changes": [
+      "Formally replace the harmless-metadata requirement through an active MODIFIED delta; leave durable runtime specs unapplied.",
+      "Restore returned in the Phase13 PAYMENT list without conflating refund/dispute.",
+      "Make existing Not Provided, Anonymous and identified acknowledgment defaults explicit.",
+      "Name the separate Phase15 current membership relation in overviews; 1:N describes batch grouping only."
+    ],
+    "issueBodiesChanged": false,
+    "bodyReadback": "All16 current body hashes match a fresh explicit UTF-8 GraphQL read. Title encoding was repaired from provider captures without changing GitHub titles or body hashes."
   }
 }

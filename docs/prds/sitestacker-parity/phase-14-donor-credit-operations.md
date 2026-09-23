@@ -1435,12 +1435,13 @@ Phase 14 exact acknowledgment-source relations
   request history and are not permission to alter source financial or settlement facts
 ```
 
-The existing meanings and default mappings remain: a grant's acknowledgment
-starts `not_applicable` unless its accepted attribution qualifies it; matching
-employee readiness uses the existing `ready` default subject to the same hold,
-identity, batch/import and qualification gates. Ambiguity, explicit staff hold
-and new-party readiness remain held. This relocation adds no review queue,
-new send permission or changed clock.
+The accepted D.4 mappings remain explicit: a `Not Provided` grant's
+acknowledgment starts `held`; an Anonymous-tier grant starts `not_applicable`.
+An identified grant becomes `ready` only after the existing hold and
+qualification gates. Matching employee readiness uses the existing `ready`
+default subject to the same hold, identity, batch/import and qualification
+gates. Ambiguity, explicit staff hold and new-party readiness remain held.
+This relocation adds no review queue, new send permission or changed clock.
 
 The owner command re-proves current Tenant, capability, exact source/audience,
 qualification and state revision. Release atomically freezes the admitted

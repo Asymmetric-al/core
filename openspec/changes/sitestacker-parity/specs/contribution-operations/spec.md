@@ -1,3 +1,74 @@
+## MODIFIED Requirements
+
+### Requirement: Contribution Corrections Preserve Money And Identity Truth
+
+Contribution operations MUST distinguish harmless internal metadata edits from
+corrections that affect money, donor identity, designation, provider state,
+refunds, official donor records, or donor-visible history.
+
+Harmless internal metadata MAY update directly only through its qualified
+source-owned record when it does not change money, identity, designation,
+official donor records, provider state, or donor-visible history. For a posted
+contribution, the edit MUST target a separate owner-controlled operational
+record with exact same-Tenant source identity and current authorization. It
+MUST NOT UPDATE or DELETE the posted financial header, designation lines or
+postings, including operational-looking or subsequently added columns.
+
+In-place edits to draft or never-posted source records MAY occur only when the
+owning source contract authorizes that exact edit. A mutable operational state
+change MUST NOT turn previously posted financial facts back into an editable
+draft. The durable posting/freeze fact and ADR-0206 remain binding.
+
+Corrections MUST be recorded for donor relinking, amount correction,
+fund/designation correction, missionary or project allocation correction,
+refund correction, receipt or statement correction, payment state correction,
+Stripe replay, and other provider-state corrections.
+
+#### Scenario: Staff changes harmless metadata
+
+- GIVEN a staff user edits safe internal notes or tags for a posted contribution
+- WHEN the edit does not affect money, identity, designation, official donor
+  records, provider state, or donor-visible history
+- THEN the platform applies the authorized edit to the qualified separate
+  owner-controlled operational record under its exact same-Tenant source identity
+- AND every posted financial header, designation line and posting stays unchanged
+- AND the change is still auditable as a meaningful staff action when required
+
+#### Scenario: Staff changes donor identity on a gift
+
+- GIVEN a staff user relinks a gift to a different donor
+- WHEN the operation is confirmed
+- THEN the platform records a correction
+- AND the original gift remains explainable through before/after summary
+- AND donor-visible history updates from the same corrected truth
+
+#### Scenario: Staff changes a gift amount or designation
+
+- GIVEN a staff user corrects amount, fund, designation, missionary, or project
+  allocation
+- WHEN the correction is confirmed
+- THEN the platform records a correction rather than silently overwriting money
+  or allocation truth
+- AND related donor-visible and staff-visible read models derive from the same
+  corrected contribution truth
+
+#### Scenario: Source-authorized metadata editing before posting
+
+- GIVEN a draft or never-posted source record and a staff metadata edit
+- WHEN the source owner authorizes that exact edit and current actor/source scope
+- THEN the platform may apply the harmless edit in place under that owner contract
+- AND money, identity, designation, official-record, provider-state or donor-visible
+  corrections still require the correction contract
+- AND the edit remains auditable when required
+
+#### Scenario: An operational reset cannot authorize a posted metadata update
+
+- GIVEN a contribution whose durable posting/freeze fact already exists
+- WHEN an ordinary or privileged caller changes operational state to unposted
+  or attempts a harmless-metadata UPDATE on a posted financial row
+- THEN the financial row remains immutable
+- AND an authorized metadata edit can affect only its qualified separate owner record
+
 ## ADDED Requirements
 
 ### Requirement: Tribute Coverage Uses Canonical Recipient Identity
@@ -87,9 +158,6 @@ source references, exposed through coherent authorized joined projections.
 No operational-field allowlist or privileged path MAY update a posted financial
 row. The durable posting/freeze fact MUST govern this protection; changing an
 operational status MUST NOT reopen the row for editing.
-The contribution-correction allowance for harmless metadata MUST NOT permit a
-posted financial-row update; such mutable metadata belongs in the separate
-qualified owner record.
 
 Phase 13 MUST retain payment source evidence, finance review and operational
 reconciliation ownership. Posting/reversal and effective money MUST remain
