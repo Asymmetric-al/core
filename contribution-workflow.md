@@ -97,9 +97,11 @@ The pre-push hook validates the outgoing commit set and runs
 `bun run ci:preflight`. Required remote attribution verification runs in the
 `format` job, which blocks `ci-gate` through `needs`. Pull requests validate the
 full event `base..head` graph. In a
-same-repository PR, the matching authenticated event actor or immutable PR
-author may present an unsigned registered tuple; a fork or presenter mismatch
-requires its matching signer.
+same-repository PR, only the matching authenticated event actor may present an
+unsigned registered tuple; a fork or actor mismatch requires its matching
+signer. PR ownership and earlier branch reachability are not identity proof.
+Bots or coworkers forwarding unsigned commits from another registered identity
+must obtain matching signature proof; the verifier does not grandfather them.
 Protected pushes instead validate GitHub-signed integration provenance. Commit-
 email association alone is not proof, and attribution does not replace GitHub
 authorization or review.

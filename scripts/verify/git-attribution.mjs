@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
+import { devNull } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -98,6 +99,28 @@ function splitCommitShas(output, label) {
       assertFullSha(sha, `${label} commit`);
       return sha;
     });
+}
+
+function ensureCompleteHistory(remoteName, runGit) {
+  const shallow = runGit(["rev-parse", "--is-shallow-repository"]).trim();
+  if (shallow === "false") return;
+  if (shallow !== "true") {
+    throw new Error("Git repository shallow state could not be determined");
+  }
+
+  runGit([
+    "fetch",
+    "--quiet",
+    "--unshallow",
+    "--no-tags",
+    "--no-write-fetch-head",
+    remoteName,
+  ]);
+  if (runGit(["rev-parse", "--is-shallow-repository"]).trim() !== "false") {
+    throw new Error(
+      "Git history is still shallow; cannot verify the complete outgoing range",
+    );
+  }
 }
 
 export function collectOutgoingCommitShas({
@@ -200,12 +223,14 @@ export function collectOutgoingCommitShas({
           throw new Error(`remote branch tip could not be inspected: ${sha}`);
         }
       }
+      ensureCompleteHistory(remoteName, runGit);
       output = runGit([
         "rev-list",
         resolvedCommit,
         ...(remoteTips.length > 0 ? ["--not", ...remoteTips] : []),
       ]);
     } else {
+      ensureCompleteHistory(remoteName, runGit);
       output = runGit(["rev-list", `${update.remoteSha}..${update.localSha}`]);
     }
 
@@ -226,6 +251,7 @@ export function isHistoricalCommit({ sha, baselineSha, runGitStatus }) {
   }
 
   const status = runGitStatus([
+    "--no-replace-objects",
     "merge-base",
     "--is-ancestor",
     sha,
@@ -489,19 +515,16 @@ function validateRegisteredIdentityProof({
 
   if (
     allowEventActorProof &&
-    [
-      { id: actors?.eventActorId, login: actors?.eventActorLogin },
-      {
-        id: actors?.pullRequestAuthorId,
-        login: actors?.pullRequestAuthorLogin,
-      },
-    ].some((account) => githubAccountMatches(identity, account))
+    githubAccountMatches(identity, {
+      id: actors?.eventActorId,
+      login: actors?.eventActorLogin,
+    })
   ) {
     return [];
   }
 
   return [
-    `${label} identity ${formatIdentity(identity)} lacks authenticated proof; require its verified signer or matching same-repository event actor or pull-request author ${formatGithubAccount(identity.githubLogin, identity.githubId)}`,
+    `${label} identity ${formatIdentity(identity)} lacks authenticated proof; require its verified signer or matching same-repository event actor ${formatGithubAccount(identity.githubLogin, identity.githubId)}`,
   ];
 }
 
@@ -516,6 +539,11 @@ export function validateGitHubActorAttribution(
   } = {},
 ) {
   const errors = [...validateForbiddenGithubPrincipals(actors)];
+
+  if (actors?.signature && !isValidSignature(actors.signature)) {
+    errors.push("commit signature is not valid");
+  }
+
   const authorIdentity = {
     name: metadata.authorName,
     email: metadata.authorEmail,
@@ -624,7 +652,7 @@ export function validateGitHubActorAttribution(
     authorIdentityRecord.githubId !== committerIdentityRecord.githubId
   ) {
     errors.push(
-      "unsigned mixed registered author and committer identities require a verified signature; event-actor and pull-request-author proofs cannot independently attest two different registered identities",
+      "unsigned mixed registered author and committer identities require a verified signature; one event actor or signature cannot attest two different registered identities",
     );
   }
 
@@ -652,7 +680,18 @@ export function validateCommitAttribution(
 }
 
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, {
+  // Attribution describes the immutable objects that Git will transmit, not
+  // local replacement graphs or substituted author/committer metadata.
+  const commandArgs =
+    command === "git" && args[0] !== "--no-replace-objects"
+      ? ["--no-replace-objects", ...args]
+      : args;
+  const result = spawnSync(command, commandArgs, {
+    // Legacy graft files also rewrite ancestry, independently of replace refs.
+    env:
+      command === "git"
+        ? { ...process.env, GIT_GRAFT_FILE: devNull }
+        : process.env,
     cwd: options.cwd,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
@@ -677,7 +716,12 @@ function run(command, args, options = {}) {
 }
 
 function runGitHubApi(args) {
-  return run("gh", ["api", ...args], { timeoutMs: GITHUB_API_TIMEOUT_MS });
+  const scopedArgs = args.includes("--hostname")
+    ? args
+    : ["--hostname", "github.com", ...args];
+  return run("gh", ["api", ...scopedArgs], {
+    timeoutMs: GITHUB_API_TIMEOUT_MS,
+  });
 }
 
 function mustRunGit(args) {
@@ -729,8 +773,8 @@ function readCommitMetadata(sha) {
 }
 
 function readGitHubCommit({ repoSlug, sha }) {
-  // Drop patches, messages, and profile data inside gh before Node buffers stdout.
-  // Keep parent records and Git identities intact so incomplete metadata still fails.
+  // Drop patches, messages, and profiles before Node buffers gh stdout.
+  // Keep every identity and parent field used by attribution validation.
   const result = runGitHubApi([
     `repos/${repoSlug}/commits/${sha}`,
     "--jq",
@@ -945,36 +989,43 @@ export function validateDevelopMergeProvenance({
   metadata,
   pullRequests,
   repository = CANONICAL_REPOSITORY,
-  runGitStatus: readGitStatus = runGitStatus,
+  runGitStatus: runStatus = runGitStatus,
 }) {
   const [baseParent, headParent] = metadata?.parentShas ?? [];
   const hasExactMergedPullRequest =
+    typeof metadata?.sha === "string" &&
+    FULL_SHA_PATTERN.test(metadata.sha) &&
     metadata?.parentShas?.length === 2 &&
-    [metadata.sha, baseParent, headParent].every(
-      (sha) => typeof sha === "string" && FULL_SHA_PATTERN.test(sha),
-    ) &&
+    FULL_SHA_PATTERN.test(baseParent) &&
+    FULL_SHA_PATTERN.test(headParent) &&
     Array.isArray(pullRequests) &&
-    pullRequests.some(
-      (pullRequest) =>
-        pullRequest?.state === "closed" &&
-        typeof pullRequest?.merged_at === "string" &&
-        pullRequest.merge_commit_sha === metadata.sha &&
-        pullRequest.base?.repo?.full_name?.toLowerCase() ===
-          repository.toLowerCase() &&
-        pullRequest.base?.ref === "develop" &&
-        pullRequest.head?.sha === headParent &&
-        typeof pullRequest.base?.sha === "string" &&
-        FULL_SHA_PATTERN.test(pullRequest.base.sha) &&
-        // GitHub can retain an older PR base when develop advances before merge.
-        // Prove that pinned snapshot is ancestral to the actual first parent.
-        (pullRequest.base.sha === baseParent ||
-          readGitStatus([
-            "merge-base",
-            "--is-ancestor",
-            pullRequest.base.sha,
-            baseParent,
-          ]) === 0),
-    );
+    pullRequests.some((pullRequest) => {
+      const recordedBase = pullRequest?.base?.sha;
+      if (
+        pullRequest?.state !== "closed" ||
+        typeof pullRequest?.merged_at !== "string" ||
+        pullRequest.merge_commit_sha !== metadata.sha ||
+        pullRequest.base?.repo?.full_name?.toLowerCase() !==
+          repository.toLowerCase() ||
+        pullRequest.base?.ref !== "develop" ||
+        typeof recordedBase !== "string" ||
+        !FULL_SHA_PATTERN.test(recordedBase) ||
+        pullRequest.head?.sha !== headParent
+      ) {
+        return false;
+      }
+
+      return (
+        recordedBase === baseParent ||
+        runStatus([
+          "--no-replace-objects",
+          "merge-base",
+          "--is-ancestor",
+          recordedBase,
+          baseParent,
+        ]) === 0
+      );
+    });
 
   return hasExactMergedPullRequest
     ? []
@@ -1061,6 +1112,7 @@ function resolveLocalRemoteContext() {
     : parseGitHubRepoSlug(mustRunGit(["remote", "get-url", remoteName]));
   const remoteQueryTarget = resolveTrustedRemoteQueryTarget({
     remoteName,
+    repoSlug,
     runCommand: run,
   });
 
@@ -1073,7 +1125,7 @@ function resolveLocalRemoteContext() {
   };
 }
 
-function collectLocalCommitShas({ remoteName, remoteQueryTarget }) {
+function collectLocalCommitShas({ remoteQueryTarget }) {
   const prePushInput = process.env.ASYM_PRE_PUSH_UPDATES;
 
   if (typeof prePushInput === "string") {
@@ -1085,6 +1137,7 @@ function collectLocalCommitShas({ remoteName, remoteQueryTarget }) {
     });
   }
 
+  ensureCompleteHistory(remoteQueryTarget, mustRunGit);
   return splitCommitShas(
     mustRunGit(["rev-list", "HEAD", "--not", "--remotes"]),
     "local-only",
@@ -1133,8 +1186,14 @@ function collectTrustedRemoteNames(remoteName, { runCommand }) {
 
 export function resolveTrustedRemoteQueryTarget({
   remoteName,
+  repoSlug,
   runCommand = run,
 } = {}) {
+  if (repoSlug) {
+    const { owner, name } = parseRepositorySlug(repoSlug);
+    return `https://github.com/${owner}/${name}.git`;
+  }
+
   const canonicalGitUrl = `https://github.com/${CANONICAL_REPOSITORY}.git`;
 
   if (typeof remoteName === "string" && remoteName.trim()) {
@@ -1165,92 +1224,204 @@ export function resolveTrustedRemoteQueryTarget({
   return canonicalGitUrl;
 }
 
-export function isReachableFromTrustedRemoteBranch(
-  sha,
-  remoteName,
-  { runCommand = run, runGitStatus: readGitStatus = runGitStatus } = {},
-) {
-  const remoteNames = collectTrustedRemoteNames(remoteName, { runCommand });
+function validateLocallyKnownPlatformCommit(metadata, verifyProtectedHistory) {
+  if (
+    !isGitHubPlatformIdentity({
+      name: metadata.committerName,
+      email: metadata.committerEmail,
+    })
+  ) {
+    return null;
+  }
+  if (!verifyProtectedHistory(metadata.sha)) {
+    return [
+      "GitHub platform commit is not in authenticated canonical protected history",
+    ];
+  }
+  const { metadata: remoteMetadata, actors } = readGitHubCommit({
+    repoSlug: CANONICAL_REPOSITORY,
+    sha: metadata.sha,
+  });
+  if (
+    [
+      "sha",
+      "authorName",
+      "authorEmail",
+      "committerName",
+      "committerEmail",
+    ].some((key) => remoteMetadata[key] !== metadata[key])
+  ) {
+    return [
+      "GitHub platform metadata does not match the immutable local commit",
+    ];
+  }
+  return validateGitHubActorAttribution(
+    remoteMetadata,
+    {
+      ...actors,
+      signature: readGitHubSignature({
+        repoSlug: CANONICAL_REPOSITORY,
+        sha: metadata.sha,
+      }),
+    },
+    { allowExternalAuthor: true },
+  );
+}
 
-  for (const trustedRemoteName of remoteNames) {
+function createCanonicalProtectedHistoryVerifier({
+  repository,
+  runGitHubApi: readApi = runGitHubApi,
+  runGitStatus: readGitStatus = runGitStatus,
+  runCommand = run,
+} = {}) {
+  const branchTips = new Map();
+  const fetchAttempts = new Set();
+
+  return (sha) => {
+    if (!isCanonicalRepositorySlug(repository)) {
+      return null;
+    }
+
+    assertFullSha(sha, "inherited commit SHA");
+
     for (const branch of ["develop", "production"]) {
-      const remoteRef = `refs/remotes/${trustedRemoteName}/${branch}`;
-      const refResult = runCommand("git", [
-        "show-ref",
-        "--verify",
-        "--quiet",
-        remoteRef,
-      ]);
-
-      if (!refResult.ok) {
-        continue;
+      if (!branchTips.has(branch)) {
+        const response = readApi([
+          "--hostname",
+          "github.com",
+          `repos/${CANONICAL_REPOSITORY}/branches/${branch}`,
+        ]);
+        let payload;
+        try {
+          payload = response.ok ? JSON.parse(response.stdout) : null;
+        } catch {
+          payload = null;
+        }
+        if (
+          payload?.name !== branch ||
+          typeof payload.protected !== "boolean" ||
+          typeof payload.commit?.sha !== "string" ||
+          !FULL_SHA_PATTERN.test(payload.commit.sha)
+        ) {
+          throw new Error(
+            `canonical protected branch proof unavailable or invalid for ${branch}`,
+          );
+        }
+        branchTips.set(branch, payload.protected ? payload.commit.sha : null);
       }
 
-      const status = readGitStatus([
+      const tip = branchTips.get(branch);
+      if (tip === null) {
+        continue;
+      }
+      const ancestryArgs = [
+        "--no-replace-objects",
         "merge-base",
         "--is-ancestor",
         sha,
-        remoteRef,
-      ]);
-
-      if (status === 0) {
-        return true;
-      }
-
-      if (status !== 1) {
-        throw new Error(
-          `git could not compare ${sha} with trusted remote branch ${remoteRef}`,
+        tip,
+      ];
+      let status = readGitStatus(ancestryArgs);
+      if (status !== 0 && status !== 1) {
+        // A full clone may predate this fresh authenticated tip. Only an
+        // absent exact object permits fetching; other Git failures stay closed.
+        const objectStatus = readGitStatus([
+          "--no-replace-objects",
+          "rev-parse",
+          "--verify",
+          "--quiet",
+          `${tip}^{object}`,
+        ]);
+        if (objectStatus !== 1 || fetchAttempts.has(tip)) {
+          throw new Error(
+            `canonical ${branch} ancestry unavailable for ${sha}`,
+          );
+        }
+        fetchAttempts.add(tip);
+        const fetched = runCommand(
+          "git",
+          [
+            "fetch",
+            "--quiet",
+            "--no-tags",
+            "--no-prune",
+            "--no-write-fetch-head",
+            "--no-recurse-submodules",
+            "--no-auto-maintenance",
+            "--refmap=",
+            `https://github.com/${CANONICAL_REPOSITORY}.git`,
+            tip,
+          ],
+          { timeoutMs: GITHUB_API_TIMEOUT_MS },
         );
+        if (!fetched.ok) {
+          throw new Error(`canonical protected tip fetch failed for ${branch}`);
+        }
+        if (
+          readGitStatus([
+            "--no-replace-objects",
+            "cat-file",
+            "-e",
+            `${tip}^{commit}`,
+          ]) !== 0
+        ) {
+          throw new Error(
+            `canonical protected tip remains unavailable for ${branch}`,
+          );
+        }
+        status = readGitStatus(ancestryArgs);
+      }
+      if (status === 0) {
+        return { branch, tip };
+      }
+      if (status !== 1) {
+        throw new Error(`canonical ${branch} ancestry unavailable for ${sha}`);
       }
     }
-  }
 
-  return false;
-}
-
-export function allowExternalCommitterForLocalCommit({
-  requireTrustedOperator,
-  sha,
-  remoteName,
-  runCommand,
-  runGitStatus,
-}) {
-  if (!requireTrustedOperator) {
-    return true;
-  }
-
-  return isReachableFromTrustedRemoteBranch(sha, remoteName, {
-    runCommand,
-    runGitStatus,
-  });
-}
-
-function validateLocallyKnownPlatformCommit(metadata, remoteName) {
-  const committer = {
-    name: metadata.committerName,
-    email: metadata.committerEmail,
-  };
-
-  if (!isGitHubPlatformIdentity(committer)) {
     return null;
-  }
+  };
+}
 
-  if (!isReachableFromTrustedRemoteBranch(metadata.sha, remoteName)) {
-    return validateCommitAttribution(metadata);
-  }
+export function createCanonicalHistoryVerifier({
+  repository,
+  runGitHubApi: readApi = runGitHubApi,
+  runGitStatus: readGitStatus = runGitStatus,
+  runCommand = run,
+  verifyProtectedHistory,
+} = {}) {
+  const verify =
+    verifyProtectedHistory ??
+    createCanonicalProtectedHistoryVerifier({
+      repository,
+      runGitHubApi: readApi,
+      runGitStatus: readGitStatus,
+      runCommand,
+    });
+  return (metadata) => {
+    if (!isCanonicalRepositorySlug(repository)) return null;
+    for (const role of ["author", "committer"]) {
+      const name = metadata[`${role}Name`];
+      const email = metadata[`${role}Email`];
+      if (
+        typeof name !== "string" ||
+        !name.trim() ||
+        typeof email !== "string" ||
+        !email.trim() ||
+        isForbiddenGitEmail(email) ||
+        usesGitHubPlatformIdentityField({ name, email })
+      ) {
+        return null;
+      }
+    }
 
-  return validateIdentity({
-    label: "GitHub platform commit author",
-    name: metadata.authorName,
-    email: metadata.authorEmail,
-    requireTrusted: false,
-    allowPlatformAlias: true,
-  });
+    return verify(metadata.sha);
+  };
 }
 
 function collectLocalVerification() {
   const errors = [];
-  const { remoteName, remoteQueryTarget, requireTrustedOperator } =
+  const { remoteQueryTarget, repoSlug, requireTrustedOperator } =
     resolveLocalRemoteContext();
   const identityOptions = { requireTrusted: requireTrustedOperator };
   const userName = mustRunGit(["config", "--get", "user.name"]);
@@ -1278,8 +1449,16 @@ function collectLocalVerification() {
   );
 
   const checkedCommits = [];
+  const inheritedCommits = [];
+  const verifyProtectedHistory = createCanonicalProtectedHistoryVerifier({
+    repository: CANONICAL_REPOSITORY,
+  });
+  const verifyInheritedHistory = createCanonicalHistoryVerifier({
+    repository: repoSlug,
+    verifyProtectedHistory,
+  });
 
-  for (const sha of collectLocalCommitShas({ remoteName, remoteQueryTarget })) {
+  for (const sha of collectLocalCommitShas({ remoteQueryTarget })) {
     if (
       isHistoricalCommit({
         sha,
@@ -1293,25 +1472,27 @@ function collectLocalVerification() {
     const metadata = readCommitMetadata(sha);
     const platformErrors = validateLocallyKnownPlatformCommit(
       metadata,
-      remoteName,
+      verifyProtectedHistory,
     );
 
     const commitErrors =
       platformErrors ??
       validateCommitAttribution(metadata, {
         allowExternalAuthor: true,
-        allowExternalCommitter: allowExternalCommitterForLocalCommit({
-          requireTrustedOperator,
-          sha,
-          remoteName,
-        }),
+        allowExternalCommitter: !requireTrustedOperator,
       });
 
-    errors.push(...commitErrors.map((error) => `${sha}: ${error}`));
+    const inherited =
+      commitErrors.length > 0 ? verifyInheritedHistory(metadata) : null;
+    if (inherited) {
+      inheritedCommits.push({ sha, ...inherited });
+    } else {
+      errors.push(...commitErrors.map((error) => `${sha}: ${error}`));
+    }
     checkedCommits.push(sha);
   }
 
-  return { errors, checkedCommits, userEmail, userName };
+  return { errors, checkedCommits, inheritedCommits, userEmail, userName };
 }
 
 export function collectCiCommitShas({
@@ -1348,10 +1529,25 @@ export function collectCiCommitShas({
       throw new Error("protected-branch update is not a fast-forward");
     }
 
-    return splitCommitShas(
+    const commits = splitCommitShas(
       runGit(["rev-list", ...ancestryArgs, `${baseSha}..${headSha}`]),
       "GitHub event range",
     );
+    if (protectedIntegration && eventName === "push" && baseSha !== headSha) {
+      // A DAG ancestor can sit only on a merge's side branch. The oldest
+      // introduced first-parent commit must instead extend the exact before SHA.
+      const oldest = commits.at(-1);
+      if (
+        !oldest ||
+        runGit(["--no-replace-objects", "rev-parse", `${oldest}^1`]).trim() !==
+          baseSha
+      ) {
+        throw new Error(
+          "protected-branch before SHA is not on the after first-parent spine",
+        );
+      }
+    }
+    return commits;
   }
 
   if (refType !== "branch" || !refName) {
@@ -1372,6 +1568,26 @@ export function collectCiCommitShas({
 
 function optionalEventValue(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function validateEventGithubPrincipal(label, login, id) {
+  if (login === null && id === null) {
+    return [];
+  }
+
+  if (
+    typeof login !== "string" ||
+    !/^[A-Za-z0-9-]+(?:\[bot\])?$/.test(login) ||
+    !hasImmutableGithubId(id) ||
+    !Number.isSafeInteger(Number(id)) ||
+    Number(id) <= 0
+  ) {
+    return [
+      `${label} must provide a complete valid login and immutable account id`,
+    ];
+  }
+
+  return [];
 }
 
 export function collectCiVerification({
@@ -1453,7 +1669,34 @@ export function collectCiVerification({
     triggeringActorId: triggeringActor.id,
     triggeringActorLogin: triggeringActor.login,
   };
-  const errors = [...validateForbiddenGithubPrincipals(eventActors)];
+  const errors = [
+    ...validateForbiddenGithubPrincipals(eventActors),
+    ...[
+      ["workflow actor", eventActors.eventActorLogin, eventActors.eventActorId],
+      [
+        "webhook sender",
+        eventActors.eventSenderLogin,
+        eventActors.eventSenderId,
+      ],
+      [
+        "pull request author",
+        eventActors.pullRequestAuthorLogin,
+        eventActors.pullRequestAuthorId,
+      ],
+      [
+        "pull request head owner",
+        eventActors.headOwnerLogin,
+        eventActors.headOwnerId,
+      ],
+      [
+        "workflow triggering actor",
+        eventActors.triggeringActorLogin,
+        eventActors.triggeringActorId,
+      ],
+    ].flatMap(([label, login, id]) =>
+      validateEventGithubPrincipal(label, login, id),
+    ),
+  ];
   const checkedCommits = [];
   const protectedIntegration =
     eventName !== "pull_request" &&
@@ -1574,6 +1817,11 @@ function main() {
       console.log(
         `Local Git identity: ${result.userName} <${result.userEmail}>`,
       );
+      for (const { sha, branch, tip } of result.inheritedCommits) {
+        console.log(
+          `Inherited canonical history: ${sha} (${branch} at ${tip})`,
+        );
+      }
     }
 
     return 0;

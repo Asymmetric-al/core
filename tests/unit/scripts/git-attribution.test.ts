@@ -17,8 +17,6 @@ import {
   parseGitIdentity,
   parseLatestCommitLog,
   resolveTriggeringActor,
-  allowExternalCommitterForLocalCommit,
-  isReachableFromTrustedRemoteBranch,
   resolveTrustedRemoteQueryTarget,
   validateDevelopMergeProvenance,
   validateGitHubActorAttribution,
@@ -556,7 +554,7 @@ describe("git attribution verifier", () => {
     ).toEqual([]);
   });
 
-  it("keeps the PR author's earlier unsigned commits valid when a bot synchronizes the branch", () => {
+  it("requires signature proof when a bot presents the PR author's unsigned commits", () => {
     expect(
       validateGitHubActorAttribution(
         commitMetadata(),
@@ -570,7 +568,7 @@ describe("git attribution verifier", () => {
         },
         { allowEventActorProof: true },
       ),
-    ).toEqual([]);
+    ).not.toEqual([]);
   });
 
   it("rejects unsigned mixed registered author and committer identities that independently match different GitHub principals", () => {
@@ -952,61 +950,6 @@ describe("git attribution verifier", () => {
     ).not.toEqual([]);
   });
 
-  it("trusts platform commits inherited from the canonical upstream remote", () => {
-    const platformSha = "4".repeat(40);
-    const runCommand = vi.fn((command: string, args: string[]) => {
-      expect(command).toBe("git");
-
-      if (args[0] === "remote" && args.length === 1) {
-        return {
-          ok: true,
-          stdout: "origin\nupstream",
-          stderr: "",
-          status: 0,
-        };
-      }
-
-      if (args[0] === "remote" && args[1] === "get-url") {
-        return {
-          ok: true,
-          stdout:
-            args[2] === "upstream"
-              ? "git@github.com:Asymmetric-al/core.git"
-              : "git@github.com:external/core.git",
-          stderr: "",
-          status: 0,
-        };
-      }
-
-      if (args[0] === "show-ref") {
-        return {
-          ok: args[3] === "refs/remotes/upstream/develop",
-          stdout: "",
-          stderr: "",
-          status: args[3] === "refs/remotes/upstream/develop" ? 0 : 1,
-        };
-      }
-
-      throw new Error(`unexpected git command: ${args.join(" ")}`);
-    });
-    const runGitStatus = vi.fn((args: string[]) =>
-      args[3] === "refs/remotes/upstream/develop" ? 0 : 1,
-    );
-
-    expect(
-      isReachableFromTrustedRemoteBranch(platformSha, "origin", {
-        runCommand,
-        runGitStatus,
-      }),
-    ).toBe(true);
-    expect(runGitStatus).toHaveBeenCalledWith([
-      "merge-base",
-      "--is-ancestor",
-      platformSha,
-      "refs/remotes/upstream/develop",
-    ]);
-  });
-
   it("rebuilds a trusted push URL before using it as the new-ref query target", () => {
     const runCommand = vi.fn((command: string, args: string[]) => {
       expect(command).toBe("git");
@@ -1101,119 +1044,6 @@ describe("git attribution verifier", () => {
         runCommand,
       }),
     ).toBe("origin");
-  });
-
-  it("does not trust a seed remote whose URL is outside the canonical repository", () => {
-    const forkSha = "6".repeat(40);
-    const runCommand = vi.fn((command: string, args: string[]) => {
-      expect(command).toBe("git");
-
-      if (args[0] === "remote" && args.length === 1) {
-        return {
-          ok: true,
-          stdout: "origin",
-          stderr: "",
-          status: 0,
-        };
-      }
-
-      if (args[0] === "remote" && args[1] === "get-url") {
-        return {
-          ok: true,
-          stdout: "git@github.com:external/core.git",
-          stderr: "",
-          status: 0,
-        };
-      }
-
-      if (args[0] === "show-ref") {
-        return {
-          ok: args[3] === "refs/remotes/origin/develop",
-          stdout: "",
-          stderr: "",
-          status: args[3] === "refs/remotes/origin/develop" ? 0 : 1,
-        };
-      }
-
-      throw new Error(`unexpected git command: ${args.join(" ")}`);
-    });
-    const runGitStatus = vi.fn(() => 0);
-
-    expect(
-      isReachableFromTrustedRemoteBranch(forkSha, "origin", {
-        runCommand,
-        runGitStatus,
-      }),
-    ).toBe(false);
-    expect(runGitStatus).not.toHaveBeenCalled();
-  });
-
-  it("allows already-integrated external committers when the commit is reachable from a trusted remote branch", () => {
-    const integratedSha = "5".repeat(40);
-    const runCommand = vi.fn((command: string, args: string[]) => {
-      expect(command).toBe("git");
-
-      if (args[0] === "remote" && args.length === 1) {
-        return {
-          ok: true,
-          stdout: "origin",
-          stderr: "",
-          status: 0,
-        };
-      }
-
-      if (args[0] === "remote" && args[1] === "get-url") {
-        return {
-          ok: true,
-          stdout: "git@github.com:Asymmetric-al/core.git",
-          stderr: "",
-          status: 0,
-        };
-      }
-
-      if (args[0] === "show-ref") {
-        const trusted =
-          args[3] === "refs/remotes/origin/develop" ||
-          args[3] === "refs/remotes/origin/production";
-        return {
-          ok: trusted,
-          stdout: "",
-          stderr: "",
-          status: trusted ? 0 : 1,
-        };
-      }
-
-      throw new Error(`unexpected git command: ${args.join(" ")}`);
-    });
-    const runGitStatus = vi.fn((args: string[]) =>
-      args[3] === "refs/remotes/origin/production" ? 0 : 1,
-    );
-
-    expect(
-      allowExternalCommitterForLocalCommit({
-        requireTrustedOperator: true,
-        sha: integratedSha,
-        remoteName: "origin",
-        runCommand,
-        runGitStatus,
-      }),
-    ).toBe(true);
-    expect(
-      allowExternalCommitterForLocalCommit({
-        requireTrustedOperator: true,
-        sha: "6".repeat(40),
-        remoteName: "origin",
-        runCommand,
-        runGitStatus: () => 1,
-      }),
-    ).toBe(false);
-    expect(
-      allowExternalCommitterForLocalCommit({
-        requireTrustedOperator: false,
-        sha: "7".repeat(40),
-        remoteName: "origin",
-      }),
-    ).toBe(true);
   });
 
   it("parses git identities and latest commit log output", () => {
@@ -1345,7 +1175,9 @@ describe("git attribution verifier", () => {
     const baseSha = "1".repeat(40);
     const headSha = "2".repeat(40);
     const childSha = "3".repeat(40);
-    const runGit = vi.fn(() => `${headSha}\n${childSha}\n`);
+    const runGit = vi.fn((args: string[]) =>
+      args.includes("rev-parse") ? baseSha : `${headSha}\n${childSha}\n`,
+    );
 
     expect(
       collectCiCommitShas({
@@ -1369,10 +1201,15 @@ describe("git attribution verifier", () => {
       runGit,
       runGitStatus: () => 0,
     });
-    expect(runGit).toHaveBeenLastCalledWith([
+    expect(runGit).toHaveBeenCalledWith([
       "rev-list",
       "--first-parent",
       `${baseSha}..${headSha}`,
+    ]);
+    expect(runGit).toHaveBeenLastCalledWith([
+      "--no-replace-objects",
+      "rev-parse",
+      `${childSha}^1`,
     ]);
 
     collectCiCommitShas({
@@ -1496,6 +1333,7 @@ describe("git attribution verifier", () => {
         }),
       ).toEqual([]);
       expect(runGitStatus).toHaveBeenCalledExactlyOnceWith([
+        "--no-replace-objects",
         "merge-base",
         "--is-ancestor",
         recordedBase,
@@ -1534,6 +1372,7 @@ describe("git attribution verifier", () => {
         }),
       ).not.toEqual([]);
       expect(runGitStatus).toHaveBeenCalledExactlyOnceWith([
+        "--no-replace-objects",
         "merge-base",
         "--is-ancestor",
         recordedBase,
@@ -1736,11 +1575,13 @@ describe("git attribution verifier", () => {
         .mocked(childProcess.spawnSync)
         .mockImplementation((command, args) => {
           expect(command).toBe("gh");
-          expect(args?.slice(0, 2)).toEqual([
+          expect(args?.slice(0, 4)).toEqual([
             "api",
+            "--hostname",
+            "github.com",
             `repos/Asymmetric-al/core/commits/${headSha}`,
           ]);
-          const projected = args?.[2] === "--jq" && args[3] === projection;
+          const projected = args?.[4] === "--jq" && args[5] === projection;
           // Model gh's output boundary with the real default subprocess limit:
           // unprojected file patches/message exceed it; metadata alone does not.
           return spawnSync(

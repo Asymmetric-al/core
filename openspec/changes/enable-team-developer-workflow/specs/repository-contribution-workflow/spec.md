@@ -59,6 +59,18 @@ as if the current developer created it.
 - **WHEN** a developer pushes a new branch
 - **THEN** commits already reachable from the canonical remote are excluded and every newly introduced commit is validated
 
+#### Scenario: A contributor pushes a new fork branch
+
+- **WHEN** the pushed repository is a fork and its existing history includes commits absent from canonical Core
+- **THEN** enumeration queries a credential-free GitHub URL derived from the actual destination slug and excludes that fork's existing commits
+- **AND** canonical push identity and platform-commit trust rules remain unchanged
+
+#### Scenario: Local history is shallow
+
+- **WHEN** a local attribution range would be selected in a shallow checkout
+- **THEN** verification fetches complete history from the sanitized destination and confirms that no shallow boundary remains before walking the range
+- **AND** unavailable or incomplete history blocks verification rather than omitting outgoing ancestors
+
 #### Scenario: A ref is deleted
 
 - **WHEN** a push deletes a remote ref
@@ -74,6 +86,26 @@ as if the current developer created it.
 
 - **WHEN** a scanned commit is proven to be an ancestor of the immutable policy baseline
 - **THEN** it is treated as historical and is not re-attributed
+
+#### Scenario: An existing feature branch imports protected canonical history
+
+- **WHEN** a scanned ordinary commit fails current tuple validation but a fresh authenticated GitHub response identifies a protected canonical `develop` or `production` tip and Git proves that exact commit is ancestral to that full tip SHA
+- **THEN** local verification reports the object as checked inherited history without registering its obsolete tuple for new work
+- **AND** local operator validation, full outgoing enumeration, forbidden-identity rejection, malformed-identity rejection, and platform-envelope requirements remain unchanged
+
+#### Scenario: A full local clone lacks the authenticated protected tip
+
+- **WHEN** inherited-history or platform proof needs an authenticated protected tip whose exact object is absent from a full local clone
+- **THEN** verification fetches that exact SHA from the fixed canonical GitHub HTTPS repository at most once with a bounded timeout, without fetching tags or changing local refs or `FETCH_HEAD`
+- **AND** the fetched tip must resolve to a commit before verification repeats the immutable ancestry proof
+- **AND** a present tip with an unrelated Git error, unavailable provider proof, failed fetch, missing commit or failed ancestry proof still fails closed
+- **AND** ordinary valid local commits remain offline and do not require this fetch
+
+#### Scenario: Inherited-history proof is absent or untrusted
+
+- **WHEN** a commit has only local tracking-ref or arbitrary remote-branch reachability, is unmerged on an open PR, or lacks valid authenticated protected-branch and exact-object ancestry proof
+- **THEN** it receives no inherited-history exemption and required unavailable or malformed proof fails closed
+- **AND** commits that satisfy current tuple validation need no additional protected-branch API request
 
 ### Requirement: Public contribution remains supported
 
@@ -130,9 +162,20 @@ or contradictory GitHub metadata MUST fail closed.
 #### Scenario: Registered developer presents an unsigned same-repository PR
 
 - **WHEN** an unsigned registered tuple appears in a same-repository pull request
-- **THEN** either the authenticated event actor or immutable pull-request author
-  login and numeric account ID must match that record and take responsibility
-  for presenting the change
+- **THEN** the authenticated event actor login and numeric account ID must match that record
+- **AND** pull-request ownership or earlier branch reachability alone MUST NOT authenticate the claim
+
+#### Scenario: A collaborator presents another registered identity's unsigned history
+
+- **WHEN** a bot or coworker updates a same-repository PR containing another registered identity's unsigned commits
+- **THEN** those registered claims require matching verified signature proof, even if the PR author matches or the commits predate the update
+- **AND** an unsigned same-tuple author and committer forgery is rejected
+
+#### Scenario: Author and committer are distinct registered accounts
+
+- **WHEN** a non-platform commit claims two different registered accounts as author and committer
+- **THEN** each claim requires its own matching authenticated proof
+- **AND** the current single-signature model rejects the combination because one signer cannot authenticate two distinct registered accounts
 
 #### Scenario: Registered identity requires signature proof
 
@@ -160,10 +203,26 @@ or contradictory GitHub metadata MUST fail closed.
 - **WHEN** the recorded base is malformed, unrelated, ahead of the first parent, reachable only through the head parent, or its ancestry cannot be checked
 - **THEN** attribution rejects the integration without treating missing history or command failure as proof
 
+#### Scenario: Protected before SHA is only a side ancestor
+
+- **WHEN** a protected push's before SHA is reachable from its after SHA only
+  through a merge side parent
+- **THEN** verification rejects the transition because before is not on the
+  after commit's first-parent spine
+- **AND** normal first-parent integrations and identical before/after updates
+  remain supported without changing platform-signature requirements
+
 #### Scenario: Reviewed side ancestry enters develop
 
 - **WHEN** a GitHub-signed two-parent merge matches the exact closed `develop` pull request and parent transition
 - **THEN** protected verification accepts the integration envelope without reassigning the merger's identity to the already-verified side ancestry
+
+#### Scenario: A merged pull request records an older base
+
+- **WHEN** GitHub records a base SHA older than the exact signed merge first parent
+- **THEN** verification requires complete SHA shapes and Git ancestry proof from that recorded base to the first parent
+- **AND** exact closed-PR, merge SHA, head-parent, platform-signature, and actor requirements still apply
+- **AND** unrelated, descendant, or unavailable recorded-base ancestry is rejected
 
 #### Scenario: Production is promoted
 
@@ -180,15 +239,53 @@ or contradictory GitHub metadata MUST fail closed.
 - **WHEN** a forbidden account appears as workflow actor, webhook sender, pull-request author, fork owner, rerun triggering actor, commit association, or signature signer
 - **THEN** remote attribution rejects the event independently of commit-email association or signature validity
 
+#### Scenario: An external commit has an invalid signature
+
+- **WHEN** an external author and committer have resolvable identities but GitHub returns an invalid or contradictory signature
+- **THEN** attribution rejects the commit regardless of whether either tuple is registered
+- **AND** unsigned attributable fork contributions remain supported
+
+#### Scenario: An event principal is partially identified
+
+- **WHEN** an event supplies either a principal login or immutable numeric account ID without a complete valid pair
+- **THEN** attribution rejects the event even if the commit has independent valid signature proof
+- **AND** a complete renamed forbidden principal remains rejected by immutable ID
+
 #### Scenario: GitHub creates a platform commit
 
 - **WHEN** GitHub reports the exact `GitHub <noreply@github.com>` / `web-flow` committer path with a valid signature made by GitHub's signing key
 - **THEN** the platform committer is accepted without being treated as a human developer
 
+#### Scenario: Local replacement objects alter attribution evidence
+
+- **WHEN** local replacement refs or legacy graft files substitute baseline ancestry, an outgoing
+  parent graph, commit identity metadata, or merged-PR base ancestry
+- **THEN** verification reads and walks the original immutable Git objects
+- **AND** a novel disallowed commit cannot become historical or disappear from
+  the checked range through a local replacement
+
+#### Scenario: A local platform envelope claims inherited history
+
+- **WHEN** a local outgoing commit uses the GitHub platform committer tuple
+- **THEN** verification requires fresh authenticated protection and exact-tip
+  ancestry proof from canonical develop or production
+- **AND** GitHub must return matching immutable commit metadata, valid author
+  and web-flow account associations, and a valid signature made by GitHub
+- **AND** local remote-tracking refs cannot authorize platform or external
+  committer exceptions, even when their configured remote URL is canonical
+- **AND** unavailable required proof fails closed while ordinary valid local
+  commits do not require a new provider lookup
+
 #### Scenario: Platform identity is forged locally
 
 - **WHEN** a local or remotely unverified commit imitates GitHub's platform name or email
 - **THEN** attribution verification rejects the commit
+
+#### Scenario: A commit has a large provider diff
+
+- **WHEN** GitHub returns a valid commit whose file patches or message exceed the verifier's subprocess output buffer
+- **THEN** the verifier projects only the commit SHA, raw Git author and committer, associated account logins and immutable numeric IDs, and parent records inside the GitHub CLI before buffering its output
+- **AND** absent or malformed identity and parent metadata, mismatched commit SHAs, and invalid signatures continue to fail closed under the same attribution policy
 
 #### Scenario: GitHub metadata is unavailable in required CI
 

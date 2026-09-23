@@ -9,6 +9,7 @@
 
 - [x] 2.1 Implement the canonical trusted-identity, forbidden-identity, platform-identity, and policy-baseline registry.
 - [x] 2.2 Refactor the attribution verifier around exact tuples, external-author policy, outgoing commit sets, local mode, and remote CI mode.
+- [x] 2.2a Prove inherited canonical protected history through fresh authenticated tips without accepting obsolete tuples for novel commits; cover untrusted refs, unavailable proof, and real base imports.
 - [x] 2.3 Implement the single pre-push coordinator and preserve the independent production push guard.
 - [x] 2.4 Add full-graph PR proof and provenance-bound protected integration verification to the existing CI gate graph without introducing a new required check name.
 - [x] 2.5 Keep data-boundary verification scoped to live source by excluding exact ignored Eve `.eve`, `.nitro`, and `.output` trees with RED/GREEN coverage.

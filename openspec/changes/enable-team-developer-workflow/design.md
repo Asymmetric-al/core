@@ -69,15 +69,41 @@ commit, queries the pushed remote's branch and tag tips, and fetches only
 advertised tips missing from the local object database without updating refs or
 `FETCH_HEAD`. It then excludes their complete histories. Deletions carry no
 commits, multi-ref results are deduplicated, and malformed, unfetchable, or
-unresolvable data fails closed.
+unresolvable data fails closed. Before a local outgoing range walk, a shallow
+checkout fetches complete history from the sanitized destination and confirms
+that Git no longer considers it shallow. Fetch failure or a remaining shallow
+boundary blocks enumeration rather than hiding outgoing ancestors.
 
 ### Keep a forward-only ancestry baseline
 
 The identity registry records the immutable `develop` commit on which the new
 policy began. A candidate is historical only when Git proves it is an ancestor
 of that baseline. Dates, messages, and first-parent shortcuts are not trusted.
+All verifier Git commands disable replacement objects and read legacy grafts
+from the OS null device rather than repository or environment-selected files.
+This covers range
+selection, identity metadata, baseline and provenance ancestry, so replacement
+refs cannot change the evidence while the original objects are pushed.
 This preserves current history while still checking a newly created side commit
 rooted in older history.
+
+Local existing-ref pushes also retain already-integrated canonical objects in
+the checked set. An ordinary tuple failure can be classified as inherited only
+with a fresh authenticated GitHub response proving protection of the exact
+canonical `develop` or `production` branch and ancestry to its full tip SHA.
+Local remote-tracking refs and replacement objects cannot supply this proof.
+The lookup is lazy, fails closed, and never exempts forbidden or malformed
+identities, platform envelopes, local operators, or novel commits. Unmerged
+open-PR history has no exemption. The immutable baseline and identity registry
+remain unchanged.
+
+Local GitHub platform envelopes use the same fresh canonical protected-tip
+resolver, followed by matching GitHub commit metadata, immutable account checks
+and a valid GitHub-made web-flow signature. Tracking refs never authorize an
+envelope or external committer. Ordinary external commits already integrated
+into protected canonical history keep the separate inherited-history proof;
+that classification cannot bypass the platform signature path. All provider
+lookups are scoped to github.com and ordinary valid local commits stay offline.
 
 ### Use event-bound remote scopes and proof
 
@@ -92,6 +118,9 @@ full history. Ordinary pull requests audit the complete immutable event
 
 Protected-branch pushes use the immutable `before`/`after` transition, reject
 non-fast-forwards, and audit the introduced first-parent integration spine.
+For a nonempty transition, the oldest introduced spine commit must have the
+exact before SHA as its first parent. General DAG ancestry alone is insufficient;
+a zero-length transition introduces no commits.
 Every scanned commit must be a two-parent GitHub platform merge with a valid
 `web-flow` signature made by GitHub. A `develop` integration must also bind to
 the exact closed Core pull request, target branch, merge SHA and second-parent
@@ -115,11 +144,16 @@ failure is inherited by the already-required `ci-gate`.
 GitHub's commit `author` and `committer` account associations come from the
 self-asserted commit email, so they are consistency metadata rather than proof.
 For a same-repository PR, an exact registered author or committer claim may be
-unsigned only when either the event actor or immutable PR author matches the
-registry. This preserves earlier owner commits when a coworker or bot updates
-the branch while binding the updater's new tuple separately. Forks never receive
-this exception. When neither presenter matches, GraphQL must report a valid
-signature whose signer login and ID match every registered claim. Protected
+unsigned only when the authenticated event actor matches the registry. PR
+ownership does not authenticate a newly forged same-tuple author and committer.
+Earlier reachability is also insufficient: a failed forged commit could become
+an ancestor on the next update. Forks never receive event-actor proof. When
+the actor differs, GraphQL must report a valid signature whose signer login
+and ID match every registered claim. A bot or coworker forwarding another
+registered identity's unsigned history must obtain matching signature proof;
+there is no PR-author or before-update grandfathering. If registered author
+and committer are distinct accounts, one signature cannot match both claims;
+the current strict policy intentionally rejects that combination. Protected
 pushes use only the platform-integration path.
 `github.triggering_actor` is never attribution proof because reruns retain the
 original actor's privileges; its current immutable ID is resolved and still

@@ -44,9 +44,10 @@ actor. Those legacy identities remain rejected in every contribution mode.
 
 ## Internal and external contribution paths
 
-- **Internal canonical pushes:** the local operator and every non-platform
-  committer must use a registered tuple. The hook validates the complete outgoing
-  commit set for every pushed ref, not arbitrary inherited `HEAD` history.
+- **Internal canonical pushes:** the local operator and every newly introduced
+  non-platform committer must use a registered tuple. The hook validates the
+  complete outgoing commit set for every pushed ref, including proof for any
+  inherited canonical history described below.
 - **Carried external authors:** an internal committer may integrate a parseable,
   non-forbidden external author's reviewed work without rewriting its author.
 - **External fork pull requests:** authors and committers do not need canonical
@@ -136,17 +137,40 @@ metadata. The pre-push coordinator reads Git's ref-update input once, preserves
 the production guard, and supplies the deduplicated outgoing commit set plus a
 sanitized repository slug to `bun run ci:preflight`; raw remote URLs are not
 propagated. Deletions introduce no commits. Existing refs use the complete
-remote-to-local graph; new refs query the actual remote branch/tag tips, fetch
+remote-to-local graph. Before any outgoing range walk, a shallow checkout must
+fetch complete history from the sanitized destination and verify it is no
+longer shallow; unavailable or still-incomplete history blocks verification.
+New refs query the actual remote branch/tag tips, fetch
 only missing advertised histories without updating refs or `FETCH_HEAD`, and
-subtract that remote history. Commits proven ancestral to the immutable
-policy baseline remain historical. Existing history is not rewritten.
+subtract that remote history. For a fork push, the query uses a credential-free
+GitHub URL built from the actual destination slug, never a canonical `upstream`
+substitute. Commits proven ancestral to the immutable policy baseline remain
+historical. Existing history is not rewritten.
+
+An existing feature branch can import commits already integrated into canonical
+`develop` or `production` after that baseline. If an ordinary commit's tuple no
+longer satisfies current policy, local verification requires a fresh authenticated
+GitHub API response for one of those exact canonical branches, confirms it is
+protected, and proves the commit is ancestral to the returned full tip SHA.
+Local tracking refs, arbitrary remote branches, and Git replacement objects do
+not supply that proof. Verified objects remain in the reported checked set and
+are identified as inherited history; their old tuples are not registered for
+new work. Forbidden or malformed identities and GitHub platform envelopes retain
+their existing checks. Unavailable or invalid required proof fails closed.
+Ordinary commits that already pass do not need this additional API request.
+Local operator checks and full outgoing enumeration always remain in force.
+Unmerged legacy commits on open PR branches receive no history exemption.
 
 Remote verification runs before formatting in the fast CI workflow. Ordinary
 pull requests validate the complete immutable event `base..head` graph,
 including merge parents. A same-repository PR may use the matching immutable
-event actor or PR author for an unsigned registered tuple; forks and presenter
-mismatches require the registered signer. This lets a bot or coworker update a
-PR without reassigning its owner's earlier commits.
+event actor for an unsigned registered tuple; forks and actor mismatches
+require the registered signer. PR ownership and ancestry before an update do
+not authenticate author or committer claims. A bot or coworker forwarding
+another registered identity's unsigned commits therefore needs matching
+signature proof; earlier presence on the branch grants no exception. Distinct
+registered author and committer accounts must each be authenticated; one
+signature cannot attest two different accounts, so that combination is rejected.
 
 Protected pushes reject non-fast-forwards and validate the first-parent
 integration spine so the merger or release actor is not retroactively applied
@@ -170,7 +194,10 @@ Forbidden IDs and logins are checked independently across event and commit
 principals. GraphQL signature metadata is fetched for every checked commit, and
 rerun actors are resolved to immutable IDs, so an invalid or forbidden signer
 cannot hide behind otherwise-sufficient actor proof. Missing, partial, or
-malformed metadata fails closed. The result remains inside the existing
+malformed metadata fails closed. Every present event principal must have a
+complete valid login and immutable numeric account ID. Any present invalid
+signature is rejected, including on external tuples; unsigned attributable
+fork contributions remain supported. The result remains inside the existing
 `ci-gate`; attribution does not add or replace a protected check name.
 
 The production release guard is unchanged. Direct `production` pushes still use
