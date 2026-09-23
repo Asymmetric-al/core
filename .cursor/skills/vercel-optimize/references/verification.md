@@ -34,11 +34,13 @@ The verifier extracts claims from `why`, `fix`, `currentBehavior`, `desiredBehav
 | 10 | `cited_count_literal` | "60+ icons in packages/ui/src/icons" | glob directory, count by extension |
 | 11 | `citation_in_library` | Any URL in `citations[]` | URL ∈ `references/docs-library.json` |
 | 12 | `citation_applies_to_version` | Any URL in `citations[]` | URL's `applicableFrameworks` matches `signals.json.stack.framework@frameworkVersion` |
-| 13 | `cache_vary_matches_dynamic_inputs` | CDN cache rec touches route files that read Vercel geolocation | Fails unless the rec varies by `X-Vercel-IP-Country` |
+| 13 | `cache_vary_matches_dynamic_inputs` | CDN cache rec touches route files that read Vercel geolocation | Fails unless the rec varies by a coarse Vercel geolocation header such as `X-Vercel-IP-Country`, `X-Vercel-IP-Country-Region`, or `X-Vercel-IP-City` |
+| 13a | `cache_vary_cardinality_safe` | CDN cache rec sets `Vary` on request-specific geography | Fails on high-cardinality `X-Vercel-IP-Latitude` / `X-Vercel-IP-Longitude` / `X-Vercel-IP-Postal-Code` |
 | 14 | `next_cached_not_found_causal_support` | Rec claims `notFound()` inside `'use cache'` caused 5xx | Fails unless backed by Next-specific docs or runtime stack evidence |
 | 15 | `next_stable_cache_api_for_version` | Next.js 16 cache rec includes code examples | Fails on `unstable_cacheLife` / `unstable_cacheTag` or one-arg `revalidateTag()` |
 | 16 | `next_cache_components_runtime_cache_preference` | Next.js rec uses Runtime Cache APIs while `cacheComponents=true` | Fails unless `use cache: remote` is used or Runtime Cache is framed as a fallback |
 | 17 | `next_cache_components_route_segment_config` | Next.js 16 rec suggests removed route segment config while `cacheComponents=true` | Fails on `dynamicParams`, `dynamic`, `revalidate`, or `fetchCache` recommendations |
+| 17a | `next_route_revalidate_static_prereq` | Rec suggests route-level `export const revalidate` for a Next.js page/layout route | Fails when the route chain contains request-time APIs or common auth helpers that can force dynamic rendering |
 | 18 | `next_cache_lifetime_freshness_supported` | Rec lengthens a tagged Cache Components lifetime with `cacheLife()` | Fails unless every affected `cacheTag()` has matching `revalidateTag()` / `updateTag()` evidence |
 | 19 | `next_cache_life_cdn_header_semantics` | Rec claims `cacheLife()` emits CDN/Cache-Control headers or that missing `cacheLife()` alone makes a route run per request | Fails unless rewritten to the documented Cache Components lifetime behavior or backed by production header evidence |
 | 20 | `next_cache_tag_invalidation_supported` | Cache-lifetime rec claims existing tag invalidation | Fails unless every claimed `cacheTag()` has matching `revalidateTag()` / `updateTag()` evidence |

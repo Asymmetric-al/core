@@ -131,6 +131,8 @@ npx playwright trace close
 
 Use the GUI Trace Viewer when you want the richest visual timeline. Use the CLI trace tools when you need quick answers in a terminal-first workflow.
 
+> For the full `npx playwright trace` command surface (`requests`, `console`, `errors`, `attachments`, `screenshot`), agent decision trees, and failure-type playbooks for debugging a `trace.zip` post-mortem, see [core/trace-analysis.md](../core/trace-analysis.md).
+
 ## Agent Debugging With `--debug=cli` (Playwright 1.59+)
 
 Playwright 1.59 adds a debugger flow designed for coding agents and terminal-based debugging. Start the test runner with `--debug=cli`, attach with `playwright-cli`, and then step through the paused test from the command line.
@@ -251,6 +253,30 @@ playwright-cli run-code "async page => {
   };
 }"
 ```
+
+### Capture Scoped HAR via Tracing (Playwright 1.60+)
+
+When you want a HAR file for just one portion of a flow — not the whole session — use the 1.60 `tracing.startHar()` / `tracing.stopHar()` API from `run-code`. It records network traffic to a HAR file on demand and accepts the same `content`, `mode`, and `urlFilter` options as context-level `recordHar`.
+
+```bash
+# Start scoped HAR recording for the API calls in the next step
+playwright-cli run-code "async page => {
+  await page.context().tracing.startHar({
+    path: 'traces/checkout.har',
+    urlFilter: '**/api/**',
+    content: 'embed',
+  });
+}"
+
+playwright-cli click e5            # the flow you want captured
+
+# Stop and flush the HAR
+playwright-cli run-code "async page => {
+  await page.context().tracing.stopHar();
+}"
+```
+
+Inside the Playwright test runner the same API supports `await using` for automatic cleanup — see [core/network-mocking.md](../core/network-mocking.md#on-demand-har-recording-in-tracing-playwright-160).
 
 ## Debugging Strategies
 

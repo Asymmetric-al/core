@@ -260,6 +260,10 @@ async function renderExpectedMirrors(repoRoot, syncScriptPath) {
       path.join(tempRoot, ".agents", "skills"),
     );
     await copyIfExists(
+      path.join(repoRoot, "scripts", "refresh-overlays"),
+      path.join(tempRoot, "scripts", "refresh-overlays"),
+    );
+    await copyIfExists(
       path.join(repoRoot, ".cursor", "commands"),
       path.join(tempRoot, ".cursor", "commands"),
     );

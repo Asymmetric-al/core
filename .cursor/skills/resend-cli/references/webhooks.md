@@ -21,13 +21,14 @@ Detailed flag specifications for `resend webhooks` commands.
 | `--endpoint <url>`     | string   | Yes (non-interactive) | HTTPS webhook URL    |
 | `--events <events...>` | string[] | Yes (non-interactive) | Event types or `all` |
 
-**All 17 events:**
+**All 19 events:**
 
 - Email: `email.sent`, `email.delivered`, `email.delivery_delayed`, `email.bounced`, `email.complained`, `email.opened`, `email.clicked`, `email.failed`, `email.scheduled`, `email.suppressed`, `email.received`
 - Contact: `contact.created`, `contact.updated`, `contact.deleted`
 - Domain: `domain.created`, `domain.updated`, `domain.deleted`
+- Suppression: `suppression.added`, `suppression.removed`
 
-**Output includes `signing_secret`** — shown once only. Save immediately.
+**Output includes `signing_secret`.** `webhooks get` returns it again.
 
 ---
 
@@ -35,7 +36,7 @@ Detailed flag specifications for `resend webhooks` commands.
 
 **Argument:** `<id>` — Webhook ID
 
-**Note:** `signing_secret` is NOT returned by get (only at creation).
+Returns the webhook including its `signing_secret`.
 
 ---
 
@@ -58,6 +59,79 @@ Detailed flag specifications for `resend webhooks` commands.
 | Flag    | Type    | Required              | Description       |
 | ------- | ------- | --------------------- | ----------------- |
 | `--yes` | boolean | Yes (non-interactive) | Skip confirmation |
+
+---
+
+## webhooks rotate-signing-secret
+
+**Argument:** `<id>` — Webhook ID
+
+Generates a new signing secret. For 24 hours, payloads are signed with both the
+new and the previous secret, so either one verifies them. After that, only the
+new secret does.
+
+Returns `{"object":"webhook","id":"<uuid>","signing_secret":"whsec_..."}`.
+
+---
+
+## webhooks events list
+
+Lists the events Resend delivered to a webhook, most recent first.
+
+**Argument:** `[webhookId]` — Webhook ID
+
+| Flag               | Type   | Default | Description                      |
+| ------------------ | ------ | ------- | -------------------------------- |
+| `--limit <n>`      | number | 10      | Max results (1-100)              |
+| `--after <cursor>` | string | —       | Forward pagination (an event ID) |
+
+**No `--before`.** These endpoints paginate forward only.
+
+**`status` values:** `pending`, `attempting`, `success`, `failed`.
+
+---
+
+## webhooks events get
+
+**Arguments:** `[webhookId]` `[eventId]`
+
+Returns the event with `next_attempt_at` and the `payload` that was sent to your endpoint.
+`next_attempt_at` is `null` once the event reaches `success` or `failed`.
+
+---
+
+## webhooks events attempts
+
+Lists the delivery attempts for one event, most recent first. Each attempt records the
+`http_status_code` and `response` body your endpoint returned.
+
+**Arguments:** `[webhookId]` `[eventId]`
+
+| Flag               | Type   | Default | Description                        |
+| ------------------ | ------ | ------- | ---------------------------------- |
+| `--limit <n>`      | number | 10      | Max results (1-100)                |
+| `--after <cursor>` | string | —       | Forward pagination (an attempt ID) |
+
+**Debugging a failed delivery:**
+
+1. `resend webhooks events list <webhook-id>` — find the event
+2. `resend webhooks events get <webhook-id> <event-id>` — see what we sent
+3. `resend webhooks events attempts <webhook-id> <event-id>` — see what your endpoint returned
+4. `resend webhooks events replay <webhook-id> <event-id>` — queue another delivery
+
+---
+
+## webhooks events replay
+
+Queues one more delivery of the event. Does not schedule automatic retries.
+
+**Arguments:** `[webhookId]` `[eventId]`
+
+The webhook must be enabled — re-enable it first with
+`resend webhooks update <webhook-id> --status enabled`.
+
+Returns `{"object":"webhook_event","id":"<event-id>"}` — no `type`, `status`,
+or `payload` (use `events get` for those).
 
 ---
 

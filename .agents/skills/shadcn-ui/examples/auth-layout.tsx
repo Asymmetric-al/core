@@ -59,10 +59,10 @@ export function AuthLayout() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Password</Label> // pragma: allowlist secret
                   <Input
-                    id="password"
-                    type="password"
+                    id="password" // pragma: allowlist secret
+                    type="password" // pragma: allowlist secret
                     required
                   />
                 </div>
@@ -80,7 +80,7 @@ export function AuthLayout() {
                   variant="link"
                   className="w-full text-sm text-muted-foreground"
                 >
-                  Forgot password?
+                  Forgot password? // pragma: allowlist secret
                 </Button>
               </CardFooter>
             </form>
@@ -115,18 +115,18 @@ export function AuthLayout() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="register-password">Password</Label>
+                  <Label htmlFor="register-password">Password</Label> // pragma: allowlist secret
                   <Input
-                    id="register-password"
-                    type="password"
+                    id="register-password" // pragma: allowlist secret
+                    type="password" // pragma: allowlist secret
                     required
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Label htmlFor="confirm-password">Confirm Password</Label> // pragma: allowlist secret
                   <Input
-                    id="confirm-password"
-                    type="password"
+                    id="confirm-password" // pragma: allowlist secret
+                    type="password" // pragma: allowlist secret
                     required
                   />
                 </div>

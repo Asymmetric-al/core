@@ -274,6 +274,50 @@ test('intermittent connectivity — request fails then succeeds', async ({ page 
 });
 ```
 
+### Aborting on Unexpected Requests (`test.abort()`, Playwright 1.60+)
+
+**Use when**: A route handler sees a request that should *never* happen (a call to a forbidden endpoint, a leaked third-party request, a missing mock), and you'd rather fail loudly at the source than chase a confusing downstream assertion.
+**Avoid when**: You can assert the condition in the test body — use `expect()` there. `test.abort()` shines in route handlers and fixtures, which run outside the test body.
+
+Playwright 1.60 adds `test.abort(message?)` to stop the running test immediately with a clear message, from inside a route handler or fixture.
+
+**TypeScript**
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('fails fast if the app calls a forbidden endpoint', async ({ page }) => {
+  await page.route('**/api/**', (route) => {
+    const url = route.request().url();
+    if (url.includes('/api/admin/delete-all')) {
+      // Stop now with a precise message instead of letting the page error out
+      test.abort(`Blocked dangerous request: ${url}`);
+    }
+    return route.continue();
+  });
+
+  await page.goto('/dashboard');
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+});
+```
+
+**JavaScript**
+```javascript
+const { test, expect } = require('@playwright/test');
+
+test('fails fast if the app calls a forbidden endpoint', async ({ page }) => {
+  await page.route('**/api/**', (route) => {
+    if (route.request().url().includes('/api/admin/delete-all')) {
+      test.abort('Blocked dangerous request');
+    }
+    return route.continue();
+  });
+
+  await page.goto('/dashboard');
+});
+```
+
+See [core/fixtures-and-hooks.md](fixtures-and-hooks.md) for aborting from fixture setup.
+
 ### Empty States and Boundary Testing
 
 **Use when**: Testing what the UI shows when there is no data, when inputs are at their minimum or maximum values, or when inputs contain special characters.

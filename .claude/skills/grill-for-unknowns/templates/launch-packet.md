@@ -66,3 +66,4 @@
 - [ ] Continue, stop-and-ask, and deviation-log rules are actionable.
 - [ ] Verification gates are concrete and executable by the receiving agent.
 - [ ] No material decision remains blocked at launch time.
+- <rubric criteria for subjective outputs, distilled from user reactions>

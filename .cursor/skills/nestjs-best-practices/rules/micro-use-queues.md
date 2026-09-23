@@ -13,7 +13,7 @@ Use `@nestjs/bullmq` for background job processing. Queues decouple long-running
 
 ```typescript
 // Long-running tasks in HTTP handlers
-@Controller('reports')
+@Controller("reports")
 export class ReportsController {
   @Post()
   async generate(@Body() dto: GenerateReportDto): Promise<Report> {
@@ -30,7 +30,7 @@ export class ReportsController {
 export class EmailService {
   async sendWelcome(email: string): Promise<void> {
     // If this fails, email is never sent
-    await this.mailer.send({ to: email, template: 'welcome' });
+    await this.mailer.send({ to: email, template: "welcome" });
     // No retry, no tracking, no visibility
   }
 }
@@ -45,13 +45,13 @@ setInterval(async () => {
 
 ```typescript
 // Configure BullMQ
-import { BullModule } from '@nestjs/bullmq';
+import { BullModule } from "@nestjs/bullmq";
 
 @Module({
   imports: [
     BullModule.forRoot({
       connection: {
-        host: 'localhost',
+        host: "localhost",
         port: 6379,
       },
       defaultJobOptions: {
@@ -59,15 +59,15 @@ import { BullModule } from '@nestjs/bullmq';
         removeOnFail: 5000,
         attempts: 3,
         backoff: {
-          type: 'exponential',
+          type: "exponential",
           delay: 1000,
         },
       },
     }),
     BullModule.registerQueue(
-      { name: 'email' },
-      { name: 'reports' },
-      { name: 'notifications' },
+      { name: "email" },
+      { name: "reports" },
+      { name: "notifications" },
     ),
   ],
 })
@@ -76,13 +76,11 @@ export class QueueModule {}
 // Producer: Add jobs to queue
 @Injectable()
 export class ReportsService {
-  constructor(
-    @InjectQueue('reports') private reportsQueue: Queue,
-  ) {}
+  constructor(@InjectQueue("reports") private reportsQueue: Queue) {}
 
   async requestReport(dto: GenerateReportDto): Promise<{ jobId: string }> {
     // Return immediately, process in background
-    const job = await this.reportsQueue.add('generate', dto, {
+    const job = await this.reportsQueue.add("generate", dto, {
       priority: dto.urgent ? 1 : 10,
       delay: dto.scheduledFor ? Date.parse(dto.scheduledFor) - Date.now() : 0,
     });
@@ -101,11 +99,11 @@ export class ReportsService {
 }
 
 // Consumer: Process jobs
-@Processor('reports')
+@Processor("reports")
 export class ReportsProcessor {
   private readonly logger = new Logger(ReportsProcessor.name);
 
-  @Process('generate')
+  @Process("generate")
   async generateReport(job: Job<GenerateReportDto>): Promise<Report> {
     this.logger.log(`Processing report job ${job.id}`);
 
@@ -141,9 +139,9 @@ export class ReportsProcessor {
 }
 
 // Email queue with retry
-@Processor('email')
+@Processor("email")
 export class EmailProcessor {
-  @Process('send')
+  @Process("send")
   async sendEmail(job: Job<SendEmailDto>): Promise<void> {
     const { to, template, data } = job.data;
 
@@ -163,19 +161,19 @@ export class EmailProcessor {
 // Usage
 @Injectable()
 export class NotificationService {
-  constructor(@InjectQueue('email') private emailQueue: Queue) {}
+  constructor(@InjectQueue("email") private emailQueue: Queue) {}
 
   async sendWelcome(user: User): Promise<void> {
     await this.emailQueue.add(
-      'send',
+      "send",
       {
         to: user.email,
-        template: 'welcome',
+        template: "welcome",
         data: { name: user.name },
       },
       {
         attempts: 5,
-        backoff: { type: 'exponential', delay: 5000 },
+        backoff: { type: "exponential", delay: 5000 },
       },
     );
   }
@@ -184,64 +182,64 @@ export class NotificationService {
 // Scheduled jobs
 @Injectable()
 export class ScheduledJobsService implements OnModuleInit {
-  constructor(@InjectQueue('maintenance') private queue: Queue) {}
+  constructor(@InjectQueue("maintenance") private queue: Queue) {}
 
   async onModuleInit(): Promise<void> {
     // Clean up old reports daily at midnight
     await this.queue.add(
-      'cleanup',
+      "cleanup",
       {},
       {
-        repeat: { cron: '0 0 * * *' },
-        jobId: 'daily-cleanup', // Prevent duplicates
+        repeat: { cron: "0 0 * * *" },
+        jobId: "daily-cleanup", // Prevent duplicates
       },
     );
 
     // Send digest every hour
     await this.queue.add(
-      'digest',
+      "digest",
       {},
       {
         repeat: { every: 60 * 60 * 1000 },
-        jobId: 'hourly-digest',
+        jobId: "hourly-digest",
       },
     );
   }
 }
 
-@Processor('maintenance')
+@Processor("maintenance")
 export class MaintenanceProcessor {
-  @Process('cleanup')
+  @Process("cleanup")
   async cleanup(): Promise<void> {
     await this.cleanupOldReports();
     await this.cleanupExpiredSessions();
   }
 
-  @Process('digest')
+  @Process("digest")
   async sendDigest(): Promise<void> {
     const users = await this.getUsersForDigest();
     for (const user of users) {
-      await this.emailQueue.add('send', { to: user.email, template: 'digest' });
+      await this.emailQueue.add("send", { to: user.email, template: "digest" });
     }
   }
 }
 
 // Queue monitoring with Bull Board
-import { BullBoardModule } from '@bull-board/nestjs';
-import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { BullBoardModule } from "@bull-board/nestjs";
+import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 
 @Module({
   imports: [
     BullBoardModule.forRoot({
-      route: '/admin/queues',
+      route: "/admin/queues",
       adapter: ExpressAdapter,
     }),
     BullBoardModule.forFeature({
-      name: 'email',
+      name: "email",
       adapter: BullMQAdapter,
     }),
     BullBoardModule.forFeature({
-      name: 'reports',
+      name: "reports",
       adapter: BullMQAdapter,
     }),
   ],

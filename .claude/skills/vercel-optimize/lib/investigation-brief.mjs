@@ -272,6 +272,7 @@ export const KIND_INTERPRETATION_HINTS = {
   slow_route: [
     'Compare `cpu.p95` vs `latency.p95`. If cpu << latency, the bottleneck is wall-clock / external IO / awaits — look for sequential awaits, slow DB queries, slow external APIs. If cpu ≈ latency, look for in-process compute (rendering, JSON serialization, crypto).',
     'Compare `ttfb.p95` vs `latency.p95`. If ttfb ≈ latency, response generation finishes near the end — streaming or `after()` may shift perceived latency.',
+    'For streaming, SSE, resumable chat, or other intentionally long-lived routes, do not treat high wall-clock duration alone as a bug. Recommend a change only when evidence shows avoidable pre-first-byte work, high active CPU, duplicate invocations, or post-response work that can move out of the user-visible path.',
     'Inspect `perDeployment`: a 2x step between deployments points to a regression introduced in the newer deployment. Frame the rec as "regression introduced in <deployment_id>" rather than a generic perf claim.',
     'Inspect `startTypeSplit.cold` share. >5% cold means cold starts contribute meaningfully — Fluid Compute or warmer keep-alive is on the table.',
     'Inspect `statusDistribution`. A non-trivial 3xx/4xx slice may be inflating p95 because redirects/auth bounces still count as invocations.',
@@ -594,14 +595,14 @@ function cachePolicyGuidance(kind, stack = {}) {
   const framework = stack.framework ?? 'unknown';
   const cacheComponents = stack.cacheComponents === true;
   const hints = [
-    'Whole public GET response: recommend `Cache-Control` / `CDN-Cache-Control` with `s-maxage` and `stale-while-revalidate`; name the TTL/freshness window and required `Vary` headers.',
+    'Whole public GET response: recommend `Cache-Control` / `CDN-Cache-Control` with `s-maxage` and `stale-while-revalidate`; name the TTL/freshness window and required `Vary` headers. Avoid high-cardinality `Vary` headers such as `X-Vercel-IP-Latitude` or `X-Vercel-IP-Longitude`; use coarser geography only when the product can tolerate it.',
     'Fallback, 404, auth, preview, webhook, mutation, and per-user branches: keep them uncached or short-lived while caching only the safe success branch.',
   ];
   if (framework === 'next') {
     if (cacheComponents) {
       hints.push('Next.js with Cache Components: for reusable data inside the render path, prefer `use cache` / `use cache: remote` plus `cacheLife()` and `cacheTag()` when invalidation evidence exists.');
     } else {
-      hints.push('Next.js data fetch path: use `fetch(..., { next: { revalidate: seconds } })` or route-level `revalidate` only when it matches the project version and route semantics.');
+      hints.push('Next.js data fetch path: use `fetch(..., { next: { revalidate: seconds } })` or route-level `revalidate` only when it matches the project version and route semantics. Before recommending route-level `export const revalidate`, inspect the page/layout route chain for `cookies()`, `headers()`, `draftMode()`, `connection()`, and auth helpers; if any parent layout is request-time dynamic, require `next build` or manifest proof that the route is still ISR/static, otherwise abstain.');
     }
   }
   hints.push('Reusable server data where whole-response CDN caching is unsafe: recommend Runtime Cache only when the same result is reused across requests and the freshness/invalidation story is explicit.');

@@ -65,8 +65,8 @@ export class RequestContextService {
 }
 
 // Better: Use NestJS built-in request context
-import { REQUEST } from '@nestjs/core';
-import { Request } from 'express';
+import { REQUEST } from "@nestjs/core";
+import { Request } from "express";
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuditService {
@@ -78,14 +78,14 @@ export class AuditService {
 }
 
 // Best: Use ClsModule for async context (no scope bubble-up)
-import { ClsService } from 'nestjs-cls';
+import { ClsService } from "nestjs-cls";
 
 @Injectable() // Stays singleton!
 export class AuditService {
   constructor(private cls: ClsService) {}
 
   log(action: string) {
-    const userId = this.cls.get('userId');
+    const userId = this.cls.get("userId");
     console.log(`User ${userId} performed ${action}`);
   }
 }

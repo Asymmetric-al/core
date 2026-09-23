@@ -34,6 +34,12 @@ function extractDependencyBlock(skill: string) {
   return match?.[1] ?? "";
 }
 
+function extractInstructionsBlock(skill: string) {
+  const match = skill.match(/## Instructions\n\n([\s\S]*?)\n?$/);
+  expect(match, "Babysitter instructions section").not.toBeNull();
+  return match?.[1] ?? "";
+}
+
 function extractDependencyShell(dependencyBlock: string) {
   const match = dependencyBlock.match(/```bash\n([\s\S]*?)\n```/);
   expect(match, "Babysitter dependency shell block").not.toBeNull();
@@ -143,6 +149,7 @@ const failClosedCases: Array<[string, (skillRoot: string) => void]> = [
 describe("babysit skill", () => {
   const skill = readFileSync(skillPath, "utf8");
   const dependencyBlock = extractDependencyBlock(skill);
+  const instructionsBlock = extractInstructionsBlock(skill);
   const dependencyShell = extractDependencyShell(dependencyBlock);
 
   it("resolves exactly the reviewed SDK pin with PLUGIN_ROOT unset", () => {
@@ -170,18 +177,37 @@ describe("babysit skill", () => {
     },
   );
 
-  it("uses only the exact validated pin through npx", () => {
+  it("uses only the exact validated pin through npm exec", () => {
     expect(skill).not.toContain("PLUGIN_ROOT");
+    expect(skill).not.toContain("CURSOR_PLUGIN_ROOT");
     expect(skill).not.toMatch(/\blatest\b/i);
     expect(skill).not.toMatch(/npm\s+(?:i|install)\s+(?:-g|--global)\b/);
     expect(dependencyShell).toContain(
-      'CLI="npx -y @a5c-ai/babysitter-sdk@$SDK_VERSION"',
+      'CLI="npm exec --yes --package @a5c-ai/babysitter-sdk@$SDK_VERSION -- babysitter"',
     );
     expect(
-      skill.match(/npx -y @a5c-ai\/babysitter-sdk@\$SDK_VERSION/g),
+      skill.match(
+        /npm exec --yes --package @a5c-ai\/babysitter-sdk@\$SDK_VERSION -- babysitter/g,
+      ),
     ).toHaveLength(1);
     expect(dependencyShell).toContain("exactVersionPattern.test(sdkVersion)");
     expect(dependencyShell).toContain(") || exit 1");
+    expect(skill).toContain("<!-- CORE-OVERLAY-START -->");
+    expect(skill).toContain("in-turn iteration");
+  });
+
+  it("refreshes babysit from a5c-ai/babysitter-cursor main", () => {
+    const refreshScript = readFileSync(refreshScriptPath, "utf8");
+    const babysitterGroup = refreshScript.match(
+      /\{\n    name: "Babysitter Cursor",\n([\s\S]*?)\n    skillExtraCopies:/,
+    );
+
+    expect(babysitterGroup, "Babysitter Cursor GitHub group").not.toBeNull();
+    expect(babysitterGroup?.[1]).toContain('ref: "main"');
+    expect(babysitterGroup?.[1]).not.toContain('ref: "develop"');
+    expect(babysitterGroup?.[1]).toContain(
+      "https://github.com/a5c-ai/babysitter-cursor/tree/main/skills/${skillName}",
+    );
   });
 
   it("requires the reviewed post-refresh adaptation and rejects drift", () => {
@@ -190,31 +216,68 @@ describe("babysit skill", () => {
       /const BABYSIT_UPSTREAM_DEPENDENCY_BLOCK = `([\s\S]*?)`;\n\nconst BABYSIT_CORE_DEPENDENCY_BLOCK/,
     );
     const coreBlockMatch = refreshScript.match(
-      /const BABYSIT_CORE_DEPENDENCY_BLOCK = `([\s\S]*?)`;\n\nconst POST_REFRESH_REPLACEMENTS/,
+      /const BABYSIT_CORE_DEPENDENCY_BLOCK = `([\s\S]*?)`;\n\nconst BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK/,
+    );
+    const upstreamInstructionsBlockMatch = refreshScript.match(
+      /const BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK = `([\s\S]*?)`;\n\nconst BABYSIT_CORE_INSTRUCTIONS_BLOCK/,
+    );
+    const coreInstructionsBlockMatch = refreshScript.match(
+      /const BABYSIT_CORE_INSTRUCTIONS_BLOCK = `([\s\S]*?)`;\n\nconst POST_REFRESH_REPLACEMENTS/,
     );
     expect(
       upstreamBlockMatch,
       "reviewed Babysitter upstream block",
     ).not.toBeNull();
-    expect(upstreamBlockMatch?.[1]).toContain("\\${PLUGIN_ROOT}/versions.json");
+    expect(upstreamBlockMatch?.[1]).toContain(
+      "\\${CURSOR_PLUGIN_ROOT}/versions.json",
+    );
     expect(upstreamBlockMatch?.[1]).toContain("||'latest'");
     expect(upstreamBlockMatch?.[1]).toContain(
-      "npm i -g @a5c-ai/babysitter-sdk@$SDK_VERSION",
+      "npm i -g @a5c-ai/babysitter-sdk@$SDK_VERSION || npm i -g @a5c-ai/babysitter-sdk@latest",
+    );
+    expect(upstreamBlockMatch?.[1]).toContain(
+      "the fallback installs \\`latest\\`",
     );
     expect(coreBlockMatch, "Babysitter Core refresh block").not.toBeNull();
     expect(coreBlockMatch?.[1]).toBe(encodeForTemplateLiteral(dependencyBlock));
-
-    const babysitReplacement = refreshScript.match(
-      /\{\n    skillName: "babysit",\n([\s\S]*?)\n  \},/,
+    expect(
+      upstreamInstructionsBlockMatch,
+      "reviewed Babysitter upstream instructions block",
+    ).not.toBeNull();
+    expect(upstreamInstructionsBlockMatch?.[1]).toContain(
+      "instructions:babysit-skill --harness cursor --interactive",
     );
-    expect(babysitReplacement, "Babysitter refresh replacement").not.toBeNull();
-    expect(babysitReplacement?.[1]).toContain(
+    expect(upstreamInstructionsBlockMatch?.[1]).toContain(
+      "instructions:babysit-skill --harness cursor --no-interactive",
+    );
+    expect(
+      coreInstructionsBlockMatch,
+      "Babysitter Core instructions refresh block",
+    ).not.toBeNull();
+    expect(coreInstructionsBlockMatch?.[1]).toBe(
+      encodeForTemplateLiteral(instructionsBlock),
+    );
+
+    const babysitReplacements = refreshScript.match(
+      /const POST_REFRESH_REPLACEMENTS = \[\n([\s\S]*?)\n  \{\n    skillName: "animation-vocabulary"/,
+    );
+    expect(
+      babysitReplacements,
+      "Babysitter refresh replacements",
+    ).not.toBeNull();
+    expect(babysitReplacements?.[1]).toContain(
       "search: BABYSIT_UPSTREAM_DEPENDENCY_BLOCK",
     );
-    expect(babysitReplacement?.[1]).toContain(
+    expect(babysitReplacements?.[1]).toContain(
       "replace: BABYSIT_CORE_DEPENDENCY_BLOCK",
     );
-    expect(babysitReplacement?.[1]).toContain("required: true");
+    expect(babysitReplacements?.[1]).toContain(
+      "search: BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK",
+    );
+    expect(babysitReplacements?.[1]).toContain(
+      "replace: BABYSIT_CORE_INSTRUCTIONS_BLOCK",
+    );
+    expect(babysitReplacements?.[1].match(/required: true/g)).toHaveLength(2);
     expect(refreshScript).toContain(
       "Required Core compatibility replacement is missing",
     );
