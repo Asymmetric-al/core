@@ -22,7 +22,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { cn } from "@asym/ui/lib/utils";
@@ -488,14 +487,13 @@ export function getContributionColumns({
                   <Copy className="mr-2 size-4" />
                   Copy Transaction ID
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onViewContribution(contribution)}
+                >
+                  <Eye className="mr-2 size-4" />
+                  View Details
+                </DropdownMenuItem>
               </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => onViewContribution(contribution)}
-              >
-                <Eye className="mr-2 size-4" />
-                View Details
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );

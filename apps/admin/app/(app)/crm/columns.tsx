@@ -20,7 +20,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
@@ -380,14 +379,13 @@ export function getCrmColumns({
                       Copy email
                     </DropdownMenuItem>
                   ) : null}
+                  <DropdownMenuItem
+                    onClick={() => onViewRecord(record)}
+                    className="rounded-lg"
+                  >
+                    Open details
+                  </DropdownMenuItem>
                 </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => onViewRecord(record)}
-                  className="rounded-lg"
-                >
-                  Open details
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

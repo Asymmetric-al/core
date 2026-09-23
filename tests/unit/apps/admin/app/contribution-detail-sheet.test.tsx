@@ -283,6 +283,43 @@ describe("ContributionDetailSheet refund entry point", () => {
     expect(onRefund).not.toHaveBeenCalled();
   });
 
+  it("does not make blocked refund focusable while another action is pending", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        actionAvailability={[blockedRefundEntry]}
+        onRefund={vi.fn()}
+        isActionPending
+      />,
+    );
+
+    const refundButton = view.getByRole("button", { name: /refund gift/i });
+    expect(refundButton).toHaveProperty("disabled", true);
+    expect(refundButton.getAttribute("tabindex")).not.toBe("0");
+  });
+
+  it("does not make a missing-staged-gift receipt action focusable while another action is pending", () => {
+    const contribution = {
+      ...boneyardContributionsFixture[0]!,
+      stagedGiftId: null,
+      receiptSent: false,
+    };
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        onSendReceipt={vi.fn()}
+        isActionPending
+      />,
+    );
+
+    const receiptButton = view.getByRole("button", { name: /send receipt/i });
+    expect(receiptButton).toHaveProperty("disabled", true);
+    expect(receiptButton.getAttribute("tabindex")).not.toBe("0");
+  });
+
   it("renders no refund affordance without an onRefund handler or refund entry", () => {
     const withoutHandler = render(
       <ContributionDetailSheet

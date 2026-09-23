@@ -14,7 +14,10 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { ContributionDetailSheet } from "./contribution-detail-sheet";
+import {
+  ContributionDetailSheet,
+  type ContributionDetailPendingAction,
+} from "./contribution-detail-sheet";
 // Intentional module cycle with ./operation-shell: the shell reuses this
 // file's detail query + invalidation helpers, and the overlay mounts the
 // shell for refunds. Both sides only reference the other inside function
@@ -421,6 +424,23 @@ export function ContributionDetailOverlay({
   const contribution = detailQuery.data
     ? contributionFromDetail(detailQuery.data)
     : null;
+  const pendingAction: ContributionDetailPendingAction | null =
+    approveMutation.isPending && approveMutation.variables
+      ? {
+          actionType: "approve_staged_gift",
+          ...approveMutation.variables,
+        }
+      : retryMutation.isPending && retryMutation.variables
+        ? {
+            actionType: "retry_staged_gift",
+            ...retryMutation.variables,
+          }
+        : receiptMutation.isPending && receiptMutation.variables
+          ? {
+              actionType: "resend_receipt",
+              ...receiptMutation.variables,
+            }
+          : null;
   const detailErrorMessage =
     donationId && !validDonationId
       ? "Invalid contribution link."
@@ -465,6 +485,7 @@ export function ContributionDetailOverlay({
           retryMutation.isPending ||
           receiptMutation.isPending
         }
+        pendingAction={pendingAction}
       />
 
       <ContributionOperationShell
