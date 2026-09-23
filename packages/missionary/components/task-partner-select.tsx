@@ -23,7 +23,7 @@ import { Check, ChevronsUpDown, Loader2, User, X } from "lucide-react";
 import { useId, useMemo, useRef } from "react";
 
 export interface TaskPartner {
-  avatar_url?: string;
+  avatar_url?: string | null;
   email?: string;
   id: string;
   name: string;
@@ -31,6 +31,7 @@ export interface TaskPartner {
 
 export interface TaskPartnerSelectProps {
   donors: TaskPartner[];
+  selectedPartner?: TaskPartner | null;
   value: string;
   loading: boolean;
   onChange: (value: string) => void;
@@ -62,6 +63,7 @@ function PartnerAvatar({
 
 export function TaskPartnerSelect({
   donors,
+  selectedPartner,
   value,
   loading,
   onChange,
@@ -72,7 +74,9 @@ export function TaskPartnerSelect({
   const labelId = useId();
   const hintId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const selectedDonor = donors.find((donor) => donor.id === value);
+  const selectedDonor =
+    donors.find((donor) => donor.id === value) ??
+    (selectedPartner?.id === value ? selectedPartner : undefined);
   const items = useMemo(
     () =>
       createComboboxItems(donors, {
@@ -95,8 +99,13 @@ export function TaskPartnerSelect({
         value={value || null}
         open={open}
         onOpenChange={onOpenChange}
-        onValueChange={(nextValue) => {
-          onChange(nextValue === value ? "" : (nextValue ?? ""));
+        onValueChange={(nextValue, details) => {
+          if (
+            nextValue === null ||
+            (nextValue === value && details.reason !== "item-press")
+          )
+            return;
+          onChange(nextValue === value ? "" : nextValue);
           onBlur?.();
         }}
         filter={(donor, query) =>
@@ -124,7 +133,9 @@ export function TaskPartnerSelect({
             ) : (
               <span className="flex min-w-0 items-center gap-2">
                 <User className="size-4" />
-                <span className="truncate">Select partner (optional)</span>
+                <span className="truncate">
+                  {value ? "Selected partner" : "Select partner (optional)"}
+                </span>
               </span>
             )}
             <ChevronsUpDown className="size-4 shrink-0 opacity-50" />

@@ -37,6 +37,29 @@ export function DataTableToolbar<TData extends RowData>({
   className,
   children,
 }: DataTableToolbarProps<TData>) {
+  const [resetRequested, setResetRequested] = React.useState(false);
+  const [resetFocused, setResetFocused] = React.useState(false);
+  const urlStatePendingRef = React.useRef(urlStatePending);
+  const sawUrlStatePendingRef = React.useRef(false);
+  React.useLayoutEffect(() => {
+    urlStatePendingRef.current = urlStatePending;
+    if (urlStatePending && resetRequested) {
+      sawUrlStatePendingRef.current = true;
+    }
+  }, [urlStatePending, resetRequested]);
+  React.useEffect(() => {
+    if (urlStatePending || !resetRequested) return;
+    if (sawUrlStatePendingRef.current) {
+      sawUrlStatePendingRef.current = false;
+      setResetRequested(false);
+      return;
+    }
+    // Give the parent URL transition one macrotask to publish pending.
+    const timeout = window.setTimeout(() => {
+      if (!urlStatePendingRef.current) setResetRequested(false);
+    }, 1);
+    return () => window.clearTimeout(timeout);
+  }, [urlStatePending, resetRequested]);
   // v9 removed `table.getState()`; `table.state` is the render-read surface.
   const isFiltered = table.state.columnFilters.length > 0;
 
@@ -75,13 +98,18 @@ export function DataTableToolbar<TData extends RowData>({
               />
             );
           })}
-          {isFiltered && (
+          {(isFiltered || (resetRequested && resetFocused)) && (
             <Button
               aria-label="Reset filters"
               variant="ghost"
-              onClick={() => table.resetColumnFilters()}
-              disabled={urlStatePending}
-              focusableWhenDisabled={urlStatePending}
+              onClick={() => {
+                setResetRequested(true);
+                table.resetColumnFilters();
+              }}
+              onFocus={() => setResetFocused(true)}
+              onBlur={() => setResetFocused(false)}
+              disabled={!isFiltered || urlStatePending}
+              focusableWhenDisabled={resetRequested && resetFocused}
               className="h-9 px-3 rounded-xl text-muted-foreground hover:text-foreground"
             >
               Reset

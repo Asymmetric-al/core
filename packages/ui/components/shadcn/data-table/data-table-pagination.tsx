@@ -52,6 +52,35 @@ function DataTablePaginationImpl<TData extends RowData>({
   className,
   urlStatePending = false,
 }: DataTablePaginationProps<TData>) {
+  const [pendingAction, setPendingAction] = React.useState<
+    "first" | "previous" | "next" | "last" | null
+  >(null);
+  const [focusedAction, setFocusedAction] = React.useState<
+    "first" | "previous" | "next" | "last" | null
+  >(null);
+  const urlStatePendingRef = React.useRef(urlStatePending);
+  const sawUrlStatePendingRef = React.useRef(false);
+  React.useLayoutEffect(() => {
+    urlStatePendingRef.current = urlStatePending;
+    if (urlStatePending && pendingAction !== null) {
+      sawUrlStatePendingRef.current = true;
+    }
+  }, [urlStatePending, pendingAction]);
+  // URL setters start their transition in the click. A local/no-op action
+  // must not claim a later, unrelated transition.
+  React.useEffect(() => {
+    if (urlStatePending || pendingAction === null) return;
+    if (sawUrlStatePendingRef.current) {
+      sawUrlStatePendingRef.current = false;
+      setPendingAction(null);
+      return;
+    }
+    // Give the parent URL transition one macrotask to publish pending.
+    const timeout = window.setTimeout(() => {
+      if (!urlStatePendingRef.current) setPendingAction(null);
+    }, 1);
+    return () => window.clearTimeout(timeout);
+  }, [urlStatePending, pendingAction]);
   // Focused subscriptions: the memo comparator below stops this component
   // from re-rendering with its table-owning parent, so every state slice it
   // renders needs its own subscription. Do not read `table.state` here — the
@@ -156,9 +185,16 @@ function DataTablePaginationImpl<TData extends RowData>({
             aria-label="Go to first page"
             variant="outline"
             className="hidden size-9 p-0 lg:flex rounded-xl"
-            onClick={() => table.setPageIndex(0)}
+            onClick={() => {
+              setPendingAction("first");
+              table.setPageIndex(0);
+            }}
+            onFocus={() => setFocusedAction("first")}
+            onBlur={() => setFocusedAction(null)}
             disabled={urlStatePending || !table.getCanPreviousPage()}
-            focusableWhenDisabled={urlStatePending}
+            focusableWhenDisabled={
+              pendingAction === "first" && focusedAction === "first"
+            }
           >
             <ChevronsLeft className="size-4" aria-hidden="true" />
           </Button>
@@ -166,9 +202,16 @@ function DataTablePaginationImpl<TData extends RowData>({
             aria-label="Go to previous page"
             variant="outline"
             className="size-9 p-0 rounded-xl"
-            onClick={() => table.previousPage()}
+            onClick={() => {
+              setPendingAction("previous");
+              table.previousPage();
+            }}
+            onFocus={() => setFocusedAction("previous")}
+            onBlur={() => setFocusedAction(null)}
             disabled={urlStatePending || !table.getCanPreviousPage()}
-            focusableWhenDisabled={urlStatePending}
+            focusableWhenDisabled={
+              pendingAction === "previous" && focusedAction === "previous"
+            }
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
           </Button>
@@ -176,9 +219,16 @@ function DataTablePaginationImpl<TData extends RowData>({
             aria-label="Go to next page"
             variant="outline"
             className="size-9 p-0 rounded-xl"
-            onClick={() => table.nextPage()}
+            onClick={() => {
+              setPendingAction("next");
+              table.nextPage();
+            }}
+            onFocus={() => setFocusedAction("next")}
+            onBlur={() => setFocusedAction(null)}
             disabled={urlStatePending || !table.getCanNextPage()}
-            focusableWhenDisabled={urlStatePending}
+            focusableWhenDisabled={
+              pendingAction === "next" && focusedAction === "next"
+            }
           >
             <ChevronRight className="size-4" aria-hidden="true" />
           </Button>
@@ -186,9 +236,16 @@ function DataTablePaginationImpl<TData extends RowData>({
             aria-label="Go to last page"
             variant="outline"
             className="hidden size-9 p-0 lg:flex rounded-xl"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+            onClick={() => {
+              setPendingAction("last");
+              table.setPageIndex(table.getPageCount() - 1);
+            }}
+            onFocus={() => setFocusedAction("last")}
+            onBlur={() => setFocusedAction(null)}
             disabled={urlStatePending || !table.getCanNextPage()}
-            focusableWhenDisabled={urlStatePending}
+            focusableWhenDisabled={
+              pendingAction === "last" && focusedAction === "last"
+            }
           >
             <ChevronsRight className="size-4" aria-hidden="true" />
           </Button>

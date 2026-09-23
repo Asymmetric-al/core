@@ -17,6 +17,14 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectControlLabel,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Gauge, ShieldCheck } from "lucide-react";
@@ -169,21 +177,25 @@ export function EveApprovalBudgetPanel() {
           ) : null}
           <div className="grid gap-4 md:grid-cols-[1fr_18rem]">
             <div>
-              <Label htmlFor="policy-action">Fixed app-owned action</Label>
-              <select
-                id="policy-action"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+              <Select<EvePolicyActionId>
+                items={ACTION_LABELS}
                 value={actionId}
-                onChange={(event) =>
-                  setActionId(event.target.value as EvePolicyActionId)
-                }
+                onValueChange={(value) => {
+                  if (value !== null) setActionId(value);
+                }}
               >
-                {EVE_POLICY_ACTION_IDS.map((id) => (
-                  <option key={id} value={id}>
-                    {ACTION_LABELS[id]}
-                  </option>
-                ))}
-              </select>
+                <SelectControlLabel>Fixed app-owned action</SelectControlLabel>
+                <SelectTrigger id="policy-action" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {EVE_POLICY_ACTION_IDS.map((id) => (
+                    <SelectItem key={id} value={id}>
+                      {ACTION_LABELS[id]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="policy-target">Non-sensitive target key</Label>

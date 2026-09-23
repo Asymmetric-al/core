@@ -27,3 +27,5 @@ The completed sections above describe the initial upgrade. They do not establish
 - [x] 4.5 Verify changed public APIs and affected consumers through focused tests, all app typechecks, accessibility checks, and browser keyboard/focus/responsive scenarios.
 - [x] 4.6 Reconcile the complete docs compliance ledger with the final source, including conditional features, specialist boundaries, and any external verification limits.
 - [ ] 4.7 Pass final preflight, relevant browser/build checks, current-head CI and review checks; update the PR and evidence before completion.
+
+Task 4.7 remains open because PR #1903's exact-head preview failed during unchanged Eve sandbox prewarming (governance_unavailable) before preview smoke. Source implementation, full local preflight and component browser checks passed; see verification.md and the PR for current-head CI/review evidence.

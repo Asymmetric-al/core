@@ -90,6 +90,32 @@ export function DataTableToolbarResponsive<TData extends RowData>({
 }: DataTableToolbarResponsiveProps<TData>) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
+  const [resetRequested, setResetRequested] = React.useState(false);
+  const [resetFocused, setResetFocused] = React.useState(false);
+  // onRefresh is fire-and-forget; query loading may arrive on a later tick.
+  // Preserve existing focus rather than retaining an unbounded click intent.
+  const [refreshFocused, setRefreshFocused] = React.useState(false);
+  const urlStatePendingRef = React.useRef(urlStatePending);
+  const sawUrlStatePendingRef = React.useRef(false);
+  React.useLayoutEffect(() => {
+    urlStatePendingRef.current = urlStatePending;
+    if (urlStatePending && resetRequested) {
+      sawUrlStatePendingRef.current = true;
+    }
+  }, [urlStatePending, resetRequested]);
+  React.useEffect(() => {
+    if (urlStatePending || !resetRequested) return;
+    if (sawUrlStatePendingRef.current) {
+      sawUrlStatePendingRef.current = false;
+      setResetRequested(false);
+      return;
+    }
+    // Give the parent URL transition one macrotask to publish pending.
+    const timeout = window.setTimeout(() => {
+      if (!urlStatePendingRef.current) setResetRequested(false);
+    }, 1);
+    return () => window.clearTimeout(timeout);
+  }, [urlStatePending, resetRequested]);
   const mobileSearchInputRef = React.useRef<HTMLInputElement>(null);
   // v9 removed `table.getState()`; `table.state` is the render-read surface.
   const isFiltered = table.state.columnFilters.length > 0;
@@ -220,12 +246,17 @@ export function DataTableToolbarResponsive<TData extends RowData>({
           />
         </div>
 
-        {isFiltered && (
+        {(isFiltered || (resetRequested && resetFocused)) && (
           <Button
             variant="ghost"
-            onClick={resetAllFilters}
-            disabled={urlStatePending}
-            focusableWhenDisabled={urlStatePending}
+            onClick={() => {
+              setResetRequested(true);
+              resetAllFilters();
+            }}
+            onFocus={() => setResetFocused(true)}
+            onBlur={() => setResetFocused(false)}
+            disabled={!isFiltered || urlStatePending}
+            focusableWhenDisabled={resetRequested && resetFocused}
             className="hidden lg:flex h-9 px-3 rounded-xl text-muted-foreground hover:text-foreground"
           >
             Reset
@@ -241,8 +272,10 @@ export function DataTableToolbarResponsive<TData extends RowData>({
               variant="outline"
               size="icon"
               onClick={onRefresh}
+              onFocus={() => setRefreshFocused(true)}
+              onBlur={() => setRefreshFocused(false)}
               disabled={isLoading}
-              focusableWhenDisabled={isLoading}
+              focusableWhenDisabled={isLoading && refreshFocused}
               aria-label="Refresh table"
               className="size-9 rounded-xl"
             >
@@ -389,6 +422,29 @@ function MobileFiltersDrawer<TData extends RowData>({
   enableAdvancedFilter,
   urlStatePending = false,
 }: MobileFiltersDrawerProps<TData>) {
+  const [clearRequested, setClearRequested] = React.useState(false);
+  const [clearFocused, setClearFocused] = React.useState(false);
+  const urlStatePendingRef = React.useRef(urlStatePending);
+  const sawUrlStatePendingRef = React.useRef(false);
+  React.useLayoutEffect(() => {
+    urlStatePendingRef.current = urlStatePending;
+    if (urlStatePending && clearRequested) {
+      sawUrlStatePendingRef.current = true;
+    }
+  }, [urlStatePending, clearRequested]);
+  React.useEffect(() => {
+    if (urlStatePending || !clearRequested) return;
+    if (sawUrlStatePendingRef.current) {
+      sawUrlStatePendingRef.current = false;
+      setClearRequested(false);
+      return;
+    }
+    // Give the parent URL transition one macrotask to publish pending.
+    const timeout = window.setTimeout(() => {
+      if (!urlStatePendingRef.current) setClearRequested(false);
+    }, 1);
+    return () => window.clearTimeout(timeout);
+  }, [urlStatePending, clearRequested]);
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerVirtualKeyboardProvider>
@@ -461,9 +517,14 @@ function MobileFiltersDrawer<TData extends RowData>({
           <DrawerFooter className="flex-row gap-2">
             <Button
               variant="outline"
-              onClick={onReset}
+              onClick={() => {
+                setClearRequested(true);
+                onReset();
+              }}
+              onFocus={() => setClearFocused(true)}
+              onBlur={() => setClearFocused(false)}
               disabled={activeFilterCount === 0 || urlStatePending}
-              focusableWhenDisabled={urlStatePending}
+              focusableWhenDisabled={clearRequested && clearFocused}
               className="flex-1 rounded-xl"
             >
               Clear All

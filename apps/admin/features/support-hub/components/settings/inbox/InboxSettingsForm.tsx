@@ -94,12 +94,13 @@ export function InboxSettingsForm() {
             ...signatures.map((sig) => ({ value: sig.id, label: sig.name })),
           ]}
           value={draft.defaultSignatureId ?? "none"}
-          onValueChange={(value) =>
+          onValueChange={(value) => {
+            if (value === null) return;
             setDraft({
               ...draft,
               defaultSignatureId: value === "none" ? null : value,
-            })
-          }
+            });
+          }}
           aria-label="Default signature"
           className="h-9 max-w-sm text-[12px]"
         />
@@ -118,12 +119,13 @@ export function InboxSettingsForm() {
             })),
           ]}
           value={draft.defaultSlaPolicyId ?? "none"}
-          onValueChange={(value) =>
+          onValueChange={(value) => {
+            if (value === null) return;
             setDraft({
               ...draft,
               defaultSlaPolicyId: value === "none" ? null : value,
-            })
-          }
+            });
+          }}
           aria-label="Default SLA policy"
           className="h-9 max-w-sm text-[12px]"
         />
@@ -142,12 +144,13 @@ export function InboxSettingsForm() {
             })),
           ]}
           value={draft.defaultBusinessHoursId ?? "none"}
-          onValueChange={(value) =>
+          onValueChange={(value) => {
+            if (value === null) return;
             setDraft({
               ...draft,
               defaultBusinessHoursId: value === "none" ? null : value,
-            })
-          }
+            });
+          }}
           aria-label="Business hours"
           className="h-9 max-w-sm text-[12px]"
         />

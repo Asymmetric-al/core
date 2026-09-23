@@ -170,9 +170,10 @@ export function SlaPolicyForm({
             })),
           ]}
           value={businessHoursId ?? "none"}
-          onValueChange={(value) =>
-            setBusinessHoursId(value === "none" ? null : value)
-          }
+          onValueChange={(value) => {
+            if (value === null) return;
+            setBusinessHoursId(value === "none" ? null : value);
+          }}
           aria-label="Business hours"
           className="h-9 max-w-sm text-[12px]"
         />

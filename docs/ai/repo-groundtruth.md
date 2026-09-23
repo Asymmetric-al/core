@@ -187,8 +187,8 @@ Summary of what is repo-visible:
   `vendor/react-pdf-packages`.
 - **Import-path protection:** the data-access boundary (§4.2) is enforced on
   specific import paths by ESLint + `verify:data-boundary`.
-- **Push/branch guards (local):** `.husky/pre-push` runs `verify:git-attribution`
-  (blocks specific Git identities) and blocks direct `production` pushes unless via
+- **Push/branch guards (local):** `.husky/pre-push` runs normal preflight and
+  blocks direct `production` pushes unless via
   `bun run release:production`.
 
 ### 4.5 Agent skills and mirrors

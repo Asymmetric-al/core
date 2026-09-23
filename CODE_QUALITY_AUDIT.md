@@ -384,15 +384,15 @@ Mock data under `apps/*/lib/mock-data/` should not become a pattern for **produc
 
 ## Tooling / Repo Health
 
-| Check                          | Status               | Notes                                                                              |
-| ------------------------------ | -------------------- | ---------------------------------------------------------------------------------- |
-| `bun run format:check`         | Pass                 |                                                                                    |
-| `bun run lint` (turbo)         | Pass                 | Re-verify before release                                                           |
-| `bun run typecheck` (turbo)    | Pass                 | Re-verify before release                                                           |
-| `bun run verify:data-boundary` | Pass                 |                                                                                    |
-| `bun run test:unit:cms`        | **Fail**             | P0                                                                                 |
-| `bun run ci:preflight`         | **Fail in cloud VM** | Typically `verify:git-attribution` — configure git user/email or skip on sandboxes |
-| `cacheComponents: true`        | Present              | All three apps’ `next.config.ts`                                                   |
+| Check                          | Status             | Notes                                                                            |
+| ------------------------------ | ------------------ | -------------------------------------------------------------------------------- |
+| `bun run format:check`         | Pass               |                                                                                  |
+| `bun run lint` (turbo)         | Pass               | Re-verify before release                                                         |
+| `bun run typecheck` (turbo)    | Pass               | Re-verify before release                                                         |
+| `bun run verify:data-boundary` | Pass               |                                                                                  |
+| `bun run test:unit:cms`        | **Fail**           | P0                                                                               |
+| `bun run ci:preflight`         | **CI parity gate** | Checks formatting, lint, typecheck, builds, unit tests, and repository contracts |
+| `cacheComponents: true`        | Present            | All three apps’ `next.config.ts`                                                 |
 
 **Scripts reference (real):** `check`, `test:unit`, `test:unit:cms`, `verify:data-boundary`, `ci:preflight` — all in root `package.json`.
 

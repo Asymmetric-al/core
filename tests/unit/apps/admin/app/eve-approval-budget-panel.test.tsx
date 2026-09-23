@@ -160,3 +160,42 @@ describe("Eve approval budget overrides", () => {
     });
   });
 });
+
+it("requests approval for the selected action", async () => {
+  const fetchMock = vi.fn(
+    async (_input: RequestInfo | URL, _init?: RequestInit) => response(view),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  renderPanel();
+  const action = await screen.findByRole("combobox", {
+    name: /Fixed app-owned action/,
+  });
+  expect(action.textContent).toContain("Write engineering review artifact");
+  action.focus();
+  fireEvent.click(action);
+  expect(screen.getByRole("listbox")).toBeTruthy();
+  fireEvent.pointerDown(
+    screen.getByRole("option", { name: "Attempt stricter donor-data class" }),
+    { pointerType: "mouse" },
+  );
+  fireEvent.click(
+    screen.getByRole("option", { name: "Attempt stricter donor-data class" }),
+  );
+  await waitFor(() =>
+    expect(action.textContent).toContain("Attempt stricter donor-data class"),
+  );
+  await waitFor(() => expect(document.activeElement).toBe(action));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Request required approval" }),
+  );
+  await waitFor(() => {
+    const post = fetchMock.mock.calls.find(
+      ([, init]) => init?.method === "POST",
+    );
+    expect(JSON.parse(String(post?.[1]?.body))).toEqual({
+      action: "request_approval",
+      actionId: "product.donor.write",
+      targetKey: "review:tracer",
+    });
+  });
+});

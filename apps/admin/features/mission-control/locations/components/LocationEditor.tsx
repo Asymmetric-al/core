@@ -291,11 +291,12 @@ export function LocationEditor({
                                 field.handleBlur();
                               }
                             }}
-                            onValueChange={(value) =>
+                            onValueChange={(value) => {
+                              if (value === null) return;
                               field.handleChange(
                                 value === "__empty" ? null : value,
-                              )
-                            }
+                              );
+                            }}
                             value={field.state.value ?? null}
                             aria-label={`Link to ${selectedType === "missionary" ? "Missionary" : "Project"}`}
                             className="rounded-xl border-zinc-200"

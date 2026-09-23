@@ -28,6 +28,14 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
+import {
+  Select,
+  SelectContent,
+  SelectControlLabel,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@asym/ui/components/shadcn/select";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -153,21 +161,28 @@ function EntryEditor({
           />
         </div>
         <div>
-          <Label htmlFor={`memory-category-${entry.id}`}>Category</Label>
-          <select
-            id={`memory-category-${entry.id}`}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+          <Select<EveAdminMemoryCategory>
+            items={LABELS}
             value={category}
-            onChange={(event) =>
-              setCategory(event.target.value as EveAdminMemoryCategory)
-            }
+            onValueChange={(value) => {
+              if (value !== null) setCategory(value);
+            }}
           >
-            {EVE_ADMIN_MEMORY_CATEGORIES.map((value) => (
-              <option key={value} value={value}>
-                {LABELS[value]}
-              </option>
-            ))}
-          </select>
+            <SelectControlLabel>Category</SelectControlLabel>
+            <SelectTrigger
+              id={`memory-category-${entry.id}`}
+              className="w-full"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {EVE_ADMIN_MEMORY_CATEGORIES.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {LABELS[value]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div>
@@ -280,21 +295,25 @@ export function EveAdminMemoryPanel() {
               />
             </div>
             <div>
-              <Label htmlFor="new-memory-category">Category</Label>
-              <select
-                id="new-memory-category"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+              <Select<EveAdminMemoryCategory>
+                items={LABELS}
                 value={category}
-                onChange={(event) =>
-                  setCategory(event.target.value as EveAdminMemoryCategory)
-                }
+                onValueChange={(value) => {
+                  if (value !== null) setCategory(value);
+                }}
               >
-                {EVE_ADMIN_MEMORY_CATEGORIES.map((value) => (
-                  <option key={value} value={value}>
-                    {LABELS[value]}
-                  </option>
-                ))}
-              </select>
+                <SelectControlLabel>Category</SelectControlLabel>
+                <SelectTrigger id="new-memory-category" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {EVE_ADMIN_MEMORY_CATEGORIES.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {LABELS[value]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div>

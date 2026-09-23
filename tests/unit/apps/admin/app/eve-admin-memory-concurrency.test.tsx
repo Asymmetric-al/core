@@ -120,13 +120,6 @@ vi.mock("@asym/ui/components/shadcn/textarea", () => ({
   ),
 }));
 
-vi.mock("lucide-react", () => ({
-  Brain: () => null,
-  History: () => null,
-  Search: () => null,
-  ShieldBan: () => null,
-}));
-
 const queryKey = ["admin", "eve", "admin-memory"] as const;
 const timestamp = "2026-07-19T12:00:00.000Z";
 
@@ -265,5 +258,72 @@ describe("Eve admin-memory concurrency intents", () => {
         expectedVersion: 3,
       });
     });
+  });
+});
+
+describe("Eve admin-memory category controls", () => {
+  it("submits the selected category when creating private memory", async () => {
+    const fetchMock = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        response(createView(1)),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderPanel();
+    const category = await screen.findByRole("combobox", { name: /Category/ });
+    fireEvent.click(category);
+    expect(screen.getByRole("listbox")).toBeTruthy();
+    fireEvent.pointerDown(
+      screen.getByRole("option", { name: "Project context" }),
+      { pointerType: "mouse" },
+    );
+    fireEvent.click(screen.getByRole("option", { name: "Project context" }));
+    await waitFor(() => expect(document.activeElement).toBe(category));
+    expect(category.textContent).toContain("Project context");
+    fireEvent.change(screen.getByLabelText("Title"), {
+      target: { value: "Project convention" },
+    });
+    fireEvent.change(screen.getByLabelText("Advisory context"), {
+      target: { value: "Use the shared design system." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add private memory" }));
+    await waitFor(() =>
+      expect(getMutationBodies(fetchMock)).toContainEqual({
+        category: "project_context",
+        title: "Project convention",
+        content: "Use the shared design system.",
+      }),
+    );
+  });
+
+  it("changes an existing category and preserves its version intent", async () => {
+    const fetchMock = vi.fn(
+      async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        response(createView(1)),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderPanel();
+    fireEvent.click(await screen.findByRole("button", { name: "Edit" }));
+    const category = screen.getAllByRole("combobox", { name: /Category/ })[1];
+    if (!category) throw new Error("An editing category control is required");
+    category.focus();
+    fireEvent.click(category);
+    expect(screen.getByRole("listbox")).toBeTruthy();
+    fireEvent.pointerDown(screen.getByRole("option", { name: "Decisions" }), {
+      pointerType: "mouse",
+    });
+    fireEvent.click(screen.getByRole("option", { name: "Decisions" }));
+    await waitFor(() => expect(category.textContent).toContain("Decisions"));
+    await waitFor(() => expect(document.activeElement).toBe(category));
+    fireEvent.click(screen.getByRole("button", { name: "Save new version" }));
+    await waitFor(() =>
+      expect(getMutationBodies(fetchMock)).toContainEqual({
+        action: "edit",
+        entryId: "entry-1",
+        expectedVersion: 1,
+        category: "decision",
+        title: "Title version 1",
+        content: "Content version 1",
+      }),
+    );
   });
 });

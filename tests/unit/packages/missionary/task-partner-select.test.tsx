@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -10,7 +11,40 @@ import {
 import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { TaskDialog } from "../../../../packages/missionary/components/task-dialog";
 import { TaskPartnerSelect } from "../../../../packages/missionary/components/task-partner-select";
+
+import type { Task } from "../../../../packages/missionary/types";
+import type * as ComboboxModule from "@asym/ui/components/shadcn/combobox";
+import type { ComponentProps } from "react";
+
+vi.mock("@asym/database/supabase", () => ({ createBrowserClient: () => ({}) }));
+vi.mock("@asym/lib/hooks", () => ({ useAuth: () => ({ profile: null }) }));
+
+const { emitChanges } = vi.hoisted(() => ({
+  emitChanges: new Map<string, (value: string | null) => void>(),
+}));
+// Keep the real control; inject only the documented nullable callback boundary.
+vi.mock("@asym/ui/components/shadcn/combobox", async (importOriginal) => {
+  const actual = await importOriginal<typeof ComboboxModule>();
+  return {
+    ...actual,
+    Combobox: (props: ComponentProps<typeof ComboboxModule.Combobox>) => {
+      emitChanges.set(String(props.value), (value) =>
+        props.onValueChange?.(value, {
+          reason: "none",
+          event: new Event("change"),
+          cancel() {},
+          allowPropagation() {},
+          isCanceled: false,
+          isPropagationAllowed: false,
+          trigger: undefined,
+        }),
+      );
+      return <actual.Combobox {...props} />;
+    },
+  };
+});
 
 const donors = [
   { id: "first", name: "Alex Smith", email: "first@example.test" },
@@ -64,6 +98,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  emitChanges.clear();
   vi.unstubAllGlobals();
   if (scrollDescriptor)
     Object.defineProperty(
@@ -75,6 +110,123 @@ afterEach(() => {
 });
 
 describe("Task partner selection", () => {
+  it("uses the task's known donor before the dialog can load its list and still permits explicit clearing", () => {
+    const task: Task = {
+      id: "task-1",
+      missionary_id: "missionary-1",
+      donor_id: "second",
+      donor: { ...donors[1]!, avatar_url: null },
+      title: "Follow up",
+      task_type: "call",
+      status: "not_started",
+      priority: "none",
+      sort_key: 1,
+      is_auto_generated: false,
+      created_at: "2026-09-23T00:00:00Z",
+      updated_at: "2026-09-23T00:00:00Z",
+    };
+    render(<TaskDialog task={task} open onOpenChange={vi.fn()} />);
+    const trigger = screen.getByRole("combobox", {
+      name: "Associated Partner",
+    });
+    expect(trigger.textContent).toContain("Alex Smith");
+    act(() => emitChanges.get("second")?.(null));
+    expect(trigger.textContent).toContain("Alex Smith");
+    fireEvent.click(
+      screen.getByRole("button", { name: "Clear associated partner" }),
+    );
+    expect(trigger.textContent).toContain("Select partner (optional)");
+  });
+
+  it("keeps a known partner visible through an empty loading or failed donor list", () => {
+    const onChange = vi.fn();
+    const onBlur = vi.fn();
+    const props = {
+      donors: [],
+      value: "second",
+      selectedPartner: donors[1],
+      loading: true,
+      onChange,
+      onBlur,
+      open: false,
+      onOpenChange: vi.fn(),
+    };
+    const view = render(<TaskPartnerSelect {...props} />);
+    expect(screen.getByRole("combobox").textContent).toContain("Alex Smith");
+    expect(screen.getByRole("combobox").textContent).not.toContain(
+      "Select partner (optional)",
+    );
+    view.rerender(<TaskPartnerSelect {...props} loading={false} />);
+    expect(screen.getByRole("combobox").textContent).toContain("Alex Smith");
+    expect(onChange).not.toHaveBeenCalled();
+    expect(onBlur).not.toHaveBeenCalled();
+
+    view.rerender(
+      <TaskPartnerSelect
+        {...props}
+        loading={false}
+        donors={[{ ...donors[1]!, name: "Updated partner" }]}
+      />,
+    );
+    expect(screen.getByRole("combobox").textContent).toContain(
+      "Updated partner",
+    );
+  });
+
+  it("distinguishes an unresolved selected ID from an empty optional value", () => {
+    const view = render(
+      <TaskPartnerSelect
+        donors={[]}
+        value="unresolved"
+        selectedPartner={donors[0]}
+        loading
+        onChange={vi.fn()}
+        open={false}
+        onOpenChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("combobox").textContent).toContain(
+      "Selected partner",
+    );
+    expect(screen.getByRole("combobox").textContent).not.toContain(
+      "Alex Smith",
+    );
+    view.rerender(
+      <TaskPartnerSelect
+        donors={[]}
+        value=""
+        selectedPartner={donors[0]}
+        loading={false}
+        onChange={vi.fn()}
+        open={false}
+        onOpenChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole("combobox").textContent).toContain(
+      "Select partner (optional)",
+    );
+  });
+
+  it("ignores an implicit null without changing the value or marking the field touched", () => {
+    const onBlur = vi.fn();
+    render(<Example initial="second" onBlur={onBlur} />);
+    act(() => emitChanges.get("second")?.(null));
+    expect(screen.getByLabelText("Selected partner ID").textContent).toBe(
+      "second",
+    );
+    expect(onBlur).not.toHaveBeenCalled();
+  });
+
+  it("does not treat a redundant non-item callback as deliberate deselection", () => {
+    const onBlur = vi.fn();
+    render(<Example initial="second" onBlur={onBlur} />);
+    act(() => emitChanges.get("second")?.("second"));
+    expect(screen.getByLabelText("Selected partner ID").textContent).toBe(
+      "second",
+    );
+    expect(onBlur).not.toHaveBeenCalled();
+  });
+
   it("selects the correct stable ID by keyboard when names are duplicated", async () => {
     render(<Example />);
     fireEvent.click(screen.getByRole("combobox"));

@@ -105,9 +105,10 @@ export function SignatureForm({
             ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
           ]}
           value={ownerAgentId ?? "workspace"}
-          onValueChange={(value) =>
-            setOwnerAgentId(value === "workspace" ? null : value)
-          }
+          onValueChange={(value) => {
+            if (value === null) return;
+            setOwnerAgentId(value === "workspace" ? null : value);
+          }}
           aria-label="Owner"
           className="h-9 max-w-sm text-[12px]"
         />

@@ -463,12 +463,14 @@ function StatusSelectField({ form }: { form: MissionaryTaskFormApi }) {
 function DonorSelectorField({
   donorSearchOpen,
   donors,
+  selectedPartner,
   form,
   loadingDonors,
   onDonorSearchOpenChange,
 }: {
   donorSearchOpen: boolean;
   donors: TaskPartner[];
+  selectedPartner?: TaskPartner | null;
   form: MissionaryTaskFormApi;
   loadingDonors: boolean;
   onDonorSearchOpenChange: (open: boolean) => void;
@@ -478,6 +480,7 @@ function DonorSelectorField({
       {(field) => (
         <TaskPartnerSelect
           donors={donors}
+          selectedPartner={selectedPartner}
           value={field.state.value}
           loading={loadingDonors}
           onChange={field.handleChange}
@@ -674,6 +677,7 @@ export function TaskDialog({
               <DonorSelectorField
                 donorSearchOpen={donorSearchOpen}
                 donors={donors}
+                selectedPartner={task?.donor}
                 form={form}
                 loadingDonors={loadingDonors}
                 onDonorSearchOpenChange={setDonorSearchOpen}

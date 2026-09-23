@@ -40,7 +40,19 @@ await build({
       enforce: "pre",
       resolveId(source, importer) {
         if (source === "virtual:base-ui-styles") return compiledCssPath;
-        // This real form's mutation is the sole provider stub. It records the submitted
+        if (
+          source === "@asym/lib/view-transitions" &&
+          importer?.replaceAll("\\", "/").endsWith("/primitives/page-shell.tsx")
+        ) {
+          return resolve(fixtureDirectory, "support-navigation-stub.ts");
+        }
+        if (
+          source === "@asym/api/admin/support/loaders" &&
+          importer?.replaceAll("\\", "/").endsWith("/support/tickets/page.tsx")
+        ) {
+          return resolve(fixtureDirectory, "support-loader-stub.ts");
+        }
+        // This real form's mutation stub records the submitted
         // value for assertions without issuing a request to an application API.
         if (
           source === "../../hooks/use-support-mutations" &&
@@ -63,6 +75,10 @@ await build({
     emptyOutDir: true,
     target: "esnext",
     rollupOptions: {
+      input: {
+        main: resolve(fixtureDirectory, "index.html"),
+        support: resolve(fixtureDirectory, "support.html"),
+      },
       onwarn(warning, warn) {
         // Every imported component runs in this client-only fixture. Rollup can
         // safely omit Next's module boundary directive, while other warnings remain visible.

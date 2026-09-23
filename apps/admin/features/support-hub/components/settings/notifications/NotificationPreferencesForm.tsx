@@ -115,7 +115,9 @@ export function NotificationPreferencesForm() {
             ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
           ]}
           value={agentId}
-          onValueChange={(value) => setAgentId(value)}
+          onValueChange={(value) => {
+            if (value !== null) setAgentId(value);
+          }}
           aria-label="Agent"
           className="h-9 max-w-sm text-[12px]"
         />

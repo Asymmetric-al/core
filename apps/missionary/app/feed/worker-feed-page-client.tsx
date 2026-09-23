@@ -872,7 +872,7 @@ type PostComposerActionsProps = {
   handlePost: (status?: PostStatus) => Promise<void>;
 };
 
-function PostComposerActions({
+export function PostComposerActions({
   selectedMedia,
   lastSaved,
   isUploading,
@@ -885,6 +885,25 @@ function PostComposerActions({
   handlePost,
 }: PostComposerActionsProps) {
   const publishLabelId = useId();
+  const [pendingAction, setPendingAction] = useState<PostStatus | null>(null);
+  const pendingActionRef = useRef<PostStatus | null>(null);
+  const draftPending = pendingAction === "draft";
+  const publishPending = pendingAction === "published";
+  const actionsDisabled =
+    postActionDisabled || isSaving || pendingAction !== null;
+
+  const runPostAction = async (status: PostStatus) => {
+    if (postActionDisabled || isSaving || pendingActionRef.current) return;
+    pendingActionRef.current = status;
+    setPendingAction(status);
+    try {
+      await handlePost(status);
+    } finally {
+      pendingActionRef.current = null;
+      setPendingAction(null);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-3 w-full">
       <AnimatePresence>
@@ -1027,15 +1046,15 @@ function PostComposerActions({
 
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
-            onClick={() => handlePost("draft")}
+            onClick={() => void runPostAction("draft")}
             aria-label="Save draft"
             variant="maia-outline"
             size="sm"
-            disabled={postActionDisabled}
-            focusableWhenDisabled={isSaving}
+            disabled={actionsDisabled}
+            focusableWhenDisabled={draftPending}
             className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
           >
-            {isSaving ? (
+            {draftPending ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{
@@ -1055,18 +1074,18 @@ function PostComposerActions({
 
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
-            onClick={() => handlePost("published")}
+            onClick={() => void runPostAction("published")}
             aria-labelledby={publishLabelId}
             variant="maia"
             size="sm"
-            disabled={postActionDisabled}
-            focusableWhenDisabled={isSaving}
+            disabled={actionsDisabled}
+            focusableWhenDisabled={publishPending}
             className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
           >
             <span id={publishLabelId} className="sr-only">
-              {isSaving ? "Publishing update" : "Publish"}
+              {publishPending ? "Publishing update" : "Publish"}
             </span>
-            {isSaving ? (
+            {publishPending ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{
