@@ -2,6 +2,7 @@
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -62,111 +63,119 @@ export function GiftHistoryViewSettingsMenu({
         }
       />
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Columns
-        </DropdownMenuLabel>
-        <DropdownMenuCheckboxItem
-          checked={settings.columns.designation}
-          onCheckedChange={(checked) =>
-            onPatch({
-              columns: { ...settings.columns, designation: checked === true },
-            })
-          }
-        >
-          Designation
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuCheckboxItem
-          checked={settings.columns.statusLine}
-          onCheckedChange={(checked) =>
-            onPatch({
-              columns: { ...settings.columns, statusLine: checked === true },
-            })
-          }
-        >
-          Receipt / CRM status
-        </DropdownMenuCheckboxItem>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Columns
+          </DropdownMenuLabel>
+          <DropdownMenuCheckboxItem
+            checked={settings.columns.designation}
+            onCheckedChange={(checked) =>
+              onPatch({
+                columns: { ...settings.columns, designation: checked === true },
+              })
+            }
+          >
+            Designation
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={settings.columns.statusLine}
+            onCheckedChange={(checked) =>
+              onPatch({
+                columns: { ...settings.columns, statusLine: checked === true },
+              })
+            }
+          >
+            Receipt / CRM status
+          </DropdownMenuCheckboxItem>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Sort
-        </DropdownMenuLabel>
-        <DropdownMenuRadioGroup
-          value={sortValue}
-          onValueChange={(value) => {
-            const [sortField, sortDirection] = value.split(":") as [
-              CrmGiftHistoryFiltersSortSettings["sortField"],
-              CrmGiftHistoryFiltersSortSettings["sortDirection"],
-            ];
-            onPatch({
-              filtersSort: {
-                ...settings.filtersSort,
-                sortField,
-                sortDirection,
-              },
-            });
-          }}
-        >
-          <DropdownMenuRadioItem value="giftDate:desc">
-            Newest first
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="giftDate:asc">
-            Oldest first
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="amountCents:desc">
-            Largest amount
-          </DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Sort
+          </DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={sortValue}
+            onValueChange={(value) => {
+              const [sortField, sortDirection] = value.split(":") as [
+                CrmGiftHistoryFiltersSortSettings["sortField"],
+                CrmGiftHistoryFiltersSortSettings["sortDirection"],
+              ];
+              onPatch({
+                filtersSort: {
+                  ...settings.filtersSort,
+                  sortField,
+                  sortDirection,
+                },
+              });
+            }}
+          >
+            <DropdownMenuRadioItem value="giftDate:desc">
+              Newest first
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="giftDate:asc">
+              Oldest first
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="amountCents:desc">
+              Largest amount
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Filter
-        </DropdownMenuLabel>
-        <DropdownMenuRadioGroup
-          value={settings.filtersSort.paymentStatus}
-          onValueChange={(value) =>
-            onPatch({
-              filtersSort: {
-                ...settings.filtersSort,
-                paymentStatus:
-                  value as CrmGiftHistoryFiltersSortSettings["paymentStatus"],
-              },
-            })
-          }
-        >
-          <DropdownMenuRadioItem value="all">
-            All payments
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="completed">
-            Completed only
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="refunded">
-            Refunded only
-          </DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Filter
+          </DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={settings.filtersSort.paymentStatus}
+            onValueChange={(value) =>
+              onPatch({
+                filtersSort: {
+                  ...settings.filtersSort,
+                  paymentStatus:
+                    value as CrmGiftHistoryFiltersSortSettings["paymentStatus"],
+                },
+              })
+            }
+          >
+            <DropdownMenuRadioItem value="all">
+              All payments
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="completed">
+              Completed only
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="refunded">
+              Refunded only
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Issues
-        </DropdownMenuLabel>
-        <DropdownMenuRadioGroup
-          value={settings.filtersSort.issue}
-          onValueChange={(value) =>
-            onPatch({
-              filtersSort: {
-                ...settings.filtersSort,
-                issue: value as CrmGiftHistoryFiltersSortSettings["issue"],
-              },
-            })
-          }
-        >
-          <DropdownMenuRadioItem value="all">All gifts</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="needs_attention">
-            Needs attention
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="receipt_affected">
-            Receipt affected
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="pending_correction">
-            Pending correction
-          </DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Issues
+          </DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={settings.filtersSort.issue}
+            onValueChange={(value) =>
+              onPatch({
+                filtersSort: {
+                  ...settings.filtersSort,
+                  issue: value as CrmGiftHistoryFiltersSortSettings["issue"],
+                },
+              })
+            }
+          >
+            <DropdownMenuRadioItem value="all">All gifts</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="needs_attention">
+              Needs attention
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="receipt_affected">
+              Receipt affected
+            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="pending_correction">
+              Pending correction
+            </DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Reset view settings</DropdownMenuSubTrigger>
@@ -188,12 +197,14 @@ export function GiftHistoryViewSettingsMenu({
         {canManageTenantDefaults ? (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Tenant default
-            </DropdownMenuLabel>
-            <DropdownMenuItem onClick={onRequestSetTenantDefault}>
-              Set current settings as tenant default…
-            </DropdownMenuItem>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Tenant default
+              </DropdownMenuLabel>
+              <DropdownMenuItem onClick={onRequestSetTenantDefault}>
+                Set current settings as tenant default…
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
           </>
         ) : null}
       </DropdownMenuContent>

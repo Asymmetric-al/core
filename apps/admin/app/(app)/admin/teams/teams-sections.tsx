@@ -24,6 +24,7 @@ import {
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -301,8 +302,19 @@ function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Select defaultValue={currentLevel}>
-                      <SelectTrigger className="w-[110px] h-8 text-[11px] font-semibold border-zinc-200">
+                    <Select
+                      items={[
+                        { value: "None", label: "None" },
+                        { value: "View", label: "View" },
+                        { value: "Manage", label: "Manage" },
+                        { value: "Admin", label: "Admin" },
+                      ]}
+                      defaultValue={currentLevel}
+                    >
+                      <SelectTrigger
+                        aria-label={`Access level for ${tile.title}`}
+                        className="w-[110px] h-8 text-[11px] font-semibold border-zinc-200"
+                      >
                         <SelectValue placeholder="Access Level" />
                       </SelectTrigger>
                       <SelectContent>
@@ -812,6 +824,7 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                 </Badge>
                 <DropdownMenu>
                   <DropdownMenuTrigger
+                    aria-label="Open actions"
                     render={
                       <Button
                         variant="ghost"
@@ -823,26 +836,29 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                     }
                   />
                   <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuLabel className="font-semibold text-xs">
-                      User Options
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
-                      <UserCog className="mr-2 size-4 text-zinc-400" /> Change
-                      Role
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
-                      <Shield className="mr-2 size-4 text-zinc-400" /> Assign
-                      Team
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
-                      <Settings2 className="mr-2 size-4 text-zinc-400" /> User
-                      Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer font-semibold text-xs py-2">
-                      <Trash2 className="mr-2 size-4" /> Remove Access
-                    </DropdownMenuItem>
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel className="font-semibold text-xs">
+                        User Options
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
+                        <UserCog className="mr-2 size-4 text-zinc-400" /> Change
+                        Role
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
+                        <Shield className="mr-2 size-4 text-zinc-400" /> Assign
+                        Team
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
+                        <Settings2 className="mr-2 size-4 text-zinc-400" /> User
+                        Settings
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer font-semibold text-xs py-2">
+                        <Trash2 className="mr-2 size-4" /> Remove Access
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

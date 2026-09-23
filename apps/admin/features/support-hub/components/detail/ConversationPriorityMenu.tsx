@@ -2,6 +2,7 @@
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -60,33 +61,36 @@ export function ConversationPriorityMenu({
         }
       />
       <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
-          Priority
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {SUPPORT_PRIORITIES.map((priority) => (
-          <DropdownMenuItem
-            key={priority}
-            onClick={() =>
-              setPriority.mutate({
-                conversationId: conversation.id,
-                priority,
-              })
-            }
-            className="gap-2 text-[12px]"
-          >
-            <Check
-              className={cn(
-                "size-3.5",
-                priority === conversation.priority
-                  ? "text-zinc-900"
-                  : "text-transparent",
-              )}
-            />
-            <Flag className={cn("size-3.5", PRIORITY_TONES[priority])} />
-            {PRIORITY_LABELS[priority]}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
+            Priority
+          </DropdownMenuLabel>
+
+          <DropdownMenuSeparator />
+          {SUPPORT_PRIORITIES.map((priority) => (
+            <DropdownMenuItem
+              key={priority}
+              onClick={() =>
+                setPriority.mutate({
+                  conversationId: conversation.id,
+                  priority,
+                })
+              }
+              className="gap-2 text-[12px]"
+            >
+              <Check
+                className={cn(
+                  "size-3.5",
+                  priority === conversation.priority
+                    ? "text-zinc-900"
+                    : "text-transparent",
+                )}
+              />
+              <Flag className={cn("size-3.5", PRIORITY_TONES[priority])} />
+              {PRIORITY_LABELS[priority]}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

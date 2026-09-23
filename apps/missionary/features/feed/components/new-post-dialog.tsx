@@ -178,6 +178,7 @@ export function NewPostDialog({ open, onOpenChange }: NewPostDialogProps) {
             Cancel
           </Button>
           <Button
+            focusableWhenDisabled={createPost.isPending}
             onClick={handleSubmit}
             disabled={!content.trim() || createPost.isPending}
           >

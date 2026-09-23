@@ -111,6 +111,7 @@ function NotificationRow({
   ) => void;
 }) {
   const Icon = setting.icon;
+  const notificationId = React.useId();
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 py-6 group border-b border-zinc-50 last:border-0">
       <div className="flex items-start gap-4">
@@ -129,10 +130,15 @@ function NotificationRow({
 
       <div className="flex items-center gap-6 sm:gap-10 pl-14 sm:pl-0">
         <div className="flex flex-col items-center gap-2">
-          <Label className="text-[9px] font-black uppercase tracking-widest text-zinc-300">
+          <Label
+            htmlFor={`${notificationId}-inApp`}
+            className="text-[9px] font-black uppercase tracking-widest text-zinc-300"
+          >
             In-App
           </Label>
           <Switch
+            id={`${notificationId}-inApp`}
+            aria-label={`In-App: ${setting.label}`}
             checked={setting.inApp}
             onCheckedChange={(checked) =>
               onChange(setting.id, "inApp", checked)
@@ -141,10 +147,15 @@ function NotificationRow({
           />
         </div>
         <div className="flex flex-col items-center gap-2">
-          <Label className="text-[9px] font-black uppercase tracking-widest text-zinc-300">
+          <Label
+            htmlFor={`${notificationId}-email`}
+            className="text-[9px] font-black uppercase tracking-widest text-zinc-300"
+          >
             Email
           </Label>
           <Switch
+            id={`${notificationId}-email`}
+            aria-label={`Email: ${setting.label}`}
             checked={setting.email}
             onCheckedChange={(checked) =>
               onChange(setting.id, "email", checked)
@@ -153,10 +164,15 @@ function NotificationRow({
           />
         </div>
         <div className="flex flex-col items-center gap-2">
-          <Label className="text-[9px] font-black uppercase tracking-widest text-zinc-300">
+          <Label
+            htmlFor={`${notificationId}-sms`}
+            className="text-[9px] font-black uppercase tracking-widest text-zinc-300"
+          >
             SMS
           </Label>
           <Switch
+            id={`${notificationId}-sms`}
+            aria-label={`SMS: ${setting.label}`}
             checked={setting.sms}
             onCheckedChange={(checked) => onChange(setting.id, "sms", checked)}
             className="data-checked:bg-zinc-900"
@@ -388,7 +404,10 @@ export default function SettingsPage() {
                     Access advanced API tools
                   </p>
                 </div>
-                <Switch className="data-checked:bg-zinc-900" />
+                <Switch
+                  aria-label="Developer Mode"
+                  className="data-checked:bg-zinc-900"
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -399,7 +418,11 @@ export default function SettingsPage() {
                     Try new dashboard widgets
                   </p>
                 </div>
-                <Switch defaultChecked className="data-checked:bg-zinc-900" />
+                <Switch
+                  aria-label="Beta Features"
+                  defaultChecked
+                  className="data-checked:bg-zinc-900"
+                />
               </div>
             </CardContent>
           </Card>

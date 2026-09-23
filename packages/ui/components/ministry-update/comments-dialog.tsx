@@ -197,6 +197,7 @@ export function CommentsDialog({
             type="submit"
             size="icon"
             disabled={!content.trim() || addComment.isPending}
+            focusableWhenDisabled={addComment.isPending}
             aria-label="Send comment"
           >
             <Send className="size-4" />

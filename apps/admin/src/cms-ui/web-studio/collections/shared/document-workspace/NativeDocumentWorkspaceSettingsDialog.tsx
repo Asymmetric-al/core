@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
 import { usePreferences } from "@payloadcms/ui";
-import { useEffect, useState } from "react";
+import { useId, useEffect, useState } from "react";
 import { z } from "zod";
 
 type WorkspaceValues = {
@@ -140,6 +140,8 @@ function WorkspaceSettingsForm({
   onSaved: () => void;
   onCancel: () => void;
 }) {
+  const pendingActionLabelId = useId();
+
   const { setPreference } = usePreferences();
 
   const form = useAsymForm({
@@ -193,8 +195,15 @@ function WorkspaceSettingsForm({
           })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" disabled={!canSubmit || isSubmitting}>
-              {isSubmitting ? "Saving…" : "Save preferences"}
+            <Button
+              aria-labelledby={`${pendingActionLabelId}-18`}
+              focusableWhenDisabled={isSubmitting}
+              type="submit"
+              disabled={!canSubmit || isSubmitting}
+            >
+              <span id={`${pendingActionLabelId}-18`}>
+                {isSubmitting ? "Saving…" : "Save preferences"}
+              </span>
             </Button>
           )}
         </form.Subscribe>

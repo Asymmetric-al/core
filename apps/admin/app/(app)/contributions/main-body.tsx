@@ -32,7 +32,7 @@ import {
   Trash2,
   Receipt,
 } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useId, useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -139,6 +139,8 @@ function BulkReceiptConfirmDialog({
   rows: Contribution[];
   submitting: boolean;
 }) {
+  const pendingActionLabelId = useId();
+
   const selectedCount = rows.length;
   const eligibleCount = rows.filter((row) => row.stagedGiftId).length;
   const missingStagedGiftCount = selectedCount - eligibleCount;
@@ -211,6 +213,8 @@ function BulkReceiptConfirmDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
           <Button
+            aria-labelledby={`${pendingActionLabelId}-1`}
+            focusableWhenDisabled={submitting}
             disabled={submitting || !hasEligibleReceipts}
             onClick={() => {
               if (!submitting && hasEligibleReceipts) {
@@ -218,7 +222,7 @@ function BulkReceiptConfirmDialog({
               }
             }}
           >
-            {actionLabel}
+            <span id={`${pendingActionLabelId}-1`}>{actionLabel}</span>
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

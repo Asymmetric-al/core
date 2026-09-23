@@ -247,6 +247,7 @@ function FeedSettingsSheet({
               </div>
 
               <RadioGroup
+                aria-label="Feed Visibility"
                 value={visibility}
                 onValueChange={(val) => setVisibility(val as OrgPostVisibility)}
                 className="space-y-2"
@@ -329,6 +330,7 @@ function FeedSettingsSheet({
                     </div>
                   </div>
                   <Switch
+                    aria-label="Email for Org Posts"
                     checked={emailOrgPosts}
                     onCheckedChange={setEmailOrgPosts}
                   />
@@ -347,6 +349,7 @@ function FeedSettingsSheet({
 
         <SheetFooter className="p-4 border-t">
           <Button
+            focusableWhenDisabled={isSaving}
             onClick={handleSave}
             disabled={isSaving}
             className="w-full h-10 rounded-xl font-semibold"
@@ -439,6 +442,7 @@ function PostCard({
           <DropdownMenu>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <DropdownMenuTrigger
+                aria-label="Open actions"
                 render={
                   <Button
                     variant="ghost"
@@ -617,12 +621,14 @@ function DraftCard({
 }
 
 type ComposeMediaItem = { url: string; type: string };
+type ComposePendingAction = "draft" | "publish" | null;
 
 interface ComposeCardState {
   postContent: string;
   postType: string;
   visibility: Visibility;
   isPublishing: boolean;
+  pendingAction: ComposePendingAction;
   selectedMedia: ComposeMediaItem[];
   isUploading: boolean;
 }
@@ -631,7 +637,7 @@ type ComposeCardAction =
   | { type: "set-content"; value: string }
   | { type: "set-post-type"; value: string }
   | { type: "set-visibility"; value: Visibility }
-  | { type: "set-publishing"; value: boolean }
+  | { type: "set-pending-action"; value: ComposePendingAction }
   | { type: "set-uploading"; value: boolean }
   | { type: "add-media"; item: ComposeMediaItem }
   | { type: "remove-media"; item: ComposeMediaItem }
@@ -660,6 +666,7 @@ const buildInitialComposeState = (
   postType: sourcePost?.post_type || "Announcement",
   visibility: sourcePost?.visibility || "public",
   isPublishing: false,
+  pendingAction: null,
   selectedMedia: dedupeComposeMedia(sourcePost?.media),
   isUploading: false,
 });
@@ -675,8 +682,12 @@ function composeCardReducer(
       return { ...state, postType: action.value };
     case "set-visibility":
       return { ...state, visibility: action.value };
-    case "set-publishing":
-      return { ...state, isPublishing: action.value };
+    case "set-pending-action":
+      return {
+        ...state,
+        isPublishing: action.value !== null,
+        pendingAction: action.value,
+      };
     case "set-uploading":
       return { ...state, isUploading: action.value };
     case "add-media":
@@ -708,9 +719,11 @@ function composeCardReducer(
         postContent: "",
         selectedMedia: [],
         isPublishing: false,
+        pendingAction: null,
       };
     default:
-      return state;
+      const exhaustiveAction: never = action;
+      return exhaustiveAction;
   }
 }
 
@@ -772,10 +785,11 @@ function ComposeCardTypeSelector({
   );
 }
 
-function ComposeCardActions({
+export function ComposeCardActions({
   selectedMedia,
   isUploading,
   isPublishing,
+  pendingAction,
   visibility,
   isDisabled,
   onAddMedia,
@@ -787,6 +801,7 @@ function ComposeCardActions({
   selectedMedia: ComposeMediaItem[];
   isUploading: boolean;
   isPublishing: boolean;
+  pendingAction: ComposePendingAction;
   visibility: Visibility;
   isDisabled: boolean;
   onAddMedia: () => void;
@@ -839,6 +854,7 @@ function ComposeCardActions({
       <div className="flex flex-wrap items-center gap-2 w-full">
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
+            focusableWhenDisabled={isUploading}
             variant="ghost"
             size="sm"
             disabled={isUploading}
@@ -857,6 +873,7 @@ function ComposeCardActions({
         <DropdownMenu>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <DropdownMenuTrigger
+              aria-label={`Post visibility: ${visibility}`}
               render={
                 <Button
                   variant="ghost"
@@ -908,9 +925,11 @@ function ComposeCardActions({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={onSaveDraft}
+            aria-label="Save draft"
             variant="outline"
             size="sm"
             disabled={isDisabled}
+            focusableWhenDisabled={pendingAction === "draft"}
             className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
           >
             {isPublishing ? (
@@ -925,8 +944,10 @@ function ComposeCardActions({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={onPublish}
+            aria-label="Publish update"
             size="sm"
             disabled={isDisabled}
+            focusableWhenDisabled={pendingAction === "publish"}
             className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm font-semibold"
           >
             {isPublishing ? (
@@ -961,6 +982,7 @@ function ComposeCard({
     postType,
     visibility,
     isPublishing,
+    pendingAction,
     selectedMedia,
     isUploading,
   } = composeState;
@@ -968,7 +990,7 @@ function ComposeCard({
   const handlePublish = async () => {
     if (isPostContentEmpty(postContent)) return;
 
-    dispatchCompose({ type: "set-publishing", value: true });
+    dispatchCompose({ type: "set-pending-action", value: "publish" });
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     onSave({
@@ -988,7 +1010,7 @@ function ComposeCard({
   const handleSaveDraft = async () => {
     if (isPostContentEmpty(postContent)) return;
 
-    dispatchCompose({ type: "set-publishing", value: true });
+    dispatchCompose({ type: "set-pending-action", value: "draft" });
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     onSave({
@@ -1073,6 +1095,7 @@ function ComposeCard({
                   selectedMedia={selectedMedia}
                   isUploading={isUploading}
                   isPublishing={isPublishing}
+                  pendingAction={pendingAction}
                   visibility={visibility}
                   isDisabled={isDisabled}
                   onAddMedia={handleAddMedia}

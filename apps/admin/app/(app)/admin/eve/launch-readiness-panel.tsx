@@ -231,6 +231,9 @@ export function EveLaunchReadinessPanel() {
             className="mt-2"
             size="sm"
             variant="outline"
+            focusableWhenDisabled={
+              mutation.isPending && mutation.variables?.kind === "manifest"
+            }
             disabled={mutation.isPending || manifestJson.trim().length === 0}
             onClick={submitManifest}
           >
@@ -294,6 +297,13 @@ export function EveLaunchReadinessPanel() {
                     variant={
                       decision === "approved" ? "outline" : "destructive"
                     }
+                    focusableWhenDisabled={
+                      mutation.isPending &&
+                      mutation.variables?.kind === "review" &&
+                      mutation.variables.decision === decision &&
+                      mutation.variables.reviewerRole === reviewerRole &&
+                      mutation.variables.manifestId === manifest.id
+                    }
                     disabled={
                       mutation.isPending ||
                       !query.data?.canReview ||
@@ -340,6 +350,12 @@ export function EveLaunchReadinessPanel() {
                     key={`${permission}:${enabled}`}
                     size="sm"
                     variant="outline"
+                    focusableWhenDisabled={
+                      mutation.isPending &&
+                      mutation.variables?.kind === "permission" &&
+                      mutation.variables.permission === permission &&
+                      mutation.variables.enabled === enabled
+                    }
                     disabled={
                       mutation.isPending ||
                       profileId.length === 0 ||
@@ -414,6 +430,11 @@ export function EveLaunchReadinessPanel() {
               <Button
                 size="sm"
                 variant="outline"
+                focusableWhenDisabled={
+                  mutation.isPending &&
+                  mutation.variables?.kind === "safety_control" &&
+                  mutation.variables.mode === "disable"
+                }
                 disabled={mutation.isPending || explanation.length === 0}
                 onClick={() =>
                   mutation.mutate({
@@ -430,6 +451,11 @@ export function EveLaunchReadinessPanel() {
             <Button
               size="sm"
               variant="destructive"
+              focusableWhenDisabled={
+                mutation.isPending &&
+                mutation.variables?.kind === "safety_control" &&
+                mutation.variables.mode === "emergency_off"
+              }
               disabled={
                 mutation.isPending || !governance || explanation.length === 0
               }
@@ -448,6 +474,11 @@ export function EveLaunchReadinessPanel() {
               <Button
                 size="sm"
                 variant="outline"
+                focusableWhenDisabled={
+                  mutation.isPending &&
+                  mutation.variables?.kind === "safety_control" &&
+                  mutation.variables.mode === "clear_emergency"
+                }
                 disabled={mutation.isPending || explanation.length === 0}
                 onClick={() =>
                   mutation.mutate({
@@ -478,6 +509,11 @@ export function EveLaunchReadinessPanel() {
             <div className="flex flex-wrap gap-2">
               <Button
                 size="sm"
+                focusableWhenDisabled={
+                  mutation.isPending &&
+                  mutation.variables?.kind === "canary" &&
+                  mutation.variables.status === "completed"
+                }
                 disabled={mutation.isPending || explanation.length === 0}
                 onClick={() =>
                   mutation.mutate({
@@ -494,6 +530,11 @@ export function EveLaunchReadinessPanel() {
               <Button
                 size="sm"
                 variant="destructive"
+                focusableWhenDisabled={
+                  mutation.isPending &&
+                  mutation.variables?.kind === "canary" &&
+                  mutation.variables.status === "failed"
+                }
                 disabled={mutation.isPending || explanation.length === 0}
                 onClick={() =>
                   mutation.mutate({

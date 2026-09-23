@@ -9,6 +9,7 @@ import {
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
@@ -271,20 +272,23 @@ export function WorkersPageClient() {
                   align="end"
                   className="w-56 p-2 rounded-xl"
                 >
-                  <DropdownMenuLabel className="text-xs font-semibold text-zinc-500 py-2">
-                    Category
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {categories.map((cat) => (
-                    <DropdownMenuCheckboxItem
-                      key={cat}
-                      checked={categoryFilter === cat}
-                      onCheckedChange={() => setCategoryFilter(cat)}
-                      className="rounded-lg h-9 font-medium text-sm"
-                    >
-                      {cat}
-                    </DropdownMenuCheckboxItem>
-                  ))}
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-xs font-semibold text-zinc-500 py-2">
+                      Category
+                    </DropdownMenuLabel>
+
+                    <DropdownMenuSeparator />
+                    {categories.map((cat) => (
+                      <DropdownMenuCheckboxItem
+                        key={cat}
+                        checked={categoryFilter === cat}
+                        onCheckedChange={() => setCategoryFilter(cat)}
+                        className="rounded-lg h-9 font-medium text-sm"
+                      >
+                        {cat}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -313,20 +317,23 @@ export function WorkersPageClient() {
                   align="end"
                   className="w-56 p-2 rounded-xl"
                 >
-                  <DropdownMenuLabel className="text-xs font-semibold text-zinc-500 py-2">
-                    Region
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {regions.map((reg) => (
-                    <DropdownMenuCheckboxItem
-                      key={reg}
-                      checked={regionFilter === reg}
-                      onCheckedChange={() => setRegionFilter(reg)}
-                      className="rounded-lg h-9 font-medium text-sm"
-                    >
-                      {reg}
-                    </DropdownMenuCheckboxItem>
-                  ))}
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-xs font-semibold text-zinc-500 py-2">
+                      Region
+                    </DropdownMenuLabel>
+
+                    <DropdownMenuSeparator />
+                    {regions.map((reg) => (
+                      <DropdownMenuCheckboxItem
+                        key={reg}
+                        checked={regionFilter === reg}
+                        onCheckedChange={() => setRegionFilter(reg)}
+                        className="rounded-lg h-9 font-medium text-sm"
+                      >
+                        {reg}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
 

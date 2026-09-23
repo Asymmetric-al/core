@@ -257,6 +257,7 @@ export function SavedFilters({
                         </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger
+                            aria-label="Open actions"
                             render={
                               <Button
                                 variant="ghost"

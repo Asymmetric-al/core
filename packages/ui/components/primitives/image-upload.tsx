@@ -27,6 +27,7 @@ import {
   isKeyboardClickKey,
   resolveButtonTriggerType,
 } from "./image-upload-helpers";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 import { Button } from "../shadcn/button";
 
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
@@ -101,7 +102,8 @@ function ImageUploadCustomTrigger({
 
   if (isSingleElement) {
     const element = content as React.ReactElement<{
-      className?: string;
+      className?: React.ComponentProps<typeof Button>["className"];
+      focusableWhenDisabled?: boolean;
       onClick?: React.MouseEventHandler;
       onKeyDown?: React.KeyboardEventHandler;
       role?: string;
@@ -141,12 +143,25 @@ function ImageUploadCustomTrigger({
         ? element.props.tabIndex
         : (element.props.tabIndex ?? (isInteractive ? 0 : -1)),
       "aria-disabled": isInteractive ? undefined : true,
-      "aria-label": isButtonLike ? undefined : triggerAriaLabel,
+      "aria-label": isButtonLike
+        ? element.props["aria-label"]
+        : (element.props["aria-label"] ?? triggerAriaLabel),
       type: isButtonLike
         ? resolveButtonTriggerType(element.props.type)
         : undefined,
-      disabled: isButtonLike ? !isInteractive : undefined,
-      className: cn(element.props.className, sharedClassName),
+      disabled: isButtonLike
+        ? element.props.disabled || !isInteractive
+        : undefined,
+      ...(elementType === Button
+        ? {
+            focusableWhenDisabled:
+              element.props.focusableWhenDisabled ?? isUploading,
+          }
+        : {}),
+      className:
+        elementType === Button
+          ? mergeBaseUIClassName(sharedClassName, element.props.className)
+          : cn(element.props.className, sharedClassName),
     });
   }
 
@@ -181,6 +196,7 @@ function ImageUploadDefaultContent({
   isDragging: boolean;
   openFilePicker: () => void;
 }) {
+  const labelId = React.useId();
   return (
     <div className="flex flex-col items-center gap-4">
       {value ? (
@@ -213,11 +229,16 @@ function ImageUploadDefaultContent({
           variant="outline"
           onClick={openFilePicker}
           disabled={isUploading || disabled}
+          focusableWhenDisabled={isUploading}
+          aria-labelledby={labelId}
           className={cn(
             "flex size-24 flex-col items-center justify-center gap-2 rounded-full border-dashed",
             isDragging && "border-ring bg-accent",
           )}
         >
+          <span id={labelId} className="sr-only">
+            {isUploading ? "Uploading image" : "Upload image"}
+          </span>
           {isUploading ? (
             <Loader2 className="text-muted-foreground size-6 animate-spin" />
           ) : (

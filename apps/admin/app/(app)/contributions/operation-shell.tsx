@@ -1095,11 +1095,15 @@ export function ContributionOperationShell({
                   <Button
                     className="h-11"
                     disabled={detailQuery.isFetching}
+                    focusableWhenDisabled={detailQuery.isFetching}
+                    aria-labelledby={`${confirmId}-reload-label`}
                     onClick={() => void handleReloadLatestDetail()}
                   >
-                    {detailQuery.isFetching
-                      ? "Reloading latest gift…"
-                      : "Reload latest gift"}
+                    <span id={`${confirmId}-reload-label`}>
+                      {detailQuery.isFetching
+                        ? "Reloading latest gift…"
+                        : "Reload latest gift"}
+                    </span>
                   </Button>
                 ) : (
                   <Button

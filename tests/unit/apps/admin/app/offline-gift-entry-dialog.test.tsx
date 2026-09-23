@@ -9,6 +9,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+// eslint-disable-next-line no-restricted-imports -- AL-1894: App component regression test at its public UI boundary.
 import { OfflineGiftEntryDialog } from "../../../../../apps/admin/app/(app)/contributions/offline-gift/offline-gift-entry-dialog";
 
 /**
@@ -78,6 +79,23 @@ describe("OfflineGiftEntryDialog", () => {
 
     expect(knownButton.getAttribute("aria-pressed")).toBe("true");
     expect(unknownButton.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("moves keyboard focus across donor modes and retains one selected mode", async () => {
+    renderDialog();
+    const known = screen.getByRole("button", { name: /Known donor/i });
+    const unknown = screen.getByRole("button", {
+      name: /Unknown \/ anonymous/i,
+    });
+    expect(unknown.tabIndex).toBe(-1);
+    known.focus();
+    fireEvent.keyDown(known, { key: "ArrowRight" });
+    await waitFor(() => expect(document.activeElement).toBe(unknown));
+    fireEvent.click(unknown);
+    expect(unknown.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(unknown);
+    expect(unknown.getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByText("Not receiptable")).toBeTruthy();
   });
 
   it("submits a valid known gift and renders the success state", async () => {

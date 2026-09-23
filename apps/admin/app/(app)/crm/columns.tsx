@@ -15,11 +15,11 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
 import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
@@ -367,24 +367,25 @@ export function getCrmColumns({
                 }
               />
               <DropdownMenuContent align="end" className="w-48 rounded-xl">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                {record.email ? (
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  {record.email ? (
+                    <DropdownMenuItem
+                      onClick={() =>
+                        void navigator.clipboard.writeText(record.email ?? "")
+                      }
+                      className="rounded-lg"
+                    >
+                      Copy email
+                    </DropdownMenuItem>
+                  ) : null}
                   <DropdownMenuItem
-                    onClick={() =>
-                      void navigator.clipboard.writeText(record.email ?? "")
-                    }
+                    onClick={() => onViewRecord(record)}
                     className="rounded-lg"
                   >
-                    Copy email
+                    Open details
                   </DropdownMenuItem>
-                ) : null}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => onViewRecord(record)}
-                  className="rounded-lg"
-                >
-                  Open details
-                </DropdownMenuItem>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

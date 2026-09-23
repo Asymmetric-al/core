@@ -2,6 +2,7 @@
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -69,39 +70,42 @@ export function ConversationSnoozeMenu({
         }
       />
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
-          Snooze until
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {QUICK_SNOOZE_OPTIONS.map((option) => (
-          <DropdownMenuItem
-            key={option.label}
-            onClick={() =>
-              snooze.mutate({
-                conversationId: conversation.id,
-                snoozedUntil: makeDisplayDate(
-                  makeDisplayTimestamp() + option.hours * HOUR_MS,
-                ).toISOString(),
-              })
-            }
-            className="text-[12px]"
-          >
-            {option.label}
-          </DropdownMenuItem>
-        ))}
-        {isSnoozed ? (
-          <>
-            <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
+            Snooze until
+          </DropdownMenuLabel>
+
+          <DropdownMenuSeparator />
+          {QUICK_SNOOZE_OPTIONS.map((option) => (
             <DropdownMenuItem
+              key={option.label}
               onClick={() =>
-                unsnooze.mutate({ conversationId: conversation.id })
+                snooze.mutate({
+                  conversationId: conversation.id,
+                  snoozedUntil: makeDisplayDate(
+                    makeDisplayTimestamp() + option.hours * HOUR_MS,
+                  ).toISOString(),
+                })
               }
-              className="text-[12px] text-zinc-700"
+              className="text-[12px]"
             >
-              Wake up now
+              {option.label}
             </DropdownMenuItem>
-          </>
-        ) : null}
+          ))}
+          {isSnoozed ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  unsnooze.mutate({ conversationId: conversation.id })
+                }
+                className="text-[12px] text-zinc-700"
+              >
+                Wake up now
+              </DropdownMenuItem>
+            </>
+          ) : null}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

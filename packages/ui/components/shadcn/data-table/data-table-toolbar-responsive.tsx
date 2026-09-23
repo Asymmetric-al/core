@@ -22,9 +22,11 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
+  DrawerVirtualKeyboardProvider,
   DrawerFooter,
 } from "../drawer";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -88,6 +90,32 @@ export function DataTableToolbarResponsive<TData extends RowData>({
 }: DataTableToolbarResponsiveProps<TData>) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
+  const [resetRequested, setResetRequested] = React.useState(false);
+  const [resetFocused, setResetFocused] = React.useState(false);
+  // onRefresh is fire-and-forget; query loading may arrive on a later tick.
+  // Preserve existing focus rather than retaining an unbounded click intent.
+  const [refreshFocused, setRefreshFocused] = React.useState(false);
+  const urlStatePendingRef = React.useRef(urlStatePending);
+  const sawUrlStatePendingRef = React.useRef(false);
+  React.useLayoutEffect(() => {
+    urlStatePendingRef.current = urlStatePending;
+    if (urlStatePending && resetRequested) {
+      sawUrlStatePendingRef.current = true;
+    }
+  }, [urlStatePending, resetRequested]);
+  React.useEffect(() => {
+    if (urlStatePending || !resetRequested) return;
+    if (sawUrlStatePendingRef.current) {
+      sawUrlStatePendingRef.current = false;
+      setResetRequested(false);
+      return;
+    }
+    // Give the parent URL transition one macrotask to publish pending.
+    const timeout = window.setTimeout(() => {
+      if (!urlStatePendingRef.current) setResetRequested(false);
+    }, 1);
+    return () => window.clearTimeout(timeout);
+  }, [urlStatePending, resetRequested]);
   const mobileSearchInputRef = React.useRef<HTMLInputElement>(null);
   // v9 removed `table.getState()`; `table.state` is the render-read surface.
   const isFiltered = table.state.columnFilters.length > 0;
@@ -139,6 +167,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
             <div className="relative hidden sm:block flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input
+                aria-label={searchPlaceholder}
                 placeholder={searchPlaceholder}
                 value={
                   (table.getColumn(searchKey)?.getFilterValue() as string) ?? ""
@@ -152,6 +181,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
               />
               {(table.getColumn(searchKey)?.getFilterValue() as string) && (
                 <Button
+                  aria-label="Clear table search"
                   variant="ghost"
                   size="icon"
                   className="absolute right-1 top-1/2 -translate-y-1/2 size-7"
@@ -162,6 +192,8 @@ export function DataTableToolbarResponsive<TData extends RowData>({
               )}
             </div>
             <Button
+              aria-label="Toggle table search"
+              aria-expanded={searchOpen}
               variant="outline"
               size="icon"
               className="sm:hidden size-9 rounded-xl"
@@ -214,11 +246,17 @@ export function DataTableToolbarResponsive<TData extends RowData>({
           />
         </div>
 
-        {isFiltered && (
+        {(isFiltered || (resetRequested && resetFocused)) && (
           <Button
             variant="ghost"
-            onClick={resetAllFilters}
-            disabled={urlStatePending}
+            onClick={() => {
+              setResetRequested(true);
+              resetAllFilters();
+            }}
+            onFocus={() => setResetFocused(true)}
+            onBlur={() => setResetFocused(false)}
+            disabled={!isFiltered || urlStatePending}
+            focusableWhenDisabled={resetRequested && resetFocused}
             className="hidden lg:flex h-9 px-3 rounded-xl text-muted-foreground hover:text-foreground"
           >
             Reset
@@ -234,7 +272,11 @@ export function DataTableToolbarResponsive<TData extends RowData>({
               variant="outline"
               size="icon"
               onClick={onRefresh}
+              onFocus={() => setRefreshFocused(true)}
+              onBlur={() => setRefreshFocused(false)}
               disabled={isLoading}
+              focusableWhenDisabled={isLoading && refreshFocused}
+              aria-label="Refresh table"
               className="size-9 rounded-xl"
             >
               <RefreshCw
@@ -248,6 +290,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
               variant="outline"
               size="sm"
               onClick={onExport}
+              aria-label="Export table"
               className="hidden sm:flex h-9 gap-2 rounded-xl"
             >
               <Download className="size-4" />
@@ -258,6 +301,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
           {enableColumnVisibility && (
             <DropdownMenu>
               <DropdownMenuTrigger
+                aria-label="Toggle columns"
                 render={
                   <Button
                     variant="outline"
@@ -275,25 +319,28 @@ export function DataTableToolbarResponsive<TData extends RowData>({
                 }
               />
               <DropdownMenuContent align="end" className="w-56 rounded-xl">
-                <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
-                  Toggle columns
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {columns.map((column) => {
-                  const columnMeta = column.columnDef.meta;
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize rounded-lg"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {columnMeta?.label ?? column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
+                    Toggle columns
+                  </DropdownMenuLabel>
+
+                  <DropdownMenuSeparator />
+                  {columns.map((column) => {
+                    const columnMeta = column.columnDef.meta;
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize rounded-lg"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {columnMeta?.label ?? column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -305,6 +352,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
+              aria-label={searchPlaceholder}
               ref={mobileSearchInputRef}
               placeholder={searchPlaceholder}
               value={
@@ -319,6 +367,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
             />
             {(table.getColumn(searchKey)?.getFilterValue() as string) && (
               <Button
+                aria-label="Clear table search"
                 variant="ghost"
                 size="icon"
                 className="absolute right-1 top-1/2 -translate-y-1/2 size-8"
@@ -373,91 +422,122 @@ function MobileFiltersDrawer<TData extends RowData>({
   enableAdvancedFilter,
   urlStatePending = false,
 }: MobileFiltersDrawerProps<TData>) {
+  const [clearRequested, setClearRequested] = React.useState(false);
+  const [clearFocused, setClearFocused] = React.useState(false);
+  const urlStatePendingRef = React.useRef(urlStatePending);
+  const sawUrlStatePendingRef = React.useRef(false);
+  React.useLayoutEffect(() => {
+    urlStatePendingRef.current = urlStatePending;
+    if (urlStatePending && clearRequested) {
+      sawUrlStatePendingRef.current = true;
+    }
+  }, [urlStatePending, clearRequested]);
+  React.useEffect(() => {
+    if (urlStatePending || !clearRequested) return;
+    if (sawUrlStatePendingRef.current) {
+      sawUrlStatePendingRef.current = false;
+      setClearRequested(false);
+      return;
+    }
+    // Give the parent URL transition one macrotask to publish pending.
+    const timeout = window.setTimeout(() => {
+      if (!urlStatePendingRef.current) setClearRequested(false);
+    }, 1);
+    return () => window.clearTimeout(timeout);
+  }, [urlStatePending, clearRequested]);
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerTrigger
-        render={
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 gap-2 rounded-xl"
-            disabled={urlStatePending}
-          >
-            <SlidersHorizontal data-icon="inline-start" />
-            <span>Filters</span>
-            {activeFilterCount > 0 && (
-              <Badge
-                variant="secondary"
-                className="rounded-full px-1.5 py-0 text-xs font-normal"
-              >
-                {activeFilterCount}
-              </Badge>
-            )}
-          </Button>
-        }
-      />
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>Filters</DrawerTitle>
-          <DrawerDescription>
-            Refine your results with filters
-          </DrawerDescription>
-        </DrawerHeader>
-        <div className="px-4 pb-4 space-y-4 max-h-[60vh] overflow-y-auto">
-          {filterFields.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium">Quick Filters</h4>
-              <div className="flex flex-wrap gap-2">
-                {filterFields.map((field) => {
-                  const column = table.getColumn(String(field.id));
-                  if (!column || !field.options) return null;
-
-                  return (
-                    <DataTableFacetedFilter
-                      key={String(field.id)}
-                      column={column}
-                      title={field.label}
-                      options={field.options}
-                      disabled={urlStatePending}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {enableAdvancedFilter && advancedFilterFields.length > 0 && (
-            <>
-              {filterFields.length > 0 && <Separator />}
+      <DrawerVirtualKeyboardProvider>
+        <DrawerTrigger
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-2 rounded-xl"
+              disabled={urlStatePending}
+            >
+              <SlidersHorizontal data-icon="inline-start" />
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="rounded-full px-1.5 py-0 text-xs font-normal"
+                >
+                  {activeFilterCount}
+                </Badge>
+              )}
+            </Button>
+          }
+        />
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Filters</DrawerTitle>
+            <DrawerDescription>
+              Refine your results with filters
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-4 space-y-4 max-h-[60vh] overflow-y-auto">
+            {filterFields.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-sm font-medium">Advanced Filters</h4>
-                <FilterBuilder
-                  fields={advancedFilterFields}
-                  value={advancedFilter}
-                  onChange={onAdvancedFilterChange}
-                  variant="inline"
-                />
+                <h3 className="text-sm font-medium">Quick Filters</h3>
+                <div className="flex flex-wrap gap-2">
+                  {filterFields.map((field) => {
+                    const column = table.getColumn(String(field.id));
+                    if (!column || !field.options) return null;
+
+                    return (
+                      <DataTableFacetedFilter
+                        key={String(field.id)}
+                        column={column}
+                        title={field.label}
+                        options={field.options}
+                        disabled={urlStatePending}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            </>
-          )}
-        </div>
-        <DrawerFooter className="flex-row gap-2">
-          <Button
-            variant="outline"
-            onClick={onReset}
-            disabled={activeFilterCount === 0 || urlStatePending}
-            className="flex-1 rounded-xl"
-          >
-            Clear All
-          </Button>
-          <Button
-            onClick={() => onOpenChange(false)}
-            className="flex-1 rounded-xl"
-          >
-            Apply
-          </Button>
-        </DrawerFooter>
-      </DrawerContent>
+            )}
+
+            {enableAdvancedFilter && advancedFilterFields.length > 0 && (
+              <>
+                {filterFields.length > 0 && <Separator />}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium">Advanced Filters</h3>
+                  <FilterBuilder
+                    fields={advancedFilterFields}
+                    value={advancedFilter}
+                    onChange={onAdvancedFilterChange}
+                    variant="inline"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          <DrawerFooter className="flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setClearRequested(true);
+                onReset();
+              }}
+              onFocus={() => setClearFocused(true)}
+              onBlur={() => setClearFocused(false)}
+              disabled={activeFilterCount === 0 || urlStatePending}
+              focusableWhenDisabled={clearRequested && clearFocused}
+              className="flex-1 rounded-xl"
+            >
+              Clear All
+            </Button>
+            <Button
+              onClick={() => onOpenChange(false)}
+              className="flex-1 rounded-xl"
+            >
+              Apply
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </DrawerVirtualKeyboardProvider>
     </Drawer>
   );
 }

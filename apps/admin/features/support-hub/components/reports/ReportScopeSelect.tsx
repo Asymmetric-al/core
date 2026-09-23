@@ -1,12 +1,13 @@
 "use client";
 
-import { Label } from "@asym/ui/components/shadcn/label";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectControlLabel,
 } from "@asym/ui/components/shadcn/select";
 import * as React from "react";
 
@@ -57,18 +58,26 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
     <div className="flex items-end gap-2">
       {!lockKind ? (
         <div className="flex flex-col gap-1.5">
-          <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
-            Scope
-          </Label>
-          <Select
+          <Select<SupportReportScopeKind>
+            items={[
+              { value: "all", label: "All" },
+              { value: "inbox", label: "Inbox" },
+              { value: "agent", label: "Agent" },
+              { value: "team", label: "Team" },
+              { value: "label", label: "Label" },
+            ]}
             value={state.scopeKind}
-            onValueChange={(value) =>
+            onValueChange={(value) => {
+              if (value === null) return;
               setState({
-                scopeKind: value as SupportReportScopeKind,
+                scopeKind: value,
                 scopeId: "",
-              })
-            }
+              });
+            }}
           >
+            <SelectControlLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+              Scope
+            </SelectControlLabel>
             <SelectTrigger className="h-9 w-[140px] text-[12px]">
               <SelectValue />
             </SelectTrigger>
@@ -84,10 +93,13 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
       ) : null}
       {options.length > 0 ? (
         <div className="flex flex-col gap-1.5">
-          <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
-            {activeKind.charAt(0).toUpperCase() + activeKind.slice(1)}
-          </Label>
-          <Select
+          <SearchableSelect
+            items={[
+              ...options.map((option) => ({
+                value: option.id,
+                label: option.name,
+              })),
+            ]}
             value={selectedScopeId}
             onValueChange={(value) => {
               if (value === null) {
@@ -95,18 +107,10 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
               }
               setState({ scopeId: value });
             }}
-          >
-            <SelectTrigger className="h-9 min-w-[180px] text-[12px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map((option) => (
-                <SelectItem key={option.id} value={option.id}>
-                  {option.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            className="h-9 min-w-[180px] text-[12px]"
+            label={activeKind.charAt(0).toUpperCase() + activeKind.slice(1)}
+            labelClassName="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500"
+          />
         </div>
       ) : null}
     </div>

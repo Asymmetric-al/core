@@ -87,6 +87,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import React, {
+  useId,
   useRef,
   useState,
   useCallback,
@@ -410,6 +411,8 @@ function PDFStudioHeaderSection({
     onOpenDeleteDialog,
   },
 }: PDFStudioHeaderSectionProps) {
+  const pendingActionLabelId = useId();
+
   return (
     <header className="h-12 md:h-14 bg-background border-b border-border flex items-center justify-between px-2 md:px-4 shrink-0 z-20">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -437,8 +440,13 @@ function PDFStudioHeaderSection({
           {hasUnsavedChanges && (
             <Tooltip>
               <TooltipTrigger
+                aria-label="Unsaved changes"
                 render={
-                  <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                  <span
+                    role="img"
+                    tabIndex={0}
+                    className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  />
                 }
               />
               <TooltipContent side="bottom">
@@ -453,6 +461,7 @@ function PDFStudioHeaderSection({
         <div className="hidden xl:flex items-center gap-1 p-0.5 bg-muted rounded-lg">
           <Tooltip>
             <TooltipTrigger
+              aria-label="Undo"
               render={
                 <Button
                   variant="ghost"
@@ -472,6 +481,7 @@ function PDFStudioHeaderSection({
           </Tooltip>
           <Tooltip>
             <TooltipTrigger
+              aria-label="Redo"
               render={
                 <Button
                   variant="ghost"
@@ -493,6 +503,7 @@ function PDFStudioHeaderSection({
 
         <div className="hidden md:block">
           <ToggleGroup
+            aria-label="Preview device"
             value={[previewDevice]}
             onValueChange={(groupValue) => {
               const next = groupValue[0];
@@ -506,6 +517,7 @@ function PDFStudioHeaderSection({
           >
             <Tooltip>
               <TooltipTrigger
+                aria-label="Desktop preview"
                 render={
                   <ToggleGroupItem
                     value="desktop"
@@ -522,6 +534,7 @@ function PDFStudioHeaderSection({
             </Tooltip>
             <Tooltip>
               <TooltipTrigger
+                aria-label="Mobile preview"
                 render={
                   <ToggleGroupItem
                     value="mobile"
@@ -549,6 +562,7 @@ function PDFStudioHeaderSection({
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger
+              aria-label="Export options"
               render={
                 <DropdownMenuTrigger
                   render={
@@ -557,6 +571,8 @@ function PDFStudioHeaderSection({
                       size="sm"
                       className="h-8 gap-1.5"
                       disabled={!isEditorReady || isExporting}
+                      focusableWhenDisabled={isExporting}
+                      aria-label="Export PDF"
                     >
                       {isExporting ? (
                         <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -595,11 +611,16 @@ function PDFStudioHeaderSection({
         </DropdownMenu>
 
         <Button
+          aria-labelledby={`${pendingActionLabelId}-6`}
+          focusableWhenDisabled={isSaving}
           size="sm"
           onClick={onSaveClick}
           disabled={!isEditorReady || isSaving}
           className="h-8 px-3 md:px-4 gap-1.5"
         >
+          <span id={`${pendingActionLabelId}-6`} className="sr-only">
+            {isSaving ? "Saving…" : "Save template"}
+          </span>
           {isSaving ? (
             <>
               <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -707,6 +728,8 @@ function PDFSaveDialogSection({
   isSaving: boolean;
   onConfirmSave: () => void;
 }) {
+  const pendingActionLabelId = useId();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px]">
@@ -744,6 +767,7 @@ function PDFSaveDialogSection({
                 Category
               </Label>
               <Select
+                items={PDF_TEMPLATE_CATEGORIES}
                 value={metadata.category}
                 onValueChange={(value) => {
                   if (value === null) {
@@ -773,6 +797,10 @@ function PDFSaveDialogSection({
                 Page Size
               </Label>
               <Select
+                items={PAGE_SIZES.map((size) => ({
+                  value: size.value,
+                  label: `${size.label} (${size.dimensions})`,
+                }))}
                 value={metadata.pageSize}
                 onValueChange={(value) => {
                   if (value === null) {
@@ -800,6 +828,7 @@ function PDFSaveDialogSection({
               Orientation
             </Label>
             <Select
+              items={ORIENTATIONS}
               value={metadata.orientation}
               onValueChange={(value) => {
                 if (value === null) {
@@ -848,9 +877,18 @@ function PDFSaveDialogSection({
             Cancel
           </Button>
           <Button
+            aria-labelledby={`${pendingActionLabelId}-7`}
+            focusableWhenDisabled={isSaving}
             onClick={onConfirmSave}
             disabled={!metadata.name.trim() || isSaving}
           >
+            <span id={`${pendingActionLabelId}-7`} className="sr-only">
+              {isSaving
+                ? "Saving…"
+                : metadata.id
+                  ? "Update Template"
+                  : "Save Template"}
+            </span>
             {isSaving ? (
               <>
                 <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />

@@ -1,25 +1,28 @@
 "use client";
 
-import { Check, ChevronsUpDown, X } from "lucide-react";
-import { useState, useMemo, useCallback, useId } from "react";
+import { Check, ChevronsUpDown, Search, X } from "lucide-react";
+import { useMemo, useRef, type Ref } from "react";
 
-import { cn } from "@asym/ui/lib/utils";
-
+import { cn } from "../../../../lib/utils";
 import { Badge } from "../../badge";
 import { Button } from "../../button";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "../../command";
-import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxItemIndicator,
+  ComboboxList,
+  ComboboxTrigger,
+  createComboboxItems,
+} from "../../combobox";
+import { InputGroup, InputGroupAddon } from "../../input-group";
 
 import type {
   FilterFieldDefinition,
   FilterOperator,
+  FilterOption,
   FilterValue,
 } from "./types";
 
@@ -31,100 +34,133 @@ interface FilterSelectInputProps {
   className?: string;
 }
 
+function useFilterItems(field: FilterFieldDefinition) {
+  return useMemo(
+    () =>
+      createComboboxItems(field.options ?? [], {
+        getValue: (option) => option.value,
+        getLabel: (option) => option.label,
+      }),
+    [field.options],
+  );
+}
+
+function matchesFilterOption(option: FilterOption, query: string) {
+  const search = query.trim().toLocaleLowerCase();
+  return (
+    option.label.toLocaleLowerCase().includes(search) ||
+    option.value.toLocaleLowerCase().includes(search)
+  );
+}
+
+function FilterSearch({
+  label,
+  inputRef,
+}: {
+  label: string;
+  inputRef?: Ref<HTMLInputElement>;
+}) {
+  return (
+    <InputGroup className="m-2 mb-0 h-10 w-auto rounded-xl border-2 border-border/70 bg-background shadow-none">
+      <InputGroupAddon>
+        <Search className="text-muted-foreground/60" />
+      </InputGroupAddon>
+      <ComboboxInput
+        ref={inputRef}
+        aria-label={`Search ${label}`}
+        placeholder="Search..."
+        className="text-sm"
+      />
+    </InputGroup>
+  );
+}
+
+function FilterOptions({ multiple = false }: { multiple?: boolean }) {
+  return (
+    <>
+      <ComboboxEmpty>No options found.</ComboboxEmpty>
+      <ComboboxList className="p-2">
+        {(option: FilterOption) => (
+          <ComboboxItem key={option.value} value={option.value}>
+            <span
+              className={cn(
+                "flex size-4 shrink-0 items-center justify-center",
+                multiple &&
+                  "rounded-full border border-border/70 bg-background in-data-selected:border-primary in-data-selected:bg-primary in-data-selected:text-primary-foreground",
+              )}
+            >
+              <ComboboxItemIndicator>
+                <Check className={multiple ? "size-3" : "size-4"} />
+              </ComboboxItemIndicator>
+            </span>
+            {option.icon && (
+              <option.icon className="size-4 text-muted-foreground" />
+            )}
+            <span>{option.label}</span>
+            {option.count !== undefined && (
+              <span className="ml-auto min-w-6 text-right font-mono text-[11px] font-medium text-muted-foreground/80">
+                {option.count}
+              </span>
+            )}
+          </ComboboxItem>
+        )}
+      </ComboboxList>
+    </>
+  );
+}
+
 export function FilterSelectInput({
   field,
   value,
   onChange,
   className,
 }: FilterSelectInputProps) {
-  const [open, setOpen] = useState(false);
-  const listboxId = useId();
-
-  const options = useMemo(() => field.options ?? [], [field.options]);
-
-  const selectedOption = useMemo(() => {
-    return options.find((opt) => opt.value === value);
-  }, [options, value]);
+  const items = useFilterItems(field);
+  const selectedOption = field.options?.find(
+    (option) => option.value === value,
+  );
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        render={
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            aria-controls={listboxId}
-            className={cn(
-              "h-9 w-[180px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
-              !selectedOption && "text-muted-foreground",
-              className,
-            )}
-          >
-            <span className="truncate">
-              {selectedOption ? (
-                <span className="flex items-center gap-2">
-                  {selectedOption.icon && (
-                    <selectedOption.icon className="size-3.5 shrink-0" />
-                  )}
-                  {selectedOption.label}
-                </span>
-              ) : (
-                (field.placeholder ?? "Select...")
+    <Combobox
+      items={items}
+      value={typeof value === "string" ? value : null}
+      onValueChange={(nextValue) =>
+        onChange(nextValue === value ? "" : (nextValue ?? ""))
+      }
+      filter={matchesFilterOption}
+    >
+      <ComboboxTrigger
+        aria-label={field.label}
+        render={<Button variant="outline" />}
+        className={cn(
+          "h-9 w-[180px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
+          !selectedOption && "text-muted-foreground",
+          className,
+        )}
+      >
+        <span className="truncate">
+          {selectedOption ? (
+            <span className="flex items-center gap-2">
+              {selectedOption.icon && (
+                <selectedOption.icon className="size-3.5 shrink-0" />
               )}
+              {selectedOption.label}
             </span>
-            <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
-          </Button>
-        }
-      />
-      <PopoverContent
-        className="w-[220px] overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
-        align="start"
+          ) : (
+            (field.placeholder ?? "Select...")
+          )}
+        </span>
+        <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
+      </ComboboxTrigger>
+      <ComboboxContent
+        aria-label={field.label}
+        className="w-[220px] border border-border/60 shadow-xl"
         sideOffset={8}
       >
-        <Command className="rounded-[inherit] bg-transparent">
-          <CommandInput
-            popoverChrome
-            placeholder="Search..."
-            className="text-sm"
-          />
-          <CommandList id={listboxId}>
-            <CommandEmpty className="py-8 text-xs text-muted-foreground">
-              No options found.
-            </CommandEmpty>
-            <CommandGroup className="p-2">
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={() => {
-                    onChange(option.value === value ? "" : option.value);
-                    setOpen(false);
-                  }}
-                  className="rounded-xl px-3 py-2.5 text-sm font-medium"
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 size-4",
-                      value === option.value ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  {option.icon && (
-                    <option.icon className="mr-2 size-4 text-muted-foreground" />
-                  )}
-                  <span>{option.label}</span>
-                  {option.count !== undefined && (
-                    <span className="ml-auto min-w-6 text-right font-mono text-[11px] font-medium text-muted-foreground/80">
-                      {option.count}
-                    </span>
-                  )}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+        <FilterSearch label={field.label} />
+        <FilterOptions />
+      </ComboboxContent>
+    </Combobox>
   );
 }
 
@@ -134,147 +170,110 @@ export function FilterMultiSelectInput({
   onChange,
   className,
 }: FilterSelectInputProps) {
-  const [open, setOpen] = useState(false);
-  const listboxId = useId();
-
-  const options = useMemo(() => field.options ?? [], [field.options]);
-  const selectedValues = useMemo(() => (value as string[]) ?? [], [value]);
-
-  const selectedOptions = useMemo(() => {
-    return options.filter((opt) => selectedValues.includes(opt.value));
-  }, [options, selectedValues]);
-
-  const toggleOption = useCallback(
-    (optionValue: string) => {
-      const newValues = selectedValues.includes(optionValue)
-        ? selectedValues.filter((v) => v !== optionValue)
-        : [...selectedValues, optionValue];
-      onChange(newValues);
-    },
-    [selectedValues, onChange],
-  );
-
-  const removeValue = useCallback(
-    (optionValue: string, e: React.MouseEvent) => {
-      e.stopPropagation();
-      onChange(selectedValues.filter((v) => v !== optionValue));
-    },
-    [selectedValues, onChange],
-  );
+  const items = useFilterItems(field);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const selectedValues = Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+  const selectedOptions =
+    field.options?.filter((option) => selectedValues.includes(option.value)) ??
+    [];
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        render={
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            aria-controls={listboxId}
-            className={cn(
-              "h-auto min-h-9 w-[240px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
-              !selectedOptions.length && "text-muted-foreground",
-              className,
-            )}
-          >
-            {selectedOptions.length > 0 ? (
-              <div className="flex flex-wrap gap-1 py-0.5">
-                {selectedOptions.length <= 2 ? (
-                  selectedOptions.map((option) => (
-                    <Badge
-                      key={option.value}
-                      variant="secondary"
-                      className="rounded-md px-1.5 py-0 text-xs font-normal"
-                    >
-                      {option.label}
-                      <button
-                        type="button"
-                        onClick={(e) => removeValue(option.value, e)}
-                        className="ml-1 rounded-full hover:bg-muted-foreground/20"
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </Badge>
-                  ))
-                ) : (
-                  <Badge
-                    variant="secondary"
-                    className="rounded-md px-1.5 py-0 text-xs font-normal"
-                  >
-                    {selectedOptions.length} selected
-                  </Badge>
-                )}
-              </div>
-            ) : (
-              <span>{field.placeholder ?? "Select options..."}</span>
-            )}
-            <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
-          </Button>
-        }
-      />
-      <PopoverContent
-        className="w-[260px] overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
-        align="start"
+    <Combobox
+      multiple
+      items={items}
+      value={selectedValues}
+      onValueChange={onChange}
+      filter={matchesFilterOption}
+      onInputValueChange={(_query, details) => {
+        if (details.isItemPress) details.cancel();
+      }}
+    >
+      <div
+        ref={anchorRef}
+        className={cn(
+          "flex min-h-9 w-[240px] items-center gap-1 rounded-xl border border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 has-aria-expanded:border-border has-aria-expanded:bg-muted/50",
+          className,
+        )}
+      >
+        {selectedOptions.length > 0 && selectedOptions.length <= 2 && (
+          <div className="flex flex-wrap gap-1 py-0.5">
+            {selectedOptions.map((option) => (
+              <Badge
+                key={option.value}
+                variant="secondary"
+                className="rounded-md px-1.5 py-0 text-xs font-normal"
+              >
+                {option.label}
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={`Remove ${option.label}`}
+                  onClick={() => {
+                    onChange(
+                      selectedValues.filter(
+                        (selected) => selected !== option.value,
+                      ),
+                    );
+                    triggerRef.current?.focus();
+                  }}
+                  className="ml-1 size-4 rounded-full p-0 hover:bg-muted-foreground/20"
+                >
+                  <X className="size-3" />
+                </Button>
+              </Badge>
+            ))}
+          </div>
+        )}
+        <ComboboxTrigger
+          ref={triggerRef}
+          aria-label={field.label}
+          render={<Button variant="ghost" />}
+          className={cn(
+            "h-8 min-w-0 flex-1 justify-between rounded-xl p-0 text-sm font-normal hover:bg-transparent",
+            !selectedOptions.length && "text-muted-foreground",
+          )}
+        >
+          {selectedOptions.length > 2 ? (
+            <Badge
+              variant="secondary"
+              className="rounded-md px-1.5 py-0 text-xs font-normal"
+            >
+              {selectedOptions.length} selected
+            </Badge>
+          ) : !selectedOptions.length ? (
+            <span>{field.placeholder ?? "Select options..."}</span>
+          ) : null}
+          <ChevronsUpDown className="ml-auto size-3.5 shrink-0 opacity-50" />
+        </ComboboxTrigger>
+      </div>
+      <ComboboxContent
+        anchor={anchorRef}
+        aria-label={field.label}
+        className="w-[260px] border border-border/60 shadow-xl"
         sideOffset={8}
       >
-        <Command className="rounded-[inherit] bg-transparent">
-          <CommandInput
-            popoverChrome
-            placeholder="Search..."
-            className="text-sm"
-          />
-          <CommandList id={listboxId}>
-            <CommandEmpty className="py-8 text-xs text-muted-foreground">
-              No options found.
-            </CommandEmpty>
-            <CommandGroup className="p-2">
-              {options.map((option) => {
-                const isSelected = selectedValues.includes(option.value);
-                return (
-                  <CommandItem
-                    key={option.value}
-                    value={option.value}
-                    onSelect={() => toggleOption(option.value)}
-                    className="rounded-xl px-3 py-2.5 text-sm font-medium"
-                  >
-                    <div
-                      className={cn(
-                        "mr-2 flex size-4 items-center justify-center rounded-full border border-border/70 transition-colors",
-                        isSelected
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "bg-background",
-                      )}
-                    >
-                      {isSelected && <Check className="size-3" />}
-                    </div>
-                    {option.icon && (
-                      <option.icon className="mr-2 size-4 text-muted-foreground" />
-                    )}
-                    <span>{option.label}</span>
-                    {option.count !== undefined && (
-                      <span className="ml-auto min-w-6 text-right font-mono text-[11px] font-medium text-muted-foreground/80">
-                        {option.count}
-                      </span>
-                    )}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
+        <FilterSearch label={field.label} inputRef={searchInputRef} />
+        <FilterOptions multiple />
         {selectedValues.length > 0 && (
           <div className="border-t border-border/60 p-2 pt-1">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onChange([])}
+              onClick={() => {
+                searchInputRef.current?.focus();
+                onChange([]);
+              }}
               className="h-8 w-full rounded-xl text-xs font-medium"
             >
               Clear all
             </Button>
           </div>
         )}
-      </PopoverContent>
-    </Popover>
+      </ComboboxContent>
+    </Combobox>
   );
 }

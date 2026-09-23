@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Tooltip,
   TooltipContent,
@@ -250,15 +250,17 @@ export function StudioNavRail({ className }: { className?: string }) {
           </div>
           <div className="flex flex-col gap-1">
             {recentDocs.map((doc) => (
-              <Button
+              <Link
                 key={`${doc.id}-${doc.href}`}
-                variant="ghost"
-                size="sm"
-                className="justify-start overflow-hidden text-left text-xs"
-                render={<Link href={doc.href} title={doc.title} />}
+                href={doc.href}
+                title={doc.title}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "justify-start overflow-hidden text-left text-xs",
+                )}
               >
                 <span className="truncate">{doc.title}</span>
-              </Button>
+              </Link>
             ))}
           </div>
         </div>
@@ -276,15 +278,21 @@ function NavRailLink({
 }: NavRailLinkProps) {
   if (!collapsed) {
     return (
-      <Button
-        variant={active ? "secondary" : "ghost"}
-        size="sm"
-        className="justify-start gap-2 font-semibold text-xs"
-        render={<Link href={href} title={title} />}
+      <Link
+        href={href}
+        title={title}
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          buttonVariants({
+            variant: active ? "secondary" : "ghost",
+            size: "sm",
+          }),
+          "justify-start gap-2 font-semibold text-xs",
+        )}
       >
-        <Icon className="size-4 shrink-0" />
+        <Icon className="size-4 shrink-0" aria-hidden="true" />
         <span>{title}</span>
-      </Button>
+      </Link>
     );
   }
 
@@ -292,14 +300,21 @@ function NavRailLink({
     <Tooltip>
       <TooltipTrigger
         render={
-          <Button
-            variant={active ? "secondary" : "ghost"}
-            size="sm"
-            className={cn("justify-center gap-2 px-0 font-semibold text-xs")}
-            render={<Link href={href} title={title} />}
+          <Link
+            href={href}
+            title={title}
+            aria-label={title}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              buttonVariants({
+                variant: active ? "secondary" : "ghost",
+                size: "sm",
+              }),
+              "justify-center gap-2 px-0 font-semibold text-xs",
+            )}
           >
-            <Icon className="size-4 shrink-0" />
-          </Button>
+            <Icon className="size-4 shrink-0" aria-hidden="true" />
+          </Link>
         }
       />
       <TooltipContent side="right">{title}</TooltipContent>

@@ -1,26 +1,21 @@
 "use client";
 
-import { OTPInput, OTPInputContext } from "input-otp";
+import { OTPField } from "@base-ui/react/otp-field";
 import { MinusIcon } from "lucide-react";
-import * as React from "react";
 
-import { cn } from "@asym/ui/lib/utils";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
+import { cn } from "../../lib/utils";
 
-function InputOTP({
-  className,
-  containerClassName,
-  ...props
-}: React.ComponentProps<typeof OTPInput> & {
-  containerClassName?: string;
-}) {
+import type * as React from "react";
+
+function InputOTP({ className, ...props }: OTPField.Root.Props) {
   return (
-    <OTPInput
+    <OTPField.Root
       data-slot="input-otp"
-      containerClassName={cn(
+      className={mergeBaseUIClassName(
         "flex items-center gap-2 has-disabled:opacity-50",
-        containerClassName,
+        className,
       )}
-      className={cn("disabled:cursor-not-allowed", className)}
       {...props}
     />
   );
@@ -36,41 +31,37 @@ function InputOTPGroup({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function InputOTPSlot({
-  index,
-  className,
-  ...props
-}: React.ComponentProps<"div"> & {
-  index: number;
-}) {
-  const inputOTPContext = React.use(OTPInputContext);
-  const { char, hasFakeCaret, isActive } = inputOTPContext?.slots[index] ?? {};
-
+function InputOTPSlot({ className, ...props }: OTPField.Input.Props) {
   return (
-    <div
+    <OTPField.Input
       data-slot="input-otp-slot"
-      data-active={isActive}
-      className={cn(
-        "relative flex h-9 w-9 items-center justify-center border-y border-r border-input text-sm shadow-xs outline-none first:rounded-l-md first:border-l last:rounded-r-md aria-invalid:border-destructive data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:ring-[3px] data-[active=true]:ring-ring/50 data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/20 dark:bg-input/30 dark:data-[active=true]:aria-invalid:ring-destructive/40",
+      className={mergeBaseUIClassName(
+        "relative h-9 w-9 border-y border-r border-input bg-transparent text-center text-sm shadow-xs outline-none first:rounded-l-md first:border-l last:rounded-r-md focus:z-10 focus:border-ring focus:ring-[3px] focus:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:cursor-not-allowed dark:bg-input/30 dark:aria-invalid:ring-destructive/40",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function InputOTPSeparator({
+  className,
+  children,
+  ...props
+}: OTPField.Separator.Props) {
+  return (
+    <OTPField.Separator
+      data-slot="input-otp-separator"
+      role="presentation"
+      aria-hidden="true"
+      className={mergeBaseUIClassName(
+        "flex items-center justify-center [&_svg]:size-4",
         className,
       )}
       {...props}
     >
-      {char}
-      {hasFakeCaret && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-4 w-px animate-caret-blink bg-foreground duration-1000" />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function InputOTPSeparator({ ...props }: React.ComponentProps<"div">) {
-  return (
-    <div data-slot="input-otp-separator" role="separator" {...props}>
-      <MinusIcon />
-    </div>
+      {children ?? <MinusIcon aria-hidden="true" />}
+    </OTPField.Separator>
   );
 }
 

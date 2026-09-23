@@ -322,7 +322,12 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    /* Base UI absolute backdrops must cover Safari's expanded viewport. */
     position: relative;
+  }
+
+  /* Keep page z-indexes below overlays portaled next to the application root. */
+  .app-root {
     isolation: isolate;
   }
 

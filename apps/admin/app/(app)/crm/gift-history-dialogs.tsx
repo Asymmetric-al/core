@@ -13,6 +13,7 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@asym/ui/components/shadcn/radio-group";
+import { useId } from "react";
 
 import type { ViewNameDialogState } from "./use-gift-history-view-controller";
 import type { CrmNamedView } from "@asym/database/types";
@@ -70,6 +71,8 @@ export function SetTenantDefaultDialog({
   onCancel,
   onConfirm,
 }: SetTenantDefaultDialogProps) {
+  const pendingActionLabelId = useId();
+
   if (!open) {
     return null;
   }
@@ -90,8 +93,16 @@ export function SetTenantDefaultDialog({
           <Button variant="outline" className="h-11" onClick={onCancel}>
             Cancel
           </Button>
-          <Button className="h-11" disabled={isSaving} onClick={onConfirm}>
-            {isSaving ? "Saving..." : "Set tenant default"}
+          <Button
+            aria-labelledby={`${pendingActionLabelId}-4`}
+            focusableWhenDisabled={isSaving}
+            className="h-11"
+            disabled={isSaving}
+            onClick={onConfirm}
+          >
+            <span id={`${pendingActionLabelId}-4`}>
+              {isSaving ? "Saving..." : "Set tenant default"}
+            </span>
           </Button>
         </div>
       </DialogContent>
@@ -186,6 +197,7 @@ export function DeleteNamedViewDialog({
         </DialogDescription>
         {view.isDefault ? (
           <RadioGroup
+            aria-label="Replacement default view"
             className="space-y-2"
             value={nextDefaultChoice}
             onValueChange={onNextDefaultChoiceChange}
@@ -240,6 +252,8 @@ export function TenantDefaultDialog({
   onConfirm,
   open,
 }: TenantDefaultDialogProps) {
+  const pendingActionLabelId = useId();
+
   if (!open) {
     return null;
   }
@@ -260,8 +274,16 @@ export function TenantDefaultDialog({
           <Button variant="outline" className="h-11" onClick={onCancel}>
             Cancel
           </Button>
-          <Button className="h-11" disabled={isSaving} onClick={onConfirm}>
-            {isSaving ? "Saving..." : "Set tenant default"}
+          <Button
+            aria-labelledby={`${pendingActionLabelId}-5`}
+            focusableWhenDisabled={isSaving}
+            className="h-11"
+            disabled={isSaving}
+            onClick={onConfirm}
+          >
+            <span id={`${pendingActionLabelId}-5`}>
+              {isSaving ? "Saving..." : "Set tenant default"}
+            </span>
           </Button>
         </div>
       </DialogContent>

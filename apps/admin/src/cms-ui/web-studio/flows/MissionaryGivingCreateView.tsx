@@ -1,14 +1,7 @@
 "use client";
 
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Label } from "@asym/ui/components/shadcn/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
@@ -204,8 +197,14 @@ function MissionaryGivingCreateViewContent() {
           <form.Field name="missionaryId">
             {(field) => (
               <div className="flex flex-col gap-2">
-                <Label>Missionary</Label>
-                <Select
+                <SearchableSelect
+                  items={(missionaries ?? []).map((m) => ({
+                    value: m.id,
+                    label:
+                      m.profile?.full_name?.trim() ||
+                      m.profile?.display_name?.trim() ||
+                      m.id,
+                  }))}
                   value={field.state.value || null}
                   onValueChange={(v) => {
                     if (v === null) {
@@ -214,24 +213,9 @@ function MissionaryGivingCreateViewContent() {
                     field.handleChange(v);
                   }}
                   disabled={missionariesIsPending || missionariesIsError}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select missionary" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(missionaries ?? []).map((m) => {
-                      const label =
-                        m.profile?.full_name?.trim() ||
-                        m.profile?.display_name?.trim() ||
-                        m.id;
-                      return (
-                        <SelectItem key={m.id} value={m.id}>
-                          {label}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                  placeholder="Select missionary"
+                  label="Missionary"
+                />
               </div>
             )}
           </form.Field>

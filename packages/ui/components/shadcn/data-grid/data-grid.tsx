@@ -452,6 +452,10 @@ function buildDataGridColumns<TData extends Record<string, unknown>>({
       header: () => (
         <div className="flex items-center justify-center">
           <Checkbox
+            aria-label="Select all rows"
+            indeterminate={
+              selectedRows.size > 0 && selectedRows.size < rowCount
+            }
             checked={selectedRows.size === rowCount && rowCount > 0}
             onCheckedChange={(checked) => {
               if (checked) {
@@ -468,6 +472,7 @@ function buildDataGridColumns<TData extends Record<string, unknown>>({
       cell: ({ row }) => (
         <div className="flex items-center justify-center">
           <Checkbox
+            aria-label={`Select row ${row.index + 1}`}
             checked={selectedRows.has(row.index)}
             onCheckedChange={(checked) => {
               setSelectedRows((prev) => {
@@ -507,6 +512,7 @@ function buildDataGridColumns<TData extends Record<string, unknown>>({
 
         return (
           <DataGridCell
+            label={`${col.header}, row ${rowIndex + 1}`}
             value={value}
             cellType={col.cellType ?? "text"}
             isEditing={isEditing}

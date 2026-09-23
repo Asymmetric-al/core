@@ -1,5 +1,6 @@
 "use client";
 
+import { Field as FieldPrimitive } from "@base-ui/react/field";
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
 import * as React from "react";
 
@@ -11,12 +12,15 @@ import {
   FieldDescription,
   FieldError,
   FieldLabel,
+  FieldTitle,
 } from "../shadcn/field";
 import { Input } from "../shadcn/input";
+import { NumberField, NumberFieldInput } from "../shadcn/number-field";
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectGroup,
   SelectTrigger,
   SelectValue,
 } from "../shadcn/select";
@@ -171,38 +175,73 @@ function AsymFieldShell({
   children,
   className,
   contentClassName,
+  controlId,
   description,
+  descriptionId,
   descriptionClassName,
   errorClassName,
   errors,
+  errorId,
+  disabled,
+  name,
+  nonNativeLabel = false,
   isInvalid,
   label,
   labelClassName,
   orientation = "vertical",
 }: AsymFieldBaseProps & {
   children: React.ReactNode;
+  controlId: string;
+  descriptionId: string;
+  errorId: string;
+  disabled?: boolean;
+  name?: string;
+  nonNativeLabel?: boolean;
   errors: AsymFieldError[];
   isInvalid: boolean;
 }) {
+  const field = useAsymFieldContext<unknown>();
   return (
-    <Field
+    <FieldPrimitive.Root
       className={className}
       data-invalid={isInvalid}
-      orientation={orientation}
+      data-disabled={disabled}
+      disabled={disabled}
+      dirty={field.state.meta.isDirty}
+      touched={field.state.meta.isTouched}
+      invalid={isInvalid}
+      name={name ?? field.name}
+      render={<Field orientation={orientation} />}
     >
       {label ? (
-        <FieldLabel className={labelClassName}>{label}</FieldLabel>
+        <FieldPrimitive.Label
+          className={labelClassName}
+          htmlFor={controlId}
+          nativeLabel={!nonNativeLabel}
+          render={nonNativeLabel ? <FieldTitle /> : <FieldLabel />}
+        >
+          {label}
+        </FieldPrimitive.Label>
       ) : null}
       <FieldContent className={contentClassName}>
         {children}
         {description ? (
-          <FieldDescription className={descriptionClassName}>
+          <FieldPrimitive.Description
+            id={descriptionId}
+            className={descriptionClassName}
+            render={<FieldDescription />}
+          >
             {description}
-          </FieldDescription>
+          </FieldPrimitive.Description>
         ) : null}
-        <FieldError className={errorClassName} errors={errors} />
+        <FieldPrimitive.Error
+          id={errorId}
+          match={isInvalid}
+          className={errorClassName}
+          render={<FieldError errors={errors} />}
+        />
       </FieldContent>
-    </Field>
+    </FieldPrimitive.Root>
   );
 }
 
@@ -238,9 +277,12 @@ function AsymTextField({
     <AsymFieldShell
       className={className}
       contentClassName={contentClassName}
-      description={
-        description ? <span id={descriptionId}>{description}</span> : undefined
-      }
+      controlId={controlId}
+      description={description}
+      descriptionId={descriptionId}
+      errorId={errorId}
+      disabled={disabled}
+      name={name}
       descriptionClassName={descriptionClassName}
       errorClassName={errorClassName}
       errors={errors}
@@ -299,13 +341,13 @@ function AsymNumberField({
     field,
     isInvalid,
   } = useAsymFieldMeta(description, id);
-  const [inputValue, setInputValue] = React.useState(() =>
-    field.state.value === undefined ? "" : String(field.state.value),
+  const [numericValue, setNumericValue] = React.useState<number | null>(
+    typeof field.state.value === "number" ? field.state.value : null,
   );
 
   React.useEffect(() => {
-    setInputValue(
-      field.state.value === undefined ? "" : String(field.state.value),
+    setNumericValue(
+      typeof field.state.value === "number" ? field.state.value : null,
     );
   }, [field.state.value]);
 
@@ -313,9 +355,12 @@ function AsymNumberField({
     <AsymFieldShell
       className={className}
       contentClassName={contentClassName}
-      description={
-        description ? <span id={descriptionId}>{description}</span> : undefined
-      }
+      controlId={controlId}
+      description={description}
+      descriptionId={descriptionId}
+      errorId={errorId}
+      disabled={disabled}
+      name={name}
       descriptionClassName={descriptionClassName}
       errorClassName={errorClassName}
       errors={errors}
@@ -324,51 +369,45 @@ function AsymNumberField({
       labelClassName={labelClassName}
       orientation={orientation}
     >
-      <Input
-        aria-describedby={describedBy}
-        aria-errormessage={isInvalid ? errorId : undefined}
-        aria-invalid={isInvalid}
-        className={inputClassName}
-        disabled={disabled}
+      <NumberField
         id={controlId}
-        max={max}
-        min={min}
+        disabled={disabled}
         name={name ?? field.name}
-        onBlur={() => {
-          if (inputValue === "" && !allowEmpty) {
-            setInputValue(
-              field.state.value === undefined ? "" : String(field.state.value),
-            );
-          } else if (inputValue !== "" && Number.isNaN(Number(inputValue))) {
-            setInputValue(
-              field.state.value === undefined ? "" : String(field.state.value),
-            );
-          }
-
-          field.handleBlur();
-        }}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          const rawValue = event.target.value;
-          setInputValue(rawValue);
-
-          if (rawValue === "") {
-            if (allowEmpty) {
-              field.handleChange(undefined as never);
-            }
-            return;
-          }
-
-          const numericValue = Number(rawValue);
-
-          if (!Number.isNaN(numericValue)) {
-            field.handleChange(numericValue as never);
-          }
-        }}
-        placeholder={placeholder}
+        min={min}
+        max={max}
         step={step}
-        type="number"
-        value={inputValue}
-      />
+        allowOutOfRange
+        format={{ useGrouping: false, maximumFractionDigits: 20 }}
+        value={numericValue}
+        onValueChange={(value) => {
+          setNumericValue(value);
+          if (value !== null) {
+            field.handleChange(value);
+          } else if (allowEmpty) {
+            field.handleChange(undefined);
+          }
+        }}
+        onValueCommitted={(value, details) => {
+          if (
+            details.reason === "input-clear" &&
+            value === null &&
+            !allowEmpty
+          ) {
+            setNumericValue(
+              typeof field.state.value === "number" ? field.state.value : null,
+            );
+          }
+        }}
+      >
+        <NumberFieldInput
+          aria-describedby={describedBy}
+          aria-errormessage={isInvalid ? errorId : undefined}
+          aria-invalid={isInvalid}
+          className={inputClassName}
+          onBlur={field.handleBlur}
+          placeholder={placeholder}
+        />
+      </NumberField>
     </AsymFieldShell>
   );
 }
@@ -403,9 +442,12 @@ function AsymTextareaField({
     <AsymFieldShell
       className={className}
       contentClassName={contentClassName}
-      description={
-        description ? <span id={descriptionId}>{description}</span> : undefined
-      }
+      controlId={controlId}
+      description={description}
+      descriptionId={descriptionId}
+      errorId={errorId}
+      disabled={disabled}
+      name={name}
       descriptionClassName={descriptionClassName}
       errorClassName={errorClassName}
       errors={errors}
@@ -414,7 +456,8 @@ function AsymTextareaField({
       labelClassName={labelClassName}
       orientation={orientation}
     >
-      <Textarea
+      <FieldPrimitive.Control
+        render={<Textarea rows={rows} />}
         aria-describedby={describedBy}
         aria-errormessage={isInvalid ? errorId : undefined}
         aria-invalid={isInvalid}
@@ -423,11 +466,8 @@ function AsymTextareaField({
         id={controlId}
         name={name ?? field.name}
         onBlur={field.handleBlur}
-        onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
-          field.handleChange(event.target.value)
-        }
+        onValueChange={field.handleChange}
         placeholder={placeholder}
-        rows={rows}
         value={String(field.state.value ?? "")}
       />
     </AsymFieldShell>
@@ -464,9 +504,12 @@ function AsymSelectField({
     <AsymFieldShell
       className={className}
       contentClassName={contentClassName}
-      description={
-        description ? <span id={descriptionId}>{description}</span> : undefined
-      }
+      controlId={controlId}
+      description={description}
+      descriptionId={descriptionId}
+      errorId={errorId}
+      disabled={disabled}
+      name={name}
       descriptionClassName={descriptionClassName}
       errorClassName={errorClassName}
       errors={errors}
@@ -474,8 +517,10 @@ function AsymSelectField({
       label={label}
       labelClassName={labelClassName}
       orientation={orientation}
+      nonNativeLabel
     >
       <Select
+        items={options}
         disabled={disabled}
         name={name ?? field.name}
         onOpenChange={(open: boolean) => {
@@ -499,15 +544,17 @@ function AsymSelectField({
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {options.map((option) => (
-            <SelectItem
-              disabled={option.disabled}
-              key={option.value}
-              value={option.value}
-            >
-              {option.label}
-            </SelectItem>
-          ))}
+          <SelectGroup>
+            {options.map((option) => (
+              <SelectItem
+                disabled={option.disabled}
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
         </SelectContent>
       </Select>
     </AsymFieldShell>
@@ -547,9 +594,12 @@ function AsymSwitchField({
         orientation === "horizontal" ? "items-end" : undefined,
         contentClassName,
       )}
-      description={
-        description ? <span id={descriptionId}>{description}</span> : undefined
-      }
+      controlId={controlId}
+      description={description}
+      descriptionId={descriptionId}
+      errorId={errorId}
+      disabled={disabled}
+      name={name}
       descriptionClassName={descriptionClassName}
       errorClassName={errorClassName}
       errors={errors}
@@ -588,12 +638,15 @@ function AsymSwitchField({
 }
 
 function AsymSubmitButton({
+  "aria-labelledby": ariaLabelledBy,
   children,
   disabled,
+  focusableWhenDisabled,
   pendingChildren,
   ...props
 }: AsymSubmitButtonProps) {
   const form = useAsymFormContext();
+  const labelId = React.useId();
 
   return (
     <form.Subscribe
@@ -604,11 +657,17 @@ function AsymSubmitButton({
     >
       {({ canSubmit, isSubmitting }) => (
         <Button
+          aria-labelledby={
+            ariaLabelledBy ?? (props["aria-label"] ? undefined : labelId)
+          }
           disabled={disabled || !canSubmit || isSubmitting}
+          focusableWhenDisabled={focusableWhenDisabled ?? isSubmitting}
           type="submit"
           {...props}
         >
-          {isSubmitting ? (pendingChildren ?? children) : children}
+          <span id={labelId}>
+            {isSubmitting ? (pendingChildren ?? children) : children}
+          </span>
         </Button>
       )}
     </form.Subscribe>

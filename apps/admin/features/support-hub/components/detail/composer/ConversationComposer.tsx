@@ -170,6 +170,7 @@ export function ConversationComposer({
       <ComposerActions
         mode={composer.mode}
         isPending={composer.isPending}
+        pendingAction={composer.pendingAction}
         isDirty={composer.isDirty}
         onSend={composer.send}
         onSaveDraft={composer.saveDraft}

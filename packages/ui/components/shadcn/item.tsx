@@ -6,6 +6,7 @@ import * as React from "react";
 import { cn } from "@asym/ui/lib/utils";
 
 import { Separator } from "./separator";
+import { mergeBaseUIClassName } from "../../lib/base-ui";
 
 function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -26,7 +27,7 @@ function ItemSeparator({
     <Separator
       data-slot="item-separator"
       orientation="horizontal"
-      className={cn("my-0", className)}
+      className={mergeBaseUIClassName("my-0", className)}
       {...props}
     />
   );
@@ -59,7 +60,15 @@ function Item({
   size = "default",
   render,
   ...props
-}: useRender.ComponentProps<"div"> & VariantProps<typeof itemVariants>) {
+}: useRender.ComponentProps<
+  "div",
+  {
+    slot: string;
+    variant: VariantProps<typeof itemVariants>["variant"];
+    size: VariantProps<typeof itemVariants>["size"];
+  }
+> &
+  VariantProps<typeof itemVariants>) {
   return useRender({
     defaultTagName: "div",
     props: mergeProps<"div">(

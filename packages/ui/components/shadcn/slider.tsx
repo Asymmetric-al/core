@@ -5,23 +5,25 @@ import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import { mergeBaseUIClassName } from "../../lib/base-ui";
+
 function Slider({
   className,
   defaultValue,
   value,
   min = 0,
   max = 100,
+  thumbProps,
   ...props
-}: SliderPrimitive.Root.Props) {
-  const _values = React.useMemo(
-    () =>
-      Array.isArray(value)
-        ? value
-        : Array.isArray(defaultValue)
-          ? defaultValue
-          : [min, max],
-    [value, defaultValue, min, max],
-  );
+}: SliderPrimitive.Root.Props & {
+  thumbProps?:
+    | Omit<SliderPrimitive.Thumb.Props, "index">
+    | ((index: number) => Omit<SliderPrimitive.Thumb.Props, "index">);
+}) {
+  const _values = React.useMemo(() => {
+    const currentValue = value ?? defaultValue ?? min;
+    return Array.isArray(currentValue) ? currentValue : [currentValue];
+  }, [value, defaultValue, min]);
 
   return (
     <SliderPrimitive.Root
@@ -30,7 +32,7 @@ function Slider({
       value={value}
       min={min}
       max={max}
-      className={cn(
+      className={mergeBaseUIClassName(
         "data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full",
         className,
       )}
@@ -50,14 +52,24 @@ function Slider({
             )}
           />
         </SliderPrimitive.Track>
-        {Array.from({ length: _values.length }, (_, index) => (
-          <SliderPrimitive.Thumb
-            data-slot="slider-thumb"
-            key={index}
-            index={index}
-            className="border-primary ring-ring/50 block size-4 shrink-0 rounded-full border bg-background shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 dark:bg-input"
-          />
-        ))}
+        {Array.from({ length: _values.length }, (_, index) => {
+          const { className: thumbClassName, ...resolvedThumbProps } =
+            (typeof thumbProps === "function"
+              ? thumbProps(index)
+              : thumbProps) ?? {};
+          return (
+            <SliderPrimitive.Thumb
+              data-slot="slider-thumb"
+              key={index}
+              index={index}
+              className={mergeBaseUIClassName(
+                "border-primary ring-ring/50 block size-4 shrink-0 rounded-full border bg-background shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 dark:bg-input",
+                thumbClassName,
+              )}
+              {...resolvedThumbProps}
+            />
+          );
+        })}
       </SliderPrimitive.Control>
     </SliderPrimitive.Root>
   );

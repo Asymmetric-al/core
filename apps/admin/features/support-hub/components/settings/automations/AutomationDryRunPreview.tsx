@@ -1,13 +1,7 @@
 "use client";
 
 import { Button } from "@asym/ui/components/shadcn/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { CheckCircle2, FlaskConical, XCircle } from "lucide-react";
 import * as React from "react";
 
@@ -70,7 +64,8 @@ export function AutomationDryRunPreview({
           Pick another
         </Button>
       </div>
-      <Select
+      <SearchableSelect
+        items={[...rows.map((row) => ({ value: row.id, label: row.subject }))]}
         value={conversationId}
         onValueChange={(value) => {
           if (value === null) {
@@ -79,18 +74,10 @@ export function AutomationDryRunPreview({
           setConversationId(value);
         }}
         disabled={rows.length === 0}
-      >
-        <SelectTrigger className="h-9 text-[12px]">
-          <SelectValue placeholder="Choose a conversation to test" />
-        </SelectTrigger>
-        <SelectContent>
-          {rows.map((row) => (
-            <SelectItem key={row.id} value={row.id}>
-              {row.subject}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        aria-label="Conversation to test"
+        className="h-9 text-[12px]"
+        placeholder="Choose a conversation to test"
+      />
 
       {!target ? (
         <p className="text-[12px] text-zinc-500">

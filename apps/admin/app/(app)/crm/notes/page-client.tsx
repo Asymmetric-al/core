@@ -18,7 +18,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { getCrmNoteColumns } from "./columns";
@@ -28,6 +28,7 @@ import type { FormEvent } from "react";
 import { CRM_NOTES_PAGE_META } from "@/components/table-page-meta";
 
 export default function CrmNotesPageClient() {
+  const saveLabelId = useId();
   const {
     configured,
     createNote,
@@ -260,9 +261,13 @@ export default function CrmNotesPageClient() {
               type="submit"
               className="w-full gap-2"
               disabled={!canSubmit || isCreatingNote}
+              focusableWhenDisabled={isCreatingNote}
+              aria-labelledby={saveLabelId}
             >
               <Send className="size-4" />
-              {isCreatingNote ? "Saving..." : "Save note"}
+              <span id={saveLabelId}>
+                {isCreatingNote ? "Saving..." : "Save note"}
+              </span>
             </Button>
           </form>
         </aside>
