@@ -1,3 +1,5 @@
+> Superseded by the 2026-09 owner decision in `../retire-git-attribution/`. This proposed attribution policy is not current authority.
+
 ## 1. Contract and failing tests
 
 - [x] 1.1 Add RED unit coverage for exact Blake, Conrad, and Eve identity tuples, cross-wired tuples, external authors, and forbidden legacy identities.

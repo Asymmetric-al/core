@@ -1,3 +1,5 @@
+> Superseded by the 2026-09 owner decision in `../retire-git-attribution/`. This proposed attribution policy is not current authority.
+
 ## Context
 
 See `proposal.md` for motivation and
