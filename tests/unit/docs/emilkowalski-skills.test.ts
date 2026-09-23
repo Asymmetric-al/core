@@ -13,11 +13,17 @@ const runtimeRoots = [
 ] as const;
 
 const upstreamFiles = {
+  animate: ["SKILL.md", "RECIPES.md"],
+  "animate-expo": ["SKILL.md", "RECIPES.md"],
   "animation-vocabulary": ["SKILL.md"],
   "apple-design": ["SKILL.md"],
+  "ask-sonner": ["SKILL.md", "API.md"],
   "emil-design-eng": ["SKILL.md"],
+  "emil-prototype": ["SKILL.md", "PICKER.md"],
   "improve-animations": ["AUDIT.md", "PLAN-TEMPLATE.md", "SKILL.md"],
+  "pick-ui-library": ["SKILL.md"],
   "review-animations": ["SKILL.md", "STANDARDS.md"],
+  "write-swift": ["SKILL.md"],
 } as const;
 
 function listFiles(root: string, relativeRoot = ""): string[] {
@@ -98,7 +104,11 @@ describe("emilkowalski skill pack", () => {
       expect(lock.skills[skillName]).toMatchObject({
         source: packSource,
         sourceType: "github",
-        skillPath: expect.stringContaining(`skills/${skillName}/SKILL.md`),
+        skillPath: expect.stringContaining(
+          skillName === "emil-prototype"
+            ? "skills/prototype/SKILL.md"
+            : `skills/${skillName}/SKILL.md`,
+        ),
       });
     }
 
@@ -108,6 +118,22 @@ describe("emilkowalski skill pack", () => {
     expect(
       readSkillFile("docs/ai/skills", "review-animations", "SKILL.md"),
     ).toContain("disable-model-invocation: true");
+    expect(
+      readSkillFile("docs/ai/skills", "pick-ui-library", "SKILL.md"),
+    ).toContain("disable-model-invocation: true");
+    expect(
+      readSkillFile("docs/ai/skills", "emil-prototype", "SKILL.md"),
+    ).toContain("disable-model-invocation: true");
+    expect(readSkillFile("docs/ai/skills", "animate", "SKILL.md")).toContain(
+      "disable-model-invocation: true",
+    );
+    expect(
+      readSkillFile("docs/ai/skills", "write-swift", "SKILL.md"),
+    ).toContain("disable-model-invocation: true");
+    expect(lock.skills.prototype).toMatchObject({
+      source: "mattpocock/skills",
+      skillPath: "skills/engineering/prototype/SKILL.md",
+    });
   });
 
   it("keeps Core markdown and duration compatibility adaptations", () => {
@@ -153,6 +179,48 @@ describe("emilkowalski skill pack", () => {
     );
     expect(standards).toContain(
       "Most UI animations stay under 300ms; modals and drawers may use up to 500ms",
+    );
+  });
+
+  it("keeps Base UI ownership in Emil component design and the shared Sonner toaster", () => {
+    const componentDesign = readFileSync(
+      path.join(
+        repoRoot,
+        "docs/ai/skills/emil-design-engineering/component-design.md",
+      ),
+      "utf8",
+    );
+    const askSonner = readFileSync(
+      path.join(repoRoot, "docs/ai/skills/ask-sonner/SKILL.md"),
+      "utf8",
+    );
+
+    expect(componentDesign).not.toContain("asChild");
+    expect(componentDesign).not.toContain("@radix-ui/react-slot");
+    expect(componentDesign).toContain("buttonVariants");
+    expect(componentDesign).toContain("Base UI");
+    expect(askSonner).not.toMatch(/import \{ Toaster \} from ["']sonner["']/);
+    expect(askSonner).toContain("@asym/ui/components/shadcn/sonner");
+    expect(askSonner).toContain("bun run skills:verify");
+  });
+
+  it("keeps animate and prototype overlays from installing libraries or public prototype routes", () => {
+    const animate = readSkillFile("docs/ai/skills", "animate", "SKILL.md");
+    const prototype = readSkillFile(
+      "docs/ai/skills",
+      "emil-prototype",
+      "SKILL.md",
+    );
+    const refreshScript = readFileSync(
+      path.join(repoRoot, "scripts/refresh-upstream-skills.mjs"),
+      "utf8",
+    );
+
+    expect(animate).toContain("Do not invoke `pick-ui-library`");
+    expect(prototype).toContain("apps/*/app/prototypes/");
+    expect(refreshScript).toContain('relativePath: "component-design.md"');
+    expect(refreshScript).toContain(
+      "4. **asChild** - Render as different element (Radix pattern)",
     );
   });
 });
