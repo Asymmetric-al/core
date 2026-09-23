@@ -59,7 +59,8 @@
         "blocking": [1144]
       },
       "verifiedAt": "2026-09-23T04:29:42.159475+00:00",
-      "readbackRecovery": "PATCH succeeded; a subsequent dependency GET lost its connection. Fresh body/metadata readback matches the intended write; native edges match the immediately preceding verified publication. No repeat PATCH."
+      "readbackRecovery": "PATCH succeeded; a subsequent dependency GET lost its connection. Recovery fetched body, metadata and both dependency endpoints again, then compared the fresh edges with the preceding verified publication. No repeat PATCH.",
+      "nativeDependenciesReadbackAt": "2026-09-23T05:44:30.998425+00:00"
     },
     {
       "issue": 713,
@@ -543,7 +544,7 @@
     "predecessorPr": "https://github.com/Asymmetric-al/core/pull/1897",
     "predecessorMergedAt": "2026-09-23T03:31:11Z",
     "baseCommit": "ea8086cf398fb20878994f5979cbeea7959a1845",
-    "reason": "PR1897 merged the earlier reconciliation while the C02 follow-up was being prepared. Only the C02 source-carrier link in these16 bodies was corrected to PR1901; historical1897 citations remain. The initial publication and current readback are both retained."
+    "reason": "PR1897 merged the earlier reconciliation while the C02 follow-up was being prepared. Only the C02 source-carrier link in these 16 bodies was corrected to PR1901; historical #1897 citations remain. The initial publication and current readback are both retained."
   },
   "titleEncodingCorrection": {
     "reason": "Restore titles from explicit UTF-8 provider captures; an earlier Windows locale decode corrupted em dashes in three titles. No GitHub titles or body hashes changed.",
@@ -680,7 +681,7 @@
       "Name the separate Phase15 current membership relation in overviews; 1:N describes batch grouping only."
     ],
     "issueBodiesChanged": false,
-    "bodyReadback": "All16 current body hashes match a fresh explicit UTF-8 GraphQL read. Title encoding was repaired from provider captures without changing GitHub titles or body hashes."
+    "bodyReadback": "All 16 current body hashes match a fresh explicit UTF-8 GraphQL read. Title encoding was repaired from provider captures without changing GitHub titles or body hashes."
   },
   "laterOwnerContractAmendments": [
     {
