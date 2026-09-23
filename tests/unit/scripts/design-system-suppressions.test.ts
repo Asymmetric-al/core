@@ -3,6 +3,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -51,7 +52,9 @@ function write(root: string, relative: string, source: string) {
 }
 
 function fixture() {
-  const root = mkdtempSync(path.join(tmpdir(), "core-lint-suppression-"));
+  const root = realpathSync(
+    mkdtempSync(path.join(tmpdir(), "core-lint-suppression-")),
+  );
   fixtures.push(root);
   write(
     root,
