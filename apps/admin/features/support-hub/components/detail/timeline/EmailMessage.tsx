@@ -32,14 +32,14 @@ const DELIVERY_TONES: Partial<
     label: "Draft",
   },
   queued: {
-    tone: "border-zinc-200 bg-zinc-100 text-zinc-700",
+    tone: "border-border bg-muted text-foreground",
     label: "Queued",
   },
   sending: {
-    tone: "border-zinc-200 bg-zinc-100 text-zinc-700",
+    tone: "border-border bg-muted text-foreground",
     label: "Sending",
   },
-  sent: { tone: "border-zinc-200 bg-zinc-100 text-zinc-700", label: "Sent" },
+  sent: { tone: "border-border bg-muted text-foreground", label: "Sent" },
   delivered: {
     tone: "border-emerald-200 bg-emerald-50 text-emerald-700",
     label: "Delivered",
@@ -51,6 +51,121 @@ const DELIVERY_TONES: Partial<
   failed: { tone: "border-rose-200 bg-rose-50 text-rose-700", label: "Failed" },
 };
 
+function emailMessageChrome(message: SupportMessage) {
+  const isOutbound = message.direction === "outbound";
+  const isDraft = message.deliveryState === "draft";
+
+  return {
+    isDraft,
+    isOutbound,
+    ariaLabel: isDraft
+      ? "Draft reply"
+      : isOutbound
+        ? "Outbound email"
+        : "Inbound email",
+    className: isDraft
+      ? "border-amber-200 bg-amber-50/40"
+      : isOutbound
+        ? "border-border border-l-2 border-l-emerald-200"
+        : "border-border border-l-2 border-l-border",
+  };
+}
+
+function EmailMessageHeader({
+  message,
+  isDraft,
+  nowIso,
+}: {
+  message: SupportMessage;
+  isDraft: boolean;
+  nowIso: string;
+}) {
+  const headers = message.emailHeaders;
+
+  return (
+    <header className="flex flex-wrap items-start gap-3 border-b border-border px-4 py-3">
+      <Avatar className="size-9 border border-border">
+        <AvatarImage
+          src={message.author.avatarUrl ?? undefined}
+          alt={message.author.name}
+        />
+        <AvatarFallback className="text-[11px] font-semibold">
+          {message.author.name.charAt(0)}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-foreground">
+          <span className="font-semibold">{message.author.name}</span>
+          {message.author.email ? (
+            <span className="text-[11px] text-muted-foreground">
+              &lt;{message.author.email}&gt;
+            </span>
+          ) : null}
+          {isDraft ? (
+            <Badge
+              variant="outline"
+              className="h-5 gap-1 rounded-md border-amber-200 bg-amber-100 px-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-800"
+            >
+              <Save className="size-3" />
+              Draft
+            </Badge>
+          ) : null}
+          {!isDraft && DELIVERY_TONES[message.deliveryState] ? (
+            <Badge
+              variant="outline"
+              className={cn(
+                "h-5 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wider",
+                DELIVERY_TONES[message.deliveryState]?.tone,
+              )}
+            >
+              {DELIVERY_TONES[message.deliveryState]?.label}
+            </Badge>
+          ) : null}
+        </div>
+        {headers ? (
+          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+            to {headers.to.join(", ")}
+            {headers.cc.length > 0 ? ` · cc ${headers.cc.join(", ")}` : null}
+          </p>
+        ) : null}
+      </div>
+      <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
+        {formatRelative(message.postedAt, nowIso)}
+      </span>
+    </header>
+  );
+}
+
+function EmailMessageAttachmentsFooter({
+  message,
+}: {
+  message: SupportMessage;
+}) {
+  if (
+    message.attachments.length === 0 &&
+    !showInboundAttachmentState(message)
+  ) {
+    return null;
+  }
+
+  return (
+    <footer className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-2">
+      {message.attachments.map((attachment) => (
+        <span
+          key={attachment.id}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium text-foreground"
+        >
+          <Paperclip className="size-3 text-muted-foreground" />
+          <span className="max-w-[200px] truncate">{attachment.filename}</span>
+        </span>
+      ))}
+      {showInboundAttachmentState(message) ? (
+        <InboundAttachmentState message={message} />
+      ) : null}
+    </footer>
+  );
+}
+
 /**
  * Inbound or outbound email rendering. Inbound = neutral left accent;
  * outbound = emerald left accent so agents can scan threads quickly. Drafts
@@ -58,101 +173,24 @@ const DELIVERY_TONES: Partial<
  */
 export function EmailMessage({ message }: EmailMessageProps) {
   const nowIso = useSupportNow();
-  const isOutbound = message.direction === "outbound";
-  const isDraft = message.deliveryState === "draft";
-  const headers = message.emailHeaders;
+  const chrome = emailMessageChrome(message);
 
   return (
     <article
-      className={cn(
-        "rounded-2xl border bg-white shadow-sm",
-        isDraft
-          ? "border-amber-200 bg-amber-50/40"
-          : isOutbound
-            ? "border-zinc-100 border-l-2 border-l-emerald-200"
-            : "border-zinc-100 border-l-2 border-l-zinc-200",
-      )}
-      aria-label={
-        isDraft
-          ? "Draft reply"
-          : isOutbound
-            ? "Outbound email"
-            : "Inbound email"
-      }
+      className={cn("rounded-2xl border bg-card shadow-sm", chrome.className)}
+      aria-label={chrome.ariaLabel}
     >
-      <header className="flex flex-wrap items-start gap-3 border-b border-zinc-100 px-4 py-3">
-        <Avatar className="size-9 border border-zinc-100">
-          <AvatarImage
-            src={message.author.avatarUrl ?? undefined}
-            alt={message.author.name}
-          />
-          <AvatarFallback className="text-[11px] font-semibold">
-            {message.author.name.charAt(0)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-zinc-900">
-            <span className="font-semibold">{message.author.name}</span>
-            {message.author.email ? (
-              <span className="text-[11px] text-zinc-500">
-                &lt;{message.author.email}&gt;
-              </span>
-            ) : null}
-            {isDraft ? (
-              <Badge
-                variant="outline"
-                className="h-5 gap-1 rounded-md border-amber-200 bg-amber-100 px-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-800"
-              >
-                <Save className="size-3" />
-                Draft
-              </Badge>
-            ) : null}
-            {!isDraft && DELIVERY_TONES[message.deliveryState] ? (
-              <Badge
-                variant="outline"
-                className={cn(
-                  "h-5 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wider",
-                  DELIVERY_TONES[message.deliveryState]?.tone,
-                )}
-              >
-                {DELIVERY_TONES[message.deliveryState]?.label}
-              </Badge>
-            ) : null}
-          </div>
-          {headers ? (
-            <p className="mt-0.5 truncate text-[11px] text-zinc-500">
-              to {headers.to.join(", ")}
-              {headers.cc.length > 0 ? ` · cc ${headers.cc.join(", ")}` : null}
-            </p>
-          ) : null}
-        </div>
-        <span className="shrink-0 font-mono text-[11px] tabular-nums text-zinc-400">
-          {formatRelative(message.postedAt, nowIso)}
-        </span>
-      </header>
+      <EmailMessageHeader
+        message={message}
+        isDraft={chrome.isDraft}
+        nowIso={nowIso}
+      />
 
       <div className="px-4 py-3">
         <RichTextViewer value={renderableBody(message)} />
       </div>
 
-      {message.attachments.length > 0 || showInboundAttachmentState(message) ? (
-        <footer className="flex flex-wrap items-center gap-2 border-t border-zinc-100 px-4 py-2">
-          {message.attachments.map((attachment) => (
-            <span
-              key={attachment.id}
-              className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-700"
-            >
-              <Paperclip className="size-3 text-zinc-400" />
-              <span className="max-w-[200px] truncate">
-                {attachment.filename}
-              </span>
-            </span>
-          ))}
-          {showInboundAttachmentState(message) ? (
-            <InboundAttachmentState message={message} />
-          ) : null}
-        </footer>
-      ) : null}
+      <EmailMessageAttachmentsFooter message={message} />
     </article>
   );
 }
@@ -162,11 +200,11 @@ const INBOUND_ATTACHMENT_TONES: Record<
   { tone: string; label: string }
 > = {
   pending: {
-    tone: "border-zinc-200 bg-zinc-100 text-zinc-600",
+    tone: "border-border bg-muted text-muted-foreground",
     label: "Attachments pending",
   },
   retrying: {
-    tone: "border-zinc-200 bg-zinc-100 text-zinc-600",
+    tone: "border-border bg-muted text-muted-foreground",
     label: "Attachments retrying",
   },
   failed: {
@@ -240,7 +278,7 @@ function InboundAttachmentState({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-5 gap-1 px-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900"
+          className="h-5 gap-1 px-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
           onClick={requestRetry}
           disabled={retryState === "requesting"}
         >

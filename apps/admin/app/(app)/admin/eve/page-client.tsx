@@ -6,6 +6,7 @@ import {
   type EveKillSwitchKey,
   type EveKillSwitchMutationResult,
 } from "@asym/api/eve/governance/types";
+import { useLocaleFormat } from "@asym/lib/hooks/use-locale-format";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Alert,
@@ -60,6 +61,7 @@ import {
 } from "./workspace-shell";
 
 import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
+import type { LocaleFormatters } from "@asym/lib/hooks/use-locale-format";
 
 export interface EveGovernancePageData extends EveGovernanceAdminView {
   auditHistory: EveAuditEventRecord[];
@@ -167,12 +169,10 @@ function formatPolicyStatus(status: string): string {
   return `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}`;
 }
 
-function formatTimestamp(timestamp: string): string {
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(timestamp));
-}
+const TIMESTAMP_FORMAT: Intl.DateTimeFormatOptions = {
+  dateStyle: "medium",
+  timeStyle: "short",
+};
 
 function StatusCard({
   description,
@@ -289,64 +289,76 @@ function KillSwitchControl({
   );
 }
 
-export function EveGovernanceView({
-  data,
-  errorMessage,
-  isError,
-  isLoading,
-  mutationError,
-  mutationPendingKey,
-  onConfirmKillSwitch,
-  onSetKillSwitch,
+function EveGovernanceLoading() {
+  return (
+    <div
+      aria-label="Loading Eve governance state"
+      className="grid gap-4 md:grid-cols-3"
+    >
+      {Array.from({ length: 3 }, (_, index) => (
+        <Card key={`eve-governance-loading-${index}`}>
+          <CardContent className="space-y-3 p-6">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-36" />
+            <Skeleton className="h-4 w-full" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function EveGovernanceLoadError({ errorMessage }: { errorMessage?: string }) {
+  return (
+    <Alert variant="destructive">
+      <AlertTriangle aria-hidden="true" className="size-4" />
+      <AlertTitle>Could not load Eve governance state</AlertTitle>
+      <AlertDescription>
+        {errorMessage ?? "The governance store is unavailable."} Eve remains
+        fail-closed.
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function EveGovernanceStatusAlert({
+  system,
 }: {
-  data?: EveGovernancePageData;
-  errorMessage?: string;
-  isError: boolean;
-  isLoading: boolean;
-  mutationError?: string;
-  mutationPendingKey?: EveKillSwitchKey;
-  onConfirmKillSwitch?: (request: KillSwitchConfirmationRequest) => void;
-  onSetKillSwitch?: (switchKey: EveKillSwitchKey, enabled: boolean) => void;
+  system: EveGovernancePageData["system"];
 }) {
-  if (isLoading) {
-    return (
-      <div
-        aria-label="Loading Eve governance state"
-        className="grid gap-4 md:grid-cols-3"
-      >
-        {Array.from({ length: 3 }, (_, index) => (
-          <Card key={`eve-governance-loading-${index}`}>
-            <CardContent className="space-y-3 p-6">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-8 w-36" />
-              <Skeleton className="h-4 w-full" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
+  const title =
+    system.source === "missing"
+      ? "Governance state is missing"
+      : system.releaseEnabled && !system.emergencyOff
+        ? "Release gate is enabled"
+        : "Eve is safely gated";
+  const description =
+    system.source === "missing"
+      ? "The kernel is fail-closed. Eve cannot run until app-owned governance state is restored."
+      : system.releaseEnabled
+        ? "Every action still requires ready policy and clear kill-switch state."
+        : "Eve cannot perform autonomous actions while the release gate is disabled.";
 
-  if (isError || !data) {
-    return (
-      <Alert variant="destructive">
-        <AlertTriangle aria-hidden="true" className="size-4" />
-        <AlertTitle>Could not load Eve governance state</AlertTitle>
-        <AlertDescription>
-          {errorMessage ?? "The governance store is unavailable."} Eve remains
-          fail-closed.
-        </AlertDescription>
-      </Alert>
-    );
-  }
+  return (
+    <Alert>
+      <ShieldCheck aria-hidden="true" className="size-4" />
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>{description}</AlertDescription>
+    </Alert>
+  );
+}
 
-  const { system } = data;
-  const releaseLabel = system.releaseEnabled ? "Enabled" : "Disabled";
-  const emergencyLabel = system.emergencyOff
-    ? "Emergency engaged"
-    : "Emergency clear";
-  const policyLabel = formatPolicyStatus(system.policyStatus);
-  const failures = [
+type GovernedFailure = {
+  id: string;
+  label: string;
+  summary: string;
+  timestamp: string;
+};
+
+function collectGovernedFailures(
+  data: EveGovernancePageData,
+): GovernedFailure[] {
+  return [
     ...data.recentRuns
       .filter((run) => run.status === "failed")
       .map((run) => ({
@@ -368,6 +380,264 @@ export function EveGovernanceView({
       return Date.parse(second.timestamp) - Date.parse(first.timestamp);
     })
     .slice(0, 10);
+}
+
+function EveRecentRunsCard({
+  recentRuns,
+}: {
+  recentRuns: EveGovernancePageData["recentRuns"];
+}) {
+  return (
+    <Card id="eve-active-runs">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Bot aria-hidden="true" className="size-5" />
+          Recent governed runs
+        </CardTitle>
+        <CardDescription>
+          Decision summaries from the governance kernel. No hidden model
+          reasoning is shown.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {recentRuns.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No governed Eve runs have been recorded.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {recentRuns.map((run) => (
+              <li
+                key={run.id}
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
+              >
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {run.action}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {run.target ?? "No external target"}
+                  </p>
+                </div>
+                <Badge
+                  variant={run.decision === "blocked" ? "outline" : "secondary"}
+                >
+                  {run.status}: {run.reason}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function EveGovernedFailuresCard({
+  failures,
+  formatDateTime,
+}: {
+  failures: GovernedFailure[];
+  formatDateTime: LocaleFormatters["formatDateTime"];
+}) {
+  return (
+    <Card id="eve-failures">
+      <CardHeader>
+        <CardTitle
+          aria-level={2}
+          role="heading"
+          className="flex items-center gap-2"
+        >
+          <CircleX aria-hidden="true" className="size-5" />
+          Governed failures
+        </CardTitle>
+        <CardDescription>
+          Failed run and audit summaries from app-owned governance state. No raw
+          record payloads or hidden reasoning are rendered.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {failures.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No governed failures have been recorded.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {failures.map((failure) => (
+              <li
+                key={failure.id}
+                className="flex flex-wrap items-start justify-between gap-3 py-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground">
+                    {failure.label}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {failure.summary}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <Badge variant="destructive">Failed</Badge>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {formatDateTime(failure.timestamp, TIMESTAMP_FORMAT)}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function EveAuditHistoryCard({
+  auditHistory,
+  formatDateTime,
+}: {
+  auditHistory: EveGovernancePageData["auditHistory"];
+  formatDateTime: LocaleFormatters["formatDateTime"];
+}) {
+  return (
+    <Card id="eve-audit">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <History aria-hidden="true" className="size-5" />
+          Audit history
+        </CardTitle>
+        <CardDescription>
+          App-owned action records with decision summaries and redacted replay
+          metadata. Raw prompts and hidden model reasoning are never stored
+          here.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {auditHistory.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No Eve audit events have been recorded.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {auditHistory.map((event) => (
+              <li key={event.id} className="py-4">
+                <details className="group">
+                  <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+                        <FileSearch
+                          aria-hidden="true"
+                          className="size-4 shrink-0"
+                        />
+                        {event.action}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {event.actorId} · {event.identityMode} ·{" "}
+                        {formatDateTime(event.createdAt, TIMESTAMP_FORMAT)}
+                      </p>
+                    </div>
+                    <Badge
+                      variant={
+                        event.result === "failed" || event.result === "blocked"
+                          ? "destructive"
+                          : "secondary"
+                      }
+                    >
+                      {event.result}
+                    </Badge>
+                  </summary>
+                  <div className="mt-4 grid gap-4 rounded-lg border border-border bg-muted/25 p-4 text-sm md:grid-cols-2">
+                    <div className="space-y-1 md:col-span-2">
+                      <p className="font-medium text-foreground">
+                        Decision summary
+                      </p>
+                      <p className="text-muted-foreground">
+                        {event.decisionSummary}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-medium text-foreground">Evidence</p>
+                      <p className="break-words text-muted-foreground">
+                        {event.evidenceSummary}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-medium text-foreground">Change</p>
+                      <p className="break-words text-muted-foreground">
+                        {event.changeSummary}
+                      </p>
+                    </div>
+                    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs md:col-span-2">
+                      <dt className="text-muted-foreground">Target</dt>
+                      <dd>{event.target ?? "No external target"}</dd>
+                      <dt className="text-muted-foreground">Initiator</dt>
+                      <dd>
+                        {event.initiatorType}: {event.initiatorId}
+                      </dd>
+                      <dt className="text-muted-foreground">Policy</dt>
+                      <dd>
+                        {event.policyId} ({event.policyStatus})
+                      </dd>
+                      <dt className="text-muted-foreground">Model role</dt>
+                      <dd>{event.modelRole}</dd>
+                      <dt className="text-muted-foreground">
+                        Redaction contract
+                      </dt>
+                      <dd>{event.redactionVersion}</dd>
+                    </dl>
+                    <div className="space-y-1 md:col-span-2">
+                      <p className="font-medium text-foreground">
+                        Redacted debug metadata
+                      </p>
+                      <pre className="overflow-x-auto rounded-md bg-background p-3 text-xs text-muted-foreground">
+                        {JSON.stringify(event.debugMetadata, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                </details>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function EveGovernanceView({
+  data,
+  errorMessage,
+  isError,
+  isLoading,
+  mutationError,
+  mutationPendingKey,
+  onConfirmKillSwitch,
+  onSetKillSwitch,
+}: {
+  data?: EveGovernancePageData;
+  errorMessage?: string;
+  isError: boolean;
+  isLoading: boolean;
+  mutationError?: string;
+  mutationPendingKey?: EveKillSwitchKey;
+  onConfirmKillSwitch?: (request: KillSwitchConfirmationRequest) => void;
+  onSetKillSwitch?: (switchKey: EveKillSwitchKey, enabled: boolean) => void;
+}) {
+  const { formatDateTime } = useLocaleFormat();
+  if (isLoading) {
+    return <EveGovernanceLoading />;
+  }
+
+  if (isError || !data) {
+    return <EveGovernanceLoadError errorMessage={errorMessage} />;
+  }
+
+  const { system } = data;
+  const releaseLabel = system.releaseEnabled ? "Enabled" : "Disabled";
+  const emergencyLabel = system.emergencyOff
+    ? "Emergency engaged"
+    : "Emergency clear";
+  const policyLabel = formatPolicyStatus(system.policyStatus);
+  const failures = collectGovernedFailures(data);
   const confirmKillSwitch = (request: KillSwitchConfirmationRequest) => {
     if (onConfirmKillSwitch) {
       onConfirmKillSwitch(request);
@@ -379,23 +649,7 @@ export function EveGovernanceView({
 
   return (
     <div className="space-y-6">
-      <Alert>
-        <ShieldCheck aria-hidden="true" className="size-4" />
-        <AlertTitle>
-          {system.source === "missing"
-            ? "Governance state is missing"
-            : system.releaseEnabled && !system.emergencyOff
-              ? "Release gate is enabled"
-              : "Eve is safely gated"}
-        </AlertTitle>
-        <AlertDescription>
-          {system.source === "missing"
-            ? "The kernel is fail-closed. Eve cannot run until app-owned governance state is restored."
-            : system.releaseEnabled
-              ? "Every action still requires ready policy and clear kill-switch state."
-              : "Eve cannot perform autonomous actions while the release gate is disabled."}
-        </AlertDescription>
-      </Alert>
+      <EveGovernanceStatusAlert system={system} />
 
       <div className="grid gap-4 md:grid-cols-3">
         <StatusCard
@@ -457,201 +711,15 @@ export function EveGovernanceView({
         </CardContent>
       </Card>
 
-      <Card id="eve-active-runs">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot aria-hidden="true" className="size-5" />
-            Recent governed runs
-          </CardTitle>
-          <CardDescription>
-            Decision summaries from the governance kernel. No hidden model
-            reasoning is shown.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {data.recentRuns.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No governed Eve runs have been recorded.
-            </p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {data.recentRuns.map((run) => (
-                <li
-                  key={run.id}
-                  className="flex flex-wrap items-center justify-between gap-3 py-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      {run.action}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {run.target ?? "No external target"}
-                    </p>
-                  </div>
-                  <Badge
-                    variant={
-                      run.decision === "blocked" ? "outline" : "secondary"
-                    }
-                  >
-                    {run.status}: {run.reason}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card id="eve-failures">
-        <CardHeader>
-          <CardTitle
-            aria-level={2}
-            role="heading"
-            className="flex items-center gap-2"
-          >
-            <CircleX aria-hidden="true" className="size-5" />
-            Governed failures
-          </CardTitle>
-          <CardDescription>
-            Failed run and audit summaries from app-owned governance state. No
-            raw record payloads or hidden reasoning are rendered.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {failures.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No governed failures have been recorded.
-            </p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {failures.map((failure) => (
-                <li
-                  key={failure.id}
-                  className="flex flex-wrap items-start justify-between gap-3 py-3"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground">
-                      {failure.label}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {failure.summary}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="destructive">Failed</Badge>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {formatTimestamp(failure.timestamp)}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card id="eve-audit">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <History aria-hidden="true" className="size-5" />
-            Audit history
-          </CardTitle>
-          <CardDescription>
-            App-owned action records with decision summaries and redacted replay
-            metadata. Raw prompts and hidden model reasoning are never stored
-            here.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {data.auditHistory.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No Eve audit events have been recorded.
-            </p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {data.auditHistory.map((event) => (
-                <li key={event.id} className="py-4">
-                  <details className="group">
-                    <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                      <div className="min-w-0">
-                        <p className="flex items-center gap-2 text-sm font-medium text-foreground">
-                          <FileSearch
-                            aria-hidden="true"
-                            className="size-4 shrink-0"
-                          />
-                          {event.action}
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {event.actorId} · {event.identityMode} ·{" "}
-                          {formatTimestamp(event.createdAt)}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          event.result === "failed" ||
-                          event.result === "blocked"
-                            ? "destructive"
-                            : "secondary"
-                        }
-                      >
-                        {event.result}
-                      </Badge>
-                    </summary>
-                    <div className="mt-4 grid gap-4 rounded-lg border border-border bg-muted/25 p-4 text-sm md:grid-cols-2">
-                      <div className="space-y-1 md:col-span-2">
-                        <p className="font-medium text-foreground">
-                          Decision summary
-                        </p>
-                        <p className="text-muted-foreground">
-                          {event.decisionSummary}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="font-medium text-foreground">Evidence</p>
-                        <p className="break-words text-muted-foreground">
-                          {event.evidenceSummary}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="font-medium text-foreground">Change</p>
-                        <p className="break-words text-muted-foreground">
-                          {event.changeSummary}
-                        </p>
-                      </div>
-                      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs md:col-span-2">
-                        <dt className="text-muted-foreground">Target</dt>
-                        <dd>{event.target ?? "No external target"}</dd>
-                        <dt className="text-muted-foreground">Initiator</dt>
-                        <dd>
-                          {event.initiatorType}: {event.initiatorId}
-                        </dd>
-                        <dt className="text-muted-foreground">Policy</dt>
-                        <dd>
-                          {event.policyId} ({event.policyStatus})
-                        </dd>
-                        <dt className="text-muted-foreground">Model role</dt>
-                        <dd>{event.modelRole}</dd>
-                        <dt className="text-muted-foreground">
-                          Redaction contract
-                        </dt>
-                        <dd>{event.redactionVersion}</dd>
-                      </dl>
-                      <div className="space-y-1 md:col-span-2">
-                        <p className="font-medium text-foreground">
-                          Redacted debug metadata
-                        </p>
-                        <pre className="overflow-x-auto rounded-md bg-background p-3 text-xs text-muted-foreground">
-                          {JSON.stringify(event.debugMetadata, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
-                  </details>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+      <EveRecentRunsCard recentRuns={data.recentRuns} />
+      <EveGovernedFailuresCard
+        failures={failures}
+        formatDateTime={formatDateTime}
+      />
+      <EveAuditHistoryCard
+        auditHistory={data.auditHistory}
+        formatDateTime={formatDateTime}
+      />
     </div>
   );
 }

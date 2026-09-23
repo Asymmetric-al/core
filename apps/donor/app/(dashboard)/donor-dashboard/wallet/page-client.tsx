@@ -621,14 +621,13 @@ function ACHNudgeBanner({
   visible: boolean;
 }) {
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="popLayout">
       {visible && (
         <motion.div
-          initial={{ opacity: 0, height: 0, scale: 0.96 }}
-          animate={{ opacity: 1, height: "auto", scale: 1 }}
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
           exit={{
             opacity: 0,
-            height: 0,
             scale: 0.96,
             transition: { duration: DURATION_MICRO, ease: EASE_IN_SOFT },
           }}
@@ -638,6 +637,7 @@ function ACHNudgeBanner({
           <div className="absolute top-4 right-4 z-20">
             <button
               onClick={onDismiss}
+              aria-label="Dismiss banner"
               className="p-1 rounded-full bg-white/50 hover:bg-white text-emerald-700 transition-colors"
             >
               <X className="size-4" />

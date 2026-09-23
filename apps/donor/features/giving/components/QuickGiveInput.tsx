@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import { buildWorkerCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import { cn } from "@asym/ui/lib/utils";
 import { ArrowRight } from "lucide-react";
@@ -82,9 +83,6 @@ export function QuickGiveInput({
         "relative h-12 rounded-2xl overflow-hidden cursor-text",
         "bg-slate-900 shadow-xl shadow-slate-900/20",
         "ring-1 ring-white/10",
-        // Animate only ring + shadow with explicit timing — Motion
-        // `layout` already owns the width morph, so we don't add a
-        // CSS `transition-all` that would compete with it.
         "transition-[box-shadow,border-color] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
         isFocused && "ring-white/25 shadow-2xl shadow-slate-900/40",
         className,
@@ -92,10 +90,12 @@ export function QuickGiveInput({
       onClick={() => inputRef.current?.focus()}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      layout
     >
       <div className="relative size-full flex items-center justify-between">
-        <div className="flex items-center h-full flex-1 px-4 min-w-0">
+        <motion.div
+          layout
+          className="flex items-center h-full flex-1 px-4 min-w-0"
+        >
           <motion.span
             layout
             className={cn(
@@ -126,20 +126,15 @@ export function QuickGiveInput({
             )}
             aria-label="Donation amount"
           />
-        </div>
+        </motion.div>
 
-        <AnimatePresence>
+        <AnimatePresence mode="popLayout" initial={false}>
           {isExpanded && (
             <motion.button
-              initial={{ width: 0, x: 20, opacity: 0 }}
-              animate={{ width: "auto", x: 0, opacity: 1 }}
-              exit={{ width: 0, x: 20, opacity: 0 }}
-              transition={{
-                type: "spring",
-                stiffness: 400,
-                damping: 30,
-                opacity: { duration: 0.2 },
-              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={transitionStandard}
               onClick={(e) => {
                 e.stopPropagation();
                 handleGive();

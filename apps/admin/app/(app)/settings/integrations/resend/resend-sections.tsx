@@ -264,7 +264,11 @@ export function ResendConnectedView({
             </Button>
             <Button
               onClick={() =>
-                window.open("https://resend.com/domains", "_blank")
+                window.open(
+                  "https://resend.com/domains",
+                  "_blank",
+                  "noopener,noreferrer",
+                )
               }
               variant="outline"
             >
@@ -293,7 +297,13 @@ export function ResendConnectedView({
                 {warning.helpUrl ? (
                   <Button
                     className="h-auto p-0 text-inherit"
-                    onClick={() => window.open(warning.helpUrl, "_blank")}
+                    onClick={() =>
+                      window.open(
+                        warning.helpUrl,
+                        "_blank",
+                        "noopener,noreferrer",
+                      )
+                    }
                     size="sm"
                     variant="link"
                   >
@@ -510,7 +520,13 @@ export function ResendDisconnectedView({
         </CardContent>
         <CardFooter className="flex items-center justify-between border-t bg-zinc-50/50 pt-6">
           <Button
-            onClick={() => window.open("https://resend.com/signup", "_blank")}
+            onClick={() =>
+              window.open(
+                "https://resend.com/signup",
+                "_blank",
+                "noopener,noreferrer",
+              )
+            }
             type="button"
             variant="outline"
           >

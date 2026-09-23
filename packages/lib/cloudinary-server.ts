@@ -7,13 +7,26 @@ export interface CloudinarySignature {
   timestamp: number;
   apiKey: string;
   cloudName: string;
+  signatureAlgorithm: "sha256";
 }
 
 type CloudinarySignatureParam = string | number | boolean | null | undefined;
 
+const UNSIGNED_UPLOAD_KEYS = new Set([
+  "file",
+  "resource_type",
+  "api_key",
+  "signature",
+  "signature_algorithm",
+]);
+
 /**
- * Generates a SHA-1 signature for Cloudinary signed uploads.
+ * Generates a SHA-256 signature for Cloudinary signed uploads.
  * Follows Cloudinary's alphabetical sorting requirement.
+ *
+ * Cloudinary accepts SHA-1 and SHA-256 hex digests; SHA-256 requires
+ * `signature_algorithm=sha256` on the upload body, not in the signed string
+ * (https://cloudinary.com/documentation/authentication_signatures).
  */
 export function generateCloudinarySignature(
   params: Record<string, CloudinarySignatureParam>,
@@ -42,6 +55,7 @@ export function generateCloudinarySignature(
     sortedKeys
       .filter(
         (key) =>
+          !UNSIGNED_UPLOAD_KEYS.has(key) &&
           signatureParams[key] !== undefined &&
           signatureParams[key] !== null &&
           signatureParams[key] !== "",
@@ -49,9 +63,11 @@ export function generateCloudinarySignature(
       .map((key) => `${key}=${String(signatureParams[key])}`)
       .join("&") + apiSecret;
 
-  // Generate SHA-1 hash
+  // Cloudinary validates SHA-1 and SHA-256 digests interchangeably
+  // (https://cloudinary.com/documentation/authentication_signatures); use the
+  // collision-resistant one.
   const signature = crypto
-    .createHash("sha1")
+    .createHash("sha256")
     .update(signatureString)
     .digest("hex");
 
@@ -60,6 +76,7 @@ export function generateCloudinarySignature(
     timestamp,
     apiKey,
     cloudName,
+    signatureAlgorithm: "sha256",
   };
 }
 

@@ -191,6 +191,7 @@ const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
               window.open(
                 `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
                 "_blank",
+                "noopener,noreferrer",
               )
             }
           >
@@ -201,6 +202,7 @@ const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
               window.open(
                 `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
                 "_blank",
+                "noopener,noreferrer",
               )
             }
           >
@@ -211,6 +213,7 @@ const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
               window.open(
                 `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
                 "_blank",
+                "noopener,noreferrer",
               )
             }
           >

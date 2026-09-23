@@ -75,6 +75,7 @@ export function FilterBar({
               <button
                 type="button"
                 onClick={filter.onRemove}
+                aria-label={`Remove ${filter.label} filter`}
                 className="ml-2 transition-colors hover:text-foreground"
               >
                 <X className="size-3" />

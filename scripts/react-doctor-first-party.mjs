@@ -3,7 +3,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const reactDoctorRunner = "bunx";
-const baseArgs = ["--bun", "react-doctor@latest"];
+// Do not add `--bun` here: react-doctor spawns its rule engine over Node IPC
+// and calls `child.channel.unref()`, which Bun's ChildProcess lacks. Forcing
+// the Bun runtime makes every target fail before any rule executes.
+const baseArgs = ["react-doctor@latest"];
 
 export const REACT_DOCTOR_TARGETS = Object.freeze([
   "apps/admin",

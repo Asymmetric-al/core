@@ -26,6 +26,10 @@ Use precise wording in PRs and release notes:
 
 The default command accepts legacy `--fail-on none` and normalizes it to the current React Doctor `--blocking none` flag; `doctor.config.json` also sets `"blocking": "none"`. That keeps the audit useful during cleanup without turning every advisory rule into a local blocker. CI or a focused cleanup PR may choose a stricter mode later.
 
+The wrapper runs `bunx react-doctor@latest` on Node, not `bunx --bun`. React Doctor spawns its rule engine over Node IPC and calls `child.channel.unref()`, which Bun's `ChildProcess` does not implement; forcing the Bun runtime makes every target fail before any rule executes. `tests/unit/scripts/react-doctor-first-party.test.ts` guards this.
+
+Inline suppressions use `// react-doctor-disable-next-line <plugin>/<rule>` and must carry a one-line reason on the preceding comment. Use them only for confirmed false positives, never to hide a real finding.
+
 ## Configured Ignores
 
 The ignore list is intentionally human-readable here because `doctor.config.json` is JSON and cannot carry comments.
@@ -66,3 +70,56 @@ The ignore list is intentionally human-readable here because `doctor.config.json
 - Responsive shared tables: `packages/ui/components/shadcn/data-table/data-table-responsive-inner.tsx` now derives mobile state with `useMediaQuery` and keeps only the table-to-card coercion effect. Avoid reintroducing manual `resize` listeners in table components unless the shared hook cannot express the query.
 - Missionary donor mutations: `apps/missionary/app/donors/use-donors-page-view.tsx` and `apps/missionary/app/donors/edit-donor-dialog.tsx` now call `/api/missionary/donors/[donorId]` and `/api/missionary/donors/[donorId]/activities` through `apps/missionary/app/donors/donor-mutation-client.ts`. Server-side handlers live in `packages/api/src/missionary-portal/donor.ts` and must keep missionary role, tenant, profile, and donor relationship scoping.
 - Large component, bundle, accessibility, and design rule families remain per-slice work. Do not re-enable those globally without route-owner coverage and rendered validation.
+
+## 2026-09-18 Cleanup Decisions
+
+Configured first-party audit (`bun run react-doctor:first-party -- --full --offline --fail-on none`, React Doctor 0.9.14): 316 findings (60 errors) before, 236 findings (41 errors) after. No rule was added to the ignore list.
+
+Fixed in source:
+
+- Purity: `apps/donor/app/(public)/(solid)/checkout/checkout-client.tsx` no longer writes refs during render or inside `setCheckoutState` updaters; ref checks and mirror writes happen in the async payment handler. `packages/ui/components/ministry-update/use-engagement.ts` syncs its latest-value refs in a layout effect and seeds `getSnapshot` from the current baseline. `packages/ui/components/shadcn/data-table/filters/use-advanced-filter.ts` notifies `onFilterChange` from a single `commit` path instead of inside updaters (covered by `tests/unit/packages/ui/use-advanced-filter.test.tsx`, which renders under StrictMode). `apps/missionary/app/profile/use-profile-page-view.ts` derives `isLoading` from state, not a ref.
+- Cleanup and memoization: `carousel.tsx` detaches the `reInit` listener; context provider values in `carousel`, `chart`, `toggle-group`, `rich-text-editor`, and `packages/lib/mission-control/context.tsx` are memoized; `number-cell.tsx` uses a lazy state initializer; `contributions/main-body.tsx` hoists its default `needsAttentionGroups` array.
+- Lookups: `Set`/`Map` replace `includes`/`find` inside loops in the donors list model, mission-control tiles, task table, mission briefing, filter select inputs, CSV export, CRM tag filter, Payload language options, and support macro canned responses.
+- Security: the native PDF authoring preview iframe is sandboxed like the email preview (`allow-same-origin`; the print document is static markup plus inline CSS), and every `window.open(..., "_blank")` passes `noopener,noreferrer`.
+- Bugs: `apps/missionary/app/feed/use-worker-feed-page-view.ts` treats HTTP errors from `/api/posts` and `/api/follower-requests` as failed loads instead of empty data (`tests/unit/apps/missionary/app/feed/use-worker-feed-page-view.test.tsx`). Support store schemas use `z.looseObject` (Zod 4).
+- Accessibility: icon-only buttons and symbol-only controls in shared data tables, data grid, filter bar, image upload, rating cell, Web Studio preview toggles, donor settings/wallet/map, and missionary donor filters have `aria-label`s (plus `aria-pressed`/`aria-expanded` for toggles). `SupportFailureBanner` keeps `role="status"` but announces politely because the failing mutation already raises an error toast.
+- Motion: the recurring-gift progress bar in `use-donors-page-view.tsx` scales on X instead of animating `width`; `quick-give.tsx` relies on `layout` instead of also animating `width`.
+
+Confirmed false positives (left as-is at this inventory, no config change):
+
+- `no-fetch-response-used-without-status-check` (25 remaining at inventory): the repo convention at the time read the JSON body first to surface the API error payload, then checked `response.ok`. Remaining `parseJsonResponse` clones in portal hooks later started checking `response.ok` before reading the JSON body.
+- `no-set-state-after-await-in-effect` (4) and `no-create-object-url-without-revoke` (1): each site already guarded with a cancellation flag (`cancelled`/`isMounted`) or revoked in `removeMedia`, `handleClose`, and an unmount effect.
+- `effect-needs-cleanup` in `use-supabase-realtime.ts` (suppressed inline with a reason: cleanup runs through `channelRef`) and `UnlayerEmailEditor.tsx` (the inventory treated the legacy editor listener as living on the editor instance, not in an effect; the 2026-09-19 pass later added explicit cleanup on that instance).
+- `anchor-has-content` in `menu-dropdown.tsx`: Base UI's `render` prop merges the visible item title into the rendered link.
+- `query-mutation-missing-invalidation` in `hooks/donor-portal.ts`: the billing-portal session mutation returns a redirect URL and owns no cached data.
+- `insecure-crypto-risk` in `packages/lib/cloudinary-server.ts`: the helper SHA-256s Cloudinary's official sorted string-to-sign (not a credential hash). Cloudinary accepts SHA-1 and SHA-256 hex digests interchangeably; the live email uploader in `packages/api/src/email/assets.ts` SHA-256s and sends `signature_algorithm=sha256` via this helper. Cloudinary signed uploads use SHA-256 instead of SHA-1.
+
+Deferred with owners (pre-pass inventory; closed in the 2026-09-19 source pass below):
+
+- `no-layout-property-animation` (29 errors, 8 files at inventory): `height: 0 -> "auto"` reveals and `width: 0 -> "auto"` button reveals lived in the donor FAQ accordion, wallet banner, `QuickGiveInput`, missionary donor filters/tag chips/profile field messages, feed media strips, and admin flag banners. The 2026-09-19 pass later replaced those with transform-only motion.
+- `react-hooks-js/todo` (10 errors at inventory): React Compiler could not yet lower `try`/`finally` or `throw` inside `try`/`catch` in a few missionary hooks. Those hooks later landed in the 2026-09-19 source pass under annotation mode.
+- `socket/low-supply-chain-score`: `maplibre-gl@5.x` was locked at 5.23.0 and covered by GHSA-jrc7-96c5-q579 (`DOM.sanitize()` XSS, fixed in 6.4.1+). First-party code used `Popup.setDOMContent` and disabled the attribution control. The 2026-09-19 pass later upgraded the donor where-we-work map to `maplibre-gl` 6.x.
+- Maintainability families (`only-export-components` 57, `no-high-complexity-react-function` 31, `duplicate-jsx-subtree` 9), `no-locale-format-in-render` (27), `no-adjust-state-on-prop-change`/`no-reset-all-state-on-prop-change` (9), `no-pass-live-state-to-parent`/`no-pass-data-to-parent` (7, `carousel` `setApi` contract and `use-data-table-live-query`), `prefer-tag-over-role` (7), and the remaining focus/nesting a11y items were later closed in the 2026-09-19 source pass below.
+
+## 2026-09-19 Cleanup Decisions
+
+React Doctor passes for the configured first-party audit. Command: `bun run react-doctor:first-party -- --full --offline --fail-on none` (React Doctor 0.9.14, `blocking` still `none`). Every wrapper target reported no issues: `@asym/admin`, `@asym/donor`, `@asym/missionary-app`, `@asym/auth`, `@asym/database`, `@asym/lib`, `@asym/missionary`, `@asym/ui`. `doctor.config.json` ignore rules were not expanded.
+
+This is not a claim that every React Doctor rule is enabled. Known ignores stay in `doctor.config.json` and in Configured Ignores above (`no-giant-component`, knip, jsx-a11y, design, micro-optimization, and the other temporary families). Do not add rules to the ignore list to keep this audit green. Re-enable one ignored family at a time with route-owner coverage.
+
+Closed in source from the 2026-09-18 remaining inventory:
+
+- `maplibre-gl` 6.x (GHSA-jrc7-96c5-q579 floor) on the donor where-we-work map.
+- Transform-only motion for the previous `no-layout-property-animation` sites.
+- Missionary hooks that tripped `react-hooks-js/todo` under React Compiler annotation mode.
+- Unlayer editor listener cleanup on the editor instance.
+- Remaining `parseJsonResponse` clones in portal hooks check `response.ok` before reading the JSON body.
+- Cloudinary signed uploads use SHA-256 instead of SHA-1.
+- Hydration-safe locale formatting (`no-locale-format-in-render`).
+- Derive or key state instead of syncing props in effects.
+- Notify parents from events, not effects (`carousel` `setApi` and live-query seams kept).
+- Async effect cancellation guards and external-store email drafts.
+- First-party a11y semantics (`prefer-tag-over-role` and related).
+- Non-component exports moved out of component files (`only-export-components`).
+- Duplicated JSX subtrees extracted to shared siblings.
+- High-complexity React functions extracted in `@asym/admin`, `@asym/donor`, `@asym/missionary-app`, `@asym/missionary`, and `@asym/ui` so each stays under the cyclomatic/cognitive threshold. Public APIs, `base-maia` styling, and upload/donate/Stripe handlers were not restyled or rewritten for score.

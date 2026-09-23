@@ -10,11 +10,9 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  ContributionOperationShell,
-  OPERATION_DEFINITIONS,
-} from "../../../../../apps/admin/app/(app)/contributions/operation-shell";
-import { contributionDetailQueryKey } from "../../../../../apps/admin/app/(app)/contributions/contribution-detail-overlay";
+import { contributionDetailQueryKey } from "../../../../../apps/admin/app/(app)/contributions/contribution-detail-model";
+import { OPERATION_DEFINITIONS } from "../../../../../apps/admin/app/(app)/contributions/operation-definitions";
+import { ContributionOperationShell } from "../../../../../apps/admin/app/(app)/contributions/operation-shell";
 import { useAdminContributions } from "../../../../../apps/admin/app/(app)/contributions/use-admin-contributions";
 
 import type { CrmPostFailedScope } from "@asym/api/admin/contribution-operations";

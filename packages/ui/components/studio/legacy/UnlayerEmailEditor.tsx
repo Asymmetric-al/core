@@ -18,6 +18,7 @@ import dynamic from "next/dynamic";
 import {
   useRef,
   useCallback,
+  useEffect,
   useState,
   forwardRef,
   useImperativeHandle,
@@ -168,6 +169,9 @@ export const LegacyUnlayerEmailEditor = forwardRef<
     "mounting" | "loading" | "ready"
   >("mounting");
   const designLoadedRef = useRef(false);
+  const [readyEditor, setReadyEditor] = useState<UnlayerEditorInstance | null>(
+    null,
+  );
   const isMounted = useSyncExternalStore(
     emptySubscribe,
     getClientSnapshot,
@@ -395,18 +399,33 @@ export const LegacyUnlayerEmailEditor = forwardRef<
         designLoadedRef.current = true;
       }
 
-      unlayer.addEventListener(
-        "design:updated",
-        (data: { design: UnlayerDesignJSON }) => {
-          onDesignUpdate?.(data.design);
-        },
-      );
-
+      setReadyEditor(unlayer);
       setLoadingState("ready");
       onReady?.(studioConfig);
     },
-    [initialDesign, onReady, onDesignUpdate, studioConfig],
+    [initialDesign, onReady, studioConfig],
   );
+
+  // Subscribe to design changes as an effect so the listener is detached on
+  // unmount and re-bound when the callback prop changes (the previous
+  // onReady-time listener kept the first `onDesignUpdate` forever). Unlayer
+  // detaches listeners by type only, so the cleanup is complete even though
+  // the linter looks for a handler-based removeEventListener pair.
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
+  useEffect(() => {
+    if (!readyEditor) return;
+
+    readyEditor.addEventListener(
+      "design:updated",
+      (data: { design: UnlayerDesignJSON }) => {
+        onDesignUpdate?.(data.design);
+      },
+    );
+
+    return () => {
+      readyEditor.removeEventListener("design:updated");
+    };
+  }, [readyEditor, onDesignUpdate]);
 
   const editorOptions: UnlayerOptions = useMemo(
     () => ({
