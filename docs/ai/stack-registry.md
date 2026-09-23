@@ -8,8 +8,8 @@ Agents MUST use this to build better Nia query preambles and to pick the right d
 - Next.js (App Router)
 - React
 - TypeScript (default language; exact installed version in root `package.json`); readiness policy: `docs/guides/typescript-6-readiness.md`
-- Node.js (runtime target)
-- Bun (preferred package manager/runtime)
+- Node.js (runtime target; Vercel Functions `nodeVersion` `24.x`)
+- Bun (package manager and script runner only; apps still run on Node.js. Do not set `vercel.json` `bunVersion` or `bun --bun` — that opts Vercel Functions onto the Bun runtime, which is separate from the pinned Bun package manager)
 - PostgreSQL (Supabase Postgres)
 
 Nia keywords:
@@ -18,7 +18,7 @@ Nia keywords:
 - React, hooks, components
 - TypeScript, tsconfig
 - Node.js
-- Bun, bun.lock
+- Bun, bun.lock, bunVersion, Vercel Functions runtime
 - Postgres, SQL, Supabase
 
 ## Monorepo and Tooling

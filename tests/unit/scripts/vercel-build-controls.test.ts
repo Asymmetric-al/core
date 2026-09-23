@@ -93,6 +93,70 @@ describe("Vercel build controls verifier", () => {
     );
   });
 
+  it("rejects bunVersion because that opts Vercel Functions off Node onto Bun", () => {
+    // https://vercel.com/changelog/bun-1-4-is-now-available-in-vercel-functions
+    // bunVersion is the Functions/Middleware runtime, not the install tool.
+    // Next.js on Bun also requires `bun run --bun next build`. Neither belongs
+    // in these Node 24 Next.js apps.
+    for (const bunVersion of ["1.4.x", "1.x"] as const) {
+      const checks = validateLocalVercelConfig({
+        project: adminProject,
+        config: {
+          ...localConfig,
+          bunVersion,
+        },
+      });
+
+      expect(checks).toContainEqual(
+        expect.objectContaining({
+          ok: false,
+          label: "admin vercel.json omits bunVersion (Node Functions runtime)",
+          detail: bunVersion,
+        }),
+      );
+    }
+  });
+
+  it("rejects bun --bun in Vercel install, build, and ignore commands", () => {
+    const cases = [
+      {
+        override: {
+          installCommand: "bun --bun install --cwd ../.. --frozen-lockfile",
+        },
+        detail: "bun --bun install --cwd ../.. --frozen-lockfile",
+      },
+      {
+        override: { buildCommand: "cd ../.. && bun run --bun build:admin" },
+        detail: "cd ../.. && bun run --bun build:admin",
+      },
+      {
+        override: {
+          ignoreCommand:
+            "bun --bun ../../scripts/vercel/should-ignore-build.mjs admin",
+        },
+        detail: "bun --bun ../../scripts/vercel/should-ignore-build.mjs admin",
+      },
+    ] as const;
+
+    for (const { override, detail } of cases) {
+      const checks = validateLocalVercelConfig({
+        project: adminProject,
+        config: {
+          ...localConfig,
+          ...override,
+        },
+      });
+
+      expect(checks).toContainEqual(
+        expect.objectContaining({
+          ok: false,
+          label: "admin vercel.json commands stay off bun --bun",
+          detail,
+        }),
+      );
+    }
+  });
+
   it("validates the ignored-build decision matrix", () => {
     expect(validateIgnoredBuildDecisionMatrix().every((item) => item.ok)).toBe(
       true,
