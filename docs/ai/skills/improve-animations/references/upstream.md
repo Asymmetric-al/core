@@ -2,10 +2,10 @@
 source_name: emilkowalski/skills
 source_url: https://github.com/emilkowalski/skills
 source_path: skills/improve-animations/
-source_commit: 7bb7061b5cf7de15ea1aeaf00fbd9e6592a20fce
-upstream_skill_commit: f736679c420f34e5a63d2dfdc74db35520d75a7b
+source_commit: 85e8e2363b713506e1d5b6e07a0eb2da66be1bc3
+upstream_skill_commit: 85e8e2363b713506e1d5b6e07a0eb2da66be1bc3
 license: MIT
-last_reviewed: 2026-07-11
+last_reviewed: 2026-09-23
 ---
 
 # Upstream: improve-animations
@@ -15,7 +15,7 @@ Canonical copy in this repo: `docs/ai/skills/improve-animations/`, mirrored to
 `bun run skills:sync`.
 
 - **Repository:** https://github.com/emilkowalski/skills
-- **Reviewed pack commit:** `7bb7061b5cf7de15ea1aeaf00fbd9e6592a20fce`
+- **Reviewed pack commit:** `85e8e2363b713506e1d5b6e07a0eb2da66be1bc3`
 - **Source path:** `skills/improve-animations/`
 - **Vendored upstream files:** `SKILL.md`, `AUDIT.md`, and `PLAN-TEMPLATE.md`
 - **License:** MIT; the exact upstream notice is preserved in
@@ -23,12 +23,17 @@ Canonical copy in this repo: `docs/ai/skills/improve-animations/`, mirrored to
 
 ## Refresh from upstream
 
-1. Run `npx --yes skills@latest add emilkowalski/skills -y`.
-2. Run `bun run skills:refresh-emilkowalski` to promote all five installed
-   trees while preserving marked Core overlays and provenance.
-3. Review the upstream tree for added or removed skills and reconcile Core's
-   Base UI, motion-token, reduced-motion, and routing constraints.
-4. Run `bun run skills:sync` and `bun run skills:verify`.
+1. Clone or fetch https://github.com/emilkowalski/skills and copy
+   `skills/<upstream-slug>/` into `.agents/skills/<canonical-slug>/`.
+   Vendor upstream `skills/prototype/` as `.agents/skills/emil-prototype/`.
+2. Do **not** blindly run `npx skills add emilkowalski/skills -y`. That
+   installer can overwrite Matt Pocock `.agents/skills/prototype/` and Core's
+   `find-animation-opportunities` adapter.
+3. Run `bun run skills:refresh-emilkowalski` to promote the lockfile-managed
+   Emil trees while preserving marked Core overlays and provenance.
+4. Review newly added or removed upstream skills and reconcile Core's Base UI,
+   motion-token, reduced-motion, and routing constraints.
+5. Run `bun run skills:sync` and `bun run skills:verify`.
 
 ## Repo-specific notes
 
