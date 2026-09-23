@@ -34,3 +34,19 @@ it("keeps ordinary disabled auth actions unfocusable", () => {
     screen.getByRole("button", { name: "Sign in" }).hasAttribute("disabled"),
   ).toBe(true);
 });
+it("natively disables a loading submit AuthButton so implicit form submit cannot start a second auth request", () => {
+  render(
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+      }}
+    >
+      <AuthButton type="submit" loading>
+        Signing in
+      </AuthButton>
+    </form>,
+  );
+  const button = screen.getByRole("button", { name: "Signing in" });
+  expect(button.getAttribute("type")).toBe("submit");
+  expect(button.hasAttribute("disabled")).toBe(true);
+});
