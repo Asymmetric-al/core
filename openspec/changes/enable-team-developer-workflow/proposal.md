@@ -1,3 +1,5 @@
+> Superseded by the 2026-09 owner decision in `../retire-git-attribution/`. This proposed attribution policy is not current authority.
+
 ## Why
 
 Core welcomes team and public contributions, but its executable attribution
