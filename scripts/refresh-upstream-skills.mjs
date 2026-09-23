@@ -774,7 +774,6 @@ const POST_REFRESH_REPLACEMENTS = [
     search:
       "an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent)",
     replace: "an isolated prototype surface outside app routes",
-    required: true,
   },
   {
     skillName: "pick-ui-library",

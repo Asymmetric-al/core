@@ -1416,8 +1416,6 @@ describe("refresh-upstream-skills", () => {
           "description: Build multiple genuinely different versions of a UI piece.",
           "---",
           "",
-          "an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent)",
-          "",
         ].join("\n"),
       },
       "improve-animations": {
