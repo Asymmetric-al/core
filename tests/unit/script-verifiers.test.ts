@@ -1416,6 +1416,8 @@ describe("refresh-upstream-skills", () => {
           "description: Build multiple genuinely different versions of a UI piece.",
           "---",
           "",
+          "an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent)",
+          "",
         ].join("\n"),
       },
       "improve-animations": {
@@ -1560,6 +1562,65 @@ describe("refresh-upstream-skills", () => {
     );
   });
 
+  it("restores every swapped skill when one rollback fails", async () => {
+    const tempRoot = await createTempRepo("refresh-rollback-continues");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const copiedScriptPath = path.join(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+    );
+    const copiedScript = await readFile(copiedScriptPath, "utf8");
+    await writeFile(
+      copiedScriptPath,
+      copiedScript
+        .replace(
+          "async function updateEmilCloneSkillLockHashes(preparedRefreshes) {\n",
+          [
+            "async function updateEmilCloneSkillLockHashes(preparedRefreshes) {",
+            '  throw new Error("simulated lock write failure");',
+            "",
+          ].join("\n"),
+        )
+        .replace(
+          "async function rollbackSwappedRefresh(swappedRefresh) {\n",
+          [
+            "async function rollbackSwappedRefresh(swappedRefresh) {",
+            '  if (swappedRefresh.skillName === "supabase-postgres-best-practices") {',
+            '    throw new Error("simulated rollback failure");',
+            "  }",
+            "",
+          ].join("\n"),
+        ),
+    );
+
+    const skills = ["supabase", "supabase-postgres-best-practices"] as const;
+    for (const skillName of skills) {
+      const sourceRoot = path.join(tempRoot, ".agents/skills", skillName);
+      const canonicalRoot = path.join(tempRoot, "docs/ai/skills", skillName);
+      await mkdir(sourceRoot, { recursive: true });
+      await mkdir(canonicalRoot, { recursive: true });
+      await writeFile(
+        path.join(sourceRoot, "SKILL.md"),
+        `# new ${skillName}\n`,
+      );
+      await writeFile(
+        path.join(canonicalRoot, "SKILL.md"),
+        `# old ${skillName}\n`,
+      );
+    }
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+        "--only=supabase/agent-skills",
+      ]),
+    ).toThrow(/simulated rollback failure/);
+
+    await expect(
+      readFile(path.join(tempRoot, "docs/ai/skills/supabase/SKILL.md"), "utf8"),
+    ).resolves.toBe("# old supabase\n");
+  });
+
   it("keeps Emil discovery replacements idempotent across repeated focused refreshes", async () => {
     const tempRoot = await createTempRepo("refresh-emil-idempotent");
     await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
@@ -1638,6 +1699,8 @@ describe("refresh-upstream-skills", () => {
           "---",
           "",
           "# Prototyping Variants",
+          "",
+          "an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent)",
           "",
         ].join("\n"),
       },

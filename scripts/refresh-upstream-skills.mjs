@@ -2215,8 +2215,19 @@ async function commitPreparedRefreshes(
     }
     await afterSwap();
   } catch (error) {
+    const rollbackErrors = [];
     for (const swappedRefresh of swappedRefreshes.reverse()) {
-      await rollbackSwappedRefresh(swappedRefresh);
+      try {
+        await rollbackSwappedRefresh(swappedRefresh);
+      } catch (rollbackError) {
+        rollbackErrors.push(rollbackError);
+      }
+    }
+    if (rollbackErrors.length > 0) {
+      throw new AggregateError(
+        [error, ...rollbackErrors],
+        "Skill refresh rollback failed",
+      );
     }
     throw error;
   } finally {
@@ -2319,8 +2330,13 @@ async function main() {
       try {
         await refreshSkillsAtomically(sources);
       } catch (error) {
+        const rollbackIncomplete =
+          error instanceof AggregateError &&
+          error.message === "Skill refresh rollback failed";
         throw new Error(
-          `Focused upstream refresh for ${onlySourceGroup} failed without changing canonical skills`,
+          rollbackIncomplete
+            ? `Focused upstream refresh for ${onlySourceGroup} failed and skill rollback was incomplete`
+            : `Focused upstream refresh for ${onlySourceGroup} failed without changing canonical skills`,
           { cause: error },
         );
       }
