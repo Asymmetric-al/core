@@ -10,7 +10,23 @@ import { runPrePush } from "../../../scripts/git/pre-push.mjs";
 const created: string[] = [];
 
 function git(cwd: string, args: string[], env = process.env): string {
-  const result = spawnSync("git", args, { cwd, encoding: "utf8", env });
+  const isolatedEnv = { ...env };
+  const identityVariables = new Set([
+    "GIT_AUTHOR_NAME",
+    "GIT_AUTHOR_EMAIL",
+    "GIT_COMMITTER_NAME",
+    "GIT_COMMITTER_EMAIL",
+  ]);
+  for (const key of Object.keys(isolatedEnv)) {
+    if (key.startsWith("GIT_") && !identityVariables.has(key)) {
+      delete isolatedEnv[key];
+    }
+  }
+  const result = spawnSync("git", args, {
+    cwd,
+    encoding: "utf8",
+    env: isolatedEnv,
+  });
   if (result.status !== 0) throw new Error(result.stderr);
   return result.stdout.trim();
 }
