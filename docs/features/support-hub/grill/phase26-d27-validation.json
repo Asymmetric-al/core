@@ -1,0 +1,42 @@
+{
+  "status": "passed",
+  "date": "2026-09-12",
+  "stage": "D1-D26 fully ratified; D27 A selected; complete amendments proposed pending ratification; no Q28",
+  "D27FullyRatified": false,
+  "D27Clauses": 30,
+  "D27CategoryFindings": 23,
+  "D27RequiredUnexecutedProofGroups": 36,
+  "D27OperationalControls": 6,
+  "D27ProposedGlossaryTerms": 3,
+  "priorDecisionArtifactsPreserved": 186,
+  "priorADRsPreserved": 26,
+  "priorGlossaryPreserved": true,
+  "priorRatificationValidationUnchanged": true,
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sourceHashesVerifiedIncludingIndependentManifest": 66,
+  "sourceProbes": {
+    "syntheticObservations": 7,
+    "limits": "No env/app import/database/network/provider/browser. Synthetic branch/mapper observations only; no deployed vulnerability, actual RLS, real staff authorization, publication, Guidance implementation or release proof."
+  },
+  "mirrorPairs": 18,
+  "immutableCoreSourceLinkInstancesChecked": 150,
+  "uniqueImmutableCoreSourceLinks": 49,
+  "localLinksChecked": 571,
+  "outputLinksChecked": 536,
+  "ADR0027Created": true,
+  "ADR0028Created": false,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "independentFinalChecks": [
+    "Data/source/authorization/lifecycle: passed after complete Shared-by-link body search, staff partial-coverage state and Removed-selection restoration correction",
+    "UX all staff/CRM/curator/maintenance/mobile/AT journeys: passed after insertion and honest action-scoped microcopy corrections",
+    "Email Studio/P17/P6/Tiptap: passed after source continuity, restoration, terminal-effect and byte-custody corrections"
+  ],
+  "limits": [
+    "No formal specification, implementation, tickets or GitHub mutation",
+    "No CMS publication, database/provider/DNS/inbox/credential changes or real messages",
+    "No real DB/RLS/concurrency/provider/browser/AT/capacity/staff-usability proof",
+    "All36 implementation/release proof groups remain required and unexecuted"
+  ]
+}

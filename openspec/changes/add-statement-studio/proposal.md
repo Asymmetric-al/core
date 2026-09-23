@@ -22,7 +22,7 @@ pre-production environment/data gate.
 - Separate immutable Document Definition Publication, source-owned Facts
   Package, idempotent Generation Request, optional source-authorized Issuance
   with Phase 18-owned code-governed identity mechanics, exact Artifact,
-  subordinate Render Attempts, and external Phase 17 Delivery.
+  subordinate Render Attempts, and external Phase 6 Delivery using Phase 17 governed content.
 - Use one structured visual authoring model, versioned Document Purpose
   Contracts, tenant-extensible Approved Data Views, synthetic proof, immutable
   publication, and bounded future appointments.
@@ -57,8 +57,10 @@ pre-production environment/data gate.
   issuance validity, and correction/void/cancel/replace authorization and effect.
 - Phase 10 and Phase 12 supply restricted-identity projections and capabilities.
 - Phase 13 supplies posted ledger and value truth.
-- Phase 17 supplies governed message preparation, communication history,
-  provider delivery, and the protected-action presentation seam.
+- Phase 17 supplies governed content, compiler/sender resolution and the
+  protected-action presentation seam. Phase 6 supplies recipient intent,
+  consent, preparation orchestration, provider delivery/recovery and
+  communication history.
 - Phase 19 supplies statement population, cutoff, and run orchestration.
 
 ## Out Of Scope

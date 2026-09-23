@@ -1,0 +1,186 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "mode": "Read-only manual source review plus pointer/hash verification; no modules executed",
+  "observations": [
+    {
+      "id": "S01",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "line": 4156,
+      "reviewedObservation": "Shared platform saved-view capability must be reused by Support.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S02",
+      "path": "docs/prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md",
+      "line": 498,
+      "reviewedObservation": "P9 A14/B11 governs named views, nested definitions, defaults and complete keyset queries.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S03",
+      "path": "docs/prds/sitestacker-parity/phase-11-custom-fields-custom-collections.md",
+      "line": 173,
+      "reviewedObservation": "Stable qualified catalog identity and unauthorized-predicate rejection.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S04",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "line": 345,
+      "reviewedObservation": "Legacy Support definition has nullable owner, cascade and broad staff policy posture.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S05",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "line": 1030,
+      "reviewedObservation": "Legacy saved-view list/save and cap-before-filter/label semantics require replacement through qualified shared owner.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S06",
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "line": 136,
+      "reviewedObservation": "Old flat filter and caller owner/scope schema lack new shared subject contract.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S07",
+      "path": "apps/admin/features/support-hub/components/views/SaveViewDialog.tsx",
+      "line": 66,
+      "reviewedObservation": "Save uses route criteria, omits inbox and can provide null personal owner.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S08",
+      "path": "apps/admin/features/support-hub/components/views/SavedViewsBar.tsx",
+      "line": 104,
+      "reviewedObservation": "First equal predicate determines active identity; all-view chip presentation.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S09",
+      "path": "apps/admin/features/support-hub/lib/selectors.ts",
+      "line": 187,
+      "reviewedObservation": "Client labels match ANY while server matches EVERY.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S10",
+      "path": "apps/admin/features/support-hub/components/tabs/ViewTabs.tsx",
+      "line": 44,
+      "reviewedObservation": "Declared active-filter count behavior does not match baseFilter use.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S11",
+      "path": "supabase/migrations/20260611170000_crm_table_named_views.sql",
+      "line": 5,
+      "reviewedObservation": "Shared foundation currently personal-only with server-only raw grants and private RPCs.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S12",
+      "path": "packages/api/src/admin/crm/table-preferences/named-views.ts",
+      "line": 20,
+      "reviewedObservation": "Current named-view API is gift-history/private and needs scoped generalization.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S13",
+      "path": "packages/database/query-keys.ts",
+      "line": 47,
+      "reviewedObservation": "Support keys omit tenant/principal/scope context.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S14",
+      "path": "packages/auth/client-session.ts",
+      "line": 58,
+      "reviewedObservation": "Existing auth clears query cache for signout or user switch; same-user scope changes remain to qualify.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S15",
+      "path": "packages/database/collections/support-hub.ts",
+      "line": 2261,
+      "reviewedObservation": "Saved-view collection is fixture-backed rather than production DB proof.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S16",
+      "path": "apps/admin/features/support-hub/lib/current-agent.ts",
+      "line": 8,
+      "reviewedObservation": "Current worker helper uses first email/same-ID match, unsuitable for trusted Me identity.",
+      "pointerAndHashVerified": true
+    }
+  ],
+  "sourceHashes": [
+    {
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md",
+      "sha256": "82463b0ce3c42894c01f3542e70db175d13de583246c4228903d47d7e331cc66"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-11-custom-fields-custom-collections.md",
+      "sha256": "5617e2c1a55063440550eb7c21c17727a2abadb01384f0eeffb803ed8fd73b53"
+    },
+    {
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/views/SaveViewDialog.tsx",
+      "sha256": "3bb3291386ac4cd3c658d91690e931c0e524ca03defd3cc8a4d42f5729c7ef00"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/views/SavedViewsBar.tsx",
+      "sha256": "e78f9149fa244caf7d6754dc836365133f60e7e4ce03cae56cf4deffea775717"
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/selectors.ts",
+      "sha256": "d8d60d5d80f53de337fa94dec3b5c14ede181fd7a80d031cede151d26e0fc6bb"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/tabs/ViewTabs.tsx",
+      "sha256": "b0021508d4e26d99876e957be7bc3c4e2a05ccb679c43f0adf265726771565b4"
+    },
+    {
+      "path": "supabase/migrations/20260611170000_crm_table_named_views.sql",
+      "sha256": "8c4f13ecb242c37295c484196c9b75f75f4550af534356c80082e03e9596b7c5"
+    },
+    {
+      "path": "packages/api/src/admin/crm/table-preferences/named-views.ts",
+      "sha256": "2b2b355a5aab6c5cb841239a0c7681df4c5f12ed355cd93d82535f2f5519f8c3"
+    },
+    {
+      "path": "packages/database/query-keys.ts",
+      "sha256": "87d4f1ddbc72053ebefda6146b2505ea7e06822baeedc9a17903ba6d5a571fea"
+    },
+    {
+      "path": "packages/auth/client-session.ts",
+      "sha256": "284aa6238ed9a2096857745d8219870348f8c62a51a22934f5e1423ae83f18c9"
+    },
+    {
+      "path": "packages/database/collections/support-hub.ts",
+      "sha256": "edabdc658b565d1f39272377aeded21634aecc779db43f4a738788ebd9615da2"
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/current-agent.ts",
+      "sha256": "d74feec2299dcbdd765536e2278dfe12493b23ed1a95c185379bb48b1cf80dcc"
+    }
+  ],
+  "limits": "Not runtime, live SQL grants/RLS, query-result, concurrency, browser, migration or deployment proof. Pointer/hash checks do not execute the described behavior."
+}

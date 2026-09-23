@@ -1,0 +1,99 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "refreshedState": {
+    "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+    "originDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+    "PR1335": {
+      "state": "OPEN",
+      "head": "e1c86e1a30f479363960eeb35500112665e16bb3"
+    },
+    "PR1336": {
+      "state": "OPEN",
+      "head": "3b2827ffcf184bf767664018efedda317c7da03c"
+    },
+    "PR1564": {
+      "state": "OPEN",
+      "head": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1"
+    }
+  },
+  "sourceHashes": [
+    {
+      "path": "apps/admin/app/api/admin/support/conversations/[id]/run-macro/route.ts",
+      "sha256": "302c8f78739a1ef5244c8023981a84f14f9ed4200e849bc346103b106da51bc6"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/macros/RunMacroPopover.tsx",
+      "sha256": "87270bb59738ae0b1118181ff992b695bee4c9e5706266a27129f3706cdef6e1"
+    },
+    {
+      "path": "apps/admin/features/support-hub/hooks/use-support-mutations.ts",
+      "sha256": "cc72d5e8f523eea1015bf7d68a383536f46d72df480e3a50e54b4bc58afc19e9"
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/automation-engine.ts",
+      "sha256": "27feb27107bf3bdc6fdd21b77b4223233380551b146267b0ee810769555926d2"
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/macro-runner.ts",
+      "sha256": "9457e8f5b9ac0608747ee18351a66668b2ef155a6258a974e07673003a2590a7"
+    },
+    {
+      "path": "apps/admin/features/support-hub/types/macro.ts",
+      "sha256": "821789a281ef32094bee1e8591f4fa18f58c8db5ecc1a0195a03c7798bbcceb8"
+    },
+    {
+      "path": "docs/adr/0030-canonical-message-document-and-presentation-dependencies.md",
+      "sha256": "6da9e5c451c1c3a6e42f1ed39e0445b7f9a0db279686489393dfea92303b8a1d"
+    },
+    {
+      "path": "docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "sha256": "7aeb08a2a499471d31e856914d940d94d4c43f57654812e80f6ee41024a62d21"
+    },
+    {
+      "path": "docs/adr/0035-eve-dynamic-workflow-orchestration.md",
+      "sha256": "5a3f493c12e002d26775850dedf830462c6316490efde44ad2dbf26c9de2ac73"
+    },
+    {
+      "path": "docs/adr/0099-claim-level-expense-truth-and-purpose-routed-tenant-ai.md",
+      "sha256": "7431f688ab1f680802d2204934dd268242b90579a33c413472ede5987e83d795"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "path": "openspec/changes/sitestacker-parity/specs/platform-boundaries/spec.md",
+      "sha256": "565177ea52e7ad3d3c5f315810d8bf48d1b2a9d1af283236b431c6648f362496"
+    },
+    {
+      "path": "openspec/specs/workflow-orchestration/spec.md",
+      "sha256": "0dd65864532b7508fb87a5ba9a98c2078c625178f55b6b6599409e5d07f56136"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/mutations/run-macro.ts",
+      "sha256": "2b2356c639b4916ac6787705b8b0eb72120e07b4aa95c107a9cc0eea9191c4c4"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a"
+    },
+    {
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    }
+  ],
+  "upstreamReferences": {
+    "tiptap": "7ab690e5056fe999988552822c4fc1b1064bf094",
+    "tiptap-docs": "de0873c397b84b221b1924193301819200333f74"
+  },
+  "sourceProbes": [
+    "phase26-d24-source-experiments.json",
+    "phase26-d24-macro-source-experiments.json"
+  ],
+  "currentVersusIntended": "Two isolated current-source probes, four synthetic cases. No proposed atomic admission, database, browser, provider or production proof."
+}

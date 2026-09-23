@@ -16,9 +16,9 @@ This is the always-on Codex entrypoint for `Asymmetric-al/core`. Keep it a compa
 
 1. Identify the app, package, or operational area in scope.
 2. Read the nearest applicable `AGENTS.md` before editing that subtree.
-3. Inspect current source, tests, manifests, and configuration before choosing a workflow.
+3. Inspect current source, tests, manifests, and configuration relevant to the requested change before choosing a workflow.
 4. For non-trivial behavior, workflow, or durable-convention changes, read `openspec/project.md`, the relevant `openspec/specs/**`, and matching active changes under `openspec/changes/**`.
-5. Load a discovered skill when its description matches. Do not use skill instructions as a substitute for repository context.
+5. Load explicitly requested skills and discovered skills whose descriptions match the task's workflow. Respect explicit-only invocation settings. Read supporting references only as needed; skills do not replace repository context.
 6. Preserve user-owned changes and keep the diff focused on the requested outcome.
 
 ## Repository map
@@ -36,11 +36,13 @@ Apps own surface-specific routes and UI. Shared behavior belongs in workspace pa
 When repository sources conflict, use this order:
 
 1. The current user request and applicable safety or approval boundaries.
-2. Merged OpenSpec intent; active OpenSpec changes describe proposed work and do not silently override current source.
+2. Accepted domain-owner intent and explicit later ratified amendments, reconciled through OpenSpec. Check scope, supersession and merge state; active changes do not prove implementation. Use `docs/ai/document-authority.md` for source and generated-view ownership.
 3. This file, then the nearest nested `AGENTS.md` and applicable canonical rulebook.
 4. Current source, tests, manifests, lockfiles, installed package documentation, and runtime evidence.
 5. Current official external documentation for the installed version.
 6. General model knowledge only as a last resort.
+
+For intent conflicts, follow the owning contract and explicit supersession, not file age or directory alone. Current source, tests and runtime establish what exists; ratification or document publication does not establish activation.
 
 Prefer verifiable local evidence over remembered APIs. When runtime state matters and a relevant tool is actually registered and available, inspect it rather than guessing. Optional helpers such as Nia are never required for basic repository correctness; the conditional Nia workflow lives in `docs/ai/nia.md`.
 
@@ -65,6 +67,8 @@ Nested files contain only local constraints. They do not replace repository-wide
 
 ## Domain routing
 
+Read the rulebooks for the work in scope; a small edit does not require loading unrelated domains.
+
 | Work                                 | Read before editing                                     |
 | ------------------------------------ | ------------------------------------------------------- |
 | General workflow, branches, PRs, CI  | `docs/ai/rules/general.md`                              |
@@ -80,6 +84,7 @@ Nested files contain only local constraints. They do not replace repository-wide
 ## Critical Core invariants
 
 - **Product safety:** tenant and permission correctness outrank convenience. Preserve financial and operational truth, keep secrets and privileged effects server-side, and never weaken auth, payment, webhook, or data boundaries for a shortcut. Relevant durable intent lives in `openspec/specs/platform-principles/spec.md` and `openspec/specs/platform-boundaries/spec.md`.
+- **CRM retirement:** Asym Postgres owns all CRM truth. Twenty CRM is retired; do not restore its clients, credentials, vendor store, sync, cutover or rollback paths. Dated records and compatibility identifiers do not authorize a live integration.
 - **Data ownership:** business database logic belongs in `packages/api`; app API route handlers stay thin. Browser-visible table access uses approved `packages/database` collections and hooks. Follow the data-access boundary guide and its enforced exceptions.
 - **UI system:** every UI or UX change must preserve exact `base-maia`, Base UI primitives, Zinc-oriented semantic CSS-variable tokens, shared ownership in `packages/ui`, and the existing Core design language. Do not introduce another style, preset, primitive base, component system, or app-local fork.
 - **TDD:** substantive features, bug fixes, and behavior-changing refactors use red-green-refactor at the nearest stable seam. Documentation-only, formatting-only, exact generated mirrors, and provenance-only changes use deterministic structural verification instead of artificial failing tests.
@@ -108,7 +113,9 @@ Use Bun and the scripts declared in the current root `package.json`.
 - Workspace contract: `bun run verify:workspace-contract`
 - PR/push readiness: `bun run ci:preflight`
 
-Run the smallest relevant checks while iterating, then the broader gate proportional to risk. Do not bypass hooks or claim checks that were not run. Secrets stay out of source, docs, commands, and logs.
+Run the smallest relevant checks while iterating, then the broader gate proportional to risk. Avoid repeating passed checks unless new edits, failures, unresolved risk, or required workflow gates justify it. Do not bypass hooks or claim checks that were not run. Secrets stay out of source, docs, commands, and logs.
+
+Complete the requested outcome, including relevant verification and fixes for failures caused by the change, within the authorized scope. Continue routine, reversible local work without asking for approval at each step. Stop at the user's requested review or planning boundary, when further action needs new authorization, or when a genuine blocker requires user input.
 
 ## Code review rules
 

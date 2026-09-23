@@ -1,0 +1,27 @@
+{
+  "executedAt": "2026-09-10T16:46:35.502Z",
+  "sourcePath": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10/packages/api/src/admin/support-hub/adapter/supabase.ts",
+  "sourceSha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+  "extractedSha256": "2f5a1a5a9f21846da224eba508dc4f78380e0a73d448e2c9a1489ac4126fe3aa",
+  "passed": 3,
+  "cases": [
+    {
+      "name": "complete_snapshot_preserves_person_and_team",
+      "assignee": "synthetic-agent",
+      "team": "synthetic-team"
+    },
+    {
+      "name": "incomplete_display_snapshot_becomes_null_despite_nonnull_keys",
+      "canonicalAssignee": "synthetic-agent",
+      "projectedAssignee": null,
+      "canonicalTeam": "synthetic-team",
+      "projectedTeam": null
+    },
+    {
+      "name": "real_null_assignment_has_same_projected_shape",
+      "projectedAssignee": null,
+      "projectedTeam": null
+    }
+  ],
+  "proofLimits": "Exact current mapper/helper source extracted and transpiled; synthetic rows/maps only. No full adapter import, env, app, SQL, RLS, provider/network call or deployed missing-roster claim. This demonstrates the mapper's lossy null representation, not actual production exposure."
+}

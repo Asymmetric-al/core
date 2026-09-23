@@ -198,11 +198,38 @@
 ## 3. Verification
 
 - [x] 3.1 `bun run openspec -- validate --all --strict` passes.
-- [ ] 3.2 Archive this change once Phase 0 is accepted (Phase 0 is done when the
-      picture is complete and honest, per `phase-00-baseline.md`).
+- [ ] 3.2 Before any archive, classify every contained delta against accepted
+      implementation evidence. Phase 0 acceptance alone cannot close this
+      cumulative change: its Phase 16 recurring and Phase 17 communication
+      deltas still describe forward behavior. Separate accepted program
+      governance from unimplemented capability deltas into explicit successor
+      changes, or wait until every applicable contained implementation is
+      accepted and verified. Preserve still-valid scenarios and the separately
+      owned Phase 18/19 changes. Do not promote planned behavior or mark
+      unimplemented work complete through a Phase 0 archive.
 
 ## 4. Follow-ups (not Phase 0 completion blockers)
 
 - [ ] 4.1 Verify every matrix `Built?`/current-state `(v)` flag against code.
 - [ ] 4.2 Source every benchmark `(s)` to a specific SiteStacker doc page.
 - [ ] 4.3 Reconcile parity areas already governed by OpenSpec PR #462.
+
+## Roadmap v3 adoption — AL-1892
+
+- [x] Verify the 45-phase inventory, preserved predecessor floors, complete Studio
+      scope, acceptance projections, ticket amendments and independent checkpoint DAGs.
+- [x] Record exact validation and publication evidence; keep all runtime and
+      provider qualification tasks open until their owning gates pass.
+
+## Owner decisions discovered by the September 23 congruence audit
+
+These are product/architecture decision gates, not a claim that source work or
+qualification has completed. Details and current safe boundaries are in the
+[decision record](../../../docs/ai/audits/2026-09-23-contract-congruence.md#unresolved-owner-decisions).
+
+- [ ] Resolve C-01 with the founder and synchronize the Phase 13/15 correction
+      approval rule, affected acceptance and issue #766 before dispatching that
+      policy implementation.
+- [ ] Resolve C-02 with the founder and synchronize the Phase 13/14 operational
+      state placement, immutable-row enforcement and affected schema/tests/tickets
+      before implementing that storage seam.

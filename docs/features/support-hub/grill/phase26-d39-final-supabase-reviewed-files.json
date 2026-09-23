@@ -1,0 +1,53 @@
+{
+  "date": "2026-09-15",
+  "result": "Pass",
+  "method": "Independent actual-file Supabase/source-state comparison; source hashes/ranges and documentary structure checked; F01/F02 actual-file closure",
+  "files": [
+    {
+      "name": "phase26-d39-adversarial-review.md",
+      "sha256": "21ea74deebd64a7873c6575883265febecfcb69801b27be5e195ba956b06b37b"
+    },
+    {
+      "name": "phase26-d39-proof-and-operations.md",
+      "sha256": "5ee4e8441127e477f5428a4ee16cb4aec4aed8b21444ec78a34030715ebb3808"
+    },
+    {
+      "name": "phase26-d39-supabase-contract.md",
+      "sha256": "c8acf83ba81dbfdc10b3d5cc23f2fb084337e0098118590e20a9bd7d58a27675"
+    },
+    {
+      "name": "phase26-d39-supabase-evidence.json",
+      "sha256": "99f2366ee2b1c7493964caf2fd394ba11ec4712bc9cfb136a03c72f7bde9ea78"
+    },
+    {
+      "name": "phase26-d39-lifecycle-seam-review.md",
+      "sha256": "e9c58c188f410d0adcc40bd84d6c0718984630dfe13c1cab487234ce4592eab4"
+    },
+    {
+      "name": "phase26-d39-reader-tiptap-contract.md",
+      "sha256": "933079578f8bf1781e3499bec6a8ab3a8ff6775c7e24d8995f544a97a3656b49"
+    },
+    {
+      "name": "phase26-d39-reader-probe.json",
+      "sha256": "4bde929dd6a05d7df282e5b30034617b5a38742103bd80e85121d30bff2f920d"
+    },
+    {
+      "name": "phase26-d39-review-corrections.md",
+      "sha256": "0ded9a0999c75d7c8d8db4bfb261a86e02d1eba2d635cd9cf0becb76b5e34800"
+    }
+  ],
+  "repositorySourcePinsVerified": 24,
+  "clauses": 26,
+  "dataContracts": 16,
+  "lifecycleContracts": 16,
+  "categories": 23,
+  "runtimeProofGroupsRequired": 30,
+  "runtimeProofGroupsExecuted": 0,
+  "operatingControls": 5,
+  "closedFindings": [
+    "F01-active-composition",
+    "F02-source-only-legacy-baseline"
+  ],
+  "newDatabaseOrProviderTests": false,
+  "founderRatificationClaimed": false
+}

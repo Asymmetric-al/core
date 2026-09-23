@@ -1,0 +1,46 @@
+{
+  "date": "2026-09-14",
+  "status": "passed",
+  "Q35": "unanswered",
+  "recommendation": "A",
+  "options": [
+    "A own-author edit with visible history",
+    "B linked correction only",
+    "C short edit window then corrections"
+  ],
+  "D1-D34": "fully ratified; unchanged",
+  "priorFilesPreserved": 550,
+  "mirrorFiles": 3,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN"
+    }
+  ],
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "noNewADR": true,
+  "noImplementation": true
+}

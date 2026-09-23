@@ -1,0 +1,505 @@
+{
+  "schemaVersion": 1,
+  "phase": 43,
+  "slug": "sms-channel-activation",
+  "title": "Governed SMS Messaging & Channel Activation",
+  "adoptionIssue": 1892,
+  "status": "adopted-roadmap-planning-not-implementation",
+  "source": {
+    "path": "docs/prds/program-roadmap/source-2026-09-22/supplied-roadmap.md",
+    "anchor": "phase-43",
+    "reviewedPart": "program-roadmap.md",
+    "reviewedPartSha256": "3fa5a9276ac306cdd0dc6f187a208ec6c07e95744707733520aab4c2a9f861ab",
+    "normalizedChapterSha256": "110a6456e988a03b623d9f62008ecd8184ca6cb3bc3f333e0ea39b14caa49ec1",
+    "sourceResearchDate": "2026-09-16",
+    "adoptionDate": "2026-09-22"
+  },
+  "checkpoints": ["SMS-CHANNEL", "SMS-CONVERSATIONS", "SMS-OUTREACH"],
+  "checkpointRule": "Capability prerequisites may be qualified before their whole checkpoint completes. Full phase completion requires all checkpoints and selected profiles; no backward gate on predecessor phases.",
+  "packages": [
+    {
+      "id": "SMS-W01",
+      "outcome": "Census source contracts, preserve transport-dark generation, adopt exact successor and support profile",
+      "dependsOn": [],
+      "sourceDependencyClause": "None; foundation owners required",
+      "acceptanceCases": ["SMS-AT-01", "SMS-AT-02"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "SMS-W02",
+      "outcome": "Governed account/sender setup, exact registration evidence, credential rotation and visible readiness",
+      "dependsOn": ["SMS-W01"],
+      "sourceDependencyClause": "W01",
+      "acceptanceCases": ["SMS-AT-03", "SMS-AT-04", "SMS-AT-22"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "SMS-W03",
+      "outcome": "Phone-purpose enrollment, withdrawal, re-consent and current eligibility through existing owners",
+      "dependsOn": ["SMS-W01"],
+      "sourceDependencyClause": "W01",
+      "acceptanceCases": [
+        "SMS-AT-05",
+        "SMS-AT-06",
+        "SMS-AT-07",
+        "SMS-AT-08",
+        "SMS-AT-09"
+      ],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "SMS-W04",
+      "outcome": "Authenticated durable ingress and control-keyword handling, including overload protection",
+      "dependsOn": ["SMS-W02", "SMS-W03"],
+      "sourceDependencyClause": "W02, W03",
+      "acceptanceCases": ["SMS-AT-08", "SMS-AT-10", "SMS-AT-11", "SMS-AT-20"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "SMS-W05",
+      "outcome": "Exact prepared text, encoding/segment proof, time-window/deadline and budget preflight",
+      "dependsOn": ["SMS-W02", "SMS-W03"],
+      "sourceDependencyClause": "W02, W03",
+      "acceptanceCases": ["SMS-AT-12", "SMS-AT-13", "SMS-AT-14"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "SMS-W06",
+      "outcome": "Phase 6 dispatch, permanent identities, provider evidence and ambiguity recovery",
+      "dependsOn": ["SMS-W04", "SMS-W05"],
+      "sourceDependencyClause": "W04, W05",
+      "acceptanceCases": ["SMS-AT-15", "SMS-AT-16", "SMS-AT-17", "SMS-AT-18"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "SMS-W07",
+      "outcome": "Qualified source notice through its explicit Phase 17 contract, without workflow dependency",
+      "dependsOn": ["SMS-W06"],
+      "sourceDependencyClause": "W06",
+      "acceptanceCases": ["SMS-AT-02", "SMS-AT-19"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "SMS-W08",
+      "outcome": "Complete Support Hub inbound, assignment, safe reply and correspondent lifecycle",
+      "dependsOn": ["SMS-W04", "SMS-W06"],
+      "sourceDependencyClause": "W04, W06; exact Phase 26 contract",
+      "acceptanceCases": ["SMS-AT-21", "SMS-AT-22", "SMS-AT-23"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "SMS-W09",
+      "outcome": "Public keyword-to-giving-link with bounded unknown-correspondent requested-response contract",
+      "dependsOn": ["SMS-W04", "SMS-W06"],
+      "sourceDependencyClause": "W04, W06; exact Phase 5/13 contracts",
+      "acceptanceCases": ["SMS-AT-24", "SMS-AT-25"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "SMS-W10",
+      "outcome": "Organization campaign send/schedule/stop and source-labelled outcomes",
+      "dependsOn": ["SMS-W06"],
+      "sourceDependencyClause": "W06; Phase 32 occurrence contract",
+      "acceptanceCases": ["SMS-AT-16", "SMS-AT-26", "SMS-AT-27"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "SMS-W11",
+      "outcome": "Consent-preserving migration, route replacement, privacy disposition and safe restore",
+      "dependsOn": ["SMS-W07", "SMS-W10"],
+      "sourceDependencyClause": "W07–W10",
+      "acceptanceCases": ["SMS-AT-28", "SMS-AT-29", "SMS-AT-30"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    },
+    {
+      "id": "SMS-W12",
+      "outcome": "All-profile load, accessibility, user pilot, independent outage monitoring and release evidence",
+      "dependsOn": ["SMS-W11"],
+      "sourceDependencyClause": "W11",
+      "acceptanceCases": ["SMS-AT-20", "SMS-AT-31", "SMS-AT-32"],
+      "status": "planned-not-dispatched",
+      "githubIssue": null
+    }
+  ],
+  "acceptanceCases": [
+    {
+      "id": "SMS-AT-01",
+      "requiredProof": "With only the Phase 17 generation or an unqualified profile, every SMS creation path remains unavailable; existing evidence still reads correctly.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-02",
+      "requiredProof": "Activating one exact source purpose does not activate another purpose, tenant, sender, country or channel; missing required proof rejects before work exists.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-03",
+      "requiredProof": "A real verified setup reaches usable readiness; partial/rejected/stale registration and forged account ownership never do.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-04",
+      "requiredProof": "Secret rotation and route replacement preserve current scope; copied ciphertext, another tenant's account and revoked credentials fail safely.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-05",
+      "requiredProof": "Explicit enrollment captures the required disclosure and phone-purpose evidence; a gift, email opt-in, imported number or staff checkbox alone cannot enroll.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-06",
+      "requiredProof": "Shared, corrected, reassigned and changed phones do not inherit private threads or old consent; ambiguous identity remains a visible unresolved state.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-07",
+      "requiredProof": "A do-not-contact change or source eligibility loss between preview and admission prevents the affected send, including a required/urgent-labelled request.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-08",
+      "requiredProof": "STOP and reasonable withdrawal suppress before ordinary follow-up, including unresolved Party matching, repeated events and adverse orderings.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-09",
+      "requiredProof": "HELP changes no permission; START/provider-unblock without complete fresh applicable evidence cannot resume recurring outreach.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-10",
+      "requiredProof": "Provider-generated control response is recorded without a duplicate platform response; ordinary acknowledgments cannot loop with another autoresponder.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-11",
+      "requiredProof": "Real signature validation covers trusted proxy URL construction, all required parameters, JSON variants, tampering, replay and wrong-account routing.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-12",
+      "requiredProof": "Fully personalized text crosses GSM/Unicode/concatenation boundaries correctly; no truncation, protected-link change or hidden encoding rewrite occurs.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-13",
+      "requiredProof": "Quiet hours, unknown zone, daylight-saving boundaries, source expiration and delayed recovery produce the documented not-before/expired outcomes.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-14",
+      "requiredProof": "Budget and provider throttling truthfully defer/refuse new optional work without dropping accepted intent or blocking withdrawal ingestion.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-15",
+      "requiredProof": "Double submit, response loss, concurrent native/Studio requests and replay beyond provider caches preserve one semantic effect identity.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-16",
+      "requiredProof": "Cancel/withdrawal versus admission has a deterministic boundary; already-submitted work remains truthfully irreversible or uncertain.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-17",
+      "requiredProof": "Provider acceptance with a lost response, including no stored provider ID, cannot cause a fresh-key retry or automatic route/provider failover.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-18",
+      "requiredProof": "Late, duplicate and reordered delivery observations do not invent reading or business completion; incompatible evidence requires reconciliation.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-19",
+      "requiredProof": "One actual source-backed system notice succeeds with optional Workflow Studio absent; existing required email/in-product behavior stays intact.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-20",
+      "requiredProof": "Fault and overload drills retain all durably accepted restrictions and outcomes, enforce fair capacity and expose independently detected outages.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-21",
+      "requiredProof": "An inbound message, assignment, collision-safe staff reply and later response work through the actual Support Hub and one communication history.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-22",
+      "requiredProof": "A sender port, reassignment, disconnect or ownership change cannot attach a new correspondent to prior private conversation history.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-23",
+      "requiredProof": "Internal notes, raw attachments, sealed-care context and unrelated recipient details cannot escape through SMS, exports, previews or diagnostics.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-24",
+      "requiredProof": "Known and unknown keyword requesters receive only a permitted source-coded public giving link; no Party claim, consent enrollment or payment occurs.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-25",
+      "requiredProof": "A retired designation, changed route, malicious keyword/URL, repeated request and link scanner cannot misdirect a gift or perform a hidden action.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-26",
+      "requiredProof": "A reviewed campaign sends only currently eligible intended recipients, shows exact exclusions and does not execute twice through native/provider lanes.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-27",
+      "requiredProof": "Schedule/change/stop and partial campaign failure retain original occurrence identity and truthful per-recipient outcomes without blocking email-only work.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-28",
+      "requiredProof": "Import or provider migration retains provenance and restrictions; incomplete legacy evidence remains unconsented rather than silently repaired.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-29",
+      "requiredProof": "Privacy/retention and backup restore preserve minimal required restriction/effect evidence without resurrecting removed content or repeating messages.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-30",
+      "requiredProof": "Killing new SMS sends preserves withdrawal, authenticated late-outcome intake, authorized history and recovery; reconnect does not replay old campaigns.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-31",
+      "requiredProof": "Real administrator, campaign author and support agent complete their jobs with keyboard, screen reader and narrow-screen layouts.",
+      "status": "specified-not-executed"
+    },
+    {
+      "id": "SMS-AT-32",
+      "requiredProof": "The approved provider/market profile completes all three checkpoints with measured performance/cost, operating runbooks and a representative tenant pilot.",
+      "status": "specified-not-executed"
+    }
+  ],
+  "coverage": {
+    "packageCount": 12,
+    "acceptanceCaseCount": 32,
+    "allCasesMapped": true,
+    "internalGraphAcyclic": true
+  },
+  "dispatchRule": "Reconcile existing issues and exact owner contracts, close the affected qualification decisions, then publish bounded implementation tickets. Null githubIssue means no issue has been created.",
+  "openSpec": {
+    "change": "add-governed-sms-channel",
+    "capability": "governed-sms",
+    "path": "openspec/changes/add-governed-sms-channel/specs/governed-sms/spec.md",
+    "acceptanceBindings": [
+      {
+        "case": "SMS-AT-01",
+        "requirement": "SMS-W01 Census source contracts, preserve transport-dark generation, adopt exact successor and support profile",
+        "scenario": "SMS-AT-01 source acceptance",
+        "workPackages": ["SMS-W01"]
+      },
+      {
+        "case": "SMS-AT-02",
+        "requirement": "SMS-W01 Census source contracts, preserve transport-dark generation, adopt exact successor and support profile",
+        "scenario": "SMS-AT-02 source acceptance",
+        "workPackages": ["SMS-W01", "SMS-W07"]
+      },
+      {
+        "case": "SMS-AT-03",
+        "requirement": "SMS-W02 Governed account/sender setup, exact registration evidence, credential rotation and visible readiness",
+        "scenario": "SMS-AT-03 source acceptance",
+        "workPackages": ["SMS-W02"]
+      },
+      {
+        "case": "SMS-AT-04",
+        "requirement": "SMS-W02 Governed account/sender setup, exact registration evidence, credential rotation and visible readiness",
+        "scenario": "SMS-AT-04 source acceptance",
+        "workPackages": ["SMS-W02"]
+      },
+      {
+        "case": "SMS-AT-22",
+        "requirement": "SMS-W02 Governed account/sender setup, exact registration evidence, credential rotation and visible readiness",
+        "scenario": "SMS-AT-22 source acceptance",
+        "workPackages": ["SMS-W02", "SMS-W08"]
+      },
+      {
+        "case": "SMS-AT-05",
+        "requirement": "SMS-W03 Phone-purpose enrollment, withdrawal, re-consent and current eligibility through existing owners",
+        "scenario": "SMS-AT-05 source acceptance",
+        "workPackages": ["SMS-W03"]
+      },
+      {
+        "case": "SMS-AT-06",
+        "requirement": "SMS-W03 Phone-purpose enrollment, withdrawal, re-consent and current eligibility through existing owners",
+        "scenario": "SMS-AT-06 source acceptance",
+        "workPackages": ["SMS-W03"]
+      },
+      {
+        "case": "SMS-AT-07",
+        "requirement": "SMS-W03 Phone-purpose enrollment, withdrawal, re-consent and current eligibility through existing owners",
+        "scenario": "SMS-AT-07 source acceptance",
+        "workPackages": ["SMS-W03"]
+      },
+      {
+        "case": "SMS-AT-08",
+        "requirement": "SMS-W03 Phone-purpose enrollment, withdrawal, re-consent and current eligibility through existing owners",
+        "scenario": "SMS-AT-08 source acceptance",
+        "workPackages": ["SMS-W03", "SMS-W04"]
+      },
+      {
+        "case": "SMS-AT-09",
+        "requirement": "SMS-W03 Phone-purpose enrollment, withdrawal, re-consent and current eligibility through existing owners",
+        "scenario": "SMS-AT-09 source acceptance",
+        "workPackages": ["SMS-W03"]
+      },
+      {
+        "case": "SMS-AT-10",
+        "requirement": "SMS-W04 Authenticated durable ingress and control-keyword handling, including overload protection",
+        "scenario": "SMS-AT-10 source acceptance",
+        "workPackages": ["SMS-W04"]
+      },
+      {
+        "case": "SMS-AT-11",
+        "requirement": "SMS-W04 Authenticated durable ingress and control-keyword handling, including overload protection",
+        "scenario": "SMS-AT-11 source acceptance",
+        "workPackages": ["SMS-W04"]
+      },
+      {
+        "case": "SMS-AT-20",
+        "requirement": "SMS-W04 Authenticated durable ingress and control-keyword handling, including overload protection",
+        "scenario": "SMS-AT-20 source acceptance",
+        "workPackages": ["SMS-W04", "SMS-W12"]
+      },
+      {
+        "case": "SMS-AT-12",
+        "requirement": "SMS-W05 Exact prepared text, encoding/segment proof, time-window/deadline and budget preflight",
+        "scenario": "SMS-AT-12 source acceptance",
+        "workPackages": ["SMS-W05"]
+      },
+      {
+        "case": "SMS-AT-13",
+        "requirement": "SMS-W05 Exact prepared text, encoding/segment proof, time-window/deadline and budget preflight",
+        "scenario": "SMS-AT-13 source acceptance",
+        "workPackages": ["SMS-W05"]
+      },
+      {
+        "case": "SMS-AT-14",
+        "requirement": "SMS-W05 Exact prepared text, encoding/segment proof, time-window/deadline and budget preflight",
+        "scenario": "SMS-AT-14 source acceptance",
+        "workPackages": ["SMS-W05"]
+      },
+      {
+        "case": "SMS-AT-15",
+        "requirement": "SMS-W06 Phase 6 dispatch, permanent identities, provider evidence and ambiguity recovery",
+        "scenario": "SMS-AT-15 source acceptance",
+        "workPackages": ["SMS-W06"]
+      },
+      {
+        "case": "SMS-AT-16",
+        "requirement": "SMS-W06 Phase 6 dispatch, permanent identities, provider evidence and ambiguity recovery",
+        "scenario": "SMS-AT-16 source acceptance",
+        "workPackages": ["SMS-W06", "SMS-W10"]
+      },
+      {
+        "case": "SMS-AT-17",
+        "requirement": "SMS-W06 Phase 6 dispatch, permanent identities, provider evidence and ambiguity recovery",
+        "scenario": "SMS-AT-17 source acceptance",
+        "workPackages": ["SMS-W06"]
+      },
+      {
+        "case": "SMS-AT-18",
+        "requirement": "SMS-W06 Phase 6 dispatch, permanent identities, provider evidence and ambiguity recovery",
+        "scenario": "SMS-AT-18 source acceptance",
+        "workPackages": ["SMS-W06"]
+      },
+      {
+        "case": "SMS-AT-19",
+        "requirement": "SMS-W07 Qualified source notice through its explicit Phase 17 contract, without workflow dependency",
+        "scenario": "SMS-AT-19 source acceptance",
+        "workPackages": ["SMS-W07"]
+      },
+      {
+        "case": "SMS-AT-21",
+        "requirement": "SMS-W08 Complete Support Hub inbound, assignment, safe reply and correspondent lifecycle",
+        "scenario": "SMS-AT-21 source acceptance",
+        "workPackages": ["SMS-W08"]
+      },
+      {
+        "case": "SMS-AT-23",
+        "requirement": "SMS-W08 Complete Support Hub inbound, assignment, safe reply and correspondent lifecycle",
+        "scenario": "SMS-AT-23 source acceptance",
+        "workPackages": ["SMS-W08"]
+      },
+      {
+        "case": "SMS-AT-24",
+        "requirement": "SMS-W09 Public keyword-to-giving-link with bounded unknown-correspondent requested-response contract",
+        "scenario": "SMS-AT-24 source acceptance",
+        "workPackages": ["SMS-W09"]
+      },
+      {
+        "case": "SMS-AT-25",
+        "requirement": "SMS-W09 Public keyword-to-giving-link with bounded unknown-correspondent requested-response contract",
+        "scenario": "SMS-AT-25 source acceptance",
+        "workPackages": ["SMS-W09"]
+      },
+      {
+        "case": "SMS-AT-26",
+        "requirement": "SMS-W10 Organization campaign send/schedule/stop and source-labelled outcomes",
+        "scenario": "SMS-AT-26 source acceptance",
+        "workPackages": ["SMS-W10"]
+      },
+      {
+        "case": "SMS-AT-27",
+        "requirement": "SMS-W10 Organization campaign send/schedule/stop and source-labelled outcomes",
+        "scenario": "SMS-AT-27 source acceptance",
+        "workPackages": ["SMS-W10"]
+      },
+      {
+        "case": "SMS-AT-28",
+        "requirement": "SMS-W11 Consent-preserving migration, route replacement, privacy disposition and safe restore",
+        "scenario": "SMS-AT-28 source acceptance",
+        "workPackages": ["SMS-W11"]
+      },
+      {
+        "case": "SMS-AT-29",
+        "requirement": "SMS-W11 Consent-preserving migration, route replacement, privacy disposition and safe restore",
+        "scenario": "SMS-AT-29 source acceptance",
+        "workPackages": ["SMS-W11"]
+      },
+      {
+        "case": "SMS-AT-30",
+        "requirement": "SMS-W11 Consent-preserving migration, route replacement, privacy disposition and safe restore",
+        "scenario": "SMS-AT-30 source acceptance",
+        "workPackages": ["SMS-W11"]
+      },
+      {
+        "case": "SMS-AT-31",
+        "requirement": "SMS-W12 All-profile load, accessibility, user pilot, independent outage monitoring and release evidence",
+        "scenario": "SMS-AT-31 source acceptance",
+        "workPackages": ["SMS-W12"]
+      },
+      {
+        "case": "SMS-AT-32",
+        "requirement": "SMS-W12 All-profile load, accessibility, user pilot, independent outage monitoring and release evidence",
+        "scenario": "SMS-AT-32 source acceptance",
+        "workPackages": ["SMS-W12"]
+      }
+    ],
+    "status": "active-planning-implementation-unchecked"
+  },
+  "packageDirectory": "docs/prds/governed-sms"
+}

@@ -15,7 +15,10 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
   `bun run release:production`; do not push directly to `production`.
 - **Legacy branch:** the canonical repository has no `main` branch; do not
   create or target one. Deny-only deployment configuration may still mention it.
-- **Tech stack (reference):** Next.js 16.3.0-preview.9 (App Router), React 19, TypeScript 5.9.x (see root `package.json` for exact version), Tailwind CSS 4, Supabase client libraries, package manager `bun`.
+- **Tech stack (reference):** Next.js App Router, React, TypeScript, Tailwind CSS,
+  Supabase client libraries, package manager `bun`. Current workspace manifests
+  and lockfile own exact versions; this rulebook does not pin a second version
+  list.
 - **TypeScript roadmap prep:** `docs/guides/typescript-6-readiness.md` and `docs/ai/rules/typescript-future-proofing.md` (not a substitute for the version upgrade task).
 
 ### Label taxonomy (required for every issue)

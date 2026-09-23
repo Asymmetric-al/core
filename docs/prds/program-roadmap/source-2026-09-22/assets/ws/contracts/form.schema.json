@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:asym:form:reference:v1",
+  "title": "Proposed source-mapped form reference",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "dialect": {
+      "const": "asym.form/1"
+    },
+    "formId": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+    },
+    "version": {
+      "const": 1
+    },
+    "status": {
+      "const": "reference_blueprint"
+    },
+    "purpose": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+    },
+    "subject": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+    },
+    "defaultEnabled": {
+      "const": false
+    },
+    "submissionOwnerContract": {
+      "type": "string",
+      "minLength": 1
+    },
+    "partialSave": {
+      "const": true
+    },
+    "retentionOwnerContract": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "enum": [
+                    "short_text",
+                    "long_text",
+                    "email",
+                    "date",
+                    "boolean",
+                    "choice",
+                    "multi_choice"
+                  ]
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "purpose": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+                },
+                "classification": {
+                  "enum": [
+                    "ordinary_private",
+                    "confidential",
+                    "restricted"
+                  ]
+                },
+                "maxLength": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "value": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+                      },
+                      "label": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "value",
+                      "label"
+                    ]
+                  },
+                  "minItems": 1,
+                  "maxItems": 40
+                },
+                "visibleWhen": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "fieldId": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+                    },
+                    "operator": {
+                      "enum": [
+                        "eq",
+                        "in"
+                      ]
+                    },
+                    "values": {
+                      "type": "array",
+                      "items": {
+                        "type": [
+                          "string",
+                          "boolean"
+                        ]
+                      },
+                      "minItems": 1,
+                      "maxItems": 20
+                    }
+                  },
+                  "required": [
+                    "fieldId",
+                    "operator",
+                    "values"
+                  ]
+                },
+                "mapping": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "ownerContract": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "fieldKey": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+                    }
+                  },
+                  "required": [
+                    "ownerContract",
+                    "fieldKey"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "kind",
+                "required",
+                "purpose",
+                "classification",
+                "mapping"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 30
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "fields"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 20
+    },
+    "submissionRules": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "serverValidation": {
+          "const": true
+        },
+        "immutableAcceptedSnapshot": {
+          "const": true
+        },
+        "hiddenValues": {
+          "const": "exclude_from_submission_and_effects"
+        },
+        "csrfRequired": {
+          "const": true
+        },
+        "idempotencyRequired": {
+          "const": true
+        }
+      },
+      "required": [
+        "serverValidation",
+        "immutableAcceptedSnapshot",
+        "hiddenValues",
+        "csrfRequired",
+        "idempotencyRequired"
+      ]
+    }
+  },
+  "required": [
+    "dialect",
+    "formId",
+    "version",
+    "status",
+    "purpose",
+    "subject",
+    "defaultEnabled",
+    "submissionOwnerContract",
+    "partialSave",
+    "retentionOwnerContract",
+    "pages",
+    "submissionRules"
+  ]
+}

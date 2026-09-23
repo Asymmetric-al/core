@@ -96,7 +96,8 @@
       selector plus fragment verifier, inert `GET`/`HEAD`, deliberate same-origin
       POST, recipient-epoch authorization, bounded grant rotation, no-store exact
       streaming, and non-enumerating recovery.
-- [ ] 4.5 Hand only exact artifact references to Phase 17. Prove that provider
+- [ ] 4.5 Hand only exact artifact references to Phase 17 content preparation
+      and Phase 6 recipient intent/dispatch. Prove that provider
       delay, bounce, complaint, duplicate webhook, resend, and message fallback
       never alter artifact or issuance truth.
 
@@ -182,7 +183,8 @@
       adapter, route, flag, dependency, or product surface remains.
 - [ ] 7.4 Run the full end-to-end U.S. tracer and the gated Canadian corpus from
       source facts through publication, generation, exact artifact, authorized
-      access, Phase 17 delivery, resend, correction/replacement, retention,
+      access, Phase 17 content preparation, Phase 6 delivery/resend,
+      correction/replacement, retention,
       restore, and disposal.
 
 ## 8. Release verification and documentation

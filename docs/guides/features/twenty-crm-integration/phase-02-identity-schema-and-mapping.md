@@ -1,106 +1,38 @@
-# Phase 02 - Identity, Schema, And Mapping
+# Retired Twenty CRM plan: Phase 02 - Identity, Schema, And Mapping
 
-> **Status (2026-07-06): Superseded — Twenty CRM retired** by
-> [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md).
-> Asym Postgres is the system of record for all CRM truth (people,
-> relationships, notes, tasks, activity); see the
-> [Phase 1 ownership matrix](../../../prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md).
-> No product surface reads from or depends on Twenty; the one-way mirror never
-> turns on; sync code is dormant pending a scheduled cleanup ticket. This
-> document is preserved for historical reference — do not execute its phases
-> or runbooks. The identity-concept distinctions below remain valid
-> Asym-native design input; the Twenty object model does not.
+Twenty CRM is retired. Asym Postgres owns CRM records, including native notes
+and relationships; Mission Control reads and writes through the existing
+`packages/api` domain services. The native replacement and removal of Twenty
+clients, routes, webhooks, synchronization and environment-schema fields merged
+into `develop` through [PR #1325](https://github.com/Asymmetric-al/core/pull/1325)
+on 2026-08-19.
 
-## Trigger
+The old integration sequence is withdrawn. There is no Twenty production
+cutover, mirror activation, replay, rollback-to-Twenty or new-domain rollout
+to execute. Repository removal is complete; only the independently recorded
+external cleanup proof remains outstanding.
 
-Use this phase after the CRM gateway and authorization bridge exist, but before importing or cutting over production data.
+## Current ownership and remaining work
 
-## Goal
+- [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
+  fixes native CRM ownership and prohibits reintroducing Twenty.
+- The [Phase 1 ownership matrix](../../../prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md)
+  identifies the record owners; new CRM work follows those existing boundaries.
+- The [data-access boundary](../../architecture/data-access-boundary.md)
+  governs API services, authorized projections and browser access.
+- [Complete Twenty CRM retirement](../../../../openspec/changes/complete-twenty-crm-retirement/tasks.md)
+  records the merged implementation separately from the still-unverified
+  external Vercel/Twenty Cloud cleanup. Its remaining external proof does not
+  mean the repository integration is still present or that credentials were
+  removed from every provider.
+- Existing compatibility records and retained business/audit facts keep their
+  owning-domain retention rules. Retiring the vendor is not permission to
+  delete those records or edit old migrations.
 
-Create a durable identity and mapping model so Supabase, Stripe, Payload/CMS, Twenty, and Asym surfaces can refer to the same ministry reality without collapsing distinct concepts or creating duplicate records.
+## Historical record
 
-## Scope
-
-- Identity concept definitions.
-- Supabase CRM anchor tables.
-- Twenty object model design.
-- Schema management strategy.
-- Duplicate detection and merge candidate rules.
-- Pure import transform functions.
-- Unit tests for mapping and duplicate logic.
-
-## Not In Scope
-
-- Bulk import execution.
-- Production write cutover.
-- Cross-surface projections.
-- Automatic low-confidence merges.
-
-## Required Identity Distinctions
-
-Keep these concepts separate:
-
-- Supabase auth user
-- Asym profile
-- Tenant membership and role
-- CRM person
-- Donor profile
-- Missionary profile
-- CMS public entity
-- Stripe customer
-- Fund or project
-- Pledge or relationship commitment
-- Payment, receipt, refund, statement, and reconciliation records
-
-## Recommended Supabase Tables
-
-- `crm_record_links`
-- `crm_merge_candidates`
-- `crm_projection_state`
-- CRM command and sync logs from Phase 01 and Phase 03
-
-Exact SQL belongs in migrations created during implementation, not in this phase file.
-
-## Workflow
-
-1. Define identity concepts in the OpenSpec change design.
-2. Design link tables with tenant IDs, Asym entity references, Twenty object names, Twenty record IDs, confidence, status, and verification timestamps.
-3. Design the Twenty object model for people, companies/organizations, churches, households, tasks, notes, activity, and pledges.
-4. Choose one schema management path for production: Metadata API or a clearly isolated Twenty app manifest.
-5. Write deterministic matching rules by confidence level.
-6. Unit test transforms and duplicate scoring before any import job runs.
-
-## Checklist
-
-- [x] Supabase auth user is not treated as the same thing as CRM person.
-- [x] Donor profile is not treated as the same thing as CRM person.
-- [x] Missionary profile is not treated as the same thing as CRM person.
-- [x] Stripe customer is not treated as the same thing as donor profile.
-- [x] Link tables include tenant scope.
-- [x] Link tables support repair and replay.
-- [x] Low-confidence matches become merge candidates, not automatic merges.
-- [x] Twenty schema does not mirror the entire Asym database.
-- [x] Pledge modeling distinguishes relationship intent from payment truth.
-- [x] Mapping logic is covered by unit tests.
-
-## Phase 02 Artifact Status
-
-Phase 02 is complete as a schema and pure-logic phase:
-
-- Identity concepts live in `packages/api/src/crm/identity/concepts.ts`.
-- The Twenty object model and schema management decision live in
-  `packages/api/src/crm/schema/twenty-object-model.ts`.
-- Link, merge-candidate, and projection tables are created by
-  `supabase/migrations/20260508000413_crm_identity_mapping.sql`.
-- Pure donor and pledge transforms live in
-  `packages/api/src/crm/mapping/transforms.ts`.
-- Duplicate scoring and fingerprint normalization live in
-  `packages/api/src/crm/mapping/duplicates.ts`.
-- Unit coverage lives in `tests/unit/packages/api/crm-{identity-concepts,schema-model,mapping,duplicates}.test.ts`.
-
-This phase does not run production imports, add webhooks, start sync/replay,
-or proceed to Phase 03.
-
-## Exit Gate
-
-Do not proceed until identity concepts, link tables, duplicate rules, and Twenty schema setup are documented and testable. No bulk import should run before this phase passes.
+The [exact former document at `7abd2c11`](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/guides/features/twenty-crm-integration/phase-02-identity-schema-and-mapping.md)
+preserves the withdrawn plan, original claims, commands and evidence in Git.
+It is an immutable historical source, not an operational runbook. This stable
+document path remains as the current retirement entry so existing links do not
+route an implementer into obsolete setup instructions.

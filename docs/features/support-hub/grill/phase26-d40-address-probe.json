@@ -1,0 +1,39 @@
+{
+  "date": "2026-09-15",
+  "method": "Bun calls unchanged actual extractEmailAddress on six synthetic strings; no mocks, DB, HTTP, provider, credentials or real message data.",
+  "evidenceClass": "Bounded source-function observations, not RFC parser conformance or deployed intake proof.",
+  "source": "packages/api/src/email/address.ts",
+  "sourceSha256": "55aa7a50d62e63601a81b885ca6eb5fca4e5138bf6c198dce8cbfafb00c4bb48",
+  "results": [
+    {
+      "name": "case-preservation",
+      "input": "User@Example.ORG",
+      "observed": "user@example.org"
+    },
+    {
+      "name": "plus-address",
+      "input": "\"Example\" <user+updates@example.org>",
+      "observed": "user+updates@example.org"
+    },
+    {
+      "name": "two-from-mailboxes",
+      "input": "\"One\" <one@example.org>, \"Two\" <two@example.org>",
+      "observed": "one@example.org"
+    },
+    {
+      "name": "unquoted-space",
+      "input": "odd local@example.org",
+      "observed": "odd local@example.org"
+    },
+    {
+      "name": "non-address",
+      "input": "not-an-address",
+      "observed": null
+    },
+    {
+      "name": "quoted-local-at",
+      "input": "\"a@b\"@example.org",
+      "observed": null
+    }
+  ]
+}

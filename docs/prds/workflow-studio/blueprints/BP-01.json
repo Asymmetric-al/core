@@ -1,0 +1,83 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-01",
+  "recipeId": "GEN-01",
+  "name": "Initial inquiry and accountable response",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "inquiry_response",
+  "subject": "inquiry",
+  "enrollment": {
+    "mode": "once_per_subject",
+    "triggerContract": "intake.inquiry.accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {},
+    "tasks": {
+      "discovery": "intake.discovery@1"
+    },
+    "evidence": {},
+    "actions": {
+      "assign_owner": "intake.assign-accountable-owner@1",
+      "ack_message": "communications.inquiry-acknowledgment.request@1"
+    },
+    "roles": {
+      "coordinator": "roles.inquiry-owner@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "communications",
+    "crm",
+    "messages",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": ["inquiry_flow"]
+    }
+  ],
+  "root": {
+    "id": "inquiry_flow",
+    "kind": "sequence",
+    "label": "Inquiry flow",
+    "steps": [
+      {
+        "id": "resolve_owner",
+        "kind": "action",
+        "label": "Resolve owner",
+        "contract": "assign_owner",
+        "inputs": {}
+      },
+      {
+        "id": "acknowledge",
+        "kind": "action",
+        "label": "Acknowledge",
+        "contract": "ack_message",
+        "inputs": {}
+      },
+      {
+        "id": "discovery",
+        "kind": "task",
+        "label": "Discovery",
+        "contract": "discovery",
+        "role": "coordinator"
+      },
+      {
+        "id": "handoff_recorded",
+        "kind": "finish",
+        "label": "Handoff recorded",
+        "lifecycle": "complete",
+        "outcome": "discovery_recorded"
+      }
+    ]
+  }
+}

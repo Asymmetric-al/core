@@ -1,0 +1,222 @@
+{
+  "status": "passed",
+  "date": "2026-09-14",
+  "checksPassed": 51,
+  "checks": [
+    {
+      "check": "phase26-d36-adversarial-review.md full-ratification notice",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-adversarial-review.md original full substantive body preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-ux-blueprint.md full-ratification notice",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-ux-blueprint.md original full substantive body preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-source-data-review.md full-ratification notice",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-source-data-review.md original full substantive body preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-editor-seam-review.md full-ratification notice",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-editor-seam-review.md original full substantive body preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-proof-and-operations.md full-ratification notice",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-proof-and-operations.md original full substantive body preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-review-corrections.md full-ratification notice",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-review-corrections.md original full substantive body preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-evidence.md full-ratification notice",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-evidence.md original full substantive body preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-completion-audit.md full-ratification notice",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-completion-audit.md original full substantive body preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-selection.md full-ratification notice",
+      "passed": true
+    },
+    {
+      "check": "phase26-d36-selection.md original full substantive body preserved",
+      "passed": true
+    },
+    {
+      "check": "master full scope accepted",
+      "passed": true
+    },
+    {
+      "check": "full supporting prose included",
+      "passed": true
+    },
+    {
+      "check": "distinct Support P17 P6 ownership",
+      "passed": true
+    },
+    {
+      "check": "actual proof and prior evidence intact",
+      "passed": true
+    },
+    {
+      "check": "glossary definitions unchanged",
+      "passed": true
+    },
+    {
+      "check": "ADR full status",
+      "passed": true
+    },
+    {
+      "check": "ADR original body retained",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.md current status",
+      "passed": true
+    },
+    {
+      "check": "phase26-grill-log.md complete prior history retained",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.md current status",
+      "passed": true
+    },
+    {
+      "check": "phase26-session-handoff.md complete prior history retained",
+      "passed": true
+    },
+    {
+      "check": "independent ratification79passes",
+      "passed": true
+    },
+    {
+      "check": "all unrelated preexisting records preserved",
+      "passed": true
+    },
+    {
+      "check": "prior D36 evidence JSON unchanged",
+      "passed": true
+    },
+    {
+      "check": "three concrete A B C policies",
+      "passed": true
+    },
+    {
+      "check": "single recommendation A",
+      "passed": true
+    },
+    {
+      "check": "Q37 unanswered not selected",
+      "passed": true
+    },
+    {
+      "check": "actual choices distinguish surface",
+      "passed": true
+    },
+    {
+      "check": "search and private Note boundaries",
+      "passed": true
+    },
+    {
+      "check": "no missing whole corpus or recent-only assumption",
+      "passed": true
+    },
+    {
+      "check": "current vendor qualifications preserved",
+      "passed": true
+    },
+    {
+      "check": "phase26-q37-final-scope-review.md pass",
+      "passed": true
+    },
+    {
+      "check": "phase26-q37-final-ux-review.md pass",
+      "passed": true
+    },
+    {
+      "check": "six actual source files with valid pins",
+      "passed": true
+    },
+    {
+      "check": "nine accepted source hashes",
+      "passed": true
+    },
+    {
+      "check": "current HEAD remote preserved",
+      "passed": true
+    },
+    {
+      "check": "five read-only PR states",
+      "passed": true
+    },
+    {
+      "check": "no new featureADR37",
+      "passed": true
+    },
+    {
+      "check": "tracked diff unchanged",
+      "passed": true
+    },
+    {
+      "check": "all local resultlinks resolve",
+      "passed": true
+    },
+    {
+      "check": "21 mirrored artifacts identical",
+      "passed": true
+    },
+    {
+      "check": "newdocument formatting",
+      "passed": true
+    },
+    {
+      "check": "tracked whitespace",
+      "passed": true
+    }
+  ],
+  "D36": "fully ratified including all amendments",
+  "Q37": "unanswered",
+  "sourceFiles": 6,
+  "acceptedSourceHashes": 9,
+  "mirrorsIncludingThisValidation": 22,
+  "independentRatificationChecks": 79,
+  "priorD36DocumentaryChecks": 41,
+  "sourceSerializerAssertions": 4,
+  "runtimeReleaseProofsExecuted": 0,
+  "runtimeReleaseProofsRequired": 30,
+  "realMessagesSent": false
+}

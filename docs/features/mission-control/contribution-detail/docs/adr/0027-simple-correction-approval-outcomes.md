@@ -1,36 +1,33 @@
-# ADR-CD-027: Correction approval outcomes close the loop simply
+# ADR-CD-027: Approval decisions and downstream execution have separate outcomes
 
-**Status:** Accepted (grill session 2026-05-29)
+**Status:** Accepted 2026-05-29; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-After a high-risk correction request is approved or rejected, Mission Control needs to close the loop for both approvers and the original requester. The workflow should be durable enough for finance controls but simple enough that routine approvals do not generate unnecessary task or notification noise.
+A closed approval task must not be mistaken for a finished refund, generated document or delivered notice.
 
 ## Decision
 
-Correction approval outcomes use a simple hybrid workflow:
-
-1. **Close the approval task:** Approving or rejecting a correction request automatically completes the linked approval task.
-2. **Notify the requester:** The original requester receives an in-app outcome notification by default; email follows their configured preferences.
-3. **Apply approved corrections immediately:** On approval, the correction becomes effective through the same contribution operations contract and returns an operation result showing downstream effects.
-4. **Create follow-up work only on rejection:** On rejection, Mission Control records the rejection reason and may create a follow-up task for the requester to revise or abandon the request.
-
-Modern practice requirements:
-
-- Keep the approval outcome idempotent; repeated approve/reject submissions must not duplicate tasks, notifications, or adjustments.
-- Require a rejection reason.
-- Audit the outcome with actor, timestamp, decision, reason when present, linked correction request id, notification delivery attempts, and task transition.
-- Deep links from notifications and follow-up tasks open contribution detail with the correction request outcome in context.
-- Do not create a second task on approval unless a downstream effect explicitly needs a separate work item.
+- An approve/reject command rechecks source version and current Phase 12/13
+  policy, records one idempotent decision and resolves linked approval work.
+- Approval admits the exact next owner command; it does not prove provider
+  effect, ledger posting, artifact or message delivery. Those states remain
+  independently observable and recoverable.
+- Rejection records its required reason on the protected source and may create
+  source-owned revision/abandonment follow-up work.
+- Notify the active requester through Phase 17 outcome preparation and Phase 6
+  delivery. The minimal message excludes rejection-reason bodies.
+- Repeat submissions never duplicate decisions, postings, tasks or messages.
+  Downstream work exists only for a real source-owned consequence.
 
 ## Consequences
 
-- The approval task is the durable work queue for approvers; requester notifications provide feedback without becoming a second approval queue.
-- Rejection creates actionable follow-up only when staff need to revise something.
-- Approval remains fast: apply the correction, refresh contribution detail, show downstream warnings, and finish.
+Show decision, source execution and downstream results separately in the same shell, preserving context and safe retry. Notification engagement cannot change a decision or resolve another owner failure.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **Silent state change:** Too easy for requesters to miss, especially on rejected corrections.
-- **Always create requester tasks:** Too noisy for approved corrections; a notification is enough when no requester action is needed.
-- **Notification-only outcomes:** Loses durable task lifecycle semantics for approvers.
+The [original 2026-05-29 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0027-simple-correction-approval-outcomes.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

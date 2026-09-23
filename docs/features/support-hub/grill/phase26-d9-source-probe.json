@@ -1,0 +1,55 @@
+{
+  "evidenceKind": "actual-source pure mapper/helper execution; not runtime or D9 implementation proof",
+  "baseline": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "files": [
+    {
+      "path": "packages/api/src/admin/crm/model.ts",
+      "sha256": "f69658a2eeebfaa65411d9b29afe18631edec997942105420d4dc7f3ce60ec65",
+      "lines": "41–70; lastTouchAt at 58"
+    },
+    {
+      "path": "packages/api/src/admin/crm/detail/service.ts",
+      "sha256": "488887537732e4383b9176e1034fdc53e6bd20f294cee97f1ab90e24595e6810",
+      "extractedSha256": "6bbd57121dd35c4b93d7b77ed775750636a49ac369f427d3203b57eb25498365",
+      "lines": "114–219; financial support helper 144–219"
+    }
+  ],
+  "observations": [
+    {
+      "name": "lastTouch follows donor updated_at",
+      "before": "2026-09-01T10:00:00.000Z",
+      "afterRecordEditOnly": "2026-09-11T09:00:00.000Z",
+      "consequence": "Do not interpret current lastTouchAt as actual communication time."
+    },
+    {
+      "name": "support summary means financial support",
+      "result": {
+        "activeRecurringCommitments": 0,
+        "atRiskCommitments": 0,
+        "byFund": [
+          {
+            "amountCents": 7500,
+            "fundId": "synthetic-fund",
+            "fundName": "Synthetic fund"
+          }
+        ],
+        "byMissionary": [
+          {
+            "amountCents": 7500,
+            "missionaryId": "synthetic-missionary",
+            "missionaryName": "Synthetic missionary"
+          }
+        ],
+        "lapsedCommitments": 0,
+        "lastGiftAt": "2026-09-01T10:00:00.000Z",
+        "lifetimeGivingCents": 7500
+      },
+      "consequence": "Do not reuse or relabel financial support as Support Hub conversation count/status."
+    }
+  ],
+  "limits": [
+    "Synthetic input exercises existing pure code; no claim of user prevalence or production records.",
+    "No application bootstrap, environment loading, database, provider, network, auth, RLS or integration test.",
+    "No tests of a self-authored D9 model; these observations identify current naming/metric seams only."
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "mode": "read-only source inspection; no module, database, RLS, provider or browser execution",
+  "observations": [
+    {
+      "id": "S01",
+      "source": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "line": 1010,
+      "fact": "canned list calls allRows without personal owner filter",
+      "structurallyVerified": true
+    },
+    {
+      "id": "S02",
+      "source": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "line": 1017,
+      "fact": "save assigns owner_agent_id from input.ownerAgentId",
+      "structurallyVerified": true
+    },
+    {
+      "id": "S03",
+      "source": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "line": 398,
+      "fact": "canned personal owner FK uses ON DELETE CASCADE",
+      "structurallyVerified": true
+    },
+    {
+      "id": "S04",
+      "source": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "line": 565,
+      "fact": "generic update USING and WITH CHECK use tenant staff predicate without personal/shared capability",
+      "structurallyVerified": true
+    },
+    {
+      "id": "S05",
+      "source": "apps/admin/features/support-hub/lib/merge-variables.ts",
+      "line": 53,
+      "fact": "feature-local interpolation returns String(value) and does not escape in this helper",
+      "structurallyVerified": true
+    },
+    {
+      "id": "S06",
+      "source": "packages/database/query-keys.ts",
+      "line": 57,
+      "fact": "canned query key has no explicit tenant or principal component",
+      "structurallyVerified": true
+    },
+    {
+      "id": "S07",
+      "source": "packages/api/src/admin/support-hub/mutations/run-macro.ts",
+      "line": 102,
+      "fact": "server canned macro action is skipped rather than auto-sent",
+      "structurallyVerified": true
+    }
+  ],
+  "sourceHashes": [
+    {
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a"
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/merge-variables.ts",
+      "sha256": "9831e7e5c18cbc0354954389dab485713bf333033b1bc983c99df46e727ee3bf"
+    },
+    {
+      "path": "packages/database/query-keys.ts",
+      "sha256": "87d4f1ddbc72053ebefda6146b2505ea7e06822baeedc9a17903ba6d5a571fea"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/mutations/run-macro.ts",
+      "sha256": "2b2356c639b4916ac6787705b8b0eb72120e07b4aa95c107a9cc0eea9191c4c4"
+    }
+  ],
+  "date": "2026-09-11",
+  "status": "verified structural source observations only",
+  "limits": "No module execution, environment, database/RLS, provider, browser, concurrency, accessibility or performance test; not proof of deployed exploit or implemented D18 behavior."
+}

@@ -1,0 +1,434 @@
+{
+  "date": "2026-09-13",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "originDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "status": "D34 A selected; complete28-clause amendments proposed; D1-D33 remain ratified",
+  "files": [
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/composer/use-conversation-composer.ts",
+      "bytes": 8567,
+      "sha256": "7a4e8e6a8d7108783d5a6d04b41e362a213136a34e08a233e0754991b6dc72e3"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/next.config.ts",
+      "bytes": 2943,
+      "sha256": "698831ee07bb878d1fc3842550838e4cecd8704621a5ab6ea467e9cbcab75aca"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "bun.lock",
+      "bytes": 695873,
+      "sha256": "47f0cd34dd5e7a75e55f36945b8c5e190f0971004ea796e316a90d2be9faad84"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/rules/backend.md",
+      "bytes": 5887,
+      "sha256": "f0f5c8b05aa053cbc2400bb80040a34d4809d6f76fcad4110aea6702b735b655"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/rules/frontend.md",
+      "bytes": 12794,
+      "sha256": "f11a37f1ebb847987171c957857b938239fc93a2f670d2b19682669df6e79447"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "bytes": 7239,
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/guides/architecture/db-client-usage-matrix.md",
+      "bytes": 4149,
+      "sha256": "0a8d80153e945193409d260c5034453d3559ea445a1a997aaae3e1c5f381a42d"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/guides/architecture/runtime-map.md",
+      "bytes": 33929,
+      "sha256": "027e18cb21a693028dea7a971fcb2ba89bce659839f452c9b7ede7f9b67cd30a"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "bytes": 313201,
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "bytes": 19260,
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-principles/spec.md",
+      "bytes": 9562,
+      "sha256": "b78c1cf7952a212769a04160501748962911998069a185809a6dc2d5d98e5b22"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "bytes": 4241,
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/auth/client-session.ts",
+      "bytes": 6787,
+      "sha256": "284aa6238ed9a2096857745d8219870348f8c62a51a22934f5e1423ae83f18c9"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/auth/context.ts",
+      "bytes": 10157,
+      "sha256": "6867b25d9c3686c923039bf281a313eb3800d89deac60502b0929f363bded17c"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/collections/supabase-collection.ts",
+      "bytes": 3205,
+      "sha256": "c2e5dce48e8238a7cf75ad145addad01675233cfd693962ee784060f8ef7041b"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/package.json",
+      "bytes": 2828,
+      "sha256": "02fc16d550226a2b0c6c074eb082118e0466b2ca1e6d3898f4aa8b782b6d1627"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/supabase/client.ts",
+      "bytes": 445,
+      "sha256": "944173822774f2816c03887928040187c3aad6e08472f1da6585d5caeee9351d"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/data-table/hooks/use-supabase-realtime.ts",
+      "bytes": 7864,
+      "sha256": "239b9b7f96e62062053279f5cebe553fcf3b9fb7ef7dbce2b266669282c8a2db"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "bytes": 4479,
+      "sha256": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/config.toml",
+      "bytes": 14046,
+      "sha256": "3a31bbfd599aa7203245fbfab25e4b623ec98043049293cbf35052c6736a54c7"
+    },
+    {
+      "kind": "Current worktree governing/source file",
+      "path": "AGENTS.md",
+      "sha256": "fcfd96225c1ec927dec6c1791687717a5436111de12fd4b1dbfd416908410cc3"
+    },
+    {
+      "kind": "Current worktree governing/source file",
+      "path": "packages/api/AGENTS.md",
+      "sha256": "af8fa0771ea346312a01114efa89d801f2c5230bde11dedefc347df32b4da1e7"
+    },
+    {
+      "kind": "Current worktree governing/source file",
+      "path": "packages/database/AGENTS.md",
+      "sha256": "2f8ffa7a955b967681ffd84b68f09a9a398b469ddc2e3fe86a34d6eb266154a1"
+    },
+    {
+      "kind": "Current worktree governing/source file",
+      "path": "packages/ui/AGENTS.md",
+      "sha256": "358a36a1e9e70b3a93b3b897d06999c0503329d61ba9e0ae3cb701113021c1d7"
+    },
+    {
+      "kind": "Current worktree governing/source file",
+      "path": "packages/ui/components.json",
+      "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134"
+    },
+    {
+      "kind": "Current worktree governing/source file",
+      "path": "bun.lock",
+      "sha256": "47f0cd34dd5e7a75e55f36945b8c5e190f0971004ea796e316a90d2be9faad84"
+    },
+    {
+      "kind": "Current worktree governing/source file",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "kind": "Current worktree governing/source file",
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2"
+    },
+    {
+      "kind": "Current worktree governing/source file",
+      "path": "docs/ai/rules/frontend.md",
+      "sha256": "f11a37f1ebb847987171c957857b938239fc93a2f670d2b19682669df6e79447"
+    },
+    {
+      "kind": "Current worktree governing/source file",
+      "path": "openspec/specs/platform-principles/spec.md",
+      "sha256": "b78c1cf7952a212769a04160501748962911998069a185809a6dc2d5d98e5b22"
+    },
+    {
+      "kind": "Current worktree governing/source file",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0001-email-continuation-with-owner-authorized-actions.md",
+      "sha256": "4729b78333f822216289999e1cb87627123a7863320da71a2ddc15bc2351fb9e"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0002-personal-reply-defaults-and-explicit-draft-audiences.md",
+      "sha256": "612551789f43c7618f8849a97a333095434946f8ccdd36e87e1d32c8145f1132"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0003-explicit-waiting-and-dependable-follow-up.md",
+      "sha256": "9b46ca3155d85cf6dbbcef0e7b507c897b86201e2104fac26ae30528443a5433"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0004-send-with-explicit-work-intent-and-prepared-replies.md",
+      "sha256": "48cce7d6ffbcf9e6f819e7bbf6a414774aa3fdac0608e0bf4c7240a9fd173e41"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0005-explicit-no-response-ending-and-honest-awareness.md",
+      "sha256": "5768658f0ed377e79af773aaf30710ebe1e608e2ba12b42c64a8c7940441c5bb"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0006-shared-intake-and-configurable-first-assignment.md",
+      "sha256": "a59311bfe47fd1993ae67206a80fe8e2d3ec17bbc5ffeef48103e6a06ebb7d4d"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0007-explicit-absence-coverage-and-current-handoff-authority.md",
+      "sha256": "e913da85f907daa939e49df46b6e84b6e8b71eef75f488c222aceb868e7433f2"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0008-shared-access-loss-handoff-with-explicit-review-policy.md",
+      "sha256": "44d0148391422d74ef783ef67c284103ff266ab462b5b885f2c7d19346423f11"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0009-peer-related-records-and-source-owned-crm-history.md",
+      "sha256": "394246197e2fb1883b8074b84053b9072c79535907fd0c6da269ae20224c2dd4"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0010-reviewed-duplicate-merge-with-current-state-undo.md",
+      "sha256": "5a3675ef91a581f7720828ea1af25e2001c62836b95aec3c5ef42df329071cae"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0011-retained-support-responsibility-and-shared-internal-work.md",
+      "sha256": "5f7967125f206c74eb4fe72c8999fe9618b378c23272b5904560ad8a2c7a15ed"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0012-related-request-conversations-with-original-evidence.md",
+      "sha256": "5defbff87978eba43797adb390db7bc9cf5688844049280c74af24b504ced002"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0013-qualified-new-request-confirmation.md",
+      "sha256": "1eeae1458aca98f047380eb48df8620ec1f9f8d2486ba65970773736618ee96e"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0014-source-scoped-internal-reply-targets.md",
+      "sha256": "4b9d1a7bc1bbfa0f1d05c55cfc03a3aaa2d5a0854745b566650e705b57e3e0e1"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0015-deliberate-original-scoped-conversation-following.md",
+      "sha256": "e4500e4707b42d94f6c84d28ac0410a2a6a3828393fdde9c4a62e1fd2aebec73"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0016-selective-permanent-source-redaction.md",
+      "sha256": "0e323dcc970fab84ee531d6dbb72e8b388f35e124e7907b0bd288aba4df70d6a"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0017-automatic-support-content-expiry.md",
+      "sha256": "8c88fb4a0ef3fc339565e0c28387abc9caacd27c04e221e3c2c2a631ce544d5f"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0018-personal-and-shared-saved-replies.md",
+      "sha256": "6a1e188e8e684ba2778573c65ff06dbe58359c42fa0aa7662d629bfc94def188"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0019-designated-inbox-intake-reviewers.md",
+      "sha256": "baa304e211f088fe1e7a661c91ca571af6d922cc72fba46f8418262df47c17ce"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0020-personal-and-curated-shared-support-views.md",
+      "sha256": "36733f3349c603a1e2a4b398316cc4f8a4fe4bf99fb5a616f04f13a5d8713814"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0021-optional-curated-support-labels.md",
+      "sha256": "ec600524126e6c3d2d6b2a52b79b7a3d874089fed8299008bf3573be693262bb"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0022-source-qualified-conversation-search.md",
+      "sha256": "76c21a6f230f1ad0a77c3708322b20f18300c0442aa7f926387e2e6fdad3c698"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0023-inbox-signatures-and-governed-tiptap-authoring.md",
+      "sha256": "05bf7699dc7147ef4c1194d9c7372ba9b8bd4d5ffba990162c3d696039999ab8"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0024-curated-reply-and-work-shortcuts.md",
+      "sha256": "ad3d93f8a752fa39cbd54590c4c443224709c8731665aba47a660b0d48636e39"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0025-equal-path-qualified-support-inbox-setup.md",
+      "sha256": "4618aaa5f2df9349b6ac3e3a1abb14764f57968798842194d88a0cff71199dae"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0026-staff-recorded-support-and-complete-crm-access.md",
+      "sha256": "36cc39ad1fa1ceba7c2565171ed6ba713ed7459ac3a16d1f47f4110a79348706"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0027-selected-public-guidance-in-support.md",
+      "sha256": "b20291ac7f415d193ab93e6876ee1eb1e5204d25276f4821d9ef1fabbc19f5e7"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0028-sampled-automatic-support-feedback.md",
+      "sha256": "08ee8f484bee7107dfe629033da0682602d3a881fa3fd52d458c7737b764513a"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0029-contact-first-help-with-optional-guides.md",
+      "sha256": "194afa1faabc81c8328bf5a2cbe3dfde9aca01bb95d763634ce1560e4c1072b2"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0030-focused-support-overview-and-future-configuration.md",
+      "sha256": "5f9481afc87d5f538fb09a2866f6868aeb61614e6cce708c904cf237c9ebacf8"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0031-consistent-follow-up-choices-and-authoritative-time.md",
+      "sha256": "005821cc142e78e98e847804201c41a6e1c5e6d7fdc528f584f186262fe717d9"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0032-broader-attachment-previews-and-source-owned-renditions.md",
+      "sha256": "708269191894bf80ea4c882b6aace9a82b35a06dcf7229cadf24d6d8d0083ef3"
+    },
+    {
+      "kind": "Local previously ratified feature ADR",
+      "path": "docs/features/support-hub/docs/adr/0033-personal-support-reading-and-source-preserving-compaction.md",
+      "sha256": "ff85a03bb70875b03c2c154879682b640015c529999ea275003e09ce6757f2f4"
+    }
+  ],
+  "installedSourceFiles": [
+    {
+      "path": "packages/auth/node_modules/@supabase/ssr/src/createBrowserClient.ts",
+      "sha256": "ac7a3abab45cff445e7fd2f407379595e4f39de181b71ebbc50fb3ed7be117a2"
+    },
+    {
+      "path": "node_modules/.bun/@supabase+realtime-js@2.103.0/node_modules/@supabase/realtime-js/src/RealtimeClient.ts",
+      "sha256": "43c50c9dd36044a6d84c022519a64d3779996901f4384b94413810f7da9ed6a1"
+    },
+    {
+      "path": "node_modules/.bun/@supabase+realtime-js@2.103.0/node_modules/@supabase/realtime-js/src/RealtimeChannel.ts",
+      "sha256": "54b436f8fdacfce2469c78756c2b66345913f3d4ac442e7abcaa38d6e66d5858"
+    },
+    {
+      "path": "packages/ui/node_modules/@tiptap/react/src/useEditor.ts",
+      "sha256": "1587be18fe75eef97fe1cab3344a487c4a1844cc32d0f9529b450dcc3f2a8e9a"
+    },
+    {
+      "path": "apps/admin/next.config.ts",
+      "sha256": "698831ee07bb878d1fc3842550838e4cecd8704621a5ab6ea467e9cbcab75aca"
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "sha256": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f"
+    }
+  ],
+  "actualSourceObservations": "phase26-d34-runtime-source-probe.json",
+  "actualReferenceModel": "phase26-d34-reference-probe.json",
+  "runtimeQualification": "not executed"
+}

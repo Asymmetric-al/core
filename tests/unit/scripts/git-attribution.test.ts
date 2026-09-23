@@ -1,3 +1,5 @@
+import * as childProcess from "node:child_process";
+
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -22,6 +24,11 @@ import {
   validateCommitAttribution,
   validateIdentity,
 } from "../../../scripts/verify/git-attribution.mjs";
+
+vi.mock("node:child_process", async (importOriginal) => {
+  const actual = await importOriginal<typeof childProcess>();
+  return { ...actual, spawnSync: vi.fn(actual.spawnSync) };
+});
 
 const blakeNoReplyEmail =
   "116130409+II-ricky-bobby-II@users.noreply.github.com";
@@ -1280,8 +1287,155 @@ describe("git attribution verifier", () => {
             base: { ...pullRequest.base, sha: "4".repeat(40) },
           },
         ],
+        runGitStatus: () => 1,
       }),
     ).not.toEqual([]);
+  });
+
+  describe("recorded develop base ancestry", () => {
+    // Live Core PR #968: the target advanced through #1033 immediately before
+    // this platform merge, while GitHub retained the earlier PR base snapshot.
+    const recordedBase = "5e2018d4bf05f3b261a69e421b6c5956665e2119";
+    const firstParent = "da8593ab01ef0044e16b9585d061f4506bbec7ea";
+    const secondParent = "ac001b1cb3f1dfe03e399af71fe4d3a2d5c89aa6";
+    const mergeSha = "b519eaf1b39505bbe373b644e0c7852ec80f5850";
+
+    function proofFixture() {
+      return {
+        metadata: {
+          ...commitMetadata(),
+          sha: mergeSha,
+          parentShas: [firstParent, secondParent],
+        },
+        pullRequest: {
+          state: "closed",
+          merged_at: "2026-08-01T17:00:20Z",
+          merge_commit_sha: mergeSha,
+          base: {
+            ref: "develop",
+            repo: { full_name: "Asymmetric-al/core" },
+            sha: recordedBase,
+          },
+          head: { sha: secondParent },
+        },
+      };
+    }
+
+    it("accepts PR 968's older recorded base only after proving its ancestry", () => {
+      const { metadata, pullRequest } = proofFixture();
+      const runGitStatus = vi.fn(() => 0);
+
+      expect(
+        validateDevelopMergeProvenance({
+          metadata,
+          pullRequests: [pullRequest],
+          runGitStatus,
+        }),
+      ).toEqual([]);
+      expect(runGitStatus).toHaveBeenCalledExactlyOnceWith([
+        "--no-replace-objects",
+        "merge-base",
+        "--is-ancestor",
+        recordedBase,
+        firstParent,
+      ]);
+    });
+
+    it("keeps the exact-base fast path without an ancestry lookup", () => {
+      const { metadata, pullRequest } = proofFixture();
+      pullRequest.base.sha = firstParent;
+      const runGitStatus = vi.fn(() => 128);
+
+      expect(
+        validateDevelopMergeProvenance({
+          metadata,
+          pullRequests: [pullRequest],
+          runGitStatus,
+        }),
+      ).toEqual([]);
+      expect(runGitStatus).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["unrelated or newer recorded base", 1],
+      ["missing local history", 128],
+      ["failed ancestry process", null],
+    ])("rejects %s", (_description, status) => {
+      const { metadata, pullRequest } = proofFixture();
+      const runGitStatus = vi.fn(() => status);
+
+      expect(
+        validateDevelopMergeProvenance({
+          metadata,
+          pullRequests: [pullRequest],
+          runGitStatus,
+        }),
+      ).not.toEqual([]);
+      expect(runGitStatus).toHaveBeenCalledExactlyOnceWith([
+        "--no-replace-objects",
+        "merge-base",
+        "--is-ancestor",
+        recordedBase,
+        firstParent,
+      ]);
+    });
+
+    it.each([
+      "open PR",
+      "unmerged PR",
+      "wrong repository",
+      "wrong target",
+      "wrong merge",
+      "wrong head",
+      "one parent",
+      "malformed parent",
+      "missing recorded base",
+      "malformed recorded base",
+    ])("rejects %s before consulting ancestry", (invalid) => {
+      const { metadata, pullRequest } = proofFixture();
+      switch (invalid) {
+        case "open PR":
+          pullRequest.state = "open";
+          break;
+        case "unmerged PR":
+          Reflect.deleteProperty(pullRequest, "merged_at");
+          break;
+        case "wrong repository":
+          pullRequest.base.repo.full_name = "other/core";
+          break;
+        case "wrong target":
+          pullRequest.base.ref = "production";
+          break;
+        case "wrong merge":
+          pullRequest.merge_commit_sha = "4".repeat(40);
+          break;
+        case "wrong head":
+          pullRequest.head.sha = "4".repeat(40);
+          break;
+        case "one parent":
+          metadata.parentShas.pop();
+          break;
+        case "malformed parent":
+          metadata.parentShas[0] = "--all";
+          break;
+        case "missing recorded base":
+          Reflect.deleteProperty(pullRequest.base, "sha");
+          break;
+        case "malformed recorded base":
+          pullRequest.base.sha = "--all";
+          break;
+      }
+      const runGitStatus = vi.fn(() => 0);
+
+      expect(
+        validateDevelopMergeProvenance({
+          metadata,
+          pullRequests: [pullRequest],
+          runGitStatus,
+        }),
+      ).not.toEqual([]);
+      expect(runGitStatus).not.toHaveBeenCalled();
+    });
   });
 
   it("requires production promotions to already be reachable from develop", () => {
@@ -1381,6 +1535,132 @@ describe("git attribution verifier", () => {
           repoSlug: "Asymmetric-al/core",
         });
         expect(readPullRequests).not.toHaveBeenCalled();
+      }
+    },
+  );
+
+  it.each([
+    "complete",
+    "missing parents",
+    "missing Git author",
+    "missing actor ID",
+  ])(
+    "verifies large commit metadata without buffering patches or messages: %s",
+    async (fixture) => {
+      const baseSha = "1".repeat(40);
+      const headParent = "2".repeat(40);
+      const headSha = "3".repeat(40);
+      const payload = {
+        sha: headSha,
+        commit: {
+          author: { name: conradName, email: conradNoReplyEmail },
+          committer: { name: "GitHub", email: "noreply@github.com" },
+        },
+        author: { login: conradGithubLogin, id: conradGithubId },
+        committer: { login: "web-flow", id: githubPlatformId },
+        parents: [{ sha: baseSha }, { sha: headParent }],
+      };
+      if (fixture === "missing parents") {
+        Reflect.deleteProperty(payload, "parents");
+      } else if (fixture === "missing Git author") {
+        Reflect.deleteProperty(payload.commit, "author");
+      } else if (fixture === "missing actor ID") {
+        Reflect.deleteProperty(payload.author, "id");
+      }
+      const projection =
+        "{sha, commit: (.commit | {author, committer}), author: (.author | {id, login}), committer: (.committer | {id, login}), parents}";
+      const { spawnSync } =
+        await vi.importActual<typeof childProcess>("node:child_process");
+      const spawn = vi
+        .mocked(childProcess.spawnSync)
+        .mockImplementation((command, args) => {
+          expect(command).toBe("gh");
+          expect(args?.slice(0, 4)).toEqual([
+            "api",
+            "--hostname",
+            "github.com",
+            `repos/Asymmetric-al/core/commits/${headSha}`,
+          ]);
+          const projected = args?.[4] === "--jq" && args[5] === projection;
+          // Model gh's output boundary with the real default subprocess limit:
+          // unprojected file patches/message exceed it; metadata alone does not.
+          return spawnSync(
+            process.execPath,
+            [
+              "-e",
+              `const payload = ${JSON.stringify(payload)};
+             if (!${projected}) {
+               payload.files = [{patch: "x".repeat(2 * 1024 * 1024)}];
+               payload.commit.message = "x".repeat(2 * 1024 * 1024);
+             }
+             process.stdout.write(JSON.stringify(payload));`,
+            ],
+            { encoding: "utf8" },
+          );
+        });
+      const readSignature = vi.fn(() => ({
+        isValid: true,
+        state: "VALID",
+        wasSignedByGitHub: true,
+        signerLogin: "web-flow",
+        signerId: githubPlatformId,
+      }));
+
+      try {
+        const verify = () =>
+          collectCiVerification({
+            collectCommitShas: () => [headSha],
+            environment: {
+              ASYM_GITHUB_BASE_SHA: baseSha,
+              ASYM_GITHUB_EVENT_ACTOR_ID: String(conradGithubId),
+              ASYM_GITHUB_EVENT_ACTOR_LOGIN: conradGithubLogin,
+              ASYM_GITHUB_EVENT_NAME: "push",
+              ASYM_GITHUB_HEAD_REPOSITORY: "Asymmetric-al/core",
+              ASYM_GITHUB_HEAD_SHA: headSha,
+              ASYM_GITHUB_REF_NAME: "develop",
+              ASYM_GITHUB_REF_TYPE: "branch",
+              ASYM_GITHUB_REPOSITORY: "Asymmetric-al/core",
+            },
+            isHistorical: () => false,
+            readPullRequests: () => [
+              {
+                base: {
+                  ref: "develop",
+                  repo: { full_name: "Asymmetric-al/core" },
+                  sha: baseSha,
+                },
+                head: { sha: headParent },
+                merge_commit_sha: headSha,
+                merged_at: "2026-09-21T00:00:00Z",
+                state: "closed",
+              },
+            ],
+            readSignature,
+          });
+
+        if (fixture === "missing parents" || fixture === "missing Git author") {
+          expect(verify).toThrow(
+            `GitHub commit metadata was incomplete for ${headSha}`,
+          );
+          expect(readSignature).not.toHaveBeenCalled();
+          return;
+        }
+
+        const result = verify();
+        expect(result.checkedCommits).toEqual([headSha]);
+        if (fixture === "missing actor ID") {
+          expect(result.errors).toContain(
+            `${headSha}: commit author GitHub actor did not resolve to an immutable account id`,
+          );
+        } else {
+          expect(result.errors).toEqual([]);
+        }
+        expect(readSignature).toHaveBeenCalledWith({
+          repoSlug: "Asymmetric-al/core",
+          sha: headSha,
+        });
+      } finally {
+        spawn.mockImplementation(spawnSync);
       }
     },
   );

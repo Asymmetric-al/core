@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "date": "2026-09-11",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "decisionStatus": "D1-D18 fully founder-ratified including all adopted amendments",
+  "nextQuestion": "Q19 unanswered; three accountability defaults; A recommended",
+  "D18": {
+    "ratifiedClauses": 28,
+    "ratifiedRequiredProofGroups": 50,
+    "categoryOutcomes": 23,
+    "glossaryTerms": 5,
+    "operationalControls": 7,
+    "substantiveReviewPreservedVerbatim": true,
+    "substantiveUXPreservedVerbatim": true,
+    "substantiveDataContractPreservedVerbatim": true,
+    "definitionsPreservedVerbatim": true,
+    "unchangedEvidenceArtifacts": 5,
+    "sourceHashesReverified": 7
+  },
+  "emailStudioAddendum": {
+    "ownerMatrix": true,
+    "logicalFlowDiagram": true,
+    "explicitOwnerQualifications": 10,
+    "personalSaveSharedPublishSeparated": true,
+    "internalNotesNoExternalPreparation": true,
+    "humanVsAutomaticCatalogBoundary": true,
+    "perRecipientCopyCardinality": true,
+    "independentReview": "passed with adopted cardinality clarification"
+  },
+  "preservedD1D17Artifacts": 79,
+  "preservedD1D17ADRs": 17,
+  "priorGlossaryPreserved": true,
+  "priorRatificationValidationPreserved": true,
+  "mirrorsMatched": 15,
+  "localLinksChecked": 269,
+  "outputLinksChecked": 246,
+  "immutableSourceLinksChecked": 40,
+  "uniqueImmutableSourceLinks": 27,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "noADR0019": true,
+  "independentQuestionChallenge": "passed with B default wording clarified",
+  "limits": [
+    "No runtime or schema implementation",
+    "No live mail review/release, provider, RLS, browser, concurrency or performance proof",
+    "EmailStudio addendum restates ratified boundaries, not shipped capability or new decision",
+    "No formal specification, tickets, GitHub/provider/DNS/credential changes or real messages"
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "status": "passed",
+  "scope": "24 finite synthetic requirement examples; no product runtime, actual SQL/RLS, browser, P6 provider or human usability proof",
+  "checkCount": 24,
+  "checks": [
+    {
+      "name": "guide_excludes_tenant",
+      "passed": true,
+      "evidence": "t2"
+    },
+    {
+      "name": "guide_excludes_site",
+      "passed": true,
+      "evidence": "s2"
+    },
+    {
+      "name": "guide_excludes_locale",
+      "passed": true,
+      "evidence": "en"
+    },
+    {
+      "name": "guide_excludes_reach",
+      "passed": true,
+      "evidence": "shared_by_link"
+    },
+    {
+      "name": "guide_excludes_current",
+      "passed": true,
+      "evidence": false
+    },
+    {
+      "name": "eligible_guide",
+      "passed": true,
+      "evidence": "Correct public scope and reach"
+    },
+    {
+      "name": "withdrawal_never_tops_up",
+      "passed": true,
+      "evidence": "Only explicit refs are considered; no replacement search"
+    },
+    {
+      "name": "no_guidance_preserves_contact",
+      "passed": true,
+      "evidence": "Safe contact-only presentation requires owner conformance, not DOM hiding"
+    },
+    {
+      "name": "empty_guidance_preserves_contact",
+      "passed": true,
+      "evidence": "No empty-library gate"
+    },
+    {
+      "name": "selection_four_rejected",
+      "passed": true,
+      "evidence": "At most3 selected refs; no silent truncation"
+    },
+    {
+      "name": "message_unicode_0",
+      "passed": true,
+      "evidence": {
+        "scalarCount": 0,
+        "utf8Bytes": 0
+      }
+    },
+    {
+      "name": "message_unicode_1",
+      "passed": true,
+      "evidence": {
+        "scalarCount": 1,
+        "utf8Bytes": 4
+      }
+    },
+    {
+      "name": "message_unicode_9999",
+      "passed": true,
+      "evidence": {
+        "scalarCount": 9999,
+        "utf8Bytes": 39996
+      }
+    },
+    {
+      "name": "message_unicode_10000",
+      "passed": true,
+      "evidence": {
+        "scalarCount": 10000,
+        "utf8Bytes": 40000
+      }
+    },
+    {
+      "name": "message_unicode_10001",
+      "passed": true,
+      "evidence": {
+        "scalarCount": 10001,
+        "utf8Bytes": 40004
+      }
+    },
+    {
+      "name": "urlencoded_unicode_budget",
+      "passed": true,
+      "evidence": {
+        "rawBytes": 126677,
+        "limitBytes": 262144,
+        "fixture": "10000four-byte message scalars+200name+bounded synthetic envelope"
+      }
+    },
+    {
+      "name": "atomic_receipt_reference",
+      "passed": true,
+      "evidence": "Primary admission can succeed while optional delivery later fails"
+    },
+    {
+      "name": "duplicate_same_intent",
+      "passed": true,
+      "evidence": "Replay same receipt, no second Support source"
+    },
+    {
+      "name": "changed_intent_conflict",
+      "passed": true,
+      "evidence": "No silent replacement of admitted request"
+    },
+    {
+      "name": "no_email_only_primary_fallback",
+      "passed": true,
+      "evidence": "A Support-intake route must not silently switch to external email"
+    },
+    {
+      "name": "tenant_switch_clears_draft",
+      "passed": true,
+      "evidence": "No cross-tenant persistence"
+    },
+    {
+      "name": "logout_clears_private_draft",
+      "passed": true,
+      "evidence": "Do not silently submit previous actor/context as anonymous"
+    },
+    {
+      "name": "same_actor_recoverable_error_preserves",
+      "passed": true,
+      "evidence": "Retain local work for ordinary validation failure"
+    },
+    {
+      "name": "one_primary_and_one_optional_ack",
+      "passed": true,
+      "evidence": "Positive zero/one acknowledgement; reject two/no/wrong primaries and two acknowledgements. Actual SQL atomicity and P17 fanout remain release proof."
+    }
+  ],
+  "limits": [
+    "Reference functions demonstrate intended invariants, not production source behavior.",
+    "The request encoding fixture is a specific worst-width Unicode example with a bounded synthetic envelope; actual released schema must enforce total bytes.",
+    "No network or real requester/tenant data is used."
+  ]
+}

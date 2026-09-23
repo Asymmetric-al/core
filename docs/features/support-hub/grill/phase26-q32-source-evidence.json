@@ -1,0 +1,103 @@
+{
+  "date": "2026-09-13",
+  "status": "D1-D31 fully ratified; Q32 unanswered",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "originDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "files": [
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/composer/AttachmentChips.tsx",
+      "bytes": 3126,
+      "sha256": "a6044b42fa35d5146e58ee62179cb49db3329fd86337972635a69b17be74d678"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/timeline/EmailMessage.tsx",
+      "bytes": 8567,
+      "sha256": "3e3c515336d577ef66d4b2be0789628d66809e414ce6d88a8d6646a8915a0489"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "bytes": 7927,
+      "sha256": "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "bytes": 313201,
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "kind": "Local grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d16-adversarial-review.md",
+      "bytes": 68720,
+      "sha256": "696193f798ed9cd49d2d1f667d3b8ef17cc28cc64b84a338dc6b695be56e33c5"
+    },
+    {
+      "kind": "Local grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d19-adversarial-review.md",
+      "bytes": 76508,
+      "sha256": "9f58410e7bc5dcbbf120b47c261e27aaa5dbbd6921dcede253b59c2b9e5a57a3"
+    },
+    {
+      "kind": "Local grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d22-adversarial-review.md",
+      "bytes": 61756,
+      "sha256": "a66614e3b3565bd427a263203c673b112b6e573982d5286c8678f8ab8ab2002c"
+    },
+    {
+      "kind": "Local grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d26-adversarial-review.md",
+      "bytes": 69638,
+      "sha256": "8a28532b1fa59aee76d6d2cf2f6a26ba614ca8338ad996de24d2133cfa1c0e2e"
+    },
+    {
+      "kind": "Local grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d31-adversarial-review.md",
+      "bytes": 50903,
+      "sha256": "4b77757fbe96fb374f5ad546167e09d65ebf19a40a7c33bfab3e4b9822514ea7"
+    }
+  ]
+}

@@ -1,42 +1,35 @@
-# ADR-CD-029: Updated receipt delivery is selected at correction time
+# ADR-CD-029: Correction-time receipt follow-up uses admitted owner actions
 
-**Status:** Accepted (grill session 2026-05-29)
+**Status:** Accepted 2026-05-29; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-Corrections can change values already represented on a sent receipt. Mission Control must make it easy for authorized staff to send the donor an updated receipt, while avoiding surprise emails and respecting donor communication preferences.
-
-Some donors do not have an email address or have chosen not to receive email. Staff still need a way to produce an updated receipt for mailing, printing, or manual delivery.
+Staff should finish appropriate receipt follow-up in context without unauthorized issuance or overstated delivery.
 
 ## Decision
 
-When an authorized admin or finance staff member makes a correction that affects receipt content, contribution detail presents a simple receipt delivery choice at the time of the change:
-
-1. **Send updated receipt by email:** Available only when the donor has an email address and has not opted out of email receipts.
-2. **Generate updated receipt PDF:** Available when email is unavailable, disallowed by donor preference, or chosen by the admin.
-3. **Do not send/generate now:** Allowed only with an explicit reason when policy permits deferring receipt follow-up.
-
-If the correction requires approval, ADR-CD-030 applies: the requester proposes the delivery action and the approver confirms or changes it before the correction becomes effective.
-
-ADR-CD-031 defines the tenant policy layer for defaults, defer guardrails, role guardrails, and donor email opt-out behavior.
-
-Modern practice requirements:
-
-- Never auto-send an updated receipt solely because a correction was saved.
-- Show which receipt fields changed before staff choose delivery.
-- Respect donor email availability and donor email preference; if email is not allowed, guide staff to PDF generation instead.
-- Record the selected delivery action in the audit trail with actor, timestamp, correction request/adjustment id, receipt snapshot id, and delivery channel.
-- The operation result must show whether an updated receipt was emailed, generated as PDF, deferred with reason, or blocked.
-- PDF generation creates a durable receipt snapshot even if the file is downloaded or printed later.
+- Show Phase 7 source impact and the exact currently admitted next action:
+  authorized issuance/replacement request, current Phase 18 artifact access,
+  permitted delivery or source-allowed audited suppression/defer.
+- Missing email never authorizes generation or changes document purpose.
+  Print/download accesses exact authorized artifacts, never a live rerender.
+- Phase 17/6 enforces exact recipient/purpose/requiredness policy. General or
+  marketing email opt-out is not a blanket official-message prohibition.
+- Corrected-receipt suppression requires the named source capability, reason
+  and audit exception. Content settings cannot suppress required mail.
+- If approval applies, retain proposed follow-up as non-executing context and
+  recheck owner authority on admission.
+- Report requested, artifact-ready, submitted, delivered, suppressed/deferred
+  and blocked outcomes separately.
 
 ## Consequences
 
-- Staff can complete receipt follow-up in the same correction workflow without needing a separate hunt through receipt actions.
-- Donor communication remains deliberate and preference-aware.
-- PDF fallback supports donors without email or with email opt-out.
+Preserve the short staff journey with source/artifact references. No local snapshot, unconditional PDF fallback or correction-save-implies-send rule remains.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **Automatic email on correction:** Too risky; it can surprise donors and violate communication preferences.
-- **Only flag receipt affected:** Too passive; staff may miss required receipt follow-up.
-- **PDF only:** Ignores the simpler path for donors who expect email receipts.
+The [original 2026-05-29 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0029-admin-selected-updated-receipt-delivery.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

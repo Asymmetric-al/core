@@ -1,6 +1,11 @@
 # Delta for Eve Email And Discord Notifications
 
-## ADDED Requirements
+## RENAMED Requirements
+
+- FROM: `### Requirement: This Change Grants No Uncontrolled Delivery Or Runtime Authority`
+- TO: `### Requirement: This Change Grants No New Delivery Or Runtime Authority`
+
+## MODIFIED Requirements
 
 ### Requirement: Every Notification Starts From A Safe Typed Envelope
 

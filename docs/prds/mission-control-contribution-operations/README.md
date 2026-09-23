@@ -1,7 +1,12 @@
 # Mission Control Contribution Operations PRD Set
 
-This folder contains the product requirements for the Mission Control
-Contribution Operations program. The implementation order is:
+This folder preserves the delivered Mission Control Contribution Operations
+PRDs. For new work, read the [current owner map](../../features/mission-control/contribution-detail/README.md)
+and [document authority guide](../../ai/document-authority.md). Phase 13/12
+supersedes the earlier ledger, Campaign-as-Fund and default-approval models;
+Phase 16 owns recurring behavior; Phase 7/17/18/19 owns the corresponding
+receipt, message, document and statement contracts. Valid shared staff UI and
+action boundaries remain reusable. The historical implementation order was:
 
 1. Contribution Operations Core
 2. Email Studio Donor Correction Notifications

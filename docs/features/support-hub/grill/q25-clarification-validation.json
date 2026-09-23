@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "date": "2026-09-12",
+  "D1ThroughD24FullyRatified": true,
+  "Q25Answered": false,
+  "Q25Recommendation": "C - Present both paths equally",
+  "previousRecommendation": "A - existing address first; original preserved",
+  "ratifiedAndHistoricalHashesUnchanged": 186,
+  "mirrorPairs": 8,
+  "localLinksChecked": 414,
+  "ADR0025Created": false,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "independentUXReconsideration": "Recommends C; original alternatives share capabilities and differ in starting journey, no tenant prevalence evidence justifies universal existing-address default",
+  "limits": [
+    "No founder answer inferred",
+    "No runtime, inbox, DNS, provider, GitHub or mail changes",
+    "No measured comparative UX advantage claimed"
+  ]
+}

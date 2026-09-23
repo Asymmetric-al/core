@@ -1,0 +1,303 @@
+[
+  {
+    "id": "WF01",
+    "title": "Create a visual-first Site and first Page",
+    "actor": "Authorized Site administrator, then content editor",
+    "entry": "Phase 24 has a private, exact Site context and qualified default presentation; no repository is required.",
+    "steps": [
+      "Use the existing Site setup flow. Choose an exact locale and a qualified design; do not create domains, enable Giving or publish as hidden effects of choosing a template.",
+      "Create an ordinary Page from a versioned Page Starter or blank. Starter use copies initial semantic values once and records provenance; it does not establish live inheritance.",
+      "Open the Asym editor, acquire the exact Page Editorial lease and show the private draft. A fresh copied Page gets fresh component instance IDs.",
+      "Enter content and supported sections. Save through the acknowledged D12 operation. Configure placement and Navigation through their own explicit controls/owners.",
+      "Use preview and the existing Site go-live review when ready. Domain/locale readiness remains Phase 24-owned."
+    ],
+    "effect": "Creates private Page/Editorial data. Public effect only through the existing Site/publication owner.",
+    "automatic": "Autosave; validation; acknowledged preview refresh.",
+    "failure": "No qualified Site/presentation means the dependent creation path is unavailable with an owner link. Partial setup is never called Live. A failed Page save cannot create a public route.",
+    "proof": "Staff creates a useful page with no GitHub account; second Site never inherits another Site’s draft or brand accidentally."
+  },
+  {
+    "id": "WF02",
+    "title": "Compose and edit a Page visually",
+    "actor": "Content editor with compose capability",
+    "entry": "Exact resource, active lease, allowed composition profile, qualified renderer.",
+    "steps": [
+      "Select through canvas, outline or field list. A selection resolves to a stable node and an approved field path, not a guessed DOM index.",
+      "Insert, move, duplicate or remove approved nodes. Offer Move up/down/to and insertion controls usable without dragging. Reject illegal destinations before committing; repeat the rule on the server.",
+      "Change text, media references and permitted instance variants in the inspector. Local preview may show unsaved changes but must label them unsaved.",
+      "Coalesce local edit intents into one acknowledged save stream. Save now and keyboard save flush the same stream without publishing.",
+      "Open review against an exact saved revision; later private edits remain visibly outside that review."
+    ],
+    "effect": "Only the Page Editorial revision advances. No route, shared section, theme or public head changes implicitly.",
+    "automatic": "AU01 autosave; AU02 validation/preview.",
+    "failure": "On permission loss stop writes. On failed validation preserve editable input. On stale revision stop autosave and show Started from / Current draft / Your unsaved work. No silent merge.",
+    "proof": "Canvas and non-canvas operations produce identical canonical documents; text changed after developer redesign still updates the correct rendered field."
+  },
+  {
+    "id": "WF03",
+    "title": "Use bounded advanced layouts",
+    "actor": "Site designer or compose-authorized editor",
+    "entry": "HA-A1 adopted; composition/2 qualified for ordinary Page; Article remains restricted.",
+    "steps": [
+      "Insert Stack, Split or Grid from the small layout group. Names describe intent, not HTML/CSS implementation.",
+      "Place eligible leaves in named slots; use at most two container levels. Slot rules and descendant counts are checked on movement, paste, duplication and restore.",
+      "Choose bounded density, width, surface tone, alignment and layout variants. No CSS input, custom breakpoint JSON, hidden mobile copy or alternate reading order is accepted.",
+      "Inspect narrow, medium and wide previews plus free resize; the package’s responsive rules adapt the one DOM order.",
+      "Save and publish as a composition change using the same editorial/release path as WF02/WF08."
+    ],
+    "effect": "A new canonical composition revision; does not mutate component source or Site brand.",
+    "automatic": "Structural validation and preview only.",
+    "failure": "Unknown containers, excessive depth, over-limit nodes or illegal Hero placement remain unpublishable; raw input survives for repair, no trimming. Unsupported existing versions open safely without automatic conversion.",
+    "proof": "A long translated Split layout collapses without content loss or visual/DOM reordering; non-drag moves work on touch and keyboard."
+  },
+  {
+    "id": "WF04",
+    "title": "Select and replace qualified media",
+    "actor": "Content editor",
+    "entry": "Same-Tenant media catalog and current Site-use policy.",
+    "steps": [
+      "Open the existing media picker from a declared field. Search only authorized current media; do not accept arbitrary bucket URLs as equivalent references.",
+      "Select a specific ready revision/rendition. Enter usage-local alt text, caption, crop and decorative treatment appropriate to this placement.",
+      "Preview the exact media reference in content. Stale/blocked media becomes an actionable validation result, not a silent replacement.",
+      "Save permitted draft references. Before release the media owner re-proves current eligibility, rights and ready rendition bytes."
+    ],
+    "effect": "Placement metadata changes; bytes and rights remain at Phase 29/D27.",
+    "automatic": "Existing intake/rendition workflows and dependency-health refresh; no second pipeline.",
+    "failure": "A revoked image is suppressed through the existing adverse path even when present in a prior generation. Draft repair never exposes private originals.",
+    "proof": "Two placements of one image retain different alt/crop metadata; revoked rights defeat a stale candidate and cached positive qualification."
+  },
+  {
+    "id": "WF05",
+    "title": "Reuse a section without hidden global edits",
+    "actor": "Editor authorized for Page and, separately, reusable resource",
+    "entry": "Root-only same-Site/exact-locale/family-compatible Reusable Section support.",
+    "steps": [
+      "Select an existing reusable section or explicitly create one using the existing D8 operation.",
+      "Insert a root reference in the Page. The canvas identifies shared content and its scope.",
+      "Edit shared content in its own resource session; do not use a Page lease to write it. Show authorized affected Pages.",
+      "Choose the existing owner’s exact publication closure; unrelated drafts remain private. Unlink/copy creates an independent local value only through the explicit supported command."
+    ],
+    "effect": "Separate Page and reusable revisions; release manifests determine actual impact.",
+    "automatic": "Rebuild derived usage/health projection after acknowledged meaningful changes.",
+    "failure": "Recursive reuse, nesting reusable references in containers or cross-Site linkage is denied. An incomplete usage index cannot claim safe deletion or authorize publication.",
+    "proof": "Editing a shared quote does not silently publish ten drafts; independent local copy no longer tracks shared edits."
+  },
+  {
+    "id": "WF06",
+    "title": "Create or update an exact-locale version",
+    "actor": "Locale-authorized editor",
+    "entry": "Phase 24 locale exists; D22 lineage rules available.",
+    "steps": [
+      "Start blank or copy from an explicitly chosen exact source revision. Show provenance, not implied synchronization.",
+      "Translate content using the same supported composition grammar; each locale retains its own opaque node identities and editorial lease.",
+      "Preview RTL/CJK/long content with the chosen Site design. A missing locale does not fall back silently.",
+      "Publish only the selected locale through its existing operation. Whole-Site presentation replacement uses WF14, not ordinary publish-all."
+    ],
+    "effect": "An independent exact-locale private successor/public generation.",
+    "automatic": "Source-changed comparison indicator and compatibility diagnostics; no automatic translation or overwriting.",
+    "failure": "Source edits after copy do not overwrite translated content. Missing family/locale support blocks dependent custom design activation, not unrelated valid locale editing.",
+    "proof": "A Thai Page and English source can diverge safely; copying produces private work and cannot change locale enablement."
+  },
+  {
+    "id": "WF07",
+    "title": "Change Site appearance or a supported component variant",
+    "actor": "Designer with correct appearance/compose permission",
+    "entry": "Qualified package exposes a declarative settings schema; current Brand Version from Phase 24.",
+    "steps": [
+      "Distinguish a Page instance variant from Site-wide appearance. Show affected scope before editing a Site-wide setting.",
+      "Choose registered colors/type roles, compatible fonts and finite design variants using platform fields.",
+      "Validate changes against all relevant content families/locales and existing media/brand rules.",
+      "Prepare the exact appearance candidate. Activate Site-wide design through D10/Phase 24, not a prose autosave."
+    ],
+    "effect": "Per-instance variants advance Editorial; Site appearance advances its own version and complete-cohort design activation.",
+    "automatic": "Compatibility checking and fixed candidate preparation.",
+    "failure": "Unsupported setting values cannot enter publication. Switching packages does not erase old compatible settings or silently coerce them; explicit migration plan required.",
+    "proof": "Content-only editor cannot change a whole Site brand; Page variant changes do not affect sibling Sites."
+  },
+  {
+    "id": "WF08",
+    "title": "Review and publish content or composition",
+    "actor": "Authorized content publisher or existing approved automatic-content path",
+    "entry": "Exact acknowledged source and applicable tenant publication policy.",
+    "steps": [
+      "Flush the editor or select a known saved checkpoint. Display the exact included revision and explicitly excluded later drafts.",
+      "Prepare through the existing D1 command: collect exact semantic dependencies and current owner eligibility; compile outside short database locks.",
+      "Inspect the fixed Page or whole-Site candidate as applicable. Separate hard source invariants from advisory content assistance.",
+      "Activate only after fresh authority, expected-head and dependency proof. Preserve unrelated public content.",
+      "Show Published when the authoritative receipt commits; display cache/search convergence separately only when it needs attention."
+    ],
+    "effect": "One existing D1 generation/head transition and durable receipt/outbox.",
+    "automatic": "AU07 convergence; no Git commit or Core code rebuild.",
+    "failure": "Lost acknowledgement resolves the existing receipt. A stale target or changed safety fact cannot be rounded into success. A newer private draft alone does not rewrite or necessarily invalidate an explicitly selected older reviewed revision.",
+    "proof": "Reviewer publishes the selected headline while later private draft remains private; failed compile keeps the previous safe generation."
+  },
+  {
+    "id": "WF09",
+    "title": "Schedule exact content publication or removal",
+    "actor": "Authorized scheduling actor",
+    "entry": "D13 exact organization-owned appointment contract and compatible D1 path.",
+    "steps": [
+      "Choose one-time publish or unpublish. Show Site/path/locale, exact selected revision for publish, civil time, IANA zone, selected offset and UTC instant.",
+      "For repeated/nonexistent local times require a valid explicit interpretation. Validate publish-before-unpublish when both unresolved actions exist.",
+      "Record the immutable appointment and responsible owner; later autosave shows Not included in scheduled version.",
+      "Change, cancel or replace through fenced successors. At due time invoke the same D1 operation after current semantic/safety proof.",
+      "Routine initiator offboarding does not erase the organization’s valid appointment; explicit invalidation or owner policy does."
+    ],
+    "effect": "At most one unresolved appointment per Page/locale/action and one receipt per exact scheduled effect.",
+    "automatic": "AU06 six-day-horizon dispatch and shared overdue reconciliation.",
+    "failure": "A stale dispatched event no-ops after cancel/reschedule. Unrelated publication permits only bounded reprepare preserving pinned meaning; semantic changes require attention. No job or date field is publication authority.",
+    "proof": "Execute/cancel races yield one permitted effect; an appointment after provider dedupe expiry still cannot publish twice."
+  },
+  {
+    "id": "WF10",
+    "title": "Recover a save conflict or restore a draft",
+    "actor": "Editor; distinct takeover permission when needed",
+    "entry": "D12 lease and expected revision; readable current/history scope.",
+    "steps": [
+      "A second tab or person opens read-only with bounded editor identity. Choose return later or explicit authorized takeover.",
+      "Takeover atomically checkpoints and transfers the lease generation. Displaced tab becomes read-only and retains unsent work only in memory.",
+      "Compare Started from, Current draft and Your unsaved work. Copy intended changes into a newly authorized session rather than merge automatically.",
+      "Restore a historical version only as a new private draft after current compatibility proof and a checkpoint of the current draft."
+    ],
+    "effect": "A fenced lease transition and/or private editorial successor; never a public rewind.",
+    "automatic": "Identical-key receipt recovery for lost acknowledgements only.",
+    "failure": "Hidden/suspended tabs stop lease renewal. Reauthentication does not restore revoked permission. Browser/device loss may lose never-acknowledged edits; the UI does not promise otherwise.",
+    "proof": "Two same-user tabs cannot race silently; restore retains published output and meaningful history."
+  },
+  {
+    "id": "WF11",
+    "title": "Connect a ministry-controlled custom repository",
+    "actor": "Asym connection manager with verified provider authority",
+    "entry": "GitHub App minimum permission profile; exact Tenant/environment/Site project.",
+    "steps": [
+      "Choose Connect custom source from Site design/developer settings, not ordinary content onboarding.",
+      "Complete the provider installation flow with state/CSRF binding and independent verification of user authority for installation and repository.",
+      "Select the exact repository and one package root within it. Show access requested and confirm the Asym Site/environment target.",
+      "Persist verified immutable repository ID, installation link, approved package location and binding revision; never map solely by owner/name URL.",
+      "Validate the package manifest as data before executing anything. Show Connected separately from Package ready or Live."
+    ],
+    "effect": "One scoped binding plus attributable receipt; no source execution or public effect in the callback.",
+    "automatic": "AU03 source discovery only after authorized connection.",
+    "failure": "Spoofed installation ID, repo transfer, expired state, missing provider rights and wrong Tenant fail closed. Ministry-owned repositories may be private; privacy is not clearance for operational data.",
+    "proof": "A repo administrator without Asym permission cannot connect another Tenant; an Asym admin without repository authority cannot seize source."
+  },
+  {
+    "id": "WF12",
+    "title": "Develop a custom presentation through normal tools",
+    "actor": "Ministry-appointed developer",
+    "entry": "Supported SDK/template, repository access and synthetic fixtures.",
+    "steps": [
+      "Clone the repository, install the locked project with the qualified toolchain and start the local production-shaped preview.",
+      "Edit React/TSX and styles using any suitable editor. Implement existing semantic inputs and declared visual controls; platform capabilities remain SDK-mediated.",
+      "Run typecheck, contract, binding, responsive, accessibility and dependency checks locally. Use source maps and real debugging rather than disconnected snippets.",
+      "Commit changes and submit normal source review. Code branches use fixtures or exact permitted snapshots, never authoritative CMS working branches.",
+      "Select an exact reviewed revision for Asym qualification. The external agent follows the same workflow and has no extra privilege."
+    ],
+    "effect": "Changes source only; no application database writes.",
+    "automatic": "Optional AU03/AU04 builds on the approved integration branch, never publication.",
+    "failure": "A custom component without a working binding is rejected at qualification; hardcoded required fields must be detected by known binding tests and review. Arbitrary React editability is not guaranteed.",
+    "proof": "Fresh clone works without Core private source, production credentials, Asym IDE or model account; staff editing still works after redesign."
+  },
+  {
+    "id": "WF13",
+    "title": "Build and independently admit custom presentation",
+    "actor": "Source ingestion worker, independent qualifier and named maintainer",
+    "entry": "Exact authorized source request, budget, qualified build image and admission profile.",
+    "steps": [
+      "Capture exact Git tree, package location, lock and manifest through a credential-bearing trusted fetch service; remove Git credentials before any package script executes.",
+      "Run locked install/build/tests in isolated nonproduction execution with approved dependency acquisition, no production data and enforced resource budgets.",
+      "Produce immutable artifact digest, dependency/license evidence, source mapping and compatibility report. Do not trust self-reported repository checks as final proof.",
+      "Run platform-controlled conformance, browser, safety, dependency and boundary checks outside the submitted test oracle.",
+      "Qualified authority admits the exact version only after required maintainer/review proof. Human source approval does not automatically activate a website."
+    ],
+    "effect": "Immutable source/build/admission records and custody; public registry availability handled by controlled deployment.",
+    "automatic": "AU04 qualification, AU05 exact candidate readiness.",
+    "failure": "Failure retains evidence with safe diagnostics; a result arriving after binding cancellation cannot advance. Registry or artifact corruption blocks use. A signature proves provenance, not behavioral safety.",
+    "proof": "Malicious postinstall cannot read the source-fetch token; weakened repository tests cannot pass independent forbidden-import/binding checks."
+  },
+  {
+    "id": "WF14",
+    "title": "Review and activate a custom Site design",
+    "actor": "Design-intent reviewer, qualified admission owner, authorized design publisher",
+    "entry": "Admitted artifact and deployment-compatible renderer; Phase 24 complete locale census.",
+    "steps": [
+      "Make the admitted package version available through the controlled public runtime build/registry. This deployment alone must not switch current Sites.",
+      "Prepare exact candidate generations for every public locale and a disposition for enabled nonpublic locales using current content and supported settings.",
+      "Review actual content across required families, viewports and reduced motion. Show exact package/source identity to authorized technical reviewers and understandable design scope to staff.",
+      "Commit through D10: re-prove permissions, cohort, dependency eligibility and every expected head; advance all or none.",
+      "Display design activation separately from delivery convergence. New source or drafts remain separate unless explicitly included in a successor candidate."
+    ],
+    "effect": "Existing D10 all-or-none head transition; no route/content/locale/money changes by implication.",
+    "automatic": "AU07 delivery convergence.",
+    "failure": "Changed cohort, incompatible content, unavailable registry version or revoked eligibility blocks exact effect. Restore previous design prepares a new successor over current compatible content; never sets a mutable global theme pointer.",
+    "proof": "One locale failure prevents partial design activation; deployment skew never silently serves another package."
+  },
+  {
+    "id": "WF15",
+    "title": "Evolve a semantic type or migrate presentation settings",
+    "actor": "Platform catalog owner; authorized migration operator; affected editors",
+    "entry": "Explicit catalog/schema amendment and new reader support already deployed.",
+    "steps": [
+      "Classify the request: visual-only change uses existing meaning; new authorable meaning requires the catalog owner, not a private package-only schema.",
+      "Define additive versioned schemas, standard fallback, editor fields, renderer mapping and exact historical migration behavior.",
+      "Prepare a no-write bounded migration plan over selected acknowledged revisions. Include counts, changed fields, incompatible cases and expected source revisions.",
+      "Commit private successors through registered operations after fresh policy/lease-or-audited-override proof. Preserve raw incompatible inputs for repair.",
+      "Publish only through ordinary exact release operations; retain old supported readers for referenced history until proof allows retirement."
+    ],
+    "effect": "Catalog and compatible private successor changes; no read-time migration or hidden publication.",
+    "automatic": "AU09 compatibility analysis; owner-approved bounded migration batches.",
+    "failure": "Concurrent staff edits invalidate only affected planned mutations; do not replace their work. Unknown/newer schema does not drop nodes. An irreversible data shape change is roll-forward, not a fake rollback.",
+    "proof": "Old and new readers/writers are tested both ways; production content is never replaced by the developer database."
+  },
+  {
+    "id": "WF16",
+    "title": "Replace a developer, reconnect or disconnect source",
+    "actor": "Ministry repository controller and Asym connection manager",
+    "entry": "Current source binding and rights/retention policy.",
+    "steps": [
+      "Update developer access in the ministry’s own repository; Asym access changes only through Asym authority.",
+      "For replacement repository, verify a new pending binding and package compatibility before explicit switch. Keep former source provenance in history.",
+      "Disconnect source access and increment its fence. Stop future source captures and unadmitted pending work; resolve in-flight results by receipt.",
+      "Keep existing licensed, safe, compatible admitted artifacts and normal CMS operations available. Explain independently owned Site retirement and safety withdrawal.",
+      "Provide a rights-scoped source/config/export manifest and maintainer handoff guide; do not promise a standalone copy of Asym."
+    ],
+    "effect": "Binding lifecycle changes, not deletion of content, retained artifacts or unrelated grants.",
+    "automatic": "AU10 connection reconciliation; AU12 retention-qualified cleanup.",
+    "failure": "Outage is not proof of ownership transfer. Old events cannot reactivate disconnected binding. Reconnecting requires fresh two-domain verification.",
+    "proof": "Agency replacement during staff editing preserves content and live safe website; duplicate events cannot reconnect old source."
+  },
+  {
+    "id": "WF17",
+    "title": "Inspect an exact private preview",
+    "actor": "Authorized editor/reviewer",
+    "entry": "Saved revision/candidate entitlement; admitted code for real content.",
+    "steps": [
+      "Use live local visual feedback for editing, clearly labeled when unsaved. Refresh server preview only against acknowledged revisions.",
+      "Prepare a fixed candidate for review. Every route remains candidate-local, including navigation, links and 404s.",
+      "Access through session-bound preview authorization; opaque candidate IDs are not bearer permissions. Recheck scope on every protected request.",
+      "Inspect responsive, locale, reduced-motion and no-JS modes. Consequential islands show inert previews; they do not send, charge or enroll.",
+      "Expire/revoke preview safely. A closed preview does not redirect to a live private-looking URL or change content."
+    ],
+    "effect": "Private ephemeral preview and exact review evidence only.",
+    "automatic": "AU02/AU05 preview refresh and preparation; AU12 expiration.",
+    "failure": "Canvas/preview crash cannot erase acknowledged data or reveal raw Payload Admin. Unknown origin/message/schema is ignored and audited without persisting hostile payload.",
+    "proof": "Preview cannot submit real donations/forms, access another Tenant or fall through to Live when a route is absent."
+  },
+  {
+    "id": "WF18",
+    "title": "Hand over the website and use approved platform capabilities",
+    "actor": "Developer and real staff representative",
+    "entry": "Admitted presentation and supported content/feature profiles.",
+    "steps": [
+      "Demonstrate new page creation, media replacement, layout changes, preview and appropriate publication with staff operating the controls.",
+      "Document which fields, variants and global settings staff control and which changes need a developer. Show affected-page impact for shared components.",
+      "Use giving, forms, navigation and dynamic lists only via their current owner-defined placements/capabilities. Do not create a new semantic block when its owner contract is unavailable.",
+      "For dynamic data store source-qualified references or selection intent, not copied donor/missionary/financial records. Financial totals cannot be hand-edited as if ledger-derived.",
+      "Provide maintenance, dependency and export instructions. External coding agents use the same fixture and source boundaries; no model connection is required for ordinary editing."
+    ],
+    "effect": "Handoff evidence and supported existing owner interactions; no new operational truth.",
+    "automatic": "Existing owner workflows for actual public actions; previews remain dark.",
+    "failure": "Missing owner capability is intentionally unavailable. A misleading editable field or secret-bearing fixture fails handoff. Staff cannot be trained around a broken binding as a substitute for repair.",
+    "proof": "A staff member independently completes representative tasks; restricted worker identity never enters custom code props, fixtures, public search or logs."
+  }
+]

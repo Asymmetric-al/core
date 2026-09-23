@@ -1,10 +1,15 @@
 # Phase 16 — Pledges & Recurring Commitments: Automatic Recurring Support First, Fixed Campaign Commitments Kept Truthful
 
+**Contract revision:** 2026-09-16. Ratified Phase 25
+[recurring rules](./phase-25-donor-dashboard-depth/contracts/recurring.md)
+are incorporated in the implementation, testing and acceptance sections below;
+implementation and qualification remain separately unproved.
+
 ## Status
 
 Groomed via `grill-with-docs` on 2026-07-12 through 2026-07-13. Conrad ratified all nineteen decision families, **D1–D19**, after current-primary-source research and explicit adversarial hardening. This PRD is the authoritative `/to-spec` synthesis of those decisions. The supporting evidence is in `phase-16-pledges-recurring-commitments-research-evidence.md`; the dated predecessor reconciliation is in `phase-16-cross-prd-congruence-2026-07-13.md`.
 
-**Slug:** `pledges-commitments` · **Roadmap position:** Phase 16 of 41 (roadmap v2) · **Primary predecessor:** Phase 13 (Campaign, Designation, Contribution Ledger & Giving Cart) · **Other required predecessors:** Phases 2–7, 9–10, 12, 14, and 15 · **Later consumers:** Phases 17–18, 20, 25, 27–28, 33, and 35.
+**Slug:** `pledges-commitments` · **Roadmap position:** Phase 16 of 45 (roadmap v3, adopted 2026-09-22) · **Primary predecessor:** Phase 13 (Campaign, Designation, Contribution Ledger & Giving Cart) · **Other required predecessors:** Phases 2–7, 9–10, 12, 14, and 15 · **Later consumers:** Phases 17–18, 20, 25, 27–28, 33, and 35.
 
 **Program posture: groomed-not-built and not dispatched.** This is a planning specification. Committing this planning package to PR #465 authorizes no product code, issue publication, label change, or `ready-for-agent` state; dispatch remains a separate founder decision. Phase 13's append-only contribution ledger, Stripe Connect topology, recurring-group substrate, Phase 6 communication-event spine, Phase 7 Party/receipt contracts, and Phase 3 role-projection floor are committed design dependencies but are not all implemented in the current worktree. Every anchor below is labeled **REAL** or **FORWARD** so an implementing agent cannot mistake current prototype code for the product contract.
 
@@ -12,11 +17,16 @@ Groomed via `grill-with-docs` on 2026-07-12 through 2026-07-13. Conrad ratified 
 
 **Production gate.** Recurring card terms, off-session permission, ACH mandate and reinitiation, staff-assisted authorization, cancellation, required network notices, and campaign-commitment reminder purpose/consent are compliance-adjacent. Qualified payments/compliance counsel and the applicable processor/acquirer must approve the final production terms, scripts, evidence retention, and jurisdiction/rail rules. This document is not legal, accounting, tax, or network advice. Product defaults remain binding unless a stricter current rule narrows them.
 
-**Binding Phase 18 document amendment (2026-07-21).** Phase 16 remains the sole owner of recurring/fixed commitment intent, schedules, fulfillment, health, Party roles, and source facts. A pledge statement or recurring-support document is a Phase 18 governed purpose over one immutable Phase 16 Facts Package; it is never a Phase 18 balance calculator and never rewrites commitment history. Phase 18 alone owns the generated definition, publication, request, exact PDF artifact, current head, access, and document records evidence. Phase 17 alone owns the surrounding message and delivery. ACH processing remains initiation evidence only and cannot produce an official successful-payment receipt.
+**Binding Phase 18 document amendment (2026-07-21).** Phase 16 remains the sole owner of recurring/fixed commitment intent, schedules, fulfillment, health, Party roles, and source facts. A pledge statement or recurring-support document is a Phase 18 governed purpose over one immutable Phase 16 Facts Package; it is never a Phase 18 balance calculator and never rewrites commitment history. Phase 18 alone owns the generated definition, publication, request, exact PDF artifact, current head, access, and document records evidence. Phase 17 owns the surrounding governed message; Phase 6 owns recipient intent, consent, dispatch, provider outcomes, recovery and history. ACH processing remains initiation evidence only and cannot produce an official successful-payment receipt.
 
 ---
 
 ## Problem Statement
+
+**Historical repository baseline (2026-07-13).** The following observations
+record the original grooming investigation, not a current deployment claim.
+The normative implementation and acceptance sections contain later ratified
+amendments.
 
 Recurring support is the economic heartbeat of a missions organization, but the current platform has no trustworthy recurring-giving product. The checkout server accepts one one-time gift. Dormant client fields imply recurrence that the API does not support. Stripe webhook code reflects some subscription events into one legacy `donor_pledges` row, hides important provider states, increments mutable counters under at-least-once delivery, and cannot represent one donor arrangement with several independently managed destinations. The legacy table has nullable tenancy in later overlays, no enforced RLS, duplicated schedule fields, a payment-method string, and one status trying to mean donor intent, provider state, payment health, and fulfillment at once. It is migration evidence, not a foundation.
 
@@ -100,11 +110,80 @@ All audiences consume the same append-only facts through different role-safe pro
 ### Hard dependencies
 
 1. **Phase 2 — locale, currency, and calendar foundation.** Reuse civil-date and currency conventions, but add one tenant-owned IANA **giving timezone**. It is not tax timezone, site locale, browser timezone, or processor settlement zone. Missing/invalid configuration fails closed for new recurring authorization; it never silently uses the server zone.
+   **Phase 24 D62 clarification (2026-08-30):** a presentment currency may say
+   **Ready for recurring gifts** during Site setup only when the Phase 16 owner
+   supplies current qualification for the exact live binding/account, charge
+   topology, currency, recurring product/adapter, authorization and cadence
+   family, admissible rail, and Core/provider-contract generation. The setup
+   check creates no subscription, SetupIntent, PaymentIntent, Customer, mandate,
+   occurrence, or test charge. Accepted recurring authorization and every later
+   execution still re-prove their complete current facts under Phase 16. A
+   donor-specific failure never globally disables a currency; deterministic
+   capability/control drift removes only that currency/cohort from new
+   authorization and sends existing agreements through Phase 16 recovery.
+   **Phase 24 D63 clarification (2026-08-30):** before recurring authorization
+   is accepted, a donor-confirmed Donor Currency Transition may preserve the
+   selected giving mode, cadence, anchor, end terms, destinations, and other
+   non-money intent only after Phase 16 and Payments re-prove that complete
+   target-currency cohort. It clears every amount, fee-cover decision, mandate,
+   future-use acceptance, selected payment method, provider session/attempt,
+   initial-occurrence preview, and amount-derived schedule disclosure. If the
+   target does not support the exact cadence or a payment operation is active/
+   indeterminate, currency change is unavailable and the original intent stays
+   intact; Core never silently changes monthly to one-time. Once authorization
+   is accepted, currency is immutable for the group, cohorts, occurrences, and
+   history. Changing currency then means a separately authorized new agreement,
+   never D63 or an in-place revision.
+   **Phase 24 D64 clarification (2026-08-30):** D64 may define one optional
+   Site Suggested Amount Set for an exact Phase 16-enabled recurring
+   `cadence_code` and ISO currency, but it cannot create, enable, feature,
+   rename, or grandfather a cadence and cannot replace Tenant cadence policy.
+   A recurring set's amounts are per occurrence. When the exact currency and
+   cadence remain qualified, a missing or reviewed-empty set falls back only to
+   a currency-labelled custom amount; one-time or another cadence's digits never
+   substitute. A disabled, paused, drifted, or unqualified currency/cadence is
+   not offered and cannot be bypassed through custom input. Selecting a
+   suggestion remains draft cart intent and every recurring authorization re-
+   proves amount, cadence, route, rail, schedule, and current terms. Later
+   preset changes never alter an accepted commitment, term version, occurrence,
+   installment, retry, receipt, or history. D65 separately owns what happens
+   when a donor changes frequency after interacting with an amount; D64 performs
+   no silent carryover or ordinal mapping. Deliberately disabling a cadence
+   retires its set from new-gift projection without deleting history. Re-enable
+   may show former values for staff review, but requires an authorized successor
+   under the new Tenant cadence-policy revision before those presets return;
+   custom-only remains safe while the exact currency/cadence is otherwise
+   qualified. A transient qualification pause does not itself retire the
+   reviewed set.
+   **Phase 24 D65 clarification (2026-08-30):** before recurring authorization
+   is accepted, one Donor Gift-Schedule Transition may change one editable line
+   between one-time and an exact enabled cadence, or between two exact enabled
+   cadences. The target is re-proved under the current cadence policy,
+   destination, Site/currency qualification, route, giving timezone and
+   schedule kernel before loss. The line's amount, amount provenance, source
+   anchor/start/end/final date, occurrence/leg preview, schedule-dependent
+   disclosures, fee/authorization/payment/mandate meaning, and all affected
+   group/cohort execution projections clear. Purpose and unrelated line intent
+   survive only when revalidated for the target.
+
+   The target cadence receives a fresh kernel result—current civil-date default
+   for ordinary cadences; today when it is the 1st or 15th, otherwise the next
+   1st/15th slot, for twice monthly; and no end by default—never copied source
+   dates. Its D64 amount set appears
+   unselected and the amount remains unanswered until the donor chooses an
+   amount per occurrence. Final review repeats per-occurrence amount, first
+   charge and continuing dates/count; twice monthly also shows both slots and
+   the combined monthly face amount. Changing a draft line creates no recurring
+   group, term version, schedule epoch, cohort, leg, occurrence, mandate, or
+   provider subscription. After acceptance, every change uses Phase 16's
+   separately authorized, effective-dated, append-only supersession path; D65
+   never mutates an active plan or invokes provider proration.
+
 2. **Phase 3 — permission and role-safe projection.** Register every Phase 16 record/action/export. New fields fail closed. Privacy and anonymity are applied before display and aggregation.
 3. **Phases 4 and 9 — identity and Party.** Reuse Party identity, claiming, and governed dedupe/merge. A merge may repair a canonical Party ID but never transfers the promise. A true owner change supersedes the old commitment.
 4. **Phase 5 — public handoff.** Abandonment creates no donor-facing agreement. Once the processor accepts the exact recurring authorization and returns a durable initial-payment state, persist the agreement/occurrence/attempt even if ACH remains processing; never call it received.
 5. **Phase 6 — communication intent, event, and consent spine.** Phase 16 records typed domain meanings/candidates. After domain re-proof, and only when the exact System message contract is Live in the pinned Phase 17 activation generation, it submits one authoritative bounded plan occurrence with a separate stable plan-occurrence token plus independent member tokens through Phase 6's atomic compiler. Even a one-member meaning uses that compiler; Phase 16 never loops over independently committed child submissions. An unknown or Reserved key creates zero Phase 6 communication state and is never historically caught up after activation. Phase 6 owns the coordination header, server-derived hashes, durable `communication_intents`, contactability, consent, suppression, `communication_events`, dispatch, and delivery evidence. Do not revive `notification_queue` or create a parallel sender.
-6. **Phase 7/18/17 — owner-separated receipt and statement effects.** Card success or ACH provider-confirmed success creates/posts the source occurrence; only a frozen Phase 7 plan/ordinary policy that admits an individual receipt emits one authorization pointer. `annual_cumulative_cash` emits no per-gift authorization/request/delivery and records year-end readiness. ACH processing issues an initiation confirmation only. Phase 7 owns receipt/statement source facts and correction effects, Phase 18 owns exact artifact/currentness/access, Phase 19 coordinates affected statement operations, and Phase 17 owns delivery. A late return appends the Phase 13 money inverse and one Phase 7 correction pointer; no cross-domain artifact is mutated atomically.
+6. **Phase 7/18/17 — owner-separated receipt and statement effects.** Card success or ACH provider-confirmed success creates/posts the source occurrence; only a frozen Phase 7 plan/ordinary policy that admits an individual receipt emits one authorization pointer. `annual_cumulative_cash` emits no per-gift authorization/request/delivery and records year-end readiness. ACH processing issues an initiation confirmation only. Phase 7 owns receipt/statement source facts and correction effects, Phase 18 owns exact artifact/currentness/access, Phase 19 coordinates affected statement operations, and Phase 17 owns governed content while Phase 6 owns recipient intent, consent, delivery, recovery and history. A late return appends the Phase 13 money inverse and one Phase 7 correction pointer; no cross-domain artifact is mutated atomically.
 7. **Phase 10 — sensitive-data firewall.** Payment details, authority evidence, provider/KYC facts, decline codes, and restricted identity remain out of donor/missionary projections except for the smallest safe donor-owned masked information.
 8. **Phase 12 — capabilities and active assignment.** Server-resolved command capabilities are mandatory. Job title or UI visibility never authorizes a command.
 9. **Phase 13 — contribution ledger, designations, Connect, and base recurring objects.** Consume the append-only money ledger and direct-charge connected-account topology. Amend its recurring contract to D1–D16; do not fork a second ledger, cart, Connect wrapper, or contribution writer.
@@ -598,7 +677,20 @@ Resume preserves the existing schedule grid and does not charge immediately unle
 
 Cancel is direct and does not require a pause detour, survey, retention offer, or phone call. Asym records the donor's cancellation request immediately. If provider control is managed, it disables future executor collection and reconciles proof. If provider control is unknown or lost, the record becomes `cancellation_requested` plus the truthful D16 warning; it must never falsely say Stripe or another executor has stopped.
 
-A canceled line never resumes in place. **Restart giving** creates a new accepted authorization and schedule epoch, and may require a new executor binding. History remains linked for display but no old off-session mandate, terms acceptance, attempt budget, occurrence, or provider item is silently reused.
+A canceled line never resumes in place. **Restart giving** enters canonical
+new-recurring checkout under fresh accepted authorization and schedule epoch,
+with new executor binding where required. Historical suggestions are limited to
+source-certified amount per occurrence, original currency, typed frequency and
+permitted line destinations effective at cancellation; no last-paid total,
+monthly equivalent or first-line reconstruction. Current new-gift schedule,
+fees and authorization apply. Old end/pause, payment default, mandate,
+attribution and recovery budget do not carry forward; explain an omitted old
+end and offer the current optional end-date choice. Preserve every selected
+line; never auto-select siblings or substitute an unavailable destination.
+Exactly one immediate initial contribution is attempted per disclosed compatible
+cohort under one exclusive initial-payment owner. History remains linked, and
+unknown old control/stop still blocks unsafe restart even if the new form is
+empty (Phase 25 RC16).
 
 ### C.6 Cohort-safe commands and concurrency
 
@@ -611,6 +703,75 @@ Commands begin at the line or selected-line level. The domain planner then choos
 Every preview returns an opaque preview token bound to tenant, actor, authority, aggregate revision, schedule epoch, affected line IDs, occurrence claims, provider snapshot, terms version, and expiration. Apply is a CSRF-protected POST with idempotency key and compares the token's facts under a database lock. A stale preview returns a fresh explanation; it does not best-effort mutate a changed arrangement.
 
 Provider operations run through an outbox/saga with permanent operation identity. A partial provider result is reconciled to the exact cohort/item binding; it never rolls back committed history or silently applies to `items[0]`.
+
+### C.7 Credential replacement and separate Wallet Remove (RC09–RC12/F05)
+
+Phase 16 owns recurring credential use, replacement authorization and Remove;
+Phase 13 giving/checkout owns standalone setup/Customer binding and new-gift
+preference. Saved-method reads resolve exact Tenant, Legal Entity, settlement
+binding/account/mode, Party/Customer, actor and saving/collection authority.
+A first save requires neither a previous donation nor an existing recurring
+authorization; it uses the normal exact source Customer binding, not a fake
+gift/donor history or duplicate Customer to bypass constraints.
+
+Replacement targets reviewed selected lines/cohorts and every required executor
+leg. It preserves unselected siblings and initiates no gift, old-invoice
+payment/finalization, proration, catch-up, retry-slot reset, date advance,
+automatic resume/restart/cancel, standing preference or method removal. Prove
+provider precedence, control and exact after-state authorization before binding
+a new method; a local flag or `proration=none` is insufficient. Shared-object
+expiry/billing edits and provider-updater continuity are distinct all-use
+operations, not evidence that deselected siblings were isolated.
+
+Remove separately inventories **all owner-required live dependencies**, including
+accepted, paused, recovery, unresolved setup/payment and unknown control work,
+under the shared removal/new-use fence. Hidden dependencies block without
+revealing identities; browser counts never authorize detach. Historical
+evidence-only references and a new-gift preference alone are not permanent
+blockers. Replacement completion returns to a **fresh explicit Remove review**;
+the donor may retain the old method. Unselected/restricted/unknown live uses
+must still be resolved. Expired review requires current review, not new setup.
+
+Accept one typed durable removal command before the provider effect; fence
+conflicting new uses while pending/unknown without holding a DB lock across the
+call. Lost response or reentry reconciles that same operation. An error is not
+no-effect proof; only proved absence of provider effect may release the fence
+when current safety permits. Report unknown as checking, never Removed, and
+promise neither reversible detach nor fake Undo. After exact detach proof,
+clear only still-matching effective/pending preference references through their
+Phase 13 owner, including private other-actor references without disclosure.
+A cleanup failure remains **confirmed removal, source cleanup pending**: retry
+cleanup, never detach again. Do not promote another method, update provider
+billing defaults or change any recurring/payment instruction.
+
+### C.8 New-gift preference and checkout ownership (RC13–RC15)
+
+Phase 13 giving/checkout owns one preference head per stable acting principal ×
+giving Party × Tenant × Legal Entity × qualified settlement/account/mode/Customer
+binding. It is a checkout suggestion, not a Stripe Customer/source/subscription
+default, collection mandate, fallback permission, recurring instruction, fee
+election or payment authorization. Site/locale/currency/rail do not create more
+heads, while each transaction independently qualifies currency/rail/purpose.
+Standalone Add shows an initially unchecked **Prefer this method for new gifts**;
+save-only and first/only/last-method saves never auto-promote. A separate explicit
+set/reaffirm/Clear compares current intent revision and supersedes older pending
+choices; timestamps/webhook order do not define choice order. Preserve the old
+effective method while the latest accepted choice qualifies. A failed/withdrawn/
+expired/superseded intent never revives a predecessor. The pending preference
+expires 24 elapsed hours after accepted intent, or ten elapsed days only for an
+exact supported US microdeposit flow durably classified before the initial
+24-hour deadline. Retry/refresh never restarts the window; this does not extend
+15-minute financial review authority.
+
+Checkout preserves Express Checkout and an admitted Asym saved-method selector.
+An eligible standing preference may be selected initially; an explicit
+transaction choice wins without becoming a standing preference. With no
+eligible preference, a single qualified method may be selected for this
+transaction only; multiple methods require deliberate selection. An ineligible
+preference stays stored but unselected and never authorizes fallback charging.
+New, saved and Express branches use one finalizer and exact reviewed financial
+intent. Recurring replacement/removal cannot acquire ownership of this
+preference or manipulate provider defaults to implement it.
 
 ## Implementation Decisions — Card Collection and Recovery (D6–D9)
 
@@ -761,7 +922,7 @@ Rollout begins with shadow candidate evaluation and no historical outbound catch
 
 An established ACH billing-cohort occurrence gets at most one unattended normal entry. A return never inherits card D7, Stripe Smart Retries, or silent same-occurrence re-presentment. The next normal calendar occurrence remains independently eligible under the then-current mandate and safety facts; it never includes the missed amount.
 
-ACH verification, debit initiation, settlement/success, return exposure, and final correction are separate facts. `processing` means initiated or pending, not received. Only provider-confirmed success creates/posts money once; it emits a Phase 7 receipt-authorization pointer only when the frozen plan/ordinary policy admits an individual receipt. `annual_cumulative_cash` emits zero per-gift authorization/request/delivery and records year-end readiness. Phase 7 then owns source receipt/correction facts, Phase 18 owns exact artifact/currentness, Phase 19 coordinates any affected statement operation, and Phase 17 owns delivery. A later return appends the exact Phase 13 financial inverse and one Phase 7 correction pointer; it does not delete history or atomically mutate a downstream artifact.
+ACH verification, debit initiation, settlement/success, return exposure, and final correction are separate facts. `processing` means initiated or pending, not received. Only provider-confirmed success creates/posts money once; it emits a Phase 7 receipt-authorization pointer only when the frozen plan/ordinary policy admits an individual receipt. `annual_cumulative_cash` emits zero per-gift authorization/request/delivery and records year-end readiness. Phase 7 then owns source receipt/correction facts, Phase 18 owns exact artifact/currentness, Phase 19 coordinates any affected statement operation, and Phase 17 owns governed content while Phase 6 owns recipient intent, consent, delivery, recovery and history. A later return appends the exact Phase 13 financial inverse and one Phase 7 correction pointer; it does not delete history or atomically mutate a downstream artifact.
 
 ### E.2 Narrow donor-confirmed R01/R09 recovery
 
@@ -2040,7 +2201,18 @@ For a provider-automatic leg, the configured provider subscription owns each ord
 
 ### Q.4 HTTP and server-action surface
 
-Use the repo's server-mediated data-access boundary. Exact framework wiring may be a thin route or server action, but these resource semantics are fixed:
+Use the repo's server-mediated data-access boundary. Donor page identities are
+fixed by Phase 25 F03: **Recurring giving** uses `/donor-dashboard/recurring`;
+fixed-total **Pledges** uses `/donor-dashboard/campaign-commitments`. The old
+`/donor-dashboard/pledges` accepts only a validated read-only GET/HEAD redirect
+into recurring context. Allowlist supported selectors/return context and
+reauthorize the destination; invalid targets fall back to safe recurring
+context, never another donor or the fixed-pledge product. Never reinterpret old
+recurring IDs or redirect mutations. Other route spellings remain logical
+source descriptors rather than a broad URL redesign.
+
+Exact API/framework wiring may be a thin route or server action, but these
+resource semantics are fixed:
 
 - extend REAL `POST /api/donate` with a versioned recurring payload and the existing required `Idempotency-Key`; it remains the one checkout submission front door;
 - guest checkout status uses read-only `GET /api/donate/operations/{operationId}?status_token=...`, bound to the original tenant/session and opaque operation token; it returns stable state/reason/reference only and never mutates or exposes another charge;
@@ -2059,7 +2231,12 @@ Use the repo's server-mediated data-access boundary. Exact framework wiring may 
 - provider webhooks continue through verified Stripe webhook entrypoints but call one shared ingestion service; multiple app routes do not duplicate domain handling; and
 - worker routes/functions are not public browser APIs and require internal authentication plus explicit Tenant/Legal-Entity shard and, for provider work, exact Settlement-Account-Binding/account scope.
 
-Every mutation requires origin/CSRF protection, authenticated session or narrow signed token, `Idempotency-Key`, content-type/size limits, server tenant resolution, and rate/abuse controls. Donor financial actions use recent authentication or narrow reauthentication according to risk. Signed email links may only read; purpose-stop POST tokens can only narrow communication.
+Recurring financial and credential-use/removal commands require origin/CSRF
+protection, authenticated session or their narrow source-authorized proof,
+permanent semantic operation identity with `Idempotency-Key`, content-type/size
+limits, server Tenant resolution and rate/abuse controls. The independent
+Phase 13 preference owner uses its exact expected-intent-revision contract;
+contact and preference saves do not inherit a generic financial journal. Donor financial actions use recent authentication or narrow reauthentication according to risk. Signed email links may only read; purpose-stop POST tokens can only narrow communication.
 
 Responses use stable reason codes plus plain copy, never raw provider errors. Categories are `validation`, `stale_preview`, `authorization_required`, `capability_denied`, `provider_control`, `already_in_flight`, `indeterminate`, `safety_suppressed`, and `reconciliation_required`. Unknown errors return a durable reference and preserve the case.
 
@@ -2303,7 +2480,7 @@ Ship runbooks for:
 
 1. duplicate/indeterminate provider attempt;
 2. D7 cutoff or rolling-ceiling breach;
-3. ACH late return through Phase 13 inverse → Phase 7 correction → Phase 18 artifact/currentness → Phase 19 statement coordination → Phase 17 delivery;
+3. ACH late return through Phase 13 inverse → Phase 7 correction → Phase 18 artifact/currentness → Phase 19 statement coordination → Phase 17 content preparation → Phase 6 delivery/history;
 4. provider-control incident from detect through proof-gated restoration;
 5. donor cancellation while control is unknown;
 6. twice-monthly one-leg partial mutation/reconciliation;
@@ -2410,6 +2587,20 @@ Ticket authoring must name these supersessions. It may not leave two buildable d
 
 ## Testing Strategy and Release-Blocking Acceptance Matrix
 
+**Credential and route acceptance (Phase 25 RC09–RC16/F03/F05):** prove all
+live-dependency inventory (including hidden, paused and unknown uses), removal/
+new-use races, replacement without detach, fresh Remove review, same-operation
+unknown-outcome recovery, proved no-effect fence release, detach-success/cleanup-
+failure and newer-choice protection. No automatic default promotion, charge,
+retry or schedule change is permitted. First-save and new-gift preference tests
+prove actor/Party/entity/account scope, unchecked Add, exact intent ordering/
+deadlines, pending readiness, no stale resurrection and independent transaction
+choice. Browser tests cover old saved `/pledges` links, auth returns, query
+allowlists, same-looking IDs, personal/represented and revoked scopes, and
+Back/focus. Direct mutations never redirect; old recurring IDs never enter
+fixed-total pledge commands. These are required owner/provider/browser proofs,
+not tests claimed run by this PRD.
+
 ### U.1 One public-seam vertical tracer first
 
 The first executable slice proves one real lifecycle through public seams, not isolated table creation:
@@ -2436,26 +2627,26 @@ The tracer runs through real database/RLS/service/API/provider-fixture boundarie
 
 ### U.3 Calendar and checkout acceptance
 
-| ID     | Required proof                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CAL-01 | Monthly created May 10 charges once May 10, anchors May 10, next June 10.                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| CAL-02 | Every-two-weeks created May 10 charges once then May 24. Weekly and every-four-weeks use 7/28-day grids.                                                                                                                                                                                                                                                                                                                                                                                        |
-| CAL-03 | Future start June 1 submitted May 10 charges May 10 once, then June 1/July 1; review discloses both.                                                                                                                                                                                                                                                                                                                                                                                            |
-| CAL-04 | No system path silently normalizes donor anchor to 1st/15th/end-of-month.                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| CAL-05 | Jan 29/30/31 monthly clamps to February's last day then recovers the original day; leap/non-leap fixtures pass.                                                                                                                                                                                                                                                                                                                                                                                 |
-| CAL-06 | Feb 29 annual uses documented clamp/recovery. Quarterly/semiannual preserve original anchor semantics.                                                                                                                                                                                                                                                                                                                                                                                          |
-| CAL-07 | Twice-monthly is one group/cohort with `day_1` and `day_15` legs/subscriptions and exact item-per-line on each; it charges the full per-occurrence amount twice and never approximates an interval.                                                                                                                                                                                                                                                                                             |
-| CAL-08 | Tenant IANA zone, DST nonexistent/ambiguous operational time, frozen offset, and tzdb-version changes preserve civil dates and no duplicate.                                                                                                                                                                                                                                                                                                                                                    |
-| CAL-09 | Open-ended requires no interaction. A selected inclusive final date permits an occurrence on that date and none after; retries cannot start after the boundary.                                                                                                                                                                                                                                                                                                                                 |
-| CAL-10 | Exact policy capability and preview/version checks protect tenant cadence changes. Disable affects new checkout only; grandfathered lines render/manage. Exactly one enabled cadence is featured; it must be monthly whenever monthly is enabled, otherwise the tenant selects one other enabled cadence. Daily and arbitrary cadence codes are rejected. Existing schedule epochs remain unchanged.                                                                                            |
-| CAL-11 | Group splits on Party, legal payer/authorizer context, or currency mismatch. Cohort splitting handles account/mode/rail/schedule/control incompatibility without group inference.                                                                                                                                                                                                                                                                                                               |
-| CAL-12 | Browser refresh/double submit/timeouts create one group and exactly one initial gift/provider attempt per disclosed compatible cohort, never per line or twice-monthly leg; Check status recovers each unknown charge without resubmitting.                                                                                                                                                                                                                                                     |
-| CAL-13 | Card success or recurring ACH provider-confirmed success creates/posts the source occurrence once and emits zero-or-one Phase 7 authorization pointer according to the frozen plan/ordinary policy; action/failure/processing creates no posting, Phase 7 authorization, Phase 18 request, or Phase 17 delivery. `annual_cumulative_cash` records year-end readiness only. A late return appends one Phase 13 inverse and one Phase 7 correction pointer; Phase 18/19/17 advance independently. |
-| CAL-14 | Initial ACH still processing fences later scheduled debit; the occurrence is safety-suppressed/pending activation, with no catch-up.                                                                                                                                                                                                                                                                                                                                                            |
-| CAL-15 | One-cohort group creates one initial provider attempt. Multi-cohort group creates exactly one per disclosed cohort/charge; never per line. Twice-monthly creates one initial attempt for its logical cohort despite two continuing legs.                                                                                                                                                                                                                                                        |
-| CAL-16 | Final eligible date must be on/after the first continuing occurrence. A future-start schedule ending before it is rejected; equality permits that one continuing occurrence.                                                                                                                                                                                                                                                                                                                    |
-| CAL-17 | Initial start or later next/re-anchor date before the tenant's current civil date is rejected in both preview and locked apply with an accessible linked field error. Today/future use the explicit giving timezone; UTC/browser/provider dates cannot change the result. Historical correction is a separate non-collection operation.                                                                                                                                                         |
-| CAL-18 | Every applied schedule amendment yields one durable, refreshable confirmation with exact effective terms, next three dates, final-date truth, immediate/in-flight non-effects, provider-sync state and evidenced Phase 6 delivery truth. Duplicate apply/webhook/refresh returns the same command and intent identity.                                                                                                                                                                          |
+| ID     | Required proof                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CAL-01 | Monthly created May 10 charges once May 10, anchors May 10, next June 10.                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| CAL-02 | Every-two-weeks created May 10 charges once then May 24. Weekly and every-four-weeks use 7/28-day grids.                                                                                                                                                                                                                                                                                                                                                                                         |
+| CAL-03 | Future start June 1 submitted May 10 charges May 10 once, then June 1/July 1; review discloses both.                                                                                                                                                                                                                                                                                                                                                                                             |
+| CAL-04 | No system path silently normalizes donor anchor to 1st/15th/end-of-month.                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| CAL-05 | Jan 29/30/31 monthly clamps to February's last day then recovers the original day; leap/non-leap fixtures pass.                                                                                                                                                                                                                                                                                                                                                                                  |
+| CAL-06 | Feb 29 annual uses documented clamp/recovery. Quarterly/semiannual preserve original anchor semantics.                                                                                                                                                                                                                                                                                                                                                                                           |
+| CAL-07 | Twice-monthly is one group/cohort with `day_1` and `day_15` legs/subscriptions and exact item-per-line on each; it charges the full per-occurrence amount twice and never approximates an interval.                                                                                                                                                                                                                                                                                              |
+| CAL-08 | Tenant IANA zone, DST nonexistent/ambiguous operational time, frozen offset, and tzdb-version changes preserve civil dates and no duplicate.                                                                                                                                                                                                                                                                                                                                                     |
+| CAL-09 | Open-ended requires no interaction. A selected inclusive final date permits an occurrence on that date and none after; retries cannot start after the boundary.                                                                                                                                                                                                                                                                                                                                  |
+| CAL-10 | Exact policy capability and preview/version checks protect tenant cadence changes. Disable affects new checkout only; grandfathered lines render/manage. Exactly one enabled cadence is featured; it must be monthly whenever monthly is enabled, otherwise the tenant selects one other enabled cadence. Daily and arbitrary cadence codes are rejected. Existing schedule epochs remain unchanged.                                                                                             |
+| CAL-11 | Group splits on Party, legal payer/authorizer context, or currency mismatch. Cohort splitting handles account/mode/rail/schedule/control incompatibility without group inference.                                                                                                                                                                                                                                                                                                                |
+| CAL-12 | Browser refresh/double submit/timeouts create one group and exactly one initial gift/provider attempt per disclosed compatible cohort, never per line or twice-monthly leg; Check status recovers each unknown charge without resubmitting.                                                                                                                                                                                                                                                      |
+| CAL-13 | Card success or recurring ACH provider-confirmed success creates/posts the source occurrence once and emits zero-or-one Phase 7 authorization pointer according to the frozen plan/ordinary policy; action/failure/processing creates no posting, Phase 7 authorization, Phase 18 request, or Phase 6 delivery. `annual_cumulative_cash` records year-end readiness only. A late return appends one Phase 13 inverse and one Phase 7 correction pointer; Phase 18/19/17/6 advance independently. |
+| CAL-14 | Initial ACH still processing fences later scheduled debit; the occurrence is safety-suppressed/pending activation, with no catch-up.                                                                                                                                                                                                                                                                                                                                                             |
+| CAL-15 | One-cohort group creates one initial provider attempt. Multi-cohort group creates exactly one per disclosed cohort/charge; never per line. Twice-monthly creates one initial attempt for its logical cohort despite two continuing legs.                                                                                                                                                                                                                                                         |
+| CAL-16 | Final eligible date must be on/after the first continuing occurrence. A future-start schedule ending before it is rejected; equality permits that one continuing occurrence.                                                                                                                                                                                                                                                                                                                     |
+| CAL-17 | Initial start or later next/re-anchor date before the tenant's current civil date is rejected in both preview and locked apply with an accessible linked field error. Today/future use the explicit giving timezone; UTC/browser/provider dates cannot change the result. Historical correction is a separate non-collection operation.                                                                                                                                                          |
+| CAL-18 | Every applied schedule amendment yields one durable, refreshable confirmation with exact effective terms, next three dates, final-date truth, immediate/in-flight non-effects, provider-sync state and evidenced Phase 6 delivery truth. Duplicate apply/webhook/refresh returns the same command and intent identity.                                                                                                                                                                           |
 
 ### U.4 Recurring management, recovery, and control acceptance
 
@@ -2806,8 +2997,11 @@ redirect, or choose a successor for a recurring commitment. Phase 16 remains
 the source authority: it accepts only exact donor or tenant authorization,
 appends the prospective stop/successor/provider-control evidence, and preserves
 prior occurrences. A Phase 21 draft or manifest changes no recurring work, and
-Phase 22 may retire presentation only after the Phase 16 source transition is
-proved.
+Phase 22 may change or retire public presentation independently but may state or
+link a recurring-support outcome only after the exact Phase 16 source transition
+is proved. Until then, a Phase 22 transition notice says only that existing
+recurring gifts are managed separately and points to donor self-service solely
+when Phase 16 authorizes that action.
 
 ## Dated Phase 21 D8 commitment-feed amendment (2026-07-30)
 
@@ -2903,3 +3097,38 @@ preference never creates, merges, ends, resumes, retargets, or transfers a
 commitment. One Party participating in several Support Assignments does not
 duplicate a commitment across them; exact Phase 16 purpose/source coverage and
 the consumer projection contract determine inclusion.
+
+## Dated Phase 22 D6 public-progress commitment amendment (2026-08-03)
+
+Phase 16 remains the sole authority for commitment identity, active lifecycle,
+cadence normalization, corrections, and any anonymous-public-safe commitment
+aggregate it explicitly certifies. Phase 22 D6 may bind one exact compatible
+projection to one page and compare it only with the exact current-compatible
+Phase 28 Support-Raising Goal Version pinned by that page release. Phase 22
+cannot read commitment rows anonymously, infer a goal, combine commitments with
+received gifts, or treat an authorization, schedule, attempt, or forecast as
+cash.
+
+Omitted, not configured, stale, suppressed, source unavailable, and
+authoritative zero stay distinct. A commitment-source failure omits only the
+optional page widget and creates one cause-owned staff exception; it never falls
+back to Phase 13 received money, a last-known value, or zero. A source correction
+may advance the compatible disposable projection without changing the pinned
+metric meaning, disclosure scope, or page-release authority.
+
+## Dated Phase 22 D8 public-route and recurring-transition amendment (2026-08-04)
+
+Phase 16 remains the sole authority for recurring authorization, current terms,
+continuation, stop, destination change, successor transition, provider action,
+and donor self-service capability. A Phase 22 route move, transition notice,
+tombstone, Page Giving Binding, Designation succession proof, worker departure,
+or page retirement mutates none of those facts and never pauses, cancels,
+retargets, or recreates recurring support.
+
+A D8 Transition Notice Release may replace stale public story copy while Phase
+16 transition work is still open, but its wording is coverage-aware and through-
+dated. It may state only the current proved Phase 16 outcome; otherwise it says
+existing recurring gifts are managed separately. A different-page successor is
+an explicit fresh navigation and carries no recurring action. Completion of a
+route disposition never proves recurring transition complete, and completion of
+a recurring transition never selects a public route disposition.

@@ -1,36 +1,33 @@
-# ADR-CD-028: Pending correction approvals use simple reminders and optional escalation
+# ADR-CD-028: Contribution source policy owns approval reminders and escalation
 
-**Status:** Accepted (grill session 2026-05-29)
+**Status:** Accepted 2026-05-29; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-High-risk correction requests can block receipts, CRM updates, reconciliation, and staff follow-up. If a request remains pending too long, staff need visibility and a lightweight nudge without turning contribution detail into a full SLA or automation engine.
+Pending work may need timely attention while financial decisions remain with authorized humans under current source policy.
 
 ## Decision
 
-Pending correction approvals use a simple tenant-configurable SLA policy:
-
-1. **Reminder:** After a configured pending interval, remind eligible approvers through their configured channels.
-2. **Optional escalation:** After a longer configured interval, escalate to the configured finance approver/admin role.
-3. **Visible stale state:** Contribution detail and Tasks show that the correction request has been pending too long.
-4. **Never auto-approve:** Time-based rules can remind or escalate, but they cannot approve or apply the correction.
-
-Modern practice requirements:
-
-- Tenant defaults define reminder and escalation intervals; super admins can change them.
-- Reminder/escalation delivery respects approval ownership policy, notification preferences, and granular capabilities.
-- Delivery is idempotent and low-noise; repeated reminders should not spam users.
-- Reminder and escalation events are audited with correction request id, target role/users, channel, and timestamp.
-- Pending-too-long state is derived from request timestamps and policy, not manually maintained status.
+- The contribution source evaluates configured pending intervals, reminders
+  and optional escalation against current request state.
+- Emit exact due occurrences only while applicable; recheck eligible recipient,
+  source revision and current policy.
+- Phase 17 consumes exact reminder/escalation keys. It adds no independent
+  timer, recipient, urgency claim or auto-approval. Phase 6 delivers.
+- Required in-product attention and optional email follow the manifest.
+- Derive pending-too-long display from source timestamps/policy. Notifications,
+  worker delay and engagement cannot extend or revive old work.
+- Reminders/escalations never approve, execute money or bypass separation of
+  duties. Keep source occurrence and delivery audit idempotent.
 
 ## Consequences
 
-- Stuck approvals become visible without adding a complex SLA engine.
-- Tenants can match their operating cadence while preserving conservative finance controls.
-- Approvals still require an authorized human decision.
+Configure timing through the contribution owner, not the message editor. Expose actual due/recovery state; a reminder receipt is not evidence a human reviewed the request.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **No SLA:** Simple, but allows corrections to stall silently.
-- **Escalation only:** Misses the lighter nudge that solves most delays.
-- **Automatic approval after timeout:** Unsafe for financial controls and conflicts with approval ownership.
+The [original 2026-05-29 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0028-simple-correction-approval-sla.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

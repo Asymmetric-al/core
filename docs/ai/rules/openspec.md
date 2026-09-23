@@ -29,6 +29,12 @@ This keeps durable project context, intended behavior, and active change scope v
      task.
    - Distinguish intended behavior (active change, specs, ADRs) from current
      reality (code, tests, runtime).
+   - Follow `docs/ai/document-authority.md` for ratified owner amendments and
+     canonical authoring sources. Regenerate declared projections from their
+     source; do not independently edit generated OpenSpec requirements.
+   - Run `bun run verify:openspec-deltas` to check active deltas against the
+     current durable requirements; structural validation alone cannot detect
+     every stale MODIFIED target or changed ADDED collision.
 
 2. **Create or update a change before major behavior work.**
    - Use an explicit change ID.

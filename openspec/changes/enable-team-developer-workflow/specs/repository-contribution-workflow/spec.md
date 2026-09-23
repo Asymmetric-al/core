@@ -139,10 +139,13 @@ the introduced first-parent integration spine between `before` and `after`.
 
 Every protected integration commit MUST be an exact two-parent GitHub platform
 merge with a valid `web-flow` signature made by GitHub. A `develop` integration
-MUST match a closed pull request, its exact merge SHA and head parent, and a
-recorded base SHA equal or proven ancestral to the actual first parent. Missing,
-unrelated, or unavailable ancestry MUST fail closed. A `production` promotion
-MUST already be reachable from canonical `develop`.
+MUST match the exact closed Core pull request, target branch, merge commit SHA
+and second-parent head SHA. Its recorded PR base SHA MUST equal the first parent
+or be positively proven to be an ancestor of that first parent. A stale base
+snapshot alone MUST NOT reject an otherwise valid platform merge. Missing or
+invalid SHAs, unavailable history, failed ancestry commands, and unrelated or
+reversed ancestry MUST fail closed. A `production` promotion MUST already be
+reachable from canonical `develop`.
 
 A manual dispatch on a protected ref MUST use the protected integration rules.
 A dispatch on another branch MUST inspect the full `head --not baseline` graph
@@ -188,6 +191,17 @@ or contradictory GitHub metadata MUST fail closed.
 
 - **WHEN** a protected update is non-fast-forward or its integration spine contains a direct commit, locally created merge, invalid platform envelope, or unexpected transition
 - **THEN** remote attribution rejects the update
+
+#### Scenario: Recorded pull-request base predates the merge target
+
+- **WHEN** a valid GitHub-signed two-parent develop merge matches its exact closed Core pull request and head parent, but the recorded PR base predates the first parent
+- **THEN** attribution accepts that base only after proving its ancestry to the first parent
+- **AND** the exact target repository, branch, merge SHA, head parent and platform signature checks remain required
+
+#### Scenario: Recorded pull-request base cannot be proved
+
+- **WHEN** the recorded base is malformed, unrelated, ahead of the first parent, reachable only through the head parent, or its ancestry cannot be checked
+- **THEN** attribution rejects the integration without treating missing history or command failure as proof
 
 #### Scenario: Protected before SHA is only a side ancestor
 

@@ -1,0 +1,65 @@
+{
+  "checkedAt": "2026-09-12T10:50:49.100Z",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sourcePath": "packages/api/src/admin/support-hub/mutations/run-macro.ts",
+  "sourceSha256": "2b2356c639b4916ac6787705b8b0eb72120e07b4aa95c107a9cc0eea9191c4c4",
+  "method": "Complete current server runner implementation isolated by removing imports/export modifiers, transpiled with installed Bun, evaluated with synthetic adapter only. Invoked with --no-env-file. No live module, environment file, database, provider, browser or network import.",
+  "cases": [
+    {
+      "name": "failed_assignment_does_not_prevent_later_status_effect",
+      "effects": ["status-applied"],
+      "ok": false,
+      "outcomes": [
+        {
+          "index": 0,
+          "action": {
+            "kind": "assign_agent",
+            "agentId": "fixture-target"
+          },
+          "status": "failed",
+          "message": "Synthetic assignment rejection"
+        },
+        {
+          "index": 1,
+          "action": {
+            "kind": "set_status",
+            "status": "resolved"
+          },
+          "status": "ok",
+          "message": "Status set to resolved."
+        }
+      ]
+    },
+    {
+      "name": "skipped_reply_and_team_assignment_still_report_ok",
+      "effects": [],
+      "ok": true,
+      "outcomes": [
+        {
+          "index": 0,
+          "action": {
+            "kind": "send_canned_response",
+            "cannedResponseId": "fixture-wording"
+          },
+          "status": "skipped",
+          "message": "Canned response insertion is composer-controlled — server runner does not auto-send."
+        },
+        {
+          "index": 1,
+          "action": {
+            "kind": "assign_team",
+            "teamId": "fixture-team"
+          },
+          "status": "skipped",
+          "message": "Team assignment runs server-side in Phase 8."
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Proves the current runner loop and result aggregation for two synthetic action sequences only.",
+    "Does not prove actual production invocation, authorization bypass, database transaction behavior, browser behavior or provider delivery.",
+    "No D24 proposed plan, composite admission, RLS or rollback implementation exists or was tested.",
+    "Synthetic status/step labels are legacy runner inputs, not acceptance of the future D24 action vocabulary."
+  ]
+}

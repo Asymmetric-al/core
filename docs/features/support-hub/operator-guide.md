@@ -1,120 +1,85 @@
-# Support Hub — Operator guide for donor care staff
+# Support Hub — Operator contract
 
-The Support Hub is the donor-care inbox inside Mission Control. This guide walks through a typical workflow for a donor care agent. Skim it once when you start; keep the keyboard map open while you ramp.
+This guide summarizes the accepted Phase 26 behavior for implementation and
+operator qualification. It does not certify that every control is available in
+the current deployment. The [formal package](README.md), its exact requirements
+and the [current glossary](../../prds/sitestacker-parity/phase-26-support-hub-glossary.md)
+govern. Verify the deployed capability before using this as operational training.
+The [earlier Phase 8 guide](https://github.com/Asymmetric-al/core/blob/9c8d69c407433dfe20c14fa2de2ccd0402f70583/docs/features/support-hub/operator-guide.md)
+is historical implementation evidence; its old statuses, retry behavior, template
+variables and keyboard map are not forward implementation requirements.
 
-## The shape of the workspace
+## Find and understand work
 
-`/support` opens the inbox. The page is split into:
+Use the current authorized inbox, My views, curated Shared views and search.
+Sharing a view or conversation link never grants access to its records. Work now
+includes permitted unfinished work regardless of age; pagination, filters and
+counts must use the same complete source predicate. Personal read/unread state,
+assignment, priority and labels remain separate from work status. The accepted
+work meanings are:
 
-- **Stats strip** — at-a-glance counts (open / mine / unassigned / past due / SLA risk).
-- **Saved views bar** — pinned filter presets shared by the workspace, plus the agent's own personal views.
-- **View tabs + toolbar** — switches between All / Mine / Unassigned / Past Due / Escalated; status / label / assignee filters; board ↔ table layout toggle.
-- **Body** — donor conversations rendered as a board (columns by status) or a table (columns by metadata).
-- **Detail pane** (right rail on desktop, full-screen sheet on mobile) — donor email thread, internal notes, activity, and the reply / private-note composer.
+| Work status           | Meaning                                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------------------------- |
+| Open                  | Support owes a substantive next step or a due review/follow-up.                                          |
+| Waiting for requester | Needed input from admitted people seeking help is the remaining blocker.                                 |
+| Waiting on our side   | The tenant remains responsible for obtaining needed colleague, source-owner or outside-party input.      |
+| Resolved              | Support deliberately completed its obligation; this does not prove delivery or another domain's outcome. |
 
-Everything is deep-linkable. Bookmark a filter, share a URL with a teammate, the URL state survives refresh. Saved views capture the full filter so you can return to the same slice with one click.
+A shared follow-up reminder returns work to attention at the displayed date,
+time and timezone. It does not replace a work status, send an email, or prove the
+awaited action happened. New admitted relevant human input returns work to Open
+once; duplicate delivery must not reopen it again. Ending unanswered work uses
+the explicit No response review and reason, not a silence timer. See D3, D5,
+D20–D22, D30–D31 and D39 in the formal package.
 
-## Triage
+## Prepare and send a reply
 
-1. Scan the **stats strip** for the day's load (open + past due).
-2. Open **Mine** if you already have work, or **Unassigned** if you're picking up the next available conversation.
-3. Use the **status filter** to focus on `open` or `pending` while you triage.
-4. Past Due conversations are flagged with a clock icon on the board card and a chip on the row. Treat them as the queue jumpers.
-5. Escalated conversations are ringed in rose. Surface them above everything else.
+1. Review the exact conversation, receiving inbox and currently permitted source
+   context. A matching email or CRM link does not prove identity or permission
+   to perform a financial, account, document or care action.
+2. Review the actual reply target, To/Cc audience, wording, attachments and managed
+   signature. A personal starting preference does not silently change an already
+   prepared audience. Email Studio owns reusable wording and governed preparation;
+   resolved variables must obey the source's current disclosure policy.
+3. Use a qualified shared Tiptap profile. My replies, Shared replies and saved
+   internal notes have distinct audience and publication rules. A shortcut prepares
+   wording and suggested Support changes for deliberate review; selecting or
+   saving it performs no live business action.
+4. Choose the explicit send/work intent. Plain **Send reply** preserves current work
+   and the valid follow-up reminder. A supported combined action admits the exact
+   reviewed reply and chosen Support effects atomically.
+5. Read the actual result. Local acceptance, provider submission and recipient
+   delivery are different. Reconcile a possibly submitted operation under its
+   existing identity; never create a new send merely because a request timed out.
+   If content or authority needs renewed review, preserve the draft and use the
+   owner's explicit correction/recovery path.
 
-## Replying to a donor
+D1–D4, D18, D23–D24 and D34–D37 specify the complete audience, rendering,
+idempotency, custody, conflict and recovery behavior. This guide does not create
+an independent message template language, provider retry policy or shortcut map.
 
-1. Click the conversation row / card. The detail pane opens; focus moves into the timeline.
-2. Read the donor email. Activity rows (status changes, assignments, mentions) are interleaved chronologically.
-3. Click **Reply** in the composer (or press `r`). The Tiptap editor accepts:
-   - Bold / italic / underline, lists, blockquote, links — same toolbar across donor email and internal notes.
-   - Slash command `/` — opens the canned response picker. Filter by title or shortcode (e.g. `/refund`).
-   - Merge variables — `{{donor.name}}`, `{{donor.email}}`, `{{conversation.subject}}`, `{{agent.name}}`, `{{agent.title}}`. Tokens render as the resolved value before the donor sees the email.
-4. Hit **Send reply** (or `Cmd/Ctrl + Enter`).
-5. If the send fails, an inline retry banner appears at the top of the inbox. Click **Retry** to try again — the original payload is preserved.
+## Collaborate without widening access
 
-## Internal collaboration
+Internal notes, private reply drafts and private new-note drafts are different
+source types. A draft is never a sent timeline message or a shared note. Mentions,
+Following, direct attention and required attention retain their own admission and
+notification rules; following does not grant source access. Reusable internal
+wording never becomes outgoing email by inference.
 
-- Switch to the **Internal note** tab (or press `n`).
-- Type `@` to mention a teammate. The mention surfaces in the timeline as an activity row and (Phase 8) will trigger an in-app + email notification.
-- Save drafts by pressing **Save draft** in Reply mode. Drafts stay in the timeline with a `draft` badge and never go to the donor.
+Assignment, absence coverage and access-loss handoff use current qualified people
+and source-owned commands. An inbox/team designation is not a permission grant.
+Support retains responsibility when it asks a colleague or another domain for
+help; only the receiving owner's result proves that business action completed.
+Merged and related conversations preserve original sources and current access.
+See D6–D12, D14–D17 and D33–D40.
 
-## Conversation actions
+## Complete the action and preserve context
 
-The header carries the conversation-level actions:
-
-- **Status menu** — Open / Pending / Snoozed / Resolved.
-- **Priority menu** — Urgent / High / Normal / Low.
-- **Assignee menu** — pick an agent or clear it.
-- **Labels popover** — toggle labels on / off; "Manage labels" jumps to settings.
-- **Snooze menu** — preset durations + a custom date picker.
-- **Macros menu** — run a saved sequence (assign + label + canned reply + snooze, etc.).
-- **Resolve** — one-click close.
-
-Quick keyboard alternatives:
-
-| Action                       | Key                |
-| ---------------------------- | ------------------ |
-| Resolve                      | `e`                |
-| Snooze 24h                   | `s`                |
-| Open assignee menu           | `a`                |
-| Open labels popover          | `l`                |
-| Open macros popover          | `m`                |
-| Reply mode                   | `r`                |
-| Internal note mode           | `n`                |
-| Send / save                  | `Cmd/Ctrl + Enter` |
-| Open command palette         | `Cmd/Ctrl + K`     |
-| Next / previous conversation | `j` / `k`          |
-| Close overlay                | `Esc`              |
-
-## Saved views
-
-- Use **Save filter** in the saved-views bar to capture the current URL state as a named view.
-- Choose a scope: **personal** (just you) or **workspace** (the whole team sees it).
-- Selecting a saved view writes its filter into the URL — back/refresh keep working.
-- Edit / delete a saved view via the chip kebab.
-
-## Macros
-
-A macro is a one-click sequence of conversation actions. Useful for common donor flows:
-
-- "Send replacement receipt" — drops the canned receipt body into the editor + labels Finance + resolves.
-- "Retry recurring card" — labels Recurring + sends the update-card link + snoozes 48h.
-- "Escalate to Finance team" — assigns the Finance team + labels Escalated + bumps priority.
-
-Run a macro from the conversation header (Wand icon) or the composer chrome. Each step posts an activity row in the timeline so anyone reading the conversation can audit what happened.
-
-If a macro action fails (e.g. the canned response was deleted), the runner skips that step, logs `failed:` in the activity row, and continues with the rest. The composer surfaces the first failed step inline.
-
-## CRM cross-links
-
-When a donor conversation has CRM links (donor / contribution / missionary /
-church), chips appear under the donor email in the contact sidecar. Click a chip
-to open the related Mission Control surface (CRM list with the contact selected,
-contributions list filtered to the donor, etc.). Typed detail deep-links remain
-deferred until the underlying detail pages ship.
-
-If no chips appear and you have the donor email, click **Find in CRM** to jump into the CRM list pre-filtered to that email — you can then manually link the donor.
-
-## SLA awareness
-
-Each conversation tracks two SLA timers:
-
-- **First response** — minutes from inbound to first agent reply.
-- **Next response** — minutes between subsequent replies.
-
-Past Due is computed against these timers. The SLA chip in the conversation header shows the remaining time + tone (calm / amber warning / rose past-due). Resolution timers are surfaced on the reports page.
-
-## Mobile
-
-- The right detail rail collapses into a full-screen sheet on screens ≤ md.
-- The settings sub-nav collapses into a `Select` dropdown.
-- Keyboard shortcuts still apply, but realistically you'll mostly use taps on mobile.
-
-## When something feels off
-
-- Refresh the page — the inbox state is fully URL-driven so refresh is safe.
-- Use **Reset** in the toolbar to clear every filter back to defaults.
-- Open the command palette (`Cmd/Ctrl + K`) and use **Switch view** to jump to a known-good slice.
-- If a mutation appears to fail, look for the amber failure banner at the top of the inbox — it has a Retry button.
-- Worst case: report the issue with the URL of the page (the URL captures the full filter state).
+Menus, keyboard actions, bulk selections and qualified shortcuts use the same
+current authorization, expected revisions and semantic command identity. Show
+conflicts and partial/unknown results truthfully. Keep the selected conversation,
+draft, cursor and return context where allowed. Keyboard controls and shortcuts
+must pass the current accessible journey; the legacy keyboard table is not an
+acceptance substitute. Source restriction, content expiry, redaction and lost
+access apply to readers, search, previews and private drafts as defined by their
+owner; an old screen or saved link cannot restore them.

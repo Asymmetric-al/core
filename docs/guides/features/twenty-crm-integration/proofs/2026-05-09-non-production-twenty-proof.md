@@ -1,5 +1,13 @@
 # Twenty CRM Non-Production Twenty Proof
 
+> **Retired reference — current status 2026-09-16 (AL-1861).** Twenty CRM is
+> not used by Core. Asym Postgres owns CRM truth; the native replacement and
+> vendor runtime removal merged through PR #1325 on 2026-08-19. Do not run the
+> historical setup, sync, cutover or rollback instructions below. Earlier
+> statements about dormant code or pending implementation describe their dated
+> source snapshots. See [current document authority](../../../../ai/document-authority.md) for ownership,
+> compatibility-record preservation and separately unverified external cleanup.
+
 > **Note (2026-07-06):** Twenty CRM has since been retired (ADR-0001); this
 > file records the state as of its date.
 

@@ -66,3 +66,6 @@ vendor/react-pdf-packages/*/
 
 # Local Supabase CLI temp state
 supabase/.temp/
+
+# Immutable founder-supplied roadmap and original reference assets (hash verified)
+docs/prds/program-roadmap/source-2026-09-22/

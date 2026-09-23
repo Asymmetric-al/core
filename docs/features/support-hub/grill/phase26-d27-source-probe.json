@@ -1,0 +1,85 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sources": [
+    {
+      "path": "apps/admin/src/cms/public/resolve-tenant.ts",
+      "sha256": "02862dc987ae47e4bd89b94c9f8932b568e8ab6ccd75d880ebe0922be846447b"
+    },
+    {
+      "path": "apps/admin/src/cms/access/public-read.ts",
+      "sha256": "a796af6a5ff5e5be7d5ac787b9704ed4064495480d04c6c487c0fc73f2093ce9"
+    }
+  ],
+  "method": "Exact pure source excerpts transpiled with installed Bun; stubbed staff policy to observe branch selection.",
+  "observations": [
+    {
+      "id": "numeric-cms-id",
+      "actual": {
+        "operationalTenantId": "42",
+        "cmsTenantId": 42,
+        "siteId": null
+      },
+      "expectedCurrentBehavior": true,
+      "note": "Current conversion is not an independently qualified operational tenant/site mapping."
+    },
+    {
+      "id": "string-cms-id",
+      "actual": {
+        "operationalTenantId": "cms-tenant-example",
+        "cmsTenantId": "cms-tenant-example",
+        "siteId": null
+      },
+      "expectedCurrentBehavior": true,
+      "note": "String input also supplies no Site identity."
+    },
+    {
+      "id": "public-marker-precedes-staff",
+      "actual": {
+        "and": [
+          {
+            "tenant": {
+              "equals": 42
+            }
+          },
+          {
+            "_status": {
+              "equals": "published"
+            }
+          }
+        ]
+      },
+      "expectedCurrentBehavior": true,
+      "note": "Valid public marker stays tenant/published constrained despite a synthetic privileged user."
+    },
+    {
+      "id": "no-staff-fallback-for-valid-marker",
+      "actual": 0,
+      "expectedCurrentBehavior": true,
+      "note": "Stub counts only branch selection, not real staff authorization."
+    },
+    {
+      "id": "missing-marker",
+      "actual": {
+        "staffFallback": true
+      },
+      "expectedCurrentBehavior": true,
+      "note": "Missing marker delegates to existing staff policy; finder must use the qualified public bridge."
+    },
+    {
+      "id": "blank-marker",
+      "actual": {
+        "staffFallback": true
+      },
+      "expectedCurrentBehavior": true,
+      "note": "Malformed/blank marker is not a public proof and delegates to staff policy; this is documented current behavior, not a demonstrated bypass."
+    },
+    {
+      "id": "explicit-adverse-predicate",
+      "actual": false,
+      "expectedCurrentBehavior": true,
+      "note": "An explicit false public predicate denies the valid marked request."
+    }
+  ],
+  "limits": "No env/app import/database/network/provider/browser. Synthetic branch/mapper observations only; no deployed vulnerability, actual RLS, real staff authorization, publication, Guidance implementation or release proof."
+}

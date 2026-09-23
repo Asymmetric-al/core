@@ -1,0 +1,41 @@
+{
+  "status": "passed",
+  "date": "2026-09-13",
+  "ratified": "D1-D34 including all amendments",
+  "D34": {
+    "clauses": 28,
+    "categories": 23,
+    "requiredUnexecutedReleaseGroups": 36,
+    "operatingControls": 7,
+    "terms": 3,
+    "primaryDocs": 8,
+    "originalSubstancePreserved": true,
+    "fullAppendix": true,
+    "EmailStudioSeam": "fully ratified; awareness has no P17 preparation or P6 send/notification/CRM effects",
+    "independentRatificationReview": "Pass"
+  },
+  "Q35": {
+    "status": "unanswered",
+    "options": [
+      "A own-author edits with visible qualified history",
+      "B linked correction only",
+      "C short editing window then linked correction"
+    ],
+    "recommendation": "A",
+    "independentFinalReview": "Pass",
+    "newFeatureADR": false
+  },
+  "preservedPriorCanonicalFiles": 530,
+  "originalD34EvidencePreserved": 11,
+  "mirrorsIncludingRegistryAndValidation": 20,
+  "localLinkInstances": 33,
+  "gitLinkInstances": 10,
+  "uniqueCitedGitSources": 7,
+  "planningPRs": 5,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "productImplementation": false,
+  "formalSpecOrTickets": false,
+  "externalMutation": false,
+  "runtimeProof": "not executed"
+}

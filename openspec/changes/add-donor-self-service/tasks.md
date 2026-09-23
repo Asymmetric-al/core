@@ -33,11 +33,19 @@
 
 ## 2. Payment methods
 
-- [ ] 2.1 Stripe-managed payment-method add/update/remove (SetupIntent or
-      customer portal session); wallet page stub replaced.
+- [ ] 2.1 Adopt the Phase 25 independent Add, selected-use Replace, explicit
+      Remove and optional actor-scoped new-gift payment-preference commands;
+      replace the wallet stub through the current Phase 13/16 owners and
+      Stripe-managed credential capture/setup. No provider billing-default or
+      combined replacement-and-detach fallback remains.
 - [ ] 2.2 Recurring cohorts show masked methods and can switch them safely only
       after every affected line, exact authorization scope, account/mode, and
       provider capability are revalidated; raw credentials never reach Asym.
+- [ ] 2.3 Prove all live method-use/removal dependencies and concurrent new-use
+      fencing; retain historical evidence; allow qualified removal without an
+      unnecessary replacement when no live dependency exists; and reconcile
+      indeterminate effects under the original operation without another
+      detach. New-gift preference alone does not block removal permanently.
 
 ## 3. Annual statements
 

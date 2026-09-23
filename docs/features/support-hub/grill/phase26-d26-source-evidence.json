@@ -1,0 +1,148 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "headAndOriginDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "relatedPRs": [
+    {
+      "number": 1335,
+      "state": "OPEN",
+      "head": "e1c86e1a30f479363960eeb35500112665e16bb3"
+    },
+    {
+      "number": 1336,
+      "state": "OPEN",
+      "head": "3b2827ffcf184bf767664018efedda317c7da03c"
+    },
+    {
+      "number": 1564,
+      "state": "OPEN",
+      "head": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1"
+    }
+  ],
+  "sourceHashes": [
+    {
+      "path": "apps/admin/features/support-hub/components/detail/ConversationCrmLinks.tsx",
+      "sha256": "1b2d57bbd900757bc4295ffef2980b8edbf3fe4776d11ea2095bdb71e06a67be"
+    },
+    {
+      "path": "docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "sha256": "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174"
+    },
+    {
+      "path": "docs/ai/rules/frontend.md",
+      "sha256": "f11a37f1ebb847987171c957857b938239fc93a2f670d2b19682669df6e79447"
+    },
+    {
+      "path": "docs/features/support-hub/grill/phase26-d12-adversarial-review.md",
+      "sha256": "8de9af77a62aeed1fe7c5bc825211eb16ed4b30f99d111c98abcb0477a7ec429"
+    },
+    {
+      "path": "docs/features/support-hub/grill/phase26-d14-adversarial-review.md",
+      "sha256": "8da8039edba331e3890d4eeb5c75e0c944bd338a6322f5db47776352099f761a"
+    },
+    {
+      "path": "docs/features/support-hub/grill/phase26-d17-adversarial-review.md",
+      "sha256": "af3a54ab11c3aac719ccb9bb1f29e3d5d12fb4489749c6b90671b99562d5cd6c"
+    },
+    {
+      "path": "docs/features/support-hub/grill/phase26-d25-adversarial-review.md",
+      "sha256": "6f26099cda52ad9bb59521f4dbae2253bd1eafd83b462ff48b03e5e49b8e9e3d"
+    },
+    {
+      "path": "docs/features/support-hub/grill/phase26-d9-adversarial-review.md",
+      "sha256": "2b115c00c70a052652856e98c3806e25987dd42449287e615d3e3f63cf197a2f"
+    },
+    {
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md",
+      "sha256": "82463b0ce3c42894c01f3542e70db175d13de583246c4228903d47d7e331cc66"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "path": "openspec/changes/complete-twenty-crm-retirement/specs/crm-core/spec.md",
+      "sha256": "7ead2638a9d9de87fa9e70c8f730eabf858bdc985b745f39319f1a2f4626d1a0"
+    },
+    {
+      "path": "openspec/project.md",
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e"
+    },
+    {
+      "path": "openspec/specs/identity-and-access/spec.md",
+      "sha256": "c2d1e411ff413c61549fdd56ed174fb983f2ae6c2818dd0dbf6033d93fc4dba5"
+    },
+    {
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "path": "packages/api/src/admin/crm/detail/index.ts",
+      "sha256": "c9a9c1ea724ae060cbabba73bd0fe046c07bad17683587a8d62ceaed8f1123a3"
+    },
+    {
+      "path": "packages/api/src/admin/crm/detail/service.ts",
+      "sha256": "488887537732e4383b9176e1034fdc53e6bd20f294cee97f1ab90e24595e6810"
+    },
+    {
+      "path": "packages/api/src/admin/crm/notes/service.ts",
+      "sha256": "29ab4788db52f87ed599b95400ca51d3d2bcf5a76c167bb72a0af3d2f5d66273"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "sha256": "c209deb5a02bb49a788d2bad6a56b528ebc1c3f52bd27c9834815f01b5615682"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a"
+    },
+    {
+      "path": "packages/api/src/crm/auth/access.ts",
+      "sha256": "d57a2e6a59a6fbb0713d8d2cdc7029ed99d875409c1947313301d71d5dba632a"
+    },
+    {
+      "path": "packages/api/src/missionary-portal/donor.ts",
+      "sha256": "0f406f4e82be81ca9ae28559dd5351880dbda928f36a99cb9b5d5a9c331aa1ef"
+    },
+    {
+      "path": "packages/database/collections/support-hub.ts",
+      "sha256": "edabdc658b565d1f39272377aeded21634aecc779db43f4a738788ebd9615da2"
+    },
+    {
+      "path": "supabase/config.toml",
+      "sha256": "3a31bbfd599aa7203245fbfab25e4b623ec98043049293cbf35052c6736a54c7"
+    },
+    {
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "path": "supabase/migrations/20260611183000_support_inbound_routes.sql",
+      "sha256": "b22f7236b566f33a0e1b6aabd3fa2754abdaae3bcaa69b92fc2d4bc7d8d03566"
+    }
+  ],
+  "upstreamEvidence": [
+    {
+      "url": "https://supabase.com/changelog.md",
+      "localEvidence": "work/d26-supabase-changelog.md",
+      "sha256": "49b064520ad70f592ea4ffc25f456fcc981404dc925f0c499e21438719a07163",
+      "note": "Public HTTPS markdown fetched after web renderer rejected content type; relevant linked entries opened separately."
+    }
+  ],
+  "localPostgresMajor": 17,
+  "localDataAPIMaxRows": 1000,
+  "probe": "phase26-d26-source-probe.json",
+  "limits": "One exact-source mapper probe, four synthetic observations. No DB/RLS/provider/browser/AT/staff usability qualification or implementation."
+}
