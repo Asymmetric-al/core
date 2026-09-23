@@ -1,6 +1,6 @@
 # Components
 
-> **Core:** Async Server Components call a published `@asym/api/*` read. Derive Tenant from `@asym/auth/context` (`getAuthContext`) before privileged reads; do not take `tenantId` from route params or the client. Do not import `features/<domain>/*-queries.ts`. Approved `@asym/database/hooks` belong only in `'use client'` leaves. Privileged mutations stay in `packages/api`.
+> **Core:** Async Server Components call a published `@asym/api/*` read. Derive Tenant from `@asym/auth/context` (`getAuthContext`) before privileged reads; use the relevant role/app shell gate before service-role or tenant-wide reads; do not take `tenantId` from route params or the client. Do not import `features/<domain>/*-queries.ts`. Approved `@asym/database/hooks` belong only in `'use client'` leaves. Privileged mutations stay in `packages/api`.
 
 How to build server and client components inside a feature folder.
 
@@ -12,12 +12,18 @@ Prefer minimal, stable props: IDs, slugs, handles, parsed filters, or records th
 
 ```tsx
 // features/dashboard/components/dashboard-stats-badge.tsx
-import { getAuthContext } from "@asym/auth/context";
+import { getAuthContext, hasAnyContextRole } from "@asym/auth/context";
 import { getDashboardStats } from "@asym/api/reads/dashboard-stats";
+
+const ADMIN_ALLOWED_ROLES = ["staff", "admin", "super_admin"] as const;
 
 export async function DashboardStatsBadge() {
   const auth = await getAuthContext();
-  if (!auth.isAuthenticated || !auth.tenantId) {
+  if (
+    !auth.isAuthenticated ||
+    !auth.tenantId ||
+    !hasAnyContextRole(auth, [...ADMIN_ALLOWED_ROLES])
+  ) {
     return null;
   }
   const stats = await getDashboardStats(auth.tenantId);

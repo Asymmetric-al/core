@@ -277,14 +277,18 @@ describe("nextjs-app-architecture skill", () => {
     expect(componentsCore).toContain("@asym/api");
     expect(componentsCore).toContain("packages/api");
     expect(componentsCore).toContain("@asym/auth/context");
+    expect(componentsCore).toContain("role/app shell gate");
     expect(cacheComponentsCore).toContain("packages/api");
     expect(queriesActionsCore).toContain("packages/api");
+    expect(queriesActionsCore).toContain("service-role/admin-client reads");
     expect(spaCore).toContain("packages/api");
     expect(spaCore).toContain("src/shared/cache-tags.ts");
 
     expect(components).toContain("> **Core:**");
     expect(components).toContain("DashboardStatsBadgeSkeleton");
     expect(components).toContain("getAuthContext");
+    expect(components).toContain("hasAnyContextRole");
+    expect(components).toContain("ADMIN_ALLOWED_ROLES");
     expect(components).toContain("getDashboardStats(auth.tenantId)");
     expect(components).toContain("WrongDashboardStatsBadge");
     expect(components).not.toMatch(

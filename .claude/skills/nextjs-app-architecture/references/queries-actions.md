@@ -1,6 +1,6 @@
 # Queries and actions
 
-> **Core:** Vendor next-beats placement. In this repo, do not copy `db.*` into `features/<domain>/*-queries.ts` or `*-actions.ts`. Privileged reads and writes stay in `packages/api`. Async Server Components call published server-read subpaths; only client leaves use `@asym/database/hooks` for approved browser tables. Client mutations use an approved hook/API route or an authenticated `'use server'` adapter delegating to the API owner. The vendor procedure below is placement-only and must not be copied into `apps/*/features/`. Examples explicitly labeled Core use real package contracts; ordinary server exports are not callable client actions.
+> **Core:** Vendor next-beats placement. In this repo, do not copy `db.*` into `features/<domain>/*-queries.ts` or `*-actions.ts`. Privileged reads and writes stay in `packages/api`. Async Server Components call published server-read subpaths and must pass the role/app shell gate before service-role/admin-client reads; only client leaves use `@asym/database/hooks` for approved browser tables. Client mutations use an approved hook/API route or an authenticated `'use server'` adapter delegating to the API owner. The vendor procedure below is placement-only and must not be copied into `apps/*/features/`. Examples explicitly labeled Core use real package contracts; ordinary server exports are not callable client actions.
 
 The data layer. Every feature has both: queries to read, actions to write.
 
@@ -12,7 +12,7 @@ When a server read also seeds a browser data cache, follow `references/single-pa
 
 ## Queries
 
-Vendor placement: create `features/<domain>/<domain>-queries.ts` with `import 'server-only'` and plain async exports. **Core:** skip that file; call an existing published server-read subpath from a Server Component. For example, `getDashboardStats(tenantId)` is exported by `@asym/api/reads/dashboard-stats` and returns `DashboardStats`; its caller must first prove current authorization and derive the Tenant from trusted server context. It is not a client-callable action.
+Vendor placement: create `features/<domain>/<domain>-queries.ts` with `import 'server-only'` and plain async exports. **Core:** skip that file; call an existing published server-read subpath from a Server Component. For example, `getDashboardStats(tenantId)` is exported by `@asym/api/reads/dashboard-stats` and returns `DashboardStats`; its caller must first prove current authorization, including the role/app shell gate for service-role/admin-client reads, and derive the Tenant from trusted server context. It is not a client-callable action.
 
 Resource queries own `notFound()` when a requested record is absent. Route pages only compose the feature and pass route values down; they do not perform data lookups or decide resource existence.
 
