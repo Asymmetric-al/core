@@ -1,0 +1,98 @@
+{
+  "date": "2026-09-13",
+  "sourceHead": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "stage": "grooming; synthetic installed-source observations, not product/runtime/provider conformance",
+  "networkCallsOutsideMocks": 0,
+  "actualSocketConnections": 0,
+  "versions": {
+    "ssr": "0.8.0",
+    "realtime": "2.103.0",
+    "tiptap": "3.22.3"
+  },
+  "files": [
+    {
+      "path": "packages/auth/node_modules/@supabase/ssr/src/createBrowserClient.ts",
+      "sha256": "ac7a3abab45cff445e7fd2f407379595e4f39de181b71ebbc50fb3ed7be117a2"
+    },
+    {
+      "path": "node_modules/.bun/@supabase+realtime-js@2.103.0/node_modules/@supabase/realtime-js/src/RealtimeClient.ts",
+      "sha256": "43c50c9dd36044a6d84c022519a64d3779996901f4384b94413810f7da9ed6a1"
+    },
+    {
+      "path": "node_modules/.bun/@supabase+realtime-js@2.103.0/node_modules/@supabase/realtime-js/src/RealtimeChannel.ts",
+      "sha256": "54b436f8fdacfce2469c78756c2b66345913f3d4ac442e7abcaa38d6e66d5858"
+    },
+    {
+      "path": "packages/ui/node_modules/@tiptap/react/src/useEditor.ts",
+      "sha256": "1587be18fe75eef97fe1cab3344a487c4a1844cc32d0f9529b450dcc3f2a8e9a"
+    },
+    {
+      "path": "apps/admin/next.config.ts",
+      "sha256": "698831ee07bb878d1fc3842550838e4cecd8704621a5ab6ea467e9cbcab75aca"
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "sha256": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f"
+    }
+  ],
+  "results": [
+    {
+      "id": "S01",
+      "kind": "executed-installed-helper",
+      "assertion": "Explicit singleton option returns the same SSR client in a synthetic Node process",
+      "pass": true,
+      "limitation": "No real browser, cookie, auth/session or socket qualification; explicit isSingleton avoids relying on browser globals."
+    },
+    {
+      "id": "S02",
+      "kind": "executed-installed-helper",
+      "assertion": "Same topic returns the existing RealtimeChannel even when requested private config differs",
+      "pass": true,
+      "limitation": "No provider join/policy test. Topic configuration must remain invariant; use scoped generation and reference ownership."
+    },
+    {
+      "id": "S03",
+      "kind": "executed-installed-helper-with-mocked-fetch",
+      "assertion": "httpSend uses REST while disconnected and preserves private=true",
+      "pass": true,
+      "transport": {
+        "url": "https://synthetic.invalid/realtime/v1/api/broadcast?apikey=synthetic-server-key&vsn=2.0.0",
+        "method": "POST",
+        "body": {
+          "messages": [
+            {
+              "topic": "synthetic-opaque-topic",
+              "event": "refresh",
+              "payload": {
+                "v": 1
+              },
+              "private": true
+            }
+          ]
+        }
+      },
+      "limitation": "Synthetic HTTP202 only; it is not evidence of broker, subscriber delivery or live permission."
+    },
+    {
+      "id": "S04",
+      "kind": "executed-installed-helper-with-injected-send",
+      "assertion": "Presence track forwards caller-supplied actor/name without identity attestation",
+      "pass": true,
+      "limitation": "Demonstrates client API behaviour; authorization policies and a future authoritative actor lookup are separate."
+    },
+    {
+      "id": "S05",
+      "kind": "executed-installed-helper-with-mocked-fetch",
+      "assertion": "httpSend rejects non-202 rather than resolving success:false",
+      "pass": true,
+      "limitation": "Synthetic HTTP500. Network timeout and provider faults need implementation qualification."
+    },
+    {
+      "id": "S06",
+      "kind": "source-contract-inspection",
+      "assertion": "Installed Tiptap returns null transaction selector for absent shouldRerenderOnTransaction",
+      "pass": true,
+      "limitation": "Source inspection only; does not measure parent/component render cost or browser interaction."
+    }
+  ]
+}

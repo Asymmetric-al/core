@@ -6,6 +6,7 @@ import {
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { beginGiftIntake } from "./begin-gift-intake";
 import {
   GiftProcessingFeePolicyError,
   giftProcessingFeeStripeMetadataEquals,
@@ -26,17 +27,6 @@ import {
 import { findDonorByProfileId } from "../shared/queries";
 import { withOperation } from "../shared/with-operation";
 import { resolveTenantStripe } from "../stripe/tenant-client";
-
-function parseRpcObject<T extends Record<string, unknown>>(
-  value: unknown,
-): T | null {
-  if (!value) return null;
-  if (Array.isArray(value)) {
-    const first = value[0];
-    return first && typeof first === "object" ? (first as T) : null;
-  }
-  return typeof value === "object" ? (value as T) : null;
-}
 
 const stripeConfigurationError = () =>
   NextResponse.json(
@@ -91,60 +81,56 @@ export const POST = withOperation(
     const extraPaymentIntentMetadata =
       toGiftProcessingFeeStripeMetadata(feeQuote);
 
-    const { data: beginRaw, error: beginError } = await supabaseAdmin.rpc(
-      "begin_donation_saga",
-      {
-        p_tenant_id: ctx.tenantId,
-        p_profile_id: ctx.profileId,
-        p_actor_user_id: ctx.userId,
-        p_amount: amountInCents,
-        p_currency: currency.toLowerCase(),
-        p_missionary_id: missionary_id || null,
-        p_fund_id: fund_id || null,
-        p_idempotency_key: idempotencyKey,
-        p_ip_address: request.headers.get("x-forwarded-for"),
-        p_user_agent: request.headers.get("user-agent"),
-        p_fee_extras: extraPaymentIntentMetadata,
+    const begin = await beginGiftIntake({
+      rpc: async (fn, rpcArgs) => {
+        const response = await supabaseAdmin.rpc(fn, rpcArgs as never);
+        return { data: response.data, error: response.error };
       },
-    );
+      tenantId: ctx.tenantId,
+      profileId: ctx.profileId,
+      actorUserId: ctx.userId,
+      missionaryId: missionary_id || null,
+      fundId: fund_id || null,
+      amountCents: amountInCents,
+      currency,
+      idempotencyKey,
+      ipAddress: request.headers.get("x-forwarded-for"),
+      userAgent: request.headers.get("user-agent"),
+      feeExtras: extraPaymentIntentMetadata,
+    });
 
-    if (beginError) {
-      if (beginError.code === "P0002") {
-        return NextResponse.json(
-          { error: "Missionary or fund not found" },
-          { status: 404 },
-        );
+    if (!begin.ok) {
+      switch (begin.code) {
+        case "not_found":
+          return NextResponse.json(
+            { error: "Missionary or fund not found" },
+            { status: 404 },
+          );
+        case "invalid":
+          return NextResponse.json({ error: begin.message }, { status: 400 });
+        case "incomplete":
+          return NextResponse.json(
+            { error: "Failed to start donation saga" },
+            { status: 500 },
+          );
+        case "failed":
+          return NextResponse.json({ error: begin.message }, { status: 500 });
+        default: {
+          const _exhaustive: never = begin;
+          return NextResponse.json(
+            { error: String(_exhaustive) },
+            { status: 500 },
+          );
+        }
       }
-      if (beginError.code === "22023") {
-        return NextResponse.json(
-          { error: beginError.message },
-          { status: 400 },
-        );
-      }
-      return NextResponse.json({ error: beginError.message }, { status: 500 });
     }
 
-    const beginResult = parseRpcObject<{
-      outbox_id?: string;
-      donation_id?: string;
-      replayed?: boolean;
-    }>(beginRaw);
-
-    const outboxId = beginResult?.outbox_id ?? null;
-    const donationId = beginResult?.donation_id ?? null;
-    if (!outboxId || !donationId) {
-      return NextResponse.json(
-        { error: "Failed to start donation saga" },
-        { status: 500 },
-      );
-    }
-
-    if (beginResult?.replayed) {
+    if (begin.replayed) {
       const { data: storedDonation, error: storedDonationError } =
         await supabaseAdmin
           .from("donations")
           .select("amount")
-          .eq("id", donationId)
+          .eq("id", begin.donationId)
           .eq("tenant_id", ctx.tenantId)
           .single();
 
@@ -170,7 +156,7 @@ export const POST = withOperation(
         await supabaseAdmin
           .from("donation_saga_outbox")
           .select("fee_extras")
-          .eq("id", outboxId)
+          .eq("id", begin.outboxId)
           .eq("tenant_id", ctx.tenantId)
           .single();
 
@@ -195,7 +181,7 @@ export const POST = withOperation(
         throw error;
       }
       if (
-        storedFeeExtras == null ||
+        storedFeeExtras != null &&
         !giftProcessingFeeStripeMetadataEquals(
           storedFeeExtras,
           extraPaymentIntentMetadata,
@@ -211,7 +197,7 @@ export const POST = withOperation(
     const sagaResult = await processDonationSagaOutboxEvent({
       supabaseAdmin,
       stripe,
-      outboxId,
+      outboxId: begin.outboxId,
       actorUserId: ctx.userId,
       extraPaymentIntentMetadata,
     });
@@ -220,8 +206,8 @@ export const POST = withOperation(
       return NextResponse.json(
         {
           error: sagaResult.error ?? "Donation is still processing",
-          donationId,
-          outboxId,
+          donationId: begin.donationId,
+          outboxId: begin.outboxId,
           status: sagaResult.status,
         },
         { status: sagaResult.status === "processing" ? 202 : 500 },
@@ -238,10 +224,10 @@ export const POST = withOperation(
     return NextResponse.json({
       clientSecret: sagaResult.clientSecret,
       paymentIntentId: sagaResult.paymentIntentId,
-      donationId,
-      outboxId,
+      donationId: begin.donationId,
+      outboxId: begin.outboxId,
       idempotencyKey,
-      replayed: Boolean(beginResult?.replayed),
+      replayed: begin.replayed,
       publishableKey,
     });
   },

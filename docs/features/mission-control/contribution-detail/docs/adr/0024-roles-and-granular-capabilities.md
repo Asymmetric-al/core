@@ -2,9 +2,12 @@
 
 **Status:** Accepted (grill session 2026-05-29)
 
+**Current amendment — 2026-09-16 (AL-1861):** The Decision below uses the
+ratified [owner contracts](../../README.md); unchanged UI decisions remain valid.
+
 ## Context
 
-Contribution detail supports viewing financial truth, corrections, approvals, receipts, CRM posting, refunds, Stripe operations, audit proof, approval-policy settings, and table preferences. Current branch code exposes a broad `finance:manage_contributions` permission, but the product model needs clearer control boundaries.
+Contribution detail supports viewing financial truth, corrections, approvals, receipts, native CRM projection, refunds, Stripe operations, audit proof, approval-policy settings, and table preferences. The May 2026 branch exposed a broad `finance:manage_contributions` permission, but the product model needs clearer control boundaries.
 
 Product/UI language should remain understandable to staff. Backend enforcement needs to be precise enough that one permission does not accidentally authorize every financial, provider, and settings operation.
 
@@ -20,7 +23,7 @@ User-facing roles:
 - Super admin
 - Technical/admin-only operator
 
-Backend capabilities gate individual actions such as viewing restricted proof, requesting corrections, applying corrections, approving corrections, overriding approval gates, managing receipts, retrying CRM post, running refund workflow, replaying Stripe webhooks, managing approval policy, managing table preferences, and managing CRM gift-history view defaults.
+Backend capabilities gate individual actions such as viewing restricted proof, requesting corrections, applying corrections, approving corrections, configuring permitted approval policy, managing receipts, using qualified source recovery, running refund workflow, replaying Stripe webhooks, managing approval policy, managing table preferences, and managing CRM gift-history view defaults.
 
 CRM gift-history tenant defaults can be managed by super admins or by staff granted a delegated settings capability such as `crm.gift_history.manage_view_defaults`. This capability covers tenant-level defaults for columns, row action defaults, filters/sort defaults, and reset behavior; it does not grant contribution operation permissions such as correction, refund, approval, receipt sending, or provider actions.
 
@@ -38,4 +41,10 @@ CRM gift-history view-default changes are capability-gated and audited, but do n
 
 - **Simple roles only:** Easy to understand but too coarse for provider and financial controls.
 - **Granular permissions only:** Precise but hard to communicate in product UX.
-- **Tenant-defined custom roles immediately:** Powerful but too much scope for the contribution detail PRD; can be supported later if the capability layer is clean.
+- **A feature-local custom-role system:** Powerful but too much scope for the contribution detail PRD; Phase 12 owns custom roles and their capability inputs.
+
+## Original decision provenance
+
+The [original dated record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0024-roles-and-granular-capabilities.md) preserves earlier wording and
+rationale. Current terminology and applicability were amended on 2026-09-16;
+documentation does not establish runtime activation.

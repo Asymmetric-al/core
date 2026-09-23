@@ -1,0 +1,107 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sourceHashes": [
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/SignatureChip.tsx",
+      "sha256": "83ad798556369eb17d3134846efc3b113cd67dfa20f15a800b1f2a5f39bbf062"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/SupportTipTapEditor.tsx",
+      "sha256": "f89d84d041a344ec91f6344d1efa6342adec3f6d88e2844bb309c78a121affab"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/serialize-payload.ts",
+      "sha256": "ef068aa25719b47057500c6e29f9f4fe8e71c5567946fbe7f895590efa0cea60"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/settings/signatures/SignatureForm.tsx",
+      "sha256": "37731cec0b90d9d1b84bdc8f316ad22ec5a9c1f5c4e67b902c15e5d4b3963ad2"
+    },
+    {
+      "path": "apps/admin/features/support-hub/hooks/use-support-signatures.ts",
+      "sha256": "e058b7f4c0ba3b83061f164ee9db9f1f82e7d5f235e05d2f61462a344a090215"
+    },
+    {
+      "path": "bun.lock",
+      "sha256": "47f0cd34dd5e7a75e55f36945b8c5e190f0971004ea796e316a90d2be9faad84"
+    },
+    {
+      "path": "docs/adr/0029-tenant-owned-resend-and-composed-delivery-identities.md",
+      "sha256": "c59d3c222f59cedf5294acd5d07b451b792ed5ebf5738266c3dff56aeb10d1bf"
+    },
+    {
+      "path": "docs/adr/0030-canonical-message-document-and-presentation-dependencies.md",
+      "sha256": "6da9e5c451c1c3a6e42f1ed39e0445b7f9a0db279686489393dfea92303b8a1d"
+    },
+    {
+      "path": "docs/adr/0031-body-free-history-with-expiring-recent-copy.md",
+      "sha256": "2cdb0dc085cf1c85d191b84aba5320bebe9ba72b86f4a10ca5d2fe1c66127baf"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md",
+      "sha256": "4653ae542c1f28e076cc7f9c39fe316c82ad77d59340bfe90b9b0f58f3ef524d"
+    },
+    {
+      "path": "openspec/specs/identity-and-access/spec.md",
+      "sha256": "c2d1e411ff413c61549fdd56ed174fb983f2ae6c2818dd0dbf6033d93fc4dba5"
+    },
+    {
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a"
+    },
+    {
+      "path": "packages/api/src/profile/index.ts",
+      "sha256": "23bbfe624962ca3d7524692b4b04df7e9b5abee7497d4544e695955da04106b0"
+    },
+    {
+      "path": "packages/lib/posts/link-policy.ts",
+      "sha256": "0d4039306c791524321d7da64622d79743fb86f71e64283d4fc2009e820c18c8"
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/extensions.ts",
+      "sha256": "df7ae7eb65cd85f783b879f20f387ef3395cbf1168768cf6887706c4f138680d"
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/helpers.ts",
+      "sha256": "f81a57bfbb06d9d897ac6d0c6986c62da2d2f810dcdbdf3978973b767d720c16"
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "sha256": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f"
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-viewer.tsx",
+      "sha256": "58187bfd5e75baa7950492b0945327c96deda62539429db9a61eaa7295b120a1"
+    },
+    {
+      "path": "packages/ui/components/studio/ReactEmailEditor.tsx",
+      "sha256": "7da2aa606956b5962e792a8a833c0fe076bfe024501d3064cd606ad04c05f820"
+    },
+    {
+      "path": "packages/ui/package.json",
+      "sha256": "7d736a382db44e90e81cfad225bf210419ae73083be7979a3c53b547295a5126"
+    },
+    {
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    }
+  ],
+  "upstreamReferences": {
+    "tiptap": "7ab690e5056fe999988552822c4fc1b1064bf094",
+    "tiptap-docs": "de0873c397b84b221b1924193301819200333f74"
+  },
+  "currentVersusIntended": "Source inspection and seven synthetic current-source cases; no proposed implementation/runtime proof"
+}

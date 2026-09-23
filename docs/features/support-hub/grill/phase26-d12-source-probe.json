@@ -1,0 +1,133 @@
+{
+  "inspectedHead": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sourcePath": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10/packages/api/src/admin/support-hub/adapter/supabase.ts",
+  "sourceSha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+  "extractedHelperSha256": "c663e5e8cdfe94ece6d3e9051bd75274139109292e365d72fd6a01e301a93029",
+  "sourceLines": "1413-1443",
+  "observation1": {
+    "firstError": null,
+    "rowsAfterFirstAttempt": [
+      {
+        "tenant_id": "tenant-fixture",
+        "id": "conv-1",
+        "inbox_id": "inbox-fixture",
+        "subject": "Synthetic source question",
+        "status": "open",
+        "priority": "normal",
+        "channel": "email",
+        "external_contact_email": "requester@example.test",
+        "external_contact_name": "Synthetic requester",
+        "contact_ref": null,
+        "unread_count": 0,
+        "message_count": 0,
+        "first_message_at": "2026-09-01T10:00:00.000Z",
+        "last_message_at": "2026-09-01T10:00:00.000Z",
+        "last_customer_message_at": "2026-09-01T10:00:00.000Z",
+        "last_message_direction": "inbound",
+        "board_order": 0,
+        "created_at": "2026-09-01T10:00:00.000Z",
+        "updated_at": "2026-09-01T10:00:00.000Z"
+      }
+    ],
+    "rowsAfterRetry": [
+      {
+        "tenant_id": "tenant-fixture",
+        "id": "conv-1",
+        "inbox_id": "inbox-fixture",
+        "subject": "Synthetic source question",
+        "status": "open",
+        "priority": "normal",
+        "channel": "email",
+        "external_contact_email": "requester@example.test",
+        "external_contact_name": "Synthetic requester",
+        "contact_ref": null,
+        "unread_count": 0,
+        "message_count": 0,
+        "first_message_at": "2026-09-01T10:00:00.000Z",
+        "last_message_at": "2026-09-01T10:00:00.000Z",
+        "last_customer_message_at": "2026-09-01T10:00:00.000Z",
+        "last_message_direction": "inbound",
+        "board_order": 0,
+        "created_at": "2026-09-01T10:00:00.000Z",
+        "updated_at": "2026-09-01T10:00:00.000Z"
+      }
+    ],
+    "nativeMessagesInsertedByHelper": 0
+  },
+  "observation2": {
+    "firstError": "synthetic_hydration_failure",
+    "rowsAfterFirstAttempt": [
+      {
+        "tenant_id": "tenant-fixture",
+        "id": "conv-1",
+        "inbox_id": "inbox-fixture",
+        "subject": "Synthetic source question",
+        "status": "open",
+        "priority": "normal",
+        "channel": "email",
+        "external_contact_email": "requester@example.test",
+        "external_contact_name": "Synthetic requester",
+        "contact_ref": null,
+        "unread_count": 0,
+        "message_count": 0,
+        "first_message_at": "2026-09-01T10:00:00.000Z",
+        "last_message_at": "2026-09-01T10:00:00.000Z",
+        "last_customer_message_at": "2026-09-01T10:00:00.000Z",
+        "last_message_direction": "inbound",
+        "board_order": 0,
+        "created_at": "2026-09-01T10:00:00.000Z",
+        "updated_at": "2026-09-01T10:00:00.000Z"
+      }
+    ],
+    "rowsAfterRetry": [
+      {
+        "tenant_id": "tenant-fixture",
+        "id": "conv-1",
+        "inbox_id": "inbox-fixture",
+        "subject": "Synthetic source question",
+        "status": "open",
+        "priority": "normal",
+        "channel": "email",
+        "external_contact_email": "requester@example.test",
+        "external_contact_name": "Synthetic requester",
+        "contact_ref": null,
+        "unread_count": 0,
+        "message_count": 0,
+        "first_message_at": "2026-09-01T10:00:00.000Z",
+        "last_message_at": "2026-09-01T10:00:00.000Z",
+        "last_customer_message_at": "2026-09-01T10:00:00.000Z",
+        "last_message_direction": "inbound",
+        "board_order": 0,
+        "created_at": "2026-09-01T10:00:00.000Z",
+        "updated_at": "2026-09-01T10:00:00.000Z"
+      },
+      {
+        "tenant_id": "tenant-fixture",
+        "id": "conv-2",
+        "inbox_id": "inbox-fixture",
+        "subject": "Synthetic source question",
+        "status": "open",
+        "priority": "normal",
+        "channel": "email",
+        "external_contact_email": "requester@example.test",
+        "external_contact_name": "Synthetic requester",
+        "contact_ref": null,
+        "unread_count": 0,
+        "message_count": 0,
+        "first_message_at": "2026-09-01T10:00:00.000Z",
+        "last_message_at": "2026-09-01T10:00:00.000Z",
+        "last_customer_message_at": "2026-09-01T10:00:00.000Z",
+        "last_message_direction": "inbound",
+        "board_order": 0,
+        "created_at": "2026-09-01T10:00:00.000Z",
+        "updated_at": "2026-09-01T10:00:00.000Z"
+      }
+    ],
+    "nativeMessagesInsertedByHelper": 0
+  },
+  "interpretation": [
+    "This inbound-specific helper writes inbound-derived first/last/customer dates while its message count is zero. This is expected during its current inbound caller sequence; it is not a qualified staff-related creation command.",
+    "A successful synthetic insert followed by failed hydration leaves a conversation row. Retrying the helper with identical input creates another generated conversation ID. This observes this helper only; it does not prove a live incident or that every upstream durable caller duplicates work."
+  ],
+  "proofLimits": "Actual extracted source helper and synthetic persistence dependencies only. No desired D12 model, app bootstrap, environment values, DB/Auth/RLS, provider, network or UI test."
+}

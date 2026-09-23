@@ -10,23 +10,23 @@
 
 Phase 18 D17 is the latest controlling decision for receipt/PDF runtime architecture: one clean canonical `pdf_*` system, no legacy runtime or migration product, and an environment-gated destructive pre-production cutover. It supersedes earlier active wording that would preserve, import, shadow, backfill, federate, or fall back to prototype paths.
 
-D17 does not supersede the durable authorities from earlier phases: Phase 7 receipt/statement facts and issuance, Phase 10 restricted-person rules, Phase 11 field policy, Phase 12 capabilities, Phase 13 posted money, Phase 14 tribute meaning, Phase 16 commitment truth, Phase 17 delivery, Phase 19 statement population/runs, Phase 29 general files/custody future, or Phase 38 donor-wide privacy orchestration.
+D17 does not supersede the durable authorities from earlier phases: Phase 7 receipt/statement facts and issuance, Phase 10 restricted-person rules, Phase 11 field policy, Phase 12 capabilities, Phase 13 posted money, Phase 14 tribute meaning, Phase 16 commitment truth, Phase 17 content and Phase 6 delivery/history, Phase 19 statement population/runs, Phase 29 general files/custody future, or Phase 38 donor-wide privacy orchestration.
 
 ## Canonical ownership map
 
-| Concern                                                                                                         | Owner    | Phase 18 relationship                                                              |
-| --------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------- |
-| Legal donor, receipt/statement eligibility, tax facts, correction/void/replacement effect and optional issuance | Phase 7  | Consumes immutable facts and authority; never derives from renderer/artifact/email |
-| Restricted worker and publication privacy                                                                       | Phase 10 | Applies strictest policy to visible and hidden PDF/metadata/access surfaces        |
-| Native/custom field identity, type, classification and egress                                                   | Phase 11 | Reuses catalog through Approved Data Views; no second catalog                      |
-| Capabilities and separation of duties                                                                           | Phase 12 | Reuses server authorization/step-up; no role engine                                |
-| Posted designation/ledger/money truth                                                                           | Phase 13 | Renders only; never owns totals or accounting state                                |
-| Tribute/recognition recipients and privacy                                                                      | Phase 14 | Renders only source-selected meaning/recipient                                     |
-| Recurring/fixed commitment and fulfillment                                                                      | Phase 16 | Renders source-owned non-debt truth                                                |
-| Message wrapper, protected action primitive, outbox/provider/communication history                              | Phase 17 | Receives exact artifact identity; owns send/retry/delivery evidence                |
-| Statement population, cutoff, schedule and run recovery                                                         | Phase 19 | Requests item-authoritative generation; Phase 18 alone renders/stores              |
-| General files and later custody abstraction                                                                     | Phase 29 | Does not absorb generated-document identity/currentness/evidence                   |
-| Donor-wide privacy/erasure case                                                                                 | Phase 38 | Coordinates owner outcomes; Phase 18 disposes only its records                     |
+| Concern                                                                                                         | Owner              | Phase 18 relationship                                                                                                                                      |
+| --------------------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Legal donor, receipt/statement eligibility, tax facts, correction/void/replacement effect and optional issuance | Phase 7            | Consumes immutable facts and authority; never derives from renderer/artifact/email                                                                         |
+| Restricted worker and publication privacy                                                                       | Phase 10           | Applies strictest policy to visible and hidden PDF/metadata/access surfaces                                                                                |
+| Native/custom field identity, type, classification and egress                                                   | Phase 11           | Reuses catalog through Approved Data Views; no second catalog                                                                                              |
+| Capabilities and separation of duties                                                                           | Phase 12           | Reuses server authorization/step-up; no role engine                                                                                                        |
+| Posted designation/ledger/money truth                                                                           | Phase 13           | Renders only; never owns totals or accounting state                                                                                                        |
+| Tribute/recognition recipients and privacy                                                                      | Phase 14           | Renders only source-selected meaning/recipient                                                                                                             |
+| Recurring/fixed commitment and fulfillment                                                                      | Phase 16           | Renders source-owned non-debt truth                                                                                                                        |
+| Message wrapper, protected action presentation, outbox/provider/communication history                           | Phase 17 / Phase 6 | Phase 17 owns governed content and presentation; Phase 6 owns intent, consent, send/retry and delivery/history evidence; both reference the exact artifact |
+| Statement population, cutoff, schedule and run recovery                                                         | Phase 19           | Requests item-authoritative generation; Phase 18 alone renders/stores                                                                                      |
+| General files and later custody abstraction                                                                     | Phase 29           | Does not absorb generated-document identity/currentness/evidence                                                                                           |
+| Donor-wide privacy/erasure case                                                                                 | Phase 38           | Coordinates owner outcomes; Phase 18 disposes only its records                                                                                             |
 
 ## Required predecessor amendments
 
@@ -68,7 +68,7 @@ Preserve commitment Party/roles, line/occurrence fulfillment, schedule and payme
 
 ### Phase 17 — System Messages & Template Management
 
-Preserve the one communication spine and boundary: Phase 18 owns official/current artifact; Phase 17 owns editable surrounding message, protected action presentation, outbox/provider/evidence and resend. A send retry references exact artifact identity and never rerenders/substitutes it. Recent sent copy/communication history never stores official PDF bytes or becomes archive/issuance truth.
+Preserve the one communication spine and boundary: Phase 18 owns official/current artifact; Phase 17 owns the editable surrounding message, compiler, sender resolution and protected-action presentation; Phase 6 owns recipient intent, consent, preparation orchestration, outbox/submission, provider evidence, communication history and resend. A send retry references exact artifact identity and never rerenders/substitutes it. Recent sent copy/communication history never stores official PDF bytes or becomes archive/issuance truth.
 
 D13 requires one successor amendment to the protected-action contract. The shared primitive MUST use a non-secret selector plus an independent 256-bit verifier in the fragment; inert `GET`/`HEAD`; deliberate same-origin CSRF-protected `POST`; removal from history; no selector-only facts/consumption; and recipient-bound revocable session. This replaces any earlier first-GET secret-handle/cookie exchange that cannot coexist with the fragment protocol. The primitive remains Phase 17-owned; Phase 18 supplies current recipient/artifact resolution.
 
@@ -110,7 +110,7 @@ Update all active Phase 18 surfaces to the same wording:
 
 - roadmap Phase 18 describes one clean canonical system, not three-model migration;
 - Canadian numbering is unique/nonreused/accounted, not mathematically gapless;
-- Phase 18 owns one PDF and same-facts HTML status/detail; Phase 17 owns the separate delivery email;
+- Phase 18 owns one PDF and same-facts HTML status/detail; Phase 17 owns the separate email content and Phase 6 owns its delivery/history;
 - renderer, U.S. religious-benefit breadth and Canadian scope are resolved by D3/D8/D10 rather than open founder questions;
 - Phase 19 owns run timing; January 31 is not expressed as a universal federal deadline;
 - exact current copy preserves bytes/serial; a changed Canadian receipt uses formal new-serial replacement;
@@ -129,7 +129,7 @@ exists, and this contract does not authorize further dispatch.
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
 | Donor live receipt `.txt`                              | Delete; portal calls logical-document/current-artifact access                                                                        | Route/export inventory and donor E2E reject live generation |
 | Donor live annual statement `.txt`                     | Delete; Phase 19 requests Phase 18 artifacts                                                                                         | Same public seam and exact-byte tests                       |
-| Staged-gift hard-coded receipt send                    | Delete direct generation/send; source fact/outbox goes through Phase 18 then Phase 17                                                | Forbidden symbol/route and outbox tracer                    |
+| Staged-gift hard-coded receipt send                    | Delete direct generation/send; source facts go through Phase 18, Phase 17 content preparation, then Phase 6 intent/dispatch          | Forbidden symbol/route and outbox tracer                    |
 | `contribution_receipt_snapshots` prototype             | Remove from the target schema and runtime entirely; no import, backfill, compatibility view, dual read/write, or historical rerender | Schema/type/query/forbidden-symbol inventory                |
 | `gift_receipt_records` scaffold and placeholder output | Remove                                                                                                                               | Fresh reset and forbidden schema/symbol checks              |
 | Mutable PDF root content/status/current pointers       | Replace with draft/commit/publication/head/CAS                                                                                       | Direct-write denial and concurrency tests                   |
@@ -304,7 +304,7 @@ Before publishing the Phase 18 package and again before implementation dispatch:
 1. search PRD/ADRs/OpenSpec/roadmap/phase map/parity/guides/tickets for DocRaptor-as-winner, Unlayer fallback, live `.txt`, snapshot rerender, `gift_receipt_records`, gapless Canada, ACH-processing receipt success, universal January 31, Phase 18 email template, Phase 19 rendering, raw/signed storage URL and legacy migration wording;
 2. classify every hit as removed executable path, dated superseded history, or current congruent contract;
 3. verify purpose/authority manifest keys match PRD, OpenSpec and tests;
-4. verify every Phase 17 delivery contract references exact Phase 18 artifact identity and every Phase 19 item calls the one generation seam;
+4. verify every Phase 17 content/Phase 6 delivery contract references exact Phase 18 artifact identity and every Phase 19 item calls the one generation seam;
 5. verify Canada remains structurally absent for nonparticipants;
 6. verify all protected response header values and deployed-CDN proof requirements are identical across PRD/OpenSpec/tests; and
 7. verify docs report the published ticket set and approved frontier accurately
@@ -314,4 +314,4 @@ Before publishing the Phase 18 package and again before implementation dispatch:
 
 ## Final congruence verdict
 
-The D1-D17 model is coherent when the amendments above land together. Phase 18 owns semantic publication, generation, exact artifact, logical-document projection and its records evidence. Source domains own truth/issuance; Phase 17 owns delivery; Phase 19 owns populations/runs. D17 removes every prototype runtime instead of preserving it. No additional founder choice is required.
+The D1-D17 model is coherent when the amendments above land together. Phase 18 owns semantic publication, generation, exact artifact, logical-document projection and its records evidence. Source domains own truth/issuance; Phase 17 owns content and protected-action presentation; Phase 6 owns intent, consent, delivery, recovery and history; Phase 19 owns populations/runs. D17 removes every prototype runtime instead of preserving it. No additional founder choice is required.

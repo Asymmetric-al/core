@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "tenantId": "fixture-tenant",
+  "workflow": "web-studio.presentation.qualify",
+  "recordRef": {
+    "type": "presentation-build-request",
+    "id": "fixture-build"
+  },
+  "dispatchRequestId": "fixture-dispatch",
+  "routing": {
+    "environment": "fixture-preview",
+    "siteId": "fixture-site"
+  }
+}

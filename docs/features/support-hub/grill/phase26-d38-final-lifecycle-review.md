@@ -1,0 +1,64 @@
+# D38 — Final independent lifecycle and owner-seam review
+
+**Current final disposition: Pass after F-L01 correction.** Initial findings below are preserved; final actual-file verification and hashes appear at the end.
+
+**14 September 2026. Initial disposition: one required clarification.** This is an actual-file review of the integrated D38 decision and release proof, against the companion lifecycle clauses and ratified D1–D37. D38 A is selected, detailed amendments remain proposed, and no Q39 is opened. No implementation or runtime proof is claimed.
+
+## Initial actual-file hashes
+
+| File                                     | SHA-256                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------ |
+| `phase26-d38-adversarial-review.md`      | `b038e01e80ffdd5087105b1c11ff1b72875815173d5479ab778825c9e6b5f3ef` |
+| `phase26-d38-proof-and-operations.md`    | `11ec58f49eda5d103492951e097f43e3a249bfff4a2fc1a41e068f0449613a72` |
+| `phase26-d38-lifecycle-seam-review.md`   | `3248b9edd0eec769d1a5a57e017969bf4b9e271e23b445c22ce42ae2b62e833f` |
+| `phase26-d38-current-mention-probe.json` | `177bb258a0a379b9898d599a3d9f9ae6e937ab15306b0cc081e23a773b344ff1` |
+
+Also read actual Supabase C02–C13, UX04/UX08 and their owner/history clauses for cross-document consistency. Initial hashes above identify the reviewed version rather than falsely describing later changes.
+
+## Required clarification F-L01
+
+**Medium severity; plausible implementation ambiguity.** R08 initially says eligible typed mention targets resolve “under D15”; P09 says final targets receive an “exact D15 contribution.” D15 owns optional Following, expressly distinguishes direct mentions from optional interest (R01/R06/R07), and does not make a direct mention inherit an optional-follow preference or enrollment rule. The integrated UX already correctly calls direct attention independently qualified.
+
+If an implementer treats mentions as D15 optional updates, turning off optional follower email or Stop following could suppress a required direct attention effect, or mentioning a colleague could accidentally enroll them. This narrows the attribution language, not the selected automatic-saving policy and not the existing attention architecture.
+
+**Exact correction:** R08 must say that final eligible typed mentions use the existing independently qualified direct-mention producer/recipient contract; D15 separately owns the published-note E3 optional following occurrence and its source-frontier/current-generation rules. P09 must test the two meanings independently, including no automatic Follow on mention and optional-follow Off/Stop not suppressing independently required direct attention. Overlapping reasons retain their already-qualified shared coalescing; no new notification count or producer family is selected. Correct any companion shorthand that labels direct attention as D15-owned.
+
+## Lifecycle and owner checks otherwise passed
+
+| Check                               | Actual coverage and result                                                                                                                                                                                                                                                                                                                                                               |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| New versus posted note              | R01/R03/R07/R20 and P17/P23/P30 preserve D35 local explicit correction outside My drafts. No autosaved posted revisions. **Pass.**                                                                                                                                                                                                                                                       |
+| Purpose/cardinality                 | R03/R07/R11 and P03/P04/P08/P16 establish separate Note/Reply slots, immutable purpose and terminal lifecycle; multiple retained origins survive merge. **Pass.**                                                                                                                                                                                                                        |
+| Origin versus D10 affinity          | R05 and P07/P20 preserve B private origin while reviewed general post uses current continuing A; post-first/Undo-first outcomes are distinct and no new picker appears. Supabase C02 requires origin/destination/dependency authority. **Pass.**                                                                                                                                         |
+| Meaningful/incomplete/file-only     | R04/R07/R09 and P02/P03/P06 allow valid incomplete saves and ready file-only posts without dummy text; selected unfinished files cannot silently disappear. **Pass.**                                                                                                                                                                                                                    |
+| Whole canonical bundle              | R07/R11/R12 and C06/C08 protect canonical JSON, typed references/files, no-op semantics and original D35 history. Draft checkpoints never become colleague-visible revision history. **Pass.**                                                                                                                                                                                           |
+| Cross-purpose callbacks             | R06/R13/P03/P11/P13 bind save/mode/navigation state; Reply work plans stay independent under D24. **Pass.**                                                                                                                                                                                                                                                                              |
+| Fast Add note                       | R15/P14/P15 allow latest settled candidate without Save click or debounce wait, while earlier dependent unknown saves reconcile against a known base. **Pass.**                                                                                                                                                                                                                          |
+| Atomic local admission              | R15/R16 and C07/P14/P16 include canonical note/initial history/assets, exact draft consumption, operation and source/outbox obligations. SQL/storage distinction is explicit R09/P18. **Pass.**                                                                                                                                                                                          |
+| Unknown post and downstream failure | R16/P15/P16/P24 keep exact original recovery, no fresh editable duplicate and no draft resurrection when notification or projection fails. **Pass.**                                                                                                                                                                                                                                     |
+| Publication versus draft            | R08 closes the actual premature mention POST path. Autosave/restore/discard never publishes or creates attention. Only the F-L01 direct-versus-follow label needs clarification. **Pass with F-L01.**                                                                                                                                                                                    |
+| D17/privacy                         | R18/C07/C10 and P19/P21 distinguish actual native post from draft saves, preserve source stops/independent material clocks and prohibit arbitrary retention reset. **Pass.**                                                                                                                                                                                                             |
+| CRM                                 | R10/R19 and P05/P22/P23 preserve same source/draft, independent CRM authority and no duplicate note/Party/business-completion claims. **Pass.**                                                                                                                                                                                                                                          |
+| P17/P6                              | R20/C13/P23/P24 distinguish shared Note-profile validation from outgoing preparation, local note admission from independent notification occurrence and in-product from external provider material. **Pass.**                                                                                                                                                                            |
+| Discard/migration                   | R17/R23/P16/P25 preserve exact terminal transitions, current revision, posted source history and old-producer closure; no old notes recategorized as private drafts. **Pass.**                                                                                                                                                                                                           |
+| Proof limits and operations         | P01–P30 remain required/unexecuted, O01–O05 name signals/thresholds/roles/responses and treat disclosure/loss/duplicate publication as containment. The five-assertion actual-source probe explicitly mocks transport and forbids network, with zero network/database writes; it proves attempted helper POST and source wiring, not live UI/server/DB notification execution. **Pass.** |
+
+## Status
+
+One material authority clarification F-L01 is required before final Pass. It does not reopen any founder decision. All other reviewed lifecycle and ownership concerns are covered by the integrated clauses and proof groups. This review did not mutate the main decision/proof, earlier ratifications or product code. A final actual-file verification and new hashes will be appended after the parent applies the correction.
+
+## Final actual-file verification — Pass
+
+**14 September 2026. Current disposition: Pass.** Re-read the corrected actual R08/P09 and Supabase C13/C15. They now distinguish the independently governed direct-mention producer from D15 E3 optional Following, preserve its exact source frontier, forbid automatic Follow enrollment and prove optional-follow Off/Stop cannot suppress required direct attention. Existing owner overlap handling remains; no new notification family/count rule was introduced. **F-L01 is resolved.**
+
+Also verified R10/P19 and Supabase C04 explicitly preserve still-lawful private inspection when only Post permission is lost, without granting save/write/post authority. Source/privacy loss still clears forbidden representations. The incorporated corrections record preserves this as F03; it is consistent with lifecycle L12. The UX navigation guard clarification F02 protects either purpose when its controller would be lost, consistent with L06–L07.
+
+| Final reviewed file                      | SHA-256                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------ |
+| `phase26-d38-adversarial-review.md`      | `d648998d4f58ee859685319b76a6620b4b96b94ff63e603969a27a60f13c334d` |
+| `phase26-d38-proof-and-operations.md`    | `49abc9d6163bbbe8fd8b687e74d46fba43f7f78e5fc0ace01f920bc3a0b331cb` |
+| `phase26-d38-supabase-contract.md`       | `9469d687d0aabbbc0ce688f6edc04e95335085578532c0f43292b271f01f5d4f` |
+| `phase26-d38-lifecycle-seam-review.md`   | `3248b9edd0eec769d1a5a57e017969bf4b9e271e23b445c22ce42ae2b62e833f` |
+| `phase26-d38-current-mention-probe.json` | `177bb258a0a379b9898d599a3d9f9ae6e937ab15306b0cc081e23a773b344ff1` |
+
+All other lifecycle/source/canonical-history/file/Post/recovery/CRM/P17/P6 findings in the initial checklist remain satisfied. No new material finding arose. Thirty release groups remain required and unexecuted; the bounded five-assertion source probe is not promoted to runtime evidence. D38 A is selected, the detailed amendment package remains proposed, D1–D37 remain fully ratified, and no Q39 is opened. This Pass assesses the documented permanent contract, not a shipped implementation.

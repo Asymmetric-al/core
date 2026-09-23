@@ -69,8 +69,14 @@ Quote fields go on first-shot PaymentIntent metadata and on
 `donation_saga_outbox.fee_extras`. Recovery and batch processors load stored
 extras before PaymentIntent create. A lookup or parse failure must fail closed.
 An empty stored `{}` (GraphQL or legacy begin without a Gift quote) still omits
-`payment_method_types`. Charged cents already live in `p_amount`. Documented in
-the donation-saga-outbox runbook.
+`payment_method_types`. HTTP donate replay with matching charged cents treats
+that empty/legacy default as absent, not as a colliding quote, so the saga can
+persist the current extras onto empty before claim. A stored full quote that
+differs from the current extras still `409`s. Recovery and batch first-shot
+PaymentIntents MAY omit extras only for that empty/legacy `{}`; newly quoted
+Guest Giving rows keep stored extras including `payment_method` because
+`p_amount` does not preserve method. Documented in the donation-saga-outbox
+runbook.
 
 ### Staff path
 
@@ -84,6 +90,10 @@ is Guest Giving Gift intake only.
 - ACH/wallet quotes can appear on the payment step while live confirm stays
   blocked. Tests lock the reject-before-POST behavior.
 - Estimated fee ≠ Stripe settlement. Copy must stay “estimated.”
+- Persist-onto-empty HTTP donate replay is a first-write window, not CAS:
+  concurrent first quotes onto stored `{}` can race until one full quote
+  lands; later colliding full quotes `409`. Do not treat empty `{}` as an
+  immutable “no cover-fees” quote.
 
 ## Verification
 

@@ -381,6 +381,46 @@ describe("POST /api/donate Gift processing-fee policy", () => {
     );
   });
 
+  it("replays a matching charged-cents Gift when stored fee extras are the empty legacy default", async () => {
+    const expectedQuote = resolveGiftIntakeCharge({
+      amount: 100,
+      coverFees: false,
+      paymentMethod: "card",
+    });
+    storedDonationAmount = expectedQuote.chargedAmountCents;
+    mockedGetAdminClient.mockReturnValue({
+      client: {
+        rpc: rpcMock,
+        from: createReplayFromMock({
+          storedAmount: storedDonationAmount,
+          storedFeeExtras: {},
+        }),
+      } as never,
+      error: null,
+    });
+    rpcMock.mockResolvedValue({
+      data: { ...beginRpcResult, replayed: true },
+      error: null,
+    });
+
+    const response = await POST(
+      createDonateRequest({
+        amount: 100,
+        currency: "usd",
+        cover_fees: false,
+        payment_method: "card",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mockedProcessDonationSagaOutboxEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        extraPaymentIntentMetadata:
+          toGiftProcessingFeeStripeMetadata(expectedQuote),
+      }),
+    );
+  });
+
   it("keeps ACH payment_method extras on a matching charged-cents replay", async () => {
     const expectedQuote = resolveGiftIntakeCharge({
       amount: 100,

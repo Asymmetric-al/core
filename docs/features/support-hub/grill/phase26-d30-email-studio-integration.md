@@ -1,0 +1,64 @@
+# D30 — Shared reporting, Email Studio and future configuration
+
+**Fully founder-ratified, 13 September 2026. D30 and every adopted amendment are accepted; D1–D30 are fully ratified.** The appended ratification governs earlier answer-stage status. This remains feature grooming, not implementation or release proof.
+
+**Historical opening (superseded status, preserved evidence):** **A selected; detailed amendments proposed, 13 September 2026.** [D30-R17–R25](phase26-d30-adversarial-review.md) and the [independent owner review](phase26-d30-owner-review.md) govern these seams. D1–D29 are fully ratified; no existing message contract is reopened.
+
+## Ownership, without another source of truth
+
+| Fact/capability                                                              | Owner                                           | What Overview may do                                                                                                                        |
+| ---------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Work state, current home/assignee, merge topology and work query             | Support and existing D3/D6/D8/D10/D20 contracts | Read the exact current authorized projection and open the matching work list.                                                               |
+| Reply targets, waiting periods, timing/corrections                           | D14 source owner, consuming actual P6 facts     | Present owned results; never calculate from current calendars or apparent sent UI state.                                                    |
+| Current Support labels/cohort/coverage                                       | D21                                             | Show qualified current categorization and exact detail, not CRM tags or an invented historical classification.                              |
+| Feedback opportunities, issued effects, ratings and review                   | D28                                             | Read the exact issued-cohort report; retain historical data while current policy is Off.                                                    |
+| Actual accepted/dispatched/delivered/failed communication                    | P6                                              | Consume only the qualified occurrence/evidence required by report owners. A report is not a send command or provider truth.                 |
+| Governed email content, Tiptap authoring, preparation and immutable material | Email Studio/P17                                | Nothing is authored or prepared by opening the overview. Existing editor/sender/signature contracts stay unchanged.                         |
+| Reusable report definitions/composition/read models and later scheduled runs | Phase 33 intended shared reporting owner        | Consume qualified shared definitions; explicitly qualify missing narrow capability. Do not pretend the whole future service is implemented. |
+| CRM, giving, missionary/care and identity facts                              | Their current authoritative domains             | Navigate to permitted context/actions; never duplicate, synchronize or mutate their records through an aggregate.                           |
+
+## No new email family
+
+Reading, filtering, refreshing or following an overview link sends no message, draws no sample, changes no reply target, marks no feedback reviewed and creates no CRM communication event. There is no daily management digest, dashboard-subscription email, auto-generated recommendation, fundraising email, public reply promise or scheduled report in D30.
+
+D29's browser receipt and optional web confirmation remain distinct. D13's receiving-email confirmation remains its own source. D28's invitation/opportunity/response path remains optional and source-qualified. An overview cannot invoke any of these because a number changed, feedback is negative, a target is overdue or a viewer opens a page.
+
+Actual human replies still follow D4/D23/P17 preparation and D2 recipient review with governed Tiptap authoring/signatures. Actual P6 outcomes inform the relevant source metrics once. Overview does not copy the email body or prepared execution material, reconstruct Recent sent copy, or interpret a transport callback as the original response time without the owner's qualified evidence.
+
+## Later separately authorized scheduled reporting
+
+The [Phase 33 intended boundary](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/prds/sitestacker-parity/roadmap.md#L3572) already separates schedule/report snapshot/recipient eligibility from email preparation and transport. If report delivery is selected later:
+
+1. The reporting owner qualifies the report/run, current source/definition, exact audience, snapshot meaning and each recipient's current access. A manager's visible overview is not automatically releasable to everyone they type into a recipient box.
+2. Email Studio/P17 authors and prepares the governed message with the qualified purpose, recipient/source contract and immutable material. Rendering is not report ownership or authorization.
+3. P6 performs the admitted delivery and records/reconciles actual outcomes. Provider acceptance, mailbox delivery, report view and business completion remain distinct.
+
+This describes the existing platform seam, not a current feature promise or a new scheduling choice. No P17 template/profile, schedule table, email trigger or token/link protocol is added now. Existing full-report export is separately permission-aware; the overview does not create an omnibus export attachment or public sharing route.
+
+## Future full configurability, preserved without premature machinery
+
+The founder's desired destination is a fully configurable Support overview. D30 adopts a focused fixed composition first. The durable seam is one source-owned definition per metric, stable block identity, typed scope/unit/cohort/time/permission contract and exact detail navigation. Presentation can evolve without rewriting the fact being shown.
+
+The initial seven block identities are ordinary code-owned references, not a generic runtime registry, expression evaluator or layout database. No tenant must create a dashboard; there is no disabled Configure button or half-functional beta builder. Product releases maintain a useful default and version compatibility.
+
+When configurable composition is explicitly designed, it must address useful defaults, personal/shared ownership, Save/Cancel/reset, current layout-versus-data permissions, compatible scope bindings, version/missing-block handling, migrations, finite retained preferences and accessible rearrangement. A block can be hidden or arranged only under that future qualified product contract; this cannot delete required work, suppress another owner’s review obligation or grant private totals. Any wider custom metrics/joins remain reporting-owner work and require their own source authority. Future AI needs separately qualified retrieval/action authority; no source text or report comment becomes an instruction merely because a block can display it.
+
+## Required conformance
+
+R25/P34–P35 require the overview to be effect-free across all message families. P36–P37 prove stable definitions without current builder scope; P24–P33 preserve current source/CRM authorization and finite privacy. All actual provider/database/browser/concurrency/release proof remains required and unexecuted in this grooming stage. The documented seam is complete; it does not certify the existing legacy report endpoint or a future scheduled-report implementation.
+
+## Full founder ratification — 13 September 2026
+
+The founder explicitly ratifies **D30 A — A focused Support overview**, including every amendment, addition, adjustment, change and update in **D30-R01–R32**; all **23 individual adversarial categories**, findings, consequences, severity/likelihood assessments and permanent fixes; the complete staff/lead/maintainer/CRM and accessible mobile UX; all metric, source, Supabase/RLS, authorization, privacy, evaluation, failure, lifecycle, concurrency, performance and migration contracts; all independent final corrections; **four glossary terms**; **P01–P48** required release proof groups; and **O01–O06** operating controls with named signals, thresholds, owners and responses. **D1–D30 and every adopted amendment are fully ratified.** Earlier proposed/pending/no-next-question wording, including D30-R32's answer-stage status, is historical and creates no remaining ratification gate.
+
+The accepted fixed composition is three Work now summaries in distinct current conversations—All unfinished, Unassigned and Replies needing attention—and four period sections—Reply targets, Reply times, Request labels and Feedback. Work now alone uses Currently handled in; Results retains period/timezone and each report's authorized population without a misleading global Inbox predicate. Exact D14 target/wait/coverage/time, D21 component-first current-label and D28 issued-cohort/response meanings remain mandatory. Off cannot erase history; retirement alone cannot hide still-owner-qualified work/history or grant new access. Existing D3 follow-up/actionable delivery recovery and independent intake/handoff/feedback review remain directly discoverable even after a reply is fulfilled or an old timer field is cleared.
+
+Five leading labels, four period presets, 1–366 inclusive local calendar dates, Last 30 days including today as the initial period, explicit reporting zone and current partial interval, a 60-second foreground Now refresh and 120-second stale indication are fully accepted as documented product/interaction bounds. Their exact source/authorization/evaluation conditions remain mandatory; they are not retention or security leases. The explicit 100,000-conversation / 1,000,000-source-event / 100,000-feedback-opportunity / 100-viewer fixture and p95 two-second Now / four-second Results targets remain prospective release proof under recorded conditions, not measured capacity claims.
+
+**Future full configurability is fully ratified as product direction; the current fixed release and its boundary are also fully ratified.** Stable code-owned block/definition/read/detail contracts preserve a future path through qualified Phase 33 shared reporting. No layout database, drag editor, semantic DSL, arbitrary formula engine, hidden Configure control or competing Support reporting platform is part of this release. Future composition must complete its own ownership/save/share/reset/compatibility/privacy/accessibility contract and cannot change metric authority or grant underlying data. Phase 33 is intended shared ownership, not claimed shipped, and the focused overview does not wait for the entire future reporting product.
+
+**Email Studio's seam and role are fully ratified.** Viewing, filtering, refreshing and navigating Overview send or prepare no email, start no schedule, mark no review complete and mutate no Support, CRM, target, label or feedback fact. D13/D28/D29 message families, ordinary human replies, signatures and governed Tiptap authoring remain unchanged. Any later separately authorized scheduled report belongs to Phase 33 for schedule/run/snapshot and per-recipient source eligibility; Email Studio/P17 owns governed wording, preparation and immutable material; P6 owns dispatch, outcome, reconciliation and history. Viewing or exporting a permitted report is not authority to email another person. No management digest or new message profile is added by D30.
+
+Source-qualified server projections, current authorization before counts/cache/detail, coherent per-block evaluation, exact native-grain drilldown, honest current re-evaluation, finite source-derived custody and the same canonical Support detail through CRM are all accepted. Current report scaffolding and raw client aggregation do not become correct merely through ratification. No duplicated Party, Activity, last-contact update, financial outcome or care permission is inferred from a metric.
+
+Ratification accepts the complete documented contract and proof obligations. Five actual pinned pure-source observations with synthetic inputs reproduce legacy helper behavior; they do not prove the new runtime, database/RLS, concurrency, provider, browser, accessibility, usability or performance. All 48 actual release groups remain required and unexecuted. Original source/experiment/validation evidence is preserved. Continue the grill with one researched unresolved question; no formal specification, implementation, tickets, GitHub/provider/DNS/inbox/database mutation or real messages are authorized by this recording.

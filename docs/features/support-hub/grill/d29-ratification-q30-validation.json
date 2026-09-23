@@ -1,0 +1,56 @@
+{
+  "status": "passed",
+  "date": "2026-09-13",
+  "ratified": "D1-D29 including every adopted amendment",
+  "D29": {
+    "clauses": 30,
+    "categories": 23,
+    "requiredUnexecutedProofGroups": 44,
+    "operatingControls": 6,
+    "ratifiedGlossaryTerms": 4,
+    "primaryDocuments": 6,
+    "fullRatificationAppendix": true,
+    "originalSubstancePreserved": true,
+    "independentSeamReview": "Pass"
+  },
+  "Q30": {
+    "status": "unanswered",
+    "topic": "Support reporting home composition",
+    "options": [
+      "A focused fixed overview",
+      "B separate work views and reports",
+      "C configurable approved-block overview"
+    ],
+    "recommendation": "A",
+    "independentScopeUXFinalReviews": 3,
+    "ADR0030Created": false
+  },
+  "preservation": {
+    "priorDecisionArtifacts": 229,
+    "priorADRs": 28,
+    "D29OriginalArtifacts": 17,
+    "Q29HistoricalArtifacts": 8,
+    "priorValidationUnchanged": true,
+    "glossaryDefinitionsUnchanged": true
+  },
+  "verification": {
+    "HEAD": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+    "planningPRsReadOnly": 5,
+    "sourceHashes": 19,
+    "uniqueGitSources": 9,
+    "immutableCoreLinkInstances": 28,
+    "uniqueCoreLinks": 26,
+    "localLinks": 708,
+    "mirrorFilesIncludingValidation": 16,
+    "formatting": "passed",
+    "gitDiffCheck": "passed",
+    "groomingOnly": true
+  },
+  "limits": [
+    "No implementation/formal spec/tickets/GitHub/provider/DNS/inbox mutation or real messages",
+    "Ratification does not prove runtime SQL/RLS/provider/concurrency/browser/accessibility/usability",
+    "D29 24 synthetic examples and original validation remain historical, not rerun product tests",
+    "All 44 D29 real release groups remain required and unexecuted",
+    "Q30 recommendation is not selected or ratified"
+  ]
+}

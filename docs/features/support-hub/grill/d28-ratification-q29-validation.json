@@ -1,0 +1,43 @@
+{
+  "status": "passed",
+  "date": "2026-09-13",
+  "stage": "D1-D28 fully founder-ratified; Q29 requester help discovery unanswered",
+  "D28Clauses": 32,
+  "D28Categories": 23,
+  "D28RequiredUnexecutedProofGroups": 40,
+  "D28OperatingControls": 6,
+  "D28RatifiedGlossaryTerms": 4,
+  "originalD28SubstantivePrimaryDocumentsPreserved": 6,
+  "historicalD28EvidenceArtifactsUnchanged": 10,
+  "priorDecisionArtifactsPreserved": 212,
+  "priorADRsPreserved": 27,
+  "historicalQ28ArtifactsPreserved": 11,
+  "priorGlossaryDefinitionsPreserved": true,
+  "originalD28ValidationUnchanged": true,
+  "EmailStudioRatificationSeamReview": "passed",
+  "Q29Options": [
+    "A contextual public guidance beside direct contact",
+    "B direct contact with ordinary public pages separate",
+    "C dedicated public Help center with browsing/search"
+  ],
+  "Q29Recommendation": "A",
+  "Q29AnswerSelected": false,
+  "Q29IndependentFinalReview": "passed",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sourceHashesReverified": 64,
+  "CoreSourceLinkInstancesChecked": 35,
+  "uniqueCoreLinks": 29,
+  "localLinksChecked": 660,
+  "mirrorPairs": 17,
+  "ADR0029Created": false,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyScope": true,
+  "limits": [
+    "No implementation, formal specification, tickets or GitHub mutation",
+    "No provider/DNS/inbox/database/content/credential change or real messages",
+    "D28 actual40releaseproofgroups remain required and unexecuted;118syntheticreferencechecks remain historical limited proof",
+    "No Q29 public-help runtime/usability/provider/DB qualification performed",
+    "Q29 remains an unanswered founder choice"
+  ]
+}

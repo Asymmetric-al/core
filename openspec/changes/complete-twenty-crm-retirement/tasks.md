@@ -2,9 +2,10 @@
 
 ## 1. Specification
 
-- [x] 1.1 Record current Twenty-backed notes and relationships request paths
+- [x] 1.1 Record the pre-retirement Twenty-backed notes and relationships request paths
 - [x] 1.2 Write the `crm-core` delta that makes Asym Postgres CRM truth and prohibits Twenty
-- [ ] 1.3 Keep this change active until replacement, deletion, and guards have merged
+- [x] 1.3 Confirm replacement, deletion, and guards merged through PR #1325 on
+      2026-08-19 (`7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd`).
 
 ## 2. Local CRM replacements (TDD)
 
@@ -27,8 +28,8 @@
   (`prj_SB9DucsrJOT0wF1v43SWMFsSNdn8`), `donor`
   (`prj_dZG3XkklLVZyqm85FW5Vvv7ph3kL`), and `missionary`
   (`prj_6tXSJKsdv2JpK70GKkg9HIg5hiYN`). MCP has no environment-variable
-  list/remove tools. This environment has no authenticated Vercel CLI session.
-  Twenty Cloud has no authorized API in this run. Human follow-up: remove any
+  list/remove tools. The 2026-08-18 environment had no authenticated Vercel CLI session.
+  That run exposed no authorized Twenty Cloud API. Outstanding follow-up: remove any
   remaining `TWENTY_*` / `CRM_SYNC_*` vars from those three projects and
   revoke the development Twenty Cloud API key / unused proof workspace.
 
@@ -37,4 +38,10 @@
 - [x] 4.1 Focused CRM unit tests pass
 - [x] 4.2 Data-boundary / non-regression guard tests pass
 - [x] 4.3 Applicable lint, typecheck, and CRM UI checks pass
-- [ ] 4.4 Do not archive until this implementation is accepted on `develop`
+- [x] 4.4 Confirm the implementation is accepted on `develop` through PR #1325.
+      Durable-spec reconciliation is separate from implementation acceptance;
+      this change remains active and has not been archived.
+- [ ] 4.5 Verify external Vercel/Twenty Cloud cleanup and record fresh evidence.
+      Task 3.5 records the outstanding human blocker, not completed credential
+      removal or provider revocation. No external cleanup is claimed by the
+      merged implementation or this documentation reconciliation.

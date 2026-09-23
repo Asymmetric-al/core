@@ -1,0 +1,26 @@
+{
+  "profile": "asym.page-composition/1",
+  "family": "page",
+  "catalogVersion": "fixture/catalog-1",
+  "nodes": [
+    {
+      "kind": "semantic",
+      "instanceId": "hero-1",
+      "semanticType": "hero",
+      "schemaVersion": 1,
+      "content": {
+        "headline": "A ministry page",
+        "subheading": "A structural test, not production content."
+      }
+    },
+    {
+      "kind": "semantic",
+      "instanceId": "prose-1",
+      "semanticType": "rich-text",
+      "schemaVersion": 1,
+      "content": {
+        "fixtureText": "Structural fixture only; use exact owner semantic content decoder in Core."
+      }
+    }
+  ]
+}

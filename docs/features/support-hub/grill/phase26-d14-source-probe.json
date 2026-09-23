@@ -1,0 +1,47 @@
+{
+  "inspectedHead": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sourceHashes": {
+    "apps/admin/features/support-hub/lib/business-hours.ts": "b3e1f177f28b230113433d33bcc94aaa877ce64b69dad2f1ee3b781ce6d02589",
+    "apps/admin/features/support-hub/lib/report-aggregations.ts": "3af2e383d1dd5b58cb62dba6b1f269f8a3b6ee7302c54fbaa1a9467f7dfc5528",
+    "apps/admin/features/support-hub/lib/time.ts": "be7e60f56a3b5d1533e92ddaaeaf2aad7f0086c3e42d02631e2f8feba93cfea8"
+  },
+  "observations": {
+    "timeZoneIgnored": {
+      "instant": "2026-09-11T02:30:00.000Z",
+      "declaredZone": "Asia/Bangkok",
+      "actualLocalDisplay": "Friday 11 September 2026 at 09:30",
+      "currentHelperSaysInsideHours": false
+    },
+    "businessHoursReportMismatch": {
+      "start": "2026-09-11T16:00:00.000Z",
+      "end": "2026-09-14T10:00:00.000Z",
+      "currentBusinessHoursHelperMinutes": 120,
+      "currentBusinessHoursReportMinutes": 3960,
+      "currentElapsedReportMinutes": 3960
+    },
+    "noQualifyingReplyReportedAsZero": {
+      "reportTotal": 0,
+      "buckets": [
+        {
+          "key": "average",
+          "label": "Average minutes",
+          "value": 0,
+          "secondaryValue": null
+        },
+        {
+          "key": "median",
+          "label": "Median minutes",
+          "value": 0,
+          "secondaryValue": null
+        }
+      ]
+    },
+    "currentAssigneeScope": {
+      "originalBeforeReassignment": 1,
+      "originalAfterReassignment": 0,
+      "replacementAfterReassignment": 1,
+      "explanation": "A current-assignee cohort is legitimate when labelled as such; it is not immutable responding-actor credit. No reply fact changed in this fixture."
+    }
+  },
+  "proofLimits": "Four observations of actual current pure helpers with synthetic rows under Bun --no-env-file. No desired D14 model, DB/RLS/Auth, provider, browser, production workload or user study. Business-hours comparison uses the same current helper on an explicitly UTC fixture, not a claimed production calendar engine."
+}

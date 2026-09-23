@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-12",
+  "kind": "Isolated execution of existing adapter text-match expression using synthetic objects, plus source-boundary algebra; no API/SQL/RLS/browser/search-engine execution",
+  "sourcePath": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+  "outcomes": [
+    {
+      "name": "body-only remembered wording",
+      "q": "corrected mailing address",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "phrase manufactured across subject and contact name",
+      "q": "corrected mailing address",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonically equivalent accented text differs",
+      "q": "José",
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "percent is literal in current substring matcher",
+      "q": "100%",
+      "actual": true,
+      "expected": true
+    }
+  ],
+  "illustrativeOnly": {
+    "crossMessageConjunction": false,
+    "concatenatedSyntheticPhrase": true
+  },
+  "assertionsPassed": true
+}

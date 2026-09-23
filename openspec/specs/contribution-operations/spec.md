@@ -140,12 +140,13 @@ Hub, donor CRM record, automation, or future batch execution.
 - THEN the operation audit trail records the source as donor CRM context
 - AND the audit event links to the contribution and staged gift where available
 
-#### Scenario: CRM repost retry runs from Contribution Hub
+#### Scenario: Native source recovery runs from Contribution Hub
 
-- GIVEN staff retries CRM posting from the Contribution Hub
-- WHEN the retry is queued or fails
+- GIVEN authorized staff invokes the owning domain's native recovery action from the Contribution Hub
+- WHEN the action completes or fails
 - THEN the operation audit trail records the source as Contribution Hub
-- AND the contribution detail reflects the resulting CRM post state
+- AND the contribution detail reflects the source-owned result without inventing a separate CRM post state
+- AND no retired Twenty posting, repost or synchronization action is queued
 
 ### Requirement: Stripe Remains Payment Authority For Refund And Provider State
 

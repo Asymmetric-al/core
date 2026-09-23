@@ -7,7 +7,7 @@
 **Issue:** #432
 
 **Builds on:** ADR-0018, ADR-0019, ADR-0020, ADR-0021, ADR-0022, ADR-0024,
-ADR-0026, ADR-0030, ADR-0031, and ADR-0032
+[ADR-0062 — eve standalone runtime foundation](./0062-eve-standalone-runtime-foundation.md), [ADR-0030 — Eve sandbox engineering worker](./0030-eve-sandbox-engineering-worker.md), [ADR-0063 — eve github read review path](./0063-eve-github-read-review-path.md), and [ADR-0032 — eve autonomous pr operator](./0032-eve-autonomous-pr-operator.md)
 
 ## Context
 

@@ -1,0 +1,222 @@
+{
+  "package": "Asym Web Studio hybrid authoring specification",
+  "date": "2026-09-12",
+  "status": "proposed-not-implemented",
+  "files": [
+    {
+      "path": "Asym_Web_Studio_Full_Specification.html",
+      "bytes": 294655,
+      "sha256": "6af2cc8e6318070ef9d013cf409408602b4bfbbe96c9467cc069efd43b609dd7"
+    },
+    {
+      "path": "MASTER.md",
+      "bytes": 255381,
+      "sha256": "b128fbdb6f927b0f9bab052c69f73ecae5d0d5e014093f51ec3aff6f57a90886"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5588,
+      "sha256": "7f8785feef5ad2d3276a3a1bde77507862b3ad4448364a4b4ccb030fc2d40f4b"
+    },
+    {
+      "path": "acceptance-and-qualification.md",
+      "bytes": 12615,
+      "sha256": "9f2221b665e4e324099d91218fd31d5ce508fd67a460544ca6555d26af22fec9"
+    },
+    {
+      "path": "acceptance-matrix.md",
+      "bytes": 10373,
+      "sha256": "9c2b25cd087e3e02a105afcbdc380cc35dabf2ceb12281671499d9e82fc82f2c"
+    },
+    {
+      "path": "automation.md",
+      "bytes": 11783,
+      "sha256": "301eba527a261b3fe770e12189b779e9d49a55a834fbf3c76c119a487ada4c57"
+    },
+    {
+      "path": "automations.json",
+      "bytes": 9495,
+      "sha256": "c8e94c7b250d9a835ead6b0134dbc53ea2ee82a24d06b24fe91edf7a35c4dbfc"
+    },
+    {
+      "path": "baseline/Asym_Web_Studio_Corrected_Direction.md",
+      "bytes": 13061,
+      "sha256": "ba398b6a62af35ef95bec53ff17e84a37204886e481b8f55f4a66a7936998cdf"
+    },
+    {
+      "path": "data-and-api-contracts.md",
+      "bytes": 15539,
+      "sha256": "3e8c7b71f963cf08e90584ad6102aad4b7e88b2753c171def27576d14ec9e657"
+    },
+    {
+      "path": "design.md",
+      "bytes": 9543,
+      "sha256": "989c9e71ab6ee55218941a9ec21c4ca6b158101aa2c9740d68d54d11be73b2e5"
+    },
+    {
+      "path": "examples/article.valid-structure.json",
+      "bytes": 648,
+      "sha256": "28d829c2e9a004aa8e20c8cadbeeb02390c4e7e68d7c7e81e31235861e650769"
+    },
+    {
+      "path": "examples/composition-v1.valid-structure.json",
+      "bytes": 637,
+      "sha256": "6fd4b86ca80af13c4780337c11fff898e30be45404bd9779c4948c0dfad288c5"
+    },
+    {
+      "path": "examples/composition-v2.valid-structure.json",
+      "bytes": 3014,
+      "sha256": "73b1812481f1d93555da6d9040ced73a468b05344250826e02e238695a7113cc"
+    },
+    {
+      "path": "examples/editorial-save.valid-structure.json",
+      "bytes": 3589,
+      "sha256": "53d81dec6569d1a259f3cf22cc89727aa10747288ae7fea40eb1e7fe642184ba"
+    },
+    {
+      "path": "examples/presentation-candidate.valid-structure.json",
+      "bytes": 1541,
+      "sha256": "736b64d7bfcffdf2f2a9dae7062a9519919ec0e0dfaa00171f1b79eddb5a3f9c"
+    },
+    {
+      "path": "examples/workflow-event.valid-structure.json",
+      "bytes": 326,
+      "sha256": "d4f9c6b1a8ad8d3a1c88bc626fb15699aea7f272d74014544c6e4846a3033659"
+    },
+    {
+      "path": "presentation-sdk-and-git.md",
+      "bytes": 10028,
+      "sha256": "97681da6c3a08cc85cb22dba00a0ec79d9c681973d99d6ca8e5fb1312574c05a"
+    },
+    {
+      "path": "preview-and-release.md",
+      "bytes": 11231,
+      "sha256": "1766ea3396ff2b969d0cff68e4cd3f3056c344e8bf4ed95d2a8206c4326dd531"
+    },
+    {
+      "path": "proposal.md",
+      "bytes": 8734,
+      "sha256": "9faa988a099631fa76693f0c5c82b6542799499e2906963a02ecb6d3c5d5b824"
+    },
+    {
+      "path": "reference/README.md",
+      "bytes": 974,
+      "sha256": "3b07f96e333e58325fd2c50ba5a2239fb1a005d188199e3a053ec527bf7373f9"
+    },
+    {
+      "path": "reference/validate_bundle.py",
+      "bytes": 4981,
+      "sha256": "980ae1d1fbff2ab1252070eaf296342288cea9d4cd2c616a56a3dbdcd367c6f3"
+    },
+    {
+      "path": "reference/validate_contracts.py",
+      "bytes": 7398,
+      "sha256": "1e5b7624a8425b04842b6848acaff9d0f7c0029ac0aa90b2127e236212595031"
+    },
+    {
+      "path": "repo-adoption.md",
+      "bytes": 7247,
+      "sha256": "87e3b5a6ec94126877aeb493d76d6f5753ce811f2acb5995ea6b42429fcf7846"
+    },
+    {
+      "path": "requirements.json",
+      "bytes": 53357,
+      "sha256": "f49a8ed1888c95cc0a914b2a8f1daf1fbee61dcae270bbe8694384708059814a"
+    },
+    {
+      "path": "research/adversarial-resolutions.md",
+      "bytes": 5967,
+      "sha256": "d76c7b2051962a787ca616558c925a11ba5ed0b2d3263ca2b1e6ac2518aba856"
+    },
+    {
+      "path": "research/evidence.md",
+      "bytes": 21254,
+      "sha256": "110b34f07c3d077860868339424508ce05f6718334cdf5da620a7ba5f2535847"
+    },
+    {
+      "path": "research/sources.json",
+      "bytes": 22136,
+      "sha256": "0fa102b54bb0f580d38dd89bd666202776f213ffd7ec983d340441cd9e94baa7"
+    },
+    {
+      "path": "schemas/README.md",
+      "bytes": 1398,
+      "sha256": "cc7a6cb4131f8c9ce0cfafc80750fbc78cba3ed91bfcc5922ea153590e338fee"
+    },
+    {
+      "path": "schemas/composition.schema.json",
+      "bytes": 11350,
+      "sha256": "698648dc47518157502073b9de5d1ed2c1cacd07e8580de0ba6cbdddb7e5f0da"
+    },
+    {
+      "path": "schemas/editorial-save.schema.json",
+      "bytes": 12582,
+      "sha256": "972a1d5dda0050d5392cad1678083145f5377d8b17c19c401c983d712ad4fedf"
+    },
+    {
+      "path": "schemas/presentation-manifest.schema.json",
+      "bytes": 7390,
+      "sha256": "d62e5468e1e5079a1b545ce3ae778feadd7e05c13b6a888a5040e07b158d4a39"
+    },
+    {
+      "path": "schemas/workflow-event.schema.json",
+      "bytes": 2030,
+      "sha256": "e21fb500e838f996076e5e1d9acdf1d0aafff7e82b8106cc8b7315d12237e174"
+    },
+    {
+      "path": "security-and-permissions.md",
+      "bytes": 8738,
+      "sha256": "f36a2b3ec7c36d84a9dfa6565f0d1c934474e60b116dbd2efe045f260a7fa742"
+    },
+    {
+      "path": "specs/web-studio-hybrid-authoring/spec.md",
+      "bytes": 41763,
+      "sha256": "1079e752ccb9ec9cc7659887647d41761c673e5d007f5f8625641e259f8c894b"
+    },
+    {
+      "path": "state-machines-and-operations.md",
+      "bytes": 9955,
+      "sha256": "e37210c37aac4268adc288333aaa5741e6631c87add1a21476dac8c3a0d2a740"
+    },
+    {
+      "path": "tasks.json",
+      "bytes": 14401,
+      "sha256": "555db844a8eb0ce7f344cd384696316ab37dae08c62d93bb569c3ebb6919f866"
+    },
+    {
+      "path": "tasks.md",
+      "bytes": 16868,
+      "sha256": "1ada2c1bb417cf1c85ab144f92c6008bdeade4056ef35ad0138febde68ee51b5"
+    },
+    {
+      "path": "tests/test_contracts.py",
+      "bytes": 8346,
+      "sha256": "7578ae455b7ae0abb0f437176591149416c2af6753bc1896fec846b9f68d70ed"
+    },
+    {
+      "path": "traceability.json",
+      "bytes": 72953,
+      "sha256": "0561562b70be8618d2309240ccf35382d532e3473a19adcf6633180f80a3dd2f"
+    },
+    {
+      "path": "ux-and-composition.md",
+      "bytes": 10327,
+      "sha256": "f6f7915bf61acce1fbd2bc110efdebb8276bd3e944a9b34ee9a654ed2e8d08b0"
+    },
+    {
+      "path": "validation-report.txt",
+      "bytes": 6318,
+      "sha256": "7b87660ed6996d5a08bc61cdfc1067bc11fefae2ea85e5ac7820d55f86eee7fd"
+    },
+    {
+      "path": "workflows.json",
+      "bytes": 26959,
+      "sha256": "83d33b54fda08cbca5e351d7dc5c994c726f52189f38b949b75c62c33827053d"
+    },
+    {
+      "path": "workflows.md",
+      "bytes": 26078,
+      "sha256": "5c241497bc502c13859d4c5c27a31a24839fd7e1ddab1d534f14b7db95b0426c"
+    }
+  ]
+}

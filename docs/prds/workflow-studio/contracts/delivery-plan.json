@@ -1,0 +1,974 @@
+{
+  "schemaVersion": 1,
+  "status": "integrated_planning_not_execution_evidence",
+  "authority": "September 22 supplied roadmap allocation and IG-01/03; original package identifiers retained, sourceDependsOn/sourceScope are historical provenance only. slices is the operative graph.",
+  "baselineMeaning": "The program roadmap owns complete phase dependencies. CORE baseline is 9/11/12/29/17/6 with inherited requirements; every selected capability also requires its exact source contract. The slice graph governs program-internal sequencing only.",
+  "coreForbiddenDependencyPhases": [35, 37, 38, 41, 42, 43, 44],
+  "packages": [
+    {
+      "id": "WS-01",
+      "title": "Authority and source inventory",
+      "acceptanceEvidence": "Approved source-binding matrix, zero undocumented protected action, active change alignment.",
+      "crossCuttingTests": ["WS-AT-002", "WS-AT-058"],
+      "status": "not_started",
+      "sourceDependsOn": [],
+      "sourceScope": "Map every proposed contract to its authoritative existing service, phase readiness, exact permission and privacy purpose; inventory existing tasks/automations so no duplicate owner is introduced.",
+      "deliveryPhases": [34, 41],
+      "sliceIds": ["WS-01-CORE", "WS-01-MOBILIZATION"]
+    },
+    {
+      "id": "WS-02",
+      "title": "Pure dialect and compiler",
+      "acceptanceEvidence": "Property tests and negative fixtures prove deterministic compile and rejection behavior.",
+      "crossCuttingTests": ["WS-AT-009", "WS-AT-010", "WS-AT-015", "WS-AT-017"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-01"],
+      "sourceScope": "Implement strict schema, typed AST normalization, graph IR and digest, predicate evaluator, branch/join rules, reference dominance and classification propagation.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-02-CORE"]
+    },
+    {
+      "id": "WS-03",
+      "title": "Tenant-safe process storage",
+      "acceptanceEvidence": "Migration forward/rollback proof, DB race tests, no broad browser writes.",
+      "crossCuttingTests": ["WS-AT-001", "WS-AT-033"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-01"],
+      "sourceScope": "Design additive migrations using existing owners; implement composite tenant references, immutable publications, run revisions, occurrences, waits, intent links and constrained application grants.",
+      "deliveryPhases": [34, 41],
+      "sliceIds": ["WS-03-CORE", "WS-03-MOBILIZATION"]
+    },
+    {
+      "id": "WS-04",
+      "title": "Runtime automation authority",
+      "acceptanceEvidence": "Cross-role/tenant negative tests and grant departure/revocation tests pass.",
+      "crossCuttingTests": ["WS-AT-002", "WS-AT-003", "WS-AT-004", "WS-AT-008"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-01", "WS-03"],
+      "sourceScope": "Bind current source capabilities to tenant automation grants; separate publisher, initiator, delegate and human approver; enforce revocation at each action.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-04-CORE"]
+    },
+    {
+      "id": "WS-05",
+      "title": "Event intake and enrollment",
+      "acceptanceEvidence": "Out-of-order commit, duplicate, import, and missing wake tests pass.",
+      "crossCuttingTests": ["WS-AT-019", "WS-AT-020", "WS-AT-021", "WS-AT-022"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-02", "WS-03", "WS-04"],
+      "sourceScope": "Use source outbox and durable receipts; implement prospective binding generation, subject-scoped enrollment, historical-dark handling and accepted event dedupe.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-05-CORE"]
+    },
+    {
+      "id": "WS-06",
+      "title": "Evaluator and durable advance",
+      "acceptanceEvidence": "Concurrent joins advance once and completed history remains immutable.",
+      "crossCuttingTests": ["WS-AT-028", "WS-AT-038"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-02", "WS-03", "WS-05"],
+      "sourceScope": "Implement pure next-work plans, short CAS transactions, source revision verification, selected-branch state, bounded continuations and source-result wakes.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-06-CORE"]
+    },
+    {
+      "id": "WS-07",
+      "title": "Operation intents and provider ambiguity",
+      "acceptanceEvidence": "Ambiguous send and expired lease tests cannot produce blind duplicate effects.",
+      "crossCuttingTests": ["WS-AT-029", "WS-AT-030", "WS-AT-031", "WS-AT-043"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-04", "WS-06"],
+      "sourceScope": "Bind permanent domain effect identities to existing claims/outbox; implement fencing, exact prepared payload reference, safe retry and unknown-result reconciliation.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-07-CORE"]
+    },
+    {
+      "id": "WS-08",
+      "title": "Waits, reminders and calendars",
+      "acceptanceEvidence": "Both completion orderings and lost-wake recovery work; no timeout approvals.",
+      "crossCuttingTests": [
+        "WS-AT-025",
+        "WS-AT-026",
+        "WS-AT-027",
+        "WS-AT-039",
+        "WS-AT-040",
+        "WS-AT-041",
+        "WS-AT-042"
+      ],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-05", "WS-06", "WS-07"],
+      "sourceScope": "Implement registration/recheck handshake, source event consumers, indexed due reconciliation, pinned calendars, DST rules, pause clocks and catch-up policy.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-08-CORE"]
+    },
+    {
+      "id": "WS-09",
+      "title": "Shared task and role adapter",
+      "acceptanceEvidence": "Assignment does not grant permission; task result cannot invent source approval.",
+      "crossCuttingTests": ["WS-AT-008", "WS-AT-049"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-01", "WS-04", "WS-06"],
+      "sourceScope": "Adapt shared tasks, typed outcomes, qualified roles/fallbacks, source-controlled reassignment, conflict-of-interest checks and scoped My Work queries.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-09-CORE"]
+    },
+    {
+      "id": "WS-10",
+      "title": "Communication intent adapter",
+      "acceptanceEvidence": "No duplicate donor purpose, no raw Resend graph call, no unsafe source-state notice.",
+      "crossCuttingTests": [
+        "WS-AT-043",
+        "WS-AT-044",
+        "WS-AT-045",
+        "WS-AT-046",
+        "WS-AT-047",
+        "WS-AT-048"
+      ],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-01", "WS-04", "WS-07"],
+      "sourceScope": "Request source-governed publications/audiences, coordinate shared purposes, enforce suppression at send, preserve inbound correlation and safe webhook interpretation.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-10-CORE"]
+    },
+    {
+      "id": "WS-11",
+      "title": "Forms, files and evidence",
+      "acceptanceEvidence": "Double submit safe; quarantined/obsolete evidence cannot satisfy requirements.",
+      "crossCuttingTests": ["WS-AT-012", "WS-AT-024", "WS-AT-052", "WS-AT-053"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-01", "WS-04", "WS-09"],
+      "sourceScope": "Implement/adopt versioned forms, allowed mappings, save/resume/submissions, private evidence lifecycle, required-category qualification and currentness adapters.",
+      "deliveryPhases": [34, 41],
+      "sliceIds": ["WS-11-CORE", "WS-11-MOBILIZATION"]
+    },
+    {
+      "id": "WS-12",
+      "title": "External participant sessions",
+      "acceptanceEvidence": "No scanner side effects or access to another applicant; restricted scopes require stronger assurance.",
+      "crossCuttingTests": ["WS-AT-050", "WS-AT-051"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-04", "WS-11"],
+      "sourceScope": "Reuse protected-action exchange for scoped reference tasks; implement expiry/revocation, scanner-safe interaction and source-authorized submissions.",
+      "deliveryPhases": [34, 41],
+      "sliceIds": ["WS-12-CORE", "WS-12-MOBILIZATION"]
+    },
+    {
+      "id": "WS-13",
+      "title": "No-side-effect simulation",
+      "acceptanceEvidence": "No transport/credential access; production semantics and simulation outcomes align for fixture set.",
+      "crossCuttingTests": ["WS-AT-009", "WS-AT-014", "WS-AT-017", "WS-AT-018"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-02", "WS-06"],
+      "sourceScope": "Use the real evaluator with synthetic source adapters, virtual clock, explicit safe fixtures and permission-projection previews.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-13-CORE"]
+    },
+    {
+      "id": "WS-14",
+      "title": "Publication and dependency governance",
+      "acceptanceEvidence": "Stale/revoked preflights fail; old runs remain pinned.",
+      "crossCuttingTests": ["WS-AT-003", "WS-AT-033", "WS-AT-036"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-02", "WS-03", "WS-04", "WS-13"],
+      "sourceScope": "Implement immutable preflights/publications, independent review where required, activation boundary, reverse dependency index and incompatible-reference blocking.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-14-CORE"]
+    },
+    {
+      "id": "WS-15",
+      "title": "Run amendment and migration",
+      "acceptanceEvidence": "Per-applicant extra interview changes only that case; no history erase or repeated sends.",
+      "crossCuttingTests": [
+        "WS-AT-029",
+        "WS-AT-030",
+        "WS-AT-034",
+        "WS-AT-035",
+        "WS-AT-037"
+      ],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-06", "WS-07", "WS-08", "WS-14"],
+      "sourceScope": "Implement impact diff, source-approved evidence reuse, assignment/deadline edits, structural revisions, cancellation epochs and controlled version migrations.",
+      "deliveryPhases": [34, 41],
+      "sliceIds": ["WS-15-CORE", "WS-15-MOBILIZATION"]
+    },
+    {
+      "id": "WS-16",
+      "title": "Guided editor and canvas/outline",
+      "acceptanceEvidence": "Keyboard task succeeds, advanced/simple conversion is lossless, 250-node target measured.",
+      "crossCuttingTests": ["WS-AT-032", "WS-AT-035", "WS-AT-059"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-02", "WS-09", "WS-13", "WS-14"],
+      "sourceScope": "Build exact base-maia UI, contextual catalog, sentence editor and constrained React Flow AST operations, inspectors, autosave/revision conflict UI and full outline alternative.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-16-CORE"]
+    },
+    {
+      "id": "WS-17",
+      "title": "Run operations and participant journeys",
+      "acceptanceEvidence": "No staff depth leaks; mobile poor-network submission is safe.",
+      "crossCuttingTests": ["WS-AT-005", "WS-AT-052", "WS-AT-060"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-09", "WS-11", "WS-12", "WS-15", "WS-16"],
+      "sourceScope": "Build staff run overlay and activity, shared My Work, applicant My Journey, safe source milestones, error recovery and low-bandwidth submission UX.",
+      "deliveryPhases": [34, 41],
+      "sliceIds": ["WS-17-CORE", "WS-17-MOBILIZATION"]
+    },
+    {
+      "id": "WS-18",
+      "title": "Donation and development packs",
+      "acceptanceEvidence": "All DON recipe tests and related MPD tests pass through real source services.",
+      "crossCuttingTests": [
+        "WS-AT-017",
+        "WS-AT-018",
+        "WS-AT-022",
+        "WS-AT-044",
+        "WS-AT-045"
+      ],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-05", "WS-09", "WS-10", "WS-14"],
+      "sourceScope": "Implement source-certified contribution/recognition/recurring predicates, donor and missionary purpose coordination, development hooks and default-off starters.",
+      "deliveryPhases": [34, 35],
+      "sliceIds": ["WS-18-CORE", "WS-18-GIVING"]
+    },
+    {
+      "id": "WS-19",
+      "title": "Mobilization and onboarding pack",
+      "acceptanceEvidence": "MOB recipe tests pass including required references, conditional acceptance and receiving handoff.",
+      "crossCuttingTests": [
+        "WS-AT-012",
+        "WS-AT-024",
+        "WS-AT-025",
+        "WS-AT-034",
+        "WS-AT-058"
+      ],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-11", "WS-12", "WS-15", "WS-17"],
+      "sourceScope": "Implement inquiry, references/interviews/screening, source decisions, reusable onboarding, training/documents, readiness, withdrawal and amendment blueprints.",
+      "deliveryPhases": [41],
+      "sliceIds": ["WS-19-MOBILIZATION"]
+    },
+    {
+      "id": "WS-20",
+      "title": "Support Hub rule adoption",
+      "acceptanceEvidence": "GEN support recipes pass; exactly one rules execution owner per active rule.",
+      "crossCuttingTests": ["WS-AT-023", "WS-AT-045", "WS-AT-046", "WS-AT-047"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-05", "WS-09", "WS-10", "WS-14"],
+      "sourceScope": "Migrate/adopt the existing inert rule vocabulary into Studio; keep contextual settings as views; preserve source clocks, quarantine, threads and collision safety.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-20-CORE"]
+    },
+    {
+      "id": "WS-21",
+      "title": "Content, events and documents packs",
+      "acceptanceEvidence": "COM and relevant GEN tests pass; publication and waitlist source outcomes remain truthful.",
+      "crossCuttingTests": ["WS-AT-024", "WS-AT-053", "WS-AT-054"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-10", "WS-11", "WS-14", "WS-17"],
+      "sourceScope": "Bind exact-revision approvals, source schedules/capacity/payment classification, translations, renewal and participant training to common primitives.",
+      "deliveryPhases": [34, 37],
+      "sliceIds": ["WS-21-CORE", "WS-21-EVENTS"]
+    },
+    {
+      "id": "WS-22",
+      "title": "Protected finance coordination",
+      "acceptanceEvidence": "All FIN tests and source separation-of-duties certification pass.",
+      "crossCuttingTests": ["WS-AT-002", "WS-AT-007", "WS-AT-031", "WS-AT-049"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-01", "WS-04", "WS-07", "WS-09", "WS-14"],
+      "sourceScope": "Expose approved coordination-only hooks and native settings; disallow prototype correction/replay shortcuts and arbitrary approval graphs.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-22-CORE"]
+    },
+    {
+      "id": "WS-23",
+      "title": "Sealed care coordination",
+      "acceptanceEvidence": "CARE tests plus zero-existence-leak and provider handling qualification pass.",
+      "crossCuttingTests": [
+        "WS-AT-005",
+        "WS-AT-006",
+        "WS-AT-008",
+        "WS-AT-048",
+        "WS-AT-064"
+      ],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-04", "WS-10", "WS-11", "WS-17"],
+      "sourceScope": "Implement invisible-by-default sealed scope, source-qualified roles, safe notifications, private audit and emergency/records handoffs without authority duplication.",
+      "deliveryPhases": [38],
+      "sliceIds": ["WS-23-CARE"]
+    },
+    {
+      "id": "WS-24",
+      "title": "Portability, upgrades and rollout",
+      "acceptanceEvidence": "No imported code/tenant IDs; source effect identities survive cutover; no dual-running engines.",
+      "crossCuttingTests": ["WS-AT-021", "WS-AT-036", "WS-AT-037", "WS-AT-063"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-14", "WS-15", "WS-16"],
+      "sourceScope": "Implement inert template export/import with rebinding, versioned action compatibility, shadow migration of legacy rules, bounded canary enablement and rollback.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-24-CORE"]
+    },
+    {
+      "id": "WS-25",
+      "title": "Observability, load and recovery",
+      "acceptanceEvidence": "Fault drills and documented performance/load targets pass with actual provider configuration.",
+      "crossCuttingTests": ["WS-AT-043", "WS-AT-055", "WS-AT-056", "WS-AT-057"],
+      "status": "not_started",
+      "sourceDependsOn": ["WS-07", "WS-08", "WS-17"],
+      "sourceScope": "Implement safe metrics, independent outage heartbeat, due-work and outcome recovery, fair admission, cost instrumentation, restore suppression and operator runbooks.",
+      "deliveryPhases": [34],
+      "sliceIds": ["WS-25-CORE"]
+    },
+    {
+      "id": "WS-26",
+      "title": "Acceptance, pilot and release evidence",
+      "acceptanceEvidence": "Repository validation and review accepted; no critical findings; release/rollback evidence attached.",
+      "crossCuttingTests": ["WS-AT-001", "WS-AT-059", "WS-AT-060"],
+      "status": "not_started",
+      "sourceDependsOn": [
+        "WS-18",
+        "WS-19",
+        "WS-20",
+        "WS-21",
+        "WS-22",
+        "WS-23",
+        "WS-24",
+        "WS-25"
+      ],
+      "sourceScope": "Execute all required suites, source adapter checks, accessibility tests and representative-tenant pilot; document unresolved gates honestly; use staged source-ready rollout.",
+      "deliveryPhases": [34, 35, 37, 38, 41],
+      "sliceIds": [
+        "WS-26-CORE",
+        "WS-26-GIVING",
+        "WS-26-EVENTS",
+        "WS-26-CARE",
+        "WS-26-MOBILIZATION",
+        "WS-26-FULL"
+      ]
+    }
+  ],
+  "slices": [
+    {
+      "id": "WS-01-CORE",
+      "packageId": "WS-01",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": [],
+      "scope": "Shared authority/source inventory and registry readiness; record unavailable application owners without implementing them.",
+      "crossCuttingTests": ["WS-AT-002", "WS-AT-058"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-01-MOBILIZATION",
+      "packageId": "WS-01",
+      "checkpoint": "MOBILIZATION",
+      "deliveryPhase": 41,
+      "dependsOn": ["WS-26-CORE"],
+      "scope": "Bind application/reference/decision owners and exact source purposes to the shared registry.",
+      "crossCuttingTests": ["WS-AT-002", "WS-AT-058"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-02-CORE",
+      "packageId": "WS-02",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-01-CORE"],
+      "scope": "Implement strict schema, typed AST normalization, graph IR and digest, predicate evaluator, branch/join rules, reference dominance and classification propagation.",
+      "crossCuttingTests": ["WS-AT-009", "WS-AT-010", "WS-AT-015", "WS-AT-017"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-03-CORE",
+      "packageId": "WS-03",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-01-CORE"],
+      "scope": "Shared Studio coordination records, publications, runs, references, claims and tenant fences; no application business ledger.",
+      "crossCuttingTests": ["WS-AT-001", "WS-AT-033"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-03-MOBILIZATION",
+      "packageId": "WS-03",
+      "checkpoint": "MOBILIZATION",
+      "deliveryPhase": 41,
+      "dependsOn": ["WS-26-CORE"],
+      "scope": "Own application identity, accepted submissions, requirement/evidence qualification and decisions through existing or explicitly adopted equivalent source records.",
+      "crossCuttingTests": ["WS-AT-001", "WS-AT-033"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-04-CORE",
+      "packageId": "WS-04",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-01-CORE", "WS-03-CORE"],
+      "scope": "Bind the existing Phase 12 NHI and live human-owner capability intersection to each action; force-disable on owner departure, revalidate transfer, separate publisher/operator/reviewer, and enforce immediate revocation.",
+      "crossCuttingTests": ["WS-AT-002", "WS-AT-003", "WS-AT-004", "WS-AT-008"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-05-CORE",
+      "packageId": "WS-05",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-02-CORE", "WS-03-CORE", "WS-04-CORE"],
+      "scope": "Use source outbox and durable receipts; implement prospective binding generation, subject-scoped enrollment, historical-dark handling and accepted event dedupe.",
+      "crossCuttingTests": ["WS-AT-019", "WS-AT-020", "WS-AT-021", "WS-AT-022"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-06-CORE",
+      "packageId": "WS-06",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-02-CORE", "WS-03-CORE", "WS-05-CORE"],
+      "scope": "Implement pure next-work plans, short CAS transactions, source revision verification, selected-branch state, bounded continuations and source-result wakes.",
+      "crossCuttingTests": ["WS-AT-028", "WS-AT-038"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-07-CORE",
+      "packageId": "WS-07",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-04-CORE", "WS-06-CORE"],
+      "scope": "Bind permanent domain effect identities to existing claims/outbox; implement fencing, exact prepared payload reference, safe retry and unknown-result reconciliation.",
+      "crossCuttingTests": ["WS-AT-029", "WS-AT-030", "WS-AT-031", "WS-AT-043"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-08-CORE",
+      "packageId": "WS-08",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-05-CORE", "WS-06-CORE", "WS-07-CORE"],
+      "scope": "Implement registration/recheck handshake, source event consumers, indexed due reconciliation, pinned calendars, DST rules, pause clocks and catch-up policy.",
+      "crossCuttingTests": [
+        "WS-AT-025",
+        "WS-AT-026",
+        "WS-AT-027",
+        "WS-AT-039",
+        "WS-AT-040",
+        "WS-AT-041",
+        "WS-AT-042"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-09-CORE",
+      "packageId": "WS-09",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-01-CORE", "WS-04-CORE", "WS-06-CORE"],
+      "scope": "Adapt shared tasks, typed outcomes, qualified roles/fallbacks, source-controlled reassignment, conflict-of-interest checks and scoped My Work queries.",
+      "crossCuttingTests": ["WS-AT-008", "WS-AT-049"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-10-CORE",
+      "packageId": "WS-10",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-01-CORE", "WS-04-CORE", "WS-07-CORE"],
+      "scope": "Request source-governed publications/audiences, coordinate shared purposes, enforce suppression at send, preserve inbound correlation and safe webhook interpretation.",
+      "crossCuttingTests": [
+        "WS-AT-043",
+        "WS-AT-044",
+        "WS-AT-045",
+        "WS-AT-046",
+        "WS-AT-047",
+        "WS-AT-048"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-11-CORE",
+      "packageId": "WS-11",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-01-CORE", "WS-04-CORE", "WS-09-CORE"],
+      "scope": "Common private forms/submissions and source evidence/custody adapters; prove real non-mobilization document request/review. Phase 23 keeps public occurrence and one Primary Outcome.",
+      "crossCuttingTests": ["WS-AT-012", "WS-AT-024", "WS-AT-052", "WS-AT-053"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-11-MOBILIZATION",
+      "packageId": "WS-11",
+      "checkpoint": "MOBILIZATION",
+      "deliveryPhase": 41,
+      "dependsOn": ["WS-26-CORE"],
+      "scope": "Bind application/reference forms and accepted answer/evidence meaning; FORM-03 excludes nonapplicable hidden answers from accepted submission/effects.",
+      "crossCuttingTests": ["WS-AT-012", "WS-AT-024", "WS-AT-052", "WS-AT-053"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-12-CORE",
+      "packageId": "WS-12",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-04-CORE", "WS-11-CORE"],
+      "scope": "Common task-purpose sessions qualified through Phase 4/12; real non-mobilization scanner-safe proof, no implicit membership or public-principal widening.",
+      "crossCuttingTests": ["WS-AT-050", "WS-AT-051"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-12-MOBILIZATION",
+      "packageId": "WS-12",
+      "checkpoint": "MOBILIZATION",
+      "deliveryPhase": 41,
+      "dependsOn": ["WS-26-CORE"],
+      "scope": "Qualify applicant/referee admission, identity and purpose-bound task bindings using the common mechanism.",
+      "crossCuttingTests": ["WS-AT-050", "WS-AT-051"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-13-CORE",
+      "packageId": "WS-13",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-02-CORE", "WS-06-CORE"],
+      "scope": "Use the real evaluator with synthetic source adapters, virtual clock, explicit safe fixtures and permission-projection previews.",
+      "crossCuttingTests": ["WS-AT-009", "WS-AT-014", "WS-AT-017", "WS-AT-018"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-14-CORE",
+      "packageId": "WS-14",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-02-CORE", "WS-03-CORE", "WS-04-CORE", "WS-13-CORE"],
+      "scope": "Implement immutable preflights/publications, independent review where required, activation boundary, reverse dependency index and incompatible-reference blocking.",
+      "crossCuttingTests": ["WS-AT-003", "WS-AT-033", "WS-AT-036"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-15-CORE",
+      "packageId": "WS-15",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-06-CORE", "WS-07-CORE", "WS-08-CORE", "WS-14-CORE"],
+      "scope": "Generic future-plan impact preflight, source-compatible migration, cancellation and non-mobilization amendment proof.",
+      "crossCuttingTests": [
+        "WS-AT-029",
+        "WS-AT-030",
+        "WS-AT-034",
+        "WS-AT-035",
+        "WS-AT-037"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-15-MOBILIZATION",
+      "packageId": "WS-15",
+      "checkpoint": "MOBILIZATION",
+      "deliveryPhase": 41,
+      "dependsOn": ["WS-26-CORE"],
+      "scope": "Apply source-owned application requirement, waiver and evidence-reuse rules; prove additional interview without history rewrite.",
+      "crossCuttingTests": [
+        "WS-AT-029",
+        "WS-AT-030",
+        "WS-AT-034",
+        "WS-AT-035",
+        "WS-AT-037"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-16-CORE",
+      "packageId": "WS-16",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-02-CORE", "WS-09-CORE", "WS-13-CORE", "WS-14-CORE"],
+      "scope": "Build exact base-maia UI, contextual catalog, sentence editor and constrained React Flow AST operations, inspectors, autosave/revision conflict UI and full outline alternative.",
+      "crossCuttingTests": ["WS-AT-032", "WS-AT-035", "WS-AT-059"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-17-CORE",
+      "packageId": "WS-17",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": [
+        "WS-09-CORE",
+        "WS-11-CORE",
+        "WS-12-CORE",
+        "WS-15-CORE",
+        "WS-16-CORE"
+      ],
+      "scope": "Staff run operations, shared My Work and common purpose-scoped participant composition; no application-domain dependency.",
+      "crossCuttingTests": ["WS-AT-005", "WS-AT-052", "WS-AT-060"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-17-MOBILIZATION",
+      "packageId": "WS-17",
+      "checkpoint": "MOBILIZATION",
+      "deliveryPhase": 41,
+      "dependsOn": ["WS-26-CORE"],
+      "scope": "Complete applicant My Journey, safe milestones, reference/correction flows and receiving handoff.",
+      "crossCuttingTests": ["WS-AT-005", "WS-AT-052", "WS-AT-060"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-18-CORE",
+      "packageId": "WS-18",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-05-CORE", "WS-09-CORE", "WS-10-CORE", "WS-14-CORE"],
+      "scope": "Development DON-14–DON-16 only; consume native Phase 27 cultivation and preserve Phase 28 behavior.",
+      "crossCuttingTests": [
+        "WS-AT-017",
+        "WS-AT-018",
+        "WS-AT-022",
+        "WS-AT-044",
+        "WS-AT-045"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-18-GIVING",
+      "packageId": "WS-18",
+      "checkpoint": "GIVING",
+      "deliveryPhase": 35,
+      "dependsOn": ["WS-26-CORE"],
+      "scope": "Source-certified DON-01–DON-13, MPD-01 and MPD-06 only, preserving native giving/recovery and exact Phase 13/14/16/6/17 rules.",
+      "crossCuttingTests": [
+        "WS-AT-017",
+        "WS-AT-018",
+        "WS-AT-022",
+        "WS-AT-044",
+        "WS-AT-045"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-19-MOBILIZATION",
+      "packageId": "WS-19",
+      "checkpoint": "MOBILIZATION",
+      "deliveryPhase": 41,
+      "dependsOn": [
+        "WS-26-CORE",
+        "WS-01-MOBILIZATION",
+        "WS-03-MOBILIZATION",
+        "WS-11-MOBILIZATION",
+        "WS-12-MOBILIZATION",
+        "WS-15-MOBILIZATION",
+        "WS-17-MOBILIZATION"
+      ],
+      "scope": "Implement inquiry, references/interviews/screening, source decisions, reusable onboarding, training/documents, readiness, withdrawal and amendment blueprints. Phase 41 owns the complete application domain; accepted/onboarded/ready/deployed are distinct.",
+      "crossCuttingTests": [
+        "WS-AT-012",
+        "WS-AT-024",
+        "WS-AT-025",
+        "WS-AT-034",
+        "WS-AT-058"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-20-CORE",
+      "packageId": "WS-20",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-05-CORE", "WS-09-CORE", "WS-10-CORE", "WS-14-CORE"],
+      "scope": "Migrate/adopt the existing inert rule vocabulary into Studio; keep contextual settings as views; preserve source clocks, quarantine, threads and collision safety.",
+      "crossCuttingTests": ["WS-AT-023", "WS-AT-045", "WS-AT-046", "WS-AT-047"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-21-CORE",
+      "packageId": "WS-21",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-10-CORE", "WS-11-CORE", "WS-14-CORE", "WS-17-CORE"],
+      "scope": "Content/document and non-applicant training coordination; exclude event/application domain proof, preserve native CMS AU01–AU12 and exact source schedules.",
+      "crossCuttingTests": ["WS-AT-024", "WS-AT-053", "WS-AT-054"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-21-EVENTS",
+      "packageId": "WS-21",
+      "checkpoint": "EVENTS",
+      "deliveryPhase": 37,
+      "dependsOn": ["WS-26-CORE"],
+      "scope": "GEN-10–GEN-12 event/registration/capacity/readiness coordination. Ordinary registration does not depend on applications; selected application paths require exact qualified Phase 41 source contracts.",
+      "crossCuttingTests": ["WS-AT-024", "WS-AT-053", "WS-AT-054"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-22-CORE",
+      "packageId": "WS-22",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": [
+        "WS-01-CORE",
+        "WS-04-CORE",
+        "WS-07-CORE",
+        "WS-09-CORE",
+        "WS-14-CORE"
+      ],
+      "scope": "Expose approved coordination-only hooks and native settings; disallow prototype correction/replay shortcuts and arbitrary approval graphs.",
+      "crossCuttingTests": ["WS-AT-002", "WS-AT-007", "WS-AT-031", "WS-AT-049"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-23-CARE",
+      "packageId": "WS-23",
+      "checkpoint": "CARE",
+      "deliveryPhase": 38,
+      "dependsOn": ["WS-26-CORE"],
+      "scope": "Implement invisible-by-default sealed scope, source-qualified roles, safe notifications, private audit and emergency/records handoffs without authority duplication. Phase 38 owns sealed care records and accepted decisions; provider/purpose qualification precedes activation.",
+      "crossCuttingTests": [
+        "WS-AT-005",
+        "WS-AT-006",
+        "WS-AT-008",
+        "WS-AT-048",
+        "WS-AT-064"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-24-CORE",
+      "packageId": "WS-24",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-14-CORE", "WS-15-CORE", "WS-16-CORE"],
+      "scope": "Implement inert template export/import with rebinding, versioned action compatibility, shadow migration of legacy rules, bounded canary enablement and rollback.",
+      "crossCuttingTests": ["WS-AT-021", "WS-AT-036", "WS-AT-037", "WS-AT-063"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-25-CORE",
+      "packageId": "WS-25",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": ["WS-07-CORE", "WS-08-CORE", "WS-17-CORE"],
+      "scope": "Implement safe metrics, independent outage heartbeat, due-work and outcome recovery, fair admission, cost instrumentation, restore suppression and operator runbooks.",
+      "crossCuttingTests": ["WS-AT-043", "WS-AT-055", "WS-AT-056", "WS-AT-057"],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-26-CORE",
+      "packageId": "WS-26",
+      "checkpoint": "CORE",
+      "deliveryPhase": 34,
+      "dependsOn": [
+        "WS-18-CORE",
+        "WS-20-CORE",
+        "WS-21-CORE",
+        "WS-22-CORE",
+        "WS-24-CORE",
+        "WS-25-CORE"
+      ],
+      "scope": "Complete the CORE assigned recipes, applicable source-specific cases, shared invariants, real adapters, browser/accessibility, fault/recovery and representative pilot evidence. A missing selected capability remains incomplete. CORE has no downstream pack gate.",
+      "status": "not_started"
+    },
+    {
+      "id": "WS-26-GIVING",
+      "packageId": "WS-26",
+      "checkpoint": "GIVING",
+      "deliveryPhase": 35,
+      "dependsOn": ["WS-26-CORE", "WS-18-GIVING"],
+      "scope": "Complete the GIVING assigned recipes, applicable source-specific cases, shared invariants, real adapters, browser/accessibility, fault/recovery and representative pilot evidence. A missing selected capability remains incomplete. CORE has no downstream pack gate.",
+      "status": "not_started"
+    },
+    {
+      "id": "WS-26-EVENTS",
+      "packageId": "WS-26",
+      "checkpoint": "EVENTS",
+      "deliveryPhase": 37,
+      "dependsOn": ["WS-26-CORE", "WS-21-EVENTS"],
+      "scope": "Complete the EVENTS assigned recipes, applicable source-specific cases, shared invariants, real adapters, browser/accessibility, fault/recovery and representative pilot evidence. A missing selected capability remains incomplete. CORE has no downstream pack gate.",
+      "status": "not_started"
+    },
+    {
+      "id": "WS-26-CARE",
+      "packageId": "WS-26",
+      "checkpoint": "CARE",
+      "deliveryPhase": 38,
+      "dependsOn": ["WS-26-CORE", "WS-23-CARE"],
+      "scope": "Complete the CARE assigned recipes, applicable source-specific cases, shared invariants, real adapters, browser/accessibility, fault/recovery and representative pilot evidence. A missing selected capability remains incomplete. CORE has no downstream pack gate.",
+      "status": "not_started"
+    },
+    {
+      "id": "WS-26-MOBILIZATION",
+      "packageId": "WS-26",
+      "checkpoint": "MOBILIZATION",
+      "deliveryPhase": 41,
+      "dependsOn": ["WS-26-CORE", "WS-19-MOBILIZATION"],
+      "scope": "Complete the MOBILIZATION assigned recipes, applicable source-specific cases, shared invariants, real adapters, browser/accessibility, fault/recovery and representative pilot evidence. A missing selected capability remains incomplete. CORE has no downstream pack gate.",
+      "status": "not_started"
+    },
+    {
+      "id": "WS-26-FULL",
+      "packageId": "WS-26",
+      "checkpoint": "FULL",
+      "deliveryPhase": null,
+      "dependsOn": [
+        "WS-26-CORE",
+        "WS-26-MOBILIZATION",
+        "WS-26-GIVING",
+        "WS-26-EVENTS",
+        "WS-26-CARE"
+      ],
+      "scope": "Evidence rollup of all 96 recipes and 352 specified scenarios plus shared integration cases. Never a prerequisite of a source checkpoint.",
+      "status": "not_started"
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "CORE",
+      "phase": 34,
+      "recipeIds": [
+        "ADM-01",
+        "ADM-02",
+        "ADM-03",
+        "ADM-04",
+        "ADM-05",
+        "ADM-06",
+        "ADM-07",
+        "ADM-08",
+        "ADM-09",
+        "ADM-10",
+        "GEN-01",
+        "GEN-02",
+        "GEN-03",
+        "GEN-04",
+        "GEN-05",
+        "GEN-06",
+        "GEN-07",
+        "GEN-08",
+        "GEN-09",
+        "GEN-13",
+        "GEN-14",
+        "GEN-15",
+        "GEN-16",
+        "GEN-17",
+        "GEN-19",
+        "GEN-20",
+        "DON-14",
+        "DON-15",
+        "DON-16",
+        "FIN-01",
+        "FIN-02",
+        "FIN-03",
+        "FIN-04",
+        "FIN-05",
+        "FIN-06",
+        "FIN-07",
+        "FIN-08",
+        "FIN-09",
+        "FIN-10",
+        "FIN-11",
+        "FIN-12",
+        "MPD-02",
+        "MPD-03",
+        "MPD-04",
+        "MPD-05",
+        "MPD-07",
+        "MPD-08",
+        "COM-01",
+        "COM-02",
+        "COM-03",
+        "COM-04",
+        "COM-05",
+        "COM-06",
+        "COM-07",
+        "COM-08",
+        "COM-09",
+        "COM-10"
+      ],
+      "recipeTestCount": 171,
+      "completionSlice": "WS-26-CORE"
+    },
+    {
+      "id": "MOBILIZATION",
+      "phase": 41,
+      "recipeIds": [
+        "MOB-01",
+        "MOB-02",
+        "MOB-03",
+        "MOB-04",
+        "MOB-05",
+        "MOB-06",
+        "MOB-07",
+        "MOB-08",
+        "MOB-09",
+        "MOB-10",
+        "MOB-11",
+        "MOB-12"
+      ],
+      "recipeTestCount": 36,
+      "completionSlice": "WS-26-MOBILIZATION"
+    },
+    {
+      "id": "GIVING",
+      "phase": 35,
+      "recipeIds": [
+        "DON-01",
+        "DON-02",
+        "DON-03",
+        "DON-04",
+        "DON-05",
+        "DON-06",
+        "DON-07",
+        "DON-08",
+        "DON-09",
+        "DON-10",
+        "DON-11",
+        "DON-12",
+        "DON-13",
+        "MPD-01",
+        "MPD-06"
+      ],
+      "recipeTestCount": 45,
+      "completionSlice": "WS-26-GIVING"
+    },
+    {
+      "id": "EVENTS",
+      "phase": 37,
+      "recipeIds": ["GEN-10", "GEN-11", "GEN-12"],
+      "recipeTestCount": 9,
+      "completionSlice": "WS-26-EVENTS"
+    },
+    {
+      "id": "CARE",
+      "phase": 38,
+      "recipeIds": [
+        "GEN-18",
+        "CARE-01",
+        "CARE-02",
+        "CARE-03",
+        "CARE-04",
+        "CARE-05",
+        "CARE-06",
+        "CARE-07",
+        "CARE-08"
+      ],
+      "recipeTestCount": 27,
+      "completionSlice": "WS-26-CARE"
+    }
+  ],
+  "fullCheckpoint": "WS-26-FULL",
+  "coreTracers": [
+    "GEN-01 / BP-01 real non-mobilization intake and shared task follow-up",
+    "GEN-06 / BP-11 real private-document request and source review"
+  ],
+  "conditionalGates": [
+    {
+      "consumer": "WS-21-EVENTS",
+      "when": "Application-based admission selected",
+      "requires": "Exact qualified Phase 41 application/reference/evidence/decision contracts",
+      "doesNotGate": "Ordinary registration/capacity or CORE"
+    },
+    {
+      "consumer": "CORE",
+      "when": "Extended SMS or enterprise-directory action selected",
+      "requires": "Exact qualified Phase 43 purpose/channel or Phase 44 source-event binding",
+      "doesNotGate": "Ordinary CORE release"
+    }
+  ],
+  "coreBaselineDependencies": [9, 11, 12, 29, 17, 6]
+}

@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "date": "2026-09-12",
+  "stage": "D19 A selected; full reviewed amendments proposed pending ratification; D1-D18 fully ratified; no Q20",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "clauses": 30,
+  "categories": 23,
+  "requiredUnexecutedProofGroups": 42,
+  "operationalControls": 8,
+  "proposedGlossaryTerms": 4,
+  "preservedPriorArtifacts": 90,
+  "preservedPriorADRs": 18,
+  "priorGlossaryPreserved": true,
+  "priorRatificationValidationPreserved": true,
+  "mirrorsMatched": 15,
+  "sourcePointerObservations": 12,
+  "sourceHashesVerified": 12,
+  "localLinksChecked": 257,
+  "outputLinksChecked": 235,
+  "immutableSourceLinksChecked": 34,
+  "uniqueImmutableSourceLinks": 27,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "independentReviews": 3,
+  "limits": [
+    "Source observations are read-only manual inspection plus pointer/hash verification, not runtime proof",
+    "No live grants/RLS, migration, concurrency, provider/storage/disposal, restore, capacity, browser/AT or staff usability test",
+    "No formal specification, tickets, implementation, external state change, production inbox/DNS change or real messages",
+    "Numeric defaults are bounded product proposals, not universal legal periods or measured industry optima"
+  ]
+}

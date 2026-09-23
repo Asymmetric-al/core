@@ -1,0 +1,55 @@
+{
+  "manifestVersion": 1,
+  "packageId": "fixture-ministry/site",
+  "packageVersion": "0.1.0-fixture",
+  "source": {
+    "repositoryId": "1",
+    "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "tree": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "archiveDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "packageRoot": "."
+  },
+  "target": {
+    "tenantId": "fixture-tenant",
+    "environment": "fixture-preview",
+    "siteId": "fixture-site"
+  },
+  "compatibility": {
+    "sdkVersion": "0.1.0-fixture",
+    "catalogVersion": "fixture/catalog-1",
+    "compositionProfiles": [
+      "asym.page-composition/1",
+      "asym.page-composition/2"
+    ],
+    "families": [
+      "page"
+    ],
+    "locales": [
+      "en"
+    ],
+    "publicRuntimeProfile": "fixture-runtime"
+  },
+  "renderers": [
+    {
+      "semanticType": "hero",
+      "schemaVersion": 1,
+      "rendererKey": "hero/split",
+      "settingsSchemaDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    }
+  ],
+  "artifacts": {
+    "serverDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "editorDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "assets": []
+  },
+  "maintainer": {
+    "subjectRef": "fixture-maintainer",
+    "supportPolicyRef": "fixture-support-policy",
+    "rightsRef": "fixture-rights"
+  },
+  "qualification": {
+    "status": "candidate",
+    "policyRef": "fixture-policy",
+    "evidenceRefs": []
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-15",
+  "recipeId": "DON-03",
+  "name": "Explicit currency threshold acknowledgment",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "donor_stewardship",
+  "subject": "contribution",
+  "enrollment": {
+    "mode": "once_per_event",
+    "triggerContract": "contributions.qualifying-fact.accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {
+      "currency": "contributions.qualifying-amount-currency@1",
+      "amountMinor": "contributions.qualifying-amount-minor@1"
+    },
+    "tasks": {
+      "personal": "development.personal-gift-followup@1"
+    },
+    "evidence": {},
+    "actions": {},
+    "roles": {
+      "owner": "roles.donor-relationship-owner@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {
+    "currency": {
+      "type": "string",
+      "default": "USD",
+      "tenantReviewRequired": true
+    },
+    "thresholdMinor": {
+      "type": "integer",
+      "default": 100000,
+      "tenantReviewRequired": true
+    }
+  },
+  "requiredCapabilities": [
+    "communications",
+    "contributions",
+    "crm",
+    "messages",
+    "recognition",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": ["threshold_flow"]
+    }
+  ],
+  "root": {
+    "id": "threshold_flow",
+    "kind": "sequence",
+    "label": "Threshold flow",
+    "steps": [
+      {
+        "id": "matching_currency",
+        "kind": "choose_one",
+        "label": "Matching currency",
+        "cases": [
+          {
+            "id": "same_currency",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "currency"
+                }
+              },
+              "right": {
+                "ref": {
+                  "scope": "parameter",
+                  "key": "currency"
+                }
+              }
+            },
+            "then": {
+              "id": "qualifying_amount",
+              "kind": "choose_one",
+              "label": "Qualifying amount",
+              "cases": [
+                {
+                  "id": "qualifies",
+                  "when": {
+                    "op": "compare",
+                    "operator": "gte",
+                    "left": {
+                      "ref": {
+                        "scope": "fact",
+                        "key": "amountMinor"
+                      }
+                    },
+                    "right": {
+                      "ref": {
+                        "scope": "parameter",
+                        "key": "thresholdMinor"
+                      }
+                    }
+                  },
+                  "then": {
+                    "id": "personal_path",
+                    "kind": "sequence",
+                    "label": "Personal path",
+                    "steps": [
+                      {
+                        "id": "personal_ack",
+                        "kind": "task",
+                        "label": "Personal ack",
+                        "contract": "personal",
+                        "role": "owner"
+                      },
+                      {
+                        "id": "ack_done",
+                        "kind": "finish",
+                        "label": "Ack done",
+                        "lifecycle": "complete",
+                        "outcome": "personal_followup_complete"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "otherwise": {
+                "id": "below_threshold",
+                "kind": "finish",
+                "label": "Below threshold",
+                "lifecycle": "complete",
+                "outcome": "not_eligible"
+              },
+              "onUnknown": "block"
+            }
+          }
+        ],
+        "otherwise": {
+          "id": "other_currency",
+          "kind": "finish",
+          "label": "Other currency",
+          "lifecycle": "complete",
+          "outcome": "outside_configured_currency"
+        },
+        "onUnknown": "block"
+      }
+    ]
+  }
+}

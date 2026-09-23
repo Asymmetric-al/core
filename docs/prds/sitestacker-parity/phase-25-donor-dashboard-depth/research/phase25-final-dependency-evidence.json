@@ -1,0 +1,164 @@
+{
+  "date": "2026-09-09",
+  "packages": [
+    {
+      "name": "@tanstack/react-table",
+      "dist_tags": {
+        "alpha": "9.0.0-alpha.54",
+        "beta": "9.0.0-beta.80",
+        "latest": "9.2.4"
+      },
+      "registry_url": "https://registry.npmjs.org/-/package/@tanstack%2Freact-table/dist-tags",
+      "installed": [
+        {
+          "at": "packages/ui/node_modules",
+          "version": "9.0.0-beta.9"
+        },
+        {
+          "at": "packages/database/node_modules",
+          "version": "9.0.0-beta.9"
+        }
+      ],
+      "declared": {
+        "packages/ui/package.json:dependencies": "9.0.0-beta.9",
+        "packages/database/package.json:dependencies": "9.0.0-beta.9"
+      }
+    },
+    {
+      "name": "@tanstack/db",
+      "dist_tags": {
+        "latest": "0.8.7"
+      },
+      "registry_url": "https://registry.npmjs.org/-/package/@tanstack%2Fdb/dist-tags",
+      "installed": [
+        {
+          "at": "packages/ui/node_modules",
+          "version": "0.6.4"
+        },
+        {
+          "at": "packages/database/node_modules",
+          "version": "0.6.4"
+        }
+      ],
+      "declared": {
+        "package.json:overrides": "0.6.4",
+        "packages/ui/package.json:dependencies": "^0.6.4",
+        "packages/database/package.json:dependencies": "^0.6.4"
+      }
+    },
+    {
+      "name": "@tanstack/react-db",
+      "dist_tags": {
+        "latest": "0.3.7"
+      },
+      "registry_url": "https://registry.npmjs.org/-/package/@tanstack%2Freact-db/dist-tags",
+      "installed": [
+        {
+          "at": "packages/ui/node_modules",
+          "version": "0.1.82"
+        },
+        {
+          "at": "packages/database/node_modules",
+          "version": "0.1.82"
+        }
+      ],
+      "declared": {
+        "packages/ui/package.json:dependencies": "^0.1.82",
+        "packages/database/package.json:dependencies": "^0.1.82"
+      }
+    },
+    {
+      "name": "@tanstack/query-db-collection",
+      "dist_tags": {
+        "latest": "1.2.12"
+      },
+      "registry_url": "https://registry.npmjs.org/-/package/@tanstack%2Fquery-db-collection/dist-tags",
+      "installed": [
+        {
+          "at": "packages/database/node_modules",
+          "version": "1.0.35"
+        }
+      ],
+      "declared": {
+        "packages/database/package.json:dependencies": "^1.0.35"
+      }
+    },
+    {
+      "name": "@tanstack/react-query",
+      "dist_tags": {
+        "alpha": "5.0.0-alpha.91",
+        "beta": "5.0.0-beta.35",
+        "rc": "5.0.0-rc.16",
+        "previous": "4.44.0",
+        "latest": "5.102.8"
+      },
+      "registry_url": "https://registry.npmjs.org/-/package/@tanstack%2Freact-query/dist-tags",
+      "installed": [
+        {
+          "at": "packages/ui/node_modules",
+          "version": "5.99.0"
+        },
+        {
+          "at": "packages/database/node_modules",
+          "version": "5.99.0"
+        }
+      ],
+      "declared": {
+        "packages/ui/package.json:dependencies": "^5.96.2",
+        "packages/database/package.json:dependencies": "^5.96.2"
+      }
+    },
+    {
+      "name": "@tanstack/react-store",
+      "dist_tags": {
+        "beta": "0.0.1-beta.174",
+        "latest": "0.11.1"
+      },
+      "registry_url": "https://registry.npmjs.org/-/package/@tanstack%2Freact-store/dist-tags",
+      "installed": [
+        {
+          "at": "packages/ui/node_modules",
+          "version": "0.11.0"
+        }
+      ],
+      "declared": {
+        "packages/ui/package.json:dependencies": "^0.11.0"
+      }
+    },
+    {
+      "name": "@tanstack/react-virtual",
+      "dist_tags": {
+        "alpha": "3.0.0-alpha.2",
+        "beta": "3.0.0-beta.68",
+        "latest": "3.14.11"
+      },
+      "registry_url": "https://registry.npmjs.org/-/package/@tanstack%2Freact-virtual/dist-tags",
+      "installed": [
+        {
+          "at": "packages/ui/node_modules",
+          "version": "3.13.23"
+        }
+      ],
+      "declared": {
+        "packages/ui/package.json:dependencies": "^3.13.23"
+      }
+    },
+    {
+      "name": "@supabase-labs/tanstack-db",
+      "dist_tags": {
+        "latest": "0.0.1"
+      },
+      "registry_url": "https://registry.npmjs.org/-/package/@supabase-labs%2Ftanstack-db/dist-tags",
+      "installed": [
+        {
+          "at": "packages/database/node_modules",
+          "version": "0.0.1"
+        }
+      ],
+      "declared": {
+        "packages/database/package.json:dependencies": "0.0.1"
+      }
+    }
+  ],
+  "upgrades_performed": false
+}

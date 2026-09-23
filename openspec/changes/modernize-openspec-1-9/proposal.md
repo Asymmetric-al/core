@@ -2,14 +2,15 @@
 
 ## Why
 
-Core already uses OpenSpec as its durable planning and specification system,
-but live instructions still mixed `@latest` invocation, stale CRM context, and
-incomplete workflow routing. Coding agents need an exact pinned CLI, seven
-selected official workflows, and a clear split between intended behavior and
-current reality — without replacing GitHub, TDD, quality, or the post-#1324
-agent-instruction architecture.
+This modernization merged through PR #1325 on 2026-08-19. Core uses the
+repository-pinned OpenSpec CLI, seven selected workflows, and explicit intended
+versus implemented state. The preceding instructions mixed moving `@latest`
+invocations, stale CRM context and incomplete routing; those are historical
+reasons for this change, not current requirements. AL-1861 reconciles the
+remaining documentation and adds active-delta verification without replacing
+GitHub, TDD or repository quality gates.
 
-## What Changes
+## Accepted Contract
 
 - Pin `@fission-ai/openspec` at exact stable `1.9.0` (tag `v1.9.0`, commit
   `2826b8889e5223a9a8095d4428b60b56597e1020`) and invoke it only through
@@ -20,7 +21,9 @@ agent-instruction architecture.
   `docs/ai/skills/` via the existing refresh/sync/verify pipeline.
 - Keep numbered commands `/1-start-project` through `/4-close-project` as
   lightweight wrappers around those workflows.
-- Run strict validation in CI after `skills:verify`.
+- CI verifies skills, then Phase 25 generated views, then strict OpenSpec and
+  active-delta applicability. `scripts/verify/ci-preflight.mjs` and
+  `.github/workflows/ci.yml` own the executable stage order.
 - Distinguish intended behavior from current reality. Archive only after
   implementation is accepted repository reality.
 - Product-runtime Eve stays separate. The OpenSpec Guardian remains
@@ -44,5 +47,5 @@ agent-instruction architecture.
 - New, Continue, Fast-forward, Bulk archive, or Onboard workflows
 - A second skill registry or OpenSpec wrapper framework
 - Running `openspec update` against the live customized repository
-- Archiving this change before the implementation merges
+- Treating document publication or an administrative archive as product activation
 - Twenty CRM runtime deletion (owned by `complete-twenty-crm-retirement`)

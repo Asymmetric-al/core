@@ -109,6 +109,105 @@ offered at checkout. D20 only consumes authoritative currency and settlement
 facts that an upstream source is already permitted to create; it does not
 activate foreign-currency giving.
 
+**Phase 24 D61 amendment (2026-08-30).** “Local-currency-first” at donor entry
+means one nonauthoritative, country-level suggestion for an empty gift intent,
+not location-owned money truth or Stripe Adaptive Pricing. The donor may choose
+only from the intersection of the Site's enabled presentment currencies and the
+payment owner's current exact qualification for the complete route/cart. Their
+explicit choice wins for that gift intent, one cart remains one currency, and
+the accepted money path freezes it before any provider effect. Missing or
+ambiguous location uses the qualified Site default; when that is unavailable
+but other qualified choices exist, the donor must choose explicitly; when none
+exist, Giving fails closed without taking down the public Site. This behavior
+does not enable retained settlement, calculate FX, change accounting, create a
+currency preference, or require Checkout Sessions. D61 reuses this ADR's
+presentment/settlement ownership and creates no second multicurrency
+architecture.
+
+**Phase 24 D62 amendment (2026-08-30).** Adding a presentment currency is one
+ordinary **Site → Currencies** setup flow. Selecting `CAD — Canadian dollar`
+automatically starts a read-only, Payments-owned qualification; there is no
+separate certification wizard, provider matrix, synthetic test charge, or
+provider-setting mutation. Setup proof is deliberately bounded: it proves the
+current stable offering envelope for each named live Site financial route and
+giving mode, while final checkout acceptance still re-proves the actual cart,
+amount, cadence, payment method, binding, account, and provider contract before
+creating any provider effect. Sandbox success is not live proof, and **Ready**
+never promises issuer authorization or future renewal success.
+
+Site policy remains the Tenant's desired currency ceiling; Payments remains the
+sole qualification owner. A newly selected currency may be saved only when at
+least one current route qualifies, partial readiness must name the exact mode,
+and a Site default must qualify across every current entry that relies on that
+default. Effective donor availability remains the intersection of Site intent
+and current exact qualification. Unknown, stale, contradictory, or incomplete
+evidence is never green. Later drift preserves Site intent and all historical
+money while pausing only new affected currency/mode attempts until current
+proof returns. Ordinary presentment conversion into an existing settlement
+currency still requires no retained foreign balance, additional bank account,
+QBO/Xero multicurrency, Adaptive Pricing, or FX engine.
+
+**Phase 24 D63 amendment (2026-08-30).** A donor may deliberately change the
+presentment currency of an unaccepted, editable gift intent. A pristine intent
+changes immediately. When any entered/prefilled amount, fee choice, payment
+selection/input, or provider session would be lost, Core keeps the original
+intent untouched and first asks one consequence-specific confirmation. Success
+creates one new monetary cart revision: revalidated purpose, cadence,
+attribution, contact, tribute, and other currency-independent intent may stay;
+all amounts, presets, fee-cover meaning, amount-derived claims, payment/
+mandate/authorization state, browser payment state, and old attempt identity
+clear. The donor then enters new amounts in the target currency. Core never
+converts, rounds, or carries numeric digits across currencies.
+
+D63 ends at the pre-acceptance boundary. A confirming, authenticating,
+processing, capture-pending, successful, or outcome-unknown payment cannot
+change currency, and an accepted contribution or recurring agreement is
+immutable. The target currency and every preserved fact are re-proved before
+the original clears; stale qualification, concurrency, authorization, or
+provider-retirement ambiguity writes nothing. An attempted provider operation
+is never reused for another currency. Stripe currently permits some
+pre-confirmation PaymentIntent currency updates, so the Payments adapter may
+update or replace only a still-unattempted, unexposed provider object when its
+pinned contract proves stale execution impossible; this ADR chooses new Core
+money identity without falsely claiming a provider prohibition. Draft revision
+evidence follows ordinary bounded cart retention and never becomes permanent
+ledger or donor history merely because the donor explored another currency.
+
+**Phase 24 D64 amendment (2026-08-30).** Suggested gift amounts are optional,
+reviewed native fundraising presentation, not FX output. Operational Postgres
+owns one immutable, versioned **Site Suggested Amount Set** for each exact
+Tenant, Site, ISO presentment currency, and one-time or exact Phase 16 recurring
+cadence. A set contains zero to six unique positive integer-minor-unit amounts,
+rendered in ascending order, with no automatic selection. Ordinary open giving
+always retains a custom amount. An authorized save is the review and creates the next current
+version prospectively; D64 creates no Payload money authority, approval queue,
+FX source, Stripe Price, live inheritance, personalization engine, or
+cross-currency/cross-frequency digit copy.
+
+The set suggests only. Phase 13 owns the donor-selected Money and revalidates it
+through the same acceptance path as custom input; accepted gifts, carts with an
+explicit donor amount, recurring agreements, receipts, refunds, ledger, and
+accounting never follow a later set revision. D61/D62 qualification still owns
+whether a currency/cadence can be offered. Missing or intentionally empty sets
+produce a clean custom-amount-only donor flow only while that context remains
+qualified. D63 loads only the successful
+target currency/frequency set and never auto-selects an amount. Amount-dependent
+impact, matching, benefit, tax, or fee claims remain outside D64 until a
+separately governed content contract can bind and invalidate them safely.
+
+**Phase 24 D65 cross-reference (2026-08-30).** D65 consumes the successful
+target set only after its separate line-scoped Donor Gift-Schedule Transition
+clears source money and schedule meaning. It reuses D63's explicit
+preserve/clear, revision, idempotency, and provider-safety primitives at
+line/payment-group grain; it neither converts nor carries digits, maps preset
+position, changes cart currency, or makes this FX ADR the owner of schedule
+transitions.
+
+Deliberate currency/cadence disablement retires a set from public use while
+preserving history; later re-enable requires an explicit successor reaffirming
+former values under current policy. A transient qualification pause preserves
+the reviewed set but never permits custom input to bypass D61/D62/Phase 16.
+
 Phase 21 D6 does not turn D20 certification into a universal Field Account
 gate. A retained Stripe source may reference only the exact D20 settlement,
 payout-destination, and accounting evidence its Phase 21 activation path
@@ -130,6 +229,16 @@ only when foreign presentment activity exists or staff explicitly choose
 presentment, Stripe balance currency, gross/fee/net, provider conversion
 evidence, payout destination, and accounting home or base currency without
 mixing those meanings.
+
+Phase 24's ordinary presentment setup stays in the existing Site **Currencies**
+card. The staff member chooses a currency, receives one inline result such as
+**Ready for one-time and recurring gifts**, **Ready for one-time gifts ·
+Recurring needs setup**, **Payment setup needed**, or **Couldn’t check right
+now**, and completes one explicit save. A partial save clearly says that Site
+intent applies wherever payment setup later qualifies; staff do not maintain a
+route or payment-method matrix. Status is text-first and accessible, and an
+exception exposes one cause-owned action such as **Finish payment setup** or
+**Try again**, never raw Stripe identifiers or compliance detail.
 
 The optional lane uses one review-first checklist, discloses provider
 prerequisites and irreversible settings before staff leave Asym, previews the

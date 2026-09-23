@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "date": "2026-09-11",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "decisionStatus": "D1-D17 fully founder-ratified including all adopted amendments",
+  "nextQuestion": "Q18 unanswered; three alternative library models; B recommended",
+  "D17": {
+    "ratifiedClauses": 26,
+    "ratifiedRequiredProofGroups": 43,
+    "categoryOutcomes": 23,
+    "glossaryTerms": 4,
+    "operationalControls": 7,
+    "substantiveReviewPreservedVerbatim": true,
+    "substantiveUXPreservedVerbatim": true,
+    "substantiveInventoryPreservedVerbatim": true,
+    "definitionsPreservedVerbatim": true,
+    "unchangedEvidenceArtifacts": 5,
+    "sourceHashesReverified": 3
+  },
+  "preservedD1D16Artifacts": 70,
+  "preservedD1D16ADRs": 16,
+  "priorGlossaryPreserved": true,
+  "priorRatificationValidationPreserved": true,
+  "mirrorsMatched": 13,
+  "localLinksChecked": 232,
+  "outputLinksChecked": 211,
+  "immutableSourceLinksChecked": 37,
+  "uniqueImmutableSourceLinks": 25,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "noADR0018": true,
+  "independentQuestionChallenge": "no material correction required",
+  "limits": [
+    "No runtime or schema implementation",
+    "No live personal/shared-library privacy, provider, database, concurrency, browser or performance proof",
+    "No new legal applicability certification or universal retention duration",
+    "No formal specification, tickets, GitHub/provider/DNS/credential changes or real messages"
+  ]
+}

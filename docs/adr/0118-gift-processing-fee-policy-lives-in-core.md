@@ -35,8 +35,10 @@ Gift processing-fee policy lives in Core at
   (`gift_amount_cents`, `cover_fees`, `payment_method`, `cover_amount_cents`,
   `estimated_fee_cents`) without overriding `donation_id`. Claim identity is
   merged last.
-- Recovery and batch first-shot PaymentIntents without those extras are
-  acceptable because charged cents already live in `p_amount`.
+- Recovery and batch first-shot PaymentIntents MAY omit fee extras only for
+  legacy or never-quoted rows (`fee_extras` empty `{}`). Newly quoted Guest
+  Giving rows require stored extras, including `payment_method`, so recovery
+  can bind card vs ACH. Charged cents in `p_amount` do not preserve method.
 - The staff donations path (`packages/api/src/donations/index.ts`) does not
   apply cover-fees. Staff already send charged cents.
 - Recurring checkout stays coerced to one-time. Live ACH and wallet confirm

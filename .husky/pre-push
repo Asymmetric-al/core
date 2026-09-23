@@ -1,2 +1,1 @@
-node scripts/git/pre-push-guard.mjs "$@"
-bun run ci:preflight
+node scripts/git/pre-push.mjs "$@"

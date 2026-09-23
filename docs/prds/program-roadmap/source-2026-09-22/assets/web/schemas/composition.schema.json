@@ -1,0 +1,436 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:asym:proposal:composition-structural:2",
+  "title": "Proposed composition envelope — structural subset",
+  "type": "object",
+  "properties": {
+    "profile": {
+      "type": "string",
+      "enum": [
+        "asym.page-composition/1",
+        "asym.page-composition/2"
+      ]
+    },
+    "family": {
+      "type": "string",
+      "enum": [
+        "page",
+        "article"
+      ]
+    },
+    "catalogVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    }
+  },
+  "required": [
+    "profile",
+    "family",
+    "catalogVersion",
+    "nodes"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "node": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "semantic"
+            },
+            "instanceId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+            },
+            "semanticType": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "schemaVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "content": {
+              "description": "Requires exact admitted semantic owner decoder. This structural schema intentionally does not invent D7/D11 content schemas.",
+              "type": "object"
+            },
+            "presentation": {
+              "type": "object",
+              "properties": {
+                "rendererKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "settingsVersion": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "values": {
+                  "type": "object",
+                  "description": "Must be decoded against exact admitted finite settings schema; structural validation alone is insufficient."
+                }
+              },
+              "required": [
+                "rendererKey",
+                "settingsVersion",
+                "values"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "instanceId",
+            "semanticType",
+            "schemaVersion",
+            "content"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "reusable"
+            },
+            "instanceId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+            },
+            "reusableId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+            },
+            "revisionId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+            }
+          },
+          "required": [
+            "kind",
+            "instanceId",
+            "reusableId",
+            "revisionId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "instanceId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+            },
+            "schemaVersion": {
+              "const": 1
+            },
+            "kind": {
+              "const": "layout"
+            },
+            "layoutType": {
+              "const": "stack"
+            },
+            "settings": {
+              "type": "object",
+              "properties": {
+                "width": {
+                  "type": "string",
+                  "enum": [
+                    "narrow",
+                    "content",
+                    "wide"
+                  ]
+                },
+                "gap": {
+                  "type": "string",
+                  "enum": [
+                    "compact",
+                    "comfortable",
+                    "roomy"
+                  ]
+                },
+                "surface": {
+                  "type": "string",
+                  "enum": [
+                    "default",
+                    "muted",
+                    "emphasis"
+                  ]
+                },
+                "align": {
+                  "type": "string",
+                  "enum": [
+                    "start",
+                    "center"
+                  ]
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "slots": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/node"
+                  },
+                  "maxItems": 16
+                }
+              },
+              "required": [
+                "items"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "instanceId",
+            "schemaVersion",
+            "kind",
+            "layoutType",
+            "settings",
+            "slots"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "instanceId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+            },
+            "schemaVersion": {
+              "const": 1
+            },
+            "kind": {
+              "const": "layout"
+            },
+            "layoutType": {
+              "const": "split"
+            },
+            "settings": {
+              "type": "object",
+              "properties": {
+                "width": {
+                  "type": "string",
+                  "enum": [
+                    "narrow",
+                    "content",
+                    "wide"
+                  ]
+                },
+                "gap": {
+                  "type": "string",
+                  "enum": [
+                    "compact",
+                    "comfortable",
+                    "roomy"
+                  ]
+                },
+                "surface": {
+                  "type": "string",
+                  "enum": [
+                    "default",
+                    "muted",
+                    "emphasis"
+                  ]
+                },
+                "align": {
+                  "type": "string",
+                  "enum": [
+                    "start",
+                    "center"
+                  ]
+                },
+                "ratio": {
+                  "type": "string",
+                  "enum": [
+                    "equal",
+                    "wide-start",
+                    "wide-end"
+                  ]
+                },
+                "verticalAlign": {
+                  "type": "string",
+                  "enum": [
+                    "start",
+                    "center"
+                  ]
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "slots": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/node"
+                  },
+                  "maxItems": 16
+                },
+                "end": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/node"
+                  },
+                  "maxItems": 16
+                }
+              },
+              "required": [
+                "start",
+                "end"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "instanceId",
+            "schemaVersion",
+            "kind",
+            "layoutType",
+            "settings",
+            "slots"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "instanceId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+            },
+            "schemaVersion": {
+              "const": 1
+            },
+            "kind": {
+              "const": "layout"
+            },
+            "layoutType": {
+              "const": "grid"
+            },
+            "settings": {
+              "type": "object",
+              "properties": {
+                "width": {
+                  "type": "string",
+                  "enum": [
+                    "narrow",
+                    "content",
+                    "wide"
+                  ]
+                },
+                "gap": {
+                  "type": "string",
+                  "enum": [
+                    "compact",
+                    "comfortable",
+                    "roomy"
+                  ]
+                },
+                "surface": {
+                  "type": "string",
+                  "enum": [
+                    "default",
+                    "muted",
+                    "emphasis"
+                  ]
+                },
+                "align": {
+                  "type": "string",
+                  "enum": [
+                    "start",
+                    "center"
+                  ]
+                },
+                "columns": {
+                  "type": "string",
+                  "enum": [
+                    "two",
+                    "three",
+                    "four"
+                  ]
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            },
+            "slots": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/node"
+                  },
+                  "maxItems": 12
+                }
+              },
+              "required": [
+                "items"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "instanceId",
+            "schemaVersion",
+            "kind",
+            "layoutType",
+            "settings",
+            "slots"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "profile": {
+            "const": "asym.page-composition/2"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "nodes": {
+            "maxItems": 64
+          }
+        }
+      }
+    }
+  ]
+}

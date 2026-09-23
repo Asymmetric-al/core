@@ -2,9 +2,12 @@
 
 **Status:** Accepted (grill session 2026-05-28)
 
+**Current amendment — 2026-09-16 (AL-1861):** The Decision below uses the
+ratified [owner contracts](../../README.md); unchanged UI decisions remain valid.
+
 ## Context
 
-Contribution detail has to serve many needs: financial truth, actions, audit, corrections, receipt state, CRM post state, Stripe references, recurring context, and designation details. The product owner wants the UI to remain simple, easy to understand, easy to use, and low-noise.
+Contribution detail has to serve many needs: financial truth, actions, audit, corrections, receipt state, source posting state, Stripe references, recurring context, and designation details. The product owner wants the UI to remain simple, easy to understand, easy to use, and low-noise.
 
 ## Decision
 
@@ -14,7 +17,7 @@ The default visible detail view starts with the financial summary:
 - Donor identity/context
 - Gift date, source, and payment method
 - Equal designation rows
-- Receipt, CRM post, refund, recurring, correction, and approval status chips
+- Separately owned document, posting, refund, recurring, correction and approval facts
 - Correct primary actions for the gift state and user role
 
 Technical and operational detail stays collapsed by default:
@@ -37,3 +40,9 @@ Technical and operational detail stays collapsed by default:
 - **Workflow dashboard first:** Makes exceptions dominate even when a gift is healthy.
 - **Donor story first:** Useful context but secondary to financial truth for this surface.
 - **Everything collapsed:** Too much work for staff to answer basic gift questions.
+
+## Original decision provenance
+
+The [original dated record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0016-financial-summary-default-layout.md) preserves earlier wording and
+rationale. Current terminology and applicability were amended on 2026-09-16;
+documentation does not establish runtime activation.

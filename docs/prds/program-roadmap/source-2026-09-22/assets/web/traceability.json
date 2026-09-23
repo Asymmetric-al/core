@@ -1,0 +1,2009 @@
+{
+  "change_id": "add-web-studio-hybrid-authoring",
+  "requirements": [
+    {
+      "id": "HW-001",
+      "title": "Hybrid scope and editorial independence",
+      "requirement": "Web Studio SHALL support visual-first, code-first and mixed authoring over one canonical content and publication system. A standard site and ordinary supported CMS edits SHALL require neither a custom repository nor developer involvement. An embedded IDE, hosted AI and arbitrary customer server execution are not prerequisites.",
+      "workflows": [
+        "WF01",
+        "WF18"
+      ],
+      "task": "1.1",
+      "sources": [
+        "R01"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-001-A",
+          "name": "Expected journey",
+          "given": "a standard qualified presentation",
+          "when": "a permitted editor creates a Page",
+          "then": "creation, preview and publication are possible without GitHub"
+        },
+        {
+          "id": "HW-001-B",
+          "name": "Adverse or boundary journey",
+          "given": "GitHub is unavailable",
+          "when": "an editor saves supported content against an admitted presentation",
+          "then": "the content path does not call GitHub or fail solely because of that outage"
+        }
+      ]
+    },
+    {
+      "id": "HW-002",
+      "title": "Explicit amendments and evidence status",
+      "requirement": "This capability SHALL preserve existing owners and distinguish verified code from unmerged intent. HA-A1 through HA-A4 SHALL be recorded as explicit local proposed amendments before incompatible behavior is implemented. Document completion SHALL NOT claim Built, Live, Confirmed or a passed runtime qualification.",
+      "workflows": [
+        "WF01",
+        "WF03",
+        "WF13"
+      ],
+      "task": "1.1",
+      "sources": [
+        "R05",
+        "R12",
+        "R13"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-002-A",
+          "name": "Expected journey",
+          "given": "an approved hybrid direction and unmerged Phase 23 contracts",
+          "when": "the change is adopted",
+          "then": "affected owner decisions and scenarios are reconciled with exact source versions"
+        },
+        {
+          "id": "HW-002-B",
+          "name": "Adverse or boundary journey",
+          "given": "a prototype conflicts with a frozen requirement",
+          "when": "an implementer considers the prototype convenient",
+          "then": "the conflict is resolved explicitly, not silently copied into production"
+        }
+      ]
+    },
+    {
+      "id": "HW-003",
+      "title": "Coherent software qualification",
+      "requirement": "Production admission SHALL use one exact coherent qualified Payload/Next/React/toolchain cohort consistent with the governing major-line decision. Puck SHALL be pinned only after integration qualification. An internal pin, current stable v3, or vendor feature page SHALL NOT substitute for required v4 evidence or authorize an implicit downgrade.",
+      "workflows": [
+        "WF01",
+        "WF13"
+      ],
+      "task": "1.2",
+      "sources": [
+        "R03",
+        "E05",
+        "E06",
+        "E07"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-003-A",
+          "name": "Expected journey",
+          "given": "a candidate supported cohort",
+          "when": "qualification exercises editor, transactions and public behavior",
+          "then": "exact versions, source and outcomes are retained"
+        },
+        {
+          "id": "HW-003-B",
+          "name": "Adverse or boundary journey",
+          "given": "the candidate cannot satisfy required engine semantics",
+          "when": "release is requested",
+          "then": "the dependent capability stays unavailable without raw-admin or alternate-major fallback"
+        }
+      ]
+    },
+    {
+      "id": "HW-004",
+      "title": "One physical write transaction",
+      "requirement": "Acknowledged editorial save SHALL atomically commit its content, source revision, current lease/authority proof, receipt and any required dispatch intent in one qualified physical database transaction. Separate provider/API requests SHALL NOT be represented as atomic merely because they share an identifier.",
+      "workflows": [
+        "WF02",
+        "WF10"
+      ],
+      "task": "1.3",
+      "sources": [
+        "R07",
+        "E02"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-004-A",
+          "name": "Expected journey",
+          "given": "an authorized save with valid revision",
+          "when": "content and receipt writes complete",
+          "then": "one transaction acknowledges the exact new revision"
+        },
+        {
+          "id": "HW-004-B",
+          "name": "Adverse or boundary journey",
+          "given": "the receipt write fails after a content write in the transaction",
+          "when": "the transaction finishes",
+          "then": "all required writes roll back and Saved is not displayed"
+        }
+      ]
+    },
+    {
+      "id": "HW-005",
+      "title": "Stable semantic catalog identity",
+      "requirement": "Every node SHALL use stable identity, exact semantic type and schema version. A single canonical versioned catalog SHALL supply compatible editor fields, public decoders, standard rendering and migration meaning. Unsupported fields and types SHALL not be silently dropped or inferred from filenames.",
+      "workflows": [
+        "WF02",
+        "WF12",
+        "WF15"
+      ],
+      "task": "2.1",
+      "sources": [
+        "R06"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-005-A",
+          "name": "Expected journey",
+          "given": "a known component file is renamed",
+          "when": "its stable registered identity is unchanged",
+          "then": "existing Pages keep their editable bindings"
+        },
+        {
+          "id": "HW-005-B",
+          "name": "Adverse or boundary journey",
+          "given": "unknown semantic content arrives",
+          "when": "a decoder processes the Page",
+          "then": "it returns a repairable incompatibility without silently omitting the node"
+        }
+      ]
+    },
+    {
+      "id": "HW-006",
+      "title": "Bounded composition successor",
+      "requirement": "Ordinary Page composition v2 SHALL follow the exact Stack/Split/Grid grammar and finite settings in ux-and-composition.md, with two container levels, stable reading order and explicit admission limits. Articles and v1 Pages SHALL retain their qualified grammar. No arbitrary CSS, coordinates, script, viewport property bag or recursive layout is accepted.",
+      "workflows": [
+        "WF03"
+      ],
+      "task": "2.2",
+      "sources": [
+        "R06",
+        "E11"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-006-A",
+          "name": "Expected journey",
+          "given": "a v2 Page and permitted split layout",
+          "when": "an editor composes valid slots",
+          "then": "the server accepts it and the standard renderer preserves reading order"
+        },
+        {
+          "id": "HW-006-B",
+          "name": "Adverse or boundary journey",
+          "given": "a third container level or Article layout is submitted",
+          "when": "save validation runs",
+          "then": "the command is rejected with the responsible node path and no data loss"
+        }
+      ]
+    },
+    {
+      "id": "HW-007",
+      "title": "One visual data adapter",
+      "requirement": "The visual editor SHALL project from and translate back to the canonical Asym document. Its internal data/state SHALL NOT be a second persistent document authority. Equivalent untouched content SHALL round-trip with stable identity and no field loss under a pinned adapter.",
+      "workflows": [
+        "WF02",
+        "WF03"
+      ],
+      "task": "2.2",
+      "sources": [
+        "E09",
+        "E16"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-007-A",
+          "name": "Expected journey",
+          "given": "a canonical fixture with all supported node kinds",
+          "when": "the real pinned visual adapter loads and saves without edits",
+          "then": "canonical equivalence and stable IDs are preserved"
+        },
+        {
+          "id": "HW-007-B",
+          "name": "Adverse or boundary journey",
+          "given": "an adapter omits a supported field",
+          "when": "round-trip conformance runs",
+          "then": "qualification fails rather than migrating the loss into user documents"
+        }
+      ]
+    },
+    {
+      "id": "HW-008",
+      "title": "Explicit source-to-content bindings",
+      "requirement": "Presentation manifests SHALL declare stable renderer keys, semantic versions, finite setting schemas and binding metadata. Developers SHALL preserve CMS-controlled values or declare an explicit compatibility change. Structural prop acceptance alone SHALL NOT be treated as proof of visible content control.",
+      "workflows": [
+        "WF12",
+        "WF13",
+        "WF18"
+      ],
+      "task": "2.3",
+      "sources": [
+        "R16",
+        "E28"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-008-A",
+          "name": "Expected journey",
+          "given": "a custom hero consumes its declared headline",
+          "when": "staff change that field after a design update",
+          "then": "the actual rendered headline changes"
+        },
+        {
+          "id": "HW-008-B",
+          "name": "Adverse or boundary journey",
+          "given": "a developer hardcodes that value",
+          "when": "binding conformance and review run",
+          "then": "the broken control is diagnosed and the package cannot be admitted as compatible"
+        }
+      ]
+    },
+    {
+      "id": "HW-009",
+      "title": "Standard fallback and historical portability",
+      "requirement": "Every admitted semantic/layout version SHALL have a qualified standard rendering path. Missing custom implementation SHALL follow explicit owner-qualified fallback or narrow unavailability, never silently lose content. Historical schema transformation SHALL not mutate stored history on read.",
+      "workflows": [
+        "WF13",
+        "WF15"
+      ],
+      "task": "2.4",
+      "sources": [
+        "R06",
+        "R16"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-009-A",
+          "name": "Expected journey",
+          "given": "a current document has a standard compatible renderer",
+          "when": "a custom candidate is unavailable",
+          "then": "content remains inspectable through its qualified standard path"
+        },
+        {
+          "id": "HW-009-B",
+          "name": "Adverse or boundary journey",
+          "given": "no renderer supports the document version",
+          "when": "publication is attempted",
+          "then": "activation is blocked with compatibility repair rather than stripping content"
+        }
+      ]
+    },
+    {
+      "id": "HW-010",
+      "title": "Acknowledged saves and bounded recovery",
+      "requirement": "The editor SHALL expose Unsaved, Saving, Saved and owner-caused failure truthfully. Save now and keyboard save SHALL flush without publication. Lost acknowledgement SHALL reuse the original idempotency identity or read its receipt before any successor write.",
+      "workflows": [
+        "WF02",
+        "WF10"
+      ],
+      "task": "3.1",
+      "sources": [
+        "R07"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-010-A",
+          "name": "Expected journey",
+          "given": "a valid local edit",
+          "when": "the exact save receipt returns",
+          "then": "Saved identifies the acknowledged revision"
+        },
+        {
+          "id": "HW-010-B",
+          "name": "Adverse or boundary journey",
+          "given": "the response is lost after commit",
+          "when": "the client reconnects",
+          "then": "receipt/replay resolves the original effect once before another save"
+        }
+      ]
+    },
+    {
+      "id": "HW-011",
+      "title": "Session-owned lease and compare-and-swap",
+      "requirement": "Every D12 mutation SHALL prove the exact resource scope, editing session, current lease generation and expected revision. Same-user tabs are separate sessions. Takeover SHALL checkpoint and fence the displaced editor atomically; coordination SHALL NOT replace permission or CAS.",
+      "workflows": [
+        "WF10"
+      ],
+      "task": "3.1",
+      "sources": [
+        "R07"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-011-A",
+          "name": "Expected journey",
+          "given": "a second authorized session",
+          "when": "it opens an actively edited resource",
+          "then": "it is read-only with permitted takeover guidance"
+        },
+        {
+          "id": "HW-011-B",
+          "name": "Adverse or boundary journey",
+          "given": "a displaced tab submits an old lease token",
+          "when": "the server processes it",
+          "then": "the stale write is denied and unsent work remains available for comparison"
+        }
+      ]
+    },
+    {
+      "id": "HW-012",
+      "title": "Draft validation distinct from publication readiness",
+      "requirement": "Structurally safe incomplete content SHALL be retainable as a private draft with actionable diagnostics. Authorization, schema-boundary, executable-payload or scope violations SHALL be rejected. Readiness failures SHALL block the relevant release rather than make all intermediate editing impossible.",
+      "workflows": [
+        "WF01",
+        "WF02",
+        "WF03"
+      ],
+      "task": "3.1",
+      "sources": [
+        "R07",
+        "R06"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-012-A",
+          "name": "Expected journey",
+          "given": "a valid empty layout or required text not yet entered",
+          "when": "the editor saves a work in progress",
+          "then": "a private revision persists with completeness diagnostics"
+        },
+        {
+          "id": "HW-012-B",
+          "name": "Adverse or boundary journey",
+          "given": "a caller inserts arbitrary executable settings",
+          "when": "save is requested",
+          "then": "the server rejects the unsafe structure rather than retaining it as an executable draft"
+        }
+      ]
+    },
+    {
+      "id": "HW-013",
+      "title": "Usable visual composer with a non-drag path",
+      "requirement": "The Asym composer SHALL provide outline, insertion, selection, movement, duplication, deletion, field inspection and finite layout controls. Every drag operation SHALL have keyboard and non-drag pointer equivalents with meaningful focus and announcements. Source identity SHALL survive reordering.",
+      "workflows": [
+        "WF02",
+        "WF03"
+      ],
+      "task": "3.2",
+      "sources": [
+        "E09",
+        "E30"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-013-A",
+          "name": "Expected journey",
+          "given": "a keyboard or touch user",
+          "when": "they move a section using explicit controls",
+          "then": "the same canonical order changes and focus remains on the moved item"
+        },
+        {
+          "id": "HW-013-B",
+          "name": "Adverse or boundary journey",
+          "given": "drag-and-drop is unavailable",
+          "when": "the user attempts page composition",
+          "then": "all required insert/move/remove tasks remain possible"
+        }
+      ]
+    },
+    {
+      "id": "HW-014",
+      "title": "Isolated composer and minimal bridge",
+      "requirement": "The complete composer context SHALL run on the qualified isolated origin, receiving only admitted renderer code and the minimal authorized editorial projection. The trusted shell SHALL validate bridge source/origin/schema/nonce/scope and retain save/publication authority. Puck viewport isolation SHALL NOT be misrepresented as a security sandbox.",
+      "workflows": [
+        "WF02",
+        "WF17"
+      ],
+      "task": "3.3",
+      "sources": [
+        "E15",
+        "E31"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-014-A",
+          "name": "Expected journey",
+          "given": "an authorized isolated composer",
+          "when": "it submits a valid bounded edit intent",
+          "then": "the shell validates and sends the ordinary owner command"
+        },
+        {
+          "id": "HW-014-B",
+          "name": "Adverse or boundary journey",
+          "given": "an unknown origin or stale channel requests publication or broad data",
+          "when": "the bridge receives it",
+          "then": "no privileged operation or disclosure occurs"
+        }
+      ]
+    },
+    {
+      "id": "HW-015",
+      "title": "Safe click-to-edit metadata",
+      "requirement": "Editor source mappings SHALL identify authorized document/node/field references, not privileged tokens or mutable filenames as identity. Mapping SHALL be absent from public responses when it would disclose private editing information. Unknown or stale mappings SHALL fail safely.",
+      "workflows": [
+        "WF02",
+        "WF12",
+        "WF17"
+      ],
+      "task": "3.3",
+      "sources": [
+        "E26",
+        "E27"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-015-A",
+          "name": "Expected journey",
+          "given": "an admitted component has current field metadata",
+          "when": "an editor selects its text",
+          "then": "the matching allowed field opens without navigation loss"
+        },
+        {
+          "id": "HW-015-B",
+          "name": "Adverse or boundary journey",
+          "given": "public output or a stale renderer references private editor context",
+          "when": "render/mapping checks run",
+          "then": "private metadata is excluded and stale selection cannot target another resource"
+        }
+      ]
+    },
+    {
+      "id": "HW-016",
+      "title": "Qualified media and links",
+      "requirement": "Media and link controls SHALL use existing scoped identity/qualification services. Placements SHALL pin appropriate versions/renditions and preserve usage-local alt/crop/locale meaning. A caller-entered URL or cached selector result SHALL NOT bypass current rights, safety or destination authority.",
+      "workflows": [
+        "WF04",
+        "WF18"
+      ],
+      "task": "3.4",
+      "sources": [
+        "R05",
+        "E14"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-016-A",
+          "name": "Expected journey",
+          "given": "qualified media for the selected Site",
+          "when": "an editor places it with usage metadata",
+          "then": "preview and release bind the exact approved reference"
+        },
+        {
+          "id": "HW-016-B",
+          "name": "Adverse or boundary journey",
+          "given": "rights are withdrawn during review",
+          "when": "activation rechecks dependencies",
+          "then": "the unsafe placement cannot become public even if the picker cache showed it"
+        }
+      ]
+    },
+    {
+      "id": "HW-017",
+      "title": "Bounded reusable sections",
+      "requirement": "Reusable content SHALL remain explicit, exact Site/locale/family-qualified and nonrecursive under the approved reuse contract. The hybrid grammar SHALL allow reusable references only at its defined root positions. Impact views SHALL state completeness and never authorize deletion from a stale count.",
+      "workflows": [
+        "WF05"
+      ],
+      "task": "3.5",
+      "sources": [
+        "R05",
+        "R06"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-017-A",
+          "name": "Expected journey",
+          "given": "a compatible root reusable section",
+          "when": "an editor selects its acknowledged revision",
+          "then": "the Page records an explicit reuse reference"
+        },
+        {
+          "id": "HW-017-B",
+          "name": "Adverse or boundary journey",
+          "given": "a cross-Site or nested recursive reference is attempted",
+          "when": "validation executes",
+          "then": "it is denied and no silent copy or wider grant is created"
+        }
+      ]
+    },
+    {
+      "id": "HW-018",
+      "title": "Exact independent locale lineages",
+      "requirement": "Locale creation SHALL use the existing blank/copy-from exact revision operation with provenance and no ongoing synchronization. Public composition, source references and reviews SHALL request one exact locale without implicit language fallback. Source changes SHALL not overwrite translated work.",
+      "workflows": [
+        "WF06"
+      ],
+      "task": "3.5",
+      "sources": [
+        "R05",
+        "R15"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-018-A",
+          "name": "Expected journey",
+          "given": "a translator starts from an exact source revision",
+          "when": "they edit the new private locale",
+          "then": "its later saves and publication are independent"
+        },
+        {
+          "id": "HW-018-B",
+          "name": "Adverse or boundary journey",
+          "given": "the original locale changes or a translation is missing",
+          "when": "the target locale is rendered",
+          "then": "no field fallback or automatic overwrite is introduced"
+        }
+      ]
+    },
+    {
+      "id": "HW-019",
+      "title": "Separate appearance and content axes",
+      "requirement": "Per-instance settings SHALL be finite compatible fields on their owning editorial axis. Site-wide appearance SHALL use its existing separate owner and cohort semantics. Editing one SHALL NOT implicitly change the other, routes, navigation, money or operational facts.",
+      "workflows": [
+        "WF07",
+        "WF14"
+      ],
+      "task": "3.6",
+      "sources": [
+        "R15"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-019-A",
+          "name": "Expected journey",
+          "given": "an editor changes a local variant",
+          "when": "they save the Page",
+          "then": "only that declared Page setting changes"
+        },
+        {
+          "id": "HW-019-B",
+          "name": "Adverse or boundary journey",
+          "given": "a Site-wide brand draft changes",
+          "when": "a Page autosaves",
+          "then": "the brand draft is not implicitly activated or overwritten"
+        }
+      ]
+    },
+    {
+      "id": "HW-020",
+      "title": "Ministry-controlled source without supplier lock-in",
+      "requirement": "Custom source SHALL be kept in a ministry-controlled conventional repository, with a supported project and maintainership/rights record. No Core fork, source-string CMS field or proprietary IDE state is required. Source control SHALL NOT imply ownership of dependencies or a standalone Asym platform.",
+      "workflows": [
+        "WF11",
+        "WF12",
+        "WF16",
+        "WF18"
+      ],
+      "task": "4.3",
+      "sources": [
+        "R01",
+        "R16"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-020-A",
+          "name": "Expected journey",
+          "given": "a new qualified agency is appointed",
+          "when": "it uses the ministry project and documented SDK",
+          "then": "it can develop without the previous supplier controlling the repository"
+        },
+        {
+          "id": "HW-020-B",
+          "name": "Adverse or boundary journey",
+          "given": "source export is requested",
+          "when": "the handoff is explained",
+          "then": "actual source/assets/config rights and platform dependencies are distinguished"
+        }
+      ]
+    },
+    {
+      "id": "HW-021",
+      "title": "Dual-domain verified repository connection",
+      "requirement": "Repository binding SHALL require current Asym integration authority and verified GitHub installation/repository authorization. Posted installation IDs, matching email, GitHub membership or repository URL alone SHALL NOT grant Asym access. Provider authentication SHALL not create a second Asym human permission system.",
+      "workflows": [
+        "WF11"
+      ],
+      "task": "4.1",
+      "sources": [
+        "E17",
+        "E18",
+        "R09"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-021-A",
+          "name": "Expected journey",
+          "given": "an authorized ministry integration manager",
+          "when": "they complete verified selected-repository consent",
+          "then": "only the intended scoped binding activates"
+        },
+        {
+          "id": "HW-021-B",
+          "name": "Adverse or boundary journey",
+          "given": "an attacker substitutes an installation ID or callback state",
+          "when": "connection completion runs",
+          "then": "the binding is denied without repository disclosure"
+        }
+      ]
+    },
+    {
+      "id": "HW-022",
+      "title": "Minimal provider permissions and stable binding",
+      "requirement": "A binding SHALL record stable provider repository identity, exact Tenant/environment/project/package location, state and epoch. Provider tokens SHALL be narrowly scoped and kept outside untrusted build execution. Initial source integration SHALL not request source-write, secrets, issue-creation or repository-administration access.",
+      "workflows": [
+        "WF11",
+        "WF16"
+      ],
+      "task": "4.1",
+      "sources": [
+        "E18"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-022-A",
+          "name": "Expected journey",
+          "given": "a repository is renamed without ownership change",
+          "when": "reconciliation verifies identity",
+          "then": "display metadata changes without creating a new project"
+        },
+        {
+          "id": "HW-022-B",
+          "name": "Adverse or boundary journey",
+          "given": "the App can see an unbound repository",
+          "when": "a request selects it without authorization",
+          "then": "it remains unavailable to that Asym project"
+        }
+      ]
+    },
+    {
+      "id": "HW-023",
+      "title": "Authenticated durable Git events",
+      "requirement": "Git events SHALL validate raw-body signatures and schema, resolve known scoped bindings and persist accepted delivery identity/dispatch before acknowledgment. Delivery and business-effect deduplication SHALL be distinct; missed deliveries SHALL have bounded reconciliation.",
+      "workflows": [
+        "WF11",
+        "WF12",
+        "WF16"
+      ],
+      "task": "4.2",
+      "sources": [
+        "E19",
+        "E20",
+        "E21"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-023-A",
+          "name": "Expected journey",
+          "given": "a verified event for an active binding",
+          "when": "dispatch is temporarily down",
+          "then": "the stored event is acknowledged and recovered later"
+        },
+        {
+          "id": "HW-023-B",
+          "name": "Adverse or boundary journey",
+          "given": "a duplicate or out-of-order event arrives after revocation",
+          "when": "the handler and worker process it",
+          "then": "no duplicate effect or resurrected binding occurs"
+        }
+      ]
+    },
+    {
+      "id": "HW-024",
+      "title": "Exact bounded source intake",
+      "requirement": "Source selection SHALL resolve once to immutable commit/tree and byte digests under an approved root. Intake SHALL reject traversal/expansion hazards and unsupported external source dependencies. Credentials and credential-bearing Git metadata SHALL be removed before untrusted execution.",
+      "workflows": [
+        "WF12",
+        "WF13"
+      ],
+      "task": "4.2",
+      "sources": [
+        "E22",
+        "R16"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-024-A",
+          "name": "Expected journey",
+          "given": "a verified exact source revision",
+          "when": "intake completes",
+          "then": "the build receives bounded credential-free bytes with provenance"
+        },
+        {
+          "id": "HW-024-B",
+          "name": "Adverse or boundary journey",
+          "given": "source contains an escaping symlink or unsupported external submodule",
+          "when": "intake validates it",
+          "then": "capture fails explicitly rather than fetching arbitrary bytes or silently omitting files"
+        }
+      ]
+    },
+    {
+      "id": "HW-025",
+      "title": "First-class local and Git development",
+      "requirement": "The developer project SHALL offer documented install/dev/test/build commands, exact SDK/toolchain requirements, synthetic fixtures and ordinary source history. The complete custom-source journey SHALL be possible using a supported external IDE and normal Git without Asym-hosted inference or IDE.",
+      "workflows": [
+        "WF12",
+        "WF18"
+      ],
+      "task": "4.3",
+      "sources": [
+        "R01"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-025-A",
+          "name": "Expected journey",
+          "given": "a developer has the supported toolchain",
+          "when": "they clone and follow documented commands",
+          "then": "they can run, test and submit a compatible package"
+        },
+        {
+          "id": "HW-025-B",
+          "name": "Adverse or boundary journey",
+          "given": "no Asym browser IDE or AI credential exists",
+          "when": "they complete development",
+          "then": "no mandatory feature blocks the Git delivery path"
+        }
+      ]
+    },
+    {
+      "id": "HW-026",
+      "title": "Independent isolated clean builds",
+      "requirement": "Qualification SHALL build exact captured source under an admitted frozen toolchain/dependency profile in isolated nonproduction execution. No production data, permanent provider token or serving-head authority is exposed. Mutable workspace output and customer-controlled CI SHALL not constitute independent approval.",
+      "workflows": [
+        "WF13"
+      ],
+      "task": "4.4",
+      "sources": [
+        "R16",
+        "E22"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-026-A",
+          "name": "Expected journey",
+          "given": "source passes its own tests",
+          "when": "the platform builds and checks the exact capture",
+          "then": "independent evidence binds the resulting artifact"
+        },
+        {
+          "id": "HW-026-B",
+          "name": "Adverse or boundary journey",
+          "given": "source modifies its tests to pass or runs a hostile install script",
+          "when": "the trusted pipeline qualifies it",
+          "then": "independent checks and isolation remain effective"
+        }
+      ]
+    },
+    {
+      "id": "HW-027",
+      "title": "Immutable admission and explicit first-party trust",
+      "requirement": "An admitted package SHALL bind artifact/source digests, compatibility, settings/renderer manifest, dependencies/licenses, maintainer and qualified evidence. Admission SHALL be a distinct platform-owned decision. Signature, language types or test success alone SHALL not establish arbitrary-code safety.",
+      "workflows": [
+        "WF13",
+        "WF14"
+      ],
+      "task": "4.5",
+      "sources": [
+        "R14",
+        "R16"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-027-A",
+          "name": "Expected journey",
+          "given": "complete evidence passes under a known policy",
+          "when": "the admission owner approves",
+          "then": "an immutable verdict identifies exactly the admitted bytes"
+        },
+        {
+          "id": "HW-027-B",
+          "name": "Adverse or boundary journey",
+          "given": "repository administrators forge a passing status",
+          "when": "a Site attempts activation",
+          "then": "the missing independent admission blocks it"
+        }
+      ]
+    },
+    {
+      "id": "HW-028",
+      "title": "Separate server and editor builds",
+      "requirement": "Public presentation SHALL preserve server-rendered essential content and the existing public view model; client editor configuration SHALL contain no server-only imports or authority. Editor and public builds SHALL prove compatible rendering/field bindings without forcing all public content into client rendering.",
+      "workflows": [
+        "WF12",
+        "WF13"
+      ],
+      "task": "2.3",
+      "sources": [
+        "E12",
+        "R16"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-028-A",
+          "name": "Expected journey",
+          "given": "an admitted component has public and editor entrypoints",
+          "when": "both render the same contract fixture",
+          "then": "content meaning and binding behavior agree"
+        },
+        {
+          "id": "HW-028-B",
+          "name": "Adverse or boundary journey",
+          "given": "client config imports a database or server secret module",
+          "when": "qualification examines the graph",
+          "then": "the package fails admission"
+        }
+      ]
+    },
+    {
+      "id": "HW-029",
+      "title": "Fixed complete authorized preview",
+      "requirement": "An exact candidate SHALL seal complete deliberately selected inputs and reauthorize every preview request. It SHALL be private/no-store/noindex, side-effect-dark, candidate-local and complete-or-unavailable. Its identifier SHALL not grant access.",
+      "workflows": [
+        "WF08",
+        "WF17"
+      ],
+      "task": "5.1",
+      "sources": [
+        "R17"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-029-A",
+          "name": "Expected journey",
+          "given": "an authorized user reviews a sealed candidate",
+          "when": "they navigate its Pages and links",
+          "then": "all output comes from the exact candidate closure"
+        },
+        {
+          "id": "HW-029-B",
+          "name": "Adverse or boundary journey",
+          "given": "a target is missing or access expires",
+          "when": "the request is made",
+          "then": "it fails privately rather than falling through to Live or causing real side effects"
+        }
+      ]
+    },
+    {
+      "id": "HW-030",
+      "title": "Newer work does not rewrite reviewed work",
+      "requirement": "Later drafts or source commits SHALL not change an existing selected candidate. The UI SHALL identify excluded newer work and offer explicit successor preparation. Current safety/authority/cohort and required compatibility changes SHALL still be enforced before use and activation.",
+      "workflows": [
+        "WF08",
+        "WF14",
+        "WF17"
+      ],
+      "task": "5.1",
+      "sources": [
+        "R07",
+        "R17"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-030-A",
+          "name": "Expected journey",
+          "given": "a candidate pins revision A",
+          "when": "an editor later saves revision B",
+          "then": "review remains A with B visibly excluded"
+        },
+        {
+          "id": "HW-030-B",
+          "name": "Adverse or boundary journey",
+          "given": "candidate A loses required eligibility",
+          "when": "a publisher attempts release",
+          "then": "the safety/authority failure blocks A notwithstanding its earlier approval"
+        }
+      ]
+    },
+    {
+      "id": "HW-031",
+      "title": "Package availability distinct from activation",
+      "requirement": "New executable presentation SHALL become available through the controlled managed runtime build/registry before dependent activation. Availability SHALL not make it public by itself. Required older renderers/assets SHALL remain available for active and retained generations.",
+      "workflows": [
+        "WF13",
+        "WF14"
+      ],
+      "task": "5.2",
+      "sources": [
+        "R15",
+        "R16"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-031-A",
+          "name": "Expected journey",
+          "given": "a new admitted package is deployed into the registry",
+          "when": "no design activation occurs",
+          "then": "current Sites retain their existing presentation"
+        },
+        {
+          "id": "HW-031-B",
+          "name": "Adverse or boundary journey",
+          "given": "a runtime lacks the selected required version",
+          "when": "activation is requested",
+          "then": "readiness fails without substituting a different renderer"
+        }
+      ]
+    },
+    {
+      "id": "HW-032",
+      "title": "Single ordinary public publication owner",
+      "requirement": "Content/composition release SHALL use D1 with exact compatible selections, current authority/safety, expected-head compare-and-swap and a durable receipt. Normal content edits SHALL not require a new Core code build. Tenant editorial policies SHALL not be replaced by a new blanket manual approval.",
+      "workflows": [
+        "WF08"
+      ],
+      "task": "5.3",
+      "sources": [
+        "R05",
+        "R15"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-032-A",
+          "name": "Expected journey",
+          "given": "an authorized compatible content edit",
+          "when": "the existing editorial policy permits publication",
+          "then": "D1 activates one coherent successor without rebuilding application code"
+        },
+        {
+          "id": "HW-032-B",
+          "name": "Adverse or boundary journey",
+          "given": "two publishers race on the same expected head",
+          "when": "both attempt commit",
+          "then": "only a valid winning transition commits; no mixed generation appears"
+        }
+      ]
+    },
+    {
+      "id": "HW-033",
+      "title": "Complete-cohort design activation",
+      "requirement": "Site presentation activation SHALL use D10 over every current public locale and qualified dispositions for enabled nonpublic locales. It SHALL reprove the exact cohort and expected heads and atomically change all required heads or none, without changing unrelated content or operational meaning.",
+      "workflows": [
+        "WF07",
+        "WF14"
+      ],
+      "task": "5.3",
+      "sources": [
+        "R15"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-033-A",
+          "name": "Expected journey",
+          "given": "all locale candidates are ready and current",
+          "when": "the design is activated",
+          "then": "the exact complete cohort advances together"
+        },
+        {
+          "id": "HW-033-B",
+          "name": "Adverse or boundary journey",
+          "given": "a locale is enabled or a head changes during review",
+          "when": "activation runs",
+          "then": "the stale cohort cannot partially activate"
+        }
+      ]
+    },
+    {
+      "id": "HW-034",
+      "title": "Restore creates a new valid successor",
+      "requirement": "Editorial restore SHALL create a private draft successor; design restore SHALL use the existing new-successor process over current compatible content and current safety. Neither SHALL rewind history, reset content to a development snapshot or automatically reinstate an unsafe artifact.",
+      "workflows": [
+        "WF10",
+        "WF14",
+        "WF15"
+      ],
+      "task": "5.3",
+      "sources": [
+        "R07",
+        "R15"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-034-A",
+          "name": "Expected journey",
+          "given": "a prior compatible design is requested",
+          "when": "restore proof passes",
+          "then": "a new current-content successor is activated with retained history"
+        },
+        {
+          "id": "HW-034-B",
+          "name": "Adverse or boundary journey",
+          "given": "the previous design is now safety-ineligible",
+          "when": "restore is attempted",
+          "then": "it is refused without weakening the adverse rule"
+        }
+      ]
+    },
+    {
+      "id": "HW-035",
+      "title": "Exact-revision scheduled operations",
+      "requirement": "D13 appointments SHALL retain exact reviewed semantic intent, organization-owned authorization, civil/zone/offset/UTC data and generation-fenced lifecycle. Later autosaves SHALL remain excluded. Routine initiator offboarding SHALL not alone cancel organization intent; explicit invalidation SHALL prevent execution.",
+      "workflows": [
+        "WF09"
+      ],
+      "task": "5.4",
+      "sources": [
+        "R08"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-035-A",
+          "name": "Expected journey",
+          "given": "an appointment selects revision A",
+          "when": "revision B is saved and the initiator later leaves routinely",
+          "then": "only authorized A may execute under current organization rules"
+        },
+        {
+          "id": "HW-035-B",
+          "name": "Adverse or boundary journey",
+          "given": "an appointment is canceled or its safety authority invalidated",
+          "when": "an old delayed event arrives",
+          "then": "it has no favorable public effect"
+        }
+      ]
+    },
+    {
+      "id": "HW-036",
+      "title": "One durable execution and scheduling substrate",
+      "requirement": "Background work SHALL reuse shared product dispatch, claims and registered purpose-scoped workers. Identifier-only events SHALL not contain source/content/secrets. D13 SHALL retain the six-day handoff horizon and shared overdue recovery; Payload Jobs or per-Tenant schedulers SHALL not become publication authorities.",
+      "workflows": [
+        "WF09",
+        "WF13",
+        "WF14"
+      ],
+      "task": "5.4",
+      "sources": [
+        "R08",
+        "R10",
+        "E23"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-036-A",
+          "name": "Expected journey",
+          "given": "committed work awaits executor delivery",
+          "when": "the shared executor retries after its dedupe window",
+          "then": "product receipt/claim still prevents duplicate effects"
+        },
+        {
+          "id": "HW-036-B",
+          "name": "Adverse or boundary journey",
+          "given": "a job requests full content or a secret in its envelope",
+          "when": "validation runs",
+          "then": "dispatch is rejected before external transmission"
+        }
+      ]
+    },
+    {
+      "id": "HW-037",
+      "title": "Versioned convergence and adverse priority",
+      "requirement": "Derived cache/search/delivery state SHALL follow committed public generation receipts and current adverse rules. A delayed older event SHALL not restore withdrawn information. Convergence failure SHALL not undo an unrelated valid source write or imply source publication failed.",
+      "workflows": [
+        "WF04",
+        "WF08",
+        "WF14"
+      ],
+      "task": "5.5",
+      "sources": [
+        "R05",
+        "R10"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-037-A",
+          "name": "Expected journey",
+          "given": "D1 commits but a derived projection lags",
+          "when": "staff inspect status",
+          "then": "Published and convergence lag are distinct"
+        },
+        {
+          "id": "HW-037-B",
+          "name": "Adverse or boundary journey",
+          "given": "an old favorable update follows a current withdrawal",
+          "when": "a projection processes it",
+          "then": "the adverse filter wins and forbidden content is not re-exposed"
+        }
+      ]
+    },
+    {
+      "id": "HW-038",
+      "title": "Receipt-based retry and cancellation",
+      "requirement": "Retryable effects SHALL have durable semantic identity and truthful accepted/running/succeeded/failed/canceled/unknown states where appropriate. Client or provider cancellation SHALL not be represented as undoing a committed effect. Unknown outcomes SHALL be reconciled before successor requests.",
+      "workflows": [
+        "WF09",
+        "WF13",
+        "WF14",
+        "WF16"
+      ],
+      "task": "6.1",
+      "sources": [
+        "R10",
+        "E25"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-038-A",
+          "name": "Expected journey",
+          "given": "a worker response is lost after a durable effect",
+          "when": "recovery runs",
+          "then": "the original receipt is resolved without duplication"
+        },
+        {
+          "id": "HW-038-B",
+          "name": "Adverse or boundary journey",
+          "given": "a user cancels after activation already committed",
+          "when": "the UI receives the authoritative outcome",
+          "then": "it reports the completed effect and offers its actual owner recovery, not false cancellation"
+        }
+      ]
+    },
+    {
+      "id": "HW-039",
+      "title": "Exact tenant and per-operation capabilities",
+      "requirement": "Every product route, operation, bridge and worker SHALL derive current actor and scope from verified server context and enforce the owning capabilities. Role labels, GitHub membership and resource identifiers SHALL not widen access. Scope switches SHALL clear old-scope client state before rendering new data.",
+      "workflows": [
+        "WF01",
+        "WF02",
+        "WF11",
+        "WF17"
+      ],
+      "task": "1.3",
+      "sources": [
+        "R09",
+        "R11"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-039-A",
+          "name": "Expected journey",
+          "given": "a permitted user has two Tenant assignments",
+          "when": "they deliberately select a scope",
+          "then": "each tab/request binds its selected authorized scope"
+        },
+        {
+          "id": "HW-039-B",
+          "name": "Adverse or boundary journey",
+          "given": "caller input supplies another actor or Tenant grant",
+          "when": "the operation validates",
+          "then": "it rejects the forged authority and leaks no existence"
+        }
+      ]
+    },
+    {
+      "id": "HW-040",
+      "title": "Private Payload actor and service adapters",
+      "requirement": "Human Payload operations SHALL pass the required exact actor/request/access/transaction context through the safe port, with access and editorial-lock bypass disabled. Registered service commands SHALL be narrower and independent. UI failure SHALL never reveal raw Payload Admin, accounts or APIs.",
+      "workflows": [
+        "WF01",
+        "WF02",
+        "WF10"
+      ],
+      "task": "1.3",
+      "sources": [
+        "R09",
+        "E01"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-040-A",
+          "name": "Expected journey",
+          "given": "an authorized human content command",
+          "when": "the adapter invokes Payload",
+          "then": "scoped access and lock/revision rules remain enforced"
+        },
+        {
+          "id": "HW-040-B",
+          "name": "Adverse or boundary journey",
+          "given": "the custom editor crashes or a direct provider URL is guessed",
+          "when": "the request is handled",
+          "then": "only a safe product state appears; no provider fallback grants access"
+        }
+      ]
+    },
+    {
+      "id": "HW-041",
+      "title": "Structural database integrity",
+      "requirement": "Operational integration records SHALL use immutable trusted scope/attribution, same-scope keys, explicit legal states, appropriate uniqueness and noncascading retention. Exposed tables SHALL enforce both USING and WITH CHECK through tested grants/RLS. Private adapters SHALL not create parallel permission semantics.",
+      "workflows": [
+        "WF02",
+        "WF11",
+        "WF13",
+        "WF14"
+      ],
+      "task": "1.3",
+      "sources": [
+        "R09",
+        "E32"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-041-A",
+          "name": "Expected journey",
+          "given": "a legitimate scoped relationship is written",
+          "when": "database and owner checks run",
+          "then": "only the valid same-scope relationship commits"
+        },
+        {
+          "id": "HW-041-B",
+          "name": "Adverse or boundary journey",
+          "given": "an allowed row is updated into another Tenant or with forged ownership",
+          "when": "restricted-role SQL/API executes",
+          "then": "constraints/policy deny the transformation"
+        }
+      ]
+    },
+    {
+      "id": "HW-042",
+      "title": "Controlled integration disconnection and replacement",
+      "requirement": "Disconnection/repository control changes SHALL fence new dependent source work and require re-verification to reconnect. Routine provider outage SHALL not be treated as deletion. Retained licensed compatible safe artifacts SHALL continue ordinary CMS operation under existing owner policies.",
+      "workflows": [
+        "WF16"
+      ],
+      "task": "4.1",
+      "sources": [
+        "E21",
+        "R01"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-042-A",
+          "name": "Expected journey",
+          "given": "the ministry replaces its developer or source binding",
+          "when": "new verified binding is prepared before switch",
+          "then": "source history and ongoing editorial content are preserved"
+        },
+        {
+          "id": "HW-042-B",
+          "name": "Adverse or boundary journey",
+          "given": "a stale event arrives after disconnection",
+          "when": "it requests build or activation",
+          "then": "the old binding cannot regain authority"
+        }
+      ]
+    },
+    {
+      "id": "HW-043",
+      "title": "Explicit safe migrations",
+      "requirement": "Catalog/schema/settings changes SHALL use an owner-approved no-write plan and fresh authorized commit to private successors where needed. Current content SHALL not be replaced by development snapshots. Mixed-version readers/writers, partial backfills and rollback/roll-forward SHALL have tested outcomes.",
+      "workflows": [
+        "WF15"
+      ],
+      "task": "6.2",
+      "sources": [
+        "R06",
+        "R07",
+        "E16",
+        "E29"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-043-A",
+          "name": "Expected journey",
+          "given": "a reviewed property migration is required",
+          "when": "the approved plan commits against expected revisions",
+          "then": "private compatible successors preserve original history"
+        },
+        {
+          "id": "HW-043-B",
+          "name": "Adverse or boundary journey",
+          "given": "an editor changes a row after migration planning",
+          "when": "commit rechecks inputs",
+          "then": "that conflict is surfaced rather than overwriting the edit"
+        }
+      ]
+    },
+    {
+      "id": "HW-044",
+      "title": "Bounded resources and privacy-safe evidence",
+      "requirement": "Intake, build, preview, editing and public rendering SHALL use a qualified numeric profile with fairness, backpressure and hard resource limits. Observability SHALL record safe identity/cause/outcome/timing without source, content, secrets or restricted facts in generic telemetry.",
+      "workflows": [
+        "WF13",
+        "WF17"
+      ],
+      "task": "6.1",
+      "sources": [
+        "R05",
+        "R10"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-044-A",
+          "name": "Expected journey",
+          "given": "several tenants submit valid bounded builds",
+          "when": "capacity is exercised",
+          "then": "fair queues and limits preserve unrelated safe service"
+        },
+        {
+          "id": "HW-044-B",
+          "name": "Adverse or boundary journey",
+          "given": "an oversized source or runaway script appears",
+          "when": "limits are reached",
+          "then": "it is contained and diagnosed without leaking content or starving other tenants"
+        }
+      ]
+    },
+    {
+      "id": "HW-045",
+      "title": "Retained artifacts and preview expiry",
+      "requirement": "Expiry SHALL revoke preview access and disposable compute without deleting acknowledged source/content or required receipts. Artifact/media removal SHALL require complete current use, rights and retention evidence; age alone SHALL not authorize purge of admitted versions.",
+      "workflows": [
+        "WF04",
+        "WF14",
+        "WF16",
+        "WF17"
+      ],
+      "task": "6.1",
+      "sources": [
+        "R05",
+        "R15"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-045-A",
+          "name": "Expected journey",
+          "given": "a preview expires",
+          "when": "cleanup executes",
+          "then": "private access stops while required editorial/release state survives"
+        },
+        {
+          "id": "HW-045-B",
+          "name": "Adverse or boundary journey",
+          "given": "a supposedly unused artifact has incomplete use evidence",
+          "when": "cleanup considers removal",
+          "then": "purge is blocked rather than trusting a stale zero count"
+        }
+      ]
+    },
+    {
+      "id": "HW-046",
+      "title": "External coding-agent optionality",
+      "requirement": "External agents MAY assist within the developer’s permitted project and provider arrangements. Their instructions SHALL not grant Asym authority, disclose restricted context or bypass independent admission. No hosted model account or agent session is required for this release.",
+      "workflows": [
+        "WF12",
+        "WF18"
+      ],
+      "task": "4.3",
+      "sources": [
+        "R01",
+        "R16"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-046-A",
+          "name": "Expected journey",
+          "given": "a developer uses an external agent on synthetic fixtures",
+          "when": "it submits source through Git",
+          "then": "the normal tests and admission apply"
+        },
+        {
+          "id": "HW-046-B",
+          "name": "Adverse or boundary journey",
+          "given": "generated code requests publication or operational secrets",
+          "when": "the product boundary evaluates it",
+          "then": "the request is denied regardless of agent instructions"
+        }
+      ]
+    },
+    {
+      "id": "HW-047",
+      "title": "Proven staff and developer handoff",
+      "requirement": "Release acceptance SHALL demonstrate that staff can perform the agreed visual/content tasks after custom source changes and that a replacement developer can operate the supported project. Instructions SHALL identify maintenance, rights, safe previews, compatibility and source/config/content export limits.",
+      "workflows": [
+        "WF18"
+      ],
+      "task": "6.3",
+      "sources": [
+        "R01"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-047-A",
+          "name": "Expected journey",
+          "given": "a nontechnical staff participant receives the site",
+          "when": "they create a Page and update content after a custom redesign",
+          "then": "the declared tasks succeed without code or developer intervention"
+        },
+        {
+          "id": "HW-047-B",
+          "name": "Adverse or boundary journey",
+          "given": "a new developer has only the authorized project and docs",
+          "when": "they set it up",
+          "then": "no internal Core source or hidden privileged credential is required"
+        }
+      ]
+    },
+    {
+      "id": "HW-048",
+      "title": "Independent complete release evidence",
+      "requirement": "Acceptance SHALL include owner-level contract tests, real database/authorization/concurrency, actual pinned editor adapter, real browser/SSR/preview, source/build security, migration, accessibility and production-shaped capacity tests. Structural document tests SHALL not be reported as implementation or provider proof.",
+      "workflows": [
+        "WF01",
+        "WF02",
+        "WF03",
+        "WF04",
+        "WF05",
+        "WF06",
+        "WF07",
+        "WF08",
+        "WF09",
+        "WF10",
+        "WF11",
+        "WF12",
+        "WF13",
+        "WF14",
+        "WF15",
+        "WF16",
+        "WF17",
+        "WF18"
+      ],
+      "task": "6.4",
+      "sources": [
+        "R12",
+        "R13"
+      ],
+      "scenarios": [
+        {
+          "id": "HW-048-A",
+          "name": "Expected journey",
+          "given": "all required implementation proofs pass with exact versions",
+          "when": "release review evaluates evidence",
+          "then": "only the proven profile is activated"
+        },
+        {
+          "id": "HW-048-B",
+          "name": "Adverse or boundary journey",
+          "given": "a mandatory provider, migration or real-browser test is skipped",
+          "when": "release is evaluated",
+          "then": "the dependent capability remains unqualified and the omission is not renamed a pass"
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "1.1",
+      "title": "Reconcile the corrected baseline and exact owner amendments",
+      "owner": "Architecture/Web Studio owner",
+      "dependencies": [],
+      "deliverable": "Record HA-A1–HA-A4 with preserved D1–D36 semantics, a verified issue overlap map and current evidence. No feature code or invented ratification.",
+      "proof": "Changed-doc consistency and dependency review; required amendments accepted before implementation.",
+      "requirements": [
+        "HW-001",
+        "HW-002"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "1.2",
+      "title": "Qualify the engine/editor/toolchain cohort",
+      "owner": "CMS adapter maintainer",
+      "dependencies": [
+        "1.1"
+      ],
+      "deliverable": "One exact supported Payload-major-compatible cohort and Puck candidate evaluated; no forced peers or dependency channel mixing.",
+      "proof": "Real startup, forms, transactions, auth, preview, version restore and migration proof under Q01.",
+      "requirements": [
+        "HW-003"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "1.3",
+      "title": "Prove the authoritative actor/service and physical transaction boundary",
+      "owner": "API/Auth/CMS adapter owners",
+      "dependencies": [
+        "1.2"
+      ],
+      "deliverable": "One save tracer commits content/revision/lease/receipt together; exact server context and no raw provider path.",
+      "proof": "Red-green tests plus real Postgres grants/RLS, rollback injection, same-user tab and lost-response proof (Q02).",
+      "requirements": [
+        "HW-004",
+        "HW-039",
+        "HW-040",
+        "HW-041"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "2.1",
+      "title": "Extract the canonical semantic contract without changing existing content meaning",
+      "owner": "Catalog owner",
+      "dependencies": [
+        "1.1"
+      ],
+      "deliverable": "One code-owned catalog adapter for current semantic types, identities and explicit versions.",
+      "proof": "Existing valid fixtures remain equivalent; unknown type/version rejects without omission.",
+      "requirements": [
+        "HW-005"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "2.2",
+      "title": "Implement the bounded v2 composition grammar and reversible canvas projection",
+      "owner": "Catalog/composer owner",
+      "dependencies": [
+        "1.2",
+        "2.1"
+      ],
+      "deliverable": "Exact approved Page grammar; v1/Article unchanged; one lossless projection for the actual pinned adapter.",
+      "proof": "Positive/boundary/malicious grammar tests and actual Puck canonical round-trip, not only the reference validator.",
+      "requirements": [
+        "HW-006",
+        "HW-007"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "2.3",
+      "title": "Ship the presentation SDK and registered editor/public bindings",
+      "owner": "Presentation SDK maintainer",
+      "dependencies": [
+        "2.1"
+      ],
+      "deliverable": "Pure versioned public types, safe capabilities, declarative controls and separate client/public entrypoints.",
+      "proof": "Type/import graph, binding visibility, SSR/no-JS/hydration and representative local setup tests.",
+      "requirements": [
+        "HW-008",
+        "HW-028"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "2.4",
+      "title": "Establish compatibility fixtures and the standard rendering path",
+      "owner": "Catalog/public runtime owners",
+      "dependencies": [
+        "2.2",
+        "2.3"
+      ],
+      "deliverable": "Standard renderers and historical/locale/reduced-motion/failure fixtures for all admitted semantic and layout profiles.",
+      "proof": "No silent drop across versions; explicit fallback and incompatible-state proof.",
+      "requirements": [
+        "HW-009"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "3.1",
+      "title": "Deliver acknowledged editorial saving and fenced recovery",
+      "owner": "CMS/editor owners",
+      "dependencies": [
+        "1.3",
+        "2.1"
+      ],
+      "deliverable": "Asym form projection uses D12 receipts, serialized autosave, incomplete drafts, compare and restore-as-draft.",
+      "proof": "Strict real-stack edit/save/retry/takeover/revocation tracer; separate axes do not mutate one another.",
+      "requirements": [
+        "HW-010",
+        "HW-011",
+        "HW-012"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "3.2",
+      "title": "Deliver the visual composer and equivalent non-drag controls",
+      "owner": "Shared UI/composer owner",
+      "dependencies": [
+        "2.2",
+        "2.4",
+        "3.1"
+      ],
+      "deliverable": "Base Maia outline/canvas/inspector with insertion, move, duplicate, remove and finite controls.",
+      "proof": "Real tasks with keyboard/pointer/touch, focus/announcements, screen reader and narrow reflow.",
+      "requirements": [
+        "HW-013"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "3.3",
+      "title": "Integrate the isolated composer and click-to-edit preview bridge",
+      "owner": "Security/composer/public runtime owners",
+      "dependencies": [
+        "2.3",
+        "3.1"
+      ],
+      "deliverable": "Whole composer on approved isolated origin with minimal projection, validated bridge and editor-only source mappings.",
+      "proof": "Cross-origin attack/replay tests, supported-browser auth/cookie behavior and current content selection.",
+      "requirements": [
+        "HW-014",
+        "HW-015"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "3.4",
+      "title": "Connect qualified media and canonical links/capabilities",
+      "owner": "CMS/media/public capability owners",
+      "dependencies": [
+        "3.1",
+        "3.3"
+      ],
+      "deliverable": "Pickers and render bindings reference owner-approved media and link identities; no copied operational records.",
+      "proof": "Revocation/expiry races, alt/crop/localization and side-effect-dark Give/form preview.",
+      "requirements": [
+        "HW-016"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "3.5",
+      "title": "Connect root reuse and exact-locale editing",
+      "owner": "CMS/reuse/locale owners",
+      "dependencies": [
+        "3.1",
+        "3.2"
+      ],
+      "deliverable": "Existing owner operations exposed through visual UI with exact scopes and explicit impact.",
+      "proof": "Reference depth/scope denial, copy independence, missing-locale no-fallback and source-change preservation.",
+      "requirements": [
+        "HW-017",
+        "HW-018"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "3.6",
+      "title": "Connect Page variants and separately governed Site appearance",
+      "owner": "Site/appearance/composer owners",
+      "dependencies": [
+        "3.2",
+        "2.3"
+      ],
+      "deliverable": "Finite instance settings and separate appearance work; no hidden brand, navigation or route writes.",
+      "proof": "Per-instance/Site-axis isolation and actual affected-scope review.",
+      "requirements": [
+        "HW-019"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "4.1",
+      "title": "Connect and manage the ministry-owned source repository",
+      "owner": "Platform integration owner",
+      "dependencies": [
+        "1.3"
+      ],
+      "deliverable": "Selected-repository GitHub App consent, durable scope/identity/epoch and deliberate disconnect/rebind UX.",
+      "proof": "Forged callback, replay, unrelated repository, rename/transfer/removal and source-independent CMS behavior.",
+      "requirements": [
+        "HW-021",
+        "HW-022",
+        "HW-042"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "4.2",
+      "title": "Ingest exact source from durable authenticated events",
+      "owner": "Integration/build owner",
+      "dependencies": [
+        "4.1"
+      ],
+      "deliverable": "Raw webhook verification, durable event/dispatch receipt, bounded source capture and credential stripping.",
+      "proof": "Missed/duplicate/out-of-order events, symlink/archive abuse, submodule/LFS policy and reconnect fences.",
+      "requirements": [
+        "HW-023",
+        "HW-024"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "4.3",
+      "title": "Ship a professional developer starter and handoff guide",
+      "owner": "SDK/developer experience owner",
+      "dependencies": [
+        "2.3",
+        "2.4"
+      ],
+      "deliverable": "Conventional project, local commands, safe fixtures, optional external-agent guide and clear source rights.",
+      "proof": "Fresh clone in clean supported environment without internal Core source, hosted AI or proprietary IDE.",
+      "requirements": [
+        "HW-020",
+        "HW-025",
+        "HW-046"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "4.4",
+      "title": "Run clean isolated builds with bounded supervision",
+      "owner": "Build/runtime owner",
+      "dependencies": [
+        "4.2",
+        "4.3"
+      ],
+      "deliverable": "Frozen toolchain/dependency execution, claim fencing, independent evidence collection and truthful cancellation.",
+      "proof": "Hostile scripts/egress, poisoned cache, interrupted and duplicated execution, resource ceilings.",
+      "requirements": [
+        "HW-026"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "4.5",
+      "title": "Attach independent admission to the existing package owner",
+      "owner": "Presentation qualification owner",
+      "dependencies": [
+        "4.4",
+        "2.4"
+      ],
+      "deliverable": "Extend existing #1365 responsibilities with exact source origin and hybrid binding evidence; no duplicate certifier.",
+      "proof": "Customer-controlled false green cannot admit; exact artifact and maintainer/license/compatibility evidence required.",
+      "requirements": [
+        "HW-027"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "5.1",
+      "title": "Prepare exact private working and whole-site review previews",
+      "owner": "D25/public runtime owner",
+      "dependencies": [
+        "3.3",
+        "3.4",
+        "2.4"
+      ],
+      "deliverable": "Distinguish fast working canvas from complete sealed candidate; actual-content review reauthorized per request.",
+      "proof": "Later private edits stay excluded; partial candidate cannot browse; unknown routes do not fall through to Live.",
+      "requirements": [
+        "HW-029",
+        "HW-030"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "5.2",
+      "title": "Make admitted renderers available through a versioned managed runtime registry",
+      "owner": "Public runtime/release owner",
+      "dependencies": [
+        "4.5"
+      ],
+      "deliverable": "Controlled code release installs exact admitted artifacts and retains required old versions.",
+      "proof": "No auto activation, remote module or private runtime import; mixed-version readiness is explicit.",
+      "requirements": [
+        "HW-031"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "5.3",
+      "title": "Join editorial and complete-cohort design activation to existing owners",
+      "owner": "D1/D10 release owners",
+      "dependencies": [
+        "5.1",
+        "5.2",
+        "3.5",
+        "3.6"
+      ],
+      "deliverable": "Reuse #1350/#1366/#1367 responsibilities; exact head and cohort fences, receipts, restore successor.",
+      "proof": "All-or-none real Postgres races, preserved unrelated content, failed activation byte-stability and current-safety restore.",
+      "requirements": [
+        "HW-032",
+        "HW-033",
+        "HW-034"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "5.4",
+      "title": "Expose existing exact publication appointments and shared execution",
+      "owner": "D13/workflow execution owners",
+      "dependencies": [
+        "3.1",
+        "5.1"
+      ],
+      "deliverable": "Schedule UI over exact owner operation, time-zone disambiguation, horizon handoff and shared overdue recovery.",
+      "proof": "No-before execution, duplicate event beyond provider dedupe, cancel/execute race and organization authorization semantics.",
+      "requirements": [
+        "HW-035",
+        "HW-036"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "5.5",
+      "title": "Wire release convergence and immediate adverse containment",
+      "owner": "Public projection/safety owners",
+      "dependencies": [
+        "5.3"
+      ],
+      "deliverable": "Identifier-only outbox to existing projections; current adverse eligibility before rendering.",
+      "proof": "Delayed old favorable events cannot restore withdrawn content; projection failure never invents publication.",
+      "requirements": [
+        "HW-037"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "6.1",
+      "title": "Deliver cause-owned operations, bounded capacity and artifact retention",
+      "owner": "Runtime/integration/custody owners",
+      "dependencies": [
+        "4.4",
+        "5.1"
+      ],
+      "deliverable": "Receipt lookup, bounded retry/claim supervision, safe diagnostics, reference-aware cleanup and documented controls.",
+      "proof": "Unknown external outcomes, fairness/load, expired previews and incomplete-use no-purge proof.",
+      "requirements": [
+        "HW-038",
+        "HW-044",
+        "HW-045"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "6.2",
+      "title": "Prove migration, upgrade and one-authority cutover",
+      "owner": "CMS/database/catalog owners",
+      "dependencies": [
+        "1.3",
+        "2.4",
+        "5.3"
+      ],
+      "deliverable": "No-write census/plan, exact schema/content successors, expand-contract and legacy retirement.",
+      "proof": "Old/new code/schema matrix, editor race, interrupted backfill, restoration and no competing writer.",
+      "requirements": [
+        "HW-043"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "6.3",
+      "title": "Prove visual/developer handoff with representative staff",
+      "owner": "Product/UX/SDK owner",
+      "dependencies": [
+        "3.2",
+        "3.4",
+        "3.5",
+        "3.6",
+        "4.3",
+        "5.3"
+      ],
+      "deliverable": "Staff complete named tasks after real custom redesign; maintainer replacement and export explanation tested.",
+      "proof": "Moderated actual target-user tasks; synthetic demos alone cannot qualify experience.",
+      "requirements": [
+        "HW-047"
+      ],
+      "status": "not-started"
+    },
+    {
+      "id": "6.4",
+      "title": "Complete end-to-end, capacity and release admission evidence",
+      "owner": "Release owner",
+      "dependencies": [
+        "5.4",
+        "5.5",
+        "6.1",
+        "6.2",
+        "6.3"
+      ],
+      "deliverable": "Cross-journey evidence maps every HW requirement and scenario to exact versioned results and owner.",
+      "proof": "Run applicable Core gates and strict real-stack/security/a11y/capacity tests; activate only proved profiles.",
+      "requirements": [
+        "HW-048"
+      ],
+      "status": "not-started"
+    }
+  ],
+  "automation_workflow_links": {
+    "AU01": [
+      "WF02",
+      "WF03",
+      "WF10"
+    ],
+    "AU02": [
+      "WF02",
+      "WF08",
+      "WF17"
+    ],
+    "AU03": [
+      "WF11",
+      "WF12",
+      "WF16"
+    ],
+    "AU04": [
+      "WF12",
+      "WF13"
+    ],
+    "AU05": [
+      "WF08",
+      "WF14",
+      "WF17"
+    ],
+    "AU06": [
+      "WF09"
+    ],
+    "AU07": [
+      "WF08",
+      "WF14"
+    ],
+    "AU08": [
+      "WF04",
+      "WF08",
+      "WF14",
+      "WF18"
+    ],
+    "AU09": [
+      "WF05",
+      "WF07",
+      "WF13",
+      "WF15"
+    ],
+    "AU10": [
+      "WF11",
+      "WF16"
+    ],
+    "AU11": [
+      "WF08",
+      "WF09",
+      "WF13",
+      "WF14"
+    ],
+    "AU12": [
+      "WF14",
+      "WF16",
+      "WF17"
+    ]
+  },
+  "evidence_ids": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "R09",
+    "R10",
+    "R11",
+    "R12",
+    "R13",
+    "R14",
+    "R15",
+    "R16",
+    "R17",
+    "E01",
+    "E02",
+    "E03",
+    "E04",
+    "E05",
+    "E06",
+    "E07",
+    "E08",
+    "E09",
+    "E10",
+    "E11",
+    "E12",
+    "E13",
+    "E14",
+    "E15",
+    "E16",
+    "E17",
+    "E18",
+    "E19",
+    "E20",
+    "E21",
+    "E22",
+    "E23",
+    "E24",
+    "E25",
+    "E26",
+    "E27",
+    "E28",
+    "E29",
+    "E30",
+    "E31",
+    "E32",
+    "E33"
+  ]
+}
