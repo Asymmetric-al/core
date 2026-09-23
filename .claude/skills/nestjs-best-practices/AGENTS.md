@@ -1848,7 +1848,7 @@ async login(user: User): Promise<{ accessToken: string }> {
   const payload = {
     sub: user.id,
     email: user.email,
-    password: user.password, // NEVER include password!
+    password: user.password, // NEVER include password! // pragma: allowlist secret
     ssn: user.ssn, // NEVER include sensitive data!
     isAdmin: user.isAdmin, // Can be tampered if not verified
   };
@@ -1950,11 +1950,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User not found or inactive');
     }
 
-    // Verify token wasn't issued before password change
-    if (user.passwordChangedAt) {
+    // Verify token wasn't issued before password change // pragma: allowlist secret
+    if (user.passwordChangedAt) { // pragma: allowlist secret
       const tokenIssuedAt = new Date(payload.iat * 1000);
-      if (tokenIssuedAt < user.passwordChangedAt) {
-        throw new UnauthorizedException('Token invalidated by password change');
+      if (tokenIssuedAt < user.passwordChangedAt) { // pragma: allowlist secret
+        throw new UnauthorizedException('Token invalidated by password change'); // pragma: allowlist secret
       }
     }
 
@@ -1985,8 +1985,8 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @Post('forgot-password')
-  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> {
+  @Post('forgot-password') // pragma: allowlist secret
+  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> { // pragma: allowlist secret
     // Can be abused to spam users with emails
     return this.authService.sendResetEmail(dto.email);
   }
@@ -2048,9 +2048,9 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @Post('forgot-password')
+  @Post('forgot-password') // pragma: allowlist secret
   @Throttle({ short: { limit: 3, ttl: 3600000 } }) // 3 per hour
-  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> {
+  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> { // pragma: allowlist secret
     return this.authService.sendResetEmail(dto.email);
   }
 }
@@ -2450,9 +2450,9 @@ export class CreateUserDto {
   @MinLength(8)
   @MaxLength(100)
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-    message: 'Password must contain uppercase, lowercase, and number',
+    message: 'Password must contain uppercase, lowercase, and number', // pragma: allowlist secret
   })
-  password: string;
+  password: string; // pragma: allowlist secret
 }
 
 // Query DTO with defaults and transformation
@@ -3115,7 +3115,7 @@ describe('Protected Routes (e2e)', () => {
     // Get auth token
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ email: 'test@test.com', password: 'password' });
+      .send({ email: 'test@test.com', password: 'password' }); // pragma: allowlist secret
 
     authToken = loginResponse.body.accessToken;
   });
@@ -3688,7 +3688,7 @@ export const dataSource = new DataSource({
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT),
   username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
+  password: process.env.DB_PASSWORD, // pragma: allowlist secret
   database: process.env.DB_NAME,
   entities: ['dist/**/*.entity.js'],
   migrations: ['dist/migrations/*.js'],
@@ -3926,7 +3926,7 @@ export class UsersController {
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User> {
     return this.usersService.findById(id);
-    // Returns: { id, email, passwordHash, ssn, internalNotes, ... }
+    // Returns: { id, email, passwordHash, ssn, internalNotes, ... } // pragma: allowlist secret
     // Exposes sensitive data!
   }
 }
@@ -3969,7 +3969,7 @@ export class User {
 
   @Column()
   @Exclude() // Never include in responses
-  passwordHash: string;
+  passwordHash: string; // pragma: allowlist secret
 
   @Column({ nullable: true })
   @Exclude()
@@ -5567,7 +5567,7 @@ export class DatabaseService {
     this.connection = new Pool({
       host: process.env.DB_HOST,
       port: parseInt(process.env.DB_PORT), // NaN if missing
-      password: process.env.DB_PASSWORD, // undefined if missing
+      password: process.env.DB_PASSWORD, // undefined if missing // pragma: allowlist secret
     });
   }
 }
@@ -5595,7 +5595,7 @@ export const databaseConfig = registerAs('database', () => ({
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT, 10),
   username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
+  password: process.env.DB_PASSWORD, // pragma: allowlist secret
   database: process.env.DB_NAME,
 }));
 
@@ -5615,7 +5615,7 @@ export const validationSchema = Joi.object({
   DB_HOST: Joi.string().required(),
   DB_PORT: Joi.number().default(5432),
   DB_USERNAME: Joi.string().required(),
-  DB_PASSWORD: Joi.string().required(),
+  DB_PASSWORD: Joi.string().required(), // pragma: allowlist secret
   DB_NAME: Joi.string().required(),
   JWT_SECRET: Joi.string().min(32).required(),
   REDIS_URL: Joi.string().uri().required(),
@@ -5640,7 +5640,7 @@ export const validationSchema = Joi.object({
         host: config.get('database.host'),
         port: config.get('database.port'),
         username: config.get('database.username'),
-        password: config.get('database.password'),
+        password: config.get('database.password'), // pragma: allowlist secret
         database: config.get('database.database'),
         autoLoadEntities: true,
       }),
@@ -5660,7 +5660,7 @@ export interface DatabaseConfig {
   host: string;
   port: number;
   username: string;
-  password: string;
+  password: string; // pragma: allowlist secret
   database: string;
 }
 
@@ -5743,7 +5743,7 @@ export class UsersService {
 }
 
 // Log sensitive data
-console.log('Login attempt:', { email, password }); // SECURITY RISK!
+console.log('Login attempt:', { email, password }); // SECURITY RISK! // pragma: allowlist secret
 
 // Inconsistent log format
 logger.log('User ' + userId + ' created at ' + new Date());
@@ -5910,7 +5910,7 @@ import { LoggerModule } from 'nestjs-pino';
           process.env.NODE_ENV !== 'production'
             ? { target: 'pino-pretty' }
             : undefined,
-        redact: ['req.headers.authorization', 'req.body.password'],
+        redact: ['req.headers.authorization', 'req.body.password'], // pragma: allowlist secret
         serializers: {
           req: (req) => ({
             method: req.method,
