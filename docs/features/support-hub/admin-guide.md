@@ -1,135 +1,75 @@
-# Support Hub — Admin guide
+# Support Hub — Administration contract
 
-The Support Hub admin surface lives under `/support/settings/*` and
-`/support/reports/*`. This guide walks the admin UI and the server routes each
-surface uses after the Phase 8 Supabase persistence cutover.
+This guide routes the ratified Phase 26 administration requirements and the
+Phase 34 configurable-rule boundary. It is a target and qualification guide,
+not a claim that the current deployment satisfies them. Read the
+[formal Support package](README.md) and exact requirement/design clauses before
+implementation or activation. The [earlier Phase 8 admin guide](https://github.com/Asymmetric-al/core/blob/9c8d69c407433dfe20c14fa2de2ccd0402f70583/docs/features/support-hub/admin-guide.md)
+remains dated implementation evidence; its route list, browser-side report
+exports, broad retry instructions and rule engine are not current acceptance.
 
-## Sub-navigation
+## Inbox setup and current responsibility
 
-`/support/reports/*` and `/support/settings/*` share the same workspace shell. The sub-nav strip is two rows:
+D25 admits two equal qualified receiving paths: existing-mail-service forwarding
+and dedicated receiving. A saved configuration, verified DNS record or sending
+identity alone cannot activate an inbox. Prove exact tenant/inbox routing,
+receiving and reply paths, provider capability, custody, monitored responsibility
+and safe handling while setup is incomplete. Current permissions come from the
+shared identity and Phase 12 owner, not an inbox role or caller-selected tenant.
 
-1. Section pills: **Inbox** / **Reports** / **Settings** (links back to `/support`, `/support/reports/overview`, `/support/settings/inbox`).
-2. Sub-section tabs for the active section. The settings tab list collapses into a `<Select>` on mobile.
+D6 owns first-assignment policy; D7 owns absence coverage; D8 owns access-loss
+handoff; D19 owns intake-review coverage. Each uses its own qualified people,
+current authority, policy binding and recovery rules. Turning off new automatic
+assignment does not transfer existing responsibility. Missing eligible coverage
+is visible work to repair, not permission to invent a default recipient.
 
-## Reports
+## Govern content and personal/shared configuration
 
-### Surfaces
+| Configuration                                       | Current source contract                                                                                                                                 |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| My replies, Shared replies and saved internal notes | D18 and Phase 17 govern personal use, deliberate contribution, shared publication and source-qualified variables.                                       |
+| Reply signatures                                    | D23 uses tenant-managed, inbox-selected approved versions and a managed copy in each draft; no independent personal signature authority.                |
+| Reply-and-work shortcuts                            | D24 prepares a pinned combination for human review; no hidden send, immediate work change or arbitrary CRM command.                                     |
+| My views and Shared views                           | D20 shares criteria, never record access; viewer predicates and complete paging/counts remain authoritative.                                            |
+| Support labels                                      | D21 maintains a curated optional catalog, distinct from CRM classification, permissions and work outcomes.                                              |
+| Public/Internal guidance and contextual Help        | D27/D27-C/D29 use qualified source readers and current discovery/access; no copied knowledge-base or mandatory self-service diversion.                  |
+| Feedback                                            | D28 starts Off and uses its exact sampling, eligibility, timing and deduplication contract; no agent-selected recipients or retrospective backlog send. |
+| Content retention and correction                    | D16/D17/D32–D40 govern original sources, held material, renditions, drafts and permitted history separately.                                            |
 
-| Path                        | What it shows                               | Key controls                                |
-| --------------------------- | ------------------------------------------- | ------------------------------------------- |
-| `/support/reports/overview` | Volume + open + first response + resolution | Date range, group-by, business hours, scope |
-| `/support/reports/agents`   | Conversations per agent                     | Filters above + agent-mix bar               |
-| `/support/reports/teams`    | Conversations per team                      | Filters above + team-mix bar                |
-| `/support/reports/labels`   | Conversations per label                     | Filters above + label-mix bar               |
-| `/support/reports/inbox`    | Inbound + outbound message volume           | Filters locked to inbox scope               |
+Email Studio/Phase 17 owns governed authoring and whole-message preparation;
+Phase 6 owns actual communication, consent/eligibility, provider evidence and
+recovery. Support configuration cannot take over either authority.
 
-### Filters
+## Native Support and Workflow Studio
 
-- **Date range** — `from` / `to` (ISO date inputs).
-- **Group by** — day / week / month.
-- **Business hours only** — when on, only timestamps inside the configured business-hours window count.
-- **Scope** — all / inbox / agent / team / label, plus the matching id picker.
-- **Reset** — restores the last-30-days, day grouping, business-hours-off defaults.
+Native conversations, assignment, response clocks, reminders, quarantine, approved
+shortcuts and required notices remain complete without the general Studio.
+Configurable triggers, conditions, branches and actions adopt the single
+[Workflow Studio contract](../../prds/workflow-studio/README.md). The old Support
+rule CRUD and pure matcher are migration inputs: inventory them, compare without
+effects, fence incompatible writers and activate one qualified evaluator. They
+do not authorize a second live workflow engine or a generic time-based resolution
+rule. A Workflow result cannot declare an owner action complete without the exact
+source command receipt. See the [compatibility requirements](phase-06-reports-settings-automation.md#current-compatibility-requirements).
 
-Every filter writes to the URL so reports are shareable + deep-linkable. The export menu builds CSV / JSON in-browser via `Blob` + `URL.createObjectURL` — no network round trip.
+## Reporting and operational qualification
 
-### Server-side story
+D30 separates **Work now** from results selected by a historical reporting period.
+Every report block retains its exact source meaning, population, unit, authorized
+scope, completeness and route to detail. Arrangement, shared links and cached
+results do not expand access or turn incomplete data into zero. The old raw-row
+browser aggregator/export description is implementation inventory, not a grant
+to bypass source-qualified reporting, field access or egress.
 
-The report hooks load raw conversation + message data from
-`GET /api/admin/support/reports` and keep the existing pure report aggregator
-(`apps/admin/features/support-hub/lib/report-aggregations.ts`) as the single
-calculation source.
+Before activating a capability, prove the exact owner contracts through the
+existing authenticated API/intake/job boundary, disposable supported services,
+restricted-role and concurrency checks where needed, real browser journeys,
+qualified provider behavior and operator recovery. Missing fixtures or provider
+proof leave that capability unqualified. Use the canonical OpenSpec task list
+and per-decision proof/control requirements; old test totals or a successful
+migration do not close them.
 
-## Settings
-
-Each settings panel writes through a feature hook that calls the route handler
-listed below. Business logic stays in `packages/api/src/admin/support-hub/*`;
-route handlers stay thin and tenant-scoped.
-
-| Path                                 | Surface                                                                                                                         | Endpoint                                                                                            |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `/support/settings/inbox`            | Inbox identity, default sender / signature / SLA / business hours, round-robin toggle, auto-resolve, contact sidecar visibility | `PATCH /api/admin/support/inbox-settings`                                                           |
-| `/support/settings/collaborators`    | Read-only agent list + teams CRUD                                                                                               | `GET /api/admin/support/agents`, `POST` / `PATCH` / `DELETE /api/admin/support/teams[/:id]`         |
-| `/support/settings/assignment`       | Round-robin toggle + fallback agent placeholder                                                                                 | Re-uses inbox-settings PATCH                                                                        |
-| `/support/settings/business-hours`   | Weekly schedule editor + holidays                                                                                               | `POST` / `PATCH` / `DELETE /api/admin/support/business-hours[/:id]`                                 |
-| `/support/settings/sla`              | SLA policies CRUD + default promotion                                                                                           | `POST` / `PATCH` / `DELETE /api/admin/support/sla-policies[/:id]`; default flip via `?default=true` |
-| `/support/settings/signatures`       | Workspace + agent-owned signatures                                                                                              | `POST` / `PATCH` / `DELETE /api/admin/support/signatures[/:id]`; default flip via `?default=true`   |
-| `/support/settings/labels`           | Label library                                                                                                                   | `POST` / `PATCH` / `DELETE /api/admin/support/labels[/:id]`                                         |
-| `/support/settings/macros`           | Macro library + typed action editor                                                                                             | `POST` / `PATCH` / `DELETE /api/admin/support/macros[/:id]`                                         |
-| `/support/settings/canned-responses` | Reusable reply templates with merge variables                                                                                   | `POST` / `PATCH` / `DELETE /api/admin/support/canned-responses[/:id]`                               |
-| `/support/settings/saved-views`      | List + delete; creation lives on the inbox toolbar                                                                              | `DELETE /api/admin/support/saved-views/:id`                                                         |
-| `/support/settings/automations`      | Typed event → condition → action rules with dry-run                                                                             | `POST` / `PATCH` / `DELETE /api/admin/support/automation-rules[/:id]`; toggle via `?toggle=true`    |
-| `/support/settings/notifications`    | Per-agent email + in-app channel toggles                                                                                        | `PATCH /api/admin/support/notification-preferences`                                                 |
-
-Every endpoint returns the saved row in the same shape the UI already renders.
-Sonner toasts surface success paths and the inbox-wide failure banner picks up
-donor-visible mutation failures.
-
-## Automations
-
-A rule is a typed `(trigger, conditions[], actions[])` triple. Conditions are ANDed; actions are dispatched in order through the same shape the macro runner uses.
-
-### Triggers
-
-- `conversation_created`
-- `message_received`
-- `status_changed`
-- `label_added`
-- `past_due_reached`
-
-### Conditions
-
-- `inbox_is`, `label_includes`, `from_domain_equals`
-- `assignee_is_present` (boolean)
-- `is_overdue`, `is_escalated` (boolean)
-- `subject_contains`, `body_contains`
-
-### Actions
-
-- `assign_agent`, `assign_team`
-- `add_label`
-- `set_priority`, `set_status`
-- `snooze` (hours)
-- `mark_escalated`
-- `run_macro`
-
-`mark_escalated` and `run_macro` will only run server-side once Phase 8 wires the inbound runtime — the dry-run preview surfaces the intent so admins can author rules today.
-
-### Dry run
-
-Every rule form mounts a `<AutomationDryRunPreview>` block that picks a sample conversation from the live collection and runs the rule via the pure `evaluateSupportAutomationRule` function. Reasons + planned actions render inline; nothing is dispatched. Use it to validate every rule before saving.
-
-### Runtime
-
-Inbound email now reaches the Support Hub through
-`routeInboundToSupportHub()`. The automation authoring surface is persistent,
-but full server-side automation dispatch remains a follow-up.
-
-## Provider secrets
-
-| Variable                | Notes                                                |
-| ----------------------- | ---------------------------------------------------- |
-| `RESEND_API_KEY`        | Used by outbound email and inbound message retrieval |
-| `RESEND_INBOUND_DOMAIN` | Configured at `tenant_email_settings` per tenant     |
-
-## Adapter
-
-The single live adapter point is `packages/api/src/admin/support-hub/adapter/index.ts`:
-
-```ts
-export const supportHubAdapter = supabaseSupportHubAdapter;
-```
-
-The `SupportHubAdapter` interface in `adapter/types.ts` is the contract the
-Supabase implementation satisfies. The in-memory adapter remains available for
-unit parity tests.
-
-## Failure recovery
-
-Mutations that touch donor-visible state (send-reply, save-draft, add-note) report into `useSupportFailureRecovery` so the failure banner at the top of the inbox can surface a Retry. The banner is `aria-live="assertive"` so screen readers announce it without losing focus context.
-
-Conversation-level mutations (assign / set-status / toggle-label / snooze)
-invalidate the Support Hub query root after the route handler returns, so the
-UI re-fetches the persisted source of truth.
-
-Macro runner failures are surfaced via the per-action outcome list returned from `runSupportMacro`. The first failed step appears in a sonner toast; subsequent actions still run unless `stopOnError: true` was passed.
+Recovery preserves accepted source effects, adverse barriers, expired-source
+denial and uncertain external outcomes. Do not replay using a new identity,
+restore an incompatible legacy writer or run an old rollback merely to regain a
+previous UI. Inspect current deployment and source state before operational work.

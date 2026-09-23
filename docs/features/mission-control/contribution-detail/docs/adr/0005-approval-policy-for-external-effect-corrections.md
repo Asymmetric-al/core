@@ -1,53 +1,32 @@
-# ADR-CD-005: External-effect corrections require approval unless suppressed by super-admin policy
+# ADR-CD-005: Money operations use active audit and optional second approval
 
-> **Note (2026-07-06):** The CRM/Twenty post state and repost/retry actions
-> referenced in this ADR target the now-retired Twenty pipeline and are dormant
-> per
-> [ADR-0001](../../../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
-> (2026-07-06); "CRM post" survives only as a label over the dormant
-> staged-gift pipeline pending the Phase 8 re-groom.
-
-**Status:** Accepted (grill session 2026-05-28)
+**Status:** Accepted 2026-05-28; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-Contribution detail supports full corrections through adjustment records. Some corrections only affect internal notes, while others affect donor-facing receipts, CRM-posted data, reconciliation, processor state, or annual statements. Staff need a useful workflow, but externally visible financial changes need control.
-
-Tenants may also have different operating models. Some nonprofits may require approval for every externally visible correction; others may authorize finance staff to apply certain corrections directly.
+Finance teams need accountable money actions without forcing a one-person team into a second-approver queue.
 
 ## Decision
 
-By default, a correction requires approval when it changes a gift that has already produced an external effect:
-
-- Receipt sent or suppressed in a donor-visible way
-- CRM posted / Twenty synced
-- Reconciled
-- Refunded or partially refunded
-- Stripe action required or already taken
-- Included in an annual statement or downstream finance export
-
-Tenant super admins can configure approval suppression in settings for specific external-effect gates. Suppression allows eligible corrections to become effective without a separate approval request.
-
-Approval suppression must not bypass:
-
-- Audit events
-- Correction reasons
-- Permission checks
-- Optimistic concurrency
-- Idempotency
-- Downstream effect warnings
-- Provider or processor requirements
+- Default admission is the exact Phase 13 action capability, mandatory reason
+  for high-risk money work and immutable active audit.
+- Second approval is optional per tenant and off by default. Phase 12 enforces
+  enabled action/threshold policy and requester-not-approver separation.
+- A prior receipt, refund, statement or export does not by itself create a
+  mandatory second-approval default. Its owner still controls required source
+  corrections and document/communication consequences.
+- Only authorized owner-policy changes alter future admission. No local
+  superadmin suppression switch bypasses authorization, audit, idempotency,
+  current source versions, money invariants or provider constraints.
 
 ## Consequences
 
-- The settings model needs explicit approval policy fields, not one vague "disable approvals" switch.
-- Policy changes are themselves audited with actor, timestamp, reason, and old/new values.
-- Contribution detail must show when approval was skipped because of tenant policy.
-- APIs must enforce the policy server-side; UI state is advisory only.
-- Super-admin approval suppression is operational flexibility, not a weaker data-integrity mode.
+Keep normal finance work direct under the default policy; present a pending request only when current policy requires it. Explain controls and downstream consequences before execution; audit policy changes separately.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **Always require approval for money/reporting fields:** Safer but too rigid for tenants with trusted finance workflows.
-- **Role-only enforcement:** Misses externally visible state; a finance user changing an already receipted gift is different from changing an unposted draft.
-- **Unrestricted suppression:** Too vague and easy to misuse; suppression must be explicit and audited.
+The [original 2026-05-28 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0005-approval-policy-for-external-effect-corrections.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

@@ -1,7 +1,19 @@
 # Support Hub — Phase 1 Discovery & Build Spec
 
-> Status: spec only. No feature code is shipped in this phase. Later phases
-> consume this document as the source of truth for the architecture.
+**Historical implementation record — classified 2026-09-23.** This file records
+an earlier local Support build stage, not a program-phase contract or current
+release qualification. Its recorded architecture, lifecycle, role checks,
+retry/automation behavior, test results and operational commands must not be
+used as forward requirements. The [current Phase 26 package](README.md),
+[operator contract](operator-guide.md), [administration contract](admin-guide.md)
+and [Phase 34 adoption boundary](phase-06-reports-settings-automation.md#current-compatibility-requirements)
+govern current intended behavior. Inspect current source and deployment before
+using any historical migration or rollback instruction.
+
+## Original build record
+
+> Recorded status at authoring: spec only; this was the architecture source
+> for the earlier local build stages. Phase 26 now supersedes that authority.
 >
 > Sister documents:
 >

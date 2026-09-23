@@ -1,0 +1,333 @@
+{
+  "date": "2026-09-13",
+  "status": "D31 A selected; detailed amendments under review",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "originDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "reverifiedQ31Sources": [
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/command/SupportCommandPalette.tsx",
+      "bytes": 11094,
+      "sha256": "dd909c57eb42aabe9d4e2bb5ef7e779117aee2668b6075d222118fe5fe847037"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/ConversationHeader.tsx",
+      "bytes": 5406,
+      "sha256": "3e57bd1c273970cc973b5208658ba303b90b740443d9140c7e553a8c5fbcd0fc"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/ConversationSnoozeMenu.tsx",
+      "bytes": 3096,
+      "sha256": "306d62d60fd478e349191c384a5a5cd534915197d0a94156c7e7d5d0a9686233"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/table/bulk-actions.tsx",
+      "bytes": 8462,
+      "sha256": "7a42c0736c1826427f9406cb84ee9f901b67f9ca38700643490cd5a8083914b2"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/lib/bulk-mutations.ts",
+      "bytes": 795,
+      "sha256": "67b6b6a9bf2a9c7753fdf032d35c564d9ae9fd137965e0e8bef0c318e9f4dd6a"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "bytes": 313201,
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-surfaces/spec.md",
+      "bytes": 11085,
+      "sha256": "2f9cae0d5073464717d0888c5efc82ec4a04d56fc54d2c4d3c0310e3201ebf73"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/move-service.ts",
+      "bytes": 16606,
+      "sha256": "856d77dc019bde8ef9f920ad0eca2c8f25e6980bfb9d56bbf0cde8004f08f40a"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d3-adversarial-review.md",
+      "bytes": 80158,
+      "sha256": "d4f09215c0d388d305b275863ce63a65c67d5594cfb819908d2d71df9daa445c"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d3-ux-blueprint.md",
+      "bytes": 18384,
+      "sha256": "6a8eccd1277dee0f5e7f3b7cb7ef74d2087b170b03e8b96b48bd8e203d8917cd"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d4-adversarial-review.md",
+      "bytes": 68173,
+      "sha256": "4cfcacdcd391b5f344637fa573eb06e2a06fac905535e814ca8925430e4fffcb"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d7-adversarial-review.md",
+      "bytes": 71747,
+      "sha256": "a3e2fec4083bf07631395740088d659abc206262bebc8d02a7bde7747769ec0c"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d14-adversarial-review.md",
+      "bytes": 87323,
+      "sha256": "8da8039edba331e3890d4eeb5c75e0c944bd338a6322f5db47776352099f761a"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d24-adversarial-review.md",
+      "bytes": 78377,
+      "sha256": "63b54d34c3aff1f5733deca679969cd54b159b87ce7430d35a38b3fdf498ed1a"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d26-adversarial-review.md",
+      "bytes": 69638,
+      "sha256": "8a28532b1fa59aee76d6d2cf2f6a26ba614ca8338ad996de24d2133cfa1c0e2e"
+    },
+    {
+      "kind": "accepted session artifact",
+      "path": "outputs/phase26-d30-adversarial-review.md",
+      "bytes": 74618,
+      "sha256": "106dbf017701cbb8e2669aaa350fdcc290e48dd4de46ba79d9031a74ef75ba54"
+    }
+  ],
+  "d31CitedSources": [
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/app/api/admin/support/conversations/[id]/snooze/route.ts",
+      "bytes": 1432,
+      "sha256": "caabf66c93fd6ce098fbcfd717d46400ddce8070463db49c979b64536507cbc8"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/SupportInbox.tsx",
+      "bytes": 7031,
+      "sha256": "74be7f94cd9e79cd44fa967607bd54ed34a5ab6425c831d8f986cc8af3e2cc5d"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/command/SupportCommandPalette.tsx",
+      "bytes": 11094,
+      "sha256": "dd909c57eb42aabe9d4e2bb5ef7e779117aee2668b6075d222118fe5fe847037"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/ConversationSnoozeMenu.tsx",
+      "bytes": 3096,
+      "sha256": "306d62d60fd478e349191c384a5a5cd534915197d0a94156c7e7d5d0a9686233"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/table/bulk-actions.tsx",
+      "bytes": 8462,
+      "sha256": "7a42c0736c1826427f9406cb84ee9f901b67f9ca38700643490cd5a8083914b2"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "bytes": 7927,
+      "sha256": "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0026-contract-bounded-delivery-plans.md",
+      "bytes": 4816,
+      "sha256": "6b98e99df9fe45f4fb11e3b7972e09712225c7bb6709e358412e99e0478d048a"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "bytes": 8744,
+      "sha256": "7aeb08a2a499471d31e856914d940d94d4c43f57654812e80f6ee41024a62d21"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0054-cause-owned-accounting-exceptions-with-shared-follow-up.md",
+      "bytes": 1516,
+      "sha256": "b7120d6a35bda410f8a691f848b440aa32c3810339cf719dc9ea3e75e2e36cba"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "bytes": 7239,
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md",
+      "bytes": 422074,
+      "sha256": "4653ae542c1f28e076cc7f9c39fe316c82ad77d59340bfe90b9b0f58f3ef524d"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/changes/sitestacker-parity/specs/outbound-communications/spec.md",
+      "bytes": 92220,
+      "sha256": "f67d4ac81d93c1a1d69963689b16ab4086bf2182a359a45a13397fc00d91d9f2"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/project.md",
+      "bytes": 4255,
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "bytes": 19260,
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/workflow-orchestration/spec.md",
+      "bytes": 6306,
+      "sha256": "0dd65864532b7508fb87a5ba9a98c2078c625178f55b6b6599409e5d07f56136"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "bytes": 45362,
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "bytes": 2480,
+      "sha256": "c209deb5a02bb49a788d2bad6a56b528ebc1c3f52bd27c9834815f01b5615682"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "bytes": 4241,
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "bytes": 8648,
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/workflows/claims.ts",
+      "bytes": 2119,
+      "sha256": "67253e6305c5170e4fd9cfb8cfa93fe9c66c2121bd48c2379221b07d47824a02"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/workflows/functions/dispatch-recovery-scan.ts",
+      "bytes": 891,
+      "sha256": "ad55444606722c918a1f112afc5c374bd229b0e540a1b45feaa9be6580e2feb8"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/workflows/ledger.ts",
+      "bytes": 10822,
+      "sha256": "c517ee963aa21badb8174359eb03a46ad6b6bb5720dba0c732883d0a2924107c"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/workflows/recovery.ts",
+      "bytes": 3911,
+      "sha256": "509935484eb7057dfc9bb4ee6368fdccdc22e454cff3401b557378471b48a494"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/types/database.ts",
+      "bytes": 31010,
+      "sha256": "baa5e0d06864a896ea18ce48d1f25e571dd2d4a7531d76ca71c8353d5e6be3f2"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260214090000_foundation_1_schema.sql",
+      "bytes": 27620,
+      "sha256": "4b5b51904d17c71edc40510c45fa9cc07f621880c35e56879df9a0a2a23c299c"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "bytes": 31417,
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    }
+  ]
+}

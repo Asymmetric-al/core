@@ -1,0 +1,124 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-14",
+  "recipeId": "ADM-06",
+  "name": "Permitted custom-record review",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "custom_process",
+  "subject": "custom_record",
+  "enrollment": {
+    "mode": "one_active_per_subject",
+    "triggerContract": "custom.record.accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {
+      "allowedChangeApproved": "custom.exact-version-change-approved@1"
+    },
+    "tasks": {
+      "form_task": "custom.permitted-record-form@1",
+      "review": "custom.permitted-record-review@1"
+    },
+    "evidence": {},
+    "actions": {
+      "change": "custom.request-approved-field-update@1"
+    },
+    "roles": {
+      "participant": "roles.custom-record-participant@1",
+      "reviewer": "roles.custom-record-reviewer@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "crm",
+    "custom-fields",
+    "identity",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": ["custom_flow"]
+    }
+  ],
+  "root": {
+    "id": "custom_flow",
+    "kind": "sequence",
+    "label": "Custom flow",
+    "steps": [
+      {
+        "id": "collect_information",
+        "kind": "task",
+        "label": "Collect information",
+        "contract": "form_task",
+        "role": "participant"
+      },
+      {
+        "id": "review_information",
+        "kind": "task",
+        "label": "Review information",
+        "contract": "review",
+        "role": "reviewer"
+      },
+      {
+        "id": "approved_custom_change",
+        "kind": "choose_one",
+        "label": "Approved custom change",
+        "cases": [
+          {
+            "id": "approved",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "allowedChangeApproved"
+                }
+              },
+              "right": {
+                "literal": true
+              }
+            },
+            "then": {
+              "id": "apply_change",
+              "kind": "sequence",
+              "label": "Apply change",
+              "steps": [
+                {
+                  "id": "request_custom_change",
+                  "kind": "action",
+                  "label": "Request custom change",
+                  "contract": "change",
+                  "inputs": {}
+                },
+                {
+                  "id": "custom_done",
+                  "kind": "finish",
+                  "label": "Custom done",
+                  "lifecycle": "complete",
+                  "outcome": "approved_custom_change_requested"
+                }
+              ]
+            }
+          }
+        ],
+        "otherwise": {
+          "id": "custom_hold",
+          "kind": "finish",
+          "label": "Custom hold",
+          "lifecycle": "on_hold",
+          "outcome": "needs_information"
+        },
+        "onUnknown": "block"
+      }
+    ]
+  }
+}

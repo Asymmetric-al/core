@@ -143,7 +143,7 @@ every Canadian nonparticipant.
 
 ## Phase 21 D26 precision amendment (2026-08-02)
 
-ADR-0038 remains the Phase 18 generated-document records decision and the
+[ADR-0038 — purpose owned records schedules and verified disposal](./0038-purpose-owned-records-schedules-and-verified-disposal.md) remains the Phase 18 generated-document records decision and the
 architectural precedent for purpose-owned schedules, monotonic holds, and
 verified disposition. Phase 21 D26 applies that pattern through a separate,
 owner-qualified catalog for Phase 21 records; it does not broaden this ADR into

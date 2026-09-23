@@ -94,7 +94,10 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 ## 6. Quick verification
 
 - Native shell: `data-testid="web-studio-native-shell"` on `/web-studio/collections/pages`
-- Authenticated preview: `/web-studio/preview/pages/<id>` redirects unauthenticated users to `/login`; signed-in staff/admin can preview drafts through Payload access control.
+- Interim authenticated preview: `/web-studio/preview/pages/<id>` redirects
+  unauthenticated users to `/login`; signed-in staff/admin can inspect the
+  mutable Payload draft through Payload access control. This verifies current
+  infrastructure only and is not Phase 22 D10 certification.
 - Public: `curl` or browser `GET /api/cms/public/pages/home?tenant=<slug>` on admin port
 - Template gallery: `/web-studio/templates`
 
@@ -102,11 +105,52 @@ Unauthenticated visit to `/web-studio` should redirect to login.
 
 ## 7. Preview / live preview gotchas
 
-- **Draft preview URL** for page-like collections and ministry updates is built in `apps/admin/src/cms-ui/web-studio/adapters/preview-url.ts` and opens `/web-studio/preview/:collection/:id`.
-- The authenticated preview route reads drafts with Payload Local API, `overrideAccess: false`, and the current Web Studio user. Do not convert it to a public route.
+- **Interim draft preview URL** for page-like collections and ministry updates
+  is built in
+  `apps/admin/src/cms-ui/web-studio/adapters/preview-url.ts` and opens
+  `/web-studio/preview/:collection/:id`.
+- The interim route reads mutable drafts with Payload Local API,
+  `overrideAccess: false`, and the current Web Studio user. Do not convert it
+  to a public route or expose/share its URL as a review capability. Successful
+  Payload authentication, `overrideAccess: false`, or document-ID possession
+  is not Phase 22 D10 authorization. D10 requires one exact saved revision or
+  immutable candidate, current Phase 12/10/D9 reproof on every request, the
+  production-equivalent renderer, inert consequential controls, and a
+  private/no-store/non-indexable response.
 - Public donor links in the native editor inspector use `NEXT_PUBLIC_DONOR_URL` / `DONOR_APP_URL` and are shown only for published documents.
-- **Live preview** depends on Payload live preview config and donor app availability; nested live preview may still be **stock Payload UI** (see living spec).
+- **Live preview** depends on Payload live preview config and donor app
+  availability; nested live preview may still be **stock Payload UI** (see
+  living spec). If later adopted for Public Ministry Pages, it is transport
+  over coherently saved exact versions and cannot weaken D10 authorization.
 - If preview opens wrong host, check env and that donor dev server matches.
+
+### Phase 22 D14 public search-and-sharing certification note
+
+The current public CMS endpoints, global metadata helpers, public URL builders,
+raw media serializer, Update list endpoint, and Share UI are not D14
+certification. For each exact current release, verify the real public URL,
+complete initial body/head, `GET`/`HEAD` parity, canonical and reciprocal
+admitted locales, crawler directive, exact-host sitemap disposition, visible-
+fact JSON-LD, D9-certified card image and contextual alt, and native Share plus
+Copy-link fallback from one manifest digest. Prove all three postures:
+Listed-public is search eligible and shareable; Shared-by-link is shareable and
+`noindex` but not path-blocked in `robots.txt`; non-public emits no content-
+specific anonymous metadata or card. No public response may expose an original
+filename or source metadata, and no provider submission, crawl, index, rank,
+cache, share, refresh, or removal result is guaranteed by this local proof.
+
+### Phase 22 D16 public-page writing-assistance note
+
+Do not add provider SDK calls, credentials, prompts, hidden context retrieval,
+or suggestion-application authority to Payload hooks, Lexical nodes, generic
+toolbars, or browser routes. Web Studio may eventually render D16's same quiet
+**Help me write** and **Translate to English** actions, but the server-owned
+Phase 22 semantic authoring boundary must reauthorize the exact working
+revision/field digest, consume the shared Phase 21 D10 binding and Phase 10
+egress result, and return one private suggestion for explicit comparison and
+CAS Use. Translation targets an existing exact Phase 24 English locale and must
+show the code-owned check-work warning; it never changes locale or release
+state.
 
 ---
 
@@ -192,3 +236,152 @@ Route files under `apps/admin/app/api/**/*.ts` must be **thin re-exports** to `@
 | Wizard POST 403                                           | Not staff / wrong session                                                                                             |
 | `verify:data-boundary` fails                              | Direct `@asym/database` import in `app/api`                                                                           |
 | Nested `<html>` / hydration warning                       | `(payload)/layout.tsx` must embed Payload `RootProvider`; do not use Payload `RootLayout` under the admin root layout |
+
+### Phase 22 D17 certification note
+
+Do not treat `project-pages.fundId`, a fund-backed wizard result, copied source
+text, Payload relationship success, a public serializer field, or an
+application-level duplicate precheck as Page Subject authority. D17 requires an
+operational, same-scope, typed and immutable-versioned binding to one certified
+source, release-time source/Phase 10 reproof, and an opaque Payload Page
+reference. The setup and tests must keep subject, Giving, progress,
+contributors, reach/release, and lifecycle separate; a released subject is
+never changed in place.
+
+### Phase 22 D18 runtime-composition certification note
+
+Do not treat a Payload published read, cache tag, revalidation request,
+deployment, or provider acceptance as current Public Ministry serving truth.
+Phase 5 executes runtime/cache mechanics; Phase 22 owns current-serving
+admission and adverse-first controlled-surface convergence. Certification must
+prove that no Asym-controlled response bypasses the current-serving evaluation
+and that no cache or effect path becomes a second public authority. See
+[ADR-0135](../../adr/0135-release-bound-public-ministry-runtime-composition.md).
+
+### Phase 22 D19 Ministry Assignment certification note
+
+Do not certify `missionaryId`, a Payload relationship, one visible spouse name,
+a shared login, a household edge, a page contributor, a Designation, or a
+Support Assignment participant as the Missionary Page subject or as support
+access. Prove one exact same-scope Ministry Assignment, non-overlapping
+effective-dated Party memberships, separately current display/contributor
+assignments, and—only when enabled—one prospective Phase-21-owned Support
+Binding. For each support reader, prove the current Phase 12 purpose, target,
+module, field, ISO-currency, history-floor, and authorization epoch; revoke
+deny-first; expose no raw table or financial Realtime stream; and verify
+cross-tenant, cross-entity, cross-assignment, stale-session, service-role,
+concurrency, and performance cases. The **People & access** review must state
+literal consequences and may never hide an implicit spouse/team grant.
+
+### Phase 22 D20 semantic-catalog certification note
+
+Do not certify the generic block builder, template copy, `pageType`, free CTA
+URL, Payload validation, or preview/public serializer agreement as a Page Family
+Semantic Catalog. Prove both code-owned family catalogs, finite role and zone
+identities, tenant-profile compatibility, fail-closed unknown semantics, and a
+D2 release manifest that pins every required generation. Invalid successor
+input must preserve the last certified release and expose an owner-actionable
+editor exception rather than silently dropping a block.
+
+### Phase 22 D21 complete-surface adoption certification note
+
+Do not treat a Payload publish, native/stock collection toggle, successful
+shadow render, cache warm, deployment, or provider response as public-reader
+authority. Certification must prove: the smallest complete host/locale/shared-
+artifact dependency closure; an immutable successor plan and complete one-
+disposition manifest; private side-effect-dark full-surface shadowing distinct
+from D10 human preview; exact Phase 12 adoption authority; precomputed digest/
+epoch reproof inside one CAS; an atomic local receipt plus D18 outbox cause;
+old-code fail-closed behavior; and no raw Payload, mock `/workers`, old cache, or
+legacy reader after cutover. UI rollback may restore an editor view only. It
+must never reverse the D21 authority head or bypass D1-D20 owners. See
+[ADR-0138](../../adr/0138-complete-public-ministry-surface-authority-cutover.md).
+
+### Phase 22 D22 Public Pages operations certification note
+
+Do not certify Payload list membership or `_status`, the public directory, or
+generic Mission Control **Needs attention** and task state as D22 cause,
+action, resolution, or Page health authority. Prove one private, rebuildable,
+permission-filtered projection with exactly **To review**, **Needs attention**,
+and **All pages** views; complete cause-to-impact coverage; deterministic
+deduplication; and authorization before rows, counts, search, cache, or
+notifications become observable. Every enabled action must reauthorize and
+route to the applicable current source-owner command. Prove that owner resolution
+alone clears or reopens impacts and that completing, dismissing, deleting, or
+failing an optional shared task closes nothing.
+
+### Phase 22 D23 Public Page setup/settings certification note
+
+Do not certify mutable `org-settings`, Payload preferences or collection
+defaults, tenant-only browser selection, or toast-reported saves as D23 truth.
+Prove one private, complete-scope, permission-filtered disposable projection;
+distinct organization-choice, built-in, safe-fallback, creation-seed, Off,
+unavailable, partial, unknown, and not-applicable states; and authorization
+before labels, rows, options, counts, history, preview, deep links, or caches.
+Every enabled Change action must reauthorize and invoke exactly one owner command
+with immutable successor, idempotency, CAS, ambiguous-outcome inspection, and
+authoritative readback. Prove D23 failure cannot block public serving and that
+no operation can activate D21, clear D22 work, publish, expose a credential, or
+change per-Page truth.
+
+### Phase 22 D24 Staff-authored Page Revision certification note
+
+Do not certify broad tenant/Payload roles, locks, autosave/version history,
+`_status`, restore, Publish/Unpublish, API access, or the current coarse audit
+hook as D24 authority. Prove independent edit/review/release capabilities,
+complete same-scope actor/predecessor/content-source evidence, D3/D20 target
+enforcement, current authorization and safety reproof, expected-head CAS,
+idempotency, authoritative readback, ambiguous-outcome inspection, and orphan
+reconciliation. Test concurrent editors, stale tabs, revocation, active and
+submitted contributor supersession, `Use as starting point`, retention pins,
+unknown legacy attribution, tenant isolation, and negative review/release/public
+effects. Actor-context Payload calls must set `overrideAccess: false` and
+`overrideLock: false`, while remaining subordinate to the product command.
+
+### Phase 22 D25 Derived actionability and recovery certification note
+
+Do not certify Payload autosave age, locks, `_status`, version history/caps,
+restore, trash, audit hooks, browser storage, or retained bytes as current
+actionability, recovery, access, or retention authority. Prove that the finite
+server resolver derives each action from exact current D1-D24 owner heads and
+that the owning command independently re-proves at commit. Verify zero D25
+operational status/queue/content/per-autosave event/expiry-scan persistence.
+
+Against the exact installed Payload prerelease, certify one coalesced recovery
+buffer for the exact Page and locale: two-second trailing dirty debounce,
+15-second maximum wait, explicit **Save draft**, safe navigation/handoff flush,
+digest no-op suppression, one in-flight write per generation, late-write
+fencing, and no semantic-head or candidate advancement. Prove deliberate
+semantic sealing before reference, blind native pruning disabled, D24-only
+reference-safe scratch cleanup, ambiguity-preserving quarantine, and negative
+review/release/public/notification effects. Test stale and losing tabs,
+concurrent editors, revoked access, old submitted candidates, changed catalogs/
+media/subjects/safety, same-scope reuse, cross-scope denial, save ambiguity,
+orphan cleanup races, mobile recovery comparison, and accessible quiet status.
+
+### Phase 22 D26 Public Content Sharing Attestation certification note
+
+Do not certify upload completion, D9 sanitization, terms, Payload roles,
+autosave, `_status`, or native publish as permission evidence. Prove that the
+existing D4/D5 final action visibly carries the correct code-owned sentence and
+atomically freezes the exact candidate plus statement version, actual actor,
+server time, complete scope, normalized digest, and action. Verify unchanged
+staff approval creates no second attestation, while a material D24 successor
+requires its own actual-actor action.
+
+Test every client, service, import, clone, translation, restore, native publish,
+and ambiguous-retry path for bypass and inheritance denial; prove tenant and
+scope isolation, CAS concurrency, legacy **not captured** classification,
+current Phase 10 override, D9/D2/D11/D18 containment, content-free diagnostics,
+and no public-render lookup or D26 table. Complete mobile, keyboard,
+screen-reader, reflow, localization, forced-colors, and no-extra-step usability
+proof before certification.
+
+### Phase 22 UI-quality evidence
+
+For any Phase 22 implementation slice that changes `packages/ui`, run
+`bunx @shadscan/cli@0.1.1 ./packages/ui --json --no-interactive` before and
+after the slice. Record both scores, the configured floor, and the exact changed
+paths in the release evidence manifest. Treat an unassessed or below-floor
+result as a failed gate; never treat the score as accessibility, browser,
+performance, or public-safety certification.

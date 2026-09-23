@@ -1,0 +1,66 @@
+{
+  "dialect": "asym.form/1",
+  "formId": "FORM-01",
+  "version": 1,
+  "status": "reference_blueprint",
+  "purpose": "inquiry_response",
+  "subject": "inquiry",
+  "defaultEnabled": false,
+  "submissionOwnerContract": "intake.inquiry.submit@1",
+  "partialSave": true,
+  "retentionOwnerContract": "intake.form-retention@1",
+  "pages": [
+    {
+      "id": "contact",
+      "title": "How can we help?",
+      "fields": [
+        {
+          "id": "preferred_name",
+          "label": "What name should we use?",
+          "kind": "short_text",
+          "required": true,
+          "purpose": "inquiry_response",
+          "classification": "ordinary_private",
+          "mapping": {
+            "ownerContract": "intake.inquiry.submit@1",
+            "fieldKey": "preferred_name"
+          },
+          "maxLength": 200
+        },
+        {
+          "id": "reply_email",
+          "label": "Your email",
+          "kind": "email",
+          "required": true,
+          "purpose": "inquiry_response",
+          "classification": "ordinary_private",
+          "mapping": {
+            "ownerContract": "intake.inquiry.submit@1",
+            "fieldKey": "reply_email"
+          },
+          "maxLength": 200
+        },
+        {
+          "id": "inquiry",
+          "label": "What would you like to ask?",
+          "kind": "long_text",
+          "required": false,
+          "purpose": "inquiry_response",
+          "classification": "ordinary_private",
+          "mapping": {
+            "ownerContract": "intake.inquiry.submit@1",
+            "fieldKey": "inquiry"
+          },
+          "maxLength": 4000
+        }
+      ]
+    }
+  ],
+  "submissionRules": {
+    "serverValidation": true,
+    "immutableAcceptedSnapshot": true,
+    "hiddenValues": "exclude_from_submission_and_effects",
+    "csrfRequired": true,
+    "idempotencyRequired": true
+  }
+}

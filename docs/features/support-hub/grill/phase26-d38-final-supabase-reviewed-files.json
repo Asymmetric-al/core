@@ -1,0 +1,133 @@
+{
+  "date": "2026-09-14",
+  "result": "Pass",
+  "method": "Independent actual-file data/source contract comparison; source hashes/ranges and documentary structure verified",
+  "files": [
+    {
+      "name": "phase26-d38-adversarial-review.md",
+      "sha256": "d648998d4f58ee859685319b76a6620b4b96b94ff63e603969a27a60f13c334d"
+    },
+    {
+      "name": "phase26-d38-proof-and-operations.md",
+      "sha256": "49abc9d6163bbbe8fd8b687e74d46fba43f7f78e5fc0ace01f920bc3a0b331cb"
+    },
+    {
+      "name": "phase26-d38-supabase-contract.md",
+      "sha256": "9469d687d0aabbbc0ce688f6edc04e95335085578532c0f43292b271f01f5d4f"
+    },
+    {
+      "name": "phase26-d38-supabase-evidence.json",
+      "sha256": "30755279c2708b02a00489e5634def39caa82c3b1ab44b02d51895b3bcb81617"
+    },
+    {
+      "name": "phase26-d38-lifecycle-seam-review.md",
+      "sha256": "3248b9edd0eec769d1a5a57e017969bf4b9e271e23b445c22ce42ae2b62e833f"
+    },
+    {
+      "name": "phase26-d38-ux-blueprint.md",
+      "sha256": "d295d1b838370fffb6cfa5e4d22771c27fd1bec67e9e09694f460ed4539e28c3"
+    },
+    {
+      "name": "phase26-d38-current-mention-probe.json",
+      "sha256": "177bb258a0a379b9898d599a3d9f9ae6e937ab15306b0cc081e23a773b344ff1"
+    }
+  ],
+  "repositorySourcePinsVerified": 23,
+  "clauses": 26,
+  "dataContracts": 15,
+  "categories": 23,
+  "runtimeProofGroupsRequired": 30,
+  "runtimeProofGroupsExecuted": 0,
+  "operatingControls": 5,
+  "newDatabaseOrProviderTests": false,
+  "founderRatificationClaimed": false,
+  "postFormatVerification": {
+    "date": "2026-09-14",
+    "result": "Pass",
+    "method": "Bounded whitespace/table-format equivalence against hashed preformat originals, current source pin/range checks, final stage/owner seam inspection; no new runtime tests",
+    "primaryEquivalence": [
+      {
+        "name": "phase26-d38-adversarial-review.md",
+        "preFormatSha256": "d648998d4f58ee859685319b76a6620b4b96b94ff63e603969a27a60f13c334d",
+        "postFormatSha256": "9d59e7bac648af9aa47878df8442d693741631dcfe41a5bdfd27284bf9f4d506",
+        "normalizedWhitespaceAndTableFormattingEquivalent": true
+      },
+      {
+        "name": "phase26-d38-proof-and-operations.md",
+        "preFormatSha256": "49abc9d6163bbbe8fd8b687e74d46fba43f7f78e5fc0ace01f920bc3a0b331cb",
+        "postFormatSha256": "945b9fee14d875a0b6b0a42a561dc03207a1f03d02fe923c2066ee7b9233a855",
+        "normalizedWhitespaceAndTableFormattingEquivalent": true
+      },
+      {
+        "name": "phase26-d38-supabase-contract.md",
+        "preFormatSha256": "9469d687d0aabbbc0ce688f6edc04e95335085578532c0f43292b271f01f5d4f",
+        "postFormatSha256": "9469d687d0aabbbc0ce688f6edc04e95335085578532c0f43292b271f01f5d4f",
+        "normalizedWhitespaceAndTableFormattingEquivalent": true
+      },
+      {
+        "name": "phase26-d38-lifecycle-seam-review.md",
+        "preFormatSha256": "3248b9edd0eec769d1a5a57e017969bf4b9e271e23b445c22ce42ae2b62e833f",
+        "postFormatSha256": "9bfb738eb9fda0c43f9ac5b8d933d15b8c11dc8b8e5dab6d2650f099b579c9d5",
+        "normalizedWhitespaceAndTableFormattingEquivalent": true
+      },
+      {
+        "name": "phase26-d38-ux-blueprint.md",
+        "preFormatSha256": "d295d1b838370fffb6cfa5e4d22771c27fd1bec67e9e09694f460ed4539e28c3",
+        "postFormatSha256": "631197445f8a36d79cd287a34e4c56384d07995d726ace01b6ca15bdaae3f23e",
+        "normalizedWhitespaceAndTableFormattingEquivalent": true
+      }
+    ],
+    "sourcePinsStillValid": 23,
+    "clauses": 26,
+    "contracts": 15,
+    "categories": 23,
+    "runtimeGroupsRequired": 30,
+    "runtimeGroupsExecuted": 0,
+    "controls": 5,
+    "featureADR": "0038 selected, detailed amendments proposed",
+    "glossary": "one new Private Support note draft definition, selected section",
+    "Q39": "not opened",
+    "files": [
+      {
+        "name": "phase26-d38-adversarial-review.md",
+        "sha256": "9d59e7bac648af9aa47878df8442d693741631dcfe41a5bdfd27284bf9f4d506"
+      },
+      {
+        "name": "phase26-d38-proof-and-operations.md",
+        "sha256": "945b9fee14d875a0b6b0a42a561dc03207a1f03d02fe923c2066ee7b9233a855"
+      },
+      {
+        "name": "phase26-d38-supabase-contract.md",
+        "sha256": "9469d687d0aabbbc0ce688f6edc04e95335085578532c0f43292b271f01f5d4f"
+      },
+      {
+        "name": "phase26-d38-lifecycle-seam-review.md",
+        "sha256": "9bfb738eb9fda0c43f9ac5b8d933d15b8c11dc8b8e5dab6d2650f099b579c9d5"
+      },
+      {
+        "name": "phase26-d38-ux-blueprint.md",
+        "sha256": "631197445f8a36d79cd287a34e4c56384d07995d726ace01b6ca15bdaae3f23e"
+      },
+      {
+        "name": "phase26-d38-review-corrections.md",
+        "sha256": "adac2119378d907d95eddd2ba116e39e35c150f501b73f62be9631ef27637016"
+      },
+      {
+        "name": "phase26-d38-completion-audit.md",
+        "sha256": "368c2159fba426609c5128f01e7afc24a71d46aa67480cd3338f8d3830c89178"
+      },
+      {
+        "name": "phase26-d38-evidence.md",
+        "sha256": "5338d56261e8312d125576bcfa19682fc559680c3ae077d3576579dccee9ab12"
+      },
+      {
+        "name": "0038-private-autosaved-new-internal-note-drafts.md",
+        "sha256": "ce9d494c3d58e618fc59433c3d2a62aabefd3153fbc193e0ef71b28e28ec4c30"
+      },
+      {
+        "name": "CONTEXT.md",
+        "sha256": "a529f076fccf716872b7cd1d1adc72911af768bde07668fca78732598316806c"
+      }
+    ]
+  }
+}

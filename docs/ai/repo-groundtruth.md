@@ -1,5 +1,10 @@
 # Repo Groundtruth
 
+> **Dated evidence, not current instructions.** Entries below describe their
+> recorded runs. Use [Document authority](document-authority.md), current
+> owner contracts and source for new work. Retired Twenty setup or sync plans
+> in historical entries must not be executed.
+
 Evidence-backed, time-indexed account of `Asymmetric-al/core` as it exists at the
 starting snapshot of this run. Produced by the Repo Groundtruth `/loop`.
 

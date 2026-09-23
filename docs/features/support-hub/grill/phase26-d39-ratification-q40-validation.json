@@ -1,0 +1,205 @@
+{
+  "date": "2026-09-15",
+  "checkedAtUtc": "2026-09-14T18:48:42.973967+00:00",
+  "pass": true,
+  "stage": "D1-D39 fully ratified; Q40 unanswered",
+  "evidenceClass": "Documentary recording/source verification only",
+  "totals": {
+    "groups": 34,
+    "passed": 34,
+    "baselineFiles": 1352,
+    "unchangedBaselineFiles": 1320,
+    "authorizedExistingChanges": 32,
+    "originalD39MarkdownBodiesPreserved": 13,
+    "originalD39JSONUnchanged": 6,
+    "Q40SourcePins": 13,
+    "currentMirroredFiles": 30,
+    "runtimeGroupsExecuted": 0
+  },
+  "checks": [
+    {
+      "name": "Only authorized existing ratification records changed",
+      "pass": true,
+      "detail": {
+        "baseline": 1352,
+        "unchanged": 1320,
+        "changed": 32,
+        "unexpected": []
+      }
+    },
+    {
+      "name": "Preserved complete original phase26-d39-adversarial-review.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-completion-audit.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-evidence.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-final-lifecycle-review.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-final-supabase-review.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-final-ux-review.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-lifecycle-seam-review.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-proof-and-operations.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-reader-tiptap-contract.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-review-corrections.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-selection.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-supabase-contract.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Preserved complete original phase26-d39-ux-research.md",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Immutable evidence phase26-d39-final-supabase-reviewed-files.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Immutable evidence phase26-d39-reader-probe.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Immutable evidence phase26-d39-reader-source-evidence.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Immutable evidence phase26-d39-source-evidence.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Immutable evidence phase26-d39-supabase-evidence.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Immutable evidence phase26-d39-validation.json",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Glossary definition unchanged; heading ratified only",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ADR0039 historical body and accepted outcome",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-grill-log.md historical preservation/current unanswered Q40",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-session-handoff.md historical preservation/current unanswered Q40",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Full ratification inventory and seams",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Independent actual ratification audit passes",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Actual A B C options and single A recommendation",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "No new Q40 authority",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Nonnegotiable future and mixed work boundaries",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Q40 exact source hashes/ranges/text (outer excerpt whitespace normalized)",
+      "pass": true,
+      "detail": {
+        "count": 13,
+        "failed": []
+      }
+    },
+    {
+      "name": "Fresh source and PR record; no source Git changes",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Independent actual Q40 review hashes",
+      "pass": true,
+      "detail": {
+        "reviewedFiles": 6,
+        "failed": []
+      }
+    },
+    {
+      "name": "All current D39/Q40 mirrors match",
+      "pass": true,
+      "detail": 30
+    },
+    {
+      "name": "Local documentary links resolve",
+      "pass": true,
+      "detail": {
+        "count": 142,
+        "missing": []
+      }
+    }
+  ]
+}

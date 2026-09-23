@@ -1,30 +1,19 @@
 # Support Hub — Phase 6: reports, inbox settings, SLA rules, and automation
 
-Phases 1–5 are stacked. Phase 6 adds the manager-facing operating layer to the
-Donor Care Support Hub: nested `/support/reports/*` and `/support/settings/*`
-routes under a shared workspace shell, 12 settings panels, 5 report surfaces,
-and a typed first-version automation rule builder with dry-run preview. Every
-new mutation is additive over the Phase 2 collection writers, so Phase 7 can
-swap in real Supabase persistence without touching any settings or reports
-component.
+**Current adoption requirements amended 2026-09-22 (AL-1892).** This file retains the earlier Support implementation inventory; its local “Phase 6/7” labels are historical feature stages, not program Phases 6/7. The [current Phase 26 package](README.md) owns native Support behavior and the [Workflow Studio contract](../../prds/workflow-studio/README.md) owns configurable cross-product rules. The [original record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/support-hub/phase-06-reports-settings-automation.md) preserves the initial design and reported test results.
 
-## Decisions locked
+## Current compatibility requirements
 
-- **Route shape:** nested routes (option a, locked in Phase 1 file-map). All
-  leaf pages sit inside `<PageShell>` and mount a shared
-  `<SupportSubNav />` so Inbox / Reports / Settings navigation lives in one
-  place. Mission Control shell ownership is preserved.
-- **Automation builder:** full form-based CRUD (option a) with typed
-  trigger / conditions / actions + a pure dry-run preview. No live runtime
-  yet — `evaluateSupportAutomationRule` is a pure function the Phase 7
-  inbound webhook router will reuse.
-- **Collections stay in `packages/database`.** The
-  `tanstack-foundation-guardrails.test.ts` rule still holds: no
-  `@tanstack/db` import lands in `apps/admin`.
-- **Charts** reuse Recharts through dynamic imports (same pattern as
-  `apps/admin/app/(app)/reports/reports-charts.tsx`). No new chart library.
-- **Knowledge-base article insertion** is deferred — the repo has no fitting
-  content source today. Listed in the Phase 7 follow-up.
+- Preserve the nested `/support/reports/*` and `/support/settings/*` entry points and shared Mission Control shell where compatible with the current Phase 26 experience. Route compatibility does not establish source authorization.
+- Configurable triggers, conditions, branches and actions use the single Phase 34 Studio vocabulary and registry. Existing rule CRUD and the pure `evaluateSupportAutomationRule` matcher are migration inputs, not a second approved live engine. Shadow comparison is effect-free; one qualified execution owner is selected before activation.
+- Native Support owns conversations, assignment decisions, response clocks, quarantine, exact source commands and permitted macros. It remains complete without the general Studio; fixed native policies cannot become hidden optional tenant automations.
+- Business operations belong in `packages/api`; approved browser collections/hooks remain in `packages/database`. Replacing a collection fetch function is insufficient to prove permissions, source command receipts, safe projections or retained-data migration.
+- Shared UI preserves exact `base-maia`, Base UI, semantic tokens, keyboard/outline access and truthful loading/error states. Existing chart/shell components may be reused after current-contract verification.
+- Knowledge-base insertion, feedback and other source integrations follow the current Phase 26 requirements and exact source readiness; the historical “no fitting content source” observation does not decide their present scope.
+
+## Historical implementation inventory
+
+The following architecture, file list, types, report shapes and UI details describe the earlier implementation record. They preserve reusable implementation context, not current proof that every named source, writer, permission or runtime behavior meets the Phase 26/34 contracts. Seed fixtures and recorded test totals are not tenant data or current qualification.
 
 ## Architecture
 
@@ -179,7 +168,7 @@ report-aggregations.test.ts    (8 cases)
 report-export.test.ts          (4 cases)
 ```
 
-Totals: **111 test files, 481 unit tests pass** (458 prior + 23 new).
+Historical recorded result: **111 test files, 481 unit tests passed** (458 prior + 23 new) in the original implementation record. These tests were not rerun for this planning update.
 
 ## Data model additions
 
@@ -296,9 +285,9 @@ interface SupportReportRequest {
 | Open count          | count   | `open-count`        | Open + pending split                       |
 | Snoozed count       | count   | `snoozed-count`     | Currently snoozed + ready-to-wake          |
 
-## Automation contract
+## Matcher shape and effective execution boundary
 
-`evaluateSupportAutomationRule({ rule, conversation, message? })` returns:
+The current pure signature `evaluateSupportAutomationRule(rule, { conversation, message?, now? })` returns:
 
 ```ts
 interface AutomationEvaluationResult {
@@ -310,13 +299,9 @@ interface AutomationEvaluationResult {
 }
 ```
 
-Every automation action that maps cleanly onto `SupportMacroAction` lands in
-`plannedActions`. The two exceptions — `mark_escalated` and `run_macro` —
-come back in `unsupportedActions` so the dry-run preview can tell the agent
-"this action is valid but fires server-side only (Phase 7)."
+The historical matcher translates supported actions into the macro-shaped preview result and retains unsupported actions separately. This structural translation is not source authorization or proof that an action is safe to execute. The current pure function takes a rule and evaluation context; read its actual signature before calling it.
 
-The `<AutomationDryRunPreview />` component renders the reasons + planned
-actions inline beneath the rule form. No mutations run during dry-run.
+A dry-run must remain mutation-free and use permitted synthetic preview facts. Unsupported actions must say unavailable until their exact source adapter is qualified; do not promise that a later server automatically executes them. Future configurable execution belongs to the shared Studio, through current Phase 12/NHI authority and source-owned commands. A generic `set_status`, `assign_agent` or `run_macro` shape cannot bypass Phase 26's reviewed state/assignment/macros contracts, source receipts or safety fences. Native Support timers and recovery remain native.
 
 ## Keyboard + route continuity
 
@@ -351,7 +336,7 @@ actions inline beneath the rule form. No mutations run during dry-run.
 - Dry-run without seeded conversations renders an explainer pointing to
   `/support`.
 
-## Quality gates
+## Historical recorded quality gates
 
 - `bun run lint` — clean across the workspace.
 - `bun run typecheck` — clean across 13 packages.
@@ -361,38 +346,14 @@ actions inline beneath the rule form. No mutations run during dry-run.
   import added to admin).
 - Prettier — clean.
 
-## Phase 7 follow-up list (real backend pieces still needed)
+## Current follow-through and migration
 
-- Real Supabase tables + RLS for `support_automation_rules`,
-  `support_signatures`, `support_notification_preferences`.
-- Server-side automation evaluator — Phase 7's inbound webhook router
-  calls the same pure `evaluateSupportAutomationRule` and then pipes
-  `plannedActions` through `runSupportMacro`.
-- `mark_escalated` + `run_macro` action coverage in the server runtime.
-- Real notification delivery — Resend daily digest emails + Mission
-  Control inbox bell surface.
-- CSAT collection + report (table reserved in Phase 1 spec; UI deferred).
-- Knowledge-base article insertion inside the reply composer (no fitting
-  content source today).
-- CRM hydration for merge variables and contact sidecar.
-- Live business-hours-aware SLA timers (today the report applies the
-  business-hours filter post-hoc rather than pausing live timers).
-- Tenant timezone plumbing so `business-hours.ts` can interpret schedules
-  in the tenant-local offset (currently UTC-only).
-- Macro action parity with automation actions (`mark_escalated`,
-  `set_status`, `run_macro`).
+Use the current Phase 26 implementation queue and the Studio WS-20 slice rather than executing the original feature-stage follow-up list as a new product plan.
 
-## Continuity for Phase 7+
-
-- `evaluateSupportAutomationRule` is a pure function and reuses
-  `SupportMacroAction` so the server-side scheduler can pipe hits through
-  `runSupportMacro` without a parallel dispatcher.
-- New collections share the Phase 2 collection-writer pattern — swap the
-  `queryFn` for a Supabase fetch and the UI continues to work unchanged.
-- `report-export.ts` is browser-only today; if server-side export is ever
-  needed it can move into `packages/api` without changing the UI surface.
-- `SupportWorkspaceShell` + `SupportSubNav` are the single seam for adding
-  new sub-sections; extending the nav is a one-line change.
-- Every settings mutation writes a sonner toast + optimistic collection
-  update so the real server-side variant only needs to preserve those
-  semantics.
+- Inventory real tables, alternate writers, exposed collections, persisted rules, macros, routes, seed behavior and reporting consumers before migration. Preserve source facts and historical activity; qualify current grants/RLS and server projections.
+- Keep the old matcher available only for approved preview/shadow comparison until retained rules have one certified Studio execution owner. Do not attach a second autonomous evaluator to the inbound webhook router.
+- Bind any admitted rule action to its exact current Support command, actor/NHI scope, source revision, semantic effect identity and audit receipt. Unsupported actions remain unavailable; a generic task or macro result cannot establish another source's completion.
+- Use Phase 17 exact governed message production and Phase 6 release/delivery/history. Do not add a direct Resend digest sender or infer communication permission from a legacy preference row.
+- Follow current native Support requirements for assignment, response targets, calendars, feedback, content insertion, replies and CRM context. Resolve exact source readiness and current timezone policy; historical UTC-only helpers do not set the target contract.
+- Preserve route/shell and approved collection-hook compatibility where possible, while proving server authority and source-safe projection instead of assuming a fetch swap makes the old UI complete.
+- Prove bounded migration, effects-disabled comparisons, safe rollback/recovery, privacy, source outcome correctness and accessible staff journeys. Existing source histories and required native behavior survive disabling optional workflow enrollment.

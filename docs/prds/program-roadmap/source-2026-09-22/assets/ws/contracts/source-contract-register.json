@@ -1,0 +1,2867 @@
+{
+  "status": "proposed-binding-register",
+  "contracts": [
+    {
+      "bindingKind": "triggers",
+      "contractId": "intake.inquiry.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "inquiry_response"
+      ],
+      "owner": "intake",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-01",
+          "alias": "enrollment",
+          "purpose": "inquiry_response"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "intake.discovery@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "inquiry_response"
+      ],
+      "owner": "intake",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-01",
+          "alias": "discovery",
+          "purpose": "inquiry_response"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "intake.assign-accountable-owner@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "inquiry_response"
+      ],
+      "owner": "intake",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-01",
+          "alias": "assign_owner",
+          "purpose": "inquiry_response"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "communications.inquiry-acknowledgment.request@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "inquiry_response"
+      ],
+      "owner": "communications",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-01",
+          "alias": "ack_message",
+          "purpose": "inquiry_response"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.inquiry-owner@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "inquiry_response"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-01",
+          "alias": "coordinator",
+          "purpose": "inquiry_response"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "contributions.qualifying-fact.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "donor_stewardship"
+      ],
+      "owner": "contributions",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-02",
+          "alias": "enrollment",
+          "purpose": "donor_stewardship"
+        },
+        {
+          "blueprintId": "BP-15",
+          "alias": "enrollment",
+          "purpose": "donor_stewardship"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "facts",
+      "contractId": "contributions.first-organization-gift-certified@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "donor_stewardship"
+      ],
+      "owner": "contributions",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-02",
+          "alias": "firstOrgGift",
+          "purpose": "donor_stewardship"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "development.personal-gift-followup@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "donor_stewardship"
+      ],
+      "owner": "development",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-02",
+          "alias": "donor_followup",
+          "purpose": "donor_stewardship"
+        },
+        {
+          "blueprintId": "BP-15",
+          "alias": "personal",
+          "purpose": "donor_stewardship"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "communications.donor-welcome.request@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "donor_stewardship"
+      ],
+      "owner": "communications",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-02",
+          "alias": "welcome",
+          "purpose": "donor_stewardship"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.donor-relationship-owner@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "donor_stewardship"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-02",
+          "alias": "relationship_owner",
+          "purpose": "donor_stewardship"
+        },
+        {
+          "blueprintId": "BP-15",
+          "alias": "owner",
+          "purpose": "donor_stewardship"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "identity.staff-onboarding.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "staff_onboarding"
+      ],
+      "owner": "identity",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-03",
+          "alias": "enrollment",
+          "purpose": "staff_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "identity.staff-role-review@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "staff_onboarding"
+      ],
+      "owner": "identity",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-03",
+          "alias": "manager_review",
+          "purpose": "staff_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "operations.staff-orientation@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "staff_onboarding"
+      ],
+      "owner": "operations",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-03",
+          "alias": "orientation",
+          "purpose": "staff_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "operations.staff-handoff@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "staff_onboarding"
+      ],
+      "owner": "operations",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-03",
+          "alias": "handoff",
+          "purpose": "staff_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "identity.staff-policy-ack@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "staff_onboarding"
+      ],
+      "owner": "identity",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-03",
+          "alias": "policy_ack",
+          "purpose": "staff_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "identity.request-authorized-outcome@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "staff_onboarding"
+      ],
+      "owner": "identity",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-03",
+          "alias": "access_confirmed",
+          "purpose": "staff_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "identity.request-approved-access-setup@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "staff_onboarding"
+      ],
+      "owner": "identity",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-03",
+          "alias": "access_request",
+          "purpose": "staff_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.staff-manager@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "staff_onboarding"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-03",
+          "alias": "manager",
+          "purpose": "staff_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.staff-onboarding-subject@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "staff_onboarding"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-03",
+          "alias": "participant",
+          "purpose": "staff_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "mobilization.application.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "enrollment",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "facts",
+      "contractId": "mobilization.accepted-decision-kind@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "decision",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.application-submission.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "submission",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.required-reference-set.satisfied@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "references",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.required-interviews.satisfied@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "interviews",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.screening.source-approved-summary@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "screening",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.authorized-decision.recorded@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "decision",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.acceptance-conditions.satisfied@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "conditions",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.conditions.authorized-clearance@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "conditions_review",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.application-participant@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization",
+        "mobilization_onboarding"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "candidate",
+          "purpose": "mobilization"
+        },
+        {
+          "blueprintId": "BP-05",
+          "alias": "candidate",
+          "purpose": "mobilization_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.application-coordinator@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization",
+        "mobilization_onboarding"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "coordinator",
+          "purpose": "mobilization"
+        },
+        {
+          "blueprintId": "BP-05",
+          "alias": "coordinator",
+          "purpose": "mobilization_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.application-screening-reviewer@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "screening_reviewer",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.application-decision-reviewer@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "decision_reviewer",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "subflows",
+      "contractId": "BP-05@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization"
+      ],
+      "owner": "workflow-studio",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-04",
+          "alias": "onboarding",
+          "purpose": "mobilization"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "mobilization.onboarding.authorized@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization_onboarding"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-05",
+          "alias": "enrollment",
+          "purpose": "mobilization_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.current-agreement-set.satisfied@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization_onboarding"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-05",
+          "alias": "agreements",
+          "purpose": "mobilization_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.required-training.satisfied@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization_onboarding"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-05",
+          "alias": "training",
+          "purpose": "mobilization_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.operational-setup.confirmed@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization_onboarding"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-05",
+          "alias": "setup_complete",
+          "purpose": "mobilization_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.readiness.authorized@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization_onboarding"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-05",
+          "alias": "readiness",
+          "purpose": "mobilization_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "mobilization.receiving-owner.acknowledged@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization_onboarding"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-05",
+          "alias": "receiving_handoff",
+          "purpose": "mobilization_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "mobilization.request-approved-operational-setup@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization_onboarding"
+      ],
+      "owner": "mobilization",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-05",
+          "alias": "setup",
+          "purpose": "mobilization_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.application-receiving-owner@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "mobilization_onboarding"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-05",
+          "alias": "receiving_owner",
+          "purpose": "mobilization_onboarding"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "expenses.missing-evidence.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "expense_followup"
+      ],
+      "owner": "expenses",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-06",
+          "alias": "enrollment",
+          "purpose": "expense_followup"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "expenses.source-evidence-followup.resolved@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "expense_followup"
+      ],
+      "owner": "expenses",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-06",
+          "alias": "resolved",
+          "purpose": "expense_followup"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "expenses.mirror-authorized-followup@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "expense_followup"
+      ],
+      "owner": "expenses",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-06",
+          "alias": "mirror_source_task",
+          "purpose": "expense_followup"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.expense-source-followup-assignee@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "expense_followup"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-06",
+          "alias": "source_assignee",
+          "purpose": "expense_followup"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "development.coaching-checkin.due@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_coaching"
+      ],
+      "owner": "development",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-07",
+          "alias": "enrollment",
+          "purpose": "support_coaching"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "development.coaching-self-report@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_coaching"
+      ],
+      "owner": "development",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-07",
+          "alias": "checkin",
+          "purpose": "support_coaching"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "development.redacted-coaching-review@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_coaching"
+      ],
+      "owner": "development",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-07",
+          "alias": "coach_review",
+          "purpose": "support_coaching"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "development.agreed-next-action@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_coaching"
+      ],
+      "owner": "development",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-07",
+          "alias": "next_action",
+          "purpose": "support_coaching"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.coaching-subject@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_coaching"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-07",
+          "alias": "missionary",
+          "purpose": "support_coaching"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.invited-authorized-coach@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_coaching"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-07",
+          "alias": "coach",
+          "purpose": "support_coaching"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "content.update-review.requested@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "content_publication"
+      ],
+      "owner": "content",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-08",
+          "alias": "enrollment",
+          "purpose": "content_publication"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "facts",
+      "contractId": "content.exact-current-revision-approved@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "content_publication"
+      ],
+      "owner": "content",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-08",
+          "alias": "approvedCurrentRevision",
+          "purpose": "content_publication"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "content.exact-revision.review-completed@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "content_publication"
+      ],
+      "owner": "content",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-08",
+          "alias": "review",
+          "purpose": "content_publication"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "content.exact-revision.published@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "content_publication"
+      ],
+      "owner": "content",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-08",
+          "alias": "published",
+          "purpose": "content_publication"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "content.request-authorized-publication@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "content_publication"
+      ],
+      "owner": "content",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-08",
+          "alias": "publish",
+          "purpose": "content_publication"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "communications.content-distribution.request@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "content_publication"
+      ],
+      "owner": "communications",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-08",
+          "alias": "distribute",
+          "purpose": "content_publication"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.content-editor@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "content_publication"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-08",
+          "alias": "editor",
+          "purpose": "content_publication"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "care.intake.source-accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "care_intake"
+      ],
+      "owner": "care",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-09",
+          "alias": "enrollment",
+          "purpose": "care_intake"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "care.intake.source-accepted-evidence@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "care_intake"
+      ],
+      "owner": "care",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-09",
+          "alias": "intake",
+          "purpose": "care_intake"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "care.receiving-carer.acknowledged@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "care_intake"
+      ],
+      "owner": "care",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-09",
+          "alias": "handoff",
+          "purpose": "care_intake"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "care.request-source-qualified-assignment@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "care_intake"
+      ],
+      "owner": "care",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-09",
+          "alias": "assign",
+          "purpose": "care_intake"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "care.request-approved-safe-acknowledgment@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "care_intake"
+      ],
+      "owner": "care",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-09",
+          "alias": "ack",
+          "purpose": "care_intake"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.source-authorized-carer@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "care_intake"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-09",
+          "alias": "assigned_carer",
+          "purpose": "care_intake"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "support.conversation.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_response"
+      ],
+      "owner": "support",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-10",
+          "alias": "enrollment",
+          "purpose": "support_response"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "support.assigned-response@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_response"
+      ],
+      "owner": "support",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-10",
+          "alias": "respond",
+          "purpose": "support_response"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "support.response.source-confirmed@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_response"
+      ],
+      "owner": "support",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-10",
+          "alias": "response",
+          "purpose": "support_response"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "support.request-approved-routing@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_response"
+      ],
+      "owner": "support",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-10",
+          "alias": "route",
+          "purpose": "support_response"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "support.request-loop-safe-acknowledgment@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_response"
+      ],
+      "owner": "support",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-10",
+          "alias": "ack",
+          "purpose": "support_response"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.support-source-assignee@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "support_response"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-10",
+          "alias": "source_owner",
+          "purpose": "support_response"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "documents.requirement.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "document_collection"
+      ],
+      "owner": "documents",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-11",
+          "alias": "enrollment",
+          "purpose": "document_collection"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "documents.private-clean-upload.received@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "document_collection"
+      ],
+      "owner": "documents",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-11",
+          "alias": "document",
+          "purpose": "document_collection"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "documents.current-evidence.source-accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "document_collection"
+      ],
+      "owner": "documents",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-11",
+          "alias": "accepted",
+          "purpose": "document_collection"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.document-source-participant@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "document_collection"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-11",
+          "alias": "participant",
+          "purpose": "document_collection"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.document-source-reviewer@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "document_collection"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-11",
+          "alias": "reviewer",
+          "purpose": "document_collection"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "events.registration.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "events",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "enrollment",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "facts",
+      "contractId": "events.accepted-capacity-status@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "events",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "capacityStatus",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "facts",
+      "contractId": "events.waitlist-source-disposition.final@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "events",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "waitlistResolved",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "facts",
+      "contractId": "events.final-capacity-status@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "events",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "finalCapacityStatus",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "events.registration-requirements.satisfied@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "events",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "entry",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "events.capacity.source-outcome@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "events",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "capacity_outcome",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "events.waitlist.final-source-outcome@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "events",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "waitlist_disposition",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "events.request-source-capacity-decision@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "events",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "capacity",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "communications.registration-confirmation.request@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "communications",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "confirm",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "communications.waitlist-notice.request@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "communications",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "waitlist",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "communications.registration-final-disposition.request@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "communications",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "final_notice",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.registration-participant@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "participant",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.event-owner@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "event_participation"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-12",
+          "alias": "event_owner",
+          "purpose": "event_participation"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "recurring.named-attention.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "recurring_service"
+      ],
+      "owner": "recurring",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-13",
+          "alias": "enrollment",
+          "purpose": "recurring_service"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "facts",
+      "contractId": "recurring.staff-followup.eligible@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "recurring_service"
+      ],
+      "owner": "recurring",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-13",
+          "alias": "staffFollowupAllowed",
+          "purpose": "recurring_service"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "recurring.source-permitted-service-followup@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "recurring_service"
+      ],
+      "owner": "recurring",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-13",
+          "alias": "followup",
+          "purpose": "recurring_service"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "evidence",
+      "contractId": "recurring.source-attention.disposition-recorded@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "recurring_service"
+      ],
+      "owner": "recurring",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-13",
+          "alias": "outcome",
+          "purpose": "recurring_service"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.donor-service-owner@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "recurring_service"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-13",
+          "alias": "service_owner",
+          "purpose": "recurring_service"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "custom.record.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "custom_process"
+      ],
+      "owner": "custom",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-14",
+          "alias": "enrollment",
+          "purpose": "custom_process"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "facts",
+      "contractId": "custom.exact-version-change-approved@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "custom_process"
+      ],
+      "owner": "custom",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-14",
+          "alias": "allowedChangeApproved",
+          "purpose": "custom_process"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "custom.permitted-record-form@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "custom_process"
+      ],
+      "owner": "custom",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-14",
+          "alias": "form_task",
+          "purpose": "custom_process"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "tasks",
+      "contractId": "custom.permitted-record-review@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "custom_process"
+      ],
+      "owner": "custom",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-14",
+          "alias": "review",
+          "purpose": "custom_process"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "custom.request-approved-field-update@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "custom_process"
+      ],
+      "owner": "custom",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-14",
+          "alias": "change",
+          "purpose": "custom_process"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.custom-record-participant@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "custom_process"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-14",
+          "alias": "participant",
+          "purpose": "custom_process"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "roles",
+      "contractId": "roles.custom-record-reviewer@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "custom_process"
+      ],
+      "owner": "roles",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-14",
+          "alias": "reviewer",
+          "purpose": "custom_process"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "facts",
+      "contractId": "contributions.qualifying-amount-currency@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "donor_stewardship"
+      ],
+      "owner": "contributions",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-15",
+          "alias": "currency",
+          "purpose": "donor_stewardship"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "facts",
+      "contractId": "contributions.qualifying-amount-minor@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "donor_stewardship"
+      ],
+      "owner": "contributions",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-15",
+          "alias": "amountMinor",
+          "purpose": "donor_stewardship"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "triggers",
+      "contractId": "documents.renewal.source-required@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "document_renewal"
+      ],
+      "owner": "documents",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-16",
+          "alias": "enrollment",
+          "purpose": "document_renewal"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "facts",
+      "contractId": "documents.current-renewal-replacement.accepted@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "document_renewal"
+      ],
+      "owner": "documents",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-16",
+          "alias": "replacementAccepted",
+          "purpose": "document_renewal"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    },
+    {
+      "bindingKind": "actions",
+      "contractId": "documents.request-approved-renewal@1",
+      "status": "proposed_requires_owner_adapter",
+      "purposes": [
+        "document_renewal"
+      ],
+      "owner": "documents",
+      "classification": "source_determined",
+      "usedBy": [
+        {
+          "blueprintId": "BP-16",
+          "alias": "request",
+          "purpose": "document_renewal"
+        }
+      ],
+      "requiredGuarantees": [
+        "current tenant and source authority",
+        "versioned typed inputs and safe outputs",
+        "exact purpose and audience projection per use",
+        "permanent source semantic identity for effects",
+        "reconciliation and cancellation contract",
+        "side-effect-free simulation",
+        "dependency/readiness certification before publication"
+      ],
+      "completionAuthority": "Owning source accepted outcome; never Studio checkbox, elapsed time, or provider request acceptance alone."
+    }
+  ]
+}

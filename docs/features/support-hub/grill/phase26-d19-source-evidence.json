@@ -1,0 +1,142 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "mode": "Read-only manual source review plus pointer/hash verification; no modules executed",
+  "observations": [
+    {
+      "id": "S01",
+      "path": "supabase/migrations/20260426100000_resend_email_rls_grants.sql",
+      "line": 3,
+      "reviewedObservation": "Later inbound RLS/grants posture is server-only.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S02",
+      "path": "supabase/migrations/20260611183000_support_inbound_routes.sql",
+      "line": 35,
+      "reviewedObservation": "Routing review references and server-only grants require tenant-relation qualification.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S03",
+      "path": "packages/api/src/admin/support-hub/inbound-retry.ts",
+      "line": 8,
+      "reviewedObservation": "Retry wrapper is technical body/file recovery with coarse roles.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S04",
+      "path": "packages/api/src/admin/support-hub/inbound-routes.ts",
+      "line": 70,
+      "reviewedObservation": "Wrapper passes auth user ID as actorProfileId.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S05",
+      "path": "packages/auth/context.ts",
+      "line": 296,
+      "reviewedObservation": "Trusted context separates auth user and actual profile IDs.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S06",
+      "path": "packages/api/src/admin/support-hub/audit.ts",
+      "line": 16,
+      "reviewedObservation": "Audit helper stores actor_profile_id.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S07",
+      "path": "packages/api/src/workflows/adapters/inbound-routing.ts",
+      "line": 266,
+      "reviewedObservation": "Save-and-resume mutates future routing and can resume other matching reviews.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S08",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "line": 543,
+      "reviewedObservation": "Support audit participates in authenticated staff CRUD policies.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S09",
+      "path": "packages/api/src/workflows/adapters/inbound-email.ts",
+      "line": 166,
+      "reviewedObservation": "Retrieval/bridge/readiness require attachment-only, truthful-time, unique-admission and source-expiry qualification.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S10",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "line": 1331,
+      "reviewedObservation": "Support admission/correlation uses legacy lookup paths not accepted D1 proof.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S11",
+      "path": "packages/api/src/workflows/functions/inbound-email-processing.ts",
+      "line": 27,
+      "reviewedObservation": "Current workflow references a global provider key and fixed retry/concurrency values.",
+      "pointerAndHashVerified": true
+    },
+    {
+      "id": "S12",
+      "path": "openspec/specs/crm-core/spec.md",
+      "line": 5,
+      "reviewedObservation": "Older CRM spec still mentions Twenty; newer accepted authority explicitly supersedes it.",
+      "pointerAndHashVerified": true
+    }
+  ],
+  "sourceHashes": [
+    {
+      "path": "supabase/migrations/20260426100000_resend_email_rls_grants.sql",
+      "sha256": "a50ea9e7dffa4e5b1a1d5c1bc78bf9bd0c2bc9b461ef21c39b6c05e33a6c3834"
+    },
+    {
+      "path": "supabase/migrations/20260611183000_support_inbound_routes.sql",
+      "sha256": "b22f7236b566f33a0e1b6aabd3fa2754abdaae3bcaa69b92fc2d4bc7d8d03566"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/inbound-retry.ts",
+      "sha256": "7341018b99e9ae79f17539ded91f60731e27e057d62b80fecfda892ef1bca4fd"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/inbound-routes.ts",
+      "sha256": "d4378d27790e4679e8e12b5bc5ae25c85c85ee6b553a57d8ed8bf67fd9a6340f"
+    },
+    {
+      "path": "packages/auth/context.ts",
+      "sha256": "6867b25d9c3686c923039bf281a313eb3800d89deac60502b0929f363bded17c"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/audit.ts",
+      "sha256": "73386c7faa52925118167281587fd1981f3ff607aa11975b9c3c5dac9578ad39"
+    },
+    {
+      "path": "packages/api/src/workflows/adapters/inbound-routing.ts",
+      "sha256": "7f7eb18917d9e8cddaaa82f5a13e1a1ba31798041e3bd76222504699d7d63293"
+    },
+    {
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "path": "packages/api/src/workflows/adapters/inbound-email.ts",
+      "sha256": "e6dd0c78259b2fd3f79f9512687ba486716c6b1a77bbff64bddadf6c2cfe5385"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+    },
+    {
+      "path": "packages/api/src/workflows/functions/inbound-email-processing.ts",
+      "sha256": "ad76684b43ed3918da461c3d99f892fa76a9fd99253ebf05fb3ce42f050181bb"
+    },
+    {
+      "path": "openspec/specs/crm-core/spec.md",
+      "sha256": "6aee2c2d799cd60b873a355e1dca9c10273e15b13a3c4986a2db9e4d846acce5"
+    }
+  ],
+  "limits": "Not runtime, live SQL grants/RLS, concurrency, provider, browser or deployment proof. Text observations are reviewed source facts; pointer verification is not a semantic test."
+}

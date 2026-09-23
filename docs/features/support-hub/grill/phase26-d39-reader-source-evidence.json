@@ -1,0 +1,112 @@
+{
+  "date": "2026-09-15",
+  "coreHead": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "files": [
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-viewer.tsx",
+      "sha256": "58187bfd5e75baa7950492b0945327c96deda62539429db9a61eaa7295b120a1",
+      "lines": 49
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/helpers.ts",
+      "sha256": "f81a57bfbb06d9d897ac6d0c6986c62da2d2f810dcdbdf3978973b767d720c16",
+      "lines": 116
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/extensions.ts",
+      "sha256": "df7ae7eb65cd85f783b879f20f387ef3395cbf1168768cf6887706c4f138680d",
+      "lines": 87
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "sha256": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f",
+      "lines": 159
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/ConversationDetail.tsx",
+      "sha256": "2a2f153068b11df7c10f754f61397f4e48823023044825610497ab86c1b7b671",
+      "lines": 181
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/ConversationTimeline.tsx",
+      "sha256": "b4582ee1fc1930c7b6ab34ebdde73a1db3901f44bf2817332799f97a2eec1e43",
+      "lines": 87
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/timeline/EmailMessage.tsx",
+      "sha256": "3e3c515336d577ef66d4b2be0789628d66809e414ce6d88a8d6646a8915a0489",
+      "lines": 266
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx",
+      "sha256": "98bcb91183cddde198f3a84c08e0234a5626cba071c7d7ebb1b940d29de0f731",
+      "lines": 68
+    },
+    {
+      "path": "apps/admin/features/support-hub/hooks/use-support-messages.ts",
+      "sha256": "3835b7835da3a539deb4c73d4fefe54d97cd1c1d37d1b7e9007992d9c303b4bd",
+      "lines": 71
+    },
+    {
+      "path": "apps/admin/features/support-hub/hooks/use-support-conversation.ts",
+      "sha256": "677bb2948bff01ccc87164c73f9c615a60e7032e631114ccac850e5dc1c66a92",
+      "lines": 51
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/table/cells.tsx",
+      "sha256": "79144715aef5554e1b5a1c9af7885f70d6410e389bfa7649f299cbae1574c8ea",
+      "lines": 233
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/board/BoardCard.tsx",
+      "sha256": "c2edef809d2dc1a7eef7f10f164b39af51ecc9be499e65f676847ee87102f652",
+      "lines": 213
+    },
+    {
+      "path": "packages/ui/components.json",
+      "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134",
+      "lines": 70
+    },
+    {
+      "path": "docs/ai/skills/tiptap/SKILL.md",
+      "sha256": "0a49e19fa2f9c4abaafd1e06c5748a9a113e0f8d80d7caeb93517258b1737345",
+      "lines": 130
+    },
+    {
+      "path": "docs/ai/rules/frontend.md",
+      "sha256": "f11a37f1ebb847987171c957857b938239fc93a2f670d2b19682669df6e79447",
+      "lines": 226
+    },
+    {
+      "path": "docs/ai/skills/accessibility-review/SKILL.md",
+      "sha256": "196b083e8e2440676a69d17af19d2ab4e2df628fe47b753d29b9cb26e1fd8675",
+      "lines": 85
+    }
+  ],
+  "installedPackages": {
+    "@tiptap/core": "3.22.3",
+    "@tiptap/react": "3.22.3",
+    "@tiptap/static-renderer": "3.22.3",
+    "@tiptap/starter-kit": "3.22.3",
+    "react": "19.2.3"
+  },
+  "referenceRefresh": {
+    "cleanBeforeAndAfter": true,
+    "command": "git pull --ff-only",
+    "tiptap": "88a5dd372c3ae9b65e0c34e2853cbe976dedf427",
+    "tiptapDocs": "6515e7d2362b7425d47fc44cdb444aaaaee08192"
+  },
+  "configuration": {
+    "shadcnInfoCommand": "bunx --no-install shadcn info --json",
+    "result": "base-maia, base=base, existing shared components",
+    "limitation": "Installed CLI configuration verification only; no library upgrade or visual/browser pass"
+  },
+  "executedProbe": "phase26-d39-reader-probe.json",
+  "limitations": [
+    "No product source or database changes",
+    "No live UI/focus/viewport validation",
+    "No production permission or Supabase exercise",
+    "No representative participant study",
+    "No unsupported claim of personal read implementation"
+  ]
+}

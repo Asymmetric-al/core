@@ -11,6 +11,9 @@ context: |
   - platform-* specs govern durable product direction, boundaries, and priorities;
   - capability specs govern accepted verifiable behavior.
   Active changes describe proposed deltas and do not prove that behavior shipped.
+  Resolve intent by domain ownership and explicit ratified supersession, not
+  timestamps or directory alone. docs/ai/document-authority.md identifies
+  authoring sources; generated OpenSpec views remain synchronized projections.
 
   AGENTS.md is the always-on coding-agent router. Canonical skills live under
   docs/ai/skills and are mirrored by the repository skill workflow.

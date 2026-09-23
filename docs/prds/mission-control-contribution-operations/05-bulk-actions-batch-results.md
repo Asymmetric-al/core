@@ -1,18 +1,15 @@
 # PRD 5: Bulk Contribution Actions and Batch Results
 
-## Delivered split status
-
-Delivered through split PR #398. Do not create a new `status:ready`
-implementation issue from this historical PRD unless a follow-up gap is
-identified against the shipped code. The bulk "CRM repost retry" action below
-acts on the now-retired Twenty outbound queue, dormant per
-[ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
-(2026-07-06).
+**Current requirements amended 2026-09-16 (AL-1861).** These bodies use the
+ratified [owner contracts](../../features/mission-control/contribution-detail/README.md).
+The [original PRD](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/prds/mission-control-contribution-operations/05-bulk-actions-batch-results.md)
+records the earlier requirements and delivery history (split PR #398). Those
+original delivery claims do not establish implementation of the amended target.
 
 ## Problem statement
 
 Finance staff need to act on groups of contributions. One gift at a time is too
-slow for receipt resends, statement generation, CRM repost retry, donor
+slow for permitted receipt-copy delivery, statement-run requests, donor
 notifications, task creation, refunds, designation corrections, review status
 updates, and related operations.
 
@@ -23,17 +20,21 @@ follow-up tasks for important failures.
 ## Solution
 
 Build bulk contribution actions and batch execution for the Contribution Hub.
-Bulk actions use the same Contribution Operations Core action contract as
-single actions.
+Bulk actions use the same source commands as single actions. Phase 13 owns
+ledger effects, Phase 7/18 document admission and artifacts, Phase 19 statement
+runs and Phase 17/6 messaging. The batch wrapper grants no additional permission
+or combined success state; no Twenty post/repost action is available.
 
 ## Core rules
 
 - Confirmation is always required and cannot be skipped.
 - Preview plus confirmation is the default flow.
-- Preview may be skipped only for low-risk actions when settings allow it.
-- Low-risk preview-skippable actions: receipt resend, statement generation,
-  donor notification send, task creation, and CRM repost retry only when no
-  contribution data changes.
+- Wrapper preview may be skipped only for an exact source-qualified low-risk
+  action when owner policy allows it. This never skips the source action review,
+  current authorization, recipient/artifact proof, Phase 19 preflight/release,
+  protected message preparation or required money approval.
+- Receipt/document generation and donor sends are not a blanket low-risk
+  whitelist. Their exact source contract determines whether they are admitted.
 - High-risk bulk actions always require preview plus confirmation.
 - Small low-risk batches of 50 or fewer records may run immediately.
 - More than 50 records run as a background batch.
@@ -57,10 +58,12 @@ Summary counts:
 - failed
 - follow-up tasks created
 
-CSV export includes contribution ID, donor name, donor email only for operators
-with `contributions.manage_receipts`, amount, currency, action, status, skip
-reason, failure reason, audit event ID, task ID, and timestamp. Export rows must
-leave donor email blank or redacted for operators without that capability.
+CSV export uses the current purpose-qualified Phase 3/12 projection for the
+exact selected source records. Include permitted contribution id, donor display,
+source-owned amount/currency, action/outcome, safe skip/failure reason and audit/
+task/time references. Donor email requires its actual field/purpose/export
+authority; receipt-send permission alone is insufficient. Hidden fields remain
+absent/redacted and unlike currencies are never summed by the batch wrapper.
 
 ## Important failures
 
@@ -70,7 +73,6 @@ Important failures create shared Mission Control tasks:
 - donor notifications
 - receipt failures
 - statement failures
-- CRM posting failures
 - Stripe/provider failures
 
 Minor skips remain visible in the batch report without creating noisy tasks.
@@ -79,7 +81,7 @@ Minor skips remain visible in the batch report without creating noisy tasks.
 
 Test:
 
-- each low-risk preview-skippable action;
+- each exact source-qualified preview-skippable action and non-skippable owner gate;
 - confirmation always required;
 - preview cannot be skipped for high-risk actions;
 - small low-risk immediate execution;
@@ -91,13 +93,15 @@ Test:
 - `complete_with_issues` for mixed results;
 - important failure tasks;
 - per-record audit links;
-- shared contribution action contract usage.
+- shared contribution/source command use, optional/off-by-default second approval
+  with requester exclusion when enabled, exact artifact access, source message
+  preparation and no retired CRM commands.
 
 ## Definition of done
 
 - Staff can run bulk contribution actions.
 - Confirmation is always required.
-- Preview can be skipped only for low-risk actions when allowed.
+- Any wrapper-preview omission preserves every mandatory source gate.
 - Large and high-risk batches run in the background.
 - Batch results include summary, per-record results, and CSV download.
 - Important failures create linked tasks.

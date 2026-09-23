@@ -1,0 +1,84 @@
+{
+  "inspectionDate": "2026-09-21",
+  "develop": "ab53c8471688c75dd39d7e9a85490236d7122eb4",
+  "meaning": "Freshness readback supplements original immutable captures; it does not relabel their source hashes or assert feature qualification. Issue-publication counts remain the separately dated September16snapshot.",
+  "pullRequests": [
+    {
+      "number": 1323,
+      "url": "https://github.com/Asymmetric-al/core/pull/1323",
+      "previousReadHead": "70c50e8c97556c43be5543332fb0993b468b90ab",
+      "currentHead": "fbe46700e0e6d09baf53274cd4fd78ae8468a0fb",
+      "state": "open",
+      "draft": false,
+      "delta": "Merge of current develop only; 26 renderer qualification runtime/test files, no documentation or OpenSpec changes"
+    },
+    {
+      "number": 1340,
+      "url": "https://github.com/Asymmetric-al/core/pull/1340",
+      "previousReadHead": "db7a5e519ee062d28d05f68e5f8aff707de6e209",
+      "currentHead": "da3e5948534d94528d179952598874d1a3430e8e",
+      "state": "open",
+      "draft": false,
+      "delta": "Merge of current develop only; 26 renderer qualification runtime/test files, no documentation or OpenSpec changes"
+    },
+    {
+      "number": 1558,
+      "url": "https://github.com/Asymmetric-al/core/pull/1558",
+      "previousReadHead": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "currentHead": "7c1e29036b407d9a5649b52e1a41d126209234db",
+      "state": "open",
+      "draft": false,
+      "delta": "Merge of current develop only; 26 renderer qualification runtime/test files, no documentation or OpenSpec changes"
+    },
+    {
+      "number": 1564,
+      "url": "https://github.com/Asymmetric-al/core/pull/1564",
+      "previousReadHead": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "currentHead": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "state": "open",
+      "draft": false,
+      "delta": "unchanged"
+    },
+    {
+      "number": 1657,
+      "url": "https://github.com/Asymmetric-al/core/pull/1657",
+      "previousReadHead": "ae74b9856e2d910096ab74e715f51c143364a5ce",
+      "currentHead": "ae74b9856e2d910096ab74e715f51c143364a5ce",
+      "state": "open",
+      "draft": false,
+      "delta": "unchanged"
+    },
+    {
+      "number": 1655,
+      "url": "https://github.com/Asymmetric-al/core/pull/1655",
+      "previousReadHead": "fc5e54dd05f21744e152991273a81e38dde92f38",
+      "currentHead": "fc5e54dd05f21744e152991273a81e38dde92f38",
+      "state": "open",
+      "draft": false,
+      "delta": "unchanged"
+    },
+    {
+      "number": 1428,
+      "url": "https://github.com/Asymmetric-al/core/pull/1428",
+      "previousReadHead": "014092e44f9e8355c9243b845501856d91ccc6cf",
+      "currentHead": "4e2c014afdbea1a2679f71ff3e9f385f6bf755a2",
+      "state": "open",
+      "draft": false,
+      "delta": "Merge of current develop only; 26 renderer qualification runtime/test files, no documentation or OpenSpec changes"
+    },
+    {
+      "number": 1329,
+      "url": "https://github.com/Asymmetric-al/core/pull/1329",
+      "previousReadHead": "134310f29e68f77888e462f37aaf101d7d4c567d",
+      "currentHead": "335275fcfe5e08ddf5741d42b8c05dfec92f5990",
+      "state": "open",
+      "draft": false,
+      "delta": "Merge of current develop only; 26 renderer qualification runtime/test files, no documentation or OpenSpec changes"
+    }
+  ],
+  "mergedPrerequisite": {
+    "number": 966,
+    "mergeCommit": "ab53c8471688c75dd39d7e9a85490236d7122eb4",
+    "meaning": "Renderer qualification harness merged into develop; renderer selection and qualification remain separate evidence gates."
+  }
+}

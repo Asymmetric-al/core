@@ -1,0 +1,159 @@
+{
+  "date": "2026-09-15",
+  "checkedAtUtc": "2026-09-15T08:26:47.025498+00:00",
+  "pass": true,
+  "stage": "D1-D40 fully ratified; Q41 next-stage choice unanswered; no new product decision",
+  "evidenceClass": "Documentary ratification, coverage and source verification only",
+  "totals": {
+    "groups": 20,
+    "passed": 20,
+    "baselineFiles": 1419,
+    "unchangedBaselineFiles": 1387,
+    "authorizedExistingChanges": 32,
+    "originalD40MarkdownBodiesPreserved": 13,
+    "originalD40JSONUnchanged": 6,
+    "Q41SourcePins": 54,
+    "sessionRecords": 3,
+    "currentMirroredFiles": 30,
+    "runtimeGroupsExecuted": 0
+  },
+  "checks": [
+    {
+      "name": "Baseline changed only in authorized D40 ratification records",
+      "pass": true,
+      "detail": {
+        "files": 1419,
+        "changed": 32,
+        "unexpected": []
+      }
+    },
+    {
+      "name": "All thirteen original D40 Markdown bodies preserved beneath current acceptance",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "All six original D40 JSON records unchanged",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Glossary only D40 heading changed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "ADR0040 full body preserved with accepted outcome",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-grill-log.md preserves complete history and unanswered Q41",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-session-handoff.md preserves complete history and unanswered Q41",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Full scope, corrections, evidence and Email Studio seams incorporated",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Independent D40 actual incorporation audit",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "D40 independent actual reviewed hashes",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Q41 actual alternatives and one A recommendation",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Q41 stage and proof boundaries",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "No new product decision or glossary entry",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Original scope map covers all forty decisions",
+      "pass": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    {
+      "name": "Q41 forty ADR and fourteen exact source pins",
+      "pass": true,
+      "detail": {
+        "count": 54,
+        "failed": []
+      }
+    },
+    {
+      "name": "Session pins retain observed evidence through later stage notice",
+      "pass": true,
+      "detail": [
+        {
+          "file": "phase26-research-baseline.md",
+          "pass": true,
+          "laterUnansweredStageNotice": false,
+          "pinnedSha256": "f20192d31865129537b79d089a397eca8ceac2bc694b955a77a9559a1594df34",
+          "currentSha256": "f20192d31865129537b79d089a397eca8ceac2bc694b955a77a9559a1594df34"
+        },
+        {
+          "file": "phase26-session-handoff.md",
+          "pass": true,
+          "laterUnansweredStageNotice": true,
+          "pinnedSha256": "73a7937437f556e565b0fef3da96a4f49a70a2ee6a322686f794e2dfff90ebae",
+          "currentSha256": "23029a0dabef820ac90d5c342408c135f5d052300e4a9bda4597a10abdbe0747"
+        },
+        {
+          "file": "phase26-q41-source-evidence.json",
+          "pass": true,
+          "laterUnansweredStageNotice": false,
+          "pinnedSha256": "c40f6d51340a94f44a480c5d4d4c43617a6d0d94f941b337026581a7e95babec",
+          "currentSha256": "c40f6d51340a94f44a480c5d4d4c43617a6d0d94f941b337026581a7e95babec"
+        }
+      ]
+    },
+    {
+      "name": "Fresh source/PR checkpoint and unchanged source Git state",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "Independent Q41 actual-question review hashes",
+      "pass": true,
+      "detail": {
+        "files": 4,
+        "failed": []
+      }
+    },
+    {
+      "name": "Current D40/Q41 output/Core mirrors identical",
+      "pass": true,
+      "detail": 30
+    },
+    {
+      "name": "All local artifact links resolve in output and Core",
+      "pass": true,
+      "detail": {
+        "checked": 274,
+        "missing": []
+      }
+    }
+  ]
+}

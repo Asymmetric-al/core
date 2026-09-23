@@ -1,13 +1,9 @@
 # ADR-CD-032: Mission Control CRM and Contributions render the same contribution data
 
-> **Note (2026-07-06):** The CRM/Twenty post state and repost/retry actions
-> referenced in this ADR target the now-retired Twenty pipeline and are dormant
-> per
-> [ADR-0001](../../../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
-> (2026-07-06); "CRM post" survives only as a label over the dormant
-> staged-gift pipeline pending the Phase 8 re-groom.
-
 **Status:** Accepted (grill session 2026-05-29)
+
+**Current amendment — 2026-09-16 (AL-1861):** The Decision below uses the
+ratified [owner contracts](../../README.md); unchanged UI decisions remain valid.
 
 ## Context
 
@@ -23,14 +19,14 @@ Modern practice requirements:
 
 - There is no internal Contributions-to-CRM copy job, queue, pending status, retry task, or escalation.
 - CRM donor gift history must query the same effective contribution read model as Contribution Hub/detail for shared fields.
-- Shared fields must use one backend contract or shared mapping so labels, amounts, designation summaries, receipt state, correction state, and CRM/Twenty post state do not drift between surfaces.
+- Shared fields must use one backend contract or shared mapping so labels, amounts, designation summaries, receipt state, correction state, and Phase 13 posting state do not drift between surfaces.
 - Existing CRM gift-history row fields should migrate or adapter-map into the shared contribution row contract for overlapping fields.
 - CRM donor gift history may show fewer columns than Contributions Hub, and Hub may show operational columns CRM does not need. Any overlapping field must still share the same value, label, formatting, status vocabulary, and effective-state rules.
 - Do not reimplement shared field derivation separately in CRM and Hub components. If a field needs different presentation density, derive that presentation from the same shared value.
-- Shared filters must use the same backend definitions where contribution state overlaps. CRM can expose fewer filters, but filters such as receipt affected, pending correction, approval state, refund state, CRM/Twenty post state, designation issue, recurring gift link, and payment status must mean the same thing across surfaces.
+- Shared filters must use the same backend definitions where contribution state overlaps. CRM can expose fewer filters, but filters such as receipt affected, pending correction, approval state, refund state, Phase 13 posting state, designation issue, recurring gift link, and payment status must mean the same thing across surfaces.
 - After a correction succeeds, both Hub and CRM surfaces should show the updated values on normal refetch/cache invalidation from the shared database.
 - If a surface shows stale data because of client cache, that is a UI freshness/cache issue, not a CRM data-transfer issue.
-- Audit remains attached to the correction/adjustment itself, not to a fake internal sync operation.
+- Audit remains attached to the source correction/posting itself, not to a fake internal sync operation.
 - External downstream systems, if any, are separate concerns from internal Mission Control CRM display parity.
 
 ## Consequences
@@ -46,3 +42,9 @@ Modern practice requirements:
 - **Internal CRM replication workflow:** Adds unnecessary complexity between two surfaces backed by the same database.
 - **Separate CRM-specific contribution values:** Creates drift and confusion.
 - **Manual update/retry between Hub and CRM:** Treats one database as if it were two systems.
+
+## Original decision provenance
+
+The [original dated record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0032-shared-contribution-read-model-display-parity.md) preserves earlier wording and
+rationale. Current terminology and applicability were amended on 2026-09-16;
+documentation does not establish runtime activation.

@@ -1,0 +1,358 @@
+{
+  "date": "2026-09-09",
+  "validated_at_utc": "2026-09-09T10:52:28.427397+00:00",
+  "Q30": "A accepted, final audit completed",
+  "status": "accepted scope; required final owner clarifications documented; G01 unresolved",
+  "source_head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "live_source_refs": {
+    "refs/heads/develop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+    "refs/heads/codex/phase-22-public-ministry-pages-grill": "70c50e8c97556c43be5543332fb0993b468b90ab",
+    "refs/heads/codex/phase-23-web-studio-cms-spec": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+    "refs/heads/codex/phase-24-multi-site-management-spec": "ab1a1703a725be454376990a7fe68aef2e048026"
+  },
+  "preserved_setup_paths": [
+    "README.md",
+    "bun.lock",
+    "package.json",
+    "scripts/setup-verify.mjs",
+    "tests/unit/scripts/setup-verify.test.ts"
+  ],
+  "reverse_setup_patch": "passed",
+  "historical_bundle_count": 25,
+  "historical_bundles_unchanged": [
+    {
+      "sha256": "1f5c787eef62f83596acc2c40c863f5cd436214f1d1e2cd0e353b7c6f9ac6fc5",
+      "name": "phase25-r05-proof-bundle.zip"
+    },
+    {
+      "sha256": "ce0ba00d863a85d21fd7249d71a9f5527c11604c464bcea8d0e92075282a61d3",
+      "name": "phase25-r06-proof-bundle.zip"
+    },
+    {
+      "sha256": "59ce9b3b4ed7a22a9bf25ecacc7bf875fc956e7b34c46aca9ce9d74d699f81c2",
+      "name": "phase25-r07-proof-bundle.zip"
+    },
+    {
+      "sha256": "8f7cbc1c3b2eac6f0ff185cdbc8f642ffc0cab9effb09cf1b17afa972b3de1c7",
+      "name": "phase25-r08-proof-bundle.zip"
+    },
+    {
+      "sha256": "e5147aa9af5429cb88f7d1b94a45f3e6f17ae5eb6e6b132e39349936a7275f0b",
+      "name": "phase25-r09-proof-bundle.zip"
+    },
+    {
+      "sha256": "96d32ff15cdb8e08c2dba1c6e39a523f0278fd8a5d77941b511c975e602dec24",
+      "name": "phase25-r10-proof-bundle.zip"
+    },
+    {
+      "sha256": "d1118e00d08d1298485c02a33627aca631f42e97ffdde1960d7714fad646da07",
+      "name": "phase25-r11-proof-bundle.zip"
+    },
+    {
+      "sha256": "39be0e3dea61013fd4e46a5457eb148bc3a21169127bb4c4874510a55450a9e7",
+      "name": "phase25-r12-proof-bundle.zip"
+    },
+    {
+      "sha256": "40ed7f93deafd563a000b450b00111c202a4f9c9404960392f7d94966e35dae0",
+      "name": "phase25-r13-proof-bundle.zip"
+    },
+    {
+      "sha256": "5f8be9884753fc76858558b5575e1fc2e20b316eeaf7ef67a51aa8784a1ce47a",
+      "name": "phase25-r14-proof-bundle.zip"
+    },
+    {
+      "sha256": "bef72d0a39f1dd60dcb763cb18fa8607796c02df68dc7864becb67f90debf18a",
+      "name": "phase25-r15-proof-bundle.zip"
+    },
+    {
+      "sha256": "b6f1d0549b6b76674021acda7c0a1a0475d871c00f16821884b2105cd643a4bb",
+      "name": "phase25-r16-proof-bundle.zip"
+    },
+    {
+      "sha256": "e17101d6474b207c37e4a940c749f84a05d73e6049ec7725325758866ff03e1c",
+      "name": "phase25-r17-review-bundle.zip"
+    },
+    {
+      "sha256": "7a8b49f813f5aecbd028e7f5e07ce84b5cc148cd286fbe7286314ff8c1e51b57",
+      "name": "phase25-r18-review-bundle.zip"
+    },
+    {
+      "sha256": "d80ccdc9941dc3e7159a0ec99ecc1aa844966f2b2deca2cbffc549262e2f6568",
+      "name": "phase25-r19-review-bundle.zip"
+    },
+    {
+      "sha256": "dabb330d48808c055cf713b7d959bb4414fb702621bf4fb68290e36196876345",
+      "name": "phase25-r20-review-bundle.zip"
+    },
+    {
+      "sha256": "89fe63b6ce7d670662935c65ceb2909dd83bffc64af3eaf8d92d4bd11f34de39",
+      "name": "phase25-r21-review-bundle.zip"
+    },
+    {
+      "sha256": "c7357fae5e9c310369cc4f2902e2b5ce5e5657cb7d0af84a216f67f4af16af54",
+      "name": "phase25-r22-review-bundle.zip"
+    },
+    {
+      "sha256": "2a3d0793dbebbc730715d79a31e1514c181f1a4b6dd7948e106d0a9482161314",
+      "name": "phase25-r23-review-bundle.zip"
+    },
+    {
+      "sha256": "890435622f078ef7d1274577bac755e24cd4232b900988bacb8b73b59c6b03f6",
+      "name": "phase25-r24-review-bundle.zip"
+    },
+    {
+      "sha256": "0058af207d596bbf9dd10b7f4caccf4786094ef92ecbdb9142e9615ce86be31f",
+      "name": "phase25-r25-review-bundle.zip"
+    },
+    {
+      "sha256": "54fea2b9831ca24e8ae6ac626a40ee8de5a0f60fad40854d9aed8468b54b3f60",
+      "name": "phase25-r26-review-bundle.zip"
+    },
+    {
+      "sha256": "91618a1cff8728a933a5fb781cfbc81e9873bc0117f94e9c214354beb8220da1",
+      "name": "phase25-r27-review-bundle.zip"
+    },
+    {
+      "sha256": "9fbbe4c9c68bb51a6d9686e0a423fec3f9ec2db0587607c5dea2184d13339dfe",
+      "name": "phase25-r28-review-bundle.zip"
+    },
+    {
+      "sha256": "7242e1ea43c04fc03faecf3f93d63842c8b7584da399fd8e42548c49f4208cb4",
+      "name": "phase25-r29-review-bundle.zip"
+    }
+  ],
+  "questions_indexed": 30,
+  "qualified_definition_aliases": 1479,
+  "finding_entries": 14,
+  "evidence_entries": 14,
+  "core_citations_validated": [
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/app/(dashboard)/donor-dashboard/feed/page-client.tsx",
+      "line": 114,
+      "line_count": 532
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/app/(public)/(hero)/faq/faq-client.tsx",
+      "line": 51,
+      "line_count": 422
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/features/donor/components/DonorSubNav.tsx",
+      "line": 27,
+      "line_count": 88
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/features/donor/components/DonorSubNav.tsx",
+      "line": 57,
+      "line_count": 88
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/proxy.ts",
+      "line": 22,
+      "line_count": 41
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0003-payer-of-record-is-the-legal-donor.md",
+      "line": 1,
+      "line_count": 41
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "line": 1,
+      "line_count": 109
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md",
+      "line": 555,
+      "line_count": 1157
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-12-full-role-permission-configuration.md",
+      "line": 168,
+      "line_count": 1117
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-13-campaign-designation-contribution-ledger-giving-cart.md",
+      "line": 1,
+      "line_count": 1978
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md",
+      "line": 1,
+      "line_count": 2072
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md",
+      "line": 283,
+      "line_count": 2905
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-19-year-end-statement-operations.md",
+      "line": 625,
+      "line_count": 1827
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "line": 2833,
+      "line_count": 4227
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/changes/add-donor-self-service/specs/donation-lifecycle/spec.md",
+      "line": 139,
+      "line_count": 217
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/auth/callback.ts",
+      "line": 15,
+      "line_count": 48
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/donor-portal/index.ts",
+      "line": 84,
+      "line_count": 172
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/donor-portal/model.ts",
+      "line": 444,
+      "line_count": 508
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/donor-portal/receipts.ts",
+      "line": 8,
+      "line_count": 83
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/donor-portal/service.ts",
+      "line": 166,
+      "line_count": 301
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/donor-portal/settings-patch.ts",
+      "line": 22,
+      "line_count": 129
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/generated-documents/purpose-catalog/catalog.ts",
+      "line": 182,
+      "line_count": 912
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/profile/index.ts",
+      "line": 105,
+      "line_count": 196
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/auth/client-session.ts",
+      "line": 131,
+      "line_count": 239
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/auth/context.ts",
+      "line": 281,
+      "line_count": 380
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/auth/permissions.ts",
+      "line": 61,
+      "line_count": 151
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/auth/resolve-user-role.ts",
+      "line": 81,
+      "line_count": 119
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/collections/donor-history.ts",
+      "line": 163,
+      "line_count": 178
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/collections/supabase-collection.ts",
+      "line": 1,
+      "line_count": 104
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/graphql/handler.ts",
+      "line": 418,
+      "line_count": 992
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/button.tsx",
+      "line": 31,
+      "line_count": 66
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/item.tsx",
+      "line": 125,
+      "line_count": 199
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/config.toml",
+      "line": 13,
+      "line_count": 382
+    },
+    {
+      "sha": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260223170000_atomic_rpc_and_donation_saga.sql",
+      "line": 571,
+      "line_count": 1417
+    }
+  ],
+  "local_reference_checks": 68,
+  "native_auth_management_schema_sha256": "4f22c16bebd2de05a35e056fa075adf1e5c8beb5f395bbfa727430f6fdac9751",
+  "fresh_registry_packages": 8,
+  "independent_QA": [
+    "identity: passed; P12 context correction included",
+    "money: passed with final failed-occurrence terminology corrected",
+    "UX: passed with collection-only DB scope and exhaustion clarification included"
+  ],
+  "runtime_tests_run": false,
+  "provider_calls_run": false,
+  "hosted_db_or_migration_tests_run": false,
+  "browser_or_assistive_tests_run": false,
+  "donor_study_run": false,
+  "source_or_dependency_mutations": false,
+  "canonical_spec_or_ticket_publication": false,
+  "G01": "supported native account-linking guarantee remains unestablished; no replacement architecture silently selected",
+  "artifact_hashes": {
+    "phase25-implementation-clarifications.md": "91fa204dd351a0ef0cd4c0f46b64184a92bed12bcde3a763db4f5a1f665af501",
+    "phase25-final-audit-evidence.md": "25e02ee6ccb71c353e0c7f6b3cfc36f810c199c9b68af737fef59f4e10226ccf",
+    "phase25-decision-index.md": "5cf60d9b208540d73802d93b8c0b0bf886f6330d41f4a0d43f5040e46605fb44",
+    "phase25-decision-index.json": "81996f95f949246c0c62e57d647998a47305aa1689d04aca23535a968d87c0e6",
+    "phase25-grooming.md": "2c4018906a98470f5a78835e94f4e8f31dd4909eb311116b21f6650b2516afa9",
+    "phase25-grooming-terms.md": "e2f290009a10ed08481d52bf97edf9b5dc55045e153b75a897830f625159342b"
+  }
+}

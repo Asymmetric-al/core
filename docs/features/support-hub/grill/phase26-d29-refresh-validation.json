@@ -1,0 +1,173 @@
+{
+  "date": "2026-09-14",
+  "status": "passed",
+  "scope": "document/source verification and synthetic reference examples only",
+  "checkCount": 27,
+  "checks": [
+    {
+      "name": "all prior feature artifacts preserved",
+      "passed": true,
+      "detail": {
+        "count": 552,
+        "changed": []
+      }
+    },
+    {
+      "name": "context map preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "HEAD unchanged",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-grill-log.md prior content retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "phase26-session-handoff.md prior content retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original30 requirements intact",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original44 proofs intact",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original6 controls intact",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "23 independent categories",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "sole new amendment proposed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "3 supplemental proof groups",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Email Studio enablement seam explicit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "all original release proof remains unexecuted",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "supplement local file links resolve",
+      "passed": true,
+      "detail": {
+        "links": 69,
+        "missing": []
+      }
+    },
+    {
+      "name": "independent data final Pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "independent ux final Pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "independent owner final Pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "24 preserved synthetic examples passed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original model script matches",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "29 source pins verified",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "21 exact source-line links checked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "5 live related PRs open",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no new ADR0035",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "scoped Markdown formatting",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "git diff whitespace",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "no product modification in status",
+      "passed": true,
+      "detail": " M CONTEXT-MAP.md\n?? docs/features/support-hub/CONTEXT.md\n?? docs/features/support-hub/docs/\n?? docs/features/support-hub/grill/\n"
+    },
+    {
+      "name": "all new artifact mirrors byte-identical",
+      "passed": true,
+      "detail": 13
+    }
+  ],
+  "artifactHashes": {
+    "phase26-d29-refresh-adversarial-review.md": "83f44c08d622676fa94d84f456ed3de3783372748e0a6b4d6a5267e9f2b25fd5",
+    "phase26-d29-refresh-completion-audit.md": "56752ec3b5d3854949a6d880e15060c6e7d03915b810482ab2b398e5dd7895e5",
+    "phase26-d29-refresh-data-review.md": "755ad900178bce6c6c61b73807174ece27f1a84c4cd4b1fc5366086d14e342fe",
+    "phase26-d29-refresh-evidence.md": "76edcd8d0a7c641b6eec18f770082c4558f28dfebe7137d6661d9ae2e29315a3",
+    "phase26-d29-refresh-final-data-review.md": "6d2958927ebccd81085a6e0f867d5f9e1ffcc0faa510d361fb62f15489d3121c",
+    "phase26-d29-refresh-final-owner-review.md": "dde059373aa78f9eb13d76903be4d31450a10edad99f4dea3e750a4cd6dad00c",
+    "phase26-d29-refresh-final-ux-review.md": "d849ff1dd585ed3dbb5b749536bd075e20fba5d5e4131115ac1e1af34fea6fb3",
+    "phase26-d29-refresh-owner-review.md": "87a7f070b47547aadc3ef761bf9f34f23720bc4a1451fd946377c1392ff684ef",
+    "phase26-d29-refresh-proof-and-seams.md": "1a370ae6017892c6d156ecf86cee63b2d460664df5aff390492d9648b66883bc",
+    "phase26-d29-refresh-reference-results.json": "243fa3af2c861b24faea2235a081ad6cc65fc66a9b0b6fae1c32d28fdbaecb2c",
+    "phase26-d29-refresh-source-evidence.json": "14eb78928f537a9b3a51f565eb24f5be1a3e7712f4001a1e8734f972b333efcd",
+    "phase26-d29-refresh-ux-blueprint.md": "c52c632ade7785377039bc2dd987a29ffcbb7fba3fa59ef697ce012b63e67b79",
+    "phase26-d29-refresh-ux-research.md": "148e1656c61dff51504660dd086312e66527f4f36e64c61eb05be211c597ba57"
+  },
+  "notExecuted": [
+    "runtime SQL/RLS/grants",
+    "browser and assistive technology",
+    "provider requests",
+    "production-shaped concurrency/load",
+    "migration/rollback",
+    "participant usability study"
+  ],
+  "ratification": "D1-D34 and original D29 unchanged; X01 proposed; Q35 unanswered"
+}

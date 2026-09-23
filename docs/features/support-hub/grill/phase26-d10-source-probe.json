@@ -1,0 +1,41 @@
+{
+  "baseline": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "evidenceKind": "exact current helper with synthetic adapter/query dependencies; no D10 model",
+  "source": {
+    "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+    "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+    "extractedSha256": "ab1f1a26d1583b1ce1f7b7973f18c7859b2270ef9be56a688ad72c198c4f665c",
+    "lines": "100–102,1371–1409,1446–1451"
+  },
+  "observations": [
+    {
+      "name": "conflicting header candidates depend on returned row order",
+      "sameEnvelope": {
+        "inReplyToHeader": "<message-a>",
+        "referencesHeaders": ["<message-b>"],
+        "fromAddress": "person@example.invalid",
+        "subject": "Re: Receipt"
+      },
+      "firstOrder": "source-a",
+      "reversedOrder": "source-b",
+      "queryLimit": 1
+    },
+    {
+      "name": "sender/normalized-subject fallback selects first unresolved matching conversation without inbox input",
+      "selectedId": "source-b",
+      "selectedInbox": "inbox-b",
+      "calls": [
+        {
+          "conversationFilter": {
+            "q": "person@example.invalid"
+          }
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Synthetic adapter responses demonstrate helper behavior, not production query ordering, exploitability or merge readiness.",
+    "No application, environment loader, DB, Auth/RLS, provider, network, messages or runtime state accessed.",
+    "These pre-existing D1 gaps matter to merge routing; no desired D10 graph or lifecycle rules were executed."
+  ]
+}

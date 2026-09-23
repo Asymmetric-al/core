@@ -1,0 +1,248 @@
+{
+  "date": "2026-09-14",
+  "directory": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "remoteDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "prs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN"
+    }
+  ],
+  "sourcePins": [
+    {
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1",
+      "lineCount": 153,
+      "ranges": [
+        [31, 59],
+        [66, 86]
+      ],
+      "matchesHEAD": true
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+      "lineCount": 1451,
+      "ranges": [
+        [73, 86],
+        [148, 179],
+        [566, 629],
+        [904, 939]
+      ],
+      "matchesHEAD": true
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a",
+      "lineCount": 290,
+      "ranges": [[65, 85]],
+      "matchesHEAD": true
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "sha256": "c209deb5a02bb49a788d2bad6a56b528ebc1c3f52bd27c9834815f01b5615682",
+      "lineCount": 81,
+      "ranges": [[73, 80]],
+      "matchesHEAD": true
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/serialize-payload.ts",
+      "sha256": "ef068aa25719b47057500c6e29f9f4fe8e71c5567946fbe7f895590efa0cea60",
+      "lineCount": 233,
+      "ranges": [
+        [12, 25],
+        [45, 85],
+        [124, 150],
+        [156, 218]
+      ],
+      "matchesHEAD": true
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/merge-variables.ts",
+      "sha256": "9831e7e5c18cbc0354954389dab485713bf333033b1bc983c99df46e727ee3bf",
+      "lineCount": 103,
+      "ranges": [
+        [20, 54],
+        [63, 83]
+      ],
+      "matchesHEAD": true
+    },
+    {
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16",
+      "lineCount": 791,
+      "ranges": [
+        [286, 340],
+        [529, 573]
+      ],
+      "matchesHEAD": true
+    },
+    {
+      "path": "docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md",
+      "sha256": "9c22b96bc08b73bdc51c9c3392c78a447be08f1d651be679bef5e277cd509174",
+      "lineCount": 138,
+      "ranges": [[62, 88]],
+      "matchesHEAD": true
+    },
+    {
+      "path": "openspec/specs/crm-core/spec.md",
+      "sha256": "6aee2c2d799cd60b873a355e1dca9c10273e15b13a3c4986a2db9e4d846acce5",
+      "lineCount": 348,
+      "ranges": [[80, 105]],
+      "matchesHEAD": true
+    },
+    {
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2",
+      "lineCount": 109,
+      "ranges": [[9, 32]],
+      "matchesHEAD": true
+    },
+    {
+      "path": "docs/adr/0030-canonical-message-document-and-presentation-dependencies.md",
+      "sha256": "6da9e5c451c1c3a6e42f1ed39e0445b7f9a0db279686489393dfea92303b8a1d",
+      "lineCount": 51,
+      "ranges": [[18, 41]],
+      "matchesHEAD": true
+    },
+    {
+      "path": "docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "sha256": "7aeb08a2a499471d31e856914d940d94d4c43f57654812e80f6ee41024a62d21",
+      "lineCount": 137,
+      "ranges": [
+        [19, 58],
+        [61, 98]
+      ],
+      "matchesHEAD": true
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md",
+      "sha256": "4653ae542c1f28e076cc7f9c39fe316c82ad77d59340bfe90b9b0f58f3ef524d",
+      "lineCount": 3236,
+      "ranges": [[2966, 2981]],
+      "matchesHEAD": true
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/SupportTipTapEditor.tsx",
+      "sha256": "f89d84d041a344ec91f6344d1efa6342adec3f6d88e2844bb309c78a121affab",
+      "lineCount": 137,
+      "ranges": [[72, 88]],
+      "matchesHEAD": true
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/use-conversation-composer.ts",
+      "sha256": "7a4e8e6a8d7108783d5a6d04b41e362a213136a34e08a233e0754991b6dc72e3",
+      "lineCount": 292,
+      "ranges": [
+        [87, 112],
+        [192, 220]
+      ],
+      "matchesHEAD": true
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/extensions.ts",
+      "sha256": "df7ae7eb65cd85f783b879f20f387ef3395cbf1168768cf6887706c4f138680d",
+      "lineCount": 86,
+      "ranges": [
+        [13, 40],
+        [61, 85]
+      ],
+      "matchesHEAD": true
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "sha256": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f",
+      "lineCount": 158,
+      "ranges": [
+        [55, 85],
+        [94, 115]
+      ],
+      "matchesHEAD": true
+    },
+    {
+      "path": "packages/ui/components.json",
+      "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134",
+      "lineCount": 69,
+      "ranges": [[3, 19]],
+      "matchesHEAD": true
+    }
+  ],
+  "ratifiedLocalSources": [
+    {
+      "path": "phase26-d2-adversarial-review.md",
+      "sha256": "ae9a201a835175d0976f2232657a7b125e69adedc8cd43ca7d60a0b45baee1cb"
+    },
+    {
+      "path": "phase26-d4-adversarial-review.md",
+      "sha256": "4cfcacdcd391b5f344637fa573eb06e2a06fac905535e814ca8925430e4fffcb"
+    },
+    {
+      "path": "phase26-d9-adversarial-review.md",
+      "sha256": "2b115c00c70a052652856e98c3806e25987dd42449287e615d3e3f63cf197a2f"
+    },
+    {
+      "path": "phase26-d16-adversarial-review.md",
+      "sha256": "696193f798ed9cd49d2d1f667d3b8ef17cc28cc64b84a338dc6b695be56e33c5"
+    },
+    {
+      "path": "phase26-d17-adversarial-review.md",
+      "sha256": "af3a54ab11c3aac719ccb9bb1f29e3d5d12fb4489749c6b90671b99562d5cd6c"
+    },
+    {
+      "path": "phase26-d18-adversarial-review.md",
+      "sha256": "d1b014d0dfd66b7742757de026de9a5ff9dec819fe4c9c87491f035ac822a68d"
+    },
+    {
+      "path": "phase26-d23-adversarial-review.md",
+      "sha256": "10e1c6a3fcfe21bbb849709da8f4acef03059b80b77696e78478acaa02541676"
+    },
+    {
+      "path": "phase26-d26-adversarial-review.md",
+      "sha256": "8a28532b1fa59aee76d6d2cf2f6a26ba614ca8338ad996de24d2133cfa1c0e2e"
+    },
+    {
+      "path": "phase26-d29-adversarial-review.md",
+      "sha256": "c9159a1a70a2273ef7860196a5953c1103ce43349eadec65260573af7a9f3c91"
+    },
+    {
+      "path": "phase26-d32-adversarial-review.md",
+      "sha256": "bdcf8fa7f60018e185ba2d24dc2c775a87a48220f5c06b73d79cf11ce184e9ab"
+    },
+    {
+      "path": "phase26-d33-adversarial-review.md",
+      "sha256": "b4b3ff29902a9b1352dc9a95e64e8fa1e8d273b721e0c4bf4465d25b37ecf746"
+    },
+    {
+      "path": "phase26-d34-adversarial-review.md",
+      "sha256": "5d7c9e801479f45d01f45ad86bcf2dde62ad9f2ad8799d3a0e8eadf7c813154b"
+    },
+    {
+      "path": "phase26-d35-adversarial-review.md",
+      "sha256": "12df9c2ef039aca0f37b9f03d6c741b09d28b718b936e88179dfffe90e1ba78b"
+    }
+  ],
+  "runtimeProof": false,
+  "realMessagesSent": false
+}

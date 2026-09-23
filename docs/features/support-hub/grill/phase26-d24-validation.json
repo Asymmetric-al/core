@@ -1,0 +1,57 @@
+{
+  "status": "passed",
+  "date": "2026-09-12",
+  "stage": "D1-D23 fully ratified; D24 C selected; complete amendments proposed pending ratification; no Q25",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "D24ExactClauses": 30,
+  "D24CategoryFindings": 23,
+  "D24RequiredUnexecutedProofGroups": 50,
+  "D24OperationalControls": 5,
+  "D24ProposedGlossaryTerms": 4,
+  "priorArtifactsPreserved": 147,
+  "priorADRsPreserved": 23,
+  "priorGlossaryPreserved": true,
+  "priorValidationPreserved": true,
+  "sourceHashesVerified": 17,
+  "experimentSourceHashesVerified": 2,
+  "upstreamReferenceRevisions": {
+    "tiptap": "7ab690e5056fe999988552822c4fc1b1064bf094",
+    "tiptap-docs": "de0873c397b84b221b1924193301819200333f74"
+  },
+  "mirrorsMatched": 17,
+  "localLinksChecked": 451,
+  "outputLinksChecked": 422,
+  "immutableCoreSourceLinksChecked": 52,
+  "uniqueImmutableCoreSourceLinks": 26,
+  "immutableUpstreamLinksChecked": 2,
+  "existingSourceExperiments": {
+    "probes": 2,
+    "syntheticCases": 4,
+    "limits": "Current server runner control flow under synthetic adapters only; no proposed atomic admission, database, UI or provider proof"
+  },
+  "D24FullyRatified": false,
+  "newADR0025": false,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "independentFinalChecks": [
+    {
+      "scope": "owner, Tiptap, lifecycle, AI",
+      "outcome": "No remaining material gap found in assigned scope"
+    },
+    {
+      "scope": "complete use and maintenance UX",
+      "outcome": "No remaining material gap found in assigned scope"
+    },
+    {
+      "scope": "data, authorization, domain invariants",
+      "outcome": "All findings addressed with final R18/P19 operator-specific archived-label removal correction adopted"
+    }
+  ],
+  "limits": [
+    "No formal specification, implementation or tickets",
+    "No live database/RLS/browser/AT/provider/usability/capacity proof; all 50 applicable groups remain required and unexecuted",
+    "Future model evaluations gate later AI activation only; current feature must prove no AI path",
+    "No external mutation, inbox/DNS/credential change or real message"
+  ]
+}

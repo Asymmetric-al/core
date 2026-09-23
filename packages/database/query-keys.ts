@@ -36,6 +36,7 @@ export const adminSurfaceQueryKeys = {
   teams: ["admin", "teams"] as const,
   teamMembers: ["admin", "teams", "members"] as const,
   locations: ["admin", "locations"] as const,
+  emailTemplates: ["admin", "email-templates"] as const,
   locationLinkedEntities: ["admin", "locations", "linked-entities"] as const,
 } as const;
 

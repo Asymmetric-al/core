@@ -1,5 +1,17 @@
 # Support Hub — Phase 7: hardening and release prep
 
+**Historical implementation record — classified 2026-09-23.** This file records
+an earlier local Support build stage, not a program-phase contract or current
+release qualification. Its recorded architecture, lifecycle, role checks,
+retry/automation behavior, test results and operational commands must not be
+used as forward requirements. The [current Phase 26 package](README.md),
+[operator contract](operator-guide.md), [administration contract](admin-guide.md)
+and [Phase 34 adoption boundary](phase-06-reports-settings-automation.md#current-compatibility-requirements)
+govern current intended behavior. Inspect current source and deployment before
+using any historical migration or rollback instruction.
+
+## Original build record
+
 > Historical note: Phase 8 has now activated the Supabase adapter, route-backed
 > UI hooks, and Resend inbound routing. This Phase 7 document remains useful for
 > the adapter-boundary rationale and the pre-cutover implementation map.

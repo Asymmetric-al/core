@@ -1,0 +1,42 @@
+{
+  "checkedDate": "2026-09-21",
+  "repository": "Asymmetric-al/core",
+  "finding": "A merged PR's recorded REST base.sha need not equal its merge commit's first parent.",
+  "example": {
+    "pr": 968,
+    "url": "https://github.com/Asymmetric-al/core/pull/968",
+    "mergedAt": "2026-08-01T17:00:20Z",
+    "mergeCommit": "b519eaf1b39505bbe373b644e0c7852ec80f5850",
+    "recordedBase": "5e2018d4bf05f3b261a69e421b6c5956665e2119",
+    "head": "ac001b1cb3f1dfe03e399af71fe4d3a2d5c89aa6",
+    "actualParents": [
+      "da8593ab01ef0044e16b9585d061f4506bbec7ea",
+      "ac001b1cb3f1dfe03e399af71fe4d3a2d5c89aa6"
+    ],
+    "githubVerification": true
+  },
+  "precedingMerge": {
+    "pr": 1033,
+    "url": "https://github.com/Asymmetric-al/core/pull/1033",
+    "mergedAt": "2026-08-01T17:00:17Z",
+    "sha": "da8593ab01ef0044e16b9585d061f4506bbec7ea",
+    "parents": [
+      "5e2018d4bf05f3b261a69e421b6c5956665e2119",
+      "695a1cd8a2bf951b99c5741ce4bccf9258dbc731"
+    ]
+  },
+  "comparison": {
+    "url": "https://api.github.com/repos/Asymmetric-al/core/compare/5e2018d4bf05f3b261a69e421b6c5956665e2119...da8593ab01ef0044e16b9585d061f4506bbec7ea",
+    "baseCommit": "5e2018d4bf05f3b261a69e421b6c5956665e2119",
+    "mergeBase": "5e2018d4bf05f3b261a69e421b6c5956665e2119",
+    "status": "ahead",
+    "aheadBy": 6,
+    "behindBy": 0
+  },
+  "officialReferences": [
+    "https://docs.github.com/en/rest/pulls/pulls#get-a-pull-request",
+    "https://docs.github.com/en/rest/commits/commits#compare-two-commits",
+    "https://docs.github.com/en/rest/commits/commits#list-pull-requests-associated-with-a-commit"
+  ],
+  "scope": "Read-only evidence. Does not authorize weakening exact merge/head/repository/branch, parent-count, signature or identity checks."
+}

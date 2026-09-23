@@ -1,0 +1,552 @@
+{
+  "date": "2026-09-14",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "remoteDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "scope": "read-only current source and documentary evidence; not deployed conformance",
+  "gitSourceCount": 31,
+  "gitSources": [
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16",
+      "bytes": 31417,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/app/api/admin/support/conversations/[id]/notes/route.ts",
+      "sha256": "9d67cc77af7aebc6d734e0ec20b5b70931fcac262c549ceb0a8bc6a0f205bcbd",
+      "bytes": 950,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/schemas.ts",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a",
+      "bytes": 8648,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/adapter/types.ts",
+      "sha256": "2f679a98cf3dc83f0a4320b7465891d79025a61cd9dc141b2749a4a2903b08f6",
+      "bytes": 8340,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+      "bytes": 45362,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1",
+      "bytes": 4241,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/auth/context.ts",
+      "sha256": "6867b25d9c3686c923039bf281a313eb3800d89deac60502b0929f363bded17c",
+      "bytes": 10157,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/collections/support-hub.ts",
+      "sha256": "edabdc658b565d1f39272377aeded21634aecc779db43f4a738788ebd9615da2",
+      "bytes": 74266,
+      "workingFileMatches": true
+    },
+    {
+      "id": "S09",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/hooks/support-hub.ts",
+      "bytes": 4297,
+      "sha256": "57324391ee841c5a219e50e5d60237eb2572c5d952dd3174a992c801e12b387a",
+      "workingFileMatches": true,
+      "reverifiedByRoot": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx",
+      "sha256": "98bcb91183cddde198f3a84c08e0234a5626cba071c7d7ebb1b940d29de0f731",
+      "bytes": 2273,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/composer/ConversationComposer.tsx",
+      "sha256": "a35d4b9d36f7eed1184465e09512533dac0f7f6eb6d5dbda4d1521b9906063fc",
+      "bytes": 8299,
+      "workingFileMatches": true
+    },
+    {
+      "id": "S12",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/composer/use-conversation-composer.ts",
+      "bytes": 8567,
+      "sha256": "7a4e8e6a8d7108783d5a6d04b41e362a213136a34e08a233e0754991b6dc72e3",
+      "workingFileMatches": true,
+      "reverifiedByRoot": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/composer/extensions/mention-suggestion.ts",
+      "sha256": "5a33e8168fa6d3e4320c2839d11f989a67614e2e90eea62e5897dfc83488489c",
+      "bytes": 2397,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/lib/activity-log.ts",
+      "sha256": "2c880340294d61775a3ee22b07cd16c9eb5180adf374a5531b05d5595addc976",
+      "bytes": 1853,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "sha256": "7aeb08a2a499471d31e856914d940d94d4c43f57654812e80f6ee41024a62d21",
+      "bytes": 8744,
+      "workingFileMatches": true
+    },
+    {
+      "id": "S16",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "bytes": 7239,
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2",
+      "workingFileMatches": true,
+      "reverifiedByRoot": true
+    },
+    {
+      "id": "S17",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "bytes": 19260,
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4",
+      "workingFileMatches": true,
+      "reverifiedByRoot": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/config.toml",
+      "sha256": "3a31bbfd599aa7203245fbfab25e4b623ec98043049293cbf35052c6736a54c7",
+      "bytes": 14046,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0030-canonical-message-document-and-presentation-dependencies.md",
+      "sha256": "6da9e5c451c1c3a6e42f1ed39e0445b7f9a0db279686489393dfea92303b8a1d",
+      "bytes": 2823,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "sha256": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f",
+      "bytes": 4479,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/rich-text-editor/helpers.ts",
+      "sha256": "f81a57bfbb06d9d897ac6d0c6986c62da2d2f810dcdbdf3978973b767d720c16",
+      "bytes": 2985,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/rich-text-editor/extensions.ts",
+      "sha256": "df7ae7eb65cd85f783b879f20f387ef3395cbf1168768cf6887706c4f138680d",
+      "bytes": 2054,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-viewer.tsx",
+      "sha256": "58187bfd5e75baa7950492b0945327c96deda62539429db9a61eaa7295b120a1",
+      "bytes": 1235,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "sha256": "c209deb5a02bb49a788d2bad6a56b528ebc1c3f52bd27c9834815f01b5615682",
+      "bytes": 2480,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components.json",
+      "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134",
+      "bytes": 1768,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/package.json",
+      "sha256": "7d736a382db44e90e81cfad225bf210419ae73083be7979a3c53b547295a5126",
+      "bytes": 5482,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
+      "sha256": "547dc13156831694c0184018e1cfc56a70d0f7bd7f0d6a40560d434ac3c7d7be",
+      "bytes": 8275,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md",
+      "sha256": "4653ae542c1f28e076cc7f9c39fe316c82ad77d59340bfe90b9b0f58f3ef524d",
+      "bytes": 422074,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md",
+      "sha256": "2bdf280e2a79a2dd2a7a4cc48420e32d744728709618381fcaa42708bd7cb39b",
+      "bytes": 123327,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "AGENTS.md",
+      "sha256": "fcfd96225c1ec927dec6c1791687717a5436111de12fd4b1dbfd416908410cc3",
+      "bytes": 9163,
+      "workingFileMatches": true
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/project.md",
+      "sha256": "13eebeed04dbd52e9588b4b72881c6551814912dd07f8db381a417913a30872e",
+      "bytes": 4255,
+      "workingFileMatches": true
+    }
+  ],
+  "acceptedSessionSources": [
+    {
+      "path": "outputs/phase26-d1-adversarial-review.md",
+      "bytes": 54177,
+      "sha256": "4654c2e7ad232bdd775395ead61bbacac1942e7ce3e05f1d4cbc7654944cee2f",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d2-adversarial-review.md",
+      "bytes": 76442,
+      "sha256": "ae9a201a835175d0976f2232657a7b125e69adedc8cd43ca7d60a0b45baee1cb",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d3-adversarial-review.md",
+      "bytes": 80158,
+      "sha256": "d4f09215c0d388d305b275863ce63a65c67d5594cfb819908d2d71df9daa445c",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d4-adversarial-review.md",
+      "bytes": 68173,
+      "sha256": "4cfcacdcd391b5f344637fa573eb06e2a06fac905535e814ca8925430e4fffcb",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d9-adversarial-review.md",
+      "bytes": 72653,
+      "sha256": "2b115c00c70a052652856e98c3806e25987dd42449287e615d3e3f63cf197a2f",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d10-adversarial-review.md",
+      "bytes": 74683,
+      "sha256": "7529bc78bb0c910215f1737beb8fb27a643032b3b54bd3e94959876433e718df",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d15-adversarial-review.md",
+      "bytes": 82504,
+      "sha256": "5d104580018711c68bd4a9fed45b2e17204641c45bd5dcc8ce0ce53e742df1ef",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d16-adversarial-review.md",
+      "bytes": 68720,
+      "sha256": "696193f798ed9cd49d2d1f667d3b8ef17cc28cc64b84a338dc6b695be56e33c5",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d17-adversarial-review.md",
+      "bytes": 73144,
+      "sha256": "af3a54ab11c3aac719ccb9bb1f29e3d5d12fb4489749c6b90671b99562d5cd6c",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d22-adversarial-review.md",
+      "bytes": 61756,
+      "sha256": "a66614e3b3565bd427a263203c673b112b6e573982d5286c8678f8ab8ab2002c",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d23-adversarial-review.md",
+      "bytes": 79124,
+      "sha256": "10e1c6a3fcfe21bbb849709da8f4acef03059b80b77696e78478acaa02541676",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d26-adversarial-review.md",
+      "bytes": 69638,
+      "sha256": "8a28532b1fa59aee76d6d2cf2f6a26ba614ca8338ad996de24d2133cfa1c0e2e",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d32-adversarial-review.md",
+      "bytes": 57471,
+      "sha256": "bdcf8fa7f60018e185ba2d24dc2c775a87a48220f5c06b73d79cf11ce184e9ab",
+      "scope": "Accepted grooming source; not implemented runtime"
+    },
+    {
+      "path": "outputs/phase26-d34-adversarial-review.md",
+      "bytes": 55401,
+      "sha256": "5d7c9e801479f45d01f45ad86bcf2dde62ad9f2ad8799d3a0e8eadf7c813154b",
+      "scope": "Accepted grooming source; not implemented runtime"
+    }
+  ],
+  "citedSourceCount": 31,
+  "citedSources": [
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/supabase/migrations/20260515025814_support_hub_core_modules.sql#L286",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16",
+      "lineCount": 791,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/supabase/migrations/20260515025814_support_hub_core_modules.sql#L42",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16",
+      "lineCount": 791,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/supabase/migrations/20260515025814_support_hub_core_modules.sql#L545",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16",
+      "lineCount": 791,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/admin/app/api/admin/support/conversations/%5Bid%5D/notes/route.ts#L11",
+      "sha256": "9d67cc77af7aebc6d734e0ec20b5b70931fcac262c549ceb0a8bc6a0f205bcbd",
+      "lineCount": 29,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/schemas.ts#L58",
+      "sha256": "4ba1d5051b6b8da43eaafe2023ffb8ef3d65916d057d3e8cc5113a58c30a245a",
+      "lineCount": 290,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/adapter/types.ts#L231",
+      "sha256": "2f679a98cf3dc83f0a4320b7465891d79025a61cd9dc141b2749a4a2903b08f6",
+      "lineCount": 301,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/adapter/supabase.ts#L941",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+      "lineCount": 1451,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/adapter/supabase.ts#L566",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+      "lineCount": 1451,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/adapter/supabase.ts#L632",
+      "sha256": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6",
+      "lineCount": 1451,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/route-helpers.ts#L77",
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1",
+      "lineCount": 153,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/auth/context.ts#L42",
+      "sha256": "6867b25d9c3686c923039bf281a313eb3800d89deac60502b0929f363bded17c",
+      "lineCount": 380,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/database/collections/support-hub.ts#L175",
+      "sha256": "edabdc658b565d1f39272377aeded21634aecc779db43f4a738788ebd9615da2",
+      "lineCount": 2429,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/database/collections/support-hub.ts#L2193",
+      "sha256": "edabdc658b565d1f39272377aeded21634aecc779db43f4a738788ebd9615da2",
+      "lineCount": 2429,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx#L25",
+      "sha256": "98bcb91183cddde198f3a84c08e0234a5626cba071c7d7ebb1b940d29de0f731",
+      "lineCount": 67,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/admin/features/support-hub/components/detail/composer/ConversationComposer.tsx#L67",
+      "sha256": "a35d4b9d36f7eed1184465e09512533dac0f7f6eb6d5dbda4d1521b9906063fc",
+      "lineCount": 250,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/admin/features/support-hub/components/detail/composer/extensions/mention-suggestion.ts#L45",
+      "sha256": "5a33e8168fa6d3e4320c2839d11f989a67614e2e90eea62e5897dfc83488489c",
+      "lineCount": 76,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/admin/features/support-hub/lib/activity-log.ts#L39",
+      "sha256": "2c880340294d61775a3ee22b07cd16c9eb5180adf374a5531b05d5595addc976",
+      "lineCount": 67,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx#L57",
+      "sha256": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f",
+      "lineCount": 158,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/ui/components/shadcn/rich-text-editor/helpers.ts#L27",
+      "sha256": "f81a57bfbb06d9d897ac6d0c6986c62da2d2f810dcdbdf3978973b767d720c16",
+      "lineCount": 115,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/ui/components/shadcn/rich-text-editor/extensions.ts#L49",
+      "sha256": "df7ae7eb65cd85f783b879f20f387ef3395cbf1168768cf6887706c4f138680d",
+      "lineCount": 86,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/ui/components/shadcn/rich-text-editor/rich-text-viewer.tsx#L24",
+      "sha256": "58187bfd5e75baa7950492b0945327c96deda62539429db9a61eaa7295b120a1",
+      "lineCount": 48,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx#L58",
+      "sha256": "98bcb91183cddde198f3a84c08e0234a5626cba071c7d7ebb1b940d29de0f731",
+      "lineCount": 67,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/admin/app/api/admin/support/conversations/%5Bid%5D/notes/route.ts#L13",
+      "sha256": "9d67cc77af7aebc6d734e0ec20b5b70931fcac262c549ceb0a8bc6a0f205bcbd",
+      "lineCount": 29,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/api/src/admin/support-hub/mutations/conversations.ts#L79",
+      "sha256": "c209deb5a02bb49a788d2bad6a56b528ebc1c3f52bd27c9834815f01b5615682",
+      "lineCount": 81,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/ui/components.json#L3",
+      "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134",
+      "lineCount": 69,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/ui/package.json#L61",
+      "sha256": "7d736a382db44e90e81cfad225bf210419ae73083be7979a3c53b547295a5126",
+      "lineCount": 124,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/packages/ui/components/shadcn/dropdown-menu.tsx#L3",
+      "sha256": "547dc13156831694c0184018e1cfc56a70d0f7bd7f0d6a40560d434ac3c7d7be",
+      "lineCount": 262,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/adr/0030-canonical-message-document-and-presentation-dependencies.md",
+      "sha256": "6da9e5c451c1c3a6e42f1ed39e0445b7f9a0db279686489393dfea92303b8a1d",
+      "lineCount": 51,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "sha256": "7aeb08a2a499471d31e856914d940d94d4c43f57654812e80f6ee41024a62d21",
+      "lineCount": 137,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md",
+      "sha256": "4653ae542c1f28e076cc7f9c39fe316c82ad77d59340bfe90b9b0f58f3ef524d",
+      "lineCount": 3236,
+      "lineBoundsValid": true
+    },
+    {
+      "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md",
+      "sha256": "2bdf280e2a79a2dd2a7a4cc48420e32d744728709618381fcaa42708bd7cb39b",
+      "lineCount": 765,
+      "lineBoundsValid": true
+    }
+  ],
+  "tiptapReferencePins": {
+    "tiptap": "7ab690e5056fe999988552822c4fc1b1064bf094",
+    "docs": "de0873c397b84b221b1924193301819200333f74",
+    "evidence": "phase26-d35-editor-owner-review.md"
+  },
+  "sourceModelChecks": "phase26-d35-reference-results.json"
+}

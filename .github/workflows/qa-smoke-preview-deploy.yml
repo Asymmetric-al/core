@@ -249,7 +249,7 @@ jobs:
           stdout_file="$(mktemp)"
           stderr_file="$(mktemp)"
 
-          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest --cwd apps/admin deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
+          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --archive=tgz --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
             echo "::error::Vercel preview deployment failed for admin. Inspect Vercel dashboard build logs."
             exit 1
           fi
@@ -285,7 +285,7 @@ jobs:
           stdout_file="$(mktemp)"
           stderr_file="$(mktemp)"
 
-          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest --cwd apps/donor deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
+          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --archive=tgz --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
             echo "::error::Vercel preview deployment failed for donor. Inspect Vercel dashboard build logs."
             exit 1
           fi
@@ -321,7 +321,7 @@ jobs:
           stdout_file="$(mktemp)"
           stderr_file="$(mktemp)"
 
-          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest --cwd apps/missionary deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
+          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --archive=tgz --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
             echo "::error::Vercel preview deployment failed for missionary. Inspect Vercel dashboard build logs."
             exit 1
           fi

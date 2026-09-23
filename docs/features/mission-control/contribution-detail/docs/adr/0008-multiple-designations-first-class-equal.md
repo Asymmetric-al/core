@@ -2,9 +2,12 @@
 
 **Status:** Accepted (grill session 2026-05-28)
 
+**Current amendment — 2026-09-16 (AL-1861):** The Decision below uses the
+ratified [owner contracts](../../README.md); unchanged UI decisions remain valid.
+
 ## Context
 
-Contribution detail must show donor, fund, missionary, and designation context. Existing tables already include `staged_gift_allocations`, which supports multiple allocation rows for one staged gift. Current branch code still collapses detail into a single `designation` object, which would hide donor intent for split gifts.
+Contribution detail must show donor, fund, missionary, and designation context. Existing tables already include `staged_gift_allocations`, which supports multiple allocation rows for one staged gift. The May 2026 branch code collapsed detail into a single `designation` object, which would hide donor intent for split gifts.
 
 The product owner clarified that all designations should be treated equally and presented as such. Multiple designations per gift are a first-class feature.
 
@@ -23,7 +26,7 @@ Contribution detail treats the gift's complete designation set as financial trut
 
 - Detail APIs need to return designation lines, not one `designation` object.
 - Existing grid/list summaries may derive compact labels, but contribution detail must expose the full equal set.
-- Receipt, CRM post, reporting, audit, and correction workflows must consume the designation set intentionally.
+- Receipt, native CRM projection, reporting, audit, and correction workflows must consume the designation set intentionally.
 - Existing code that patches `donations.fund_id` / `donations.missionary_id` for designation changes is not the target product model.
 
 ## Alternatives rejected
@@ -31,3 +34,9 @@ Contribution detail treats the gift's complete designation set as financial trut
 - **Primary designation plus hidden splits:** Misrepresents donor intent and makes split gifts feel secondary.
 - **Technical-only allocation view:** Too easy for staff to miss financial truth.
 - **Single designation on donation row:** Inadequate for split giving and correction workflows.
+
+## Original decision provenance
+
+The [original dated record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0008-multiple-designations-first-class-equal.md) preserves earlier wording and
+rationale. Current owner terminology was amended on 2026-09-16; it is not
+backdated into the original founder ruling or evidence of runtime activation.

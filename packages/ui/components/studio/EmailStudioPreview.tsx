@@ -3,8 +3,13 @@
 import { validateMergeTags } from "@asym/email/merge-tag-render";
 import { DEFAULT_MERGE_TAG_REGISTRY } from "@asym/email/merge-tags";
 import { AlertTriangle, Code2, Monitor, Smartphone, Type } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +23,10 @@ import {
   TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import { cn } from "@asym/ui/lib/utils";
 
 export interface EmailStudioPreviewDialogProps {
@@ -27,6 +36,7 @@ export interface EmailStudioPreviewDialogProps {
   text: string;
   subject?: string;
   preheader?: string;
+  initialDevice?: "desktop" | "mobile";
 }
 
 export function EmailStudioPreviewDialog({
@@ -36,8 +46,15 @@ export function EmailStudioPreviewDialog({
   text,
   subject,
   preheader,
+  initialDevice = "desktop",
 }: EmailStudioPreviewDialogProps) {
-  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [device, setDevice] = useState<"desktop" | "mobile">(initialDevice);
+
+  useEffect(() => {
+    if (open) {
+      setDevice(initialDevice);
+    }
+  }, [open, initialDevice]);
   const validation = useMemo(
     () =>
       validateMergeTags([subject, preheader, html, text].join("\n"), {
@@ -57,12 +74,13 @@ export function EmailStudioPreviewDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {validation.errors.length > 0 && (
-          <div className="mx-5 mt-4 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <div>{validation.errors.map((error) => error).join("; ")}</div>
-          </div>
-        )}
+        {validation.errors.length > 0 ? (
+          <Alert className="mx-5 mt-4">
+            <AlertTriangle />
+            <AlertTitle>Merge tag issues</AlertTitle>
+            <AlertDescription>{validation.errors.join("; ")}</AlertDescription>
+          </Alert>
+        ) : null}
 
         <Tabs
           defaultValue="rendered"
@@ -71,45 +89,38 @@ export function EmailStudioPreviewDialog({
           <div className="flex items-center justify-between py-3">
             <TabsList>
               <TabsTrigger value="rendered">
-                <Monitor className="h-4 w-4" />
+                <Monitor />
                 Rendered
               </TabsTrigger>
               <TabsTrigger value="html">
-                <Code2 className="h-4 w-4" />
+                <Code2 />
                 HTML
               </TabsTrigger>
               <TabsTrigger value="text">
-                <Type className="h-4 w-4" />
+                <Type />
                 Text
               </TabsTrigger>
             </TabsList>
 
-            <div className="flex items-center rounded-lg bg-muted p-0.5">
-              <button
-                type="button"
-                aria-label="Desktop preview"
-                className={cn(
-                  "rounded-md p-1.5 text-muted-foreground transition-colors",
-                  device === "desktop" &&
-                    "bg-background text-foreground shadow-sm",
-                )}
-                onClick={() => setDevice("desktop")}
-              >
-                <Monitor className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                aria-label="Mobile preview"
-                className={cn(
-                  "rounded-md p-1.5 text-muted-foreground transition-colors",
-                  device === "mobile" &&
-                    "bg-background text-foreground shadow-sm",
-                )}
-                onClick={() => setDevice("mobile")}
-              >
-                <Smartphone className="h-4 w-4" />
-              </button>
-            </div>
+            <ToggleGroup
+              value={[device]}
+              onValueChange={(groupValue) => {
+                const next = groupValue[0];
+                if (next === "desktop" || next === "mobile") {
+                  setDevice(next);
+                }
+              }}
+              variant="outline"
+              size="sm"
+              aria-label="Preview device"
+            >
+              <ToggleGroupItem value="desktop" aria-label="Desktop preview">
+                <Monitor />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="mobile" aria-label="Mobile preview">
+                <Smartphone />
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
 
           <TabsContent value="rendered" className="min-h-0 overflow-auto">

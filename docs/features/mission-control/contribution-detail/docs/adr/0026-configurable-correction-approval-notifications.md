@@ -1,43 +1,35 @@
-# ADR-CD-026: Correction approval notifications use tasks plus configurable channels
+# ADR-CD-026: Source approval work uses shared tasks and Phase 17 attention
 
-**Status:** Accepted (grill session 2026-05-29)
+**Status:** Accepted 2026-05-29; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-High-risk correction requests need durable routing to approvers without relying on a single ephemeral channel. Mission Control already has Tasks, in-app surfaces, email delivery, and a per-user notification preference pattern in Support Hub. Contribution operations should reuse those patterns through hook contracts without building the full automation builder in this phase.
+Actual pending approval needs durable work routing without making message delivery or personal preferences approval authority.
 
 ## Decision
 
-When a high-risk correction request is created, the system uses a **hybrid notification model**:
-
-1. **Approval task (default on):** Create one durable Mission Control task linked to the gift and correction request. The task is the primary work item for approvers.
-2. **In-app notification (default on):** Notify eligible approvers in Mission Control according to approval ownership policy (ADR-CD-025).
-3. **Email notification (optional):** Send email to approvers when tenant or user preferences allow it.
-
-Configuration layers:
-
-- **Tenant defaults (super admin):** Which channels are enabled by default and whether task creation is required for correction approvals.
-- **Per-user preferences:** Each staff member can choose how they are notified (in-app, email, both, neither where allowed) and whether correction-approval events should create a task assigned to them.
-- **Policy enforcement:** Notification routing still respects approval ownership policy and granular capabilities; preferences cannot grant approval rights.
-
-Modern practice requirements:
-
-- One correction request maps to at most one approval task; notifications are idempotent and deduplicated.
-- Every notification and task creation writes an audit event with actor/system, channel, target users/roles, and correction request id.
-- Deep links open contribution detail with the pending correction request in context.
-- Default conservatively: task + in-app on; email off unless opted in or enabled by tenant default.
-- Email alone must not be the only durable work item when task creation is enabled at tenant level.
+- The source correction request remains approval authority and links to at
+  most one shared approval task. Task lifecycle follows source transitions.
+- Use exact Phase 17 contribution approval requested/reminder/escalated/outcome
+  keys and their qualified recipient resolvers.
+- Pending requests require the manifest in-product attention; email is an
+  independently qualified optional step. Preferences cannot disable required
+  attention or erase source work.
+- Current eligible approvers/requesters receive only permitted minimal facts.
+  Optional email cannot reveal richer donor or financial detail.
+- Phase 17 prepares immutable material; Phase 6 owns dispatch/recovery/history.
+  Read/archive/engagement cannot approve, complete or revive the request.
+- Exact source/fence identities deduplicate work and notifications. Deep links
+  reauthorize the source; possession grants nothing.
 
 ## Consequences
 
-- Backend exposes hook contracts for task creation and notification dispatch; full automation builder remains out of scope.
-- User preference storage follows the same hybrid model as table preferences: server source of truth, local responsive cache.
-- Support Hub notification preference patterns are a reference implementation, not a hard dependency.
-- Approver workload must remain visible in Tasks even if a user disables personal email/in-app alerts.
+Preferences affect only options permitted by the message contract. Shared task routing is separate; users cannot suppress the obligation. Full automation-builder implementation is not required.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **In-app only:** Too easy to miss when approvers are not actively in Mission Control.
-- **Email only:** Not durable enough for finance approvals; poor traceability inside the product.
-- **Task only with no notifications:** Works for power users but hides urgency from approvers who rely on alerts.
-- **Fixed non-configurable channels:** Ignores tenant operating differences and individual notification needs.
+The [original 2026-05-29 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0026-configurable-correction-approval-notifications.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

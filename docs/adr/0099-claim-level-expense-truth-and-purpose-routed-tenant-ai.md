@@ -72,10 +72,24 @@ retrieval. A broad role, possession of a key, or provider account access is not
 product authorization.
 
 Phase 21 owns receipt-extraction and expense-match suggestion semantics and
-acceptance. Phase 22 may later consume the same foundation for biography
-drafting but owns content acceptance and publication. Phase 40 later consumes
+acceptance. Phase 22 D16 consumes the same foundation for Public Page writing
+assistance but owns content acceptance, not publication. Phase 40 later consumes
 rather than replaces the shared foundation for the generalized AI Operator
 Workbench.
+
+**Phase 22 D16 consumption amendment (2026-08-06).** Phase 22 now consumes the
+`public-profile drafting` purpose for one source-bounded Public Page Writing
+Assistant, including an independently certified source-language and exact
+English-locale pair for the **Translate to English** action. The generated text
+is not a certified translation. This shared foundation continues to
+own only connection, credential, binding, egress, invocation, adapter, usage,
+cost, and revocation truth. Phase 22 exclusively owns exact Page sources,
+suggestions, application into a working revision, the check-work warning, and
+content acceptance; Phase 10 retains safety, Phase 12 retains current actor
+authority, Phase 24 retains locale and translation-status truth, and D4/D5
+retain submission and release. Provider translation success never means a
+fluent, verified, bilingual-reviewed, official, certified, released, or
+published Page.
 
 **Phase 21 D24 precision amendment (2026-08-02).** A D10 Expense Claim may be
 prepared under one exact D24 Expense Collaboration Assignment without changing

@@ -1,0 +1,134 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-02",
+  "recipeId": "DON-01",
+  "name": "First-gift coordinated stewardship",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "donor_stewardship",
+  "subject": "contribution",
+  "enrollment": {
+    "mode": "once_per_event",
+    "triggerContract": "contributions.qualifying-fact.accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {
+      "firstOrgGift": "contributions.first-organization-gift-certified@1"
+    },
+    "tasks": {
+      "donor_followup": "development.personal-gift-followup@1"
+    },
+    "evidence": {},
+    "actions": {
+      "welcome": "communications.donor-welcome.request@1"
+    },
+    "roles": {
+      "relationship_owner": "roles.donor-relationship-owner@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "communications",
+    "contributions",
+    "crm",
+    "messages",
+    "recognition",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": [
+        "gift_flow"
+      ]
+    }
+  ],
+  "root": {
+    "id": "gift_flow",
+    "kind": "sequence",
+    "label": "Gift flow",
+    "steps": [
+      {
+        "id": "check_first_gift",
+        "kind": "choose_one",
+        "label": "Check first gift",
+        "cases": [
+          {
+            "id": "first",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "firstOrgGift"
+                }
+              },
+              "right": {
+                "literal": true
+              }
+            },
+            "then": {
+              "id": "followup",
+              "kind": "parallel",
+              "label": "Followup",
+              "branches": [
+                {
+                  "id": "staff",
+                  "body": {
+                    "id": "personal_followup",
+                    "kind": "task",
+                    "label": "Personal followup",
+                    "contract": "donor_followup",
+                    "role": "relationship_owner"
+                  }
+                },
+                {
+                  "id": "welcome",
+                  "body": {
+                    "id": "request_welcome",
+                    "kind": "action",
+                    "label": "Request welcome",
+                    "contract": "welcome",
+                    "inputs": {}
+                  }
+                }
+              ],
+              "join": {
+                "mode": "all",
+                "requiredBranches": [
+                  "staff",
+                  "welcome"
+                ]
+              },
+              "onEmpty": "block",
+              "remainder": "await_remaining"
+            }
+          }
+        ],
+        "otherwise": {
+          "id": "not_eligible",
+          "kind": "finish",
+          "label": "Not eligible",
+          "lifecycle": "complete",
+          "outcome": "not_eligible"
+        },
+        "onUnknown": "block"
+      },
+      {
+        "id": "stewardship_complete",
+        "kind": "finish",
+        "label": "Stewardship complete",
+        "lifecycle": "complete",
+        "outcome": "followup_completed"
+      }
+    ]
+  }
+}

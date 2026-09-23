@@ -14,7 +14,7 @@ vi.mock("@asym/database/supabase/server", () => ({
   createClient: createClientMock,
 }));
 
-import { GET } from "../../src/posts/comments";
+import { GET, POST } from "../../src/posts/comments";
 
 import type { NextRequest } from "next/server";
 
@@ -54,5 +54,17 @@ describe("posts/comments GET — explicit auth check (finding 06 Gap 3)", () => 
     const res = await GET(request, ctx());
     expect(res.status).toBe(200);
     expect(from).toHaveBeenCalledWith("post_comments");
+  });
+});
+
+describe("posts/comments POST — read-only demo no-op", () => {
+  it("returns the demo no-op payload without writing a comment", async () => {
+    const res = await POST(request, ctx());
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      success: true,
+      readOnlyDemo: true,
+    });
+    expect(createClientMock).not.toHaveBeenCalled();
   });
 });

@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This document is the canonical reference for how environments are defined and operated across the Asymmetric.al platform. Production handles real donor data and live Stripe transactions, so strict environment discipline is required for every release and operational action. For companion procedures that are out of scope here, see [docs/ops/rollback-plan.md](./rollback-plan.md) and [docs/ops/deploy-checklist.md](./deploy-checklist.md).
+This document is the canonical reference for how environments are defined and operated across the Asymmetric.al platform. Production handles real donor data and live Stripe transactions, so strict environment discipline is required for every release and operational action. For companion procedures that are out of scope here, see [production release controls](./production-release.md) and the [deploy checklist](./deploy-checklist.md). Each deployment needs its own reviewed rollback/forward-fix plan; this repository does not supply a universal database rollback procedure.
 
 ## 2. Four-Environment Matrix
 
@@ -155,7 +155,7 @@ Each app also keeps source-controlled Git deployment branch gates in
 
 - `production`: production deployments
 - `develop`: development deployments
-- `main`: explicitly disabled retired history
+- `main`: deny-only legacy name; no canonical branch exists
 - all other branches: no Git deployment creation because `"*": false` closes
   the default auto-deploy path
 
@@ -348,8 +348,8 @@ that exposure is acceptable.
 - Development deploy trigger: push to `develop`.
 - Production deploy trigger: `bun run release:production` pushes a verified
   commit to `production`, the Vercel Production Branch.
-- `main` is retired/protected historical history; do not sync, merge, or deploy
-  from it for normal work.
+- The canonical repository has no `main` branch; do not create, sync, merge, or
+  deploy one. Deny-only deployment configuration may still mention it.
 - To refresh development parity ahead of QA/demo cycles, realign or merge from
   `production` into `develop`; development should start from production truth.
 - Inngest development is not integrated yet and remains a future placeholder.
@@ -585,7 +585,7 @@ Every rotation window must cover all six services: Supabase, Stripe, Sentry, Clo
 
 See also:
 
-- [docs/ops/rollback-plan.md](./rollback-plan.md) - code and database rollback procedures (T5)
+- [Production release guide](./production-release.md) - release controls; record a release-specific rollback/forward-fix plan before deployment
 - [docs/ops/deploy-checklist.md](./deploy-checklist.md) - pre-deploy, deploy, and post-deploy smoke tests (T6)
 - [docs/ops/scale-observability-reliability.md](./scale-observability-reliability.md) - Phase 11 observability, release-health, and backup/restore runbook
 - [README.md](../../README.md) - full local quickstart and monorepo workspace contract

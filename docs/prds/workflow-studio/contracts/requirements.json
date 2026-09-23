@@ -1,0 +1,401 @@
+{
+  "status": "planning_requirements_not_runtime_evidence",
+  "workflow": [
+    {
+      "name": "One Shared Studio",
+      "body": "The system SHALL provide one Mission Control workflow authoring and operation capability with contextual module entry points. Simple and visual authoring MUST use one definition and execution vocabulary.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-001 supported behavior",
+          "body": "- GIVEN A staff member opens a Support Hub automation from module settings\n- WHEN the automation is edited and published\n- THEN the same definition and history appear in Workflow Studio; no second engine executes it"
+        }
+      ]
+    },
+    {
+      "name": "Source Authority",
+      "body": "The Studio MUST invoke only registered, source-authorized operations and MUST NOT manufacture financial, identity, clinical, signature, or publication truth.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-002 supported behavior",
+          "body": "- GIVEN A workflow task is checked complete without a source approval\n- WHEN downstream work requests approved financial evidence\n- THEN the required source decision remains unsatisfied and no protected effect occurs"
+        }
+      ]
+    },
+    {
+      "name": "Typed Conditional Logic",
+      "body": "Predicates SHALL be typed and use explicit true, false and unknown results. Unauthorized fields MUST be blocked, not treated as absent.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-003 supported behavior",
+          "body": "- GIVEN a required fact has incomplete historical coverage\n- WHEN a conditional route evaluates\n- THEN no adverse fallback or fabricated first-gift determination occurs"
+        }
+      ]
+    },
+    {
+      "name": "Explicit Branch and Join Semantics",
+      "body": "Exclusive routing MUST reject overlap or unresolved alternatives. Parallel work MUST freeze selected branches and require declared source-qualified completion.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-004 supported behavior",
+          "body": "- GIVEN a required church reference is absent but two other references exist\n- WHEN a reference join evaluates\n- THEN the church-reference requirement remains unsatisfied"
+        }
+      ]
+    },
+    {
+      "name": "Versioned Publications",
+      "body": "Published executable definitions SHALL be immutable and active engagements MUST pin their publication and compatible action contracts.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-005 supported behavior",
+          "body": "- GIVEN an applicant is running version one\n- WHEN a new template version is published\n- THEN the applicant retains the old plan until an explicit authorized change"
+        }
+      ]
+    },
+    {
+      "name": "Per Run Amendments",
+      "body": "The system SHALL support authorized individual plan amendments with an immutable impact preflight, reason, revision checks and required source review.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-006 supported behavior",
+          "body": "- GIVEN one applicant needs an additional interview\n- WHEN a permitted amendment is committed\n- THEN only that run changes and completed source history remains intact"
+        }
+      ]
+    },
+    {
+      "name": "Tenant Scoped Execution",
+      "body": "All reads, effects, events, claims and views MUST remain tenant scoped on shared infrastructure. Workflow assignment MUST NOT grant data or action authority.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-007 supported behavior",
+          "body": "- GIVEN a tenant member guesses another tenant run identifier\n- WHEN they request its state or issue a mutation\n- THEN the server denies access without exposing its existence"
+        }
+      ]
+    },
+    {
+      "name": "Runtime Current Authority",
+      "body": "Publication authority and runtime action authority SHALL be distinct. Current source permissions, suppression and cancellation MUST be checked at action time. Runtime execution MUST use the Phase 12 NHI’s own grants intersected live with its required active human owner’s current capabilities. Departure force-disables affected authority; a frozen publisher snapshot or delayed review MUST NOT authorize more work.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-008 supported behavior",
+          "body": "- GIVEN a message is queued under an old plan\n- WHEN its recipient eligibility or grant is revoked\n- THEN the disallowed dispatch is blocked despite the old publication"
+        }
+      ]
+    },
+    {
+      "name": "Identifier Only Orchestration",
+      "body": "Inngest events, step results, trace metadata and errors MUST contain only source-approved safe references and routing metadata, not private record contents.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-009 supported behavior",
+          "body": "- GIVEN an action loads a confidential application\n- WHEN the action returns or fails\n- THEN no application contents, signed URL or secret are stored in orchestration diagnostics"
+        }
+      ]
+    },
+    {
+      "name": "Durable Intake and Idempotency",
+      "body": "Accepted source events SHALL be recoverable through product-owned durable receipts/outbox and permanent semantic effect identities.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-010 supported behavior",
+          "body": "- GIVEN a processed gift event is delivered again after a provider dedupe window\n- WHEN the workflow evaluates\n- THEN the same intended business effect is not performed again"
+        }
+      ]
+    },
+    {
+      "name": "Race Safe Waiting",
+      "body": "Human and provider waits SHALL be satisfied from authoritative source evidence even if completion occurs before listener registration.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-011 supported behavior",
+          "body": "- GIVEN a reference completes before its waiting step is registered\n- WHEN the durable wait is created\n- THEN a source recheck recognizes completion without requiring resubmission"
+        }
+      ]
+    },
+    {
+      "name": "Uncertain External Results",
+      "body": "An operation that may have executed externally MUST remain outcome-unknown until reconciled and MUST NOT be blindly retried.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-012 supported behavior",
+          "body": "- GIVEN a provider accepts a send but the response is lost\n- WHEN the execution lease or retry window expires\n- THEN the operation is reconciled or reviewed rather than sent anew"
+        }
+      ]
+    },
+    {
+      "name": "Role Bound Shared Tasks",
+      "body": "Workflow work SHALL reuse shared tasks and source-owned outcome contracts, with explicit eligible owner resolution and fallback.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-013 supported behavior",
+          "body": "- GIVEN no currently eligible coordinator exists\n- WHEN an assignment action runs\n- THEN the task enters an authorized assignment-needed queue without broadening access"
+        }
+      ]
+    },
+    {
+      "name": "Forms and Evidence",
+      "body": "Forms SHALL be versioned, partially savable and submitted through allowed source mappings. Evidence MUST be qualified by its owner, not inferred from upload or task status. Phase 34 MUST own common private form mechanisms; Phase 41 MUST own application accepted answers and evidence meaning. FORM-03 MUST exclude nonapplicable hidden values from accepted submissions/effects while source policy governs draft/history retention. Public forms MUST retain Phase 23 occurrence and one Primary Outcome.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-014 supported behavior",
+          "body": "- GIVEN a required document upload is quarantined\n- WHEN the requirement is evaluated\n- THEN it remains unsatisfied until source-qualified clean accepted evidence exists"
+        }
+      ]
+    },
+    {
+      "name": "External Task Access",
+      "body": "External access SHALL be task-purpose scoped, expiring and revocable; a GET or scanner visit MUST NOT submit, sign, approve or create membership.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-015 supported behavior",
+          "body": "- GIVEN an email scanner follows a reference link\n- WHEN the GET is processed\n- THEN no irreversible action or access grant occurs"
+        }
+      ]
+    },
+    {
+      "name": "Participant Journeys",
+      "body": "Participants SHALL see only their approved tasks, milestones, evidence and communications through server-side projections. Phase 34 MUST provide common participant composition; Phase 41 MUST own application-specific My Journey and its source milestones. Exact private admission MUST be qualified through Phase 4/12 without widening public/anonymous access or implying donor/missionary membership.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-016 supported behavior",
+          "body": "- GIVEN an applicant opens My Journey\n- WHEN the server returns journey data\n- THEN internal assessments, staff routing and unrelated roles are excluded from the response"
+        }
+      ]
+    },
+    {
+      "name": "Sealed Care Work",
+      "body": "Restricted care templates, runs, memberships, counts and audit SHALL be invisible to unauthorized principals, including ordinary administrators.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-017 supported behavior",
+          "body": "- GIVEN a sealed intake exists\n- WHEN an ordinary administrator searches or exports workflow data\n- THEN no care existence signal or contents are disclosed"
+        }
+      ]
+    },
+    {
+      "name": "Governed Communication",
+      "body": "All workflow communication SHALL use owning-domain purpose/audience, governed publications and the shared dispatch/history spine. A workflow MUST invoke the exact code-owned Live Phase 17 producer binding and whole bounded plan occurrence released through Phase 6; it MUST NOT directly create child intents, recipients or rendered content.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-018 supported behavior",
+          "body": "- GIVEN two workflows request the same acknowledgment purpose\n- WHEN the requests are processed\n- THEN one source semantic effect is produced or incompatible request content is explicitly blocked"
+        }
+      ]
+    },
+    {
+      "name": "Protected Domain Processes",
+      "body": "Finance, recurring recovery, records, identity and other protected policies SHALL remain native source-owned processes with bounded coordination hooks.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-019 supported behavior",
+          "body": "- GIVEN an administrator tries to create an automatic expense approval or recurring retry node\n- WHEN the configuration is validated\n- THEN the forbidden operation cannot be published or executed"
+        }
+      ]
+    },
+    {
+      "name": "Prospective Enrollment",
+      "body": "New bindings SHALL be prospective and historical imports/backfills SHALL remain side-effect-dark unless separately reviewed and authorized.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-020 supported behavior",
+          "body": "- GIVEN legacy contribution history is imported\n- WHEN a donor welcome workflow is active\n- THEN historical records do not trigger outward welcomes automatically"
+        }
+      ]
+    },
+    {
+      "name": "Scheduling Semantics",
+      "body": "Timers SHALL preserve timezone, time interpretation and calendar policy. Pause, expiry, late evidence and catch-up MUST have explicit nonapproval behavior. Generic Studio defaults MUST apply only to eligible Studio-owned clocks. CMS D13 appointments, Support response targets, recurring/pledge reminders and report delivery MUST keep exact source rules; organizational CMS authorization MUST NOT be generalized to Studio NHI lifetime.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-021 supported behavior",
+          "body": "- GIVEN a run pauses with a relative reminder and fixed document expiry\n- WHEN time passes\n- THEN the relative clock pauses where allowed while fixed expiry follows its source rule"
+        }
+      ]
+    },
+    {
+      "name": "Simulation",
+      "body": "Simulation SHALL use the real evaluator with stored synthetic fixtures and no live side effects, provider credentials, real destinations, business intents or history. Separately authorized source previews MUST NOT authorize a live simulation effect.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-022 supported behavior",
+          "body": "- GIVEN a draft is tested\n- WHEN its message and access nodes execute in simulation\n- THEN only simulated outcomes occur and no provider credentials or live recipients are used"
+        }
+      ]
+    },
+    {
+      "name": "Accessible Editing",
+      "body": "The complete authoring and participant experience SHALL target WCAG 2.2 AA and include a usable keyboard/outline alternative to the canvas.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-023 supported behavior",
+          "body": "- GIVEN staff uses only keyboard and assistive technology\n- WHEN they configure, validate and publish a permitted rule\n- THEN all required actions and errors are usable without dragging nodes"
+        }
+      ]
+    },
+    {
+      "name": "Safe Concurrency",
+      "body": "Concurrent edits and source completions SHALL be serialized through revision checks and unique source effects, not last-writer overwrite.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-024 supported behavior",
+          "body": "- GIVEN two source completions reach one join simultaneously\n- WHEN both attempt to advance the run\n- THEN one accepted transition preserves both evidence facts"
+        }
+      ]
+    },
+    {
+      "name": "Controlled Rollout and Recovery",
+      "body": "Disabling optional enrollment or losing the executor SHALL preserve valid source records, durable accepted work and manual recovery.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-025 supported behavior",
+          "body": "- GIVEN Inngest becomes unavailable\n- WHEN a source event is durably accepted\n- THEN work remains recoverable and essential source operations do not depend on a custom template"
+        }
+      ]
+    },
+    {
+      "name": "Source Ready Catalog",
+      "body": "Each capability pack SHALL activate only when its source commands, privacy projections and providers are qualified.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-026 supported behavior",
+          "body": "- GIVEN automated signing lacks a certified source adapter\n- WHEN a tenant attempts activation\n- THEN the lane stays unavailable and any valid manual evidence path is labeled honestly"
+        }
+      ]
+    },
+    {
+      "name": "Template Portability",
+      "body": "Exported templates SHALL contain no live credentials, person/run data or executable scripts; imports SHALL be inert drafts requiring tenant rebinding.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-027 supported behavior",
+          "body": "- GIVEN a portable template is imported\n- WHEN its foreign source references are inspected\n- THEN unsafe content is rejected and valid content cannot execute before binding and publication"
+        }
+      ]
+    },
+    {
+      "name": "Contract Upgrade Compatibility",
+      "body": "Runtime deployments SHALL preserve compatible source action behavior for active publications or require controlled migration.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-028 supported behavior",
+          "body": "- GIVEN an action implementation changes incompatibly\n- WHEN an old run advances\n- THEN it uses a supported compatible contract or stops safely for migration"
+        }
+      ]
+    },
+    {
+      "name": "Restore and Retention Safety",
+      "body": "Restore and disposal processes SHALL preserve source authority, revocations and necessary lawful dedupe evidence; restore MUST NOT reactivate outward effects blindly.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-029 supported behavior",
+          "body": "- GIVEN a backup predates a confirmed send and revoked grant\n- WHEN the system restores\n- THEN dispatch remains contained until effects and permissions reconcile"
+        }
+      ]
+    },
+    {
+      "name": "AI Has No Additional Authority",
+      "body": "AI assistance SHALL remain subject to the same catalog, data purposes, validation, simulation and human publication rules.",
+      "scenarios": [
+        {
+          "name": "WS-RQ-030 supported behavior",
+          "body": "- GIVEN an assistant proposes a workflow requiring forbidden data or action\n- WHEN the proposal is checked\n- THEN normal authority checks reject it and no privileged effect occurs"
+        }
+      ]
+    },
+    {
+      "name": "Independent Core And Source Pack Completion",
+      "body": "The system MUST qualify Phase 34 CORE using real non-mobilization intake/shared-task and private-document/review sources with Phases 35, 37, 38, 41 and 42 unavailable. All 96 recipes and 352 specified scenarios MUST remain accounted for under their source checkpoints. FULL MUST be an evidence rollup and MUST NOT gate CORE.",
+      "scenarios": [
+        {
+          "name": "IG-AT-01",
+          "body": "- **GIVEN** Downstream packs are unavailable\n- **WHEN** CORE acceptance runs\n- **THEN** The real common tracers qualify independently and missing source-pack/FULL evidence stays visibly incomplete"
+        }
+      ]
+    },
+    {
+      "name": "Live Human Owner Revocation",
+      "body": "The system MUST fence future affected Studio operations when the NHI human owner loses capability or leaves. Re-publication and transfer labels MUST NOT restore authority without current owner revalidation. A separately source-authorized CMS D13 organizational appointment MUST preserve its own lifetime.",
+      "scenarios": [
+        {
+          "name": "IG-AT-02",
+          "body": "- **GIVEN** A Studio operation is published but not yet admitted by its source\n- **WHEN** The accountable human owner loses the needed capability\n- **THEN** The operation does not execute; an independently valid D13 organizational appointment is judged only by its source contract"
+        }
+      ]
+    },
+    {
+      "name": "Durable Wait Reconciliation",
+      "body": "Source completion MUST remain discoverable before or after wait registration and after a lost wake. A timeout MUST NOT manufacture approval.",
+      "scenarios": [
+        {
+          "name": "IG-AT-03",
+          "body": "- **GIVEN** Source evidence completes before registration, after registration or with a lost wake\n- **WHEN** The common wait protocol reconciles\n- **THEN** Source recheck finds the exact accepted outcome without demanding duplicate submission"
+        }
+      ]
+    },
+    {
+      "name": "Cross Caller Semantic Effects",
+      "body": "The effect-owning domain MUST deduplicate the same semantic effect across native callers, workflows, retries and publications permanently within lawful retention. Conflicting payloads and uncertainty MUST remain explicit.",
+      "scenarios": [
+        {
+          "name": "IG-AT-04",
+          "body": "- **GIVEN** Native and Studio callers replay one event beyond a provider deduplication window\n- **WHEN** They request the same intended acknowledgment\n- **THEN** One semantic effect survives and uncertain execution is not blindly retried"
+        }
+      ]
+    },
+    {
+      "name": "Critical Source Work Survives Optional Overload",
+      "body": "Optional workflow limits MUST NOT discard accepted source work or delay required channel withdrawal or identity deactivation.",
+      "scenarios": [
+        {
+          "name": "IG-AT-05",
+          "body": "- **GIVEN** Optional workflows exceed their capacity profile\n- **WHEN** An accepted source event or qualified withdrawal/deactivation reaches its owner\n- **THEN** Critical accepted work remains durable and independently actionable"
+        }
+      ]
+    },
+    {
+      "name": "Batching Requires Exact Tenant Qualification",
+      "body": "If batching is adopted, the executor MUST prove tenant-homogeneous grouping and its exact supported concurrency, cancellation and idempotency configuration; batching MUST NOT infer every item’s scope from the first item.",
+      "scenarios": [
+        {
+          "name": "IG-AT-06",
+          "body": "- **GIVEN** An execution batch would contain different tenants or incompatible cancellation scopes\n- **WHEN** The batching contract is checked\n- **THEN** Unsafe grouping is rejected before execution; absent batching does not remove ordinary tenant isolation"
+        }
+      ]
+    },
+    {
+      "name": "Source Authorization Lifetimes Remain Distinct",
+      "body": "Directory offboarding MUST reach Phase 12 directly. Optional workflow handoff MUST NOT delay revocation, while a still-valid D13 organization-owned appointment MUST retain only its specifically authorized behavior.",
+      "scenarios": [
+        {
+          "name": "IG-AT-11",
+          "body": "- **GIVEN** A qualified source offboarding occurs\n- **WHEN** Native permission revocation propagates\n- **THEN** Human-owner-dependent Studio work stops and other source jobs retain only their own valid authorization"
+        }
+      ]
+    },
+    {
+      "name": "Reference Assets Are Inert Until Bound",
+      "body": "Reference imports MUST remain disabled and unresolved until each exact owner, scope, version, current permission, privacy and evidence contract qualifies. Structural validation MUST NOT count as adapter certification.",
+      "scenarios": [
+        {
+          "name": "IG-AT-12",
+          "body": "- **GIVEN** A reference blueprint contains only symbolic bindings\n- **WHEN** The template is restored or imported\n- **THEN** It remains an inert draft until all exact source and tenant gates pass"
+        }
+      ]
+    }
+  ],
+  "surfaces": [
+    {
+      "name": "Authenticated Participant Journey Experience",
+      "body": "The platform SHALL provide an authenticated, purpose-scoped My Journey experience for applicants and other approved workflow participants, implemented within an existing application surface without creating a second staff console. A participant mode in the missionary application MUST NOT imply missionary, donor, financial, or unrestricted CRM privileges. Mission Control remains the authoring, administration and operational-depth owner. Public entry forms may originate on the tenant website; private journey records and evidence MUST NOT become public content. Phase 34 MUST supply shared mechanisms and Phase 41 MUST supply application-specific accepted records and journey behavior. A predecessor admission model unable to represent the private purpose MUST gain an explicit compatible owner-approved successor before implementation; public-only anonymous access MUST NOT be widened.",
+      "scenarios": [
+        {
+          "name": "Applicant follows their next step",
+          "body": "- GIVEN a person has explicitly authorized access to their application journey\n- WHEN they open My Journey in participant mode\n- THEN they see permitted tasks, milestones, requested evidence and source-safe communications\n- AND they cannot enumerate staff graphs, other candidates, confidential assessments, care cases, or unrelated missionary/donor information"
+        },
+        {
+          "name": "One person holds several roles",
+          "body": "- GIVEN a person is both a donor and an applicant in the same tenant\n- WHEN they navigate between self-service experiences\n- THEN each experience resolves its own current permissions and source projections\n- AND neither role implicitly grants privileges belonging to the other"
+        }
+      ]
+    }
+  ]
+}

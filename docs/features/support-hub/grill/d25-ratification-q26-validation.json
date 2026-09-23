@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "date": "2026-09-12",
+  "stage": "D1-D25 fully ratified; Q26 unanswered",
+  "D25FullyRatified": true,
+  "D25RatifiedClauses": 32,
+  "D25CategoryFindings": 23,
+  "D25RequiredUnexecutedProofGroups": 50,
+  "D25OperationalControls": 6,
+  "D25RatifiedGlossaryTerms": 4,
+  "D25SubstantivePrimaryDocumentsPreserved": 4,
+  "D25HistoricalEvidenceUnchanged": 7,
+  "priorDecisionArtifactsPreserved": 160,
+  "priorADRsPreserved": 24,
+  "priorGlossaryDefinitionsPreserved": true,
+  "priorValidationRecordsUnchanged": 3,
+  "Q26Options": [
+    "A - Record Support follow-up directly",
+    "B - Use CRM notes and shared tasks for now",
+    "C - Record the interaction first, then open Support follow-up"
+  ],
+  "Q26Recommendation": "A",
+  "Q26Answered": false,
+  "ADR0026Created": false,
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "sourceHashesVerified": 31,
+  "upstreamEvidencePinsVerified": 1,
+  "mirrorPairs": 20,
+  "immutableCoreSourceLinksChecked": 61,
+  "uniqueImmutableCoreSourceLinksChecked": 38,
+  "immutableUpstreamLinksChecked": 3,
+  "localLinksChecked": 579,
+  "outputLinksChecked": 546,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "independentReviews": [
+    "D25 Email Studio: three accepted owner amendments verified; no new discrepancy",
+    "Q26 gap and alternative selection against actual Core source and ratified decisions",
+    "Q26 current primary help-desk and nonprofit CRM workflow/UX comparison",
+    "Q26 final actual-question and ratification seam review"
+  ],
+  "limits": [
+    "D25 original two probes/seven synthetic observations unchanged; no new runtime experiment",
+    "No live provider/DB/RLS/concurrency/browser/AT or staff usability proof",
+    "All D25 implementation/release proof remains required and unexecuted",
+    "Q26 remains a researched question, not a selected or ratified capability",
+    "No formal specification, implementation, tickets, GitHub/provider/DNS/inbox changes or real messages"
+  ]
+}

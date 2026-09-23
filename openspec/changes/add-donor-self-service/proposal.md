@@ -26,8 +26,11 @@ surface intent and shipped product.
   never implies that an external executor stopped; restart requires a fresh
   successor authorization. Provider subscriptions own ordinary renewals only,
   not Phase 16 recovery eligibility or timing.
-- Add donor payment-method management (add, update default, remove) through
-  Stripe-managed flows; no raw payment data touches Asym servers.
+- Add independent donor payment-method Add, selected-use Replace, explicit
+  Remove and optional actor-scoped new-gift payment preference through the
+  Phase 13/16 owner commands. Stripe-managed credential capture/setup remains
+  the provider boundary; no raw payment data touches Asym servers. Preference
+  is not a provider billing default, and replacement never implies removal.
 - Add annual document access through Phase 19 Statement Runs. Phase 7 owns each
   legal-donor Statement Subject, eligibility, official facts, coverage, and
   correction; Phase 19 owns the frozen run population, recipient operation,
@@ -47,6 +50,14 @@ now consumes explicit groups, independently manageable lines, compatible
 billing cohorts, append-only schedule/command history, exact provider bindings,
 and control-loss quarantine. The original annual-statement scope is superseded
 by Phase 19 D1-D18 and the active `add-statement-operations` change.
+
+**Wallet reconciliation (2026-09-09, Phase 25 / AL-1563):** this change's
+`Donors Manage Payment Methods Through Stripe` requirement and payment-method
+tasks are amended directly to the ratified Phase 25 ownership and independent
+command semantics. The stable requirement name preserves references; its text
+no longer requires a provider billing default or replacement when no live
+dependency exists. Either active change's later synchronization must preserve
+this same owner contract and the existing raw-credential prohibition.
 
 ## Impact
 

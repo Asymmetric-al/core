@@ -1,0 +1,102 @@
+{
+  "date": "2026-09-14",
+  "observedAtUtc": "2026-09-14T13:34:58.732168+00:00",
+  "directory": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "remoteDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "prs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN"
+    }
+  ],
+  "status": "M CONTEXT-MAP.md\n?? docs/features/support-hub/CONTEXT.md\n?? docs/features/support-hub/docs/\n?? docs/features/support-hub/grill/",
+  "method": "Read-only source and PR freshness; not runtime proof",
+  "externalMutations": false,
+  "additionalSourcePins": [
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/ConversationComposer.tsx",
+      "sha256": "a35d4b9d36f7eed1184465e09512533dac0f7f6eb6d5dbda4d1521b9906063fc",
+      "lineCount": 250,
+      "ranges": [[67, 78]]
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/detail/composer/extensions/mention-suggestion.ts",
+      "sha256": "5a33e8168fa6d3e4320c2839d11f989a67614e2e90eea62e5897dfc83488489c",
+      "lineCount": 76,
+      "ranges": [[45, 62]]
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/activity-log.ts",
+      "sha256": "2c880340294d61775a3ee22b07cd16c9eb5180adf374a5531b05d5595addc976",
+      "lineCount": 67,
+      "ranges": [[39, 59]]
+    },
+    {
+      "path": "apps/admin/features/support-hub/lib/rich-text-dirty.ts",
+      "sha256": "0491c88a943ffce47824b8ed224286dfe7ff81d8925649b8a20450357320f46f",
+      "lineCount": 35,
+      "ranges": [[8, 29]]
+    },
+    {
+      "path": "packages/ui/components.json",
+      "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134",
+      "lineCount": 69,
+      "ranges": [[1, 20]]
+    },
+    {
+      "path": "openspec/specs/identity-and-access/spec.md",
+      "sha256": "c2d1e411ff413c61549fdd56ed174fb983f2ae6c2818dd0dbf6033d93fc4dba5",
+      "lineCount": 149,
+      "ranges": [[15, 55]]
+    },
+    {
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2",
+      "lineCount": 109,
+      "ranges": [[9, 31]]
+    },
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx",
+      "sha256": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f",
+      "lineCount": 158,
+      "ranges": [[44, 131]]
+    },
+    {
+      "path": "packages/ui/package.json",
+      "sha256": "7d736a382db44e90e81cfad225bf210419ae73083be7979a3c53b547295a5126",
+      "lineCount": 124,
+      "ranges": [[1, 124]]
+    },
+    {
+      "path": "bun.lock",
+      "sha256": "47f0cd34dd5e7a75e55f36945b8c5e190f0971004ea796e316a90d2be9faad84",
+      "lineCount": 5747,
+      "ranges": [[1, 35]]
+    }
+  ],
+  "runtimeGroupsRequired": 30,
+  "runtimeGroupsExecuted": 0,
+  "sourceProbeAssertions": 5
+}

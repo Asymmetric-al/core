@@ -128,11 +128,34 @@ platform boundaries already warn against.
   CMS↔operational with operational-wins. Detailed behavior is governed by the
   Phase 5 PRD and ADRs 0026–0030.
 
+## Accepted context congruence — 2026-09-23
+
+Add the `identity-and-access` target requirement **Capability Aggregation Uses
+One Validated Context**, consuming the accepted Phase 12 D12/D14 and ship-first
+rules. Reconcile Phase 3’s earlier all-membership shorthand and its documented
+test expectations with the current member/public/NHI/operator context model.
+Preserve the Phase 3 registry/table-deferral generation, the public-only floor,
+current NHI human-owner ceiling and exact operator grant. This neither changes
+durable MVP implementation observations nor creates private-participant policy
+or a backward Phase 3 → whole Phase 12 delivery gate.
+
+## Accepted tribute coverage congruence — 2026-09-23
+
+Add the `contribution-operations` target requirement **Tribute Coverage Uses
+Canonical Recipient Identity**, projecting Phase 14 D3.1/D3.11's already
+accepted told-once outcome. Separate actual recipient Party/header coverage
+from per-tribute preference provenance and the exact stream-period letter
+anchor; preserve same-Tenant authorization, override provenance, immutable
+history, suppression and atomic pre-release cancellation. This repairs a
+schema transcription mismatch without selecting pending C-02 storage policy
+or claiming implementation.
+
 ## Impact
 
 - Affected specs: `platform-product-intent`, `donation-lifecycle`,
   `outbound-communications`, `document-production`, `statement-operations`,
-  `platform-surfaces`, `platform-boundaries`
+  `platform-surfaces`, `platform-boundaries`, `identity-and-access`,
+  `contribution-operations`
 - Affected docs: `docs/prds/sitestacker-parity/**` (including `roadmap.md`,
   the source of truth for phase architecture, plus the Phase 17, Phase 18, and
   Phase 19 PRD authority map, traceability, congruence, and research
@@ -145,3 +168,10 @@ platform boundaries already warn against.
   `add-statement-studio`, `add-statement-operations`
 - No product code changes or issue dispatch (this change is specification and
   governance only).
+
+## Roadmap v3 adoption — 2026-09-22
+
+AL-1892 preserves phases 0–40 and adds 41–44, adopts complete Studio packages,
+and updates the existing phase-architecture requirement. Phase 34 CORE and
+Phase 42 visual delivery have independent qualification checkpoints. No
+product implementation or predecessor issue dispatch is implied.

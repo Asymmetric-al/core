@@ -1,0 +1,25 @@
+{
+  "profile": "asym.page-composition/1",
+  "family": "article",
+  "catalogVersion": "fixture/catalog-1",
+  "nodes": [
+    {
+      "kind": "semantic",
+      "instanceId": "article-prose",
+      "semanticType": "rich-text",
+      "schemaVersion": 1,
+      "content": {
+        "fixtureText": "Structural fixture only; use exact owner semantic content decoder in Core."
+      }
+    },
+    {
+      "kind": "semantic",
+      "instanceId": "article-media",
+      "semanticType": "media",
+      "schemaVersion": 1,
+      "content": {
+        "fixtureText": "Structural fixture only; use exact owner semantic content decoder in Core."
+      }
+    }
+  ]
+}

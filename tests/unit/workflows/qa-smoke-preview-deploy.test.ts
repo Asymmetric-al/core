@@ -33,16 +33,28 @@ describe("qa smoke preview deployment workflow", () => {
   it("checks out the PR head SHA and deploys preview targets only", () => {
     expect(workflow).toContain("ref: ${{ steps.gate.outputs.head_sha }}");
     expect(workflow).toContain(
-      "vercel@latest --cwd apps/admin deploy --yes --target=preview",
+      "vercel@latest deploy --yes --target=preview --archive=tgz",
     );
     expect(workflow).toContain(
-      "vercel@latest --cwd apps/donor deploy --yes --target=preview",
+      "vercel@latest deploy --yes --target=preview --archive=tgz",
     );
     expect(workflow).toContain(
-      "vercel@latest --cwd apps/missionary deploy --yes --target=preview",
+      "vercel@latest deploy --yes --target=preview --archive=tgz",
     );
     expect(workflow).not.toContain("--prod");
     expect(workflow).not.toContain("--target=production");
+  });
+
+  it("applies each configured Vercel project root once from the monorepo root", () => {
+    expect(
+      workflow.match(
+        /bunx vercel@latest deploy --yes --target=preview --archive=tgz --project/g,
+      ),
+    ).toHaveLength(3);
+    expect(workflow.match(/--archive=tgz/g)).toHaveLength(3);
+    for (const app of ["admin", "donor", "missionary"]) {
+      expect(workflow).not.toContain(`--cwd apps/${app} deploy`);
+    }
   });
 
   it("uses the required Vercel deployment and Playwright smoke secrets", () => {

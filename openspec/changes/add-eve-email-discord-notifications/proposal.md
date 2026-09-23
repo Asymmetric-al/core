@@ -1,5 +1,15 @@
 # Change: Add Eve Email And Discord Notifications
 
+## Status
+
+The original notification capability already exists in the durable specification.
+This active change carries the later Phase 17/6 ownership and activation
+amendment; it does not claim that the replacement email path is implemented.
+The delta is rebased as modifications of the existing capability, with an
+explicit requirement rename. Existing runtime and launch guards remain separate
+from this planning record. Do not sync or archive the proposed replacement
+merely because the documentation has merged.
+
 ## Why
 
 Important Eve events must not remain trapped in Mission Control. Issue #436 adds the v1 external-notification
@@ -32,7 +42,7 @@ and neither a prompt nor a model can choose where a notification goes.
 
 ## Impact
 
-- **Affected capability:** `eve-email-discord-notifications` (new)
+- **Affected capability:** `eve-email-discord-notifications` (existing; modified)
 - **Dependencies:** #418, #419, #420, #423, #424, #426, #427, #435, and the
   SiteStacker Phase 17 content contract plus Phase 6 outbound-delivery contract
 - **Issue covered:** #436

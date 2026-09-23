@@ -1,0 +1,44 @@
+{
+  "executedAt": "2026-09-10T15:54:15.884Z",
+  "sourcePath": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10/apps/admin/features/support-hub/lib/round-robin.ts",
+  "sourceSha256": "32b7d91873998c5d2c3ca80401b5c1aaba9f38924f72cd3639975daeda44235b",
+  "passed": 6,
+  "checks": [
+    {
+      "case": "unchanged_input_has_no_rotation_memory",
+      "unchangedChoices": ["a", "a", "a"],
+      "limitation": "Pure selector has no cursor. This is not a claim actual assignments are never reflected in later inputs."
+    },
+    {
+      "case": "selects_fewest_counted_conversations",
+      "aOpen": 3,
+      "bOpen": 1,
+      "selected": "b"
+    },
+    {
+      "case": "old_snoozed_work_is_not_counted",
+      "aOpen": 1,
+      "bSnoozed": 20,
+      "selected": "b",
+      "limitation": "This is the existing old-status contract; no assertion about the future D3 states or real effort."
+    },
+    {
+      "case": "2000_row_truncation_changes_candidate",
+      "fullRows": 2001,
+      "fullChoice": "b",
+      "truncatedRows": 2000,
+      "truncatedChoice": "a",
+      "limitation": "Actual pure selector with constructed full/capped input. No query or deployed workload measured; cap value is independently verified adapter source."
+    },
+    {
+      "case": "all_candidates_excluded_returns_null",
+      "selected": null
+    },
+    {
+      "case": "ties_use_id_order_not_supplied_roster_order",
+      "suppliedOrder": ["b", "a"],
+      "selected": "a"
+    }
+  ],
+  "proofLimits": "Actual pure function only. No env files, application, database, provider, inbox or network calls; no runtime fairness, concurrency, capacity or auth proof. Synthetic identities and inputs."
+}

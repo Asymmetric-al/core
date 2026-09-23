@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-12",
+  "kind": "Isolated execution of existing slugify function plus illustrative algebra; no database, API, browser, permission, migration or runtime feature proof",
+  "sourcePath": "apps/admin/features/support-hub/components/labels/LabelForm.tsx",
+  "actualSlugOutputs": [
+    {
+      "input": "Receipt question",
+      "currentSlug": "receipt-question"
+    },
+    {
+      "input": "ใบเสร็จ",
+      "currentSlug": ""
+    },
+    {
+      "input": "領収書",
+      "currentSlug": ""
+    },
+    {
+      "input": "Café",
+      "currentSlug": "caf"
+    },
+    {
+      "input": "Cafe",
+      "currentSlug": "cafe"
+    }
+  ],
+  "observedCounterexample": "Thai and Japanese names produce empty slug rejected by current API minimum; distinct names can collide. No production inputs used.",
+  "illustrativeOnly": {
+    "retriedToggle": [false, true, false],
+    "originUnionBefore": ["delivery", "receipt"],
+    "originUnionAfterRemove": ["delivery"],
+    "total": 3,
+    "labelled": 2,
+    "unlabelled": 1,
+    "memberships": 4
+  },
+  "assertionsPassed": true
+}

@@ -1,0 +1,87 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-07",
+  "recipeId": "MPD-04",
+  "name": "Coaching check-in with redacted views",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "support_coaching",
+  "subject": "coaching_occurrence",
+  "enrollment": {
+    "mode": "once_per_event",
+    "triggerContract": "development.coaching-checkin.due@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {},
+    "tasks": {
+      "checkin": "development.coaching-self-report@1",
+      "coach_review": "development.redacted-coaching-review@1",
+      "next_action": "development.agreed-next-action@1"
+    },
+    "evidence": {},
+    "actions": {},
+    "roles": {
+      "missionary": "roles.coaching-subject@1",
+      "coach": "roles.invited-authorized-coach@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "communications",
+    "crm",
+    "development",
+    "missionary-workspace",
+    "support-raising",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": [
+        "coaching_flow"
+      ]
+    }
+  ],
+  "root": {
+    "id": "coaching_flow",
+    "kind": "sequence",
+    "label": "Coaching flow",
+    "steps": [
+      {
+        "id": "checkin",
+        "kind": "task",
+        "label": "Checkin",
+        "contract": "checkin",
+        "role": "missionary"
+      },
+      {
+        "id": "coach_review",
+        "kind": "task",
+        "label": "Coach review",
+        "contract": "coach_review",
+        "role": "coach"
+      },
+      {
+        "id": "next_action",
+        "kind": "task",
+        "label": "Next action",
+        "contract": "next_action",
+        "role": "missionary"
+      },
+      {
+        "id": "checkin_done",
+        "kind": "finish",
+        "label": "Checkin done",
+        "lifecycle": "complete",
+        "outcome": "coaching_cycle_complete"
+      }
+    ]
+  }
+}
