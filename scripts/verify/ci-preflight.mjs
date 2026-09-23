@@ -12,7 +12,8 @@ const ciSupabasePublicEnv = {
 
 /**
  * Mirrors blocking GitHub CI checks:
- * verify:git-attribution -> format -> skills:verify -> openspec:validate -> lint -> verify:data-boundary
+ * verify:git-attribution -> format -> skills:verify -> verify:phase25-spec
+ * -> openspec:validate -> verify:openspec-deltas -> lint -> verify:data-boundary
  * -> verify:cms-public-sole-entry
  * -> verify:workspace-contract -> verify:bun-lock-drift
  * -> verify:eslint -> verify:shadcn-config
@@ -33,8 +34,16 @@ const stages = [
     script: "skills:verify",
   },
   {
+    id: "verify-phase25-spec",
+    script: "verify:phase25-spec",
+  },
+  {
     id: "openspec-validate",
     script: "openspec:validate",
+  },
+  {
+    id: "verify-openspec-deltas",
+    script: "verify:openspec-deltas",
   },
   {
     id: "lint",

@@ -1,0 +1,3387 @@
+{
+  "schemaVersion": 1,
+  "status": "proposed-recipe-requirements-not-runtime-seeds",
+  "recipes": [
+    {
+      "id": "ADM-01",
+      "title": "Staff onboarding",
+      "pack": "ADM",
+      "persona": "Tenant administrator or operations lead",
+      "customization": "editable_workflow",
+      "subject": "staff_onboarding",
+      "trigger": "An authorized staff onboarding request is accepted",
+      "steps": [
+        "Confirm intended responsibilities",
+        "collect policy acknowledgments",
+        "request source-authorized access",
+        "assign orientation",
+        "verify receiving manager handoff"
+      ],
+      "editable": "Checklist, eligible role slots, orientation schedule, approved message",
+      "protected": "Access grants remain identity-owned and require independent current authorization",
+      "evidence": "Policy acknowledgments, role-request refs, orientation completion, handoff acceptance",
+      "dependencies": [
+        "identity",
+        "crm",
+        "tasks",
+        "workflow-runtime"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-ADM-01-01",
+        "T-ADM-01-02",
+        "T-ADM-01-03"
+      ]
+    },
+    {
+      "id": "ADM-02",
+      "title": "Responsibility change and handoff",
+      "pack": "ADM",
+      "persona": "Tenant administrator or operations lead",
+      "customization": "editable_workflow",
+      "subject": "staff_transition",
+      "trigger": "A staff responsibility change is recorded",
+      "steps": [
+        "Inventory eligible open assignments",
+        "propose reassignment",
+        "request source access review",
+        "obtain receiving-owner acknowledgment"
+      ],
+      "editable": "Handoff checklist, reminders, eligible fallback team",
+      "protected": "Relationship/assignment changes cannot create permission",
+      "evidence": "Source assignment versions and acknowledged handoff",
+      "dependencies": [
+        "identity",
+        "crm",
+        "tasks",
+        "workflow-runtime"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-ADM-02-01",
+        "T-ADM-02-02",
+        "T-ADM-02-03"
+      ]
+    },
+    {
+      "id": "ADM-03",
+      "title": "Staff departure",
+      "pack": "ADM",
+      "persona": "Tenant administrator or operations lead",
+      "customization": "editable_workflow",
+      "subject": "staff_transition",
+      "trigger": "A departure process is explicitly opened",
+      "steps": [
+        "Stop new assigned optional work",
+        "inventory automation ownership",
+        "request identity revocation",
+        "reassign source-owned work",
+        "review records and external sessions"
+      ],
+      "editable": "Due dates, responsible teams, exit checklist",
+      "protected": "No automatic financial succession, care disclosure, or retention disposal",
+      "evidence": "Confirmed revocation refs, reassignment results, unresolved exception list",
+      "dependencies": [
+        "identity",
+        "crm",
+        "tasks",
+        "workflow-runtime"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-ADM-03-01",
+        "T-ADM-03-02",
+        "T-ADM-03-03"
+      ]
+    },
+    {
+      "id": "ADM-04",
+      "title": "Template ownership and periodic review",
+      "pack": "ADM",
+      "persona": "Tenant administrator or operations lead",
+      "customization": "editable_workflow",
+      "subject": "template_review",
+      "trigger": "An approved template review schedule becomes due",
+      "steps": [
+        "Check owner and dependencies",
+        "simulate proposed updates",
+        "route publication review",
+        "retain or retire future enrollment"
+      ],
+      "editable": "Review cadence, review team, checklist",
+      "protected": "Review completion cannot itself publish or change existing runs",
+      "evidence": "Review decision and publication/retirement reference",
+      "dependencies": [
+        "identity",
+        "crm",
+        "tasks",
+        "workflow-runtime"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-ADM-04-01",
+        "T-ADM-04-02",
+        "T-ADM-04-03"
+      ]
+    },
+    {
+      "id": "ADM-05",
+      "title": "Stalled workflow recovery",
+      "pack": "ADM",
+      "persona": "Tenant administrator or operations lead",
+      "customization": "editable_workflow",
+      "subject": "workflow_attention",
+      "trigger": "A source-qualified workflow attention event is recorded",
+      "steps": [
+        "Assign operator",
+        "inspect exact operation and source status",
+        "request safe reconciliation",
+        "verify source recovery"
+      ],
+      "editable": "Urgency within policy, eligible operator, escalation cadence",
+      "protected": "No blind replay, invented success, or automatic skipping of required evidence",
+      "evidence": "Source recovery result or documented outstanding uncertainty",
+      "dependencies": [
+        "identity",
+        "crm",
+        "tasks",
+        "workflow-runtime"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-ADM-05-01",
+        "T-ADM-05-02",
+        "T-ADM-05-03"
+      ]
+    },
+    {
+      "id": "ADM-06",
+      "title": "Tenant custom-record process",
+      "pack": "ADM",
+      "persona": "Tenant administrator or operations lead",
+      "customization": "editable_workflow",
+      "subject": "custom_record",
+      "trigger": "A permitted custom-record event or manual enrollment is accepted",
+      "steps": [
+        "Collect approved fields",
+        "assign human work",
+        "route on typed facts",
+        "request allowed custom-data commands",
+        "record declared result"
+      ],
+      "editable": "Allowed fields, role bindings, steps, conditions, bounded reminders",
+      "protected": "Custom records cannot become financial, permission, or clinical shadow systems",
+      "evidence": "Versioned form submissions, permitted custom commands, final process outcome",
+      "dependencies": [
+        "identity",
+        "crm",
+        "tasks",
+        "workflow-runtime"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-ADM-06-01",
+        "T-ADM-06-02",
+        "T-ADM-06-03"
+      ]
+    },
+    {
+      "id": "ADM-07",
+      "title": "Import review coordination",
+      "pack": "ADM",
+      "persona": "Tenant administrator or operations lead",
+      "customization": "protected_coordination",
+      "subject": "import_manifest",
+      "trigger": "The import owner creates a review-ready manifest",
+      "steps": [
+        "Review mapping and exceptions",
+        "assign data-owner corrections",
+        "invoke authorized import acceptance",
+        "inspect source outcome"
+      ],
+      "editable": "Review owner, checklist, reminder dates",
+      "protected": "Historical imported facts remain side-effect-dark; Studio cannot accept arbitrary raw records",
+      "evidence": "Exact source manifest approval and import results",
+      "dependencies": [
+        "identity",
+        "crm",
+        "tasks",
+        "workflow-runtime"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-ADM-07-01",
+        "T-ADM-07-02",
+        "T-ADM-07-03"
+      ]
+    },
+    {
+      "id": "ADM-08",
+      "title": "Duplicate or incomplete data stewardship",
+      "pack": "ADM",
+      "persona": "Tenant administrator or operations lead",
+      "customization": "protected_coordination",
+      "subject": "data_finding",
+      "trigger": "A certified data-health rule produces a finding",
+      "steps": [
+        "Assign steward",
+        "inspect source evidence",
+        "propose correction or merge",
+        "use source-reviewed command",
+        "verify result"
+      ],
+      "editable": "Eligible finding classes, owner, review cadence",
+      "protected": "No blind merge, invented profile facts, or financial history rewriting",
+      "evidence": "Reviewed source correction/merge outcome",
+      "dependencies": [
+        "identity",
+        "crm",
+        "tasks",
+        "workflow-runtime"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-ADM-08-01",
+        "T-ADM-08-02",
+        "T-ADM-08-03"
+      ]
+    },
+    {
+      "id": "ADM-09",
+      "title": "Scheduled report coordination",
+      "pack": "ADM",
+      "persona": "Tenant administrator or operations lead",
+      "customization": "protected_coordination",
+      "subject": "report_request",
+      "trigger": "An authorized source report schedule or request is accepted",
+      "steps": [
+        "Request source report generation",
+        "observe recipient-specific result",
+        "route failed delivery or access review"
+      ],
+      "editable": "Native source schedule, allowed recipients, report parameters",
+      "protected": "Reporting owns schedule, filters, eligibility and source totals; no duplicate report timer",
+      "evidence": "Report run ref and separately recorded delivery/attention results",
+      "dependencies": [
+        "identity",
+        "crm",
+        "tasks",
+        "workflow-runtime"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-ADM-09-01",
+        "T-ADM-09-02",
+        "T-ADM-09-03"
+      ]
+    },
+    {
+      "id": "ADM-10",
+      "title": "Integration health recovery",
+      "pack": "ADM",
+      "persona": "Tenant administrator or operations lead",
+      "customization": "protected_coordination",
+      "subject": "integration_attention",
+      "trigger": "The connector owner reports drift, failure, or expired authorization",
+      "steps": [
+        "Route owner alert",
+        "open native reconnect/recovery",
+        "verify certified connection state",
+        "resume only affected safe work"
+      ],
+      "editable": "Owner, alert urgency, approved checklist",
+      "protected": "No pasted credentials, raw keys, blind provider switching, or unsafe replay",
+      "evidence": "Connector-owned recovery and per-operation result",
+      "dependencies": [
+        "identity",
+        "crm",
+        "tasks",
+        "workflow-runtime"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-ADM-10-01",
+        "T-ADM-10-02",
+        "T-ADM-10-03"
+      ]
+    },
+    {
+      "id": "GEN-01",
+      "title": "Initial inquiry response",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "inquiry",
+      "trigger": "A valid inquiry is accepted through the source intake",
+      "steps": [
+        "Classify using permitted fields",
+        "assign responsible role",
+        "request acknowledgment",
+        "create discovery task",
+        "record next route"
+      ],
+      "editable": "Categories, role/fallback, acknowledgment, due date, follow-up",
+      "protected": "Unknown or duplicate identity is not silently promoted to broad CRM access",
+      "evidence": "Inquiry version, assignment, communication intent, discovery outcome",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-01-01",
+        "T-GEN-01-02",
+        "T-GEN-01-03"
+      ]
+    },
+    {
+      "id": "GEN-02",
+      "title": "Referral intake",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "referral",
+      "trigger": "A referral with permitted contact purpose is recorded",
+      "steps": [
+        "Review referral purpose and permission",
+        "assign follow-up",
+        "request appropriate contact",
+        "record accepted next action or expiry"
+      ],
+      "editable": "Questions, owner, permitted cadence, expiry",
+      "protected": "A referral does not imply marketing consent or record-sharing access",
+      "evidence": "Referral provenance, contact eligibility, follow-up outcome",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-02-01",
+        "T-GEN-02-02",
+        "T-GEN-02-03"
+      ]
+    },
+    {
+      "id": "GEN-03",
+      "title": "Missing profile information",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "profile_request",
+      "trigger": "A source-qualified completeness rule flags required data",
+      "steps": [
+        "Identify allowed missing fields",
+        "request information",
+        "review submission",
+        "invoke approved record update"
+      ],
+      "editable": "Permitted fields, responsible person, reminders",
+      "protected": "Source-certified absence differs from unknown; no arbitrary profile overwrite",
+      "evidence": "Submitted answers and source update result",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-03-01",
+        "T-GEN-03-02",
+        "T-GEN-03-03"
+      ]
+    },
+    {
+      "id": "GEN-04",
+      "title": "Contact-information change follow-up",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "contact_change",
+      "trigger": "Identity/CRM accepts a contact-change request",
+      "steps": [
+        "Observe source verification requirement",
+        "notify eligible owner",
+        "request permitted confirmation",
+        "record source completion"
+      ],
+      "editable": "Approved wording, staff task, allowable follow-up",
+      "protected": "Studio cannot replace verification, reveal account existence, or trust unverified destinations",
+      "evidence": "Identity-owned confirmation outcome",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-04-01",
+        "T-GEN-04-02",
+        "T-GEN-04-03"
+      ]
+    },
+    {
+      "id": "GEN-05",
+      "title": "Church or partner onboarding",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "partner_onboarding",
+      "trigger": "A sending/supporting partner onboarding is opened",
+      "steps": [
+        "Assign relationship lead",
+        "collect organization contacts",
+        "schedule introductory work",
+        "request agreements",
+        "acknowledge handoff"
+      ],
+      "editable": "Required information, checklist, owner, review dates",
+      "protected": "Organizational relationship does not grant member access or alter giving authorization",
+      "evidence": "Partner contact refs, reviewed documents, handoff",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-05-01",
+        "T-GEN-05-02",
+        "T-GEN-05-03"
+      ]
+    },
+    {
+      "id": "GEN-06",
+      "title": "Document request and review",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "document_requirement",
+      "trigger": "A source-approved document requirement is created",
+      "steps": [
+        "Request exact evidence",
+        "accept private upload",
+        "observe scan",
+        "route reviewer",
+        "accept correction or qualified evidence"
+      ],
+      "editable": "Document category, reviewer, deadline, reminders",
+      "protected": "Upload, clean scan, and accepted evidence remain distinct",
+      "evidence": "Private asset and exact acceptance decision",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-06-01",
+        "T-GEN-06-02",
+        "T-GEN-06-03"
+      ]
+    },
+    {
+      "id": "GEN-07",
+      "title": "Agreement signing coordination",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "agreement",
+      "trigger": "A source agreement version requires signatures",
+      "steps": [
+        "Prepare exact approved document",
+        "request signatures through certified/manual path",
+        "wait for all required signers",
+        "record source completion"
+      ],
+      "editable": "Signer roles within source contract, order, reminders",
+      "protected": "Old signatures cannot satisfy replaced documents; no certification claim from a manual scan",
+      "evidence": "Document version, signer set, source signature evidence",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-07-01",
+        "T-GEN-07-02",
+        "T-GEN-07-03"
+      ]
+    },
+    {
+      "id": "GEN-08",
+      "title": "Training or policy acknowledgment",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "training_requirement",
+      "trigger": "A source-owned requirement is assigned",
+      "steps": [
+        "Assign course/resource",
+        "request acknowledgment or assessment",
+        "obtain permitted instructor review",
+        "record source completion"
+      ],
+      "editable": "Curriculum, date, instructor, reminders",
+      "protected": "Acknowledgment, attendance, assessment and accepted completion are distinct",
+      "evidence": "Exact training/policy version and accepted result",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-08-01",
+        "T-GEN-08-02",
+        "T-GEN-08-03"
+      ]
+    },
+    {
+      "id": "GEN-09",
+      "title": "Credential or document renewal",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "renewal_requirement",
+      "trigger": "An approved source expiry condition becomes due",
+      "steps": [
+        "Notify eligible participant",
+        "request replacement",
+        "review currentness",
+        "record accepted successor"
+      ],
+      "editable": "Lead time, owner, requirements, renewal reminders",
+      "protected": "Expiry cannot cause arbitrary access/financial changes outside source policy",
+      "evidence": "Current source requirement and replacement evidence",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-09-01",
+        "T-GEN-09-02",
+        "T-GEN-09-03"
+      ]
+    },
+    {
+      "id": "GEN-10",
+      "title": "Opportunity registration and waitlist",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "registration",
+      "trigger": "The event owner accepts a registration or waitlist occurrence",
+      "steps": [
+        "Collect entry requirements",
+        "request source capacity check/reservation",
+        "confirm or waitlist",
+        "send permitted next steps"
+      ],
+      "editable": "Intake questions, response deadline, role routing",
+      "protected": "Event service owns atomic capacity and payment classification",
+      "evidence": "Registration/capacity outcome and participant tasks",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-10-01",
+        "T-GEN-10-02",
+        "T-GEN-10-03"
+      ]
+    },
+    {
+      "id": "GEN-11",
+      "title": "Trip readiness and changes",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "trip_participation",
+      "trigger": "An approved participant joins a trip or an event change is accepted",
+      "steps": [
+        "Collect required documents/training",
+        "observe source payment readiness",
+        "review departure checklist",
+        "notify source-approved changes",
+        "request financial handling separately"
+      ],
+      "editable": "Checklists, team roles, deadlines, approved messages",
+      "protected": "Participant payments and donations remain distinct; Studio cannot infer payment or refunds",
+      "evidence": "Per-participant evidence and authorized readiness decision",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-11-01",
+        "T-GEN-11-02",
+        "T-GEN-11-03"
+      ]
+    },
+    {
+      "id": "GEN-12",
+      "title": "Post-event follow-up",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "event_participation",
+      "trigger": "The event owner records completion",
+      "steps": [
+        "Request attendance confirmation",
+        "collect debrief/survey",
+        "assign follow-up",
+        "route future invitation only if eligible"
+      ],
+      "editable": "Questions, cadence, follow-up owner",
+      "protected": "Attendance alone does not authorize marketing or certify training",
+      "evidence": "Source attendance, debrief, next-action decision",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-12-01",
+        "T-GEN-12-02",
+        "T-GEN-12-03"
+      ]
+    },
+    {
+      "id": "GEN-13",
+      "title": "Shared-inbox routing",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "conversation",
+      "trigger": "Support Hub accepts a conversation",
+      "steps": [
+        "Match permitted routing facts",
+        "assign eligible team/owner or explicit unassigned queue",
+        "create source-owned response task"
+      ],
+      "editable": "Topic/language/source-safe CRM conditions, team, fallback",
+      "protected": "No second inbox, broad sender auto-create, or assignment-derived access",
+      "evidence": "Source conversation and assignment outcome",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-13-01",
+        "T-GEN-13-02",
+        "T-GEN-13-03"
+      ]
+    },
+    {
+      "id": "GEN-14",
+      "title": "Support acknowledgment",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "conversation",
+      "trigger": "Support Hub accepts an acknowledgment-eligible conversation",
+      "steps": [
+        "Check source loop/auto-submitted guards",
+        "request approved acknowledgment",
+        "retain conversation task independently"
+      ],
+      "editable": "Business-hours wording, response expectation, approved sender",
+      "protected": "No autoresponder loops; not every inbound message deserves acknowledgment",
+      "evidence": "Source eligibility, communication intent and thread correlation",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-14-01",
+        "T-GEN-14-02",
+        "T-GEN-14-03"
+      ]
+    },
+    {
+      "id": "GEN-15",
+      "title": "Support response-target escalation",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "support_target",
+      "trigger": "Support owner records an approaching or breached target",
+      "steps": [
+        "Observe source business clock",
+        "remind eligible owner",
+        "escalate through approved team route",
+        "stop when source target is satisfied"
+      ],
+      "editable": "Native target policy, calendar, eligible escalation roles",
+      "protected": "Studio must not create a parallel SLA clock or suppress required source attention",
+      "evidence": "Source target occurrence and response result",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-15-01",
+        "T-GEN-15-02",
+        "T-GEN-15-03"
+      ]
+    },
+    {
+      "id": "GEN-16",
+      "title": "Waiting-on-requester and reopen",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "conversation_transition",
+      "trigger": "Support owner accepts waiting/snooze/reply transition",
+      "steps": [
+        "Apply source-supported follow-up",
+        "wait on source reply",
+        "preserve or reassign eligible owner",
+        "resume source work"
+      ],
+      "editable": "Follow-up interval within policy, reminder maximum, eligible owner",
+      "protected": "A reply or snooze is not resolution; old queued reminders must be fenced",
+      "evidence": "Source conversation transition and accepted follow-up",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-16-01",
+        "T-GEN-16-02",
+        "T-GEN-16-03"
+      ]
+    },
+    {
+      "id": "GEN-17",
+      "title": "Department handoff",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "support_handoff",
+      "trigger": "Support Hub accepts a transfer request",
+      "steps": [
+        "Prepare permitted internal context",
+        "assign receiving team",
+        "request acknowledgment",
+        "retain accountability until accepted"
+      ],
+      "editable": "Receiving role, checklist, response time",
+      "protected": "Internal notes cannot be delivered as customer messages; no automatic broad record sharing",
+      "evidence": "Source transfer and receiving-owner acknowledgment",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-17-01",
+        "T-GEN-17-02",
+        "T-GEN-17-03"
+      ]
+    },
+    {
+      "id": "GEN-18",
+      "title": "Sensitive conversation routing",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "sensitive_handoff",
+      "trigger": "Support classification owner identifies restricted subject matter",
+      "steps": [
+        "Route into source-authorized restricted area",
+        "issue only approved safe acknowledgment",
+        "remove ordinary queue exposure as source permits"
+      ],
+      "editable": "Authorized destination and nonrevealing message",
+      "protected": "Care content and existence cannot leak to ordinary support staff or reports",
+      "evidence": "Opaque accepted restricted handoff",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-18-01",
+        "T-GEN-18-02",
+        "T-GEN-18-03"
+      ]
+    },
+    {
+      "id": "GEN-19",
+      "title": "Donor/account service request",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "service_case",
+      "trigger": "Support source opens a verified service case",
+      "steps": [
+        "Collect minimum source facts",
+        "request authorized financial/identity operation",
+        "wait for exact source result",
+        "communicate permitted outcome"
+      ],
+      "editable": "Intake questions, owner and approved messages",
+      "protected": "No generic task-approved refund, recurring restart, or identity change",
+      "evidence": "Verified request and independently authorized source outcome",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-19-01",
+        "T-GEN-19-02",
+        "T-GEN-19-03"
+      ]
+    },
+    {
+      "id": "GEN-20",
+      "title": "Quarantine and inbound/delivery recovery",
+      "pack": "GEN",
+      "persona": "Small-team staff member wearing several hats",
+      "customization": "editable_workflow",
+      "subject": "support_attention",
+      "trigger": "Support source records quarantine or delivery failure",
+      "steps": [
+        "Assign safe review",
+        "inspect source-allowed evidence",
+        "request source recovery",
+        "confirm conversation/communication outcome"
+      ],
+      "editable": "Responsible team, urgency within source rules",
+      "protected": "No silent message deletion, internal-note leak, raw provider replay or loop bypass",
+      "evidence": "Source review/recovery and separately recorded message state",
+      "dependencies": [
+        "crm",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-GEN-20-01",
+        "T-GEN-20-02",
+        "T-GEN-20-03"
+      ]
+    },
+    {
+      "id": "DON-01",
+      "title": "First organization gift welcome",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "contribution",
+      "trigger": "Contribution owner certifies a first qualifying organizational gift",
+      "steps": [
+        "Confirm source first-gift fact",
+        "resolve donor-care owner",
+        "request purpose-approved welcome",
+        "create personal follow-up",
+        "record confirmed outcomes"
+      ],
+      "editable": "Welcome publication, follow-up owner/due date, approved channels",
+      "protected": "No inference from incomplete import history; official receipt remains independent",
+      "evidence": "Qualifying contribution and first-gift fact, source communication, task result",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-01-01",
+        "T-DON-01-02",
+        "T-DON-01-03"
+      ]
+    },
+    {
+      "id": "DON-02",
+      "title": "First designation gift introduction",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "contribution",
+      "trigger": "Contribution owner certifies first qualifying gift to a designation",
+      "steps": [
+        "Resolve designation-safe recipient context",
+        "coordinate ministry introduction and staff/missionary task",
+        "suppress duplicate purposes"
+      ],
+      "editable": "Designation content, responsible role, cadence",
+      "protected": "Anonymous identity and restricted-worker aliases remain protected",
+      "evidence": "Source designation-first fact and permitted recipient projection",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-02-01",
+        "T-DON-02-02",
+        "T-DON-02-03"
+      ]
+    },
+    {
+      "id": "DON-03",
+      "title": "Threshold or special-gift follow-up",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "contribution",
+      "trigger": "A qualifying source contribution meets explicit criteria",
+      "steps": [
+        "Compare same-currency approved amount basis",
+        "create personal acknowledgment task",
+        "notify eligible relationship owner"
+      ],
+      "editable": "Currency threshold, inclusive boundary, owner, timing",
+      "protected": "No cross-currency scalar or inferred donor intent",
+      "evidence": "Source amount/currency and task acknowledgment",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-03-01",
+        "T-DON-03-02",
+        "T-DON-03-03"
+      ]
+    },
+    {
+      "id": "DON-04",
+      "title": "Anonymous-gift awareness",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "contribution",
+      "trigger": "A qualifying contribution is source-labeled anonymous",
+      "steps": [
+        "Request privacy-safe summary",
+        "notify authorized staff/missionary according to purpose",
+        "optionally create non-identifying task"
+      ],
+      "editable": "Whether to notify, grouping, authorized recipients",
+      "protected": "Donor identity cannot appear in public/missionary payload, task, URL, or trace",
+      "evidence": "Source anonymity projection and requested summary",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-04-01",
+        "T-DON-04-02",
+        "T-DON-04-03"
+      ]
+    },
+    {
+      "id": "DON-05",
+      "title": "Tribute acknowledgment",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "recognition_occurrence",
+      "trigger": "Recognition owner records tribute audience eligibility",
+      "steps": [
+        "Review required recipient information",
+        "prepare purpose-specific acknowledgment",
+        "request permitted delivery",
+        "resolve missing details"
+      ],
+      "editable": "Wording, source-permitted recipients, delivery preference",
+      "protected": "Legal donor and tribute recipient are different; no inappropriate tax receipt",
+      "evidence": "Recognition source and delivery result",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-05-01",
+        "T-DON-05-02",
+        "T-DON-05-03"
+      ]
+    },
+    {
+      "id": "DON-06",
+      "title": "DAF and soft-credit stewardship",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "recognition_occurrence",
+      "trigger": "Recognition source records a DAF/soft-credit occurrence",
+      "steps": [
+        "Resolve relationship follow-up audience",
+        "assign thank-you/cultivation work",
+        "request approved nonreceipt message"
+      ],
+      "editable": "Owner, wording, cadence",
+      "protected": "Recognition does not rewrite legal donor or receipt eligibility",
+      "evidence": "Source recognition refs and recorded outreach",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-06-01",
+        "T-DON-06-02",
+        "T-DON-06-03"
+      ]
+    },
+    {
+      "id": "DON-07",
+      "title": "Matching-gift follow-up",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "matching_case",
+      "trigger": "The owner opens an eligible matching-gift case",
+      "steps": [
+        "Collect employer/source details",
+        "request evidence",
+        "review submission",
+        "track source accepted match outcome"
+      ],
+      "editable": "Questions, owner, follow-up dates",
+      "protected": "No match money before source posted contribution or source-qualified completion",
+      "evidence": "Match evidence, reviewed case result, posted contribution links if any",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-07-01",
+        "T-DON-07-02",
+        "T-DON-07-03"
+      ]
+    },
+    {
+      "id": "DON-08",
+      "title": "Refund or correction communication",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "financial_service_case",
+      "trigger": "The financial owner confirms a correction/refund outcome",
+      "steps": [
+        "Observe exact outcome",
+        "request authorized donor communication",
+        "assign any remaining service work"
+      ],
+      "editable": "Approved content and owner",
+      "protected": "No workflow-controlled refund, legal-donor change, or invented completion",
+      "evidence": "Confirmed source outcome and communication purpose identity",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-08-01",
+        "T-DON-08-02",
+        "T-DON-08-03"
+      ]
+    },
+    {
+      "id": "DON-09",
+      "title": "New recurring commitment orientation",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "recurring_commitment",
+      "trigger": "Recurring owner records a new authorized commitment",
+      "steps": [
+        "Observe source terms and communication eligibility",
+        "create approved staff follow-up",
+        "request orientation only if not already owned by source"
+      ],
+      "editable": "Content within source contract, owner, optional follow-up",
+      "protected": "No duplicate state notice, payment retry, or claim that scheduled means received",
+      "evidence": "Source commitment transition and separate received-gift facts",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Only source-owned recurring/pledge eligibility and timing; optional Studio reminders are off unless the owner explicitly permits them.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-09-01",
+        "T-DON-09-02",
+        "T-DON-09-03"
+      ]
+    },
+    {
+      "id": "DON-10",
+      "title": "Recurring occurrence attention",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "recurring_occurrence",
+      "trigger": "Recurring owner records a named health/occurrence transition",
+      "steps": [
+        "Observe source recovery policy",
+        "assign eligible donor-service task",
+        "request only permitted supplementary follow-up",
+        "await source result"
+      ],
+      "editable": "Staff routing and permitted escalation",
+      "protected": "No second dunning/retry sequence; pause is not failure; absent gift is not debt",
+      "evidence": "Exact occurrence transition, source eligibility and recovery result",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Only source-owned recurring/pledge eligibility and timing; optional Studio reminders are off unless the owner explicitly permits them.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-10-01",
+        "T-DON-10-02",
+        "T-DON-10-03"
+      ]
+    },
+    {
+      "id": "DON-11",
+      "title": "Recurring pause or end follow-up",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "recurring_transition",
+      "trigger": "Recurring owner accepts pause/skip/cancel/resume/end transition",
+      "steps": [
+        "Route appropriate staff awareness",
+        "coordinate requested assistance",
+        "observe source-authorized successor where relevant"
+      ],
+      "editable": "Optional relationship follow-up and approved wording",
+      "protected": "Canceled authority cannot be resurrected; restart needs fresh authorization",
+      "evidence": "Exact source lifecycle transition",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Only source-owned recurring/pledge eligibility and timing; optional Studio reminders are off unless the owner explicitly permits them.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-11-01",
+        "T-DON-11-02",
+        "T-DON-11-03"
+      ]
+    },
+    {
+      "id": "DON-12",
+      "title": "Fixed-pledge milestones",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "pledge_occurrence",
+      "trigger": "Pledge owner records explicit reminder enrollment or fulfillment milestone",
+      "steps": [
+        "Observe eligible milestone",
+        "send only source-allowed reminder/acknowledgment",
+        "create staff task if needed"
+      ],
+      "editable": "Narrow or disable source reminder policy, owner, approved wording",
+      "protected": "Reminder program remains opt-in/off by default and within source maximum",
+      "evidence": "Pledge fulfillment/eligibility evidence",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Only source-owned recurring/pledge eligibility and timing; optional Studio reminders are off unless the owner explicitly permits them.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-12-01",
+        "T-DON-12-02",
+        "T-DON-12-03"
+      ]
+    },
+    {
+      "id": "DON-13",
+      "title": "Contribution inactivity review",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "relationship_review",
+      "trigger": "Source semantic report identifies a completeness-qualified inactivity cohort",
+      "steps": [
+        "Freeze permitted cohort",
+        "exclude contact restrictions",
+        "assign human relationship review",
+        "request consented outreach where appropriate"
+      ],
+      "editable": "Lookback scope, review owner, cooldown, eligible message",
+      "protected": "No person-level lapsed label or override of recurring source health",
+      "evidence": "Report basis/coverage, consent decision, review outcome",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-13-01",
+        "T-DON-13-02",
+        "T-DON-13-03"
+      ]
+    },
+    {
+      "id": "DON-14",
+      "title": "Cultivation stages and next actions",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "cultivation_enrollment",
+      "trigger": "Development owner accepts enrollment or stage transition",
+      "steps": [
+        "Assign next action",
+        "require relevant information",
+        "review stage aging",
+        "escalate missing next action"
+      ],
+      "editable": "Allowed stage preset, task cadence, owner",
+      "protected": "Stage is not access, legal donor, commitment, or money truth",
+      "evidence": "Source stage transition and next task",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-14-01",
+        "T-DON-14-02",
+        "T-DON-14-03"
+      ]
+    },
+    {
+      "id": "DON-15",
+      "title": "Ask/proposal and appeal coordination",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "development_case",
+      "trigger": "Development owner opens a proposal or approved appeal cohort",
+      "steps": [
+        "Prepare supporting facts",
+        "request required human review",
+        "assign outreach",
+        "observe source responses",
+        "schedule stewardship"
+      ],
+      "editable": "Source-permitted reviewer routing, audience filters, cadence",
+      "protected": "Never-ask/contact restrictions and explicit currency/entity remain binding",
+      "evidence": "Exact proposal/appeal approval and source response",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-15-01",
+        "T-DON-15-02",
+        "T-DON-15-03"
+      ]
+    },
+    {
+      "id": "DON-16",
+      "title": "Church relationship and milestone review",
+      "pack": "DON",
+      "persona": "Donor services and development staff",
+      "customization": "configured_automation",
+      "subject": "partner_review",
+      "trigger": "A church partnership or permitted anniversary review becomes due",
+      "steps": [
+        "Prepare source-safe relationship brief",
+        "assign personal contact",
+        "record next action and agreed responsibilities"
+      ],
+      "editable": "Milestone choice, contact owner, questions, cadence",
+      "protected": "Relationship milestones do not supply permission or marketing consent",
+      "evidence": "Reviewed relationship facts and next-action record",
+      "dependencies": [
+        "contributions",
+        "crm",
+        "recognition",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-DON-16-01",
+        "T-DON-16-02",
+        "T-DON-16-03"
+      ]
+    },
+    {
+      "id": "MOB-01",
+      "title": "Inquiry through discovery",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "application_inquiry",
+      "trigger": "Mobilization intake accepts an inquiry",
+      "steps": [
+        "Assign coordinator",
+        "acknowledge receipt",
+        "schedule discovery",
+        "record proceed/follow-up/refer/close outcome"
+      ],
+      "editable": "Program routes, coordinator, questions, response targets",
+      "protected": "No automatic missionary membership from inquiry",
+      "evidence": "Discovery submission and source disposition",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-01-01",
+        "T-MOB-01-02",
+        "T-MOB-01-03"
+      ]
+    },
+    {
+      "id": "MOB-02",
+      "title": "Application submission and review",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "application",
+      "trigger": "A new application engagement is accepted",
+      "steps": [
+        "Invite participant",
+        "collect versioned form",
+        "allow save/resume",
+        "request corrections",
+        "review complete submission"
+      ],
+      "editable": "Fields, conditional sections, coordinator, reminders",
+      "protected": "Answers map only to permitted application/CRM fields; no overwrite of history",
+      "evidence": "Exact form and accepted submission versions",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-02-01",
+        "T-MOB-02-02",
+        "T-MOB-02-03"
+      ]
+    },
+    {
+      "id": "MOB-03",
+      "title": "Reference collection",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "reference_requirement",
+      "trigger": "Application owner issues reference requirements",
+      "steps": [
+        "Collect nominees",
+        "qualify category and contact purpose",
+        "send scoped requests",
+        "collect questionnaires",
+        "review required category/quantity evidence"
+      ],
+      "editable": "Questionnaires, required categories/count, reminder cadence",
+      "protected": "Required church reference cannot be replaced by arbitrary any-two; restricted data stays sealed",
+      "evidence": "Accepted reference evidence per required category",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-03-01",
+        "T-MOB-03-02",
+        "T-MOB-03-03"
+      ]
+    },
+    {
+      "id": "MOB-04",
+      "title": "Interviews and assessments",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "interview_requirement",
+      "trigger": "The approved plan requires interviews",
+      "steps": [
+        "Assign eligible interviewers",
+        "schedule tasks",
+        "conduct interviews",
+        "submit assessments",
+        "request authorized review"
+      ],
+      "editable": "Interview kinds, parallel/sequence order, forms, deadlines",
+      "protected": "Calendar end is not completed interview; assignment grants no extra record access",
+      "evidence": "Interview occurrence and accepted assessment versions",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-04-01",
+        "T-MOB-04-02",
+        "T-MOB-04-03"
+      ]
+    },
+    {
+      "id": "MOB-05",
+      "title": "Screening coordination",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "screening_requirement",
+      "trigger": "Application source issues a screening requirement",
+      "steps": [
+        "Obtain required source consent",
+        "request certified/manual screening",
+        "route result to authorized reviewer",
+        "observe source clearance"
+      ],
+      "editable": "Eligible reviewer, required evidence, reminders",
+      "protected": "No AI approval, public clinical upload, or unqualified screening provider",
+      "evidence": "Source screening determination without private contents in workflow state",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-05-01",
+        "T-MOB-05-02",
+        "T-MOB-05-03"
+      ]
+    },
+    {
+      "id": "MOB-06",
+      "title": "Decision and conditional acceptance",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "application_decision",
+      "trigger": "Application is ready for authorized decision",
+      "steps": [
+        "Prepare evidence bundle",
+        "request required human approval",
+        "record acceptance/conditions/deferral/decline",
+        "release permitted communication"
+      ],
+      "editable": "Decision roles within policy, condition tasks, wording",
+      "protected": "No task checkbox, elapsed timer, or broad admin bypass of decision authority",
+      "evidence": "Exact decision and approved conditions",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-06-01",
+        "T-MOB-06-02",
+        "T-MOB-06-03"
+      ]
+    },
+    {
+      "id": "MOB-07",
+      "title": "Appointment agreements",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "appointment",
+      "trigger": "The source records accepted appointment terms",
+      "steps": [
+        "Prepare versioned documents",
+        "request required signers",
+        "verify qualified signature evidence",
+        "resolve document replacement"
+      ],
+      "editable": "Document sets, signer routing, dates",
+      "protected": "Acceptance is not signing; superseded document signatures do not qualify",
+      "evidence": "Current agreement and signer evidence",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-07-01",
+        "T-MOB-07-02",
+        "T-MOB-07-03"
+      ]
+    },
+    {
+      "id": "MOB-08",
+      "title": "Account and operational setup",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "onboarding_case",
+      "trigger": "A source-approved appointment permits onboarding",
+      "steps": [
+        "Request identity/account setup",
+        "route finance/operations tasks",
+        "confirm source outcomes",
+        "hand off to receiving owner"
+      ],
+      "editable": "Checklist, departments, due dates",
+      "protected": "No direct account grants, Field Account creation, financial succession, or permission from template role",
+      "evidence": "Identity/operations source outcomes and accepted handoff",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-08-01",
+        "T-MOB-08-02",
+        "T-MOB-08-03"
+      ]
+    },
+    {
+      "id": "MOB-09",
+      "title": "Training and orientation",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "training_plan",
+      "trigger": "Appointment source assigns preparation requirements",
+      "steps": [
+        "Assign required courses/resources",
+        "collect submissions",
+        "request instructor assessment",
+        "review permitted prior learning"
+      ],
+      "editable": "Curriculum, prerequisites, instructor, deadlines",
+      "protected": "Attendance/acknowledgment is not certified completion; nonwaivable rules remain",
+      "evidence": "Accepted completion or independently authorized waiver evidence",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-09-01",
+        "T-MOB-09-02",
+        "T-MOB-09-03"
+      ]
+    },
+    {
+      "id": "MOB-10",
+      "title": "Final readiness and handoff",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "readiness_case",
+      "trigger": "Required onboarding lanes have source-qualified evidence",
+      "steps": [
+        "Recheck current required evidence",
+        "obtain final authorized readiness decision",
+        "request receiving-team acknowledgment",
+        "publish participant-safe milestone"
+      ],
+      "editable": "Optional checklist and receiving role",
+      "protected": "Accepted, onboarded, ready, and deployed remain distinct source milestones",
+      "evidence": "Final readiness approval and receiving-owner acknowledgment",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-10-01",
+        "T-MOB-10-02",
+        "T-MOB-10-03"
+      ]
+    },
+    {
+      "id": "MOB-11",
+      "title": "Hold, withdrawal, and reapplication",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "application_lifecycle",
+      "trigger": "An authorized participant/staff lifecycle request is accepted",
+      "steps": [
+        "Apply source disposition",
+        "cancel optional future requests safely",
+        "handle clocks",
+        "revoke limited links",
+        "open new application for reapplication"
+      ],
+      "editable": "Pauseable reminder settings, owner, approved messages",
+      "protected": "Completed history and grants remain source-owned; withdrawal is not delete",
+      "evidence": "Source lifecycle outcome and explicit new application lineage",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-11-01",
+        "T-MOB-11-02",
+        "T-MOB-11-03"
+      ]
+    },
+    {
+      "id": "MOB-12",
+      "title": "Individual plan amendment",
+      "pack": "MOB",
+      "persona": "Mobilization staff, interviewers, and trainers",
+      "customization": "editable_workflow",
+      "subject": "application",
+      "trigger": "Authorized staff requests case-specific variation",
+      "steps": [
+        "Prepare impact preflight",
+        "validate added/removed requirements",
+        "obtain required review",
+        "apply new plan revision",
+        "notify permitted participants"
+      ],
+      "editable": "Eligible extra steps, owner, deadline, permitted waivers",
+      "protected": "No retroactive erase, duplicate sends, or weakening of nonwaivable requirements",
+      "evidence": "Approved amendment digest, evidence coverage and future-work changes",
+      "dependencies": [
+        "mobilization",
+        "crm",
+        "identity",
+        "tasks",
+        "forms",
+        "documents",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MOB-12-01",
+        "T-MOB-12-02",
+        "T-MOB-12-03"
+      ]
+    },
+    {
+      "id": "FIN-01",
+      "title": "Offline gift/batch exception follow-up",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "contribution_exception",
+      "trigger": "Contribution owner records a batch or gift exception",
+      "steps": [
+        "Assign finance reviewer",
+        "request missing source information",
+        "open native correction",
+        "verify source resolution"
+      ],
+      "editable": "Owner, reminders, exception urgency within policy",
+      "protected": "No raw money edits, fake donor identity, or automatic posting",
+      "evidence": "Exact exception and accepted source correction",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-01-01",
+        "T-FIN-01-02",
+        "T-FIN-01-03"
+      ]
+    },
+    {
+      "id": "FIN-02",
+      "title": "Receipt/statement delivery remediation",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "document_delivery_case",
+      "trigger": "Document/communication owner records a failure",
+      "steps": [
+        "Inspect source eligibility/current artifact",
+        "request compatible source retry or destination correction",
+        "verify separate outcomes"
+      ],
+      "editable": "Review owner, allowed delivery preferences",
+      "protected": "No regenerated legal facts or duplicated official document",
+      "evidence": "Current artifact plus source delivery/exception result",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-02-01",
+        "T-FIN-02-02",
+        "T-FIN-02-03"
+      ]
+    },
+    {
+      "id": "FIN-03",
+      "title": "Year-end statement operations coordination",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "statement_run",
+      "trigger": "Finance creates an authorized statement-run request",
+      "steps": [
+        "Prepare native source preflight",
+        "assign review tasks",
+        "use source release",
+        "coordinate paper work and exceptions"
+      ],
+      "editable": "Native profile settings, eligible recipients, staffing checklist",
+      "protected": "Studio cannot freeze population, change totals, or own the source run schedule",
+      "evidence": "Statement source run, item-authoritative outcomes, separate fulfillment",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-03-01",
+        "T-FIN-03-02",
+        "T-FIN-03-03"
+      ]
+    },
+    {
+      "id": "FIN-04",
+      "title": "Accounting handoff review",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "accounting_case",
+      "trigger": "Accounting owner marks a source package ready for review",
+      "steps": [
+        "Assign authorized review",
+        "inspect exact native preflight",
+        "request permitted release",
+        "observe source/provider outcome"
+      ],
+      "editable": "Checklist, authorized owner, notifications",
+      "protected": "No arbitrary journal, provider replay, or Studio-created release",
+      "evidence": "Source-approved release and independently recorded delivery outcome",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-04-01",
+        "T-FIN-04-02",
+        "T-FIN-04-03"
+      ]
+    },
+    {
+      "id": "FIN-05",
+      "title": "Reconciliation investigation",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "reconciliation_case",
+      "trigger": "Accounting owner records a discrepancy",
+      "steps": [
+        "Gather allowed references",
+        "assign investigator",
+        "coordinate source correction",
+        "verify source-accepted disposition"
+      ],
+      "editable": "Owner, evidence request, escalation",
+      "protected": "Task complete is not bank/QBO/Xero reconciliation",
+      "evidence": "Source discrepancy and accepted resolution",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-05-01",
+        "T-FIN-05-02",
+        "T-FIN-05-03"
+      ]
+    },
+    {
+      "id": "FIN-06",
+      "title": "Support cycle close preparation",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "support_cycle",
+      "trigger": "Field Account owner creates a cycle review occurrence",
+      "steps": [
+        "Notify eligible finance role",
+        "gather source exceptions",
+        "request native review/close",
+        "observe source-completed close"
+      ],
+      "editable": "Native cadence and reviewer notification",
+      "protected": "No close from checklist, no recomputed balance, no silent currency conversion",
+      "evidence": "Finance-closed source cycle and exact through-date",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-06-01",
+        "T-FIN-06-02",
+        "T-FIN-06-03"
+      ]
+    },
+    {
+      "id": "FIN-07",
+      "title": "Support plan review",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "support_plan",
+      "trigger": "Source opens a Support Plan version for review",
+      "steps": [
+        "Collect supporting data",
+        "request authorized review",
+        "publish approved source projection if permitted",
+        "alert coaching only through allowed bridge"
+      ],
+      "editable": "Reviewer within contract, checklist, dates",
+      "protected": "Fundraising goal, balance, compensation, and plan remain separate",
+      "evidence": "Source-approved Plan Version and projection consent",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-07-01",
+        "T-FIN-07-02",
+        "T-FIN-07-03"
+      ]
+    },
+    {
+      "id": "FIN-08",
+      "title": "Expense evidence follow-up",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "expense_exception",
+      "trigger": "Expense owner records missing or insufficient evidence",
+      "steps": [
+        "Mirror source follow-up task",
+        "request exact evidence through owner",
+        "observe claimant response and source review",
+        "stop on resolved source requirement"
+      ],
+      "editable": "Notification routing and bounded reminder policy only",
+      "protected": "No choosing protected reviewer, auto approval, claimant fact authoring, or custom financial case state",
+      "evidence": "Exact claim/evidence version and source resolution decision",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-08-01",
+        "T-FIN-08-02",
+        "T-FIN-08-03"
+      ]
+    },
+    {
+      "id": "FIN-09",
+      "title": "Expense review coordination",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "expense_claim",
+      "trigger": "Expense owner accepts a submitted claim needing review",
+      "steps": [
+        "Open source finite review route",
+        "notify assigned eligible reviewer",
+        "coordinate missing information",
+        "observe source decision"
+      ],
+      "editable": "Native source review settings and permitted notifications",
+      "protected": "Self/AI/timeout/automatic approval prohibited; report task does not approve every claim",
+      "evidence": "Source assignment snapshot and claim-level decision",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-09-01",
+        "T-FIN-09-02",
+        "T-FIN-09-03"
+      ]
+    },
+    {
+      "id": "FIN-10",
+      "title": "Advance and reimbursement follow-up",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "finance_obligation",
+      "trigger": "Source records an advance/obligation requiring attention",
+      "steps": [
+        "Gather source-qualified supporting evidence",
+        "route authorized finance task",
+        "observe settlement/payment coverage from source"
+      ],
+      "editable": "Responsible team and follow-up wording",
+      "protected": "No payment execution, assumed settlement, or treating missed amount as collectible debt",
+      "evidence": "Source obligation, settlement and external-payment evidence",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-10-01",
+        "T-FIN-10-02",
+        "T-FIN-10-03"
+      ]
+    },
+    {
+      "id": "FIN-11",
+      "title": "Uncertain external handoff investigation",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "provider_operation",
+      "trigger": "Finance provider owner records outcome unknown",
+      "steps": [
+        "Quarantine duplicate execution",
+        "assign investigator",
+        "request source readback",
+        "resolve confirmed/non-applied/unknown coverage"
+      ],
+      "editable": "Operational owner and alert urgency",
+      "protected": "No blind retry, provider switching, assumed paid, or timer release of reserved coverage",
+      "evidence": "Exact source/provider reconciliation outcome",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-11-01",
+        "T-FIN-11-02",
+        "T-FIN-11-03"
+      ]
+    },
+    {
+      "id": "FIN-12",
+      "title": "Worker/designation retirement coordination",
+      "pack": "FIN",
+      "persona": "Finance staff",
+      "customization": "protected_coordination",
+      "subject": "financial_exit",
+      "trigger": "Source accepts a governed exit or retirement case",
+      "steps": [
+        "Review source succession requirements",
+        "assign donor service and records tasks",
+        "request independently authorized recurring/financial changes",
+        "verify source outcomes"
+      ],
+      "editable": "Checklist, owners, communication routing",
+      "protected": "No automatic money redirection, canceled-donor authorization revival, hold release, or record disposal",
+      "evidence": "Source exit manifest and independently accepted downstream decisions",
+      "dependencies": [
+        "finance",
+        "contributions",
+        "tasks",
+        "messages",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-FIN-12-01",
+        "T-FIN-12-02",
+        "T-FIN-12-03"
+      ]
+    },
+    {
+      "id": "MPD-01",
+      "title": "Gift-driven missionary thank-you",
+      "pack": "MPD",
+      "persona": "Missionaries and coaches",
+      "customization": "configured_automation",
+      "subject": "contribution",
+      "trigger": "Contribution source qualifies missionary follow-up",
+      "steps": [
+        "Obtain permitted supporter projection",
+        "create one source-purpose thank-you task",
+        "coordinate with organization donor care",
+        "record interaction"
+      ],
+      "editable": "Eligible gift situations, due date, grouping preference",
+      "protected": "No anonymous-donor disclosure or duplicated organization message",
+      "evidence": "Source gift purpose and shared interaction/task outcome",
+      "dependencies": [
+        "missionary-workspace",
+        "development",
+        "crm",
+        "tasks",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MPD-01-01",
+        "T-MPD-01-02",
+        "T-MPD-01-03"
+      ]
+    },
+    {
+      "id": "MPD-02",
+      "title": "Supporter outreach sequence",
+      "pack": "MPD",
+      "persona": "Missionaries and coaches",
+      "customization": "configured_automation",
+      "subject": "cultivation_enrollment",
+      "trigger": "Development source enrolls a permitted prospect",
+      "steps": [
+        "Set next action",
+        "request appointment follow-up",
+        "record source outcome",
+        "stop on terminal/suppressed state"
+      ],
+      "editable": "Organization-approved preset, cadence, questions",
+      "protected": "Never-ask/current consent and relationship visibility remain binding",
+      "evidence": "Source stage and next-action record",
+      "dependencies": [
+        "missionary-workspace",
+        "development",
+        "crm",
+        "tasks",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MPD-02-01",
+        "T-MPD-02-02",
+        "T-MPD-02-03"
+      ]
+    },
+    {
+      "id": "MPD-03",
+      "title": "Referral follow-up",
+      "pack": "MPD",
+      "persona": "Missionaries and coaches",
+      "customization": "configured_automation",
+      "subject": "referral",
+      "trigger": "A permitted supporter referral is recorded",
+      "steps": [
+        "Verify purpose and relationship scope",
+        "assign contact task",
+        "log outcome",
+        "expire unpursued referral by source rule"
+      ],
+      "editable": "Cadence, owner, approved questions",
+      "protected": "Referral does not grant broad CRM enumeration or newsletter consent",
+      "evidence": "Referral source, eligibility and interaction outcome",
+      "dependencies": [
+        "missionary-workspace",
+        "development",
+        "crm",
+        "tasks",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MPD-03-01",
+        "T-MPD-03-02",
+        "T-MPD-03-03"
+      ]
+    },
+    {
+      "id": "MPD-04",
+      "title": "Coaching check-in",
+      "pack": "MPD",
+      "persona": "Missionaries and coaches",
+      "customization": "configured_automation",
+      "subject": "coaching_occurrence",
+      "trigger": "A tenant-approved coaching occurrence becomes due",
+      "steps": [
+        "Request short qualitative/activity report",
+        "share approved redacted projection with coach",
+        "obtain feedback",
+        "record next agreed action"
+      ],
+      "editable": "Cadence, questions, eligible coach, agreed targets",
+      "protected": "Coach access is explicit and redacted; no raw supporter/care detail",
+      "evidence": "Check-in version, coaching feedback and next action",
+      "dependencies": [
+        "missionary-workspace",
+        "development",
+        "crm",
+        "tasks",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MPD-04-01",
+        "T-MPD-04-02",
+        "T-MPD-04-03"
+      ]
+    },
+    {
+      "id": "MPD-05",
+      "title": "Goal/plan compare and review",
+      "pack": "MPD",
+      "persona": "Missionaries and coaches",
+      "customization": "configured_automation",
+      "subject": "support_goal_review",
+      "trigger": "Approved source goal or plan version changes",
+      "steps": [
+        "Show authorized comparison",
+        "request human goal review",
+        "optionally create new source Goal Version with provenance"
+      ],
+      "editable": "Review timing and coaching owner",
+      "protected": "No live synchronization of finance Plan, goal, commitment, balance or compensation",
+      "evidence": "Explicit source goal decision and provenance",
+      "dependencies": [
+        "missionary-workspace",
+        "development",
+        "crm",
+        "tasks",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MPD-05-01",
+        "T-MPD-05-02",
+        "T-MPD-05-03"
+      ]
+    },
+    {
+      "id": "MPD-06",
+      "title": "Named support attention review",
+      "pack": "MPD",
+      "persona": "Missionaries and coaches",
+      "customization": "configured_automation",
+      "subject": "support_attention",
+      "trigger": "Source recurring/commitment owner issues a qualified attention event",
+      "steps": [
+        "Create permitted relationship task",
+        "review exact occurrence context",
+        "request approved follow-up only",
+        "await source result"
+      ],
+      "editable": "Task owner and permitted cadence",
+      "protected": "No person-level lapsed label, inferred debt or second dunning sequence",
+      "evidence": "Source occurrence/health transition and task outcome",
+      "dependencies": [
+        "missionary-workspace",
+        "development",
+        "crm",
+        "tasks",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MPD-06-01",
+        "T-MPD-06-02",
+        "T-MPD-06-03"
+      ]
+    },
+    {
+      "id": "MPD-07",
+      "title": "Personal appeal milestone and close",
+      "pack": "MPD",
+      "persona": "Missionaries and coaches",
+      "customization": "configured_automation",
+      "subject": "appeal",
+      "trigger": "Development source records an appeal milestone/end",
+      "steps": [
+        "Review authorized supporter response",
+        "assign acknowledgments",
+        "collect brief outcome review",
+        "set next steps"
+      ],
+      "editable": "Milestones, task cadence, allowed audience",
+      "protected": "Currency/entity basis and source permission remain fixed",
+      "evidence": "Source appeal outcome and acknowledged follow-up",
+      "dependencies": [
+        "missionary-workspace",
+        "development",
+        "crm",
+        "tasks",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MPD-07-01",
+        "T-MPD-07-02",
+        "T-MPD-07-03"
+      ]
+    },
+    {
+      "id": "MPD-08",
+      "title": "Ministry Update drafting reminder",
+      "pack": "MPD",
+      "persona": "Missionaries and coaches",
+      "customization": "configured_automation",
+      "subject": "ministry_update_cycle",
+      "trigger": "An approved communication cadence becomes due",
+      "steps": [
+        "Create draft task",
+        "provide permitted prompt/template",
+        "route submitted update to communications workflow",
+        "stop redundant reminders"
+      ],
+      "editable": "Cadence, author, optional editor",
+      "protected": "No automatic publication or raw donor email; communication remains source-owned",
+      "evidence": "Submitted update revision and handoff",
+      "dependencies": [
+        "missionary-workspace",
+        "development",
+        "crm",
+        "tasks",
+        "communications"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-MPD-08-01",
+        "T-MPD-08-02",
+        "T-MPD-08-03"
+      ]
+    },
+    {
+      "id": "COM-01",
+      "title": "Ministry Update editorial publication",
+      "pack": "COM",
+      "persona": "Communications and website staff",
+      "customization": "editable_workflow",
+      "subject": "content_revision",
+      "trigger": "Content owner accepts an update revision for review",
+      "steps": [
+        "Assign review",
+        "collect corrections",
+        "obtain source approval for exact revision",
+        "request publication",
+        "observe published state",
+        "request approved distribution"
+      ],
+      "editable": "Editors, review steps, schedule within source contract",
+      "protected": "Approval for an old revision cannot publish changed content; restricted visibility persists",
+      "evidence": "Exact revision, source approval, publication and distinct distribution outcome",
+      "dependencies": [
+        "cms",
+        "content",
+        "messages",
+        "communications",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-COM-01-01",
+        "T-COM-01-02",
+        "T-COM-01-03"
+      ]
+    },
+    {
+      "id": "COM-02",
+      "title": "Missionary/project page change",
+      "pack": "COM",
+      "persona": "Communications and website staff",
+      "customization": "editable_workflow",
+      "subject": "page_revision",
+      "trigger": "CMS owner records a permitted page proposal",
+      "steps": [
+        "Review content",
+        "request authorized amendments",
+        "perform safety review if required",
+        "request source publication"
+      ],
+      "editable": "Reviewer routing, checklist, approved wording",
+      "protected": "Public identity and operational identity remain distinct; no publication bypass",
+      "evidence": "Exact CMS revision and source publication decision",
+      "dependencies": [
+        "cms",
+        "content",
+        "messages",
+        "communications",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-COM-02-01",
+        "T-COM-02-02",
+        "T-COM-02-03"
+      ]
+    },
+    {
+      "id": "COM-03",
+      "title": "New page preparation",
+      "pack": "COM",
+      "persona": "Communications and website staff",
+      "customization": "editable_workflow",
+      "subject": "page_request",
+      "trigger": "Source records a ministry/project that may have a public page",
+      "steps": [
+        "Assign author",
+        "collect permitted biography/media",
+        "review draft",
+        "request source publication when allowed"
+      ],
+      "editable": "Template, author/reviewer, checklist",
+      "protected": "Source existence is not permission to disclose a restricted worker",
+      "evidence": "Approved source/public identity mapping and published revision",
+      "dependencies": [
+        "cms",
+        "content",
+        "messages",
+        "communications",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-COM-03-01",
+        "T-COM-03-02",
+        "T-COM-03-03"
+      ]
+    },
+    {
+      "id": "COM-04",
+      "title": "Restricted-worker content review",
+      "pack": "COM",
+      "persona": "Communications and website staff",
+      "customization": "editable_workflow",
+      "subject": "restricted_content_review",
+      "trigger": "Source content requires restricted-ministry review",
+      "steps": [
+        "Route only authorized reviewers",
+        "inspect source-safe content",
+        "record exact safety decision",
+        "request permitted publication"
+      ],
+      "editable": "Eligible reviewers and additional nonwaiving tasks",
+      "protected": "Mandatory safety checks cannot be removed; content and run existence are restricted",
+      "evidence": "Source safety determination and exact publication evidence",
+      "dependencies": [
+        "cms",
+        "content",
+        "messages",
+        "communications",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-COM-04-01",
+        "T-COM-04-02",
+        "T-COM-04-03"
+      ]
+    },
+    {
+      "id": "COM-05",
+      "title": "Translation and locale publication",
+      "pack": "COM",
+      "persona": "Communications and website staff",
+      "customization": "editable_workflow",
+      "subject": "translation_request",
+      "trigger": "Content owner requests a locale version",
+      "steps": [
+        "Assign translator",
+        "collect versioned translation",
+        "obtain locale review",
+        "request native locale publication"
+      ],
+      "editable": "Locales, translator/reviewer, dates",
+      "protected": "One locale publication does not imply all locales approved or alter identity/currency",
+      "evidence": "Exact translation and locale publication",
+      "dependencies": [
+        "cms",
+        "content",
+        "messages",
+        "communications",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-COM-05-01",
+        "T-COM-05-02",
+        "T-COM-05-03"
+      ]
+    },
+    {
+      "id": "COM-06",
+      "title": "Seasonal scheduling and stale-content review",
+      "pack": "COM",
+      "persona": "Communications and website staff",
+      "customization": "editable_workflow",
+      "subject": "content_review",
+      "trigger": "CMS schedule/review owner creates an occurrence",
+      "steps": [
+        "Prepare or review content",
+        "record authorized decision",
+        "request source schedule/retirement",
+        "verify native result"
+      ],
+      "editable": "Native dates, content classes, review owner",
+      "protected": "Studio cannot duplicate CMS scheduling or create another published flag",
+      "evidence": "Source schedule/review decision and publication state",
+      "dependencies": [
+        "cms",
+        "content",
+        "messages",
+        "communications",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-COM-06-01",
+        "T-COM-06-02",
+        "T-COM-06-03"
+      ]
+    },
+    {
+      "id": "COM-07",
+      "title": "Comment/media moderation",
+      "pack": "COM",
+      "persona": "Communications and website staff",
+      "customization": "editable_workflow",
+      "subject": "moderation_case",
+      "trigger": "Source moderation queue records a flag",
+      "steps": [
+        "Assign eligible reviewer",
+        "inspect safe source content",
+        "request permitted moderation outcome",
+        "notify where appropriate"
+      ],
+      "editable": "Routing, target response interval, approved notices",
+      "protected": "Malware/privacy protections remain mandatory; no AI-only harmful-content decision",
+      "evidence": "Source moderation outcome and separate notification",
+      "dependencies": [
+        "cms",
+        "content",
+        "messages",
+        "communications",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-COM-07-01",
+        "T-COM-07-02",
+        "T-COM-07-03"
+      ]
+    },
+    {
+      "id": "COM-08",
+      "title": "Page retirement and safe redirection",
+      "pack": "COM",
+      "persona": "Communications and website staff",
+      "customization": "editable_workflow",
+      "subject": "page_retirement",
+      "trigger": "Source lifecycle approves page retirement review",
+      "steps": [
+        "Review public wording and financial destination",
+        "request native archive/redirect only after owner approval",
+        "verify public-safe outcome"
+      ],
+      "editable": "Reviewer, checklist, approved explanation",
+      "protected": "No automatic designation or money redirection from content changes",
+      "evidence": "Source retirement/redirect decision and financial approval reference if required",
+      "dependencies": [
+        "cms",
+        "content",
+        "messages",
+        "communications",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-COM-08-01",
+        "T-COM-08-02",
+        "T-COM-08-03"
+      ]
+    },
+    {
+      "id": "COM-09",
+      "title": "Newsletter and welcome communications",
+      "pack": "COM",
+      "persona": "Communications and website staff",
+      "customization": "configured_automation",
+      "subject": "communication_campaign",
+      "trigger": "Source audience owner records valid topic enrollment or approved send request",
+      "steps": [
+        "Prepare governed publication",
+        "review permitted audience",
+        "request source-owned schedule/send",
+        "observe suppression and delivery",
+        "route replies to Support Hub"
+      ],
+      "editable": "Content, eligible audience filters, schedule through owner",
+      "protected": "Donation alone is not subscription consent; unsubscribes remain effective",
+      "evidence": "Source audience eligibility, exact publication, delivery and reply refs",
+      "dependencies": [
+        "cms",
+        "content",
+        "messages",
+        "communications",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-COM-09-01",
+        "T-COM-09-02",
+        "T-COM-09-03"
+      ]
+    },
+    {
+      "id": "COM-10",
+      "title": "Message/sender failure remediation",
+      "pack": "COM",
+      "persona": "Communications and website staff",
+      "customization": "configured_automation",
+      "subject": "communication_attention",
+      "trigger": "Message/connection owner records missing publication, bounce or sender failure",
+      "steps": [
+        "Route responsible editor/operator",
+        "open source correction",
+        "verify readiness",
+        "reconcile affected unsent intent"
+      ],
+      "editable": "Owner, urgency, approved checklist",
+      "protected": "No unsafe fallback sender, template, duplicate send or newsletter resubscribe",
+      "evidence": "Source readiness/suppression outcome and exact intent disposition",
+      "dependencies": [
+        "cms",
+        "content",
+        "messages",
+        "communications",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Source-owned timing wins; otherwise propose three business days, at most two optional outward reminders, and internal escalation. Tenant must approve concrete dates.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-COM-10-01",
+        "T-COM-10-02",
+        "T-COM-10-03"
+      ]
+    },
+    {
+      "id": "CARE-01",
+      "title": "Confidential intake",
+      "pack": "CARE",
+      "persona": "Member-care staff",
+      "customization": "protected_coordination",
+      "subject": "care_intake",
+      "trigger": "Member-care owner accepts a request into sealed scope",
+      "steps": [
+        "Assign source-qualified carer",
+        "acknowledge through safe purpose channel",
+        "collect source intake acknowledgment",
+        "observe accepted care handoff"
+      ],
+      "editable": "Eligible care role, safe acknowledgment, follow-up interval",
+      "protected": "No ordinary-admin existence signal or clinical facts in workflow state",
+      "evidence": "Opaque care-intake acceptance and authorized handoff",
+      "dependencies": [
+        "member-care",
+        "sensitive-safety",
+        "identity",
+        "documents",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Care owner defines safe response windows and out-of-band escalation; Studio reminder defaults do not apply to emergency response.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-CARE-01-01",
+        "T-CARE-01-02",
+        "T-CARE-01-03"
+      ]
+    },
+    {
+      "id": "CARE-02",
+      "title": "Routine care check-in",
+      "pack": "CARE",
+      "persona": "Member-care staff",
+      "customization": "protected_coordination",
+      "subject": "care_checkin",
+      "trigger": "Care owner creates an approved check-in occurrence",
+      "steps": [
+        "Notify eligible participant safely",
+        "record source-owned response",
+        "assign permitted care follow-up",
+        "confirm receiving carer"
+      ],
+      "editable": "Cadence, source-approved questions, carer",
+      "protected": "Care notes are not CRM notes; routing does not grant access",
+      "evidence": "Source check-in and follow-up acknowledgment",
+      "dependencies": [
+        "member-care",
+        "sensitive-safety",
+        "identity",
+        "documents",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Care owner defines safe response windows and out-of-band escalation; Studio reminder defaults do not apply to emergency response.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-CARE-02-01",
+        "T-CARE-02-02",
+        "T-CARE-02-03"
+      ]
+    },
+    {
+      "id": "CARE-03",
+      "title": "Care-team handoff",
+      "pack": "CARE",
+      "persona": "Member-care staff",
+      "customization": "protected_coordination",
+      "subject": "care_handoff",
+      "trigger": "Care owner authorizes a case assignment change",
+      "steps": [
+        "Prepare source-limited handoff",
+        "request receiving-carer acknowledgment",
+        "revoke superseded access through owner",
+        "verify handoff"
+      ],
+      "editable": "Eligible receiving role, checklist, timing",
+      "protected": "No transitive access from team membership or broad staff hierarchy",
+      "evidence": "Source access/assignment versions and acknowledged handoff",
+      "dependencies": [
+        "member-care",
+        "sensitive-safety",
+        "identity",
+        "documents",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Care owner defines safe response windows and out-of-band escalation; Studio reminder defaults do not apply to emergency response.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-CARE-03-01",
+        "T-CARE-03-02",
+        "T-CARE-03-03"
+      ]
+    },
+    {
+      "id": "CARE-04",
+      "title": "Home assignment or sabbatical preparation",
+      "pack": "CARE",
+      "persona": "Member-care staff",
+      "customization": "protected_coordination",
+      "subject": "worker_transition",
+      "trigger": "Authorized source lifecycle opens a transition",
+      "steps": [
+        "Coordinate ordinary logistics separately from sealed care work",
+        "request permitted check-ins",
+        "confirm receiving responsibility"
+      ],
+      "editable": "Checklists, dates, ordinary/clinical separation",
+      "protected": "No release of care information to logistics or finance",
+      "evidence": "Separately scoped source transition and care acknowledgments",
+      "dependencies": [
+        "member-care",
+        "sensitive-safety",
+        "identity",
+        "documents",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Care owner defines safe response windows and out-of-band escalation; Studio reminder defaults do not apply to emergency response.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-CARE-04-01",
+        "T-CARE-04-02",
+        "T-CARE-04-03"
+      ]
+    },
+    {
+      "id": "CARE-05",
+      "title": "Return-to-field preparation",
+      "pack": "CARE",
+      "persona": "Member-care staff",
+      "customization": "protected_coordination",
+      "subject": "worker_transition",
+      "trigger": "Source opens a return readiness review",
+      "steps": [
+        "Collect permitted preparation",
+        "request source-qualified reviews",
+        "confirm authorized readiness and handoff"
+      ],
+      "editable": "Checklist, eligible roles, schedule",
+      "protected": "No automated medical fitness decision, inferred clearance, or unauthorized disclosure",
+      "evidence": "Source readiness decision and receiving-owner acknowledgment",
+      "dependencies": [
+        "member-care",
+        "sensitive-safety",
+        "identity",
+        "documents",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Care owner defines safe response windows and out-of-band escalation; Studio reminder defaults do not apply to emergency response.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-CARE-05-01",
+        "T-CARE-05-02",
+        "T-CARE-05-03"
+      ]
+    },
+    {
+      "id": "CARE-06",
+      "title": "Crisis coordination",
+      "pack": "CARE",
+      "persona": "Member-care staff",
+      "customization": "protected_coordination",
+      "subject": "crisis_incident",
+      "trigger": "Authorized care/crisis source declares an incident",
+      "steps": [
+        "Activate source-approved contact tasks",
+        "track acknowledgment",
+        "escalate through approved tree",
+        "link emergency access only through source break-glass"
+      ],
+      "editable": "Authorized response roles, acknowledgment timing, approved contact tree",
+      "protected": "Workflow cannot grant emergency access, prove safety, or replace emergency services; alternate communication is required",
+      "evidence": "Source incident actions and acknowledgments, not inferred proof of life",
+      "dependencies": [
+        "member-care",
+        "sensitive-safety",
+        "identity",
+        "documents",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Care owner defines safe response windows and out-of-band escalation; Studio reminder defaults do not apply to emergency response.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-CARE-06-01",
+        "T-CARE-06-02",
+        "T-CARE-06-03"
+      ]
+    },
+    {
+      "id": "CARE-07",
+      "title": "After-action and emergency-access review",
+      "pack": "CARE",
+      "persona": "Member-care staff",
+      "customization": "protected_coordination",
+      "subject": "crisis_review",
+      "trigger": "Crisis/access source records review-required occurrence",
+      "steps": [
+        "Assign independent eligible reviewer",
+        "inspect source-permitted records",
+        "record follow-up",
+        "request source revocation/correction as authorized"
+      ],
+      "editable": "Review owner and schedule",
+      "protected": "Sensitive-read history is itself restricted; task completion is not access revocation",
+      "evidence": "Source post-incident review and access outcome",
+      "dependencies": [
+        "member-care",
+        "sensitive-safety",
+        "identity",
+        "documents",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Care owner defines safe response windows and out-of-band escalation; Studio reminder defaults do not apply to emergency response.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-CARE-07-01",
+        "T-CARE-07-02",
+        "T-CARE-07-03"
+      ]
+    },
+    {
+      "id": "CARE-08",
+      "title": "Confidential offboarding and privacy request",
+      "pack": "CARE",
+      "persona": "Member-care staff",
+      "customization": "protected_coordination",
+      "subject": "care_records_case",
+      "trigger": "Care/records owner accepts departure or verified privacy case",
+      "steps": [
+        "Route verified purpose",
+        "request owner-filtered records/review",
+        "coordinate respectful handoff",
+        "observe source-authorized outcome"
+      ],
+      "editable": "Safe communication and authorized task timing",
+      "protected": "No export-as-erasure, blanket archive, hold release, or clinical record disposal timer",
+      "evidence": "Source-authorized response/disposition and handoff evidence",
+      "dependencies": [
+        "member-care",
+        "sensitive-safety",
+        "identity",
+        "documents",
+        "tasks"
+      ],
+      "default_activation": "disabled",
+      "clock_policy": "Care owner defines safe response windows and out-of-band escalation; Studio reminder defaults do not apply to emergency response.",
+      "audience": "Current authorized responsible role; participant-specific projection only where source permits. No raw source records in workflow or email.",
+      "idempotency": "Tenant + environment + recipe lineage + exact source occurrence + effect purpose + recipient; retries keep identity.",
+      "exception_policy": "Missing owner -> eligible source queue; unknown facts/outcomes -> block/reconcile; completed source history remains immutable.",
+      "acceptance_ids": [
+        "T-CARE-08-01",
+        "T-CARE-08-02",
+        "T-CARE-08-03"
+      ]
+    }
+  ]
+}

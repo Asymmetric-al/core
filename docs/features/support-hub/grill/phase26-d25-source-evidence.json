@@ -1,0 +1,128 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "headAndOriginDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "relatedPRs": [
+    {
+      "number": 1335,
+      "state": "OPEN",
+      "head": "e1c86e1a30f479363960eeb35500112665e16bb3"
+    },
+    {
+      "number": 1336,
+      "state": "OPEN",
+      "head": "3b2827ffcf184bf767664018efedda317c7da03c"
+    },
+    {
+      "number": 1564,
+      "state": "OPEN",
+      "head": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1"
+    }
+  ],
+  "sourceHashes": [
+    {
+      "path": "apps/admin/app/(app)/settings/integrations/resend/resend-sections.tsx",
+      "sha256": "e714e9d2e99d84e8c4fc9aa78149c437d2ec9c28158cafa992c6438ce9f263a9"
+    },
+    {
+      "path": "apps/admin/features/support-hub/components/settings/inbox/InboxSettingsForm.tsx",
+      "sha256": "fcca26a34fee7569c763e8d831fd238536085921165094b8edec6fb5f622143d"
+    },
+    {
+      "path": "docs/adr/0029-tenant-owned-resend-and-composed-delivery-identities.md",
+      "sha256": "c59d3c222f59cedf5294acd5d07b451b792ed5ebf5738266c3dff56aeb10d1bf"
+    },
+    {
+      "path": "docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "sha256": "7aeb08a2a499471d31e856914d940d94d4c43f57654812e80f6ee41024a62d21"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-06-shared-communication-event-model.md",
+      "sha256": "2bdf280e2a79a2dd2a7a4cc48420e32d744728709618381fcaa42708bd7cb39b"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md",
+      "sha256": "4653ae542c1f28e076cc7f9c39fe316c82ad77d59340bfe90b9b0f58f3ef524d"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "path": "openspec/changes/sitestacker-parity/specs/platform-boundaries/spec.md",
+      "sha256": "565177ea52e7ad3d3c5f315810d8bf48d1b2a9d1af283236b431c6648f362496"
+    },
+    {
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "path": "openspec/specs/platform-principles/spec.md",
+      "sha256": "b78c1cf7952a212769a04160501748962911998069a185809a6dc2d5d98e5b22"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/inbound-route.ts",
+      "sha256": "582893298a6293471a143c9e06d65b3b67a7c59270413a4c0a1baceb21dcd7d2"
+    },
+    {
+      "path": "packages/api/src/admin/support-hub/inbound-routes.ts",
+      "sha256": "d4378d27790e4679e8e12b5bc5ae25c85c85ee6b553a57d8ed8bf67fd9a6340f"
+    },
+    {
+      "path": "packages/api/src/email/address.ts",
+      "sha256": "55aa7a50d62e63601a81b885ca6eb5fca4e5138bf6c198dce8cbfafb00c4bb48"
+    },
+    {
+      "path": "packages/api/src/email/connect.ts",
+      "sha256": "be59c98a5989c6b09e4edcf72d9e3744b302a24717d3d34d3954d3554c5a154c"
+    },
+    {
+      "path": "packages/api/src/email/webhooks/resend.ts",
+      "sha256": "49d48b5351b3d628263d3c07174ec03839f7c2946801c175902f28b12d8b15ea"
+    },
+    {
+      "path": "packages/api/src/workflows/adapters/inbound-email.ts",
+      "sha256": "e6dd0c78259b2fd3f79f9512687ba486716c6b1a77bbff64bddadf6c2cfe5385"
+    },
+    {
+      "path": "packages/api/src/workflows/adapters/inbound-routing.ts",
+      "sha256": "7f7eb18917d9e8cddaaa82f5a13e1a1ba31798041e3bd76222504699d7d63293"
+    },
+    {
+      "path": "packages/api/src/workflows/functions/inbound-email-processing.ts",
+      "sha256": "ad76684b43ed3918da461c3d99f892fa76a9fd99253ebf05fb3ce42f050181bb"
+    },
+    {
+      "path": "packages/email/package.json",
+      "sha256": "c7b4be5de815292c54eaef31ae2f61b101a810147ca8f8b5c0207ee54f41e56a"
+    },
+    {
+      "path": "packages/email/resend.ts",
+      "sha256": "3ee9089037a5a9bcf03f771c77a03b65353e2cf5722e200bc3a779a26074c784"
+    },
+    {
+      "path": "supabase/migrations/20260402090000_resend_email_foundation_backfill.sql",
+      "sha256": "37646457126fa6bb5557798fb088d919824d2fba544948abe93cb8d5676de9f5"
+    },
+    {
+      "path": "supabase/migrations/20260611183000_support_inbound_routes.sql",
+      "sha256": "b22f7236b566f33a0e1b6aabd3fa2754abdaae3bcaa69b92fc2d4bc7d8d03566"
+    }
+  ],
+  "observedInstalledSDK": "resend@6.11.0",
+  "probes": [
+    "phase26-d25-route-source-experiments.json",
+    "phase26-d25-provider-source-experiments.json"
+  ],
+  "limits": "Two source probes/seven synthetic observations only; no real database/provider/forwarding/DNS/browser/AT/usability/capacity proof. No upgrade or runtime implementation.",
+  "upstreamEvidence": [
+    {
+      "url": "https://github.com/resend/resend-cli/blob/0155104e5960c251f696e2518b76664f5d0ea1b9/README.md#L502",
+      "revision": "0155104e5960c251f696e2518b76664f5d0ea1b9",
+      "localEvidence": "work/resend-cli-0155104-README.md",
+      "sha256": "6a70b42aec87f85b1421e16e6ef40368af396c2725121a906059dc83b29826be",
+      "line": 502,
+      "fact": "Current direct source documents signing secret in GET response; earlier search-rendered contrary excerpt was stale."
+    }
+  ]
+}

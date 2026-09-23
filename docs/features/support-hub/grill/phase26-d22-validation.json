@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "date": "2026-09-12",
+  "stage": "D1-D21 fully ratified; D22 A selected; complete amendments proposed; no Q23",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "D22ExactClauses": 26,
+  "D22CategoryFindings": 23,
+  "D22RequiredUnexecutedProofGroups": 40,
+  "D22OperationalControls": 5,
+  "D22ProposedGlossaryTerms": 4,
+  "futureBroaderAndAIIntentRecorded": true,
+  "currentAIOrAttachmentExtractionAuthorized": false,
+  "priorArtifactsPreserved": 124,
+  "priorADRsPreserved": 21,
+  "priorGlossaryPreserved": true,
+  "priorValidationPreserved": true,
+  "sourceHashesVerified": 21,
+  "mirrorsMatched": 16,
+  "localLinksChecked": 345,
+  "outputLinksChecked": 319,
+  "immutableSourceLinksChecked": 55,
+  "uniqueImmutableSourceLinks": 38,
+  "existingMatcherExperiment": "Isolated synthetic expression execution confirmed body omission, synthetic cross-field phrase and Unicode mismatch; literal percent preserved",
+  "proposedParserDBIndexProof": "Required, unexecuted",
+  "D22FullyRatified": false,
+  "newADR0023": false,
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "independentReviews": [
+    "D22 source/auth/data and final contract review",
+    "D22 lifecycle/CRM/future-extension and final corrections",
+    "D22 primary UX/semantics and blank-query/exact-reference corrections"
+  ],
+  "limits": [
+    "No formal specification, implementation or tickets",
+    "No live API/DB/RLS/index/attachment/parser-capacity/browser/AT/usability test",
+    "No external state change, inbox/DNS/credential mutation or real message"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-09-11T13:14:16.710Z",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "mode": "isolated current-source helper observations with synthetic content; no application bootstrap, credentials, network, database or provider",
+  "sourceHashes": [
+    {
+      "path": "packages/ui/components/shadcn/rich-text-editor/helpers.ts",
+      "sha256": "f81a57bfbb06d9d897ac6d0c6986c62da2d2f810dcdbdf3978973b767d720c16"
+    },
+    {
+      "path": "packages/lib/posts/link-policy.ts",
+      "sha256": "0d4039306c791524321d7da64622d79743fb86f71e64283d4fc2009e820c18c8"
+    }
+  ],
+  "observations": [
+    {
+      "id": "D16-S01",
+      "finding": "Shared parseContent preserves non-JSON HTML input; plain-text extraction does not include href attributes.",
+      "parsedEqualsOriginal": true,
+      "parsedStillContainsSyntheticAttribute": true,
+      "plainText": "Receipt help",
+      "plainTextOmitsSyntheticAttribute": true
+    },
+    {
+      "id": "D16-S02",
+      "finding": "Legacy HTML plain-text extraction leaves an HTML entity encoded; it is not a canonical DOM selection-offset mapper.",
+      "extracted": "A &amp; B",
+      "remainsEncoded": true
+    },
+    {
+      "id": "D16-S03",
+      "finding": "Shared JSON plain-text extraction concatenates block text without separators; do not use it to infer reviewed rich-text range offsets.",
+      "extracted": "FirstSecond",
+      "concatenatesBlocks": true
+    }
+  ],
+  "passed": true,
+  "limits": "These observations do not establish an XSS vulnerability or a deployed redaction defect. They show that existing parser/plain-text helpers are not, by themselves, the future canonical selective-redaction mapping contract. No browser, accessibility, DB/RLS, provider, concurrency or production test was run."
+}

@@ -1,5 +1,17 @@
 # Support Hub — Phase 5: productivity, internal collaboration, and fast actions
 
+**Historical implementation record — classified 2026-09-23.** This file records
+an earlier local Support build stage, not a program-phase contract or current
+release qualification. Its recorded architecture, lifecycle, role checks,
+retry/automation behavior, test results and operational commands must not be
+used as forward requirements. The [current Phase 26 package](README.md),
+[operator contract](operator-guide.md), [administration contract](admin-guide.md)
+and [Phase 34 adoption boundary](phase-06-reports-settings-automation.md#current-compatibility-requirements)
+govern current intended behavior. Inspect current source and deployment before
+using any historical migration or rollback instruction.
+
+## Original build record
+
 Phases 1–4 are stacked. Phase 5 turns the donor-care inbox into a serious working tool by adding labels CRUD with bulk assignment, saved-view CRUD, a macro runner, slash-based canned responses, `@`-mentions in private notes, round-robin assignment, a support-local command palette, and keyboard shortcuts — all built on the Phase 2 collections + mutations and slotted into the Phase 4 composer / detail surfaces through the documented extension points.
 
 ## Decisions locked

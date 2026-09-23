@@ -5,8 +5,8 @@ Branch. As of 2026-05-16, all three live Vercel projects (`admin`, `donor`, and
 `missionary`) use `production` as the Production Branch. The normal production path is
 `bun run release:production`; see [Production Release Guide](./production-release.md).
 If a release also affects development validation, run the same checks against
-`develop` before production. `main` is retired/protected historical history and
-is not a deploy target.
+`develop` before production. The canonical repository has no `main` branch; do
+not create or target one.
 
 ## 1. Pre-deploy
 
@@ -15,8 +15,8 @@ is not a deploy target.
       `bun run verify:deployment-discipline`
 - [ ] Monorepo build-control verifier passes:
       `bun run verify:vercel-build-controls`
-- [ ] GitHub branch protection requires `ci-gate`, `integration-gate`, and
-      `e2e-gate` on `production`; `ci-gate` and `integration-gate` on `develop`
+- [ ] GitHub branch protection matches the dated live inventory and any known
+      drift is resolved: `docs/ci.md#branch-protection`
 - [ ] Migrations reviewed (additive-only, or expand-then-contract followed)
 - [ ] Migrations tested on development first
 - [ ] Vercel project Production Branch matches the intended release branch for all 3 projects
@@ -57,7 +57,7 @@ is not a deploy target.
 - [ ] Stripe live webhook endpoints exist for each production app at `/api/webhooks/stripe`
 - [ ] Production readiness verifier passes for the exact commit to ship:
       `bun run verify:vercel-production -- --commit <sha>`
-- [ ] Rollback plan reviewed for this deploy: [docs/ops/rollback-plan.md](./rollback-plan.md)
+- [ ] Release-specific rollback/forward-fix plan recorded and reviewed for this deploy; follow the [production release controls](./production-release.md).
 
 ## 2. Deploy
 
@@ -97,7 +97,7 @@ is not a deploy target.
 
 ## 5. If something is wrong
 
-- [ ] Code-only issue: perform Vercel rollback (see [docs/ops/rollback-plan.md](./rollback-plan.md))
+- [ ] Code-only issue: execute the reviewed rollback plan under the [production release controls](./production-release.md).
 - [ ] Migration involved: assess and execute rollback/forward-fix via rollback plan
 - [ ] Restore rehearsal or recovery work must target an isolated database first;
       never restore over production as a proof step

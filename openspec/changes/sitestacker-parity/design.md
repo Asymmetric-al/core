@@ -28,7 +28,8 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
   of the 25 areas is specified in its own change + PRD when it is built.
 - **One roadmap governs phase architecture (added 2026-07-07, Roadmap v2).**
   The phase set/numbering/ordering/dependencies live in
-  `docs/prds/sitestacker-parity/roadmap.md` (41 phases, 0–40, seven lanes);
+  `docs/prds/sitestacker-parity/roadmap.md` (v3 adopted 2026-09-22: 45 phases,
+  0–44, eight lanes; v2 numbering retained);
   `phase-map.md` mirrors it and loses on conflict. Rationale: the program
   re-sequenced once already (v1→v2 renumbered every phase above 9); without a
   single source of truth plus a mandatory renumbering-map + congruence-sweep
@@ -253,3 +254,22 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
   is accountable.
 - Should the 374-commit gap be closed (release) before parity Phase 1 starts?
   (Recorded, deliberately not forced by Phase 0.)
+
+## Cross-owner decisions pending after the September 23 audit
+
+The [congruence decision record](../../../docs/ai/audits/2026-09-23-contract-congruence.md#unresolved-owner-decisions)
+is the current route for two unresolved conflicts; this change selects neither
+answer by inference:
+
+- **C-01:** Phase 13's optional tenant separation of duties versus Phase 15's
+  mandatory different approver for post-commit corrections. Preserve independent
+  audit, append-only correction and risk/money-out controls.
+- **C-02:** immutable whole posted financial rows versus mutable payment/review
+  and acknowledgment columns proposed on the contribution header. Preserve
+  accepted logical source ownership and frozen financial/legal facts; wait for
+  an explicit separate-operational-records versus narrow-header-exception ruling
+  before implementing that physical state seam.
+
+Qualification cannot supply a missing policy decision. Independent source work
+may proceed under its settled contract, but an agent must not silently choose
+one side of either conflict or declare its affected implementation complete.

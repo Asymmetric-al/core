@@ -1,0 +1,37 @@
+# 0035 — Author-owned internal note corrections with visible history
+
+Date:14September2026
+
+Status: Fully founder-ratified, 14 September 2026, including all D35 amendments, final corrections and proof obligations. D1–D35 including D29-X01 remain ratified. Grooming only; no formal specification or implementation authority.
+
+Ordinary internal Support-note corrections should be easy without losing authorship or permitted earlier meaning. Linked corrections only provide stable chronology but add entries for small mistakes; a short edit window adds a timer and two workflows. The founder selected original-author editing with visible history and explicitly prioritized low friction.
+
+Adopt the complete [D35-R01–R26 corrected decision](../../grill/phase26-d35-adversarial-review.md), all23 individual category outcomes, [UX journey](../../grill/phase26-d35-ux-blueprint.md), [source/data contract](../../grill/phase26-d35-data-contract.md), [editor/Email Studio seam](../../grill/phase26-d35-editor-email-studio-contract.md), [P01–P40 and O01–O06](../../grill/phase26-d35-proof-and-operations.md), two glossary definitions and all final independent corrections. The linked package is the complete proposed contract, not optional background.
+
+## Decision and consequences
+
+Use a local Edit note → Save changes/Cancel flow and read-only Edited/View history. Preserve original note identity, author/time and chronological position. One trusted Support source/current head gains an atomic next revision, with current native-human/author/source/privacy authority and durable semantic operation binding even for No changes. Old receipts reconcile without restoring stale bodies; current-source conflict requires deliberate review. No required reason, autosave, grace period, administrator rewrite, Restore/diff/branching/co-editing service, new history export or generic CRM note platform.
+
+Correct text, formatting and safe links. Deliberate existing mention/inline-picture appearance removal works normally; retained references cannot be retargeted or introduce new notifying targets. Actual file occurrences/membership/bytes remain visibly unchanged. Use ordinary new notes for new files/attention, D16 for sensitive removal and D17 for finite original-source history custody. When a current redaction cannot safely map to earlier versions, restrict affected older representations wholly rather than expose them through history.
+
+The current caller-author route and generated activity using the note endpoint are not human provenance proof. Qualify real native authorship, legacy baselines, original canonical editor content, all writers and effective grants before activation. Original requires provenance; an observed legacy version is Recorded baseline. Use actual source ID types and minimal source-owned revision/head/result facts, with purgeable historical content separate from control/audit evidence. No edit renews retention, native message/response/unread/last-contact clocks or business work.
+
+## Email Studio, CRM and existing capabilities
+
+Support owns notes/revisions. D23's qualified schema/purpose/editor is reused, not made another source owner. Routine edits create no note publication, follower/direct mention, donor email, P17 preparation or P6 resend. D15 optional following and separately qualified direct-attention producers retain their distinct contracts. P17 prepared material and P6 actual delivery/reconciliation remain immutable factual evidence; unsafe source-dependent outstanding material follows current adverse fences without a false recall or blanket destruction of valid body-free history. D29 confirmation and outbound signature/wording are unaffected.
+
+CRM reaches the same current-authorized Support note with preserved navigation, no copy/sync/Activity/financial mutation or inherited permissions. D22 ordinary search uses the current permitted head. D34 may be explicitly qualified for this producer using the actual edited original source and edit authority, with its existing neutral metadata-only controller; no new presence mode, draft disclosure or lock. Existing D32 file and D33 reader semantics remain intact.
+
+## Proof and scope
+
+All40 actual release groups remain required and unexecuted. The [research register](../../grill/phase26-d35-evidence.md), [source registry](../../grill/phase26-d35-source-evidence.json), [final reviews/completion](../../grill/phase26-d35-completion-audit.md) and24 finite model assertions/four naive counterexamples support this design's reasoning; they do not prove runtime SQL/RLS, browser/AT, performance, provider or user outcomes.26clauses/23categories/40proof groups/six controls and all bounds are explicitly traceable. No Q36, formal spec, implementation tickets, product/schema/dependency change, GitHub/provider/DNS/inbox mutation or real message is authorized by this record.
+
+## Full founder ratification — 14 September 2026
+
+The founder explicitly ratifies **A — Edit your own note, with visible history** and every amendment, addition, adjustment, change, update and final correction in this document and the complete [D35 ratification record](../../grill/phase26-d35-full-ratification.md). The entire D35-R01–R26, all 23 category outcomes/consequences, two glossary definitions, full UX/data/editor/CRM/privacy/retention/recovery/migration contracts, P01–P40/O01–O06 and final independent corrections are accepted. The original substantive text and evidence remain preserved; earlier pending language creates no repeat approval gate.
+
+Acceptance includes the simple Edit/Save changes/Cancel/history journey; trustworthy original human authorship; conditional current-source/head saves and immutable operation binding even for No changes; minimal same-operation navigation recovery; natural removal of existing reference appearances with unchanged actual files; whole affected older-representation restriction when redaction correspondence is unsafe; original D17 deadlines; qualified canonical editor/profile and legacy migration; current-head search and canonical permission-aware CRM access. All stated page/load/latency/operating bounds and 40 actual release proof groups are accepted, not claimed executed.
+
+**Email Studio and owner roles are fully ratified.** Support owns notes/revisions. D23's shared schema/editor/rendering does not transfer that ownership. Routine edits create no note publication, follower/direct-mention/donor email, P17 preparation or P6 resend. D15 optional following and separately qualified direct-attention producers remain distinct; independently authorized new notes/attention keep their normal effects. P17 owns immutable message preparation and P6 actual delivery/reconciliation. Current unsafe source-dependent material is fenced without rewriting delivered facts or deleting still-valid body-free history. D29 confirmation and outgoing signatures/wording are unchanged. Explicit D34 reuse retains exact original-source/edit-authority binding and neutral metadata-only/no-lock behavior; its control traffic is not a note publication.
+
+All final corrections, 24 finite model assertions/four naive counterexamples and original source/validation evidence retain their documented meanings. **D1–D35 and all adopted amendments are fully ratified.** The session may continue with one researched unanswered Q36; no formal spec, implementation tickets, product/schema/provider/GitHub/DNS/inbox changes or real messages are authorized by this recording.

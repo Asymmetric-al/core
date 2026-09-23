@@ -5,8 +5,14 @@ human-oriented index. It does not prove that proposed work has shipped.
 
 ## Current vs intended
 
-- **Intended behavior:** explicit human decision, the approved active change
-  for the exact work, durable specs, accepted ADRs, then PRDs/issues.
+- **Intended behavior:** explicit human decision and the latest ratified
+  domain-owner amendment for the exact scope, reconciled with durable OpenSpec,
+  the approved active change, accepted ADRs and owner PRDs. Follow explicit
+  supersession; directory location or a newer timestamp cannot settle a conflict.
+- **Source ownership:** [Document authority](../docs/ai/document-authority.md)
+  identifies canonical authoring sources, generated views, current phase
+  packages and status boundaries. A generated OpenSpec projection is maintained
+  through its declared source, not as a competing product decision.
 - **Current reality:** code and migrations, tests and CI, runtime evidence,
   then documentation.
 - An active change governs what a branch is trying to change. It does not

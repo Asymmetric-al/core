@@ -1,0 +1,20 @@
+{
+  "scope": "Read-only structural congruence of all Phase26 story/AC projections and published leaf references; not semantic/runtime proof",
+  "stories": 217,
+  "sourceAcceptance": 717,
+  "projectedAcceptance": 717,
+  "missing": [],
+  "extra": [],
+  "changedText": [],
+  "storyTraceDifference": [],
+  "requirementRefsAbsentFromVolumes": [],
+  "acceptanceWithoutLeafReference": [],
+  "issueCount": 199,
+  "sourceSha256": "bb03bd0e17066f6b2059cbaba5a9cdcb5169d9e43bff2aef924553b02822df3a",
+  "projectionSha256": "b794358b69664902f5fcd48c8795066d90bb4936b596a632be419ce41faa6343",
+  "normativeVolumesSha256": {
+    "a": "892f86d31af78fc8d8d285225590130a67643b8b94a1ce724beb0cc63de294b3",
+    "b": "915d82cb34099276dd53b605e44bd5861d82cbea3dc9b32c1b07e7c70e0e99e1",
+    "c": "dface059915e5957a18bb66a6e0ed43db5612a6bb00d892d4f379c2c3fa8b99c"
+  }
+}

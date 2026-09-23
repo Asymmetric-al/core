@@ -157,6 +157,15 @@ Each surface is a **separate Next.js app** with its own `app/` tree and dev port
 
 Shared auth gating uses **`createAuthMiddleware`** from `packages/auth/middleware.ts`, wired in each app through **`apps/<app>/proxy.ts`** (exported `proxy`).
 
+## Product planning
+
+The [SiteStacker parity program](docs/prds/sitestacker-parity/README.md)
+tracks outcome parity and phase dependencies. The
+[Phase 25 Donor Dashboard Depth specification](docs/prds/sitestacker-parity/phase-25-donor-dashboard-depth.md)
+records the ratified donor scope, acceptance criteria, source contracts and
+qualification gates. It is planning authority, not implemented or activated
+behavior; its source-owner amendments remain proposed.
+
 ## Development
 
 Use the per-app `dev:*` scripts when you only need one surface, or `bun run dev` / `bun run dev:all` when you need several (see root `package.json`).
@@ -334,7 +343,7 @@ Common commands:
 - `bun run test:e2e`, `bun run test:e2e:strict`, `bun run test:e2e:ui`
 - `bun run verify` (optional `VERIFY_HTTP=1`, `VERIFY_SUPABASE=1`)
 - `bun run verify:e2e`
-- PR-style gate: `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
+- Canonical PR/push-readiness gate: `bun run ci:preflight`
 
 ### Git Hooks Setup
 
@@ -386,7 +395,7 @@ Build env details: `docs/guides/development/build-runbook.md`.
 ```bash
 bun run format
 
-bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit
+bun run ci:preflight
 
 bun run test:e2e
 

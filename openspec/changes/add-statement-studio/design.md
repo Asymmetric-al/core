@@ -119,10 +119,12 @@ the successor artifact is valid. Evidence history remains subordinate.
 
 ### Delivery
 
-Phase 17 owns message resolution, preparation, submission, consent, provider
-events, and communication history. It receives an exact artifact reference and
-protected-action presentation descriptor. It cannot render or retain official
-bytes as history. Delivery failure never changes issuance or artifact truth.
+Phase 17 owns governed content, publication/compiler and sender resolution,
+and protected-action presentation over the exact artifact reference. Phase 6
+owns recipient intent, consent, preparation orchestration through those Phase 17
+resolvers, outbox/submission, provider events, delivery recovery and communication
+history. Neither may render or retain official bytes as history. Delivery
+failure never changes issuance or artifact truth.
 
 ## Authoring And Data Contracts
 

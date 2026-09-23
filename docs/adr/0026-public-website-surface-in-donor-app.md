@@ -47,9 +47,19 @@ stays authenticated.
   route families make that split structural.
 - The extraction trigger is explicit and deferred: an `apps/web` split (or an
   availability SLO that demands removing admin from the hot read path — see
-  ADR-0027) re-opens this decision with the contract already in place.
+  [ADR-0027 — transport agnostic public content reader](./0027-transport-agnostic-public-content-reader.md)) re-opens this decision with the contract already in place.
 - Because the public surface shares the donor app, its static-shell invariants
   are pinned by `tests/unit/apps/donor/static-shell-contract.test.ts`. Those are
   deliberately source-text guards: a request read leaking into shared chrome
   empties the crawler-visible HTML while the build stays green, so only an
   assertion on the source can catch it.
+
+**Phase 24 D66 amendment (2026-08-30).** The donor app must support the fixed
+`/lang/{exact-locale}` public Site surface without importing Payload runtime,
+using browser-language negotiation, or reskinning the Tenant-wide authenticated
+account. The current global metadata, English `<html lang>`, Latin-only Site
+shell, unprefixed catch-all, and static sitemap assumptions are migration
+evidence. No Site Locale may publish until the shared public contract can render
+its exact `lang`/`dir`, brand, frame, error boundaries, canonical metadata, and
+Public Site Generation server-side. A future `apps/web` extraction consumes the
+same contract and does not change locale identity or release authority.

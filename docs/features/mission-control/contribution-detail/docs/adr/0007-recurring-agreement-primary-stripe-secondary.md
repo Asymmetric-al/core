@@ -1,29 +1,30 @@
-# ADR-CD-007: Recurring agreement is primary; Stripe references are secondary
+# ADR-CD-007: Phase 16 recurring commitment is primary; Stripe is evidence
 
-**Status:** Accepted (grill session 2026-05-28)
+**Status:** Accepted 2026-05-28; current Decision amended 2026-09-16 under
+AL-1861 to incorporate the ratified [owner contracts](../../README.md).
 
 ## Context
 
-Contribution detail must show recurring gift links and Stripe references. Stripe may expose payment intents, charges, subscriptions, setup intents, and payment methods, but Mission Control needs a stable tenant-owned business concept for recurring giving.
+Contribution detail needs stable recurring context while provider execution objects change independently of donor intent.
 
 ## Decision
 
-When a contribution is part of recurring giving:
-
-- The primary link is the internal recurring agreement / recurring gift detail.
-- Stripe references are secondary technical/provider links.
-- If provider data indicates recurrence but no internal recurring agreement is linked, show a reconciliation warning.
-- The recurring agreement should explain donor, cadence, amount, designation, status, next expected gift, and linked gift history.
+- Link to the Phase 16 Recurring Commitment and exact group/line/cohort context
+  authorized for the viewer. The local UI does not create another agreement.
+- Provider subscriptions/items, schedules, attempts and payment methods remain
+  execution evidence with explicit owner mappings, never the intent record.
+- Missing or conflicting mappings route to Phase 16 controlled recovery;
+  provider discovery cannot grant access, recreate intent or collect.
+- Show cadence, destination, lifecycle/support-health and linked gift history
+  only from the owning Phase 16/13 projections.
 
 ## Consequences
 
-- Detail APIs need to include both internal recurring agreement references and provider references.
-- The UI must label provider references as Stripe evidence, not the recurring gift itself.
-- Missing internal agreement links are data quality issues that should be visible and actionable.
-- A future recurring agreement detail experience should become the canonical home for cadence, schedule, and recurrence health.
+Replace current Recurring agreement copy with owner vocabulary. Technical references remain progressively disclosed under the exact provider visibility/action capability.
 
-## Alternatives rejected
+## Historical decision and rationale
 
-- **Stripe-only link:** Couples staff workflow to one provider and treats provider objects as business truth.
-- **Internal-only link:** Hides useful payment/provider evidence from finance/admin users.
-- **No navigation yet:** Delays a key support and finance workflow even though the detail can expose the relationship incrementally.
+The [original 2026-05-28 record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0007-recurring-agreement-primary-stripe-secondary.md) preserves the earlier
+wording, alternatives and reasoning at its exact Git revision. This amendment
+changes the current Decision on 2026-09-16; it does not attribute later owner
+rulings to the original date or claim runtime implementation.

@@ -1,0 +1,110 @@
+{
+  "profile": "asym.page-composition/2",
+  "family": "page",
+  "catalogVersion": "fixture/catalog-1",
+  "nodes": [
+    {
+      "kind": "semantic",
+      "instanceId": "hero-1",
+      "semanticType": "hero",
+      "schemaVersion": 1,
+      "content": {
+        "headline": "A page built visually",
+        "subheading": "Staff content survives developer changes."
+      }
+    },
+    {
+      "kind": "layout",
+      "instanceId": "split-1",
+      "layoutType": "split",
+      "schemaVersion": 1,
+      "settings": {
+        "ratio": "wide-start",
+        "gap": "roomy"
+      },
+      "slots": {
+        "start": [
+          {
+            "kind": "layout",
+            "instanceId": "stack-1",
+            "layoutType": "stack",
+            "schemaVersion": 1,
+            "settings": {
+              "gap": "comfortable"
+            },
+            "slots": {
+              "items": [
+                {
+                  "kind": "semantic",
+                  "instanceId": "text-1",
+                  "semanticType": "rich-text",
+                  "schemaVersion": 1,
+                  "content": {
+                    "fixtureText": "Structural fixture only; use exact owner semantic content decoder in Core."
+                  }
+                },
+                {
+                  "kind": "semantic",
+                  "instanceId": "cta-1",
+                  "semanticType": "cta",
+                  "schemaVersion": 1,
+                  "content": {
+                    "fixtureText": "Structural fixture only; use exact owner semantic content decoder in Core."
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "end": [
+          {
+            "kind": "semantic",
+            "instanceId": "media-1",
+            "semanticType": "media",
+            "schemaVersion": 1,
+            "content": {
+              "fixtureText": "Structural fixture only; use exact owner semantic content decoder in Core."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "layout",
+      "instanceId": "grid-1",
+      "layoutType": "grid",
+      "schemaVersion": 1,
+      "settings": {
+        "columns": "two"
+      },
+      "slots": {
+        "items": [
+          {
+            "kind": "semantic",
+            "instanceId": "card-1",
+            "semanticType": "cards",
+            "schemaVersion": 1,
+            "content": {
+              "fixtureText": "Structural fixture only; use exact owner semantic content decoder in Core."
+            }
+          },
+          {
+            "kind": "semantic",
+            "instanceId": "card-2",
+            "semanticType": "cards",
+            "schemaVersion": 1,
+            "content": {
+              "fixtureText": "Structural fixture only; use exact owner semantic content decoder in Core."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "reusable",
+      "instanceId": "reuse-placement-1",
+      "reusableId": "fixture-reusable",
+      "revisionId": "fixture-revision"
+    }
+  ]
+}

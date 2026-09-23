@@ -1,0 +1,310 @@
+{
+  "date": "2026-09-13",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "originDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "planningPRs": [
+    {
+      "headRefOid": "e1c86e1a30f479363960eeb35500112665e16bb3",
+      "number": 1335,
+      "state": "OPEN",
+      "title": "refactor(support-hub): collections read tenant-scoped adapter routes, not Give Hope seed",
+      "url": "https://github.com/Asymmetric-al/core/pull/1335"
+    },
+    {
+      "headRefOid": "3b2827ffcf184bf767664018efedda317c7da03c",
+      "number": 1336,
+      "state": "OPEN",
+      "title": "Deepen outbound Resend adapter and Email Studio modules",
+      "url": "https://github.com/Asymmetric-al/core/pull/1336"
+    },
+    {
+      "headRefOid": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "number": 1340,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 23 Web Studio CMS spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1340"
+    },
+    {
+      "headRefOid": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "number": 1558,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): publish Phase 24 multi-site management spec",
+      "url": "https://github.com/Asymmetric-al/core/pull/1558"
+    },
+    {
+      "headRefOid": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "number": 1564,
+      "state": "OPEN",
+      "title": "docs(sitestacker-parity): record Phase 25 donor dashboard specification",
+      "url": "https://github.com/Asymmetric-al/core/pull/1564"
+    }
+  ],
+  "status": "D33 C selected; exact initial Compact/Base UI Maia selected; detailed amendments proposed",
+  "files": [
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/ConversationTimeline.tsx",
+      "bytes": 2505,
+      "sha256": "b4582ee1fc1930c7b6ab34ebdde73a1db3901f44bf2817332799f97a2eec1e43"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/features/support-hub/components/detail/timeline/EmailMessage.tsx",
+      "bytes": 8567,
+      "sha256": "3e3c515336d577ef66d4b2be0789628d66809e414ce6d88a8d6646a8915a0489"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/rules/backend.md",
+      "bytes": 5887,
+      "sha256": "f0f5c8b05aa053cbc2400bb80040a34d4809d6f76fcad4110aea6702b735b655"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/ai/rules/frontend.md",
+      "bytes": 12794,
+      "sha256": "f11a37f1ebb847987171c957857b938239fc93a2f670d2b19682669df6e79447"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/guides/architecture/data-access-boundary.md",
+      "bytes": 7239,
+      "sha256": "2a8e1c159a7ef65328b3226cb9513df74db8dde3b76bd92d51afdc298b32b7c2"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "bytes": 313201,
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-boundaries/spec.md",
+      "bytes": 19260,
+      "sha256": "3e85055fcf3365e39839432eea3dedfe9731eeda08585745eccd8a29601ffcc4"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "openspec/specs/platform-principles/spec.md",
+      "bytes": 9562,
+      "sha256": "b78c1cf7952a212769a04160501748962911998069a185809a6dc2d5d98e5b22"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/crm/table-preferences/route.ts",
+      "bytes": 12971,
+      "sha256": "57d50b49d4141c0a4cfe57d80f3d46ce915fb066b710e4ae1a11b7b6bd86c3be"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/crm/table-preferences/service.ts",
+      "bytes": 6260,
+      "sha256": "721e203fab64f1d9bf5907318a6c0b64908024c8d2f37a56007775118e71bc59"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/admin/support-hub/route-helpers.ts",
+      "bytes": 4241,
+      "sha256": "4f3e6b124a2cf8b318cc5a4a188d0115029dda6245d0801f96b39ddfa647bde1"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/profile/index.ts",
+      "bytes": 6099,
+      "sha256": "23bbfe624962ca3d7524692b4b04df7e9b5abee7497d4544e695955da04106b0"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/workflows/adapters/inbound-email.ts",
+      "bytes": 17641,
+      "sha256": "e6dd0c78259b2fd3f79f9512687ba486716c6b1a77bbff64bddadf6c2cfe5385"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/auth/context.ts",
+      "bytes": 10157,
+      "sha256": "6867b25d9c3686c923039bf281a313eb3800d89deac60502b0929f363bded17c"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/hooks/admin-crm-table-preferences.ts",
+      "bytes": 7485,
+      "sha256": "fcbefdf0b1457fcae359ed992584bdaed8f72652f207b11fa0ef64ce56288ff5"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/database/types/crm-table-preferences.ts",
+      "bytes": 6452,
+      "sha256": "6c565bd7aeea459bc9ef214c781c40ae4eaf22d4893ad3afdc3b11b7c0d01165"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/lib/components/safe-html.tsx",
+      "bytes": 565,
+      "sha256": "d28127952594d1293081953bcacdfb108dd18f914632ecc5041e03fe726c05e2"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/lib/html/sanitize.ts",
+      "bytes": 244,
+      "sha256": "30bf02cc546057b872517446119090ccfb63b784ca6bc3a2455e5992d5bcee54"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/AGENTS.md",
+      "bytes": 5194,
+      "sha256": "358a36a1e9e70b3a93b3b897d06999c0503329d61ba9e0ae3cb701113021c1d7"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components.json",
+      "bytes": 1768,
+      "sha256": "0f880228760d08f7e09aeb9ab21015607186711f4abd4af14703163e2e9c6134"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/collapsible.tsx",
+      "bytes": 664,
+      "sha256": "cf6333da05adc3d96abf7ce0928c0c9a3fe3c6df46f7771551220a9205c41975"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/dropdown-menu.tsx",
+      "bytes": 8275,
+      "sha256": "547dc13156831694c0184018e1cfc56a70d0f7bd7f0d6a40560d434ac3c7d7be"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/rich-text-editor/extensions.ts",
+      "bytes": 2054,
+      "sha256": "df7ae7eb65cd85f783b879f20f387ef3395cbf1168768cf6887706c4f138680d"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/rich-text-editor/helpers.ts",
+      "bytes": 2985,
+      "sha256": "f81a57bfbb06d9d897ac6d0c6986c62da2d2f810dcdbdf3978973b767d720c16"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/rich-text-editor/rich-text-viewer.tsx",
+      "bytes": 1235,
+      "sha256": "58187bfd5e75baa7950492b0945327c96deda62539429db9a61eaa7295b120a1"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/components/shadcn/toggle-group.tsx",
+      "bytes": 2303,
+      "sha256": "156fc69db5ee25be685c87909a0c94372ba775a400fc3569d5206b6d307cff7b"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/ui/package.json",
+      "bytes": 5482,
+      "sha256": "7d736a382db44e90e81cfad225bf210419ae73083be7979a3c53b547295a5126"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "bytes": 31417,
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260526132000_contribution_operations_core.sql",
+      "bytes": 11832,
+      "sha256": "8a763782151de73502b45051588f723c0e7a2b812ad8074e6852f079fad2df9f"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260611160000_crm_table_preferences.sql",
+      "bytes": 10812,
+      "sha256": "c62575d0a11a1aa2a8ad20a07e0f4a2ea102253a35863b36b1960f9c32745755"
+    },
+    {
+      "kind": "Git source",
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260611170000_crm_table_named_views.sql",
+      "bytes": 10978,
+      "sha256": "8c4f13ecb242c37295c484196c9b75f75f4550af534356c80082e03e9596b7c5"
+    },
+    {
+      "kind": "Local accepted grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d10-adversarial-review.md",
+      "sha256": "7529bc78bb0c910215f1737beb8fb27a643032b3b54bd3e94959876433e718df"
+    },
+    {
+      "kind": "Local accepted grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d12-adversarial-review.md",
+      "sha256": "8de9af77a62aeed1fe7c5bc825211eb16ed4b30f99d111c98abcb0477a7ec429"
+    },
+    {
+      "kind": "Local accepted grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d16-adversarial-review.md",
+      "sha256": "696193f798ed9cd49d2d1f667d3b8ef17cc28cc64b84a338dc6b695be56e33c5"
+    },
+    {
+      "kind": "Local accepted grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d17-adversarial-review.md",
+      "sha256": "af3a54ab11c3aac719ccb9bb1f29e3d5d12fb4489749c6b90671b99562d5cd6c"
+    },
+    {
+      "kind": "Local accepted grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d20-adversarial-review.md",
+      "sha256": "90c4a8733f765410a65318901b406b5e54e323a2cf3bc44b759f0b503b9e3a9a"
+    },
+    {
+      "kind": "Local accepted grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d22-adversarial-review.md",
+      "sha256": "a66614e3b3565bd427a263203c673b112b6e573982d5286c8678f8ab8ab2002c"
+    },
+    {
+      "kind": "Local accepted grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d23-adversarial-review.md",
+      "sha256": "10e1c6a3fcfe21bbb849709da8f4acef03059b80b77696e78478acaa02541676"
+    },
+    {
+      "kind": "Local accepted grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d26-adversarial-review.md",
+      "sha256": "8a28532b1fa59aee76d6d2cf2f6a26ba614ca8338ad996de24d2133cfa1c0e2e"
+    },
+    {
+      "kind": "Local accepted grooming record",
+      "path": "docs/features/support-hub/grill/phase26-d32-adversarial-review.md",
+      "sha256": "bdcf8fa7f60018e185ba2d24dc2c775a87a48220f5c06b73d79cf11ce184e9ab"
+    }
+  ],
+  "browserReferenceEvidence": "phase26-d33-browser-reference-review.md",
+  "actualChecks": "phase26-d33-source-checks.json",
+  "runtimeQualification": "not executed"
+}

@@ -1,0 +1,66 @@
+{
+  "dialect": "asym.form/1",
+  "formId": "FORM-04",
+  "version": 1,
+  "status": "reference_blueprint",
+  "purpose": "support_coaching",
+  "subject": "coaching_checkin",
+  "defaultEnabled": false,
+  "submissionOwnerContract": "support-raising.checkin.submit@1",
+  "partialSave": true,
+  "retentionOwnerContract": "support-raising.form-retention@1",
+  "pages": [
+    {
+      "id": "checkin",
+      "title": "Your check-in",
+      "fields": [
+        {
+          "id": "progress",
+          "label": "What progress would you like to share?",
+          "kind": "long_text",
+          "required": false,
+          "purpose": "support_coaching",
+          "classification": "ordinary_private",
+          "mapping": {
+            "ownerContract": "support-raising.checkin.submit@1",
+            "fieldKey": "progress"
+          },
+          "maxLength": 4000
+        },
+        {
+          "id": "help_needed",
+          "label": "Where would some help be useful?",
+          "kind": "long_text",
+          "required": false,
+          "purpose": "support_coaching",
+          "classification": "ordinary_private",
+          "mapping": {
+            "ownerContract": "support-raising.checkin.submit@1",
+            "fieldKey": "help_needed"
+          },
+          "maxLength": 4000
+        },
+        {
+          "id": "next_action",
+          "label": "What is your next agreed action?",
+          "kind": "short_text",
+          "required": true,
+          "purpose": "support_coaching",
+          "classification": "ordinary_private",
+          "mapping": {
+            "ownerContract": "support-raising.checkin.submit@1",
+            "fieldKey": "next_action"
+          },
+          "maxLength": 200
+        }
+      ]
+    }
+  ],
+  "submissionRules": {
+    "serverValidation": true,
+    "immutableAcceptedSnapshot": true,
+    "hiddenValues": "exclude_from_submission_and_effects",
+    "csrfRequired": true,
+    "idempotencyRequired": true
+  }
+}

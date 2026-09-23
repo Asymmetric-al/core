@@ -1,0 +1,780 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:asym:workflow:source:v1",
+  "title": "Asym Workflow Source Dialect 1",
+  "description": "Proposed source-definition format. Structural validation is necessary but not sufficient for tenant publication.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "dialect": {
+      "const": "asym.workflow/1"
+    },
+    "blueprintId": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+    },
+    "recipeId": {
+      "type": "string",
+      "pattern": "^[A-Z]{3,4}-[0-9]{2}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "const": "reference_blueprint"
+    },
+    "defaultEnabled": {
+      "const": false
+    },
+    "purpose": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+    },
+    "subject": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+    },
+    "enrollment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "once_per_subject",
+            "once_per_event",
+            "one_active_per_subject"
+          ]
+        },
+        "triggerContract": {
+          "type": "string",
+          "minLength": 1
+        },
+        "historicalMode": {
+          "const": "disabled"
+        }
+      },
+      "required": ["mode", "triggerContract", "historicalMode"]
+    },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "facts": {
+          "type": "object",
+          "maxProperties": 250,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "tasks": {
+          "type": "object",
+          "maxProperties": 250,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "maxProperties": 250,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "actions": {
+          "type": "object",
+          "maxProperties": 250,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "roles": {
+          "type": "object",
+          "maxProperties": 250,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "forms": {
+          "type": "object",
+          "maxProperties": 250,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "messages": {
+          "type": "object",
+          "maxProperties": 250,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "subflows": {
+          "type": "object",
+          "maxProperties": 250,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "calendars": {
+          "type": "object",
+          "maxProperties": 250,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "facts",
+        "tasks",
+        "evidence",
+        "actions",
+        "roles",
+        "forms",
+        "messages",
+        "subflows",
+        "calendars"
+      ]
+    },
+    "parameters": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "enum": ["string", "integer", "boolean"]
+          },
+          "default": {
+            "type": ["string", "number", "boolean"]
+          },
+          "tenantReviewRequired": {
+            "const": true
+          }
+        },
+        "required": ["type", "default", "tenantReviewRequired"]
+      }
+    },
+    "requiredCapabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "maxItems": 50
+    },
+    "stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "nodeIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "minItems": 1,
+            "maxItems": 250
+          }
+        },
+        "required": ["id", "label", "nodeIds"]
+      },
+      "minItems": 1,
+      "maxItems": 25
+    },
+    "root": {
+      "$ref": "#/$defs/node"
+    }
+  },
+  "required": [
+    "dialect",
+    "blueprintId",
+    "recipeId",
+    "name",
+    "status",
+    "defaultEnabled",
+    "purpose",
+    "subject",
+    "enrollment",
+    "bindings",
+    "parameters",
+    "requiredCapabilities",
+    "stages",
+    "root"
+  ],
+  "$defs": {
+    "operand": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "literal": {
+              "type": ["string", "number", "boolean", "null"]
+            }
+          },
+          "required": ["literal"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ref": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "scope": {
+                  "enum": ["fact", "parameter", "step"]
+                },
+                "key": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+                }
+              },
+              "required": ["scope", "key"]
+            }
+          },
+          "required": ["ref"]
+        }
+      ]
+    },
+    "predicate": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": {
+              "const": "all"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/predicate"
+              },
+              "minItems": 1,
+              "maxItems": 25
+            }
+          },
+          "required": ["op", "args"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": {
+              "const": "any"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/predicate"
+              },
+              "minItems": 1,
+              "maxItems": 25
+            }
+          },
+          "required": ["op", "args"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": {
+              "const": "not"
+            },
+            "arg": {
+              "$ref": "#/$defs/predicate"
+            }
+          },
+          "required": ["op", "arg"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": {
+              "const": "exists"
+            },
+            "value": {
+              "$ref": "#/$defs/operand"
+            }
+          },
+          "required": ["op", "value"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "op": {
+              "const": "compare"
+            },
+            "operator": {
+              "enum": ["eq", "ne", "gt", "gte", "lt", "lte", "in"]
+            },
+            "left": {
+              "$ref": "#/$defs/operand"
+            },
+            "right": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/operand"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/operand"
+                  },
+                  "minItems": 1,
+                  "maxItems": 50
+                }
+              ]
+            }
+          },
+          "required": ["op", "operator", "left", "right"]
+        }
+      ]
+    },
+    "node": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "sequence"
+            },
+            "steps": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/node"
+              },
+              "minItems": 1,
+              "maxItems": 250
+            }
+          },
+          "required": ["id", "label", "kind", "steps"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "task"
+            },
+            "contract": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "role": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "form": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "deadline": {
+              "$ref": "#/$defs/deadline"
+            }
+          },
+          "required": ["id", "label", "kind", "contract", "role"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "evidence"
+            },
+            "contract": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "role": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "deadline": {
+              "$ref": "#/$defs/deadline"
+            }
+          },
+          "required": ["id", "label", "kind", "contract", "role"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "action"
+            },
+            "contract": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "inputs": {
+              "type": "object",
+              "maxProperties": 20,
+              "additionalProperties": {
+                "$ref": "#/$defs/operand"
+              }
+            }
+          },
+          "required": ["id", "label", "kind", "contract", "inputs"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "wait"
+            },
+            "condition": {
+              "$ref": "#/$defs/predicate"
+            },
+            "onUnknown": {
+              "const": "wait"
+            },
+            "onTimeout": {
+              "const": "block"
+            },
+            "deadline": {
+              "$ref": "#/$defs/deadline"
+            }
+          },
+          "required": [
+            "id",
+            "label",
+            "kind",
+            "condition",
+            "onUnknown",
+            "onTimeout"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "choose_one"
+            },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+                  },
+                  "when": {
+                    "$ref": "#/$defs/predicate"
+                  },
+                  "then": {
+                    "$ref": "#/$defs/node"
+                  }
+                },
+                "required": ["id", "when", "then"]
+              },
+              "minItems": 1,
+              "maxItems": 10
+            },
+            "otherwise": {
+              "$ref": "#/$defs/node"
+            },
+            "onUnknown": {
+              "const": "block"
+            }
+          },
+          "required": ["id", "label", "kind", "cases", "otherwise", "onUnknown"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "parallel"
+            },
+            "branches": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+                  },
+                  "when": {
+                    "$ref": "#/$defs/predicate"
+                  },
+                  "body": {
+                    "$ref": "#/$defs/node"
+                  }
+                },
+                "required": ["id", "body"]
+              },
+              "minItems": 1,
+              "maxItems": 10
+            },
+            "join": {
+              "$ref": "#/$defs/join"
+            },
+            "onEmpty": {
+              "enum": ["block", "continue"]
+            },
+            "remainder": {
+              "enum": ["await_remaining", "cancel_unstarted"]
+            }
+          },
+          "required": [
+            "id",
+            "label",
+            "kind",
+            "branches",
+            "join",
+            "onEmpty",
+            "remainder"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "subflow"
+            },
+            "contract": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "inputs": {
+              "type": "object",
+              "maxProperties": 20,
+              "additionalProperties": {
+                "$ref": "#/$defs/operand"
+              }
+            }
+          },
+          "required": ["id", "label", "kind", "contract", "inputs"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            },
+            "label": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "const": "finish"
+            },
+            "lifecycle": {
+              "enum": ["complete", "on_hold", "discontinued"]
+            },
+            "outcome": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+            }
+          },
+          "required": ["id", "label", "kind", "lifecycle", "outcome"]
+        }
+      ]
+    },
+    "deadline": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3660
+        },
+        "unit": {
+          "enum": ["business_days", "elapsed_hours", "local_days"]
+        },
+        "calendar": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+        }
+      },
+      "required": ["amount", "unit", "calendar"]
+    },
+    "join": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "enum": ["all", "any"]
+            },
+            "requiredBranches": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+              },
+              "minItems": 0,
+              "maxItems": 10
+            }
+          },
+          "required": ["mode", "requiredBranches"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "const": "quorum"
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            },
+            "requiredBranches": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,100}$"
+              },
+              "minItems": 0,
+              "maxItems": 10
+            }
+          },
+          "required": ["mode", "count", "requiredBranches"]
+        }
+      ]
+    }
+  }
+}

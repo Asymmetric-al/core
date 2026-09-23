@@ -1,0 +1,95 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-10",
+  "recipeId": "GEN-13",
+  "name": "Support conversation routing and response",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "support_response",
+  "subject": "conversation",
+  "enrollment": {
+    "mode": "once_per_subject",
+    "triggerContract": "support.conversation.accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {},
+    "tasks": {
+      "respond": "support.assigned-response@1"
+    },
+    "evidence": {
+      "response": "support.response.source-confirmed@1"
+    },
+    "actions": {
+      "route": "support.request-approved-routing@1",
+      "ack": "support.request-loop-safe-acknowledgment@1"
+    },
+    "roles": {
+      "source_owner": "roles.support-source-assignee@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "communications",
+    "crm",
+    "messages",
+    "support-hub",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": [
+        "support_flow"
+      ]
+    }
+  ],
+  "root": {
+    "id": "support_flow",
+    "kind": "sequence",
+    "label": "Support flow",
+    "steps": [
+      {
+        "id": "route_conversation",
+        "kind": "action",
+        "label": "Route conversation",
+        "contract": "route",
+        "inputs": {}
+      },
+      {
+        "id": "request_ack",
+        "kind": "action",
+        "label": "Request ack",
+        "contract": "ack",
+        "inputs": {}
+      },
+      {
+        "id": "first_response",
+        "kind": "task",
+        "label": "First response",
+        "contract": "respond",
+        "role": "source_owner"
+      },
+      {
+        "id": "response_confirmed",
+        "kind": "evidence",
+        "label": "Response confirmed",
+        "contract": "response",
+        "role": "source_owner"
+      },
+      {
+        "id": "response_done",
+        "kind": "finish",
+        "label": "Response done",
+        "lifecycle": "complete",
+        "outcome": "first_response_recorded"
+      }
+    ]
+  }
+}

@@ -48,6 +48,11 @@ const SKIP_DIRECTORY_NAMES = new Set([
   "coverage",
   ".turbo",
 ]);
+const SKIP_REPO_RELATIVE_DIRECTORIES = new Set([
+  "packages/eve-runtime/.eve",
+  "packages/eve-runtime/.nitro",
+  "packages/eve-runtime/.output",
+]);
 const RETIRED_TWENTY_RUNTIME_MARKERS = [
   "TWENTY_API_URL",
   "TWENTY_API_KEY",
@@ -67,6 +72,11 @@ const RETIRED_TWENTY_RUNTIME_MARKERS = [
 const HISTORICAL_TWENTY_PATH_PREFIXES = ["docs/", "openspec/", "tests/"];
 const RETIRED_TWENTY_SCAN_ROOTS = ["apps", "packages", "scripts"];
 const RETIRED_TWENTY_SCANNER_PATH = "scripts/verify/data-boundary-check.mjs";
+const IGNORED_GENERATED_RUNTIME_PREFIXES = [
+  "packages/eve-runtime/.eve/",
+  "packages/eve-runtime/.nitro/",
+  "packages/eve-runtime/.output/",
+];
 
 function toRepoRelative(filePath) {
   return path.relative(repoRoot, filePath).split(path.sep).join("/");
@@ -79,7 +89,10 @@ function collectTypeScriptFiles(directoryPath) {
   for (const entry of entries) {
     const entryPath = path.join(directoryPath, entry.name);
     if (entry.isDirectory()) {
-      if (SKIP_DIRECTORY_NAMES.has(entry.name)) {
+      if (
+        SKIP_DIRECTORY_NAMES.has(entry.name) ||
+        SKIP_REPO_RELATIVE_DIRECTORIES.has(toRepoRelative(entryPath))
+      ) {
         continue;
       }
       files.push(...collectTypeScriptFiles(entryPath));
@@ -103,7 +116,10 @@ export function collectRetiredTwentyRuntimeViolationsFromSource(
     HISTORICAL_TWENTY_PATH_PREFIXES.some((prefix) =>
       normalized.startsWith(prefix),
     ) ||
-    normalized === RETIRED_TWENTY_SCANNER_PATH
+    normalized === RETIRED_TWENTY_SCANNER_PATH ||
+    IGNORED_GENERATED_RUNTIME_PREFIXES.some((prefix) =>
+      normalized.startsWith(prefix),
+    )
   ) {
     return [];
   }

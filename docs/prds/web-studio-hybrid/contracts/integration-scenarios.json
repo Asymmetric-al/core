@@ -1,0 +1,86 @@
+[
+  {
+    "id": "HA-INT-01",
+    "requirement": "Disable/uninstall P42 while qualified P23 native CMS still saves and publishes; no missing module import or startup registration blocks it.",
+    "taskScopes": ["HA-1.1@WEB-VISUAL", "HA-6.4@WEB-VISUAL"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-02",
+    "requirement": "Remove Git credentials and custom build service; WEB-VISUAL still completes create/edit/media/reuse/preview/publish/schedule/recover against a standard admitted renderer.",
+    "taskScopes": ["HA-6.4@WEB-VISUAL"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-03",
+    "requirement": "Disable optional Workflow Studio enrollments and its UI; fixed native Web Studio autosave/publication/overdue recovery still operate.",
+    "taskScopes": ["HA-5.4@WEB-VISUAL", "HA-6.4@WEB-VISUAL"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-04",
+    "requirement": "Ordinary initiator departure leaves a valid D13 organization appointment eligible, explicit appointment invalidation blocks it, and a revoked NHI grant denies a separate Studio action.",
+    "taskScopes": ["HA-5.4@WEB-VISUAL"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-05",
+    "requirement": "Inject a failure after content write but before receipt/outbox commit; no acknowledged partial save remains. Lose a committed response and recover the original receipt exactly once.",
+    "taskScopes": ["HA-1.3@WEB-VISUAL", "HA-3.1@WEB-VISUAL"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-06",
+    "requirement": "Both supported same-user tabs and an isolated composer send stale revision/lease/channel messages; only current authorized scope can save and prior work is preserved.",
+    "taskScopes": ["HA-3.1@WEB-VISUAL", "HA-3.3@WEB-VISUAL"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-07",
+    "requirement": "A valid v1 Page and Article load/save/render unchanged with v2 available; illegal third-level, nested Hero/reuse and unknown schema are rejected without dropping acknowledged nodes.",
+    "taskScopes": ["HA-2.2@WEB-VISUAL", "HA-6.2@WEB-VISUAL"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-08",
+    "requirement": "A custom redesign hardcodes the registered headline: actual field-to-render tests block compatibility. Correct it, activate, and have staff change the same field successfully without Git.",
+    "taskScopes": ["HA-6.3@WEB-HYBRID"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-09",
+    "requirement": "An App callback for another installation/repository and a stale post-reconnect webhook cannot bind, build, disclose source or reactivate an old epoch.",
+    "taskScopes": ["HA-4.1@WEB-SOURCE", "HA-4.2@WEB-SOURCE"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-10",
+    "requirement": "A hostile postinstall tries token, cloud metadata and private-network access, poisons cache and weakens submitted tests; independent build/admission boundaries hold.",
+    "taskScopes": ["HA-4.4@WEB-SOURCE", "HA-4.5@WEB-SOURCE"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-11",
+    "requirement": "New code is available but not active; then one locale head drifts during design approval. Current Sites do not switch merely from deployment and all-or-none activation refuses stale input.",
+    "taskScopes": ["HA-5.3@WEB-HYBRID"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-12",
+    "requirement": "Candidate A stays A after unrelated draft B; withdrawn media blocks A. Missing candidate routes never fall through to Live or perform actual giving/form effects.",
+    "taskScopes": ["HA-5.1@WEB-VISUAL", "HA-5.1@WEB-HYBRID"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-13",
+    "requirement": "Source is disconnected while editorial work continues; safe retained artifacts and content survive. Incomplete artifact-use evidence blocks purge; no source database overwrites CMS content.",
+    "taskScopes": ["HA-6.1@WEB-SOURCE", "HA-6.1@WEB-HYBRID"],
+    "evidenceStatus": "not-executed"
+  },
+  {
+    "id": "HA-INT-14",
+    "requirement": "Real staff complete every admitted non-drag pointer and keyboard task after redesign at narrow/zoomed layout, recover a lost save, and distinguish Saved from Published.",
+    "taskScopes": ["HA-6.3@WEB-HYBRID"],
+    "evidenceStatus": "not-executed"
+  }
+]

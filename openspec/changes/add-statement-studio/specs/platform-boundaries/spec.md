@@ -54,8 +54,10 @@ change source-owned issuance validity or correction effect.
 
 ### Requirement: Delivery And Document Issuance Remain Independent
 
-Phase 17 MUST own governed message content, communication history, consent,
-provider submission, provider outcomes, and protected-action presentation.
+Phase 17 MUST own governed message content, publication/compiler and sender
+resolution, and protected-action presentation. Phase 6 MUST own recipient
+intent, consent, preparation orchestration, provider submission and outcomes,
+delivery recovery, and communication history.
 Document Production MUST own exact artifact identity, authorization, retrieval,
 current/replaced/cancelled state, and artifact evidence. A send, bounce, open,
 link preflight, grant redemption, byte response, or download MUST NOT create or
@@ -64,8 +66,9 @@ alter document issuance.
 #### Scenario: A document email bounces
 
 - GIVEN one exact issued artifact exists
-- WHEN its Phase 17 delivery bounces and staff resend it
-- THEN Phase 17 appends delivery evidence against the same artifact reference
+- WHEN its Phase 6 delivery bounces and staff resend it
+- THEN Phase 6 appends delivery evidence against the same artifact reference
+- AND its governed content remains prepared through Phase 17
 - AND Document Production does not rerender, renumber, replace, or change the
   artifact's issuance state
 

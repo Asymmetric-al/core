@@ -1,0 +1,452 @@
+[
+  {
+    "id": "R01",
+    "title": "Corrected user-confirmed direction",
+    "url": "../baseline/Asym_Web_Studio_Corrected_Direction.md",
+    "kind": "user-confirmed",
+    "access_date": "2026-09-12",
+    "observation": "Hybrid visual-first, code-first and mixed authoring; private Payload; ministry-controlled custom repository; ordinary content work independent of GitHub.",
+    "limits": "Detailed technical choices remain proposed; earlier support-oriented review is withdrawn."
+  },
+  {
+    "id": "R02",
+    "title": "Current develop branch",
+    "url": "https://api.github.com/repos/Asymmetric-al/core/branches/develop",
+    "kind": "repository-current",
+    "access_date": "2026-09-12",
+    "observation": "Observed head 7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd.",
+    "limits": "Source inspection is not a runtime or production verification."
+  },
+  {
+    "id": "R03",
+    "title": "Admin package manifest",
+    "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/admin/package.json",
+    "kind": "repository-current",
+    "access_date": "2026-09-12",
+    "observation": "Payload 4.0.0-internal.1f9ae9a; Next 16.3.0-preview.9; React 19.2.3; TypeScript 6.0.3.",
+    "limits": "Pinned does not mean supported or qualified. No lockfile install was performed in this review."
+  },
+  {
+    "id": "R04",
+    "title": "Native document editor",
+    "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/apps/admin/src/cms-ui/web-studio/collections/shared/document-workspace/NativeCollectionEditView.tsx",
+    "kind": "repository-current",
+    "access_date": "2026-09-12",
+    "observation": "The current editor imports Payload form, preview, and save/publish components.",
+    "limits": "Only the relevant source section was inspected; this is not proof of independent CMS frontend parity."
+  },
+  {
+    "id": "R05",
+    "title": "Phase 23 PR 1340",
+    "url": "https://github.com/Asymmetric-al/core/pull/1340",
+    "kind": "repository-intended",
+    "access_date": "2026-09-12",
+    "observation": "Open and unmerged when checked; describes D1–D36 and existing owner seams.",
+    "limits": "Historical prose inside the PR can lag actual issue publication/draft metadata. Child issue evidence takes precedence for ticket existence."
+  },
+  {
+    "id": "R06",
+    "title": "D7 semantic catalog",
+    "url": "https://github.com/Asymmetric-al/core/blob/codex/phase-23-web-studio-cms-spec/docs/adr/0151-semantic-ordinary-section-catalog-and-additive-bounded-composition-seam.md",
+    "kind": "repository-intended",
+    "access_date": "2026-09-12",
+    "observation": "Flat v1 composition, fixed families and semantic catalog; bounded containers require a separately ratified successor.",
+    "limits": "This package proposes that successor, not a claim that it was already ratified."
+  },
+  {
+    "id": "R07",
+    "title": "D12 acknowledged drafts and leases",
+    "url": "https://github.com/Asymmetric-al/core/blob/codex/phase-23-web-studio-cms-spec/docs/adr/0156-bounded-editorial-working-revisions-and-recoverable-active-editor.md",
+    "kind": "repository-intended",
+    "access_date": "2026-09-12",
+    "observation": "One working revision per exact resource, session-owned fenced lease, CAS, idempotent save receipts and restore-as-new-draft.",
+    "limits": "Retain its separate resource axes and no persistent offline/CRDT launch posture."
+  },
+  {
+    "id": "R08",
+    "title": "D13 scheduled publication",
+    "url": "https://github.com/Asymmetric-al/core/blob/codex/phase-23-web-studio-cms-spec/docs/adr/0157-exact-revision-scheduled-publication-appointments-through-d1.md",
+    "kind": "repository-intended",
+    "access_date": "2026-09-12",
+    "observation": "One-time exact-revision appointments; six-day handoff horizon; Inngest executor; current semantic proof at execution.",
+    "limits": "Routine initiator offboarding is not equivalent to revoking an organization-owned appointment."
+  },
+  {
+    "id": "R09",
+    "title": "D30 identity and Payload boundaries",
+    "url": "https://github.com/Asymmetric-al/core/blob/codex/phase-23-web-studio-cms-spec/docs/adr/0174-single-staff-access-authority-and-governed-engine-diagnostics.md",
+    "kind": "repository-intended",
+    "access_date": "2026-09-12",
+    "observation": "Supabase human identity and Phase 12 capability authority; private Payload; distinct actor/service ports.",
+    "limits": "No raw-admin or provider fallback; exact transaction adapter still needs real qualification."
+  },
+  {
+    "id": "R10",
+    "title": "Merged workflow-orchestration contract",
+    "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/openspec/specs/workflow-orchestration/spec.md",
+    "kind": "repository-merged",
+    "access_date": "2026-09-12",
+    "observation": "Shared dispatch ledger, product claims, identifier-only events, tenant-scoped execution; orchestrator does not own product facts.",
+    "limits": "Use the existing runtime rather than a new workflow product."
+  },
+  {
+    "id": "R11",
+    "title": "Data access boundary",
+    "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/guides/architecture/data-access-boundary.md",
+    "kind": "repository-merged",
+    "access_date": "2026-09-12",
+    "observation": "Business/data logic in packages/api with explicit admin-local Payload exception; browser collections are not multi-table command writers.",
+    "limits": "Keep Payload runtime in admin and inject the private adapter; do not move it into donor/missionary packages."
+  },
+  {
+    "id": "R12",
+    "title": "OpenSpec workflow",
+    "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/ai/rules/openspec.md",
+    "kind": "repository-merged",
+    "access_date": "2026-09-12",
+    "observation": "Read current context; use the repository-pinned CLI; align proposal/spec/design/tasks; archive only after implementation becomes accepted reality.",
+    "limits": "The repository CLI was not run by this research task."
+  },
+  {
+    "id": "R13",
+    "title": "OpenSpec schema configuration",
+    "url": "https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/openspec/config.yaml",
+    "kind": "repository-merged",
+    "access_date": "2026-09-12",
+    "observation": "spec-driven schema, observable scenarios, unique hierarchical task IDs, explicit authority conflicts.",
+    "limits": "This is a draft change package, not an applied or archived change."
+  },
+  {
+    "id": "R14",
+    "title": "Package qualification ticket 1365",
+    "url": "https://github.com/Asymmetric-al/core/issues/1365",
+    "kind": "repository-intended",
+    "access_date": "2026-09-12",
+    "observation": "Existing package qualification owner; source/manifest, compatibility, dependency and safety proof.",
+    "limits": "Prior-turn inspected source; refresh the live ticket and blockers at adoption. No duplicate epic is authorized."
+  },
+  {
+    "id": "R15",
+    "title": "All-or-none presentation activation ticket 1367",
+    "url": "https://github.com/Asymmetric-al/core/issues/1367",
+    "kind": "repository-intended",
+    "access_date": "2026-09-12",
+    "observation": "Exact locale cohort, expected heads and design-only activation; previous-design restore creates a successor.",
+    "limits": "Open and blocked when checked; not implemented merely because ticket exists."
+  },
+  {
+    "id": "R16",
+    "title": "Presentation Package D9",
+    "url": "https://github.com/Asymmetric-al/core/blob/codex/phase-23-web-studio-cms-spec/docs/adr/0153-certified-site-bound-custom-presentation-packages.md",
+    "kind": "repository-intended",
+    "access_date": "2026-09-12",
+    "observation": "Reviewed first-party admission, serialized public view model, narrow capability islands and no runtime tenant-code upload.",
+    "limits": "Ministry-controlled authorship is an explicit narrow amendment; admission is not automatically waived."
+  },
+  {
+    "id": "R17",
+    "title": "Whole-site preview D25",
+    "url": "https://github.com/Asymmetric-al/core/blob/codex/phase-23-web-studio-cms-spec/docs/adr/0169-immutable-whole-site-preview-candidates-over-sealed-site-plan-inputs.md",
+    "kind": "repository-intended",
+    "access_date": "2026-09-12",
+    "observation": "Existing complete immutable private preview contract, referenced by Phase 23 PR and ticket sources.",
+    "limits": "Referenced owner contract; exact file must be reread before implementation; do not invent a second preview authority."
+  },
+  {
+    "id": "E01",
+    "title": "Payload Local API access control",
+    "url": "https://payloadcms.com/docs/local-api/access-control",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Local API skips access checks by default; actor calls explicitly supply context and overrideAccess:false.",
+    "limits": "Public documentation is not proof of the internal v4 pin; verify exact cohort."
+  },
+  {
+    "id": "E02",
+    "title": "Payload database transactions",
+    "url": "https://payloadcms.com/docs/database/transactions",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Payload propagates transaction identity through req; unawaited transaction work can produce incorrect success responses.",
+    "limits": "A separate Supabase request is not proven to share the transaction. Qualify one real commit boundary."
+  },
+  {
+    "id": "E03",
+    "title": "Payload versions",
+    "url": "https://payloadcms.com/docs/versions/overview",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Versions, drafts and autosave are available persistence/editorial primitives.",
+    "limits": "They do not implement Asym release/lease policy by themselves."
+  },
+  {
+    "id": "E04",
+    "title": "Payload server live preview",
+    "url": "https://payloadcms.com/docs/live-preview/server",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Server-rendered preview can refresh on saved changes via a preview bridge.",
+    "limits": "Preview transport is not publication or authorization."
+  },
+  {
+    "id": "E05",
+    "title": "Payload enterprise visual editor",
+    "url": "https://payloadcms.com/enterprise/visual-editor",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Page still displays Coming Soon in retrieved current documentation.",
+    "limits": "No enterprise feature dependency is admitted."
+  },
+  {
+    "id": "E06",
+    "title": "Payload current stable release API",
+    "url": "https://api.github.com/repos/payloadcms/payload/releases/latest",
+    "kind": "official-release",
+    "access_date": "2026-09-12",
+    "observation": "Endpoint returned v3.89.0, published 2026-09-10; notes include access-default changes for Jobs.",
+    "limits": "This does not establish that no public v4 prerelease exists. No supported v4 cohort has been qualified here."
+  },
+  {
+    "id": "E07",
+    "title": "Puck current release API",
+    "url": "https://api.github.com/repos/puckeditor/puck/releases/latest",
+    "kind": "official-release",
+    "access_date": "2026-09-12",
+    "observation": "Endpoint returned v0.23.0, published 2026-08-07, including outline and Dictionary API improvements.",
+    "limits": "Qualification candidate only; no exact Core interoperability claim."
+  },
+  {
+    "id": "E08",
+    "title": "Puck license",
+    "url": "https://github.com/puckeditor/puck/blob/main/LICENSE",
+    "kind": "official-license",
+    "access_date": "2026-09-12",
+    "observation": "MIT core license inspected.",
+    "limits": "Verify license and transitive notices at the admitted tag; Puck Cloud/AI is not included by implication."
+  },
+  {
+    "id": "E09",
+    "title": "Puck composition API",
+    "url": "https://puckeditor.com/docs/extending-puck/composition",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Composable Preview, Fields, Outline and Components support custom editor layouts.",
+    "limits": "Cross-origin splitting of its React context is not promised; the proposed whole-composer embedding needs qualification."
+  },
+  {
+    "id": "E10",
+    "title": "Puck UI overrides",
+    "url": "https://puckeditor.com/docs/extending-puck/ui-overrides",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Overrides are explicitly marked highly experimental.",
+    "limits": "Prefer composition/custom fields and confine any required override to one adapter."
+  },
+  {
+    "id": "E11",
+    "title": "Puck slots and layouts",
+    "url": "https://puckeditor.com/docs/integrating-puck/multi-column-layouts",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Slots support nested component composition; current guidance replaces legacy DropZones.",
+    "limits": "Asym server grammar, not Puck feature breadth, controls allowed layouts."
+  },
+  {
+    "id": "E12",
+    "title": "Puck server components",
+    "url": "https://puckeditor.com/docs/integrating-puck/server-components",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Server rendering and client editor configuration are separate concerns.",
+    "limits": "Do not move server-only data access into client config or force all public rendering to CSR."
+  },
+  {
+    "id": "E13",
+    "title": "Puck permissions",
+    "url": "https://puckeditor.com/docs/api-reference/permissions",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Permissions toggle editor capabilities such as insertion, deletion and movement.",
+    "limits": "These are UI controls, not evidence of backend authorization."
+  },
+  {
+    "id": "E14",
+    "title": "Puck external data",
+    "url": "https://puckeditor.com/docs/integrating-puck/external-data-sources",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "An external selection can load data once and persist it in the editor payload.",
+    "limits": "Do not copy operational records; use owner-issued references and qualified public projections."
+  },
+  {
+    "id": "E15",
+    "title": "Puck viewports",
+    "url": "https://puckeditor.com/docs/integrating-puck/viewports",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Resizable preview uses a same-origin iframe.",
+    "limits": "That is not an isolation boundary from the parent composer."
+  },
+  {
+    "id": "E16",
+    "title": "Puck data migration",
+    "url": "https://puckeditor.com/docs/integrating-puck/data-migration",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Changing component props can require migration of saved documents.",
+    "limits": "Library migrations do not decide Asym content semantics or restore policy."
+  },
+  {
+    "id": "E17",
+    "title": "GitHub App setup URL",
+    "url": "https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/about-the-setup-url",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Callback installation_id may be spoofed and requires verified authorization.",
+    "limits": "A GitHub principal is not an Asym permission grant."
+  },
+  {
+    "id": "E18",
+    "title": "GitHub installation tokens",
+    "url": "https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Installation tokens can be narrowed to repositories/permissions and expire after one hour; format is changing.",
+    "limits": "Treat tokens as opaque secrets, never fixed-length strings or browser authority."
+  },
+  {
+    "id": "E19",
+    "title": "GitHub webhook validation",
+    "url": "https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Validate HMAC-SHA256 over the unchanged body with a timing-safe comparison.",
+    "limits": "Authentication does not replace app-side scope and event-action validation."
+  },
+  {
+    "id": "E20",
+    "title": "GitHub webhook best practices",
+    "url": "https://docs.github.com/en/webhooks/using-webhooks/best-practices-for-using-webhooks",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Respond within ten seconds, subscribe narrowly, and use delivery identities for duplicate handling.",
+    "limits": "Durably accept before success; perform builds out of the request."
+  },
+  {
+    "id": "E21",
+    "title": "GitHub missed deliveries",
+    "url": "https://docs.github.com/en/webhooks/using-webhooks/handling-failed-webhook-deliveries",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Failed webhooks are not automatically redelivered.",
+    "limits": "Webhook-only convergence is inadequate; use bounded reconciliation."
+  },
+  {
+    "id": "E22",
+    "title": "GitHub Actions secure use",
+    "url": "https://docs.github.com/en/actions/reference/security/secure-use",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Untrusted source and action/workflow execution require restricted tokens, secret isolation and careful event selection.",
+    "limits": "Tenant-editable CI cannot be the sole admission oracle."
+  },
+  {
+    "id": "E23",
+    "title": "Inngest idempotency",
+    "url": "https://www.inngest.com/docs/guides/handling-idempotency",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Event ID deduplication is limited to a 24-hour period; application operations should themselves be idempotent.",
+    "limits": "Product receipts and work claims must survive provider dedupe windows."
+  },
+  {
+    "id": "E24",
+    "title": "Inngest concurrency",
+    "url": "https://www.inngest.com/docs/guides/concurrency",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Supports keyed limits for active step execution.",
+    "limits": "Not a database lock, tenant permission, or whole-run capacity guarantee."
+  },
+  {
+    "id": "E25",
+    "title": "Inngest cancellation",
+    "url": "https://www.inngest.com/docs/guides/cancel-running-functions",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Provides cancellation APIs for function runs.",
+    "limits": "Cancellation does not undo committed product effects; fenced workers must recheck before commit."
+  },
+  {
+    "id": "E26",
+    "title": "Storyblok visual bridge",
+    "url": "https://www.storyblok.com/docs/concepts/visual-editor",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Draft block identities and editing metadata connect rendered elements to editor fields.",
+    "limits": "Use the principle, not its floating CDN script or access-token examples as Asym policy."
+  },
+  {
+    "id": "E27",
+    "title": "Sanity visual overlays",
+    "url": "https://www.sanity.io/docs/visual-editing/visual-editing-overlays",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Source mappings support contextual click-to-edit.",
+    "limits": "Mappings are not authorization and must be absent from ordinary public output where private."
+  },
+  {
+    "id": "E28",
+    "title": "Builder custom components",
+    "url": "https://www.builder.io/c/docs/custom-components-setup",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Developer-defined components register editable inputs for visual authoring.",
+    "limits": "Does not make arbitrary source round-trip automatically."
+  },
+  {
+    "id": "E29",
+    "title": "Craft project configuration",
+    "url": "https://craftcms.com/docs/5.x/system/project-config.html",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Content configuration can travel through source control separately from editorial content.",
+    "limits": "Do not synchronize production content by copying a development database."
+  },
+  {
+    "id": "E30",
+    "title": "W3C dragging movements",
+    "url": "https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html",
+    "kind": "official-standard-guidance",
+    "access_date": "2026-09-12",
+    "observation": "Dragging functionality needs a single-pointer alternative unless essential; keyboard accessibility is also separately necessary.",
+    "limits": "Move buttons must support pointer and keyboard, not only keyboard shortcuts."
+  },
+  {
+    "id": "E31",
+    "title": "postMessage security",
+    "url": "https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage",
+    "kind": "primary-platform-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Verify origin and source and specify target origin; cross-origin messaging does not itself validate data or authority.",
+    "limits": "No wildcard bridge or messages that directly publish."
+  },
+  {
+    "id": "E32",
+    "title": "PostgreSQL RLS",
+    "url": "https://www.postgresql.org/docs/current/ddl-rowsecurity.html",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Existing-row and new-row checks differ; privileged roles can bypass RLS.",
+    "limits": "Test USING and WITH CHECK, grants and privileged paths under actual deployment roles."
+  },
+  {
+    "id": "E33",
+    "title": "TanStack Highlight scope",
+    "url": "https://tanstack.com/highlight/latest/docs/comparison",
+    "kind": "official-documentation",
+    "access_date": "2026-09-12",
+    "observation": "Read-only highlighting is not incremental code editing or an editor-grade language service.",
+    "limits": "Optional excerpts only, not IDE or runtime code execution."
+  }
+]

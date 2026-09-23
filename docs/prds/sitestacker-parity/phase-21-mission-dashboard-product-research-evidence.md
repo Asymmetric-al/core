@@ -1774,9 +1774,9 @@ The exit surface:
    D3 Assessment Profile Assignments and unfinished determinations, D4
    Compensation Funding Plans/periods/decisions/coverage, and Phase 13
    Designations; proves any Phase 16 recurring-term stop or successor through
-   Phase 16's required donor/tenant authorization; and has Phase 22 retire or
-   redirect presentation only after the financial destination authority has
-   changed, so a page never chooses or silently changes a Designation;
+   Phase 16's required donor/tenant authorization; and supplies Phase 22 D8 with
+   exact lifecycle and succession evidence without selecting public
+   presentation, so a page never chooses or silently changes a Designation;
 7. proves that every amount is either reallocated, covered by a named live
    authority, retained in an explicit organization-owned successor, or
    resolved by an append-only correction; and
@@ -1791,8 +1791,10 @@ outcome or an authorized successor. Pre-boundary late facts remain linked to
 the original account. Genuinely post-boundary discretionary intake is rejected
 by an inactive Phase 13 destination unless Phase 13 has an exact authorized
 successor; Phase 16 changes future recurring terms only through its own
-authorization. Phase 22 may retire or redirect the page URL but never redirects
-money, and Phase 21 never silently reroutes intake.
+authorization. Phase 22 D8 may publish a truthful transition notice before that
+financial work completes, permanently moves only the same immutable Page's
+canonical route, never automatically redirects to a successor Page, and never
+redirects money; Phase 21 never silently reroutes intake.
 
 An internal manifest line becomes terminal only after both sides of its pair
 are admitted by the same immutable Support Cycle Close. An external line
@@ -6653,6 +6655,26 @@ not SQL-text inspection alone:
 > ACL engine, assignment-aware RLS, JWT grant lists, client-trusted scope, raw
 > financial `postgres_changes`, destructive merge, cascade deletion, stale
 > notification eligibility, or participation-driven money movement.**
+
+#### Phase 22 D19 integration note (2026-08-06)
+
+Phase 9 owns the CRM **Ministry Assignment** used as the operational subject of
+a Missionary Ministry Page; Phase 22 D19 adds only the separated composition and
+access semantics. Phase 21 owns the
+separately finance-authorized command for one optional, prospective, immutable,
+same-Tenant and same-Legal-Entity binding to this Support Assignment; Phase 22
+only consumes the bridge. It does not replace either identity,
+copy support truth, choose a Designation or currency, move money, or grant
+access. Ministry membership, Phase 21 participation, public display, Page
+contribution, Support Workspace authorization, responsibility, history floor,
+and notification preference remain separate facts.
+
+A spouse or teammate sees the same support activity and exact per-currency
+Finance-confirmed balances only through their own principal, a current Phase 12
+purpose/projection/target/field/history-bounded decision, and the applicable D9
+publication posture. Rebinding propagates none of those facts and changes no
+balance or closed history. Full rationale and proof are recorded in Phase 22
+D19 and ADR-0136.
 
 ## Post-D19 preservation and cross-phase congruency audit
 

@@ -1,0 +1,150 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-05",
+  "recipeId": "MOB-08",
+  "name": "Post-acceptance onboarding through handoff",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "mobilization_onboarding",
+  "subject": "application",
+  "enrollment": {
+    "mode": "once_per_subject",
+    "triggerContract": "mobilization.onboarding.authorized@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {},
+    "tasks": {},
+    "evidence": {
+      "agreements": "mobilization.current-agreement-set.satisfied@1",
+      "training": "mobilization.required-training.satisfied@1",
+      "setup_complete": "mobilization.operational-setup.confirmed@1",
+      "readiness": "mobilization.readiness.authorized@1",
+      "receiving_handoff": "mobilization.receiving-owner.acknowledged@1"
+    },
+    "actions": {
+      "setup": "mobilization.request-approved-operational-setup@1"
+    },
+    "roles": {
+      "candidate": "roles.application-participant@1",
+      "coordinator": "roles.application-coordinator@1",
+      "receiving_owner": "roles.application-receiving-owner@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "communications",
+    "crm",
+    "documents",
+    "forms",
+    "identity",
+    "messages",
+    "mobilization",
+    "private-files",
+    "tasks",
+    "training",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": [
+        "onboarding_flow"
+      ]
+    }
+  ],
+  "root": {
+    "id": "onboarding_flow",
+    "kind": "sequence",
+    "label": "Onboarding flow",
+    "steps": [
+      {
+        "id": "required_onboarding",
+        "kind": "parallel",
+        "label": "Required onboarding",
+        "branches": [
+          {
+            "id": "agreements",
+            "body": {
+              "id": "agreements",
+              "kind": "evidence",
+              "label": "Agreements",
+              "contract": "agreements",
+              "role": "candidate"
+            }
+          },
+          {
+            "id": "training",
+            "body": {
+              "id": "training",
+              "kind": "evidence",
+              "label": "Training",
+              "contract": "training",
+              "role": "candidate"
+            }
+          },
+          {
+            "id": "setup",
+            "body": {
+              "id": "setup_flow",
+              "kind": "sequence",
+              "label": "Setup flow",
+              "steps": [
+                {
+                  "id": "request_setup",
+                  "kind": "action",
+                  "label": "Request setup",
+                  "contract": "setup",
+                  "inputs": {}
+                },
+                {
+                  "id": "setup_evidence",
+                  "kind": "evidence",
+                  "label": "Setup evidence",
+                  "contract": "setup_complete",
+                  "role": "coordinator"
+                }
+              ]
+            }
+          }
+        ],
+        "join": {
+          "mode": "all",
+          "requiredBranches": [
+            "agreements",
+            "training",
+            "setup"
+          ]
+        },
+        "onEmpty": "block",
+        "remainder": "await_remaining"
+      },
+      {
+        "id": "readiness",
+        "kind": "evidence",
+        "label": "Readiness",
+        "contract": "readiness",
+        "role": "coordinator"
+      },
+      {
+        "id": "receiving_handoff",
+        "kind": "evidence",
+        "label": "Receiving handoff",
+        "contract": "receiving_handoff",
+        "role": "receiving_owner"
+      },
+      {
+        "id": "onboarding_done",
+        "kind": "finish",
+        "label": "Onboarding done",
+        "lifecycle": "complete",
+        "outcome": "onboarded_not_deployed"
+      }
+    ]
+  }
+}

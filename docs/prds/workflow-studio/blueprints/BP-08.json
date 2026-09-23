@@ -1,0 +1,134 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-08",
+  "recipeId": "COM-01",
+  "name": "Ministry Update review and publication",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "content_publication",
+  "subject": "content_revision",
+  "enrollment": {
+    "mode": "once_per_subject",
+    "triggerContract": "content.update-review.requested@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {
+      "approvedCurrentRevision": "content.exact-current-revision-approved@1"
+    },
+    "tasks": {},
+    "evidence": {
+      "review": "content.exact-revision.review-completed@1",
+      "published": "content.exact-revision.published@1"
+    },
+    "actions": {
+      "publish": "content.request-authorized-publication@1",
+      "distribute": "communications.content-distribution.request@1"
+    },
+    "roles": {
+      "editor": "roles.content-editor@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "cms",
+    "communications",
+    "content",
+    "messages",
+    "ministry-updates",
+    "publication-safety",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": ["publication_flow"]
+    }
+  ],
+  "root": {
+    "id": "publication_flow",
+    "kind": "sequence",
+    "label": "Publication flow",
+    "steps": [
+      {
+        "id": "exact_revision_review",
+        "kind": "evidence",
+        "label": "Exact revision review",
+        "contract": "review",
+        "role": "editor"
+      },
+      {
+        "id": "approved_path",
+        "kind": "choose_one",
+        "label": "Approved path",
+        "cases": [
+          {
+            "id": "approved",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "approvedCurrentRevision"
+                }
+              },
+              "right": {
+                "literal": true
+              }
+            },
+            "then": {
+              "id": "publish_path",
+              "kind": "sequence",
+              "label": "Publish path",
+              "steps": [
+                {
+                  "id": "request_publication",
+                  "kind": "action",
+                  "label": "Request publication",
+                  "contract": "publish",
+                  "inputs": {}
+                },
+                {
+                  "id": "publication_confirmed",
+                  "kind": "evidence",
+                  "label": "Publication confirmed",
+                  "contract": "published",
+                  "role": "editor"
+                },
+                {
+                  "id": "request_distribution",
+                  "kind": "action",
+                  "label": "Request distribution",
+                  "contract": "distribute",
+                  "inputs": {}
+                },
+                {
+                  "id": "published_done",
+                  "kind": "finish",
+                  "label": "Published done",
+                  "lifecycle": "complete",
+                  "outcome": "published_distribution_requested"
+                }
+              ]
+            }
+          }
+        ],
+        "otherwise": {
+          "id": "revision_needed",
+          "kind": "finish",
+          "label": "Revision needed",
+          "lifecycle": "on_hold",
+          "outcome": "awaiting_author_revision"
+        },
+        "onUnknown": "block"
+      }
+    ]
+  }
+}

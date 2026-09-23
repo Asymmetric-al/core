@@ -1,0 +1,54 @@
+{
+  "date": "2026-09-12",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "headAndOriginDevelop": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "relatedPRs": [
+    {
+      "number": 1335,
+      "state": "OPEN",
+      "head": "e1c86e1a30f479363960eeb35500112665e16bb3"
+    },
+    {
+      "number": 1336,
+      "state": "OPEN",
+      "head": "3b2827ffcf184bf767664018efedda317c7da03c"
+    },
+    {
+      "number": 1564,
+      "state": "OPEN",
+      "head": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1"
+    }
+  ],
+  "sourceHashes": [
+    {
+      "path": "apps/admin/src/cms/access/public-read.ts",
+      "sha256": "a796af6a5ff5e5be7d5ac787b9704ed4064495480d04c6c487c0fc73f2093ce9"
+    },
+    {
+      "path": "apps/admin/src/cms/collections/pages.ts",
+      "sha256": "f968a013c33385d3b8afb76b02b25a23a8629c14da6057efa7ee3d14736389ae"
+    },
+    {
+      "path": "apps/admin/src/cms/public/published-content-reader.ts",
+      "sha256": "479ccc0560345b0e9809632881cc0d12be392e7ede1249f5f401c16ed915a096"
+    },
+    {
+      "path": "docs/adr/0027-transport-agnostic-public-content-reader.md",
+      "sha256": "69e136006ba2b6242b9e5d9d3ae2a41d79f583378e8541b9f619b618a7c7d64f"
+    },
+    {
+      "path": "docs/adr/0029-reference-not-copy-cms-operational.md",
+      "sha256": "67948ee43e8d7aa9b0ecbec675e55518b9619ca0f16a3d6c208dbe2d8a24611d"
+    },
+    {
+      "path": "docs/prds/sitestacker-parity/roadmap.md",
+      "sha256": "9d577a9b2e152f67737a49f7163e56f0899622c90f448f53911116840829c203"
+    },
+    {
+      "path": "packages/api/src/cms/public/reader.ts",
+      "sha256": "236d680029954d6ee0bca1286f613f26956a463f463296c81991554f579dba66"
+    }
+  ],
+  "stage": "D1-D26 fully ratified; Q27 unanswered",
+  "limits": "Current repository and primary documentation inspected; no guidance lookup/runtime/provider/browser/AT/usability proof."
+}

@@ -1,0 +1,201 @@
+{
+  "date": "2026-09-12",
+  "cwd": "/home/conrad/code/core-worktrees/grill-with-docs-2026-09-10",
+  "head": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "pr_state_source": "Root task live read reported both planning PRs OPEN with these exact heads; this script reads existing immutable git objects only.",
+  "scope": "Read-only source hashes; no environment values, network, database, behavioral test, provider action or runtime qualification.",
+  "files": [
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/context.ts",
+      "status": "current source/merged documents",
+      "sha256": "80efa2687d8ceac8a092921e8ef410567bbfd1998461288cd4217edf1bb4d375",
+      "bytes": 1834,
+      "lines": 49
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/reader.ts",
+      "status": "current source/merged documents",
+      "sha256": "236d680029954d6ee0bca1286f613f26956a463f463296c81991554f579dba66",
+      "bytes": 5137,
+      "lines": 144
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/serialized.ts",
+      "status": "current source/merged documents",
+      "sha256": "12aba0ea565dc07bd9181e60ad40b60db2d02a9de7c48d91f96ed213c2dd19d2",
+      "bytes": 5249,
+      "lines": 179
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "packages/api/src/cms/public/cache-tags.ts",
+      "status": "current source/merged documents",
+      "sha256": "bcc3313602aa3b5abfb4485faa80e6c5bb5481ef68152912192113aa1e1294a4",
+      "bytes": 4826,
+      "lines": 147
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/resolve-tenant.ts",
+      "status": "current source/merged documents",
+      "sha256": "02862dc987ae47e4bd89b94c9f8932b568e8ab6ccd75d880ebe0922be846447b",
+      "bytes": 4880,
+      "lines": 189
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/published-content-reader.ts",
+      "status": "current source/merged documents",
+      "sha256": "479ccc0560345b0e9809632881cc0d12be392e7ede1249f5f401c16ed915a096",
+      "bytes": 9209,
+      "lines": 316
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/public/published-page-read.ts",
+      "status": "current source/merged documents",
+      "sha256": "ea8a5774b8ebf10a6c273e13ee613be5d36d78e5e95b30dca464e05098e1ca83",
+      "bytes": 3194,
+      "lines": 119
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/access/public-read.ts",
+      "status": "current source/merged documents",
+      "sha256": "a796af6a5ff5e5be7d5ac787b9704ed4064495480d04c6c487c0fc73f2093ce9",
+      "bytes": 10558,
+      "lines": 318
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/admin/src/cms/collections/pages.ts",
+      "status": "current source/merged documents",
+      "sha256": "f968a013c33385d3b8afb76b02b25a23a8629c14da6057efa7ee3d14736389ae",
+      "bytes": 2733,
+      "lines": 109
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "apps/donor/lib/cms/client.ts",
+      "status": "current source/merged documents",
+      "sha256": "3a277bef352e8bf133ac0486baa5843ffcb5c1e1895ae4972c3d3bbf8749f828",
+      "bytes": 8089,
+      "lines": 354
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "supabase/migrations/20260515025814_support_hub_core_modules.sql",
+      "status": "current source/merged documents",
+      "sha256": "3bb6e52b57672d9ce1247b6f4495f0783f557caa92e7cc5c1047e17c1a346c16",
+      "bytes": 31417,
+      "lines": 791
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0027-transport-agnostic-public-content-reader.md",
+      "status": "current source/merged documents",
+      "sha256": "69e136006ba2b6242b9e5d9d3ae2a41d79f583378e8541b9f619b618a7c7d64f",
+      "bytes": 2753,
+      "lines": 49
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/adr/0029-reference-not-copy-cms-operational.md",
+      "status": "current source/merged documents",
+      "sha256": "67948ee43e8d7aa9b0ecbec675e55518b9619ca0f16a3d6c208dbe2d8a24611d",
+      "bytes": 3009,
+      "lines": 53
+    },
+    {
+      "ref": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "path": "docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md",
+      "status": "current source/merged documents",
+      "sha256": "0fb5b9bdd7b50f483b449f3e73d5f167fb0d88704b079adaea341d385894d736",
+      "bytes": 55631,
+      "lines": 314
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0145-page-local-composition-bounded-reuse-and-coherent-site-generations.md",
+      "status": "PR1340 founder-ratified planning; OPEN, not implemented proof",
+      "sha256": "7f9dac25a684494ff66ab28d60d4de111ee9102a78d94f94c3f33082a404b2b9",
+      "bytes": 6674,
+      "lines": 115
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0147-generation-bound-automatic-ordinary-page-route-continuity.md",
+      "status": "PR1340 founder-ratified planning; OPEN, not implemented proof",
+      "sha256": "57eba0de8463093d63c537bc57ce347e16cf255e9bafba8ae395cce0ee69b7c9",
+      "bytes": 6744,
+      "lines": 110
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0161-derived-public-site-search-projection-and-adverse-first-convergence.md",
+      "status": "PR1340 founder-ratified planning; OPEN, not implemented proof",
+      "sha256": "f31ec862abd7fd47efcfd940b25675ca9e4330c97104c7440cf43c64b7f4f7d2",
+      "bytes": 11437,
+      "lines": 122
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0166-bounded-localized-editorial-profile-over-exact-locale-lineages.md",
+      "status": "PR1340 founder-ratified planning; OPEN, not implemented proof",
+      "sha256": "a931f52bfaa2a97f8f1558d0316563de5eec8ae069cef784e31ffe74516c9eb3",
+      "bytes": 27933,
+      "lines": 394
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0168-one-exact-public-audience-and-app-owned-authenticated-surfaces.md",
+      "status": "PR1340 founder-ratified planning; OPEN, not implemented proof",
+      "sha256": "4454ed8790b9a47d744894b31a6b13624454a0a2805fbd397106bcb9a3df60a6",
+      "bytes": 12282,
+      "lines": 179
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0172-versioned-site-search-sharing-profile-and-d1-compiler-ownership.md",
+      "status": "PR1340 founder-ratified planning; OPEN, not implemented proof",
+      "sha256": "fcb5ab82665f22a607c1b4e7a3346fee39e54e47dfff59dfcc2aa80ad322b860",
+      "bytes": 27100,
+      "lines": 382
+    },
+    {
+      "ref": "9069dcad67f9630323474ca5ee8bcc85ca7bf0f6",
+      "path": "docs/adr/0174-single-staff-access-authority-and-governed-engine-diagnostics.md",
+      "status": "PR1340 founder-ratified planning; OPEN, not implemented proof",
+      "sha256": "cd1c9e556308b51a39f01e7440e797df14b68044aac9462cae3fd63f71840043",
+      "bytes": 25753,
+      "lines": 365
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/adr/0187-proof-gated-independent-site-locale-publication.md",
+      "status": "PR1558 founder-ratified planning; OPEN, not implemented proof",
+      "sha256": "415c84d2a0231948d5f5b5fc76744da3412852b7b811e9ddb0847327c9a5d6b7",
+      "bytes": 8007,
+      "lines": 128
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/adr/0193-one-primary-site-domain-with-redirect-site-domains.md",
+      "status": "PR1558 founder-ratified planning; OPEN, not implemented proof",
+      "sha256": "980a9cdbe2c5e003a848392fe6fdb2da8e74598a573890ff56fc5308f8e44926",
+      "bytes": 25769,
+      "lines": 395
+    },
+    {
+      "ref": "ab1a1703a725be454376990a7fe68aef2e048026",
+      "path": "docs/adr/0196-fresh-proof-clean-start-site-domain-claims.md",
+      "status": "PR1558 founder-ratified planning; OPEN, not implemented proof",
+      "sha256": "99999d70557eafd126c8704d01c707ea0f545767a1dc0167820c5de2314dded9",
+      "bytes": 18997,
+      "lines": 321
+    }
+  ]
+}

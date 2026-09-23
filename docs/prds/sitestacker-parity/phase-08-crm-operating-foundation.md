@@ -2,7 +2,7 @@
 
 > **Program:** SiteStacker Parity · **Phase:** 8 · **Status:** Re-groomed (grill-with-docs, 2026-07-07; ADR-0001, #603) · **Base:** `develop`
 > **Subtitle:** _CRM Operations Observability & Data-Health Foundation_
-> **Roadmap:** [`roadmap.md`](./roadmap.md) slot 8 (Roadmap v2). Phase 40 (Data Stewardship / AI) hard-depends on the data-health-signal catalog this phase defines.
+> **Roadmap:** [`roadmap.md`](./roadmap.md) slot 8 (Roadmap v3; unchanged numbering). Phase 40 (Data Stewardship / AI) hard-depends on the data-health-signal catalog this phase defines.
 > **Dependencies (re-derived at the #603 re-groom):** **no hard prerequisite** for the build-now core — it observes Asym's own already-shipped runtime and the Phase-4 merge queue. **Phase 9** gates the party-graph-health sockets; **Phase 6** gates the emailed-alert seam + the missing-consent socket. See [Dependency Ledger](#dependency-ledger).
 > **Supersedes:** `docs/prds/sitestacker-parity/phase-01-crm-operating-foundation.md` (tombstoned separately).
 > **Charter / roadmap / matrix:** `README.md`, `roadmap.md`, `phase-map.md`, `parity-matrix.md`
@@ -16,7 +16,14 @@ Modern SiteStacker parity for **making the CRM layer trustworthy, visible, and s
 
 ## Withdrawn by ADR-0001
 
-The following were the Twenty-write-enable spine of the original (2026-07-06) grooming. Twenty's retirement removes the thing each one existed to do, so each is **withdrawn**; the dormant code is removed by cleanup ticket **#602**.
+The following were the Twenty-write-enable spine of the original July 6
+planning. Each remains **withdrawn**. The native CRM replacement and Twenty
+runtime-removal/guard stack were integrated into `develop` through PR #1325 on
+2026-08-19 (`7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd`); this is no longer a
+pending dormant-code cleanup tranche. The list preserves the withdrawn design's
+rationale, not instructions to recreate its modules. External Vercel variables,
+old credentials and proof-workspace cleanup remain separately unverified in
+`openspec/changes/complete-twenty-crm-retirement/tasks.md`.
 
 - **The write gate** — `crm_write_gates`, `getCrmReadiness`/`assertCrmWriteReady` as a _write_ interlock, the OpenFeature-shaped `evaluateWriteGate` seam, per-domain `approval_policy`, proof-of-health-at-gate-open. _(No provider ⇒ nothing to gate.)_
 - **Provider idempotency** — `crm_provider_idempotency_log`, the resolved-record idempotency key, the reserve→call→persist ordering. _(No provider write.)_
@@ -24,7 +31,7 @@ The following were the Twenty-write-enable spine of the original (2026-07-06) gr
 - **Provider health / schema-hash probing** and `provider_version_verified`. _(No provider to probe.)_
 - **Notes write-enable (Tranche 2)** and its live-Twenty round-trip evidence. _(Issue #599 closed 2026-07-06.)_
 - **Five of the six reconcile categories** — `orphanLinks`, `staleProjections` (shadow copies _of Twenty data_), `stalledJobs` (outbound _to Twenty_), `failedWebhooks` (inbound _from Twenty_), `giftLinkDrift` (Asym↔Twenty). Only `duplicateCandidates` survives (Phase-4-owned; surfaced here as a count). _(→ #602.)_
-- **The "Twenty conformance" section** and the env-flag retirement as a Phase-8 tranche — the `CRM_SYNC_*_ENABLED` flags are deleted with the dormant sync stack by **#602** (which folds in #598's CI-grep kernel).
+- **The "Twenty conformance" section** and env-flag retirement as a Phase 8 tranche — runtime `CRM_SYNC_*` fields and the vendor sync stack were removed with PR #1325, and the data-boundary guard prohibits their restoration. Historical #602/#598 describe the original cleanup/guard scope; remaining hosted variables require separate external cleanup proof.
 
 **Reframed, not withdrawn:** the "CRM Healer" is redefined as the shipped recovery machinery this phase _observes_ plus one reserved Phase-9 heal (re-project a stale derived view); the "Disposition Predicate" survives only as the rule governing that one reserved heal.
 
@@ -107,10 +114,15 @@ Underneath, the foundation **reuses everything already built** — the Inngest r
 
 ### B. Deep modules (`packages/api/src/crm`)
 
-Each is a deep module — a simple, testable interface hiding real complexity — with thin app routes calling in. **Note:** the Twenty-specific modules (`client/`, `gateway.ts`, `schema/twenty-object-model.ts`, `sync/`, `webhooks/twenty.ts`) are **dormant** and removed by #602; Phase 8 adds no code to them.
+These are proposed Phase 8 modules with thin app routes, not a claim that
+those modules currently exist. The old Twenty `client/`, `gateway.ts`,
+`schema/twenty-object-model.ts`, `sync/` and webhook runtime were removed in the
+accepted PR #1325 stack. Phase 8 neither extends nor restores them; it consumes
+native Asym sources. Remaining external vendor cleanup is not a Phase 8 module
+or a prerequisite for recreating a provider path.
 
 - **`operations` read model** — `getCrmOperationsView(tenantId)` composes the health verdict + the data-health catalog signals (read from the shipped runtime ledgers + the Phase-4 merge-candidate count + the advisor-run status) into the windowpane summary, from a **summary rollup written at the end of each escalation scan**, with a shown staleness bound. A dedicated **operational-events view** exposes no-person `crm_alert` rows to staff (they cannot render on a CRM person's Activity tab).
-- **`health`** (reframe the existing `crm/health.ts`) — `getCrmHealthVerdict(tenantId)` returns `healthy | degraded | blocked` + reasons, composed from the catalog signals. No provider probe.
+- **`health`** (new Asym-owned catalog projection; do not restore the retired provider-health module) — `getCrmHealthVerdict(tenantId)` returns `healthy | degraded | blocked` + reasons, composed from the catalog signals. No provider probe.
 - **`escalation`** — `scanEscalations(tenant)` groups unrecovered dead-letters + persistent data-quality signals into deduped, aging-tracked entries; `acknowledgeEscalation` / `snoozeEscalation` (the A8 affordance, audited); the digested emailed-notification builder that calls the Phase-6 seam.
 - **`alerting`** — `routeCrmSignals(healthVerdict, escalations)` → `{ sentryEvents, emailedNotifications, humanQueueItems }`; the Sentry/error-channel server-side wiring.
 - **`dataHealth` (catalog contract)** — the enumerated signal set + each signal's reader; build-now readers wired, Phase-9/Phase-6 readers reserved (return "not-yet-available" until their source ships). This is the contract Phase 40 consumes.
@@ -193,7 +205,7 @@ Good tests assert **external behavior and safety invariants**, not implementatio
 
 ## Out of Scope (reserved seams — documented, not built)
 
-- **Any provider write, gate, probe, mirror, or reconcile** — Asym Postgres owns all CRM truth (ADR-0001); there is no provider. The dormant Twenty stack is removed by **#602**.
+- **Any Twenty write, gate, probe, mirror or reconcile** — Asym Postgres owns CRM truth (ADR-0001). The retired vendor runtime was removed through PR #1325; remaining external variable/key/workspace cleanup does not authorize restoring it or create a Phase 8 provider dependency.
 - **Any merge/dedupe workbench** — owned by **Phase 4** (`#514`/`#512`/`#513`/`#507`); Phase 8 shows the count and links out.
 - **A new self-healing engine for Asym's own jobs** — the shipped Inngest recovery scans own that; Phase 8 observes + escalates.
 - **Party-spine-integrity + derived-view-staleness signals and the re-projection heal** as _built_ — reserved sockets that light up with **Phase 9**.
@@ -273,7 +285,7 @@ subject to D11's fresh-proof clearance.
 - **T8 · #595** — Alert routing: Sentry/error-channel server-side wiring + `routeCrmSignals` + the escalation consumer (deduped, aging-tracked) + the digested emailed notification via the Phase-6 seam. _(re-scoped to Asym-internal; the emailed path is blocked-on-Phase 6)_
 - **T9 · #596** — The CRM data-health **catalog contract** (`dataHealth` module: build-now readers wired, Phase-9/Phase-6 readers reserved) — the foundation Phase 40 consumes. _(re-scoped from "operations read model", now the catalog contract; #595/#592 consume it)_
 - **T10 · #597** — The light audited **acknowledge/snooze** affordance over `crm_command_logs`. _(re-scoped from the operator-command lane — the gate-open/kill-switch governed actions are withdrawn)_
-- **T11 · #598** — **CLOSE** as folded into **#602** (the `CRM_SYNC_*_ENABLED` flags are deleted with the dormant sync stack; #602 owns the CI-grep kernel).
+- **T11 · #598** — historical close/re-scope into #602 for removal and the guard. The runtime fields/sync stack are removed and the non-regression guard is integrated through PR #1325; external cleanup remains separately evidenced, not implied by this issue history.
 - **T12 · #599** — **CLOSED 2026-07-06** (Notes write-enable withdrawn).
 - **T13 · #600** — Permanent negative/safety test tier + structural CI gates (`@inngest/test`; cross-tenant isolation, escalation exactly-once, redaction wall, reserved-heal gating, reuse-not-fork). _(re-scoped — provider-idempotency/notes-round-trip/gate-fail-closed tests dropped)_
 - **T14 · #601** — Phase 8 evidence file (Built/Live/Confirmed; no live-provider round-trip — the provider is retired). _(re-scoped)_

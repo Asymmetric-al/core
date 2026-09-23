@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "date": "2026-09-11",
+  "stage": "A selected; complete D17 amendments proposed pending ratification; D1-D16 fully ratified; no Q18",
+  "sourceRevision": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+  "clauses": 26,
+  "categories": 23,
+  "requiredUnexecutedProofGroups": 43,
+  "operationalControls": 7,
+  "proposedGlossaryTerms": 4,
+  "preservedPriorArtifacts": 70,
+  "preservedPriorADRs": 16,
+  "priorGlossaryPreserved": true,
+  "priorRatificationValidationPreserved": true,
+  "mirrorsMatched": 13,
+  "structuralSourceObservationsVerified": 7,
+  "sourceHashesVerified": 3,
+  "localLinksChecked": 214,
+  "immutableSourceLinksChecked": 37,
+  "uniqueImmutableSourceLinks": 21,
+  "finalLifecycleConsistencyReview": "no material residual contradictions reported",
+  "formatting": "passed",
+  "gitDiffCheck": "passed",
+  "groomingOnlyChanges": true,
+  "limits": [
+    "Documentation and structural source checks only; no D17 runtime implementation or database/schema changes",
+    "No live RLS/grants, provider disposal, download/CDN, restoration or calendar-runtime proof",
+    "No concurrency, performance, browser, accessibility or tenant usability tests",
+    "No tenant-specific US legal applicability or compliance certification",
+    "No GitHub/provider/DNS/credential mutation or real messages"
+  ]
+}

@@ -1,0 +1,282 @@
+{
+  "date": "2026-09-14",
+  "status": "passed",
+  "scope": "document/source consistency and finite synthetic examples only; no runtime conformance",
+  "checkCount": 48,
+  "checks": [
+    {
+      "name": "26 required clauses",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "23 individual categories",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "40 release proof groups",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "6 named operating controls",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "selection and proposed amendments distinct",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no-op operation binding mandatory",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "whole-history redaction ambiguity resolved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "native-human and insertion-time defects addressed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "quiet edit and direct-attention owners distinct",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "natural removal with immutable files",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "unknown navigation recovery specified",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "actual recovery handle present",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no runtime test claim",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "narrow feature ADR recorded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "two domain definitions only",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "previous glossary exact prefix preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "final independent data review Pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "final independent ux review Pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "final independent owner review Pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "prior feature artifacts untouched",
+      "passed": true,
+      "detail": {
+        "checked": 574,
+        "changed": []
+      }
+    },
+    {
+      "name": "prior output evidence untouched",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "context map untouched",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "session history retained phase26-grill-log.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "session history retained phase26-session-handoff.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no next feature ADR0036",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "all D35 local links resolve",
+      "passed": true,
+      "detail": {
+        "count": 85,
+        "missing": []
+      }
+    },
+    {
+      "name": "ADR link ../../grill/phase26-d35-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ADR link ../../grill/phase26-d35-ux-blueprint.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ADR link ../../grill/phase26-d35-data-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ADR link ../../grill/phase26-d35-editor-email-studio-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ADR link ../../grill/phase26-d35-proof-and-operations.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ADR link ../../grill/phase26-d35-evidence.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ADR link ../../grill/phase26-d35-source-evidence.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ADR link ../../grill/phase26-d35-completion-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "31 actual Git sources verified",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "31 Git citation line bounds verified",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "14 accepted source pins preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "HEAD and remote baseline unchanged",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "5 related PRs open",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "24 synthetic assertions passed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "4 naive counterexamples reproduced",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "zero actual release tests claimed executed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "scoped Markdown formatting",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "git diff whitespace",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "no product source mutation",
+      "passed": true,
+      "detail": " M CONTEXT-MAP.md\n?? docs/features/support-hub/CONTEXT.md\n?? docs/features/support-hub/docs/\n?? docs/features/support-hub/grill/\n"
+    },
+    {
+      "name": "all D35 canonical mirrors match",
+      "passed": true,
+      "detail": 17
+    },
+    {
+      "name": "session mirror phase26-grill-log.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "session mirror phase26-session-handoff.md",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "artifactHashes": {
+    "phase26-d35-adversarial-review.md": "8677424bad9f129fd229fe428d438d6c028516033fdf83925fb8a5d2c427da1b",
+    "phase26-d35-completion-audit.md": "7fc42a64afa244b014f5b4a1a97b6085fd9ba30102e56362a3947d6d4705d9ff",
+    "phase26-d35-data-contract.md": "2f020c625366097a33168a07991f35f494878eb60d62bb759298fe3ee96f450d",
+    "phase26-d35-data-review.md": "c3e230599aa124172ae0860a04699c44267eaca81451bcc2a9d7eaeb03fbb7f0",
+    "phase26-d35-data-source-evidence.json": "3922b558b5ee683d89f1595f138c41af239269ce367dabc5a8e556c2a8cdebe6",
+    "phase26-d35-editor-email-studio-contract.md": "f5061c6a315cb84c84a4ae3647a88004f3fce290c23d90efa46cd01a4465a05c",
+    "phase26-d35-editor-owner-review.md": "72b697e04e63e5511e5e0182ea6ebac2f23fb8442ad907e4d3e701c774ab9e70",
+    "phase26-d35-evidence.md": "87df03aabeb056ee7f3788fcebe472efcad6b21054e04e0461e3667de807a164",
+    "phase26-d35-final-data-review.md": "f08280b17f88cdf0bd45138e341420087383a848e9ef6dc5e7dcec65934e8092",
+    "phase26-d35-final-owner-review.md": "134070f2d7a35b066713d5b19cfb51f379d6c915532128afb3e82401e4b89297",
+    "phase26-d35-final-ux-review.md": "7f33f43e081c07bfc7be7416ace39db361f22bfa1076efede890cf55d237bcd1",
+    "phase26-d35-proof-and-operations.md": "528aa6335db0b233f124b4466158a08689dc219255d254f399fb01dcc266a308",
+    "phase26-d35-reference-model.py": "4017ba3bff97b3a7440b7489e15520619e12ae29f48ca06fb86289d45c8f6a4f",
+    "phase26-d35-reference-results.json": "4a156a0328f068896a08e1cdf7b6e1d87da9d9deca88b676a0cce8d90c73c613",
+    "phase26-d35-source-evidence.json": "160f7c21315001e36c8c6c7454e257f0845a726f7eac457f6fed4957f4007e07",
+    "phase26-d35-ux-blueprint.md": "8c1edc1348e1e06db3a3420b06c61d62b4e3b9908be0f9eb11f34f566dcab6bd",
+    "phase26-d35-ux-research.md": "89c4cdf6bdbd1995972445659a1cfdcb50150dda59ec0cdf85c044bfb9912fda"
+  },
+  "featureADR": {
+    "path": "docs/features/support-hub/docs/adr/0035-author-owned-internal-note-corrections-with-history.md",
+    "sha256": "f13108432cddc286109a287ff57ebded677039214e029ed61580eb2508138ab5"
+  },
+  "glossarySha256": "33c99acc50a0913c349e73bc77edefb866764d88cf2c38ec1a5c05fa6f03c94b",
+  "D35": "A selected; complete amendments proposed for ratification",
+  "prior": "D1-D34 including D29-X01 remain ratified",
+  "releaseGroups": 40,
+  "releaseGroupsExecuted": 0
+}

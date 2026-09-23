@@ -1,5 +1,10 @@
 # Working Set
 
+> **Dated evidence, not current instructions.** Entries below describe their
+> recorded runs. Use [Document authority](document-authority.md), current
+> owner contracts and source for new work. Retired Twenty setup or sync plans
+> in historical entries must not be executed.
+
 ## 2026-08-01 (Eve guardrail hardening — P1 pass)
 
 - Date: 2026-08-01

@@ -1,0 +1,192 @@
+[
+  {
+    "id": "AU01",
+    "name": "Coalesced editorial autosave",
+    "trigger": "Tab becomes idle after a legitimate edit or Save now",
+    "workflows": [
+      "WF02",
+      "WF03",
+      "WF10"
+    ],
+    "owner": "D12 Editorial operations",
+    "effect_identity": "Resource + actor session + lease generation + request fingerprint",
+    "effect": "Validate structure, reprove lease/revision/permission; commit content and receipt together. No ordinary notifications, Git builds or public effects.",
+    "retry": "Serialize/coalesce; same command/key on lost acknowledgement; stop successor saves for stale/revoked/unknown outcome.",
+    "cancellation": "Hide/suspend stops renewal; preserve tab work; no persistent offline queue.",
+    "visibility": "Existing D12 status control; cause-owned compare/repair."
+  },
+  {
+    "id": "AU02",
+    "name": "Acknowledged working-preview refresh",
+    "trigger": "Exact save receipt received",
+    "workflows": [
+      "WF02",
+      "WF08",
+      "WF17"
+    ],
+    "owner": "Preview operations",
+    "effect_identity": "Resource + acknowledged revision + renderer profile",
+    "effect": "Refresh only the saved preview version; later local edits labelled unsaved. Never publish.",
+    "retry": "Deduplicate/coalesce obsolete requests; a failed renderer does not roll back the saved draft.",
+    "cancellation": "Discard obsolete UI responses by scope/revision; not a source rollback.",
+    "visibility": "Show saved-versus-preview status separately."
+  },
+  {
+    "id": "AU03",
+    "name": "Source discovery and reconciliation",
+    "trigger": "Verified bound Git event or permitted Check source",
+    "workflows": [
+      "WF11",
+      "WF12",
+      "WF16"
+    ],
+    "owner": "Integration owner",
+    "effect_identity": "Binding epoch + repository ID + exact commit + package root + policy",
+    "effect": "Persist event before dispatch; discover eligible revision and request a bounded capture/build. No source writes or automatic activation.",
+    "retry": "Authenticated webhook receipt dedupe plus business identity; shared bounded reconcile for missed deliveries.",
+    "cancellation": "Binding revoke fences new intake. Superseding a discovery does not cancel explicit reviewed work without policy.",
+    "visibility": "Source available/unavailable/changed with safe repair."
+  },
+  {
+    "id": "AU04",
+    "name": "Clean build and qualification",
+    "trigger": "Authorized exact capture accepted for build",
+    "workflows": [
+      "WF12",
+      "WF13"
+    ],
+    "owner": "Presentation build/admission owner",
+    "effect_identity": "Capture digest + toolchain/recipe/policy + request identity; attempts separate",
+    "effect": "Claim product work; run isolated code; record exact artifact/evidence; hand to independent admission. Never grant the worker serving-head writes.",
+    "retry": "Transient infrastructure retries bounded; deterministic code/schema failures stop with diagnostics; reconcile unknown external task before retry.",
+    "cancellation": "Fence commits then terminate best-effort. A completed canceled attempt remains history, not admitted success.",
+    "visibility": "Bounded log/proof projection and responsible maintainer."
+  },
+  {
+    "id": "AU05",
+    "name": "Fixed preview/candidate preparation",
+    "trigger": "Authorized exact preview selection or design-review request",
+    "workflows": [
+      "WF08",
+      "WF14",
+      "WF17"
+    ],
+    "owner": "D25/D1 and D10 owner",
+    "effect_identity": "Exact selected closure + artifact/settings + profile + policy",
+    "effect": "Briefly snapshot, compile outside locks, reprove and seal complete candidate or none. Later drafts not silently included.",
+    "retry": "Current expected-head races obey owning reprepare rules; unknown receipt looked up.",
+    "cancellation": "Cancel/expire prevents further candidate use; does not alter live heads.",
+    "visibility": "Preparing/ready/needs-attention/expired; exact excluded newer changes."
+  },
+  {
+    "id": "AU06",
+    "name": "Scheduled publication executor",
+    "trigger": "D13 appointment reaches bounded handoff/due time",
+    "workflows": [
+      "WF09"
+    ],
+    "owner": "D13 with shared Inngest execution",
+    "effect_identity": "Appointment ID + generation + immutable action fingerprint",
+    "effect": "Read organization authorization and current safety; execute the same D1 command, preserving unrelated work.",
+    "retry": "Shared ledger/claim and overdue recovery; no-before time; stale event no-op; semantic conflict needs attention.",
+    "cancellation": "Generation-fenced cancel/replace; cannot undo committed effect.",
+    "visibility": "Upcoming/Needs attention/History; resolved exact time."
+  },
+  {
+    "id": "AU07",
+    "name": "Public projection convergence",
+    "trigger": "Committed D1/D10 generation receipt",
+    "workflows": [
+      "WF08",
+      "WF14"
+    ],
+    "owner": "Existing cache/search/media delivery owners",
+    "effect_identity": "Generation receipt + projection owner + target version",
+    "effect": "Dispatch identifier-only intents; make derived systems reflect committed public generation. No new favorable authority.",
+    "retry": "Version-aware replay ignores older favorable results; own proof/read policy handles current adverse safety.",
+    "cancellation": "Contained affected projection; never roll back content because a notification failed.",
+    "visibility": "Published distinct from delivery/indexing convergence."
+  },
+  {
+    "id": "AU08",
+    "name": "Adverse public safety containment",
+    "trigger": "Current source owner withdraws eligibility/rights or revokes package",
+    "workflows": [
+      "WF04",
+      "WF08",
+      "WF14",
+      "WF18"
+    ],
+    "owner": "Phase 10/media/package safety owner",
+    "effect_identity": "Adverse decision identity + affected scope/version",
+    "effect": "Suppress through authoritative read/egress boundary immediately; invalidate dependent previews/candidates and converge caches.",
+    "retry": "Idempotent adverse replay; prioritize over routine build jobs. No wait for optional webhook or search index.",
+    "cancellation": "Only source-authorized successor can restore; no general retry that clears a restriction.",
+    "visibility": "Visible private owning cause, no restricted public explanation."
+  },
+  {
+    "id": "AU09",
+    "name": "Compatibility and impact refresh",
+    "trigger": "Qualified manifest/catalog/settings change or authorized impact query",
+    "workflows": [
+      "WF05",
+      "WF07",
+      "WF13",
+      "WF15"
+    ],
+    "owner": "Catalog/presentation owner",
+    "effect_identity": "Exact version tuple + scope + projection epoch",
+    "effect": "Derive affected Page count/details allowed by permission; detect unsupported bindings. No automatic content mutation.",
+    "retry": "Bounded incremental rebuild; incomplete projection labelled unknown, never unused.",
+    "cancellation": "Newer version supersedes projected result without altering history.",
+    "visibility": "Change impact and proposed repair/upgrade plan."
+  },
+  {
+    "id": "AU10",
+    "name": "Repository lifecycle handling",
+    "trigger": "Verified transfer/archive/remove/visibility event or explicit disconnect",
+    "workflows": [
+      "WF11",
+      "WF16"
+    ],
+    "owner": "Integration owner",
+    "effect_identity": "Provider event + binding epoch + current provider evidence",
+    "effect": "Rename updates labels; ownership/control changes require re-verification; disconnect fences new source work. Preserve admitted safe artifacts.",
+    "retry": "Reconcile ambiguous provider outcome; outage is not proof of deletion. Older events cannot reactivate access.",
+    "cancellation": "Explicit reconnect verifies both domains and increments epoch.",
+    "visibility": "Actionable connection state without affecting routine editor access."
+  },
+  {
+    "id": "AU11",
+    "name": "Dispatch and unknown-outcome recovery",
+    "trigger": "Shared recovery scan finds accepted unhandled/uncertain work",
+    "workflows": [
+      "WF08",
+      "WF09",
+      "WF13",
+      "WF14"
+    ],
+    "owner": "Existing shared dispatch + effect owner",
+    "effect_identity": "Original dispatch/request/receipt identity",
+    "effect": "Repair delivery or query original outcome under current registered purpose. Do not invent success from queue status.",
+    "retry": "Bounded backoff and claim fencing; semantic failure routed to owner; provider dedupe window not sufficient.",
+    "cancellation": "Disabled dispatch retains product records and manual safe recovery.",
+    "visibility": "One grouped cause-owned exception, no per-retry notifications."
+  },
+  {
+    "id": "AU12",
+    "name": "Preview expiry and retained-artifact maintenance",
+    "trigger": "Qualified expiry/retention job or authorized maintenance request",
+    "workflows": [
+      "WF14",
+      "WF16",
+      "WF17"
+    ],
+    "owner": "Preview and custody owners",
+    "effect_identity": "Expired preview or retention decision + exact resource version",
+    "effect": "Expire grants/compute; derive retained use evidence; purge only separately authorized eligible disposable bytes.",
+    "retry": "Idempotent operations with unknown deletion reconciliation; missing references block disposal.",
+    "cancellation": "Legal/operational holds and active references take precedence; no age-only admitted-artifact purge.",
+    "visibility": "Capacity/expiry view and exact custody receipt, no raw bucket repair."
+  }
+]

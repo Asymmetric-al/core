@@ -1,0 +1,78 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-06",
+  "recipeId": "FIN-08",
+  "name": "Expense-evidence follow-up without approval authority",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "expense_followup",
+  "subject": "expense_exception",
+  "enrollment": {
+    "mode": "once_per_event",
+    "triggerContract": "expenses.missing-evidence.accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {},
+    "tasks": {},
+    "evidence": {
+      "resolved": "expenses.source-evidence-followup.resolved@1"
+    },
+    "actions": {
+      "mirror_source_task": "expenses.mirror-authorized-followup@1"
+    },
+    "roles": {
+      "source_assignee": "roles.expense-source-followup-assignee@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {},
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "communications",
+    "contributions",
+    "expenses",
+    "finance",
+    "messages",
+    "private-files",
+    "tasks",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "main",
+      "label": "Process",
+      "nodeIds": ["expense_followup"]
+    }
+  ],
+  "root": {
+    "id": "expense_followup",
+    "kind": "sequence",
+    "label": "Expense followup",
+    "steps": [
+      {
+        "id": "mirror_task",
+        "kind": "action",
+        "label": "Mirror task",
+        "contract": "mirror_source_task",
+        "inputs": {}
+      },
+      {
+        "id": "source_resolution",
+        "kind": "evidence",
+        "label": "Source resolution",
+        "contract": "resolved",
+        "role": "source_assignee"
+      },
+      {
+        "id": "followup_done",
+        "kind": "finish",
+        "label": "Followup done",
+        "lifecycle": "complete",
+        "outcome": "source_followup_satisfied"
+      }
+    ]
+  }
+}

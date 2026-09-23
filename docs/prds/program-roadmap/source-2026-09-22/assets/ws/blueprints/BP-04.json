@@ -1,0 +1,321 @@
+{
+  "dialect": "asym.workflow/1",
+  "blueprintId": "BP-04",
+  "recipeId": "MOB-02",
+  "name": "Application through fully completed onboarding",
+  "status": "reference_blueprint",
+  "defaultEnabled": false,
+  "purpose": "mobilization",
+  "subject": "application",
+  "enrollment": {
+    "mode": "once_per_subject",
+    "triggerContract": "mobilization.application.accepted@1",
+    "historicalMode": "disabled"
+  },
+  "bindings": {
+    "facts": {
+      "decision": "mobilization.accepted-decision-kind@1"
+    },
+    "tasks": {},
+    "evidence": {
+      "submission": "mobilization.application-submission.accepted@1",
+      "references": "mobilization.required-reference-set.satisfied@1",
+      "interviews": "mobilization.required-interviews.satisfied@1",
+      "screening": "mobilization.screening.source-approved-summary@1",
+      "decision": "mobilization.authorized-decision.recorded@1",
+      "conditions": "mobilization.acceptance-conditions.satisfied@1",
+      "conditions_review": "mobilization.conditions.authorized-clearance@1"
+    },
+    "actions": {},
+    "roles": {
+      "candidate": "roles.application-participant@1",
+      "coordinator": "roles.application-coordinator@1",
+      "screening_reviewer": "roles.application-screening-reviewer@1",
+      "decision_reviewer": "roles.application-decision-reviewer@1"
+    },
+    "forms": {},
+    "messages": {},
+    "subflows": {
+      "onboarding": "BP-05@1"
+    },
+    "calendars": {}
+  },
+  "parameters": {},
+  "requiredCapabilities": [
+    "communications",
+    "crm",
+    "documents",
+    "forms",
+    "identity",
+    "messages",
+    "mobilization",
+    "private-files",
+    "tasks",
+    "training",
+    "workflow-runtime"
+  ],
+  "stages": [
+    {
+      "id": "application",
+      "label": "Application",
+      "nodeIds": [
+        "application_submission"
+      ]
+    },
+    {
+      "id": "assessment",
+      "label": "References, interviews and screening",
+      "nodeIds": [
+        "assessment"
+      ]
+    },
+    {
+      "id": "decision",
+      "label": "Decision",
+      "nodeIds": [
+        "decision",
+        "decision_path"
+      ]
+    }
+  ],
+  "root": {
+    "id": "application_flow",
+    "kind": "sequence",
+    "label": "Application flow",
+    "steps": [
+      {
+        "id": "application_submission",
+        "kind": "evidence",
+        "label": "Application submission",
+        "contract": "submission",
+        "role": "candidate"
+      },
+      {
+        "id": "assessment",
+        "kind": "parallel",
+        "label": "Assessment",
+        "branches": [
+          {
+            "id": "references",
+            "body": {
+              "id": "references",
+              "kind": "evidence",
+              "label": "References",
+              "contract": "references",
+              "role": "coordinator"
+            }
+          },
+          {
+            "id": "interviews",
+            "body": {
+              "id": "interviews",
+              "kind": "evidence",
+              "label": "Interviews",
+              "contract": "interviews",
+              "role": "coordinator"
+            }
+          },
+          {
+            "id": "screening",
+            "body": {
+              "id": "screening",
+              "kind": "evidence",
+              "label": "Screening",
+              "contract": "screening",
+              "role": "screening_reviewer"
+            }
+          }
+        ],
+        "join": {
+          "mode": "all",
+          "requiredBranches": [
+            "references",
+            "interviews",
+            "screening"
+          ]
+        },
+        "onEmpty": "block",
+        "remainder": "await_remaining"
+      },
+      {
+        "id": "decision",
+        "kind": "evidence",
+        "label": "Decision",
+        "contract": "decision",
+        "role": "decision_reviewer"
+      },
+      {
+        "id": "decision_path",
+        "kind": "choose_one",
+        "label": "Decision path",
+        "cases": [
+          {
+            "id": "accepted",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "decision"
+                }
+              },
+              "right": {
+                "literal": "accepted"
+              }
+            },
+            "then": {
+              "id": "accepted_path",
+              "kind": "sequence",
+              "label": "Accepted path",
+              "steps": [
+                {
+                  "id": "onboarding",
+                  "kind": "subflow",
+                  "label": "Onboarding",
+                  "contract": "onboarding",
+                  "inputs": {}
+                },
+                {
+                  "id": "complete",
+                  "kind": "finish",
+                  "label": "Complete",
+                  "lifecycle": "complete",
+                  "outcome": "onboarded_not_deployed"
+                }
+              ]
+            }
+          },
+          {
+            "id": "conditional",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "decision"
+                }
+              },
+              "right": {
+                "literal": "conditional"
+              }
+            },
+            "then": {
+              "id": "conditional_path",
+              "kind": "sequence",
+              "label": "Conditional path",
+              "steps": [
+                {
+                  "id": "conditions",
+                  "kind": "evidence",
+                  "label": "Conditions",
+                  "contract": "conditions",
+                  "role": "candidate"
+                },
+                {
+                  "id": "conditions_review",
+                  "kind": "evidence",
+                  "label": "Conditions review",
+                  "contract": "conditions_review",
+                  "role": "decision_reviewer"
+                },
+                {
+                  "id": "conditional_onboarding",
+                  "kind": "subflow",
+                  "label": "Conditional onboarding",
+                  "contract": "onboarding",
+                  "inputs": {}
+                },
+                {
+                  "id": "conditional_complete",
+                  "kind": "finish",
+                  "label": "Conditional complete",
+                  "lifecycle": "complete",
+                  "outcome": "onboarded_not_deployed"
+                }
+              ]
+            }
+          },
+          {
+            "id": "declined",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "decision"
+                }
+              },
+              "right": {
+                "literal": "declined"
+              }
+            },
+            "then": {
+              "id": "decline",
+              "kind": "finish",
+              "label": "Decline",
+              "lifecycle": "discontinued",
+              "outcome": "declined"
+            }
+          },
+          {
+            "id": "withdrawn",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "decision"
+                }
+              },
+              "right": {
+                "literal": "withdrawn"
+              }
+            },
+            "then": {
+              "id": "withdraw",
+              "kind": "finish",
+              "label": "Withdraw",
+              "lifecycle": "discontinued",
+              "outcome": "withdrawn"
+            }
+          },
+          {
+            "id": "deferred",
+            "when": {
+              "op": "compare",
+              "operator": "eq",
+              "left": {
+                "ref": {
+                  "scope": "fact",
+                  "key": "decision"
+                }
+              },
+              "right": {
+                "literal": "deferred"
+              }
+            },
+            "then": {
+              "id": "defer",
+              "kind": "finish",
+              "label": "Defer",
+              "lifecycle": "on_hold",
+              "outcome": "deferred"
+            }
+          }
+        ],
+        "otherwise": {
+          "id": "decision_attention",
+          "kind": "finish",
+          "label": "Decision attention",
+          "lifecycle": "on_hold",
+          "outcome": "needs_authorized_disposition"
+        },
+        "onUnknown": "block"
+      }
+    ]
+  }
+}

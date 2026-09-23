@@ -1,13 +1,9 @@
 # ADR-CD-033: CRM inline contribution operations use shared contracts
 
-> **Note (2026-07-06):** The CRM/Twenty post state and repost/retry actions
-> referenced in this ADR target the now-retired Twenty pipeline and are dormant
-> per
-> [ADR-0001](../../../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
-> (2026-07-06); "CRM post" survives only as a label over the dormant
-> staged-gift pipeline pending the Phase 8 re-groom.
-
 **Status:** Accepted (grill session 2026-05-29)
+
+**Current amendment — 2026-09-16 (AL-1861):** The Decision below uses the
+ratified [owner contracts](../../README.md); unchanged UI decisions remain valid.
 
 ## Context
 
@@ -24,7 +20,7 @@ In v1, CRM may expose every contribution operation that exists in contribution d
 Modern practice requirements:
 
 - Inline CRM actions are alternate UI affordances, not separate business logic.
-- CRM rows expose operations through one visible next-best action plus a capability/state-filtered More actions menu, grouped by correction, receipt, refund, CRM/Twenty, and provider/admin categories.
+- CRM rows expose operations through one visible next-best action plus a capability/state-filtered More actions menu, grouped by correction, document, refund, and provider/admin categories.
 - Users may pin a preferred row action, but pinned actions are still governed by backend capabilities, row state, tenant policy, and blocked-action rules. If the pinned action is invalid, the row falls back to the computed next-best action with an explanation.
 - Pinned row action preferences use a per-user server source of truth with local responsive cache, stable operation ids, and schema versioning for migration.
 - Tenant admins may configure default row actions by role/team/surface. Visible row action fallback order is valid user-pinned action, valid tenant default action, then system-computed next-best action.
@@ -41,7 +37,7 @@ Modern practice requirements:
 - Inline operation completion must keep staff in CRM. "View full contribution detail" is an optional secondary action, not an automatic redirect.
 - The affected CRM row is patched or refetched in place while preserving donor context, scroll position, row selection, and focus return.
 - Result UX must use progressive disclosure, accessible success/failure semantics, reduced-motion-safe transitions, and stable layout with no unnecessary layout shift.
-- On failure, preserve entered form state when safe and show clear recovery actions such as retry, fix required fields, open linked task, generate PDF, or view full detail.
+- On failure, preserve entered form state when safe and show clear recovery actions such as retry, fix required fields, open the owning repair task, access an authorized exact artifact, or view full detail.
 - On mobile or narrow screens, the same operation shell becomes a responsive full-height or bottom sheet with keyboard-safe form layout, sticky actions where appropriate, at least 44px touch targets, reduced-motion-safe transitions, and preserved CRM context/focus return.
 - Inline CRM operation UX must use shared `@asym/ui` primitives, existing shadcn/ui components, Base UI first for new behavior-heavy primitives, and the base-maia / Maia theme with Zinc tokens from `packages/ui/styles/globals.css`.
 - Inline CRM operation UI must not introduce hardcoded colors, one-off radii, app-local shadcn copies, or a visual language that feels separate from Mission Control.
@@ -61,3 +57,9 @@ Modern practice requirements:
 - **Always open contribution detail:** Safest, but slower for staff who need high-frequency CRM-row actions.
 - **Only high-frequency inline operations:** More incremental, but unnecessarily limits CRM when the shared contract already provides the safety boundary.
 - **Surface-specific CRM operations:** Faster locally, but risks drift in validation, audit, permissions, and operation results.
+
+## Original decision provenance
+
+The [original dated record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/mission-control/contribution-detail/docs/adr/0033-crm-inline-operations-shared-contracts.md) preserves earlier wording and
+rationale. Current terminology and applicability were amended on 2026-09-16;
+documentation does not establish runtime activation.

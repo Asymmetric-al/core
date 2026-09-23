@@ -1,0 +1,146 @@
+{
+  "kind": "specification-fixture-verification",
+  "scope": "Local artifact structure and reference checks only; no Core runtime, compiler, provider or database tests",
+  "nodeVersion": "v22.16.0",
+  "checks": 34,
+  "passed": 34,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Catalog contains exactly 96 unique recipes",
+      "status": "passed"
+    },
+    {
+      "name": "Catalog covers all eight persona packs at declared counts",
+      "status": "passed"
+    },
+    {
+      "name": "16 uniquely identified workflow reference blueprints",
+      "status": "passed"
+    },
+    {
+      "name": "BP-01: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-02: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-03: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-04: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-05: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-06: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-07: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-08: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-09: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-10: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-11: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-12: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-13: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-14: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-15: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "BP-16: references, structure and inert status",
+      "status": "passed"
+    },
+    {
+      "name": "No subflow recursion",
+      "status": "passed"
+    },
+    {
+      "name": "352 unique acceptance-test specifications remain unexecuted",
+      "status": "passed"
+    },
+    {
+      "name": "Every recipe has three matching test specifications",
+      "status": "passed"
+    },
+    {
+      "name": "All recipes default disabled and preserve protected boundaries",
+      "status": "passed"
+    },
+    {
+      "name": "26 tickets have valid, acyclic dependencies and acceptance references",
+      "status": "passed"
+    },
+    {
+      "name": "FORM-01: inert, versioned, source-mapped fields",
+      "status": "passed"
+    },
+    {
+      "name": "FORM-02: inert, versioned, source-mapped fields",
+      "status": "passed"
+    },
+    {
+      "name": "FORM-03: inert, versioned, source-mapped fields",
+      "status": "passed"
+    },
+    {
+      "name": "FORM-04: inert, versioned, source-mapped fields",
+      "status": "passed"
+    },
+    {
+      "name": "Negative: reject accidentally enabled fixture",
+      "status": "passed"
+    },
+    {
+      "name": "Negative: reject unbound role",
+      "status": "passed"
+    },
+    {
+      "name": "Negative: reject duplicated node identity",
+      "status": "passed"
+    },
+    {
+      "name": "Negative: reject missing stage node",
+      "status": "passed"
+    },
+    {
+      "name": "Negative: reject absent recipe",
+      "status": "passed"
+    },
+    {
+      "name": "Negative: reject historical enrollment",
+      "status": "passed"
+    }
+  ]
+}

@@ -1,0 +1,2503 @@
+import {
+  PHASE_18_RENDERER_ADAPTER_CONTRACT_DIGEST,
+  digestRendererAdapterContract,
+  isPhase18RendererAdapterContract,
+} from "./adapter-contract";
+import {
+  RENDERER_QUALIFICATION_SERIALIZER_VERSION,
+  compareQualificationKeys,
+  digestQualificationValue,
+} from "./canonical";
+import {
+  HELD_BACK_CASE_DEFINITIONS,
+  OPEN_CASE_DEFINITIONS,
+  PHASE_18_BUDGET_DEFINITIONS,
+  PHASE_18_EVIDENCE_RULES,
+  PHASE_18_OPERATIONAL_SUITES,
+  PHASE_18_QUALIFICATION_GATES,
+  PHASE_18_REMEDIATION_PERMITTED_CHANGES,
+  PHASE_18_REQUALIFICATION_TRIGGERS,
+  PHASE_18_STOP_CONDITIONS,
+  PHASE_18_SCORE_DIMENSIONS,
+  PHASE_18_SCORING_RULES,
+  PHASE_18_VALIDATION_TOOLS,
+} from "./launch-contest";
+import {
+  digestSyntheticCorpusFixtureManifest,
+  digestSyntheticCorpusProof,
+} from "./synthetic-corpus-proof";
+import {
+  HELD_BACK_CASE_IDS,
+  OPEN_CASE_IDS,
+  QUALIFICATION_GATE_IDS,
+  RENDERER_CANDIDATE_IDS,
+  RENDERER_QUALIFICATION_SCHEMA_VERSION,
+  SCORE_DIMENSION_IDS,
+  SCORE_DIMENSION_WEIGHTS,
+  SYNTHETIC_CORPUS_PROOF_SCHEMA_VERSION,
+  VALIDATOR_CATEGORIES,
+} from "./types";
+
+import type {
+  AbsoluteBudget,
+  CharterApproval,
+  CharterValidationIssue,
+  FrozenRendererQualificationCharter,
+  QualificationCaseManifest,
+  RendererCandidateLock,
+  RendererQualificationCharterInput,
+  RequiredBudgetMetric,
+  SyntheticCorpusProof,
+  ValidationTool,
+} from "./types";
+
+export class RendererCharterValidationError extends Error {
+  readonly issues: readonly CharterValidationIssue[];
+
+  constructor(issues: readonly CharterValidationIssue[]) {
+    const summary = issues
+      .slice(0, 5)
+      .map((item) => `${item.path}: ${item.code}`)
+      .join("; ");
+    super(
+      `Renderer qualification charter cannot freeze (${issues.length} issues): ${summary}`,
+    );
+    this.name = "RendererCharterValidationError";
+    this.issues = issues;
+  }
+}
+
+function sameStringSequence(
+  actual: readonly string[],
+  expected: readonly string[],
+): boolean {
+  return JSON.stringify(actual) === JSON.stringify(expected);
+}
+
+/**
+ * Content addresses are the only thing that makes the frozen corpus and the
+ * candidate locks verifiable. A non-blank but malformed value such as
+ * `"not-a-digest"` is worse than a missing one: it reads as pinned.
+ */
+const SHA256_HEX = /^[0-9a-f]{64}$/;
+const GIT_OBJECT_ID_HEX = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/;
+const ARTIFACT_ID = /^[a-z0-9][a-z0-9._/-]*$/;
+const EXACT_SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+const EXACT_CHROMIUM_REVISION = /^(?:chromium-)?\d+(?:\.\d+){0,3}(?:-r\d+)?$/;
+const FLOATING_PIN_SEGMENT =
+  /(?:^|[-_.@/])(latest|current|stable|next|x)(?:$|[-_.@/])/i;
+const EXACT_VERSIONED_COMPONENT = /^[A-Za-z0-9][A-Za-z0-9._@/-]*$/;
+const EXACT_COMPONENT_NAME = /^[A-Za-z0-9][A-Za-z0-9._/-]*$/;
+const EXPLICIT_OFFSET_TIMESTAMP =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|([+-])(\d{2}):(\d{2}))$/;
+const DEFERRED_VALIDATION_PIN =
+  /(?:\b(?:current|latest|stable|next|tbd|unknown|placeholder)\b|to[-_ ]be[-_ ]chosen|independently[-_ ]chosen)/i;
+const VALIDATION_COMPONENT_FIELDS = ["name", "version", "digest"] as const;
+const ASSISTIVE_TECHNOLOGY_STACK_FIELDS = [
+  "stack_id",
+  "viewer",
+  "assistive_technology",
+  "task_protocol",
+] as const;
+const VALIDATION_TOOL_FIELDS = [
+  "name",
+  "version",
+  "category",
+  "ruleset",
+  "executable_digest",
+  "configuration_digest",
+] as const;
+const EVIDENCE_RULE_FIELDS = [
+  "package_schema_version",
+  "decision_record_format",
+  "redaction_policy",
+  "retention_owner",
+  "retention_days",
+  "validator_warning_policy",
+] as const;
+const SCORE_DIMENSION_FIELDS = [
+  "dimension_id",
+  "title",
+  "weight",
+  "anchors",
+  "evidence_basis",
+] as const;
+const SCORING_RULE_FIELDS = [
+  "reviewer_count",
+  "reviewer_method",
+  "score_above_three_requires_written_beyond_gate_evidence",
+  "scoring_eligibility",
+  "reviewer_total_aggregation",
+  "min_uncertainty_band_points",
+  "uncertainty_band_formula",
+  "material_lead_points",
+  "material_lead_rule",
+  "tie_break_order",
+  "selection_order",
+  "tie_break_resolution_rule",
+  "candidate_preference",
+] as const;
+const VALIDATOR_WARNING_POLICY_FIELDS = [
+  "retain_all_warnings",
+  "adjudicate_warnings_individually",
+  "rule_override_requires_charter_reset_and_rerun",
+  "profile_declaration_is_not_a_pass",
+] as const;
+const REMEDIATION_POLICY_FIELDS = [
+  "initial_attempts",
+  "max_cycles",
+  "max_hours_per_cycle",
+  "permitted_changes",
+] as const;
+const OPERATIONAL_SUITES_FIELDS = [
+  "repeatability",
+  "mixed_batch",
+  "fairness",
+  "concurrency_staircase",
+  "failure_matrix",
+  "outage_recovery",
+] as const;
+const REPEATABILITY_SUITE_FIELDS = [
+  "case_ids",
+  "cold_runs_per_case",
+  "warm_runs_per_case",
+] as const;
+const MIXED_BATCH_SUITE_FIELDS = [
+  "total_items",
+  "tenants",
+  "short_items",
+  "medium_items",
+  "long_items",
+  "poison_items",
+  "successful_item_policy",
+  "ambiguous_item_policy",
+  "retry_eligibility",
+  "retry_pin_policy",
+] as const;
+const FAIRNESS_SUITE_FIELDS = [
+  "heavy_tenant_items",
+  "heavy_item_shape",
+  "light_tenants",
+  "light_items_each",
+  "light_item_shape",
+  "claim_bound_multiplier",
+  "permitted_safety_throttle",
+] as const;
+const CONCURRENCY_STAIRCASE_SUITE_FIELDS = [
+  "steps",
+  "safety_ceiling_concurrent_attempts",
+] as const;
+const FAILURE_MATRIX_SUITE_FIELDS = [
+  "injections",
+  "durable_boundaries",
+] as const;
+const OUTAGE_RECOVERY_SUITE_FIELDS = [
+  "outage_window_minutes",
+  "proof",
+] as const;
+const SYNTHETIC_CORPUS_PROOF_FIELDS = [
+  "proof_id",
+  "schema_version",
+  "assurance",
+  "fixture_manifest_digest",
+  "procedure",
+  "generation_evidence_digest",
+  "attested_by",
+  "attested_at",
+  "proof_digest",
+] as const;
+const SYNTHETIC_CORPUS_PROCEDURE_FIELDS = ["id", "version", "digest"] as const;
+const CHARTER_APPROVAL_FIELDS = [
+  "actor",
+  "role",
+  "approved_at",
+  "statement",
+] as const;
+const ABSOLUTE_BUDGET_FIELDS = ["metric", "limit", "unit", "basis"] as const;
+
+const isSha256Hex = (value: string | undefined): boolean =>
+  SHA256_HEX.test(value ?? "");
+
+function hasExactOwnFields(
+  value: object | undefined,
+  expectedFields: readonly string[],
+): boolean {
+  if (!value || Array.isArray(value)) return false;
+  const fields = Object.keys(value);
+  return (
+    fields.length === expectedFields.length &&
+    expectedFields.every((field) =>
+      Object.prototype.hasOwnProperty.call(value, field),
+    )
+  );
+}
+
+interface ParsedExplicitOffsetTimestamp {
+  epochSeconds: number;
+  fractionalSecond: string;
+}
+
+function parseExplicitOffsetTimestamp(
+  value: unknown,
+): ParsedExplicitOffsetTimestamp | undefined {
+  if (typeof value !== "string") return undefined;
+
+  const match = EXPLICIT_OFFSET_TIMESTAMP.exec(value);
+  if (!match) return undefined;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  const fraction = match[7]?.slice(1) ?? "";
+  const zone = match[8];
+  const offsetSign = match[9];
+  const offsetHour = zone === "Z" ? 0 : Number(match[10]);
+  const offsetMinute = zone === "Z" ? 0 : Number(match[11]);
+
+  const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [
+    31,
+    isLeapYear ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ];
+  const maxDay = daysInMonth[month - 1];
+  if (
+    year === 0 ||
+    month < 1 ||
+    month > 12 ||
+    maxDay === undefined ||
+    day < 1 ||
+    day > maxDay ||
+    hour > 23 ||
+    minute > 59 ||
+    second > 59 ||
+    offsetHour > 23 ||
+    offsetMinute > 59
+  ) {
+    return undefined;
+  }
+
+  const localDate = new Date(0);
+  localDate.setUTCFullYear(year, month - 1, day);
+  localDate.setUTCHours(hour, minute, second, 0);
+
+  const direction = offsetSign === "+" ? 1 : -1;
+  const offsetMilliseconds =
+    zone === "Z" ? 0 : direction * (offsetHour * 60 + offsetMinute) * 60_000;
+  const epochSeconds = (localDate.getTime() - offsetMilliseconds) / 1_000;
+  if (!Number.isFinite(epochSeconds)) return undefined;
+
+  return {
+    epochSeconds,
+    fractionalSecond: fraction.replace(/0+$/, ""),
+  };
+}
+
+function compareParsedTimestamps(
+  left: ParsedExplicitOffsetTimestamp,
+  right: ParsedExplicitOffsetTimestamp,
+): number {
+  if (left.epochSeconds < right.epochSeconds) return -1;
+  if (left.epochSeconds > right.epochSeconds) return 1;
+
+  const precision = Math.max(
+    left.fractionalSecond.length,
+    right.fractionalSecond.length,
+  );
+  return compareQualificationKeys(
+    left.fractionalSecond.padEnd(precision, "0"),
+    right.fractionalSecond.padEnd(precision, "0"),
+  );
+}
+
+function hasRequiredSelfHostedSandbox(
+  candidate: RendererCandidateLock | undefined,
+): boolean {
+  const policy = candidate?.sandbox_policy;
+  return (
+    policy?.killable === true &&
+    policy.network_access === "denied" &&
+    policy.ambient_host_filesystem_access === "denied" &&
+    policy.inputs_pre_vendored === true
+  );
+}
+
+function isExactVersionedComponent(value: string | undefined): boolean {
+  const trimmed = value?.trim();
+  return Boolean(
+    trimmed &&
+    trimmed === value &&
+    /\d/.test(trimmed) &&
+    EXACT_VERSIONED_COMPONENT.test(trimmed) &&
+    !FLOATING_PIN_SEGMENT.test(trimmed),
+  );
+}
+
+function isExactNamedRuntime(value: string | undefined): boolean {
+  if (!value || value !== value.trim()) return false;
+  const separator = value.lastIndexOf("@");
+  if (separator <= 0) return false;
+
+  const name = value.slice(0, separator);
+  const version = value.slice(separator + 1);
+  return EXACT_COMPONENT_NAME.test(name) && EXACT_SEMVER.test(version);
+}
+
+function isExactValidationComponentName(value: string | undefined): boolean {
+  const trimmed = value?.trim();
+  return Boolean(
+    trimmed && trimmed === value && !DEFERRED_VALIDATION_PIN.test(trimmed),
+  );
+}
+
+function isExactValidationComponentVersion(value: string | undefined): boolean {
+  return (
+    isExactVersionedComponent(value) &&
+    !DEFERRED_VALIDATION_PIN.test(value ?? "")
+  );
+}
+
+function isContentAddressedValidationComponent(
+  component:
+    | {
+        name?: string;
+        version?: string;
+        digest?: string;
+      }
+    | undefined,
+): boolean {
+  return (
+    hasExactOwnFields(component, VALIDATION_COMPONENT_FIELDS) &&
+    isExactValidationComponentName(component?.name) &&
+    isExactValidationComponentVersion(component?.version) &&
+    isSha256Hex(component?.digest)
+  );
+}
+
+function sameValidationComponent(
+  left: { name: string; version: string; digest: string },
+  right: { name: string; version: string; digest: string },
+): boolean {
+  return (
+    left.name.toLowerCase() === right.name.toLowerCase() &&
+    left.version === right.version &&
+    left.digest === right.digest
+  );
+}
+
+function sameValidationComponentIdentity(
+  left: { name: string; version: string },
+  right: { name: string; version: string },
+): boolean {
+  return (
+    left.name.toLowerCase() === right.name.toLowerCase() &&
+    left.version === right.version
+  );
+}
+
+function hasValidAssistiveTechnologyStacks(tool: ValidationTool): boolean {
+  const stacks = tool.assistive_technology_stacks;
+  if (!stacks || stacks.length !== 2) return false;
+
+  const [primary, secondary] = stacks;
+  if (!primary || !secondary) return false;
+  if (
+    !hasExactOwnFields(primary, ASSISTIVE_TECHNOLOGY_STACK_FIELDS) ||
+    !hasExactOwnFields(secondary, ASSISTIVE_TECHNOLOGY_STACK_FIELDS)
+  ) {
+    return false;
+  }
+  if (primary.stack_id !== "primary" || secondary.stack_id !== "secondary") {
+    return false;
+  }
+
+  const everyComponentIsPinned = stacks.every((stack) =>
+    [stack.viewer, stack.assistive_technology, stack.task_protocol].every(
+      isContentAddressedValidationComponent,
+    ),
+  );
+  if (!everyComponentIsPinned) return false;
+
+  const primaryIsProtocolRequiredStack =
+    ["Adobe Acrobat", "Adobe Acrobat Reader"].includes(primary.viewer.name) &&
+    primary.assistive_technology.name === "NVDA";
+  if (!primaryIsProtocolRequiredStack) return false;
+
+  const sameStackIdentity =
+    sameValidationComponentIdentity(primary.viewer, secondary.viewer) &&
+    sameValidationComponentIdentity(
+      primary.assistive_technology,
+      secondary.assistive_technology,
+    );
+  const taskProtocolMatches = sameValidationComponent(
+    primary.task_protocol,
+    secondary.task_protocol,
+  );
+  return !sameStackIdentity && taskProtocolMatches;
+}
+
+function hasValidPrinceSubstitutionReset(
+  input: RendererQualificationCharterInput,
+  candidate: RendererCandidateLock | undefined,
+): boolean {
+  const reset = candidate?.substitution_reset;
+  if (!reset) return false;
+
+  const supersededCharterId = reset.superseded_charter_id;
+  const currentCharterId = input.charter_id;
+  const supersededFrozenAt = parseExplicitOffsetTimestamp(
+    reset.superseded_frozen_at,
+  );
+  const currentFrozenAt = parseExplicitOffsetTimestamp(input.frozen_at);
+  return (
+    Boolean(supersededCharterId?.trim()) &&
+    supersededCharterId === supersededCharterId.trim() &&
+    currentCharterId === currentCharterId.trim() &&
+    supersededCharterId !== currentCharterId &&
+    EXACT_SEMVER.test(reset.superseded_charter_version ?? "") &&
+    isSha256Hex(reset.superseded_manifest_digest) &&
+    supersededFrozenAt !== undefined &&
+    currentFrozenAt !== undefined &&
+    compareParsedTimestamps(supersededFrozenAt, currentFrozenAt) < 0 &&
+    isSha256Hex(reset.superseded_held_back_seal_digest) &&
+    reset.superseded_held_back_seal_digest !==
+      input.held_back_seal.sealed_expectations_digest &&
+    Boolean(reset.reason?.trim())
+  );
+}
+
+/** Protocol P18-R-P row: what identifies the exact frozen managed deployment. */
+const MANAGED_PROVIDER_SETTING_KEYS = [
+  "api_client_version",
+  "endpoint_region",
+  "account_mode",
+  "options_digest",
+  "retention_policy",
+  "support_access",
+  "dpa_subprocessor_evidence",
+] as const;
+
+/**
+ * Every field the charter freezes. `normalizeRendererQualificationCharterInput`
+ * spreads the input, so an unknown key would ride into the manifest digest and
+ * still verify - letting a qualification-only charter smuggle in authority it
+ * does not have (for example a `selected_renderer`).
+ */
+const CHARTER_INPUT_FIELDS = new Set([
+  "charter_id",
+  "charter_version",
+  "frozen_at",
+  "roles",
+  "approvals",
+  "candidates",
+  "open_corpus",
+  "held_back_corpus",
+  "synthetic_corpus_proof",
+  "held_back_seal",
+  "adapter_contract",
+  "adapter_contract_digest",
+  "operational_suites",
+  "gates",
+  "score_dimensions",
+  "scoring_rules",
+  "budgets",
+  "validators",
+  "remediation_policy",
+  "evidence_rules",
+  "requalification_triggers",
+  "stop_conditions",
+  "unknown_evidence_rule",
+]);
+
+/** Conservative synthetic-data screen for corpus text fields. */
+const PII_PATTERNS = [
+  /[\w.+-]+@(?!example\.)[\w-]+\.[\w.-]+/,
+  /\b\d{3}-\d{2}-\d{4}\b/,
+  /\b(?:\d[ -]?){13,19}\b/,
+];
+const INVISIBLE_ACTOR_CHARACTERS = /[\p{Cc}\p{Cf}]/u;
+
+function issue(
+  path: string,
+  code: string,
+  message: string,
+): CharterValidationIssue {
+  return { path, code, message };
+}
+
+function validateAdapterContract(
+  input: RendererQualificationCharterInput,
+  issues: CharterValidationIssue[],
+): void {
+  let actualDigest = "";
+  try {
+    actualDigest = digestRendererAdapterContract(input.adapter_contract);
+  } catch {
+    // The exact-value check below reports malformed or cyclic input as one
+    // typed charter issue instead of leaking a serializer exception.
+  }
+
+  if (
+    !isPhase18RendererAdapterContract(input.adapter_contract) ||
+    input.adapter_contract_digest !== actualDigest ||
+    input.adapter_contract_digest !== PHASE_18_RENDERER_ADAPTER_CONTRACT_DIGEST
+  ) {
+    issues.push(
+      issue(
+        "adapter_contract",
+        "protocol_fixed_field_changed",
+        "The candidate-neutral adapter request/result contract, closed failure catalog, authority boundary, and domain-separated digest must exactly match the pre-registered Phase 18 protocol.",
+      ),
+    );
+  }
+}
+
+function scanForRealData(
+  path: string,
+  text: string,
+  issues: CharterValidationIssue[],
+): void {
+  for (const pattern of PII_PATTERNS) {
+    if (pattern.test(text)) {
+      issues.push(
+        issue(
+          path,
+          "corpus_not_synthetic",
+          "Corpus text matches a real-data pattern; fixtures must be synthetic and PII-free.",
+        ),
+      );
+      return;
+    }
+  }
+}
+
+function validateSyntheticCorpusProof(
+  input: RendererQualificationCharterInput,
+  issues: CharterValidationIssue[],
+): void {
+  const path = "synthetic_corpus_proof";
+  const proof = input.synthetic_corpus_proof as
+    | Partial<SyntheticCorpusProof>
+    | undefined;
+
+  if (!proof || typeof proof !== "object" || Array.isArray(proof)) {
+    issues.push(
+      issue(
+        path,
+        "corpus_synthetic_proof_invalid",
+        "The corpus requires a custodian-supplied synthetic-generation proof.",
+      ),
+    );
+    return;
+  }
+
+  const procedure = proof.procedure as
+    | Partial<SyntheticCorpusProof["procedure"]>
+    | undefined;
+  if (
+    !hasExactOwnFields(proof, SYNTHETIC_CORPUS_PROOF_FIELDS) ||
+    !hasExactOwnFields(procedure, SYNTHETIC_CORPUS_PROCEDURE_FIELDS)
+  ) {
+    issues.push(
+      issue(
+        path,
+        "corpus_synthetic_proof_invalid",
+        "The synthetic-generation proof and procedure must use their exact declared field sets.",
+      ),
+    );
+  }
+
+  if (
+    !ARTIFACT_ID.test(proof.proof_id ?? "") ||
+    proof.schema_version !== SYNTHETIC_CORPUS_PROOF_SCHEMA_VERSION ||
+    proof.assurance !== "synthetic_generation" ||
+    !ARTIFACT_ID.test(procedure?.id ?? "") ||
+    !EXACT_SEMVER.test(procedure?.version ?? "")
+  ) {
+    issues.push(
+      issue(
+        path,
+        "corpus_synthetic_proof_invalid",
+        "The proof must pin the synthetic-generation assurance and one canonical, exactly versioned procedure.",
+      ),
+    );
+  }
+
+  if (
+    !isSha256Hex(proof.fixture_manifest_digest) ||
+    !isSha256Hex(procedure?.digest) ||
+    !isSha256Hex(proof.generation_evidence_digest) ||
+    !isSha256Hex(proof.proof_digest)
+  ) {
+    issues.push(
+      issue(
+        path,
+        "corpus_synthetic_proof_invalid",
+        "The fixture manifest, procedure, retained generation evidence, and proof must be content-addressed with lowercase SHA-256 digests.",
+      ),
+    );
+  }
+
+  const fixtureManifestDigest = digestSyntheticCorpusFixtureManifest(
+    [...input.open_corpus, ...input.held_back_corpus].map((item) => ({
+      case_id: item.case_id,
+      facts_digest: item.fixture.facts_digest,
+      document_digest: item.fixture.document_digest,
+    })),
+  );
+  if (proof.fixture_manifest_digest !== fixtureManifestDigest) {
+    issues.push(
+      issue(
+        `${path}.fixture_manifest_digest`,
+        "corpus_synthetic_proof_invalid",
+        "The synthetic-generation proof must attest to the exact frozen facts/document digest pair for every corpus case.",
+      ),
+    );
+  }
+
+  const attestor = proof.attested_by;
+  const attestorIsCanonical =
+    typeof attestor === "string" &&
+    attestor === attestor.trim() &&
+    attestor.length > 0 &&
+    !INVISIBLE_ACTOR_CHARACTERS.test(attestor);
+  if (!attestorIsCanonical || attestor !== input.roles.corpus_custodian) {
+    issues.push(
+      issue(
+        `${path}.attested_by`,
+        "corpus_synthetic_proof_invalid",
+        "The named corpus custodian must attest the synthetic-generation proof.",
+      ),
+    );
+  }
+
+  const attestedAt = parseExplicitOffsetTimestamp(proof.attested_at);
+  const frozenAt = parseExplicitOffsetTimestamp(input.frozen_at);
+  if (
+    attestedAt === undefined ||
+    (frozenAt !== undefined &&
+      compareParsedTimestamps(attestedAt, frozenAt) > 0)
+  ) {
+    issues.push(
+      issue(
+        `${path}.attested_at`,
+        "corpus_synthetic_proof_invalid",
+        "The custodian attestation must have a valid timestamp no later than charter freeze.",
+      ),
+    );
+  }
+
+  const proofDigest = digestSyntheticCorpusProof(proof as SyntheticCorpusProof);
+  if (proof.proof_digest !== proofDigest) {
+    issues.push(
+      issue(
+        `${path}.proof_digest`,
+        "corpus_synthetic_proof_invalid",
+        "The synthetic-generation proof content does not match its proof digest.",
+      ),
+    );
+  }
+}
+
+function validateCandidates(
+  input: RendererQualificationCharterInput,
+  issues: CharterValidationIssue[],
+): void {
+  const byId = new Map(
+    input.candidates.map((candidate) => [candidate.candidate_id, candidate]),
+  );
+  if (
+    input.candidates.length !== 3 ||
+    !RENDERER_CANDIDATE_IDS.every((id) => byId.has(id))
+  ) {
+    issues.push(
+      issue(
+        "candidates",
+        "candidate_register_invalid",
+        "The contest has exactly the candidates P18-R-P, P18-R-T, and P18-R-C.",
+      ),
+    );
+    return;
+  }
+
+  const prince = byId.get("P18-R-P");
+  const princeBaseIsValid =
+    prince?.eligibility === "finalist" && prince.engine === "prince";
+  const managedPrinceIsValid =
+    princeBaseIsValid &&
+    prince.deployment_mode === "managed" &&
+    prince.engine_version === "15.1" &&
+    prince.pipeline === "docraptor-managed@10.1" &&
+    Boolean(prince.network_filesystem_policy?.trim()) &&
+    prince.substitution_reset === undefined;
+  const selfHostedPrinceIsValid =
+    princeBaseIsValid &&
+    prince.deployment_mode === "self_hosted" &&
+    isExactVersionedComponent(prince.engine_version) &&
+    isExactVersionedComponent(prince.pipeline) &&
+    isExactNamedRuntime(prince.container_runtime) &&
+    isSha256Hex(prince.container_runtime_digest) &&
+    isExactVersionedComponent(prince.os_libc) &&
+    isSha256Hex(prince.engine_binary_digest) &&
+    isSha256Hex(prince.container_image_digest) &&
+    hasRequiredSelfHostedSandbox(prince) &&
+    hasValidPrinceSubstitutionReset(input, prince) &&
+    prince.network_filesystem_policy === undefined &&
+    prince.provider_settings === undefined;
+  if (!managedPrinceIsValid && !selfHostedPrinceIsValid) {
+    issues.push(
+      issue(
+        "candidates.P18-R-P",
+        "candidate_lock_invalid",
+        "P18-R-P must be either the exact managed DocRaptor 10.1 / Prince 15.1 deployment or one completely pinned self-hosted Prince deployment under a fresh charter.",
+      ),
+    );
+  }
+  // The managed candidate's runtime is the provider's, so the deployment is
+  // only identified by these settings. Protocol, P18-R-P row: "API/client
+  // version, endpoint/region, engine/pipeline, options, provider account mode,
+  // retention/support-access settings, DPA/subprocessor evidence" - and "only
+  // the exact frozen managed deployment qualifies".
+  if (prince?.deployment_mode === "managed") {
+    for (const key of MANAGED_PROVIDER_SETTING_KEYS) {
+      if (!prince.provider_settings?.[key]?.trim()) {
+        issues.push(
+          issue(
+            `candidates.P18-R-P.provider_settings.${key}`,
+            "provenance_missing",
+            `The managed deployment must pin ${key}.`,
+          ),
+        );
+      }
+    }
+  }
+
+  const typst = byId.get("P18-R-T");
+  // The self-hosted challenger is the one candidate whose runtime we own, so
+  // the protocol makes its binary SHA-256, OS/container digest, and libc part
+  // of what must be frozen: "Only the exact frozen binary and sandbox qualify."
+  // Engine/version/pipeline strings alone would let it freeze unpinned.
+  if (
+    typst?.eligibility !== "finalist" ||
+    typst.deployment_mode !== "self_hosted" ||
+    typst.engine !== "typst" ||
+    typst.engine_version !== "0.15.1" ||
+    typst.pipeline !== "typst-cli@0.15.1" ||
+    !isExactNamedRuntime(typst.container_runtime) ||
+    !isSha256Hex(typst.container_runtime_digest) ||
+    !isExactVersionedComponent(typst.os_libc) ||
+    !isSha256Hex(typst.engine_binary_digest) ||
+    !isSha256Hex(typst.container_image_digest) ||
+    !isSha256Hex(typst.distribution_provenance_digest) ||
+    !hasRequiredSelfHostedSandbox(typst) ||
+    typst.network_filesystem_policy !== undefined
+  ) {
+    issues.push(
+      issue(
+        "candidates.P18-R-T",
+        "candidate_lock_invalid",
+        "P18-R-T must be the finalist Typst exactly 0.15.1, official distribution, on the pinned typst-cli@0.15.1 sandbox pipeline.",
+      ),
+    );
+  }
+
+  const control = byId.get("P18-R-C");
+  if (
+    control?.eligibility !== "comparison_control" ||
+    control.deployment_mode !== "self_hosted" ||
+    control.engine !== "chromium" ||
+    control.pipeline !== "playwright-print-to-pdf" ||
+    !control.engine_version.trim() ||
+    !EXACT_SEMVER.test(control.playwright_version ?? "") ||
+    !EXACT_CHROMIUM_REVISION.test(control.browser_revision ?? "") ||
+    !isExactNamedRuntime(control.container_runtime) ||
+    !isSha256Hex(control.container_runtime_digest) ||
+    !isSha256Hex(control.container_image_digest) ||
+    !isSha256Hex(control.engine_binary_digest) ||
+    control.network_filesystem_policy !== undefined
+  ) {
+    issues.push(
+      issue(
+        "candidates.P18-R-C",
+        "candidate_lock_invalid",
+        "P18-R-C is the exact pinned Playwright Chromium print-to-pdf comparison control and can never be eligible to win.",
+      ),
+    );
+  }
+
+  for (const candidate of input.candidates) {
+    const path = `candidates.${candidate.candidate_id}`;
+    const requiredStrings: Array<[string, string]> = [
+      ["adapter_commit", candidate.adapter_commit],
+      ["adapter_digest", candidate.adapter_digest],
+      ["dependency_lock_digest", candidate.dependency_lock_digest],
+      ["configuration_digest", candidate.configuration_digest],
+      ["locale_data_version", candidate.locale_data_version],
+      ["source_compiler.name", candidate.source_compiler?.name],
+      ["source_compiler.version", candidate.source_compiler?.version],
+      ["finalizer.name", candidate.finalizer.name],
+      ["finalizer.version", candidate.finalizer.version],
+    ];
+    for (const [field, value] of requiredStrings) {
+      if (!value?.trim()) {
+        issues.push(
+          issue(
+            `${path}.${field}`,
+            "provenance_missing",
+            `Candidate lock field ${field} is required.`,
+          ),
+        );
+      }
+    }
+
+    if (!GIT_OBJECT_ID_HEX.test(candidate.adapter_commit)) {
+      issues.push(
+        issue(
+          `${path}.adapter_commit`,
+          "provenance_missing",
+          "Candidate adapter_commit must be an exact lowercase 40- or 64-character Git object id.",
+        ),
+      );
+    }
+
+    // Content addresses, unlike the labels above, must actually be digests.
+    const requiredDigests: Array<[string, string]> = [
+      ["adapter_digest", candidate.adapter_digest],
+      ["dependency_lock_digest", candidate.dependency_lock_digest],
+      ["configuration_digest", candidate.configuration_digest],
+      ["locale_data_digest", candidate.locale_data_digest],
+      ["source_compiler.digest", candidate.source_compiler?.digest],
+      ["finalizer.digest", candidate.finalizer.digest],
+    ];
+    for (const [field, value] of requiredDigests) {
+      if (!isSha256Hex(value)) {
+        issues.push(
+          issue(
+            `${path}.${field}`,
+            "provenance_missing",
+            `Candidate lock field ${field} must be a lowercase SHA-256 hex digest.`,
+          ),
+        );
+      }
+    }
+    if (candidate.fonts_assets_packages.length === 0) {
+      issues.push(
+        issue(
+          `${path}.fonts_assets_packages`,
+          "provenance_missing",
+          "Fonts, assets, and packages must be pinned with licenses and digests.",
+        ),
+      );
+    }
+    const artifactIds = new Set<string>();
+    for (const item of candidate.fonts_assets_packages) {
+      // Without a name and version the digest cannot be tied back to anything
+      // in the inventory, and the issue path below degrades to a bare prefix.
+      if (
+        !ARTIFACT_ID.test(item.artifact_id ?? "") ||
+        !item.name.trim() ||
+        !item.version.trim() ||
+        !item.license.trim() ||
+        !isSha256Hex(item.digest)
+      ) {
+        issues.push(
+          issue(
+            `${path}.fonts_assets_packages.${item.artifact_id || "<unidentified>"}`,
+            "provenance_missing",
+            "Every pinned font/asset/package needs a canonical artifact id, name, version, license, and SHA-256 digest.",
+          ),
+        );
+      }
+      if (item.artifact_id?.trim()) {
+        if (artifactIds.has(item.artifact_id)) {
+          issues.push(
+            issue(
+              `${path}.fonts_assets_packages.${item.artifact_id}`,
+              "inventory_identity_conflict",
+              "A canonical artifact id may identify only one pinned inventory entry.",
+            ),
+          );
+        }
+        artifactIds.add(item.artifact_id);
+      }
+    }
+  }
+}
+
+function validateCase(
+  kind: "held_back" | "open",
+  manifest: QualificationCaseManifest,
+  issues: CharterValidationIssue[],
+): void {
+  const path = `corpus.${manifest.case_id}`;
+
+  if (manifest.visibility !== kind) {
+    issues.push(
+      issue(
+        path,
+        "corpus_invalid",
+        `Case ${manifest.case_id} has the wrong visibility.`,
+      ),
+    );
+  }
+  if (manifest.synthetic !== true) {
+    issues.push(
+      issue(
+        path,
+        "corpus_not_synthetic",
+        "Every fixture must declare synthetic data.",
+      ),
+    );
+  }
+  if (
+    !isSha256Hex(manifest.fixture.facts_digest) ||
+    !isSha256Hex(manifest.fixture.document_digest)
+  ) {
+    issues.push(
+      issue(
+        path,
+        "corpus_invalid",
+        "Every case pins its fixture digests as lowercase SHA-256 hex.",
+      ),
+    );
+  }
+  if (!manifest.fixture.bounds.trim()) {
+    issues.push(
+      issue(path, "corpus_invalid", "Every case documents its schema bounds."),
+    );
+  }
+
+  scanForRealData(path, manifest.title, issues);
+  scanForRealData(path, manifest.fixture.bounds, issues);
+
+  if (kind === "open") {
+    const fixed =
+      manifest.case_id in OPEN_CASE_DEFINITIONS
+        ? OPEN_CASE_DEFINITIONS[
+            manifest.case_id as keyof typeof OPEN_CASE_DEFINITIONS
+          ]
+        : undefined;
+    if (
+      fixed &&
+      (manifest.title !== fixed.title ||
+        manifest.output_profile !== fixed.output_profile ||
+        manifest.fixture.bounds !== fixed.bounds)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "protocol_fixed_field_changed",
+          "Open corpus titles, output profiles, and bounds are pre-registered by the protocol.",
+        ),
+      );
+    }
+    if (!manifest.expected) {
+      issues.push(
+        issue(
+          path,
+          "corpus_invalid",
+          "Open cases carry their expected results.",
+        ),
+      );
+    } else {
+      if (
+        manifest.expected.protected_facts.length === 0 &&
+        manifest.expected.layout_assertions.length === 0 &&
+        !manifest.expected.failure_behavior
+      ) {
+        issues.push(
+          issue(
+            path,
+            "corpus_invalid",
+            "Open cases declare expected facts, layout, or failure behavior.",
+          ),
+        );
+      }
+      if (
+        fixed &&
+        (!sameStringSequence(
+          manifest.expected.protected_facts,
+          fixed.protected_facts,
+        ) ||
+          !sameStringSequence(
+            manifest.expected.layout_assertions,
+            fixed.layout_assertions,
+          ) ||
+          manifest.expected.failure_behavior !== fixed.failure_behavior)
+      ) {
+        issues.push(
+          issue(
+            path,
+            "protocol_fixed_field_changed",
+            "Open corpus expectations are pre-registered by the protocol and cannot change at freeze time.",
+          ),
+        );
+      }
+      for (const text of [
+        ...manifest.expected.protected_facts,
+        ...manifest.expected.layout_assertions,
+      ]) {
+        scanForRealData(path, text, issues);
+      }
+    }
+    if (manifest.sealed_expectation_digest) {
+      issues.push(issue(path, "corpus_invalid", "Open cases are not sealed."));
+    }
+  } else {
+    const fixed =
+      manifest.case_id in HELD_BACK_CASE_DEFINITIONS
+        ? HELD_BACK_CASE_DEFINITIONS[
+            manifest.case_id as keyof typeof HELD_BACK_CASE_DEFINITIONS
+          ]
+        : undefined;
+    if (
+      fixed &&
+      (manifest.title !== fixed.title ||
+        manifest.output_profile !== fixed.output_profile ||
+        manifest.fixture.bounds !== fixed.bounds)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "protocol_fixed_field_changed",
+          "Held-back corpus titles, output profiles, and bounds are pre-registered by the protocol.",
+        ),
+      );
+    }
+    if (manifest.expected) {
+      issues.push(
+        issue(
+          path,
+          "held_back_expectation_leaked",
+          "Held-back cases must not carry expected results; only the custodian-sealed digest enters the charter.",
+        ),
+      );
+    }
+    if (!isSha256Hex(manifest.sealed_expectation_digest)) {
+      issues.push(
+        issue(
+          path,
+          "held_back_not_sealed",
+          "Held-back cases require a custodian-sealed lowercase SHA-256 expectation digest before candidate work begins.",
+        ),
+      );
+    }
+  }
+}
+
+function validateCorpus(
+  input: RendererQualificationCharterInput,
+  issues: CharterValidationIssue[],
+): void {
+  const openIds = input.open_corpus.map((item) => item.case_id);
+  if (
+    openIds.length !== OPEN_CASE_IDS.length ||
+    !OPEN_CASE_IDS.every((id) => openIds.includes(id))
+  ) {
+    issues.push(
+      issue(
+        "open_corpus",
+        "corpus_incomplete",
+        "The open corpus is exactly O01–O18.",
+      ),
+    );
+  }
+  const heldIds = input.held_back_corpus.map((item) => item.case_id);
+  if (
+    heldIds.length !== HELD_BACK_CASE_IDS.length ||
+    !HELD_BACK_CASE_IDS.every((id) => heldIds.includes(id))
+  ) {
+    issues.push(
+      issue(
+        "held_back_corpus",
+        "corpus_incomplete",
+        "The held-back corpus is exactly H01–H12.",
+      ),
+    );
+  }
+
+  for (const item of input.open_corpus) validateCase("open", item, issues);
+  for (const item of input.held_back_corpus)
+    validateCase("held_back", item, issues);
+
+  validateSyntheticCorpusProof(input, issues);
+
+  const caseIdByFixtureIdentity = new Map<string, string>();
+  for (const item of [...input.open_corpus, ...input.held_back_corpus]) {
+    const { facts_digest: factsDigest, document_digest: documentDigest } =
+      item.fixture;
+    if (!isSha256Hex(factsDigest) || !isSha256Hex(documentDigest)) continue;
+
+    const fixtureIdentity = `${factsDigest}:${documentDigest}`;
+    const existingCaseId = caseIdByFixtureIdentity.get(fixtureIdentity);
+    if (existingCaseId) {
+      issues.push(
+        issue(
+          `corpus.${item.case_id}.fixture`,
+          "fixture_identity_conflict",
+          `Cases ${existingCaseId} and ${item.case_id} reuse the same facts/document digest pair.`,
+        ),
+      );
+      continue;
+    }
+    caseIdByFixtureIdentity.set(fixtureIdentity, item.case_id);
+  }
+
+  if (input.held_back_seal.custodian !== input.roles.corpus_custodian) {
+    issues.push(
+      issue(
+        "held_back_seal.custodian",
+        "held_back_not_sealed",
+        "The held-back seal must be recorded by the named corpus custodian.",
+      ),
+    );
+  }
+  if (!isSha256Hex(input.held_back_seal.sealed_expectations_digest)) {
+    issues.push(
+      issue(
+        "held_back_seal",
+        "held_back_not_sealed",
+        "Held-back expectations must be sealed under a SHA-256 digest before freeze.",
+      ),
+    );
+  }
+
+  // The custodian access log is evidence, so it has to be read, not just
+  // carried. Protocol: candidate implementers must not "See held-back expected
+  // results before candidate outputs are sealed", and the custodian must not
+  // "Tune a candidate against held-back fixture identities". An operator in
+  // this log is that leak, recorded in the charter's own evidence.
+  const operatorActors = new Set(
+    Object.values(input.roles.candidate_operators).map((actor) => actor.trim()),
+  );
+  for (const [index, entry] of input.held_back_seal.access_log.entries()) {
+    const entryPath = `held_back_seal.access_log.${index}`;
+    const actor = (entry as { actor?: unknown }).actor;
+    const normalizedActor = typeof actor === "string" ? actor.trim() : "";
+    const actorIsCanonical =
+      typeof actor === "string" &&
+      actor === normalizedActor &&
+      normalizedActor.length > 0 &&
+      !INVISIBLE_ACTOR_CHARACTERS.test(actor);
+    if (!actorIsCanonical) {
+      issues.push(
+        issue(
+          entryPath,
+          "held_back_not_sealed",
+          "Every held-back access must name a canonical visible actor without surrounding whitespace or control characters.",
+        ),
+      );
+    }
+    if (operatorActors.has(normalizedActor)) {
+      issues.push(
+        issue(
+          entryPath,
+          "held_back_expectation_leaked",
+          `Candidate operator ${normalizedActor} accessed the held-back expectations before freeze.`,
+        ),
+      );
+    }
+    if (!entry.reason.trim()) {
+      issues.push(
+        issue(
+          entryPath,
+          "held_back_not_sealed",
+          "Every held-back access must record why it happened.",
+        ),
+      );
+    }
+    const accessedAt = parseExplicitOffsetTimestamp(entry.at);
+    if (accessedAt === undefined) {
+      issues.push(
+        issue(
+          entryPath,
+          "held_back_not_sealed",
+          "Every held-back access must record a valid timestamp.",
+        ),
+      );
+    } else {
+      const frozenAt = parseExplicitOffsetTimestamp(input.frozen_at);
+      if (
+        frozenAt !== undefined &&
+        compareParsedTimestamps(accessedAt, frozenAt) > 0
+      ) {
+        issues.push(
+          issue(
+            entryPath,
+            "held_back_not_sealed",
+            "A held-back access cannot be dated after the charter freezes.",
+          ),
+        );
+      }
+    }
+  }
+  const sealedAt = parseExplicitOffsetTimestamp(input.held_back_seal.sealed_at);
+  if (sealedAt === undefined) {
+    issues.push(
+      issue(
+        "held_back_seal.sealed_at",
+        "held_back_not_sealed",
+        "The held-back seal must record a valid explicit-offset timestamp.",
+      ),
+    );
+  } else {
+    const frozenAt = parseExplicitOffsetTimestamp(input.frozen_at);
+    if (
+      frozenAt !== undefined &&
+      compareParsedTimestamps(sealedAt, frozenAt) > 0
+    ) {
+      issues.push(
+        issue(
+          "held_back_seal.sealed_at",
+          "held_back_not_sealed",
+          "The held-back seal must exist before the charter freezes.",
+        ),
+      );
+    }
+  }
+}
+
+function validateSuites(
+  input: RendererQualificationCharterInput,
+  issues: CharterValidationIssue[],
+): void {
+  const suites = input.operational_suites;
+  if (!suites || typeof suites !== "object" || Array.isArray(suites)) {
+    issues.push(
+      issue(
+        "operational_suites",
+        "suite_invalid",
+        "The complete frozen operational-suite contract is required.",
+      ),
+    );
+    return;
+  }
+
+  if (
+    !hasExactOwnFields(suites, OPERATIONAL_SUITES_FIELDS) ||
+    !hasExactOwnFields(suites.repeatability, REPEATABILITY_SUITE_FIELDS) ||
+    !sameStringSequence(
+      suites.repeatability.case_ids,
+      PHASE_18_OPERATIONAL_SUITES.repeatability.case_ids,
+    ) ||
+    suites.repeatability.cold_runs_per_case !==
+      PHASE_18_OPERATIONAL_SUITES.repeatability.cold_runs_per_case ||
+    suites.repeatability.warm_runs_per_case !==
+      PHASE_18_OPERATIONAL_SUITES.repeatability.warm_runs_per_case
+  ) {
+    issues.push(
+      issue(
+        "operational_suites.repeatability",
+        "suite_invalid",
+        "Repeatability is ten cold and ten warm executions of O01, O04, O10, H02, H06, and H09.",
+      ),
+    );
+  }
+
+  const batch = suites.mixed_batch;
+  if (
+    !hasExactOwnFields(batch, MIXED_BATCH_SUITE_FIELDS) ||
+    batch.total_items !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.total_items ||
+    batch.tenants !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.tenants ||
+    batch.short_items !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.short_items ||
+    batch.medium_items !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.medium_items ||
+    batch.long_items !== PHASE_18_OPERATIONAL_SUITES.mixed_batch.long_items ||
+    batch.poison_items !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.poison_items ||
+    batch.successful_item_policy !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.successful_item_policy ||
+    batch.ambiguous_item_policy !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.ambiguous_item_policy ||
+    batch.retry_eligibility !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.retry_eligibility ||
+    batch.retry_pin_policy !==
+      PHASE_18_OPERATIONAL_SUITES.mixed_batch.retry_pin_policy ||
+    batch.short_items +
+      batch.medium_items +
+      batch.long_items +
+      batch.poison_items !==
+      batch.total_items
+  ) {
+    issues.push(
+      issue(
+        "operational_suites.mixed_batch",
+        "suite_invalid",
+        "The mixed batch is 1,000 items across 20 tenants: 700 short, 200 medium, 80 long, and 20 poison; successful and ambiguous items do not rerun, and only eligible failures retry with exact pins.",
+      ),
+    );
+  }
+
+  const fairness = suites.fairness;
+  if (
+    !hasExactOwnFields(fairness, FAIRNESS_SUITE_FIELDS) ||
+    fairness.heavy_tenant_items !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.heavy_tenant_items ||
+    fairness.heavy_item_shape !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.heavy_item_shape ||
+    fairness.light_tenants !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.light_tenants ||
+    fairness.light_items_each !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.light_items_each ||
+    fairness.light_item_shape !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.light_item_shape ||
+    fairness.claim_bound_multiplier !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.claim_bound_multiplier ||
+    fairness.permitted_safety_throttle !==
+      PHASE_18_OPERATIONAL_SUITES.fairness.permitted_safety_throttle
+  ) {
+    issues.push(
+      issue(
+        "operational_suites.fairness",
+        "suite_invalid",
+        "Fairness is one 500-item long-document tenant against 19 ten-item short-document tenants with the 2× claim bound.",
+      ),
+    );
+  }
+
+  if (
+    !hasExactOwnFields(
+      suites.concurrency_staircase,
+      CONCURRENCY_STAIRCASE_SUITE_FIELDS,
+    ) ||
+    JSON.stringify(suites.concurrency_staircase.steps) !==
+      JSON.stringify(PHASE_18_OPERATIONAL_SUITES.concurrency_staircase.steps) ||
+    suites.concurrency_staircase.safety_ceiling_concurrent_attempts !==
+      PHASE_18_OPERATIONAL_SUITES.concurrency_staircase
+        .safety_ceiling_concurrent_attempts
+  ) {
+    issues.push(
+      issue(
+        "operational_suites.concurrency_staircase",
+        "suite_invalid",
+        "The concurrency staircase is exactly 1, 5, 10, 25, and 50.",
+      ),
+    );
+  }
+
+  if (
+    !hasExactOwnFields(suites.failure_matrix, FAILURE_MATRIX_SUITE_FIELDS) ||
+    !sameStringSequence(
+      suites.failure_matrix.injections,
+      PHASE_18_OPERATIONAL_SUITES.failure_matrix.injections,
+    ) ||
+    !sameStringSequence(
+      suites.failure_matrix.durable_boundaries,
+      PHASE_18_OPERATIONAL_SUITES.failure_matrix.durable_boundaries,
+    )
+  ) {
+    issues.push(
+      issue(
+        "operational_suites.failure_matrix",
+        "suite_invalid",
+        "The failure matrix is exactly the frozen eight injections applied after each frozen durable boundary.",
+      ),
+    );
+  }
+
+  if (
+    !hasExactOwnFields(suites.outage_recovery, OUTAGE_RECOVERY_SUITE_FIELDS) ||
+    suites.outage_recovery.outage_window_minutes !==
+      PHASE_18_OPERATIONAL_SUITES.outage_recovery.outage_window_minutes ||
+    suites.outage_recovery.proof !==
+      PHASE_18_OPERATIONAL_SUITES.outage_recovery.proof
+  ) {
+    issues.push(
+      issue(
+        "operational_suites.outage_recovery",
+        "suite_invalid",
+        "Outage recovery window and proof text are pre-registered by the protocol.",
+      ),
+    );
+  }
+}
+
+function validateGatesAndScoring(
+  input: RendererQualificationCharterInput,
+  issues: CharterValidationIssue[],
+): void {
+  const gateIds = input.gates.map((gate) => gate.gate_id);
+  if (
+    gateIds.length !== QUALIFICATION_GATE_IDS.length ||
+    !QUALIFICATION_GATE_IDS.every((id) => gateIds.includes(id))
+  ) {
+    issues.push(
+      issue(
+        "gates",
+        "gates_incomplete",
+        "All twelve hard gates G01–G12 are mandatory.",
+      ),
+    );
+  }
+  const fixedGates = new Map(
+    PHASE_18_QUALIFICATION_GATES.map((gate) => [gate.gate_id, gate]),
+  );
+  for (const gate of input.gates) {
+    const fixed = fixedGates.get(gate.gate_id);
+    if (!fixed) continue;
+    if (gate.pass_rule !== fixed.pass_rule || gate.title !== fixed.title) {
+      issues.push(
+        issue(
+          `gates.${gate.gate_id}`,
+          "protocol_fixed_field_changed",
+          "Hard-gate titles and pass rules are pre-registered by the protocol; a materially different rule requires a new protocol version, not a freeze-time edit.",
+        ),
+      );
+    }
+  }
+
+  const dimensionIds = input.score_dimensions.map((item) => item.dimension_id);
+  if (
+    dimensionIds.length !== SCORE_DIMENSION_IDS.length ||
+    !SCORE_DIMENSION_IDS.every((id) => dimensionIds.includes(id))
+  ) {
+    issues.push(
+      issue(
+        "score_dimensions",
+        "scoring_invalid",
+        "Exactly the seven protocol score dimensions are frozen.",
+      ),
+    );
+  }
+  let weightTotal = 0;
+  for (const dimension of input.score_dimensions) {
+    weightTotal += dimension.weight;
+    if (SCORE_DIMENSION_WEIGHTS[dimension.dimension_id] !== dimension.weight) {
+      issues.push(
+        issue(
+          `score_dimensions.${dimension.dimension_id}`,
+          "scoring_invalid",
+          `Weight must be the frozen ${SCORE_DIMENSION_WEIGHTS[dimension.dimension_id]}.`,
+        ),
+      );
+    }
+    if (
+      dimension.anchors.length !== 6 ||
+      dimension.anchors.some((anchor) => !anchor.trim())
+    ) {
+      issues.push(
+        issue(
+          `score_dimensions.${dimension.dimension_id}`,
+          "scoring_invalid",
+          "Every dimension declares exact 0–5 anchors.",
+        ),
+      );
+    }
+  }
+  if (weightTotal !== 100) {
+    issues.push(
+      issue(
+        "score_dimensions",
+        "scoring_invalid",
+        "Weights must total exactly 100.",
+      ),
+    );
+  }
+
+  const fixedDimensions = new Map(
+    PHASE_18_SCORE_DIMENSIONS.map((dimension) => [
+      dimension.dimension_id,
+      dimension,
+    ]),
+  );
+  for (const dimension of input.score_dimensions) {
+    const fixed = fixedDimensions.get(dimension.dimension_id);
+    if (!fixed) continue;
+    if (
+      !hasExactOwnFields(dimension, SCORE_DIMENSION_FIELDS) ||
+      dimension.title !== fixed.title ||
+      dimension.evidence_basis !== fixed.evidence_basis ||
+      JSON.stringify(dimension.anchors) !== JSON.stringify(fixed.anchors)
+    ) {
+      issues.push(
+        issue(
+          `score_dimensions.${dimension.dimension_id}`,
+          "protocol_fixed_field_changed",
+          "Dimension titles, evidence basis, and 0–5 anchors are pre-registered by the protocol.",
+        ),
+      );
+    }
+  }
+
+  const rules = input.scoring_rules;
+  const tieBreakOrderHasExpectedLength =
+    Array.isArray(rules.tie_break_order) &&
+    rules.tie_break_order.length ===
+      PHASE_18_SCORING_RULES.tie_break_order.length;
+  if (
+    rules.reviewer_count !== PHASE_18_SCORING_RULES.reviewer_count ||
+    rules.min_uncertainty_band_points !==
+      PHASE_18_SCORING_RULES.min_uncertainty_band_points ||
+    rules.material_lead_points !==
+      PHASE_18_SCORING_RULES.material_lead_points ||
+    !tieBreakOrderHasExpectedLength
+  ) {
+    issues.push(
+      issue(
+        "scoring_rules",
+        "scoring_invalid",
+        "Two reviewers, a 2.0 minimum uncertainty band, a 5.0 material lead, and the three-step tie-break are frozen.",
+      ),
+    );
+  }
+  if (
+    !hasExactOwnFields(rules, SCORING_RULE_FIELDS) ||
+    rules.reviewer_method !== PHASE_18_SCORING_RULES.reviewer_method ||
+    rules.score_above_three_requires_written_beyond_gate_evidence !==
+      PHASE_18_SCORING_RULES.score_above_three_requires_written_beyond_gate_evidence ||
+    rules.scoring_eligibility !== PHASE_18_SCORING_RULES.scoring_eligibility ||
+    rules.reviewer_total_aggregation !==
+      PHASE_18_SCORING_RULES.reviewer_total_aggregation ||
+    rules.uncertainty_band_formula !==
+      PHASE_18_SCORING_RULES.uncertainty_band_formula ||
+    rules.material_lead_rule !== PHASE_18_SCORING_RULES.material_lead_rule ||
+    JSON.stringify(rules.tie_break_order) !==
+      JSON.stringify(PHASE_18_SCORING_RULES.tie_break_order) ||
+    JSON.stringify(rules.selection_order) !==
+      JSON.stringify(PHASE_18_SCORING_RULES.selection_order) ||
+    rules.tie_break_resolution_rule !==
+      PHASE_18_SCORING_RULES.tie_break_resolution_rule ||
+    rules.candidate_preference !== PHASE_18_SCORING_RULES.candidate_preference
+  ) {
+    issues.push(
+      issue(
+        "scoring_rules",
+        "protocol_fixed_field_changed",
+        "Independent scoring, written beyond-gate evidence, calculation formulas, ordered no-winner-capable selection policy, material tie-break resolution, and no candidate preference are pre-registered by the protocol.",
+      ),
+    );
+  }
+}
+
+function isCanonicalVisibleIdentity(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  return (
+    value.length > 0 &&
+    value === value.trim() &&
+    !INVISIBLE_ACTOR_CHARACTERS.test(value)
+  );
+}
+
+interface ValidatedCharterApproval {
+  approval: CharterApproval;
+  approvedAt: ParsedExplicitOffsetTimestamp;
+  index: number;
+}
+
+function validateApprovals(
+  input: RendererQualificationCharterInput,
+  issues: CharterValidationIssue[],
+): void {
+  const frozenAt = parseExplicitOffsetTimestamp(input.frozen_at);
+  const actorsByRole = new Map<string, Set<string>>();
+  const approvalCountByRole = new Map<string, number>();
+  const validatedApprovals: ValidatedCharterApproval[] = [];
+  const rawApprovals: readonly unknown[] = Array.isArray(input.approvals)
+    ? input.approvals
+    : [];
+
+  if (!Array.isArray(input.approvals)) {
+    issues.push(
+      issue(
+        "approvals",
+        "approval_invalid",
+        "The frozen approval register must be an array.",
+      ),
+    );
+  }
+
+  for (const [index, rawApproval] of rawApprovals.entries()) {
+    const path = `approvals.${index}`;
+    if (
+      !rawApproval ||
+      typeof rawApproval !== "object" ||
+      Array.isArray(rawApproval)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "approval_invalid",
+          "Every approval must be an object with the exact frozen approval fields.",
+        ),
+      );
+      continue;
+    }
+
+    const approval = rawApproval as Partial<CharterApproval>;
+    let approvalIsValid = true;
+    if (!hasExactOwnFields(approval, CHARTER_APPROVAL_FIELDS)) {
+      issues.push(
+        issue(
+          path,
+          "approval_invalid",
+          "Every approval freezes exactly actor, role, approved_at, and statement.",
+        ),
+      );
+      approvalIsValid = false;
+    }
+
+    const actorIsCanonical = isCanonicalVisibleIdentity(approval.actor);
+    const roleIsCanonical = isCanonicalVisibleIdentity(approval.role);
+    if (!actorIsCanonical || !roleIsCanonical) {
+      issues.push(
+        issue(
+          path,
+          "approval_invalid",
+          "Every approval must name canonical visible actor and role identities.",
+        ),
+      );
+      approvalIsValid = false;
+    }
+
+    if (roleIsCanonical && typeof approval.role === "string") {
+      approvalCountByRole.set(
+        approval.role,
+        (approvalCountByRole.get(approval.role) ?? 0) + 1,
+      );
+    }
+
+    if (typeof approval.statement !== "string" || !approval.statement.trim()) {
+      issues.push(
+        issue(
+          path,
+          "approval_invalid",
+          "Every approval must carry a non-blank statement of what was authorized.",
+        ),
+      );
+      approvalIsValid = false;
+    }
+
+    const approvedAt = parseExplicitOffsetTimestamp(approval.approved_at);
+    if (
+      approvedAt === undefined ||
+      (frozenAt !== undefined &&
+        compareParsedTimestamps(approvedAt, frozenAt) > 0)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "approval_invalid",
+          "Every approval must have a valid explicit-offset timestamp no later than charter freeze.",
+        ),
+      );
+      approvalIsValid = false;
+    }
+
+    if (
+      actorIsCanonical &&
+      roleIsCanonical &&
+      typeof approval.actor === "string" &&
+      typeof approval.role === "string"
+    ) {
+      const actor = approval.actor;
+      const role = approval.role;
+      const actors = actorsByRole.get(role) ?? new Set<string>();
+      if (actors.has(actor)) {
+        issues.push(
+          issue(
+            path,
+            "approval_duplicate",
+            "An actor may record at most one approval for the same role.",
+          ),
+        );
+        approvalIsValid = false;
+      } else {
+        actors.add(actor);
+        actorsByRole.set(role, actors);
+      }
+    }
+
+    if (
+      approvalIsValid &&
+      approvedAt !== undefined &&
+      actorIsCanonical &&
+      roleIsCanonical &&
+      typeof approval.statement === "string"
+    ) {
+      validatedApprovals.push({
+        approval: approval as CharterApproval,
+        approvedAt,
+        index,
+      });
+    }
+  }
+
+  const finalApproval = validatedApprovals.find(
+    ({ approval }) =>
+      approval.actor === input.roles.final_approver &&
+      approval.role === "final_approver",
+  );
+  if (!finalApproval) {
+    issues.push(
+      issue(
+        "approvals",
+        "approval_missing",
+        "The charter freezes only with a valid recorded approval from the final approver.",
+      ),
+    );
+  }
+
+  const requireBudgetApproval = (
+    role: "operations_budget_owner" | "product_budget_owner",
+    expectedActor: string,
+    label: string,
+  ): ValidatedCharterApproval | undefined => {
+    const approvals = validatedApprovals.filter(
+      ({ approval }) =>
+        approval.role === role && approval.actor === expectedActor,
+    );
+    if ((approvalCountByRole.get(role) ?? 0) !== 1 || approvals.length !== 1) {
+      issues.push(
+        issue(
+          "approvals",
+          "approval_missing",
+          `The charter freezes only with exactly one valid ${label} approval from the assigned actor.`,
+        ),
+      );
+      return undefined;
+    }
+    return approvals[0];
+  };
+
+  const productBudgetApproval = requireBudgetApproval(
+    "product_budget_owner",
+    input.roles.accountable_owner,
+    "product budget owner",
+  );
+  const operationsBudgetApproval = requireBudgetApproval(
+    "operations_budget_owner",
+    input.roles.operations_reviewer,
+    "operations budget owner",
+  );
+
+  if (finalApproval) {
+    for (const budgetApproval of [
+      productBudgetApproval,
+      operationsBudgetApproval,
+    ]) {
+      if (
+        budgetApproval &&
+        compareParsedTimestamps(
+          budgetApproval.approvedAt,
+          finalApproval.approvedAt,
+        ) > 0
+      ) {
+        issues.push(
+          issue(
+            `approvals.${budgetApproval.index}`,
+            "approval_invalid",
+            "Product and operations budget approvals must be recorded no later than the final charter approval.",
+          ),
+        );
+      }
+    }
+  }
+}
+
+function validateBudgetsValidatorsRoles(
+  input: RendererQualificationCharterInput,
+  issues: CharterValidationIssue[],
+): void {
+  const rawBudgets: readonly unknown[] = Array.isArray(input.budgets)
+    ? input.budgets
+    : [];
+  if (!Array.isArray(input.budgets)) {
+    issues.push(
+      issue(
+        "budgets",
+        "budget_unbounded",
+        "The frozen budget register must be an array.",
+      ),
+    );
+  }
+
+  const fixedBudgetDefinitions = new Map(
+    PHASE_18_BUDGET_DEFINITIONS.map((definition) => [
+      definition.metric,
+      definition,
+    ]),
+  );
+  const budgetMetrics = new Map<RequiredBudgetMetric, AbsoluteBudget>();
+
+  for (const [index, rawBudget] of rawBudgets.entries()) {
+    const path = `budgets.${index}`;
+    if (
+      !rawBudget ||
+      typeof rawBudget !== "object" ||
+      Array.isArray(rawBudget)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "budget_unbounded",
+          "Every budget must be an object with the exact frozen budget fields.",
+        ),
+      );
+      continue;
+    }
+
+    const budget = rawBudget as Partial<AbsoluteBudget>;
+    if (!hasExactOwnFields(budget, ABSOLUTE_BUDGET_FIELDS)) {
+      issues.push(
+        issue(
+          path,
+          "protocol_fixed_field_changed",
+          "Every budget freezes exactly metric, limit, unit, and basis.",
+        ),
+      );
+    }
+
+    if (
+      typeof budget.metric !== "string" ||
+      !fixedBudgetDefinitions.has(budget.metric as RequiredBudgetMetric)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "protocol_fixed_field_changed",
+          "The frozen budget register accepts only protocol-defined metrics.",
+        ),
+      );
+      continue;
+    }
+
+    const metric = budget.metric as RequiredBudgetMetric;
+    if (budgetMetrics.has(metric)) {
+      issues.push(
+        issue(path, "budget_unbounded", "Budget metrics must be unique."),
+      );
+      continue;
+    }
+    budgetMetrics.set(metric, budget as AbsoluteBudget);
+
+    if (
+      typeof budget.limit !== "number" ||
+      !Number.isFinite(budget.limit) ||
+      budget.limit <= 0
+    ) {
+      issues.push(
+        issue(
+          `budgets.${metric}`,
+          "budget_unbounded",
+          "Every budget is a finite positive absolute threshold; relative evidence cannot substitute.",
+        ),
+      );
+    }
+
+    const fixed = fixedBudgetDefinitions.get(metric);
+    if (fixed && (budget.unit !== fixed.unit || budget.basis !== fixed.basis)) {
+      issues.push(
+        issue(
+          `budgets.${metric}`,
+          "protocol_fixed_field_changed",
+          "Budget units and measurement bases are protocol-defined; product and operations owners supply only the numeric limits.",
+        ),
+      );
+    }
+  }
+
+  for (const { metric } of PHASE_18_BUDGET_DEFINITIONS) {
+    if (!budgetMetrics.has(metric)) {
+      issues.push(
+        issue(
+          `budgets.${metric}`,
+          "budget_unbounded",
+          "No absolute workload budget may remain blank when the charter freezes.",
+        ),
+      );
+    }
+  }
+
+  const validLimit = (metric: RequiredBudgetMetric): number | undefined => {
+    const limit = budgetMetrics.get(metric)?.limit;
+    return typeof limit === "number" && Number.isFinite(limit) && limit > 0
+      ? limit
+      : undefined;
+  };
+  const deadline = validLimit("max_attempt_deadline_ms");
+  for (const shape of ["short", "medium", "long"] as const) {
+    const p50Metric = `${shape}_item_latency_p50_ms` as RequiredBudgetMetric;
+    const p95Metric = `${shape}_item_latency_p95_ms` as RequiredBudgetMetric;
+    const p99Metric = `${shape}_item_latency_p99_ms` as RequiredBudgetMetric;
+    const p50 = validLimit(p50Metric);
+    const p95 = validLimit(p95Metric);
+    const p99 = validLimit(p99Metric);
+
+    if (p50 !== undefined && p95 !== undefined && p50 > p95) {
+      issues.push(
+        issue(
+          `budgets.${p50Metric}`,
+          "budget_incoherent",
+          `${shape} p50 latency must not exceed its p95 latency budget.`,
+        ),
+      );
+    }
+    if (p95 !== undefined && p99 !== undefined && p95 > p99) {
+      issues.push(
+        issue(
+          `budgets.${p95Metric}`,
+          "budget_incoherent",
+          `${shape} p95 latency must not exceed its p99 latency budget.`,
+        ),
+      );
+    }
+    if (p99 !== undefined && deadline !== undefined && p99 > deadline) {
+      issues.push(
+        issue(
+          `budgets.${p99Metric}`,
+          "budget_incoherent",
+          `${shape} p99 latency must not exceed the absolute attempt deadline.`,
+        ),
+      );
+    }
+  }
+
+  const fixedValidators = new Map(
+    PHASE_18_VALIDATION_TOOLS.map((tool) => [
+      `${tool.category}:${tool.name}`,
+      tool,
+    ]),
+  );
+  const validatorKeys = input.validators.map(
+    (tool) => `${tool.category}:${tool.name}`,
+  );
+  const validatorKeySet = new Set(validatorKeys);
+  const validatorsMatch =
+    validatorKeys.length === fixedValidators.size &&
+    validatorKeySet.size === fixedValidators.size &&
+    [...fixedValidators.keys()].every((key) => validatorKeySet.has(key));
+  if (!validatorsMatch) {
+    issues.push(
+      issue(
+        "validators",
+        "validator_missing",
+        "The frozen validator set is exactly the pre-registered tools with no duplicates or substitutions.",
+      ),
+    );
+  }
+
+  const categories = new Set(input.validators.map((tool) => tool.category));
+  for (const category of VALIDATOR_CATEGORIES) {
+    if (!categories.has(category)) {
+      issues.push(
+        issue(
+          `validators.${category}`,
+          "validator_missing",
+          "The frozen validator set must cover every required category.",
+        ),
+      );
+    }
+  }
+  for (const tool of input.validators) {
+    const expectedToolFields =
+      tool.category === "assistive_technology"
+        ? [...VALIDATION_TOOL_FIELDS, "assistive_technology_stacks"]
+        : VALIDATION_TOOL_FIELDS;
+    if (!hasExactOwnFields(tool, expectedToolFields)) {
+      issues.push(
+        issue(
+          `validators.${tool.name}`,
+          "validator_provenance_invalid",
+          "Every validator freezes exactly its protocol fields, executable/configuration digests, and, for the manual validator only, assistive-technology stacks.",
+        ),
+      );
+    }
+    if (!tool.version.trim() || !tool.ruleset.trim()) {
+      issues.push(
+        issue(
+          `validators.${tool.name}`,
+          "validator_missing",
+          "Every validator pins its exact version and ruleset.",
+        ),
+      );
+    }
+    if (
+      !isSha256Hex(tool.executable_digest) ||
+      !isSha256Hex(tool.configuration_digest)
+    ) {
+      issues.push(
+        issue(
+          `validators.${tool.name}`,
+          "validator_provenance_invalid",
+          "Every validator pins lowercase SHA-256 digests for its executable/toolchain and exact configuration.",
+        ),
+      );
+    }
+    if (
+      tool.category === "assistive_technology" &&
+      !hasValidAssistiveTechnologyStacks(tool)
+    ) {
+      issues.push(
+        issue(
+          `validators.${tool.name}.assistive_technology_stacks`,
+          "assistive_technology_stack_invalid",
+          "The primary Adobe Acrobat Reader/NVDA stack and one independently selected secondary viewer/assistive-technology stack must both be exactly named, versioned, and content-addressed before freeze.",
+        ),
+      );
+    }
+    if (
+      tool.category !== "assistive_technology" &&
+      tool.assistive_technology_stacks !== undefined
+    ) {
+      issues.push(
+        issue(
+          `validators.${tool.name}.assistive_technology_stacks`,
+          "assistive_technology_stack_invalid",
+          "Assistive-technology stack locks belong only to the manual assistive-technology validator.",
+        ),
+      );
+    }
+  }
+  for (const tool of input.validators) {
+    const fixed = fixedValidators.get(`${tool.category}:${tool.name}`);
+    if (
+      !fixed ||
+      fixed.version !== tool.version ||
+      fixed.ruleset !== tool.ruleset
+    ) {
+      issues.push(
+        issue(
+          `validators.${tool.name}`,
+          "protocol_fixed_field_changed",
+          "The validator names, versions, and rulesets are pre-registered; substituting a tool weakens the qualification evidence stack and requires a new protocol version.",
+        ),
+      );
+    }
+  }
+
+  const roles = input.roles;
+  const operators = RENDERER_CANDIDATE_IDS.map(
+    (candidateId) => roles.candidate_operators[candidateId],
+  );
+  const reviewerRoster: readonly unknown[] = Array.isArray(
+    roles.independent_reviewers,
+  )
+    ? roles.independent_reviewers
+    : [];
+  const reviewers = [reviewerRoster[0], reviewerRoster[1]];
+  if (!hasExactOwnFields(roles.candidate_operators, RENDERER_CANDIDATE_IDS)) {
+    issues.push(
+      issue(
+        "roles.candidate_operators",
+        "role_missing",
+        "The candidate-operator map must contain exactly the registered P18-R-P, P18-R-T, and P18-R-C identities.",
+      ),
+    );
+  }
+  if (
+    !Array.isArray(roles.independent_reviewers) ||
+    roles.independent_reviewers.length !== reviewers.length
+  ) {
+    issues.push(
+      issue(
+        "roles.independent_reviewers",
+        "role_collision",
+        "The contest must declare exactly two independent reviewers.",
+      ),
+    );
+  }
+  const namedRoles: Array<[string, unknown]> = [
+    ["accountable_owner", roles.accountable_owner],
+    ["corpus_custodian", roles.corpus_custodian],
+    ["independent_reviewers.0", reviewers[0]],
+    ["independent_reviewers.1", reviewers[1]],
+    ["security_privacy_reviewer", roles.security_privacy_reviewer],
+    ["operations_reviewer", roles.operations_reviewer],
+    ["records_legal_evidence_owner", roles.records_legal_evidence_owner],
+    ["final_approver", roles.final_approver],
+  ];
+  for (const [rolePath, actor] of namedRoles) {
+    if (!isCanonicalVisibleIdentity(actor)) {
+      issues.push(
+        issue(
+          `roles.${rolePath}`,
+          "role_missing",
+          "Every contest role must name one canonical visible identity.",
+        ),
+      );
+    }
+  }
+
+  if (operators.includes(roles.corpus_custodian)) {
+    issues.push(
+      issue(
+        "roles.corpus_custodian",
+        "role_collision",
+        "The held-back corpus custodian must remain separate from every candidate operator.",
+      ),
+    );
+  }
+
+  if (reviewers[0] === reviewers[1]) {
+    issues.push(
+      issue(
+        "roles.independent_reviewers",
+        "role_collision",
+        "The two independent reviewers must be different people.",
+      ),
+    );
+  }
+
+  const finalistOperators = new Set([
+    roles.candidate_operators["P18-R-P"],
+    roles.candidate_operators["P18-R-T"],
+  ]);
+  const hasReviewerIndependentOfFinalists = reviewers.some(
+    (reviewer) =>
+      isCanonicalVisibleIdentity(reviewer) && !finalistOperators.has(reviewer),
+  );
+  if (!hasReviewerIndependentOfFinalists) {
+    issues.push(
+      issue(
+        "roles.independent_reviewers",
+        "role_collision",
+        "At least one reviewer must be independent of both finalist candidate operators.",
+      ),
+    );
+  }
+
+  const uniqueOperators = new Set(operators);
+  if (uniqueOperators.size === 1 && uniqueOperators.has(roles.final_approver)) {
+    issues.push(
+      issue(
+        "roles.final_approver",
+        "role_collision",
+        "The final decision recorder cannot also be the contest's sole candidate implementer.",
+      ),
+    );
+  }
+
+  for (const candidateId of RENDERER_CANDIDATE_IDS) {
+    if (!isCanonicalVisibleIdentity(roles.candidate_operators[candidateId])) {
+      issues.push(
+        issue(
+          `roles.candidate_operators.${candidateId}`,
+          "role_missing",
+          "Every candidate must have one canonical visible operator identity.",
+        ),
+      );
+    }
+  }
+  validateApprovals(input, issues);
+}
+
+export function validateRendererQualificationCharterInput(
+  input: RendererQualificationCharterInput,
+): CharterValidationIssue[] {
+  const issues: CharterValidationIssue[] = [];
+
+  const unknownFields = Object.keys(input).filter(
+    (field) => !CHARTER_INPUT_FIELDS.has(field),
+  );
+  if (unknownFields.length > 0) {
+    issues.push(
+      issue(
+        "charter",
+        "charter_incomplete",
+        `The charter freezes a fixed field set; unknown fields would enter the manifest digest and still verify: ${unknownFields.join(", ")}.`,
+      ),
+    );
+  }
+
+  if (!input.charter_id.trim() || !input.charter_version.trim()) {
+    issues.push(
+      issue(
+        "charter_id",
+        "charter_incomplete",
+        "Charter id and version are required.",
+      ),
+    );
+  } else if (!/^\d+\.\d+\.\d+$/.test(input.charter_version)) {
+    // A reset is "a new charter ID, new timestamp, new digest"; an ordered
+    // version is what makes one charter comparable to its predecessor. A label
+    // like "draft" freezes into a manifest that cannot be ordered at all.
+    issues.push(
+      issue(
+        "charter_version",
+        "charter_incomplete",
+        "Charter version must be a semantic MAJOR.MINOR.PATCH version.",
+      ),
+    );
+  }
+  if (parseExplicitOffsetTimestamp(input.frozen_at) === undefined) {
+    issues.push(
+      issue(
+        "frozen_at",
+        "charter_incomplete",
+        "The freeze time must be a valid RFC3339 timestamp with Z or an explicit numeric offset.",
+      ),
+    );
+  }
+
+  validateAdapterContract(input, issues);
+  validateCandidates(input, issues);
+  validateCorpus(input, issues);
+  validateSuites(input, issues);
+  validateGatesAndScoring(input, issues);
+  validateBudgetsValidatorsRoles(input, issues);
+
+  if (
+    input.remediation_policy.initial_attempts !== 1 ||
+    input.remediation_policy.max_cycles !== 2 ||
+    !Number.isFinite(input.remediation_policy.max_hours_per_cycle) ||
+    input.remediation_policy.max_hours_per_cycle <= 0
+  ) {
+    issues.push(
+      issue(
+        "remediation_policy",
+        "charter_incomplete",
+        "Equal effort is one initial attempt and at most two bounded remediation cycles per finalist.",
+      ),
+    );
+  }
+  if (
+    !hasExactOwnFields(input.remediation_policy, REMEDIATION_POLICY_FIELDS) ||
+    input.remediation_policy.permitted_changes !==
+      PHASE_18_REMEDIATION_PERMITTED_CHANGES
+  ) {
+    issues.push(
+      issue(
+        "remediation_policy.permitted_changes",
+        "protocol_fixed_field_changed",
+        "Remediation is limited to adapter or translation fixes against the same frozen semantic requirements; fixture-specific branches, manual PDF edits, and undeclared exception fields are forbidden.",
+      ),
+    );
+  }
+  const evidenceRules = input.evidence_rules;
+  const evidenceRuleFieldsMatch = hasExactOwnFields(
+    evidenceRules,
+    EVIDENCE_RULE_FIELDS,
+  );
+  if (
+    evidenceRules.package_schema_version !==
+      PHASE_18_EVIDENCE_RULES.package_schema_version ||
+    evidenceRules.redaction_policy !==
+      PHASE_18_EVIDENCE_RULES.redaction_policy ||
+    evidenceRules.retention_owner !== PHASE_18_EVIDENCE_RULES.retention_owner ||
+    evidenceRules.retention_days !== PHASE_18_EVIDENCE_RULES.retention_days ||
+    !Number.isFinite(evidenceRules.retention_days) ||
+    !evidenceRules.validator_warning_policy
+  ) {
+    issues.push(
+      issue(
+        "evidence_rules",
+        "charter_incomplete",
+        "Evidence schema, redaction, retention, and validator-warning rules must be frozen.",
+      ),
+    );
+  }
+  const warningPolicy = evidenceRules.validator_warning_policy;
+  if (
+    warningPolicy &&
+    (!evidenceRuleFieldsMatch ||
+      evidenceRules.decision_record_format !==
+        PHASE_18_EVIDENCE_RULES.decision_record_format)
+  ) {
+    issues.push(
+      issue(
+        "evidence_rules",
+        "protocol_fixed_field_changed",
+        "The evidence rules freeze an exact field set and decision-record format identity; undeclared exception or suppression fields are forbidden.",
+      ),
+    );
+  }
+  if (
+    warningPolicy &&
+    (!hasExactOwnFields(warningPolicy, VALIDATOR_WARNING_POLICY_FIELDS) ||
+      warningPolicy.retain_all_warnings !== true ||
+      warningPolicy.adjudicate_warnings_individually !== true ||
+      warningPolicy.rule_override_requires_charter_reset_and_rerun !== true ||
+      warningPolicy.profile_declaration_is_not_a_pass !== true)
+  ) {
+    issues.push(
+      issue(
+        "evidence_rules.validator_warning_policy",
+        "protocol_fixed_field_changed",
+        "Every warning is retained and adjudicated individually; suppressing, rewriting, or ignoring a validator rule requires a charter reset and rerun, and a profile declaration alone is never a pass.",
+      ),
+    );
+  }
+  if (input.requalification_triggers.length === 0) {
+    issues.push(
+      issue(
+        "requalification_triggers",
+        "charter_incomplete",
+        "Expiration/requalification triggers must be frozen.",
+      ),
+    );
+  } else {
+    const fixedTriggers = new Set(PHASE_18_REQUALIFICATION_TRIGGERS);
+    const declaredTriggers = new Set(input.requalification_triggers);
+    // Compare lengths too, not just set contents. A duplicated trigger keeps
+    // the sets equal but survives normalization, so it changes manifest_digest
+    // while meaning nothing - and submission/remediation meters are scoped to
+    // that digest, so a semantic no-op would mint fresh allowances.
+    const setsMatch =
+      fixedTriggers.size === declaredTriggers.size &&
+      declaredTriggers.size === input.requalification_triggers.length &&
+      [...fixedTriggers].every((trigger) => declaredTriggers.has(trigger));
+    if (!setsMatch) {
+      issues.push(
+        issue(
+          "requalification_triggers",
+          "protocol_fixed_field_changed",
+          "The requalification trigger set is pre-registered; omitting or inventing triggers changes the protocol.",
+        ),
+      );
+    }
+  }
+  if (input.stop_conditions.length === 0) {
+    issues.push(
+      issue(
+        "stop_conditions",
+        "charter_incomplete",
+        "The incident stop conditions must be frozen with the charter.",
+      ),
+    );
+  } else {
+    const fixedStops = new Set(PHASE_18_STOP_CONDITIONS);
+    const declaredStops = new Set(input.stop_conditions);
+    const stopsMatch =
+      fixedStops.size === declaredStops.size &&
+      declaredStops.size === input.stop_conditions.length &&
+      [...fixedStops].every((condition) => declaredStops.has(condition));
+    if (!stopsMatch) {
+      issues.push(
+        issue(
+          "stop_conditions",
+          "protocol_fixed_field_changed",
+          "The stop conditions are pre-registered; dropping or inventing one changes when the contest must stop.",
+        ),
+      );
+    }
+  }
+  if (input.unknown_evidence_rule !== "fails_affected_gate") {
+    issues.push(
+      issue(
+        "unknown_evidence_rule",
+        "charter_incomplete",
+        "Unknown or missing evidence always fails the affected hard gate.",
+      ),
+    );
+  }
+
+  return issues;
+}
+
+function sortById<T>(items: readonly T[], key: (item: T) => string): T[] {
+  return [...items].sort((left, right) =>
+    compareQualificationKeys(key(left), key(right)),
+  );
+}
+
+function compareApprovals(
+  left: CharterApproval,
+  right: CharterApproval,
+): number {
+  for (const field of ["role", "actor", "approved_at", "statement"] as const) {
+    const comparison = compareQualificationKeys(left[field], right[field]);
+    if (comparison !== 0) return comparison;
+  }
+  return 0;
+}
+
+/**
+ * Normalize order-insensitive collections so a shuffled but semantically
+ * identical input freezes to the same digest. Order-sensitive protocols
+ * (tie-break order, staircase steps, failure-injection sequence) keep their
+ * declared order.
+ */
+export function normalizeRendererQualificationCharterInput(
+  input: RendererQualificationCharterInput,
+): RendererQualificationCharterInput {
+  const clone = structuredClone(input);
+  const candidates = clone.candidates.map((candidate) => ({
+    ...candidate,
+    fonts_assets_packages: sortById(
+      candidate.fonts_assets_packages,
+      (item) => item.artifact_id,
+    ),
+  }));
+  return {
+    ...clone,
+    candidates: sortById(candidates, (item) => item.candidate_id),
+    open_corpus: sortById(clone.open_corpus, (item) => item.case_id),
+    held_back_corpus: sortById(clone.held_back_corpus, (item) => item.case_id),
+    gates: sortById(clone.gates, (item) => item.gate_id),
+    score_dimensions: sortById(
+      clone.score_dimensions,
+      (item) => item.dimension_id,
+    ),
+    budgets: sortById(clone.budgets, (item) => item.metric),
+    validators: sortById(
+      clone.validators,
+      (item) => `${item.category}:${item.name}`,
+    ),
+    requalification_triggers: [...clone.requalification_triggers].sort(),
+    stop_conditions: [...clone.stop_conditions].sort(),
+    approvals: [...clone.approvals].sort(compareApprovals),
+  };
+}
+
+function deepFreeze<T>(value: T): T {
+  if (typeof value !== "object" || value === null) return value;
+  for (const child of Object.values(value as Record<string, unknown>)) {
+    deepFreeze(child);
+  }
+  return Object.freeze(value);
+}
+
+/**
+ * Freeze the pre-registered contest. The result is immutable and identified by
+ * its digest: any frozen-field change is a new charter version that
+ * invalidates earlier comparison outputs for both finalists.
+ */
+export function freezeRendererQualificationCharter(
+  input: RendererQualificationCharterInput,
+): FrozenRendererQualificationCharter {
+  const issues = validateRendererQualificationCharterInput(input);
+  if (issues.length > 0) {
+    throw new RendererCharterValidationError(issues);
+  }
+
+  const normalized = normalizeRendererQualificationCharterInput(input);
+  const manifest_digest = digestQualificationValue({
+    schema_version: RENDERER_QUALIFICATION_SCHEMA_VERSION,
+    serializer_version: RENDERER_QUALIFICATION_SERIALIZER_VERSION,
+    charter: normalized,
+  });
+
+  return deepFreeze({
+    ...normalized,
+    schema_version: RENDERER_QUALIFICATION_SCHEMA_VERSION,
+    serializer_version: RENDERER_QUALIFICATION_SERIALIZER_VERSION,
+    manifest_digest,
+  });
+}
+
+export function digestCandidateLock(
+  charter: FrozenRendererQualificationCharter,
+  candidateId: string,
+): string {
+  const lock = charter.candidates.find(
+    (candidate) => candidate.candidate_id === candidateId,
+  );
+  if (!lock) {
+    throw new Error(
+      `Unknown candidate ${candidateId} for charter ${charter.charter_id}.`,
+    );
+  }
+  return digestQualificationValue(lock);
+}

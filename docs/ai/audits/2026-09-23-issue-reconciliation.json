@@ -1,0 +1,881 @@
+{
+  "verifiedAt": "2026-09-23T03:06:42.325654+00:00",
+  "repository": "Asymmetric-al/core",
+  "scope": "50 source-grounded issue-body amendments; listed title corrections only; original implementation state and other metadata preserved. Two explicit native graph repairs recorded separately. No feature implementation or qualification is established.",
+  "amendments": [
+    {
+      "issue": 503,
+      "url": "https://github.com/Asymmetric-al/core/issues/503",
+      "family": "identity",
+      "originalSha256": "ae3b18f45e59c85464c010fd074b0ff9bf3d2991dee19fd918f0e769c7318070",
+      "publishedSha256": "19e2cdf51a40adde3fc2bc15c5fdf0d3223c3b2edc6eff66b0044c45bead4788",
+      "readbackSha256": "19e2cdf51a40adde3fc2bc15c5fdf0d3223c3b2edc6eff66b0044c45bead4788",
+      "oldTitle": "[Phase 4] 🗺️ Epic — Identity & Account-Claiming Foundation",
+      "title": "[Phase 4] 🗺️ Epic — Identity & Account-Claiming Foundation",
+      "bodyCharacters": 11352,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [477, 489],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:36:27.410257+00:00"
+    },
+    {
+      "issue": 506,
+      "url": "https://github.com/Asymmetric-al/core/issues/506",
+      "family": "finance",
+      "originalSha256": "36b2462dacd6c649633ed2abe974a721544834251564fc1f0baa875c6173ff72",
+      "publishedSha256": "03c8a69e1a599625932cc5a3b6fffa7b1215e5bac1aef0953d91cc6e28fe2638",
+      "readbackSha256": "03c8a69e1a599625932cc5a3b6fffa7b1215e5bac1aef0953d91cc6e28fe2638",
+      "oldTitle": "[Phase 4] Identity data model: claim/invitation tables, donor columns, inert person anchor, keys, normalizer",
+      "title": "[Phase 4] Identity data model: claim/invitation tables, donor columns, inert person anchor, keys, normalizer",
+      "bodyCharacters": 14751,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:36:33.855294+00:00"
+    },
+    {
+      "issue": 507,
+      "url": "https://github.com/Asymmetric-al/core/issues/507",
+      "family": "identity",
+      "originalSha256": "4c7705d9ef36b517d99cb078605d99adaec93985ed8094f1fd67bc991fe33611",
+      "publishedSha256": "30c3d0ec4464b0272ea7f96f45cfb18daccd9ffd8f24b73ce3628920b9cd0eac",
+      "readbackSha256": "30c3d0ec4464b0272ea7f96f45cfb18daccd9ffd8f24b73ce3628920b9cd0eac",
+      "oldTitle": "[Phase 4] Receipted legal-donor snapshot (immutable at issuance)",
+      "title": "[Phase 4] Receipted legal-donor snapshot (immutable at issuance)",
+      "bodyCharacters": 8229,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:36:40.714307+00:00"
+    },
+    {
+      "issue": 509,
+      "url": "https://github.com/Asymmetric-al/core/issues/509",
+      "family": "identity",
+      "originalSha256": "1183ef45948d55857a26bb6953a9badbfe527a43c19387486bfaa88748eafdb2",
+      "publishedSha256": "8f2551cffdf640cd52cedff1e35533be755cbb493e6aec389c1303612b8d5599",
+      "readbackSha256": "8f2551cffdf640cd52cedff1e35533be755cbb493e6aec389c1303612b8d5599",
+      "oldTitle": "[Phase 4] Verified claim service (magic-link-first, possession-bind, reveal-gate)",
+      "title": "[Phase 4] Verified claim service (magic-link-first, possession-bind, reveal-gate)",
+      "bodyCharacters": 9716,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [1482],
+        "blocking": [1483, 1567]
+      },
+      "verifiedAt": "2026-09-23T02:36:47.297833+00:00"
+    },
+    {
+      "issue": 511,
+      "url": "https://github.com/Asymmetric-al/core/issues/511",
+      "family": "identity",
+      "originalSha256": "b5512888ada30aab78102c792f4ca3b1099d86593f3a239bd2bd31f08d6fac33",
+      "publishedSha256": "7cf7b4f7345f3df56b5bbdb7d5f91bbc04e93bd8b36a85b568b37e5a33adaaf7",
+      "readbackSha256": "7cf7b4f7345f3df56b5bbdb7d5f91bbc04e93bd8b36a85b568b37e5a33adaaf7",
+      "oldTitle": "[Phase 4] Branded auth emails via Supabase Send Email Hook → Email Studio → Resend",
+      "title": "[Phase 4] Branded auth emails via Supabase Send Email Hook → Email Studio → Resend",
+      "bodyCharacters": 8210,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [1482],
+        "blocking": [1483, 1569, 1575, 1578]
+      },
+      "verifiedAt": "2026-09-23T02:36:54.387612+00:00"
+    },
+    {
+      "issue": 512,
+      "url": "https://github.com/Asymmetric-al/core/issues/512",
+      "family": "identity",
+      "originalSha256": "f5518c7499068a657e76cf334d540f00e665ad3cb5ce5591f5c6a95453b87913",
+      "publishedSha256": "ab3e9297540aa55ec5b7389686a3e0a0a2d11ebc4946da7a22ee16d57af9c96f",
+      "readbackSha256": "ab3e9297540aa55ec5b7389686a3e0a0a2d11ebc4946da7a22ee16d57af9c96f",
+      "oldTitle": "[Phase 4] Non-destructive merge execution (golden record, tombstone, replayable, un-merge)",
+      "title": "[Phase 4] Non-destructive merge execution (golden record, tombstone, replayable, un-merge)",
+      "bodyCharacters": 13926,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:37:00.976900+00:00"
+    },
+    {
+      "issue": 576,
+      "url": "https://github.com/Asymmetric-al/core/issues/576",
+      "family": "finance",
+      "originalSha256": "13ad61045902bd84021f421b39c1ff07342c8cee27fc0c32f62e5052d615274d",
+      "publishedSha256": "b86999fb0a33095d65eecd6737a707f9e084ede9987aa831167050a05fa83ba0",
+      "readbackSha256": "b86999fb0a33095d65eecd6737a707f9e084ede9987aa831167050a05fa83ba0",
+      "oldTitle": "[Phase 7] Receipt eligibility evaluator + issue-on-accept state machine + receipt_status formalization",
+      "title": "[Phase 7] Receipt eligibility evaluator + issue-on-accept state machine + receipt_status formalization",
+      "bodyCharacters": 5031,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:37:07.562512+00:00"
+    },
+    {
+      "issue": 577,
+      "url": "https://github.com/Asymmetric-al/core/issues/577",
+      "family": "finance",
+      "originalSha256": "6681cc50befd66c0e49965fe2d0c3a4bd692d01103d407e0e34af551ab986ad6",
+      "publishedSha256": "0489476963b08d3a91c08768ba62a52948198f90f1eb5d599fcca0591e746e88",
+      "readbackSha256": "0489476963b08d3a91c08768ba62a52948198f90f1eb5d599fcca0591e746e88",
+      "oldTitle": "[Phase 7] charge.dispute.* ingestion + single-gift issuance path + reconciliation/ACH-finality watch",
+      "title": "[Phase 7] charge.dispute.* ingestion + single-gift issuance path + reconciliation/ACH-finality watch",
+      "bodyCharacters": 8354,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:37:13.747790+00:00"
+    },
+    {
+      "issue": 578,
+      "url": "https://github.com/Asymmetric-al/core/issues/578",
+      "family": "finance",
+      "originalSha256": "acfb2b598f5c6e0da45c12cc8951e9e5dbd478e85fc5288d8005e40d3c881ace",
+      "publishedSha256": "800493358ab296381542a52602a16f9b6e6561cb0036ced7e510e48e0f2846f2",
+      "readbackSha256": "800493358ab296381542a52602a16f9b6e6561cb0036ced7e510e48e0f2846f2",
+      "oldTitle": "[Phase 7] contribution_receipts immutable versioned facts core + gapless-safe numbering + immutability trigger + supersede",
+      "title": "[Phase 7] Canonical immutable receipt facts and source-authorized correction handoff",
+      "bodyCharacters": 5813,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [984, 1017, 1020]
+      },
+      "verifiedAt": "2026-09-23T02:37:20.422869+00:00"
+    },
+    {
+      "issue": 580,
+      "url": "https://github.com/Asymmetric-al/core/issues/580",
+      "family": "finance",
+      "originalSha256": "832cf24a50e8a95f4f70efa81ff87cbdcab3d4b561cb11265e17a36b24ddac99",
+      "publishedSha256": "8aa0e62ba2a04011e93d9da8b61ccf1fe8fba190464fd2202fa5aa12fda346d5",
+      "readbackSha256": "8aa0e62ba2a04011e93d9da8b61ccf1fe8fba190464fd2202fa5aa12fda346d5",
+      "oldTitle": "[Phase 7] Statement run orchestrator: runs/recipients/items/exclusions/versions + durable batch + run wizard",
+      "title": "[Phase 7] Statement source-facts handoff to the Phase 19 run owner",
+      "bodyCharacters": 2910,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:37:26.996633+00:00"
+    },
+    {
+      "issue": 581,
+      "url": "https://github.com/Asymmetric-al/core/issues/581",
+      "family": "finance",
+      "originalSha256": "24f516e8acd69620405f63d01b5b00549915d6ef3dfbbd114b004adc3e73fcf8",
+      "publishedSha256": "e939c1db2874e3a29c69f58aad5eb42bcd7a2526fff2258a5046c6f1b0a5a099",
+      "readbackSha256": "e939c1db2874e3a29c69f58aad5eb42bcd7a2526fff2258a5046c6f1b0a5a099",
+      "oldTitle": "[Phase 7] Document delivery adapter: 3 doc types + void/supersede through the Phase-6 seam + version-scoped idempotency + redaction wall + 3 bug fixes",
+      "title": "[Phase 7] Document delivery adapter: 3 doc types + void/supersede through the Phase-6 seam + version-scoped idempotency + redaction wall + 3 bug fixes",
+      "bodyCharacters": 5689,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:37:33.282881+00:00"
+    },
+    {
+      "issue": 604,
+      "url": "https://github.com/Asymmetric-al/core/issues/604",
+      "family": "identity",
+      "originalSha256": "5b10d28faa9d76d33e7672fcc4d3b1a822e3df1b01eec6fa57d7f7a441919a8d",
+      "publishedSha256": "360c4733eda08f95847b55a87ab607dd40bd24f0c2f78426df4f7348aeb2426b",
+      "readbackSha256": "360c4733eda08f95847b55a87ab607dd40bd24f0c2f78426df4f7348aeb2426b",
+      "oldTitle": "[Phase 9] Epic — Full CRM Depth & Relationship Graph",
+      "title": "[Phase 9] Epic — Full CRM Depth & Relationship Graph",
+      "bodyCharacters": 18466,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:37:39.331588+00:00"
+    },
+    {
+      "issue": 667,
+      "url": "https://github.com/Asymmetric-al/core/issues/667",
+      "family": "identity",
+      "originalSha256": "961d6e074e3aa26b30900787ec1d7044a260b2ad85ad1956863de425823959e9",
+      "publishedSha256": "232dfd9f56d664b11c723dbc19b763fd609ed8e2da013d6a91a75197b1630144",
+      "readbackSha256": "232dfd9f56d664b11c723dbc19b763fd609ed8e2da013d6a91a75197b1630144",
+      "oldTitle": "[Phase 12] Capability spine core: branded Capability + runtime-verifiable EffectiveAccess + one resolver (PDP) + retire the incumbent + names-never-authorize gates + DRT reference model + D22 non-prod isolation",
+      "title": "[Phase 12] Capability spine core: branded Capability + runtime-verifiable EffectiveAccess + one resolver (PDP) + retire the incumbent + names-never-authorize gates + DRT reference model + D22 non-prod isolation",
+      "bodyCharacters": 39841,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [
+          979, 990, 1136, 1137, 1138, 1139, 1141, 1184, 1567, 1625, 1629, 1649
+        ]
+      },
+      "verifiedAt": "2026-09-23T02:37:47.185277+00:00"
+    },
+    {
+      "issue": 668,
+      "url": "https://github.com/Asymmetric-al/core/issues/668",
+      "family": "identity",
+      "originalSha256": "56930f9b4407ad053c076cd56e85ce48d56f5b9b4e836c864cf53d620edd9c04",
+      "publishedSha256": "253143f8c4312b2dca7e945b872b1fd4dafaba6a54ead618faa393c7cf587eb9",
+      "readbackSha256": "253143f8c4312b2dca7e945b872b1fd4dafaba6a54ead618faa393c7cf587eb9",
+      "oldTitle": "[Phase 12] Tenant-axis substrate: tenant-in-the-brand + unified RLS source + delete OR is_super_admin() + positive RLS-isolation gate + kill defaults + cross-tenant-edge invariants",
+      "title": "[Phase 12] Tenant-axis substrate: tenant-in-the-brand + unified RLS source + delete OR is_super_admin() + positive RLS-isolation gate + kill defaults + cross-tenant-edge invariants",
+      "bodyCharacters": 30759,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [979, 990, 1136, 1141]
+      },
+      "verifiedAt": "2026-09-23T02:37:54.979783+00:00"
+    },
+    {
+      "issue": 669,
+      "url": "https://github.com/Asymmetric-al/core/issues/669",
+      "family": "identity",
+      "originalSha256": "e654a8e90be8a8cca9ed8aaccf966024e26d1b9893b33617dcdcd6acee4878de",
+      "publishedSha256": "9b8226bdc5a29ca2c84a87fe526cb803f4d7cf0fd3ba81fbbf3ecbfaf29d147c",
+      "readbackSha256": "9b8226bdc5a29ca2c84a87fe526cb803f4d7cf0fd3ba81fbbf3ecbfaf29d147c",
+      "oldTitle": "[Phase 12] Principal foundation: four principal classes + active-assignment primitive + fire-time re-resolution + profiles.role inert-for-authz",
+      "title": "[Phase 12] Principal foundation: four principal classes + active-assignment primitive + fire-time re-resolution + profiles.role inert-for-authz",
+      "bodyCharacters": 32355,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1136, 1137, 1138, 1139, 1141, 1184, 1567]
+      },
+      "verifiedAt": "2026-09-23T02:38:02.642947+00:00"
+    },
+    {
+      "issue": 704,
+      "url": "https://github.com/Asymmetric-al/core/issues/704",
+      "family": "finance",
+      "originalSha256": "76ab1048fb1f826514e598066a557d3dbc387c5b2a28abf0b43b53be8a8efc09",
+      "publishedSha256": "f1db9c2fbe5cd1bc745a9df358835877739a89382c7b06131b982b68604f33a5",
+      "readbackSha256": "f1db9c2fbe5cd1bc745a9df358835877739a89382c7b06131b982b68604f33a5",
+      "oldTitle": "[Phase 13] Giving cart + cross-device + saga fan-out (1 PI + N subs)",
+      "title": "[Phase 13] Giving cart — owner-scoped cross-device cart and qualified one-time/recurring checkout handoff",
+      "bodyCharacters": 24972,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [1511],
+        "blocking": [1465, 1497, 1512, 1523]
+      },
+      "verifiedAt": "2026-09-23T02:38:10.298669+00:00"
+    },
+    {
+      "issue": 705,
+      "url": "https://github.com/Asymmetric-al/core/issues/705",
+      "family": "finance",
+      "originalSha256": "bcc36cf745d793ece2634ea2aeb048a60f862e19111a1a06a41954c629c5105d",
+      "publishedSha256": "1fbf7b08fe578afe2f8a1ca810ddbba7c23e327f17166d05b0cbd8f49f2816d7",
+      "readbackSha256": "1fbf7b08fe578afe2f8a1ca810ddbba7c23e327f17166d05b0cbd8f49f2816d7",
+      "oldTitle": "[Phase 13] Fee-cover (per-tenant, per-method, %+flat behind a simple-% display)",
+      "title": "[Phase 13] Fee-cover (per-tenant, per-method, %+flat behind a simple-% display)",
+      "bodyCharacters": 24925,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:38:16.666373+00:00"
+    },
+    {
+      "issue": 706,
+      "url": "https://github.com/Asymmetric-al/core/issues/706",
+      "family": "finance",
+      "originalSha256": "7b3af022e97fe8d1d651a472dee3f7eb119ecb19b6af7036cc872b1fc7aade2b",
+      "publishedSha256": "01e14e6c413cb2289dc70e7b50c1b4aeca46f3b1066523905d1d804a1cdb7a4c",
+      "readbackSha256": "01e14e6c413cb2289dc70e7b50c1b4aeca46f3b1066523905d1d804a1cdb7a4c",
+      "oldTitle": "[Phase 13] Recurring-commitment object + commitment group",
+      "title": "[Phase 13] Recurring-commitment object + commitment group",
+      "bodyCharacters": 2561,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:38:23.764224+00:00"
+    },
+    {
+      "issue": 707,
+      "url": "https://github.com/Asymmetric-al/core/issues/707",
+      "family": "finance",
+      "originalSha256": "d8046059e066bcaa5ceca7593b4374e4a16a1f9931c2b684b92045ffd75fad3e",
+      "publishedSha256": "088dbcc19f0b437e1b6b63f8e5856361d080402b834073c90c9a2993fc837b8c",
+      "readbackSha256": "088dbcc19f0b437e1b6b63f8e5856361d080402b834073c90c9a2993fc837b8c",
+      "oldTitle": "[Phase 13] Recurring recovery / dunning via Email Studio + Resend + Phase 6",
+      "title": "[Phase 13] Recurring recovery / dunning via Email Studio + Resend + Phase 6",
+      "bodyCharacters": 2658,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:38:30.772461+00:00"
+    },
+    {
+      "issue": 708,
+      "url": "https://github.com/Asymmetric-al/core/issues/708",
+      "family": "finance",
+      "originalSha256": "6115eea186d07722dd19d795cafbbeca40cbac2af06744e530f0d9956300a35a",
+      "publishedSha256": "8234f42305738a3eac64f925dcd3893e5a5848bc298af7f93bed799419cc6b41",
+      "readbackSha256": "8234f42305738a3eac64f925dcd3893e5a5848bc298af7f93bed799419cc6b41",
+      "oldTitle": "[Phase 13] Pause / skip / hold + auto-resume + CRM & missionary display",
+      "title": "[Phase 13] Pause / skip / hold + auto-resume + CRM & missionary display",
+      "bodyCharacters": 2177,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:38:38.299263+00:00"
+    },
+    {
+      "issue": 709,
+      "url": "https://github.com/Asymmetric-al/core/issues/709",
+      "family": "finance",
+      "originalSha256": "f59d68668855e48f7222bf74fe9cd31aa64b633dbffbe8986649c13cf7f6f0d3",
+      "publishedSha256": "47cc74f59ec2b1242a7af7d53c2e21203c4bf8672e2353bf05356321d3100fda",
+      "readbackSha256": "47cc74f59ec2b1242a7af7d53c2e21203c4bf8672e2353bf05356321d3100fda",
+      "oldTitle": "[Phase 13] Donor self-serve recurring portal (custom, ROSCA-honest)",
+      "title": "[Phase 13] Donor self-serve recurring portal (custom, ROSCA-honest)",
+      "bodyCharacters": 2427,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:38:46.689718+00:00"
+    },
+    {
+      "issue": 710,
+      "url": "https://github.com/Asymmetric-al/core/issues/710",
+      "family": "finance",
+      "originalSha256": "855e4f54aefc1889a1bec73eeeab06582e6278466c2f4caa1eac04d398009969",
+      "publishedSha256": "f95c040114ac9566a1dba318d49a108afc763972f7a0e1bae24fb1ec76ad7491",
+      "readbackSha256": "f95c040114ac9566a1dba318d49a108afc763972f7a0e1bae24fb1ec76ad7491",
+      "oldTitle": "[Phase 13] Completion state + continuation ask + task-routing seams",
+      "title": "[Phase 13] Completion state + continuation ask + task-routing seams",
+      "bodyCharacters": 2467,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:38:53.428176+00:00"
+    },
+    {
+      "issue": 711,
+      "url": "https://github.com/Asymmetric-al/core/issues/711",
+      "family": "finance",
+      "originalSha256": "639b98ec15719570f31f9cd326f97afa0ed8268fdcfeca19d4f7b4a366639296",
+      "publishedSha256": "89d23a6381de7d20be8e78dce8771f7905a980a93373cf1fc6b5f7db4ab4ef5b",
+      "readbackSha256": "89d23a6381de7d20be8e78dce8771f7905a980a93373cf1fc6b5f7db4ab4ef5b",
+      "oldTitle": "[Phase 13] Import-aware ledger + adopt-existing-Stripe (D24/D25 seam)",
+      "title": "[Phase 13] Import-aware ledger + adopt-existing-Stripe (D24/D25 seam)",
+      "bodyCharacters": 5060,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1613]
+      },
+      "verifiedAt": "2026-09-23T02:39:01.195945+00:00"
+    },
+    {
+      "issue": 765,
+      "url": "https://github.com/Asymmetric-al/core/issues/765",
+      "family": "finance",
+      "originalSha256": "b9d117e26dd8ab0cf7907578784dbda14af7b3951af0b545a0e385ef78d76236",
+      "publishedSha256": "32f862b973819e8ad36860f05a662a8d54f19aaadedd9a32956e6ca83f1b4b84",
+      "readbackSha256": "32f862b973819e8ad36860f05a662a8d54f19aaadedd9a32956e6ca83f1b4b84",
+      "oldTitle": "[Phase 15] Receipt rail — immediate tax receipt on post + release-delay catch-window",
+      "title": "[Phase 15] Receipt rail — immediate tax receipt on post + release-delay catch-window",
+      "bodyCharacters": 8576,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:39:09.434426+00:00"
+    },
+    {
+      "issue": 766,
+      "url": "https://github.com/Asymmetric-al/core/issues/766",
+      "family": "finance",
+      "originalSha256": "551ab5aa2490d131b9cabd6101009ae397903a13378dd4d0eb27a93642873815",
+      "publishedSha256": "51362208d88ada5444d34c51e4fe246f64ae0cf3d25f7bc01992747c04e30cd4",
+      "readbackSha256": "51362208d88ada5444d34c51e4fe246f64ae0cf3d25f7bc01992747c04e30cd4",
+      "oldTitle": "[Phase 15] Amend a posted gift, corrected/void receipt, and batch-reverse",
+      "title": "[Phase 15] Amend a posted gift, corrected/void receipt, and batch-reverse",
+      "bodyCharacters": 16393,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:39:19.309182+00:00"
+    },
+    {
+      "issue": 779,
+      "url": "https://github.com/Asymmetric-al/core/issues/779",
+      "family": "finance",
+      "originalSha256": "309702f245d613b45b912c6b4b19feb07fa80036eb5c131323ecebb18f055990",
+      "publishedSha256": "6100b5062cc68c92a7dc96b4e682d8e75561a0db778db17f39505f7506ebfbfe",
+      "readbackSha256": "6100b5062cc68c92a7dc96b4e682d8e75561a0db778db17f39505f7506ebfbfe",
+      "oldTitle": "[Phase 15] Phone ACH lane — mid-call Financial Connections (WEB) + bounded staff-keyed TEL",
+      "title": "[Phase 15] Phone ACH lane — mid-call Financial Connections (WEB) + bounded staff-keyed TEL",
+      "bodyCharacters": 16409,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:39:26.878282+00:00"
+    },
+    {
+      "issue": 1281,
+      "url": "https://github.com/Asymmetric-al/core/issues/1281",
+      "family": "web",
+      "originalSha256": "9d1f6c43dbaadfed0a72fb7759938e5f81bbda591d9a0251863d5d413ed433f0",
+      "publishedSha256": "76c5fa9687f9d0552c1bcdfe56100455b84b52a5a26e434510beddcc320bf36e",
+      "readbackSha256": "76c5fa9687f9d0552c1bcdfe56100455b84b52a5a26e434510beddcc320bf36e",
+      "oldTitle": "[Phase 22] PRD — Public Missionary & Project Page Workflow",
+      "title": "[Phase 22] PRD — Public Missionary & Project Page Workflow",
+      "bodyCharacters": 64961,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:39:34.545511+00:00"
+    },
+    {
+      "issue": 1291,
+      "url": "https://github.com/Asymmetric-al/core/issues/1291",
+      "family": "web",
+      "originalSha256": "577a010b8ca0d2d144e2012075e5fa913884b6d09dbff4e2db57a4398d980bf0",
+      "publishedSha256": "9fd6397abfacfa4349011d59464b33ac1d7255b282830dcf0d6d6c44d717812e",
+      "readbackSha256": "9fd6397abfacfa4349011d59464b33ac1d7255b282830dcf0d6d6c44d717812e",
+      "oldTitle": "[Phase 22] P22-10 — Publish automatically after mandatory checks",
+      "title": "[Phase 22] P22-10 — Publish automatically after mandatory checks",
+      "bodyCharacters": 3871,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [1286, 1287, 1289],
+        "blocking": [1292, 1295, 1296, 1299, 1302, 1303, 1316, 1317]
+      },
+      "verifiedAt": "2026-09-23T02:39:41.948189+00:00"
+    },
+    {
+      "issue": 1292,
+      "url": "https://github.com/Asymmetric-al/core/issues/1292",
+      "family": "web",
+      "originalSha256": "9a30ab850938fc200be1892b4b2b290ef2654478e16696930e897aed4bda8f09",
+      "publishedSha256": "9b3fd81fb582f5ae69c8db3ff3694c7d829df0461479e2d346945f279ab84824",
+      "readbackSha256": "9b3fd81fb582f5ae69c8db3ff3694c7d829df0461479e2d346945f279ab84824",
+      "oldTitle": "[Phase 22] P22-11 — Review and release an exact candidate",
+      "title": "[Phase 22] P22-11 — Review and release an exact candidate",
+      "bodyCharacters": 3142,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [1291, 1294],
+        "blocking": [1293, 1296, 1300, 1302, 1303, 1315, 1316, 1317, 1321]
+      },
+      "verifiedAt": "2026-09-23T02:39:49.102225+00:00"
+    },
+    {
+      "issue": 1431,
+      "url": "https://github.com/Asymmetric-al/core/issues/1431",
+      "family": "web",
+      "originalSha256": "60ecf01f9f8bdfbac23e9b692864c163598f2be10d5d1c01e2859bc13c55e9f6",
+      "publishedSha256": "d607b4e24c79a0b1b1498b89b0d436834b4c2ba4217ec5f15d1a635bf75b51aa",
+      "readbackSha256": "d607b4e24c79a0b1b1498b89b0d436834b4c2ba4217ec5f15d1a635bf75b51aa",
+      "oldTitle": "[Phase 24] PRD — Full Multi-Site, Language & Currency Management",
+      "title": "[Phase 24] PRD — Full Multi-Site, Language & Currency Management",
+      "bodyCharacters": 59268,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:39:56.341248+00:00"
+    },
+    {
+      "issue": 1545,
+      "url": "https://github.com/Asymmetric-al/core/issues/1545",
+      "family": "web",
+      "originalSha256": "ba36a676849c71dde763d02ae9377157511d36ef0beba26ea3464926f8197e5d",
+      "publishedSha256": "d818847650b61054499115e7c9d27fa30933ddabf550f0921e813501a62ad985",
+      "readbackSha256": "d818847650b61054499115e7c9d27fa30933ddabf550f0921e813501a62ad985",
+      "oldTitle": "[Phase 24] P24-114 — Prove atomic Page handoff races, failpoints, lost responses, and declared descendant limits",
+      "title": "[Phase 24] P24-114 — Prove atomic Page handoff races, failpoints, lost responses, and declared descendant limits",
+      "bodyCharacters": 4036,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [1541, 1542],
+        "blocking": [1555]
+      },
+      "verifiedAt": "2026-09-23T02:40:02.858971+00:00"
+    },
+    {
+      "issue": 495,
+      "url": "https://github.com/Asymmetric-al/core/issues/495",
+      "family": "identity-batch2",
+      "originalSha256": "05f5997836094e177d69a6e278884b505ecea206c90c0a7ba19bb6ee104473f3",
+      "publishedSha256": "a11955bf9be6e82f09c653a995af054ccbb695d07765dfe1f795b33ebe4bb531",
+      "readbackSha256": "a11955bf9be6e82f09c653a995af054ccbb695d07765dfe1f795b33ebe4bb531",
+      "oldTitle": "[Phase 3] Unified export-governance (csvSafeCell + consent gate + serializer rewire + merge-tag gate)",
+      "title": "[Phase 3] Unified export-governance (csvSafeCell + consent gate + serializer rewire + merge-tag gate)",
+      "bodyCharacters": 4603,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1725]
+      },
+      "verifiedAt": "2026-09-23T02:52:53.292776+00:00"
+    },
+    {
+      "issue": 516,
+      "url": "https://github.com/Asymmetric-al/core/issues/516",
+      "family": "identity-batch2",
+      "originalSha256": "ab4b94b47eb9cf647f906ad5a61f6dffda65fdd3c3ad1562ff7d47d90b94af1b",
+      "publishedSha256": "31349f40e08d02bd8bb07a0ac079ffb04c0f3e378567db87df449a56aada2362",
+      "readbackSha256": "31349f40e08d02bd8bb07a0ac079ffb04c0f3e378567db87df449a56aada2362",
+      "oldTitle": "[Phase 4] Cross-tenant negative-test CI tier + FORCE-RLS assertion + branding test",
+      "title": "[Phase 4] Cross-tenant negative-test CI tier + FORCE-RLS assertion + branding test",
+      "bodyCharacters": 10375,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:53:00.271453+00:00"
+    },
+    {
+      "issue": 517,
+      "url": "https://github.com/Asymmetric-al/core/issues/517",
+      "family": "identity-batch2",
+      "originalSha256": "900bafd50a7e61bc1733250068ab48790e9b84658e7acaad2a2bd371605ed95b",
+      "publishedSha256": "d8e56a2d2d7b6947b818ad3cb5a984b73ba2f0627b42ea174b31695dcc0f1dc0",
+      "readbackSha256": "d8e56a2d2d7b6947b818ad3cb5a984b73ba2f0627b42ea174b31695dcc0f1dc0",
+      "oldTitle": "[Phase 4] Evidence file",
+      "title": "[Phase 4] Evidence file",
+      "bodyCharacters": 6306,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:53:07.354988+00:00"
+    },
+    {
+      "issue": 579,
+      "url": "https://github.com/Asymmetric-al/core/issues/579",
+      "family": "finance-batch2",
+      "originalSha256": "b10b3b1027821959990530d8ec151d64ccdab9d1c513a223e3fad08793754a60",
+      "publishedSha256": "c86480715fdc3849128f7cb9a55e11e02b84b7ee44ff79d6936eb8a34739ebe7",
+      "readbackSha256": "c86480715fdc3849128f7cb9a55e11e02b84b7ee44ff79d6936eb8a34739ebe7",
+      "oldTitle": "[Phase 7] Statement inclusion engine + statement_inclusion_snapshots + live view + statement_live_cache",
+      "title": "[Phase 7] Statement inclusion engine + statement_inclusion_snapshots + live view + statement_live_cache",
+      "bodyCharacters": 5800,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [984, 1017, 1020]
+      },
+      "verifiedAt": "2026-09-23T02:53:14.479814+00:00"
+    },
+    {
+      "issue": 583,
+      "url": "https://github.com/Asymmetric-al/core/issues/583",
+      "family": "finance-batch2",
+      "originalSha256": "f6fc7a8df34fa2e3311ce711b52edb94e57568515399547d3974362856085e2b",
+      "publishedSha256": "7967879bf277493f1f3304b088989dbe10edb27afa5e3a4c6767d4d56233e375",
+      "readbackSha256": "7967879bf277493f1f3304b088989dbe10edb27afa5e3a4c6767d4d56233e375",
+      "oldTitle": "[Phase 7] Donor-portal approved-facts receipts + statement list (official vs live) + never-expiring link + household joint view; delete legacy live-text",
+      "title": "[Phase 7] Donor-portal approved-facts receipts + statement list (official vs live) + never-expiring link + household joint view; delete legacy live-text",
+      "bodyCharacters": 5707,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:53:21.289949+00:00"
+    },
+    {
+      "issue": 645,
+      "url": "https://github.com/Asymmetric-al/core/issues/645",
+      "family": "program-metadata",
+      "originalSha256": "1a025b82253656a3ca91abeb832c61a7017cfa764ea4f390241248635bfccebd",
+      "publishedSha256": "c3c85a66e0a8fbc2ccef7c6d9ef51c6b3c4352397ee07826680b45ddbd78946c",
+      "readbackSha256": "c3c85a66e0a8fbc2ccef7c6d9ef51c6b3c4352397ee07826680b45ddbd78946c",
+      "oldTitle": "[Phase 11] 🗺️ Epic — Custom Fields & Custom Collections",
+      "title": "[Phase 11] 🗺️ Epic — Custom Fields & Custom Collections",
+      "bodyCharacters": 9366,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [918, 926]
+      },
+      "verifiedAt": "2026-09-23T02:53:27.903411+00:00"
+    },
+    {
+      "issue": 665,
+      "url": "https://github.com/Asymmetric-al/core/issues/665",
+      "family": "program-metadata",
+      "originalSha256": "5729070159610417cb7f5faed3ca0c2f30ac78fb203ae1a56aa023da023bedd1",
+      "publishedSha256": "72e32dc4687e5ace11f262abdd03dbfa2c35008b3752c2167d3edca8eab5c7c0",
+      "readbackSha256": "72e32dc4687e5ace11f262abdd03dbfa2c35008b3752c2167d3edca8eab5c7c0",
+      "oldTitle": "[Phase 12] 🗺️ Epic — Full Role & Permission Configuration",
+      "title": "[Phase 12] 🗺️ Epic — Full Role & Permission Configuration",
+      "bodyCharacters": 12479,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [921, 943, 945, 950]
+      },
+      "verifiedAt": "2026-09-23T02:53:35.560754+00:00"
+    },
+    {
+      "issue": 681,
+      "url": "https://github.com/Asymmetric-al/core/issues/681",
+      "family": "identity-qualification-fact",
+      "originalSha256": "29b97cf55bc40d7b5f6b5ae32e2ecb9876a644cbd6cf5230b26ee0d864d22627",
+      "publishedSha256": "ce872d404aaabbfac6de2efafe2b7f1b3a3bb13cff59dcb17955c2106a37c5cd",
+      "readbackSha256": "ce872d404aaabbfac6de2efafe2b7f1b3a3bb13cff59dcb17955c2106a37c5cd",
+      "oldTitle": "[Phase 12] Crypto substrate (decrypt capability + resolver-gated RPC in a least-privilege role + no blind index + key-provider envelope interface, pgcrypto→BYOK target, restricted DEKs unrecoverable)",
+      "title": "[Phase 12] Crypto substrate (decrypt capability + resolver-gated RPC in a least-privilege role + no blind index + key-provider envelope interface, pgcrypto→BYOK target, restricted DEKs unrecoverable)",
+      "bodyCharacters": 28579,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:53:43.387224+00:00"
+    },
+    {
+      "issue": 691,
+      "url": "https://github.com/Asymmetric-al/core/issues/691",
+      "family": "finance-batch2",
+      "originalSha256": "7769ae3068ac6561a876bee35407f35310c89b3c2b0bcf1143a917af054c384e",
+      "publishedSha256": "608c6bed6e09d5fbdb249748043708cb20df0b7b607be8075f5bf4887d7aa99b",
+      "readbackSha256": "608c6bed6e09d5fbdb249748043708cb20df0b7b607be8075f5bf4887d7aa99b",
+      "oldTitle": "[Phase 13] Docs, ADRs, OpenSpec, ownership-matrix rows & glossary",
+      "title": "[Phase 13] Docs, ADRs, OpenSpec, ownership-matrix rows & glossary",
+      "bodyCharacters": 6806,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:53:50.121895+00:00"
+    },
+    {
+      "issue": 692,
+      "url": "https://github.com/Asymmetric-al/core/issues/692",
+      "family": "finance-batch2",
+      "originalSha256": "ba25d41660f29b23eddd1af6bbbe9ca35ce5cb73bf2a3d1c5afdb2ab0080f40b",
+      "publishedSha256": "8b0e702a319fa2144f8fe6201b99f282eda6fcc8278151281375b465afe297cb",
+      "readbackSha256": "8b0e702a319fa2144f8fe6201b99f282eda6fcc8278151281375b465afe297cb",
+      "oldTitle": "[Phase 13] Stripe Connect slice + account-scoping wrapper + webhook fan-in",
+      "title": "[Phase 13] Stripe Connect slice + account-scoping wrapper + webhook fan-in",
+      "bodyCharacters": 8167,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [1511],
+        "blocking": [1080, 1512, 1524, 1588]
+      },
+      "verifiedAt": "2026-09-23T02:53:56.973547+00:00"
+    },
+    {
+      "issue": 697,
+      "url": "https://github.com/Asymmetric-al/core/issues/697",
+      "family": "finance-batch2",
+      "originalSha256": "abda0458ecadc671944ce3fec83f1c4e07022be5595b2fc60c15f3c573feef72",
+      "publishedSha256": "145f1e6e9293f74a1408ff91aead9ac7d5ed161943f9ef6be6feeffce602ce4b",
+      "readbackSha256": "145f1e6e9293f74a1408ff91aead9ac7d5ed161943f9ef6be6feeffce602ce4b",
+      "oldTitle": "[Phase 13] Five-axis contribution lifecycle + locked transition machine",
+      "title": "[Phase 13] Three-axis contribution lifecycle and owner-labelled downstream projections",
+      "bodyCharacters": 7586,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1144]
+      },
+      "verifiedAt": "2026-09-23T02:54:04.206717+00:00"
+    },
+    {
+      "issue": 699,
+      "url": "https://github.com/Asymmetric-al/core/issues/699",
+      "family": "finance-batch2",
+      "originalSha256": "516e291069bc6b74262219d305a8802f7b3b24d007b63918edfc1071ddccd178",
+      "publishedSha256": "51aea8675779eb164c878cc93969223d5a6989cceae24cf6e92e4f7b7a01ba68",
+      "readbackSha256": "51aea8675779eb164c878cc93969223d5a6989cceae24cf6e92e4f7b7a01ba68",
+      "oldTitle": "[Phase 13] Tender types + gift dating + non-cash subtypes + DAF",
+      "title": "[Phase 13] Tender types + gift dating + non-cash subtypes + DAF",
+      "bodyCharacters": 7935,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [984, 1017, 1020, 1021]
+      },
+      "verifiedAt": "2026-09-23T02:54:10.641736+00:00"
+    },
+    {
+      "issue": 713,
+      "url": "https://github.com/Asymmetric-al/core/issues/713",
+      "family": "finance-batch2",
+      "originalSha256": "dae15a1696bc12c3662d32badbf650b5f0462a318544bdf00f01ca979b1e074f",
+      "publishedSha256": "a76d224e2a26c72fe2f3a886a87635355cd46f2bd78c458546438db7256f5433",
+      "readbackSha256": "a76d224e2a26c72fe2f3a886a87635355cd46f2bd78c458546438db7256f5433",
+      "oldTitle": "[Phase 13] Negative/safety test tier + observability + evidence",
+      "title": "[Phase 13] Negative/safety test tier + observability + evidence",
+      "bodyCharacters": 8612,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T02:54:17.050816+00:00"
+    },
+    {
+      "issue": 720,
+      "url": "https://github.com/Asymmetric-al/core/issues/720",
+      "family": "tribute-receipt",
+      "originalSha256": "65e801eaeea81337aaaf35d21cf8a587df264e3d1b1937b3c316a552dbc72ef0",
+      "publishedSha256": "81fe1f3e1f936351e14bf1a9d31508999fe122e9f06f193c9ed4bb4cf949c20a",
+      "readbackSha256": "81fe1f3e1f936351e14bf1a9d31508999fe122e9f06f193c9ed4bb4cf949c20a",
+      "oldTitle": "[Phase 14] Schema migration: all Phase 14 tables + every identity/scope/bound constraint, composite tenant FKs, FORCE RLS, census rows",
+      "title": "[Phase 14] Schema migration: all Phase 14 tables + every identity/scope/bound constraint, composite tenant FKs, FORCE RLS, census rows",
+      "bodyCharacters": 18084,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T03:05:32.313655+00:00"
+    },
+    {
+      "issue": 726,
+      "url": "https://github.com/Asymmetric-al/core/issues/726",
+      "family": "tribute-receipt",
+      "originalSha256": "7b47c0965bcadafe97829365af681cf2ef413ee59a62af458e45b42a7dba10f8",
+      "publishedSha256": "1e5fc80b9cfb38452240372c1f50697e84b36e6241c9b8cf56da3861650d5689",
+      "readbackSha256": "1e5fc80b9cfb38452240372c1f50697e84b36e6241c9b8cf56da3861650d5689",
+      "oldTitle": "[Phase 14] getPartyCreditActivity + Giving-tab credit columns + MAX-per-(party, header) rollup",
+      "title": "[Phase 14] getPartyCreditActivity + Giving-tab credit columns + MAX-per-(party, header) rollup",
+      "bodyCharacters": 18132,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": [1628]
+      },
+      "verifiedAt": "2026-09-23T03:05:39.339581+00:00"
+    },
+    {
+      "issue": 730,
+      "url": "https://github.com/Asymmetric-al/core/issues/730",
+      "family": "tribute-receipt",
+      "originalSha256": "f7601f08c5d015e247eb56977e03ec4ccfb02c12769cc7121e2302769b8d6ac8",
+      "publishedSha256": "b01858722cd33095de00d9e4a8aa640ccaa90d3aa2b29ed4f733b6790eb60960",
+      "readbackSha256": "b01858722cd33095de00d9e4a8aa640ccaa90d3aa2b29ed4f733b6790eb60960",
+      "oldTitle": "[Phase 14] Tribute setup gate, ops page & manual single letters (S4)",
+      "title": "[Phase 14] Tribute setup gate, ops page & manual single letters (S4)",
+      "bodyCharacters": 21421,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T03:05:45.726757+00:00"
+    },
+    {
+      "issue": 731,
+      "url": "https://github.com/Asymmetric-al/core/issues/731",
+      "family": "tribute-receipt",
+      "originalSha256": "cc5acf5fef0bbbf3a70b893c24576da16298d7299112327c49073df4b7d214a9",
+      "publishedSha256": "bad7a92cb566bc1adf8fcefb672004fec7875f5d43a7915c26061b7f250ce0cb",
+      "readbackSha256": "bad7a92cb566bc1adf8fcefb672004fec7875f5d43a7915c26061b7f250ce0cb",
+      "oldTitle": "[Phase 14] Honor immediate stream + notify-party preference model (suppression-grade never)",
+      "title": "[Phase 14] Honor immediate stream + notify-party preference model (suppression-grade never)",
+      "bodyCharacters": 20359,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T03:05:52.251951+00:00"
+    },
+    {
+      "issue": 732,
+      "url": "https://github.com/Asymmetric-al/core/issues/732",
+      "family": "tribute-receipt",
+      "originalSha256": "7881e3f487d5e3c317a64a957475b5cb160040f30197d35a3d54d8e8d694294e",
+      "publishedSha256": "cbffe1ca3c04dcdd6d5baa03ed6d8442a1a427a62abc317229ca2bba60c6f721",
+      "readbackSha256": "cbffe1ca3c04dcdd6d5baa03ed6d8442a1a427a62abc317229ca2bba60c6f721",
+      "oldTitle": "[Phase 14] Memorial digest engine — coverage ledger, age-anchored cadence, cutoff-frozen compose, per-tenant fan-out",
+      "title": "[Phase 14] Memorial digest engine — coverage ledger, age-anchored cadence, cutoff-frozen compose, per-tenant fan-out",
+      "bodyCharacters": 18481,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T03:05:59.084127+00:00"
+    },
+    {
+      "issue": 733,
+      "url": "https://github.com/Asymmetric-al/core/issues/733",
+      "family": "tribute-receipt",
+      "originalSha256": "eb3cf83772437de7ac3c942c717d3ecfc36bd04bc2371b199080688fa905c3c8",
+      "publishedSha256": "984d71211e91e9945b6d0e155428adb2364976e04ac5d21763985c75f81e426c",
+      "readbackSha256": "984d71211e91e9945b6d0e155428adb2364976e04ac5d21763985c75f81e426c",
+      "oldTitle": "[Phase 14] P6 mail channel + tribute print custody as a governed export",
+      "title": "[Phase 14] P6 mail channel + tribute print custody as a governed export",
+      "bodyCharacters": 20295,
+      "metadataPreserved": true,
+      "nativeDependenciesPreserved": {
+        "blocked_by": [],
+        "blocking": []
+      },
+      "verifiedAt": "2026-09-23T03:06:06.362094+00:00"
+    }
+  ],
+  "phase24Graph": {
+    "verifiedAt": "2026-09-23T02:26:25.957834+00:00",
+    "parent": 1431,
+    "index": 1898,
+    "indexUrl": "https://github.com/Asymmetric-al/core/issues/1898",
+    "rootChildren": 100,
+    "indexChildren": 27,
+    "implementationLeaves": 126,
+    "allLeafBodiesStatesLabelsAndDependencyEdgesUnchanged": true,
+    "indexSubmittedBodySha256": "ffb79d23059ae1d835f0dfbb9747e5d2bcc213fabb9973dd977ae7300783ef3a",
+    "indexBodyAndTitleVerifiedAt": "2026-09-23T02:55:59.897104+00:00",
+    "indexHasNoImplementationDependencies": true
+  },
+  "phase4Dependencies": {
+    "verifiedAt": "2026-09-23T02:30:12.642997+00:00",
+    "issue": 503,
+    "beforeBlockedBy": [],
+    "afterBlockedBy": [477, 489],
+    "cycleCheckedNodes": [477, 489],
+    "bodyAndMetadataUnchanged": true,
+    "basis": "Current Phase4 PRD explicitly requires Phase2 and Phase3; no later receipt-owner whole-phase gates added."
+  }
+}

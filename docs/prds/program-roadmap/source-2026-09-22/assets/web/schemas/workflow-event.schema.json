@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:asym:proposal:workflow-envelope:1",
+  "title": "Proposed identifier-only event example; map to current Core envelope",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "workflow": {
+      "type": "string",
+      "enum": [
+        "web-studio.presentation.qualify",
+        "web-studio.preview.prepare",
+        "web-studio.publication.execute",
+        "web-studio.source.reconcile",
+        "web-studio.projection.converge",
+        "web-studio.preview.expire"
+      ]
+    },
+    "recordRef": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "dispatchRequestId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "routing": {
+      "type": "object",
+      "properties": {
+        "environment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "siteId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+        }
+      },
+      "required": [
+        "environment",
+        "siteId"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "tenantId",
+    "workflow",
+    "recordRef",
+    "dispatchRequestId",
+    "routing"
+  ],
+  "additionalProperties": false
+}

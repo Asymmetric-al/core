@@ -1,0 +1,81 @@
+{
+  "date": "2026-09-11",
+  "status": "passed",
+  "cases": [
+    {
+      "case": "Bangkok local hours",
+      "startUTC": "2026-09-11T02:30:00Z",
+      "endUTC": "2026-09-11T03:30:00Z",
+      "zone": "Asia/Bangkok",
+      "serviceMinutes": 60,
+      "expected": 60,
+      "elapsedMinutes": 60
+    },
+    {
+      "case": "Weekend exclusion",
+      "startUTC": "2026-09-11T16:00:00Z",
+      "endUTC": "2026-09-14T10:00:00Z",
+      "zone": "UTC",
+      "serviceMinutes": 120,
+      "expected": 120,
+      "elapsedMinutes": 3960
+    },
+    {
+      "case": "Spring gap contributes no time",
+      "startUTC": "2026-03-08T06:00:00Z",
+      "endUTC": "2026-03-08T08:00:00Z",
+      "zone": "America/New_York",
+      "serviceMinutes": 120,
+      "expected": 120,
+      "elapsedMinutes": 120
+    },
+    {
+      "case": "Fall fold includes both short windows",
+      "startUTC": "2026-11-01T05:00:00Z",
+      "endUTC": "2026-11-01T07:00:00Z",
+      "zone": "America/New_York",
+      "serviceMinutes": 30,
+      "expected": 30,
+      "elapsedMinutes": 120
+    },
+    {
+      "case": "Overlapping intervals count once",
+      "startUTC": "2026-09-14T09:00:00Z",
+      "endUTC": "2026-09-14T12:00:00Z",
+      "zone": "UTC",
+      "serviceMinutes": 180,
+      "expected": 180,
+      "elapsedMinutes": 180
+    },
+    {
+      "case": "Closed local holiday",
+      "startUTC": "2026-09-14T00:00:00Z",
+      "endUTC": "2026-09-15T00:00:00Z",
+      "zone": "UTC",
+      "serviceMinutes": 0,
+      "expected": 0,
+      "elapsedMinutes": 1440
+    },
+    {
+      "case": "Outside hours can equal zero service minutes",
+      "startUTC": "2026-09-11T19:00:00Z",
+      "endUTC": "2026-09-11T20:00:00Z",
+      "zone": "UTC",
+      "serviceMinutes": 0,
+      "expected": 0,
+      "elapsedMinutes": 60
+    },
+    {
+      "case": "Overnight split respects next-date holiday",
+      "startUTC": "2026-09-15T22:00:00Z",
+      "endUTC": "2026-09-16T02:00:00Z",
+      "zone": "UTC",
+      "serviceMinutes": 120,
+      "expected": 120,
+      "elapsedMinutes": 240
+    }
+  ],
+  "model": "Research oracle for proposed half-open local-time membership union, minute-aligned fixtures only",
+  "scriptSha256": "32171f08f0a29a04977dce7a84293268098326a85baeae699f09b81f60c3a185",
+  "limits": "Uses Python zoneinfo only as an independent research oracle. Not Core runtime, not a product algorithm, no DB/P6/provider/browser proof, no claim for sub-minute inputs or production performance. Production must use bounded interval arithmetic and the qualified pinned calendar/tzdb authority."
+}

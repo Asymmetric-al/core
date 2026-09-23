@@ -79,7 +79,7 @@ The permanent pipeline is:
 4. fenced render attempts produce one candidate through the one D3-qualified renderer;
 5. final bytes are completed, validated, hashed, stored privately, read back, and atomically promoted;
 6. users access those exact bytes through current authorization; and
-7. Phase 17 separately delivers that exact artifact and records communication outcomes.
+7. Phase 17 prepares governed content referring to that exact artifact; Phase 6 owns recipient intent, consent, dispatch, provider outcomes, and communication history.
 
 This phase removes rather than adapts the repository's non-production receipt, statement, snapshot, Unlayer, mutable-root, browser-production-data, hard-coded-send, live-text, and on-demand-render paths. There is no legacy/foreign conversion import, dual runtime, compatibility fallback, migration console, or manufactured history; only the D1 native authoring package is supported.
 
@@ -134,7 +134,7 @@ This phase removes rather than adapts the repository's non-production receipt, s
 - No e-signature product, tenant PKI console, redlining, contract workflow, campaign/workflow builder, release calendar, or generic file manager.
 - No renderer selector, dual-renderer production runtime, cross-engine retry, generic output graph, or renderer-specific tenant source.
 - No tenant-authored legal rules, tax matrix, records DSL, arbitrary retention picker, eDiscovery suite, or delete-anything control.
-- No Phase 17 email/message authoring or delivery engine and no Phase 19 population/run scheduler.
+- No Phase 17 email/message authoring or Phase 6 delivery engine and no Phase 19 population/run scheduler.
 - No native launch claim for every U.S. federal/state form or every Canadian donee/regime.
 - No legacy/foreign converter or importer, migration adapter, shadow read/write, compatibility view, alias layer, backfill, archive UI, or synthetic historical artifact. The D1 native semantic authoring package is the sole bounded portability exception.
 
@@ -154,21 +154,21 @@ Provider URLs, renderer status, email events, filenames, templates, staff select
 
 ## Dependencies and ownership
 
-| Concern                                                                                           | Authority       | Phase 18 behavior                                                                                                             |
-| ------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Receipt/statement eligibility, legal donor, correction effect and issuance authorization/validity | Phase 7         | Consume exact immutable contract; never infer from render or send state                                                       |
-| Generated-document public reference/serial allocation, nonreuse/disposition and artifact linkage  | Phase 18 D9/D11 | Allocate only after source authorization and admitted freeze; never invent eligibility, issuer, correction effect or validity |
-| Restricted worker/identity publication                                                            | Phase 10        | Apply alias/withholding/publication rules to every field, metadata value and route                                            |
-| Field identity, type, classification and egress eligibility                                       | Phase 11        | Reuse one catalog; add only audited `Available in documents` narrowing                                                        |
-| Capabilities, assignments and step-up                                                             | Phase 12        | Reauthorize every command/read; introduce no role engine                                                                      |
-| Posted ledger and line-level money                                                                | Phase 13        | Render exact source facts; never recalculate or mutate                                                                        |
-| Tribute recognition/recipient/privacy                                                             | Phase 14        | Render source-selected recipient facts only                                                                                   |
-| Pledge/commitment plan and fulfillment                                                            | Phase 16        | Render source-owned non-debt commitment truth only                                                                            |
-| Message wrapper, outbox, provider, communication history                                          | Phase 17        | Receive exact artifact identity; Phase 18 never sends directly                                                                |
-| Statement eligibility, Statement Subject, facts, coverage, receipt plan                           | Phase 7/source  | Consume exact immutable authority; never infer from tenant selection, household data, render, or delivery                     |
-| Statement participation, Run Preflight, frozen population, cutoffs, runs/items, late-fact lane    | Phase 19        | Receive item-authoritative generation intents; no second run engine                                                           |
-| General files/custody future                                                                      | Phase 29        | Phase 18 owns generated-document identity and evidence; expose one provider-neutral custody port                              |
-| Donor-wide privacy case                                                                           | Phase 38        | Return document-specific outcome; never become privacy-request orchestrator                                                   |
+| Concern                                                                                           | Authority          | Phase 18 behavior                                                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Receipt/statement eligibility, legal donor, correction effect and issuance authorization/validity | Phase 7            | Consume exact immutable contract; never infer from render or send state                                                                                                                                |
+| Generated-document public reference/serial allocation, nonreuse/disposition and artifact linkage  | Phase 18 D9/D11    | Allocate only after source authorization and admitted freeze; never invent eligibility, issuer, correction effect or validity                                                                          |
+| Restricted worker/identity publication                                                            | Phase 10           | Apply alias/withholding/publication rules to every field, metadata value and route                                                                                                                     |
+| Field identity, type, classification and egress eligibility                                       | Phase 11           | Reuse one catalog; add only audited `Available in documents` narrowing                                                                                                                                 |
+| Capabilities, assignments and step-up                                                             | Phase 12           | Reauthorize every command/read; introduce no role engine                                                                                                                                               |
+| Posted ledger and line-level money                                                                | Phase 13           | Render exact source facts; never recalculate or mutate                                                                                                                                                 |
+| Tribute recognition/recipient/privacy                                                             | Phase 14           | Render source-selected recipient facts only                                                                                                                                                            |
+| Pledge/commitment plan and fulfillment                                                            | Phase 16           | Render source-owned non-debt commitment truth only                                                                                                                                                     |
+| Message wrapper, outbox, provider, communication history                                          | Phase 17 / Phase 6 | Phase 17 owns governed content and sender resolution; Phase 6 owns intent, consent, outbox, provider delivery/recovery and history; Phase 18 supplies exact artifact identity and never sends directly |
+| Statement eligibility, Statement Subject, facts, coverage, receipt plan                           | Phase 7/source     | Consume exact immutable authority; never infer from tenant selection, household data, render, or delivery                                                                                              |
+| Statement participation, Run Preflight, frozen population, cutoffs, runs/items, late-fact lane    | Phase 19           | Receive item-authoritative generation intents; no second run engine                                                                                                                                    |
+| General files/custody future                                                                      | Phase 29           | Phase 18 owns generated-document identity and evidence; expose one provider-neutral custody port                                                                                                       |
+| Donor-wide privacy case                                                                           | Phase 38           | Return document-specific outcome; never become privacy-request orchestrator                                                                                                                            |
 
 ## Repo anchors — REAL today versus FORWARD
 
@@ -330,7 +330,7 @@ Queries return authorized projections only: template list/detail/checks/comparis
 7. The system applies every authorized byte-changing finalization step, validates the exact final PDF, hashes it, writes a new opaque private object generation, and reads it back to confirm digest and length.
 8. One transaction rechecks fences, links issuance where applicable, promotes the artifact/current head by CAS, and appends lifecycle evidence. No donor can access staged bytes.
 9. Search/read projections update from authoritative records. Reconciliation repairs projections but never rewrites facts/artifacts.
-10. Phase 17 receives the exact artifact identity and separately manages message preparation, outbox/provider state, communication history, bounce and resend.
+10. Phase 17 receives the exact artifact identity for governed content, compiler and sender resolution. Phase 6 owns recipient intent, consent, preparation orchestration, outbox/submission, provider state, communication history, bounce and resend. Document Production owns neither delivery lifecycle nor communication history.
 
 ## Renderer evidence contest
 
@@ -384,7 +384,7 @@ The PDF canvas may remain intrinsically two-dimensional, but the Structure and C
 | Storage/finality             | Upload uncertainty, hash/read-back mismatch                           | Reconcile same object/request; never promote unknown                  | **Retry generation** only when safe; systemic alert     |
 | Issuance/serial/signer       | Authority epoch changed after reservation                             | Source-owned disposition; no reuse                                    | **Review official receipt** / repair authority          |
 | Access/privacy               | Recipient epoch revoked, object unhealthy                             | Revoke/deny immediately                                               | Honest unavailable/recovery path                        |
-| Delivery                     | Resend/provider bounce/failure                                        | Phase 17 delivery retry only                                          | **Review/Retry delivery**; document remains unchanged   |
+| Delivery                     | Resend/provider bounce/failure                                        | Phase 6 delivery retry only                                           | **Review/Retry delivery**; document remains unchanged   |
 | Records                      | Hold/schedule conflict, partial disposal, restore suppression pending | Stop monotonic progression and reconcile                              | **Needs records review** / one records action           |
 
 Automatic safe recovery is quiet. One root cause creates at most one grouped repair item with affected count and oldest age. There is no notification per item, raw provider dashboard dependency, generic retry, force publish, send anyway, downgrade, draft substitution, or history rerender.
@@ -547,7 +547,7 @@ As a donor, I want one safe current-document action that works through my portal
 
 As a donor-care or finance user, I want delivery retries to resend the exact current artifact without changing it, so that an email failure cannot rerender, reissue or invalidate an official document.
 
-- **Given** Phase 17 delay, bounce, complaint, duplicate webhook, or resend, **then** artifact, issuance, serial/reference and currentness do not change.
+- **Given** Phase 6 delay, bounce, complaint, duplicate webhook, or resend, **then** artifact, issuance, serial/reference and currentness do not change.
 - **Given** resend, **then** Phase 17 references the exact current artifact; Phase 18 sends no email directly and no route rerenders.
 
 ### US18-19 — Batch failures are isolated
@@ -629,7 +629,7 @@ The existing direct native preview/render routes, text receipt/statement downloa
 
 Metrics and structured evidence MUST support request state age/latency, attempts/retry/ambiguity, renderer/validator failure by purpose/publication/profile, artifact read-back/checksum drift/shared-checkpoint `unanchored_pending` age, queue depth/fairness/starvation, batch outcomes, publication resolution/recovery causes, appointment due/activation/block age and time-zone-data drift, U.S. obligation age/deadlines, Canadian readiness/serial/custody-offboarding disposition without donor PII, access denials/reissue/integrity, Phase 17 handoff mismatch, retention/hold/disposition age, restore-suppression proof and orphan objects.
 
-Required runbooks cover: no renderer winner; stuck/ambiguous request; corrupted/missing artifact; cross-tenant denial spike; failed Canadian authority/signer/serial continuity; invalid legal pack; appointment failure; Phase 17 handoff/delivery failure; poison batch; storage/provider outage; key/access compromise; retention/hold conflict; partial disposal; restore resurrection; and D17 cutover stop.
+Required runbooks cover: no renderer winner; stuck/ambiguous request; corrupted/missing artifact; cross-tenant denial spike; failed Canadian authority/signer/serial continuity; invalid legal pack; appointment failure; Phase 17 preparation or Phase 6 delivery failure; poison batch; storage/provider outage; key/access compromise; retention/hold conflict; partial disposal; restore resurrection; and D17 cutover stop.
 
 ## Release gates
 
@@ -650,7 +650,7 @@ Release is blocked until all companion-manifest stop assertions and the followin
 2. Run the D3 contest before renderer-dependent production work; no preference becomes authority.
 3. Build the smallest tenant-safe immutable relational core and one Generated Document service.
 4. Build structured drafts/commits/proof/publication/head behavior and exact renderer/finalizer/storage boundary.
-5. Ship one U.S. ordinary receipt tracer from source facts through artifact, authorization, Phase 17 handoff, exact resend and correction.
+5. Ship one U.S. ordinary receipt tracer from source facts through artifact, authorization, Phase 17 content handoff, Phase 6 dispatch and exact resend, and correction.
 6. Add the Phase 19 item seam for official annual documents and the separately purposed optional Support overview, then batches, tribute, pledge and approved custom purposes through the same contract.
 7. Add U.S. specialist obligations and the opt-in Canadian issuer/serial/signer/case package behind its release gates.
 8. Add records schedules, holds, verified disposal/restore suppression, scheduling and grouped operations surfaces.
@@ -659,7 +659,7 @@ Release is blocked until all companion-manifest stop assertions and the followin
 
 ## Anti-overengineering guardrail
 
-The permanent system is one purpose contract, one source-owned Facts Package, one compatible publication, one idempotent request, bounded subordinate attempts, one exact current artifact, one authorized logical-document projection, one Phase 17 delivery handoff, and one exception surface. New primitives require a proven launch purpose and an authority owner. “Future-proof” means stable typed contracts, provider-neutral ports, immutable pins and additive post-launch evolution—not speculative platforms.
+The permanent system is one purpose contract, one source-owned Facts Package, one compatible publication, one idempotent request, bounded subordinate attempts, one exact current artifact, one authorized logical-document projection, one governed Phase 17 content/Phase 6 delivery handoff, and one exception surface. New primitives require a proven launch purpose and an authority owner. “Future-proof” means stable typed contracts, provider-neutral ports, immutable pins and additive post-launch evolution—not speculative platforms.
 
 ## Definition of done
 

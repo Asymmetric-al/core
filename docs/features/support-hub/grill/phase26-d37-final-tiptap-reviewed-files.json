@@ -1,0 +1,65 @@
+{
+  "date": "2026-09-14",
+  "method": "independent actual-file review snapshot; not runtime qualification",
+  "files": [
+    {
+      "name": "phase26-d37-adversarial-review.md",
+      "sha256": "b0947439757aa706b399ba61ef4e24162cb772bc174d56334faff0d10aaee99f"
+    },
+    {
+      "name": "phase26-d37-ux-blueprint.md",
+      "sha256": "9cd6c3acc0c526db4ceef70d8d576d6fe749cbc3ad06bbb2a101ba8d103a00e2"
+    },
+    {
+      "name": "phase26-d37-data-contract.md",
+      "sha256": "102e9aeb0b6a3e1b6f35dc767552fcf999379936dd64b82154fbf102f22b0b1b"
+    },
+    {
+      "name": "phase26-d37-tiptap-contract.md",
+      "sha256": "29b531438ba9f7b23f17a7ce1908b92464414621e6652ce9f00d39110bcc99bb"
+    },
+    {
+      "name": "phase26-d37-proof-and-operations.md",
+      "sha256": "2b4d475244a9c242b89debe5cac6ebf313a73330f97884c84a7821202166d63c"
+    },
+    {
+      "name": "phase26-d37-evidence.md",
+      "sha256": "77d0c8570298bb4772f2fa6ded11f8d67bf0bd917321c085d93f9f5a2a780421"
+    },
+    {
+      "name": "phase26-d37-tiptap-probe.json",
+      "sha256": "52bada1b9d2b7b19bb3d912e0f2e3f7594335b6eb6c6d3d6a9fe720fc912666b"
+    },
+    {
+      "name": "phase26-d37-tiptap-source-evidence.json",
+      "sha256": "406a1b371e254028df7c199b132c9a8ec174c21d4f08001b068b569852051828"
+    }
+  ],
+  "finalDelta": {
+    "date": "2026-09-14",
+    "result": "Pass",
+    "changes": "F01 unknown-save informed Leave and F02 pending local upload navigation guard; F03-F06 preserved",
+    "files": [
+      {
+        "name": "phase26-d37-review-corrections.md",
+        "sha256": "e2dd6f8ed4c4f2c66b81265e40c531dab4b1644730053664415db7a553ba7187"
+      },
+      {
+        "name": "phase26-d37-adversarial-review.md",
+        "sha256": "ee962312732ef809b9815cbaa9e640a9a52965b28aaf2fd99fdc60d6ab8bef3f"
+      },
+      {
+        "name": "phase26-d37-ux-blueprint.md",
+        "sha256": "fc6a95056bced351220d5da9375c6dd89491a377d3ccf594ec59fcc515563b98"
+      },
+      {
+        "name": "phase26-d37-data-contract.md",
+        "sha256": "e909c50311f919095c5e7a4b104f79b362ec80869fe55de1122f1c70167d9d7f"
+      },
+      {
+        "name": "phase26-d37-proof-and-operations.md",
+        "sha256": "ee63fa31198a4c05eb7b38b5cee3845653bce9d049a3243597bcd1f2df7dc53a"
+      }
+    ]
+  }
+}

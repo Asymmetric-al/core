@@ -1,0 +1,328 @@
+{
+  "date": "2026-09-14",
+  "status": "passed",
+  "scope": "full ratification and researched next-question document verification only",
+  "checkCount": 57,
+  "checks": [
+    {
+      "name": "all final deliverables exist",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Q35 source apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Q35 source openspec/specs/platform-boundaries/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Q35 source openspec/specs/platform-principles/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Q35 source packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Q35 source packages/api/src/admin/support-hub/adapter/types.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Q35 source packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Q35 source packages/api/src/admin/support-hub/schemas.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "7 Q35 Git sources reverified",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "source citation lines apps/admin/features/support-hub/components/detail/timeline/PrivateNote.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "source citation lines packages/api/src/admin/support-hub/adapter/types.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "source citation lines packages/api/src/admin/support-hub/schemas.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "source citation lines packages/api/src/admin/support-hub/mutations/conversations.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "source citation lines packages/api/src/admin/support-hub/adapter/supabase.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "source citation lines openspec/specs/platform-boundaries/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "source citation lines openspec/specs/platform-principles/spec.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "source citation lines docs/adr/0032-immutable-prepared-message-and-whole-message-recovery.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "all new local links resolve",
+      "passed": true,
+      "detail": {
+        "count": 45,
+        "missing": []
+      }
+    },
+    {
+      "name": "head remote and original baseline agree",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "5 related PRs remain open",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "unrelated feature artifacts preserved",
+      "passed": true,
+      "detail": {
+        "checked": 556,
+        "changed": []
+      }
+    },
+    {
+      "name": "original evidence and Q35 outputs preserved",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "ratified status and appendix phase26-d29-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body retained phase26-d29-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ratified status and appendix phase26-d29-ux-blueprint.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body retained phase26-d29-ux-blueprint.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ratified status and appendix phase26-d29-data-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body retained phase26-d29-data-contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ratified status and appendix phase26-d29-email-studio-integration.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body retained phase26-d29-email-studio-integration.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ratified status and appendix phase26-d29-refresh-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body retained phase26-d29-refresh-adversarial-review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ratified status and appendix phase26-d29-refresh-ux-blueprint.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body retained phase26-d29-refresh-ux-blueprint.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ratified status and appendix phase26-d29-refresh-proof-and-seams.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body retained phase26-d29-refresh-proof-and-seams.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ratified status and appendix phase26-d29-refresh-evidence.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body retained phase26-d29-refresh-evidence.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ratified status and appendix phase26-d29-refresh-completion-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original body retained phase26-d29-refresh-completion-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "context map preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "glossary preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "session history retained phase26-grill-log.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "session history retained phase26-session-handoff.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "full master ratification scope",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ack enablement and human-authoring seam",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "exact X01 in ADR",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Q35 three real policies",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Q35 recommendation not answer",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "independent ratification review Pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "independent next-question review Pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no feature ADR0035",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original30R44P6O identifiers retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "scoped formatting",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "git whitespace check",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "no product/Git-state mutation",
+      "passed": true,
+      "detail": " M CONTEXT-MAP.md\n?? docs/features/support-hub/CONTEXT.md\n?? docs/features/support-hub/docs/\n?? docs/features/support-hub/grill/\n"
+    },
+    {
+      "name": "canonical mirrors byte-identical",
+      "passed": true,
+      "detail": 19
+    }
+  ],
+  "hashes": {
+    "phase26-d29-adversarial-review.md": "c9159a1a70a2273ef7860196a5953c1103ce43349eadec65260573af7a9f3c91",
+    "phase26-d29-ux-blueprint.md": "9c276461799550be1622812eab7b16195dc6c5a3c2a6e3fa7befead5a59786f6",
+    "phase26-d29-data-contract.md": "49f016e4c04c5830129dd6276cea522f62e97f3eb902760213bff4bbd52b8246",
+    "phase26-d29-email-studio-integration.md": "ef18aba41bb0c9de01ddcfb75fd318bf386fd84d800a7e8a7ba765bc3b369183",
+    "phase26-d29-refresh-adversarial-review.md": "10f78d7d5ab24764f220c29860461b24925fdd83006ab1369c797673f2d00e2a",
+    "phase26-d29-refresh-ux-blueprint.md": "3424b54231326e3282f7a698b8cf83614b084752ce8e7e34036e207fcdb67862",
+    "phase26-d29-refresh-proof-and-seams.md": "4c70dc418e9a7443504ad45a4fc6c54e7e29783dc62a2553004513fe8758ad32",
+    "phase26-d29-refresh-evidence.md": "0ac3d9c2ead2d42df29d2058e194a991da1d18b187cfc8cb68f915e8dfe00047",
+    "phase26-d29-refresh-completion-audit.md": "6d152fb3ece5ad61e98ca9d8607ea059c4c85b84a25a00efc28a99e0fe4c35ba",
+    "phase26-d29-x01-full-ratification.md": "fd647b111602cceff7ea2fe5dc2a05e88c5f25ef3f8ca19a048ba3c668fe545f",
+    "phase26-d29-x01-ratification-completion.md": "1f302a59959dcea3b2e1da569b7c2d4faeecac748cb7cb7499022338c3d59823",
+    "phase26-d29-refresh-ratification-seam-review.md": "7202119279c3526b5083b15cb99b01018eb186d5b98de237aec23d6b92865af0",
+    "phase26-q35-post-d29-question.md": "ff77cd1192431236f6aba90f1bcff69d31b97172f23dc0bd0a6f45ee3da68ef7",
+    "phase26-q35-post-d29-ux-research.md": "94024001f8d0160eb7a7de3b9a60a521bbc1676994a550b6ba619e921dde72ed",
+    "phase26-q35-post-d29-scope-review.md": "a658c276e4b645458d354890491335f34b2429e196744b95fafcd2f53f73e602",
+    "phase26-q35-post-d29-final-review.md": "ba458dce02af1de6616ea26b4af9223037a5c15ba2fa5aec9d8b37fff928cb9f",
+    "phase26-grill-log.md": "8ba61999a5312f067fb222f94132024778af3483b68a75804373b66c72d7e72c",
+    "phase26-session-handoff.md": "1e8a3dacd0b6858f597feaf0e80c60c47c2c2fac21f5581d9de86733b9e41eb4",
+    "phase26-d29-x01-ratification-source-evidence.json": "d1688e64ab4fbb82fddc83fca83ab3927cdbfcedcf46540a0b87c61ec5cae00d"
+  },
+  "featureADR": {
+    "path": "docs/features/support-hub/docs/adr/0029-contact-first-help-with-optional-guides.md",
+    "sha256": "41ae18e5abf84622929bb61230dc497a6923195b228f55306f4328a89262c64a"
+  },
+  "ratification": "D1-D34 and every amendment including D29-X01 fully ratified",
+  "Q35": "unanswered; A recommended, B/C available",
+  "runtimeProof": "47 D29 release groups required and unexecuted",
+  "newRuntimeTests": 0
+}

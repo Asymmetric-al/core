@@ -47,3 +47,14 @@ explicit trigger** (an `apps/web` extraction or an availability SLO).
   a later, triggered capability, not a Phase-5 guarantee.
 - The reader interface grows additively (listing/detail for events and
   campaigns later); adding a page type never re-opens the transport question.
+
+**Phase 24 D66 amendment (2026-08-30).** Every locale-bearing public read adds
+trusted Tenant, environment, Site, stable Site Locale, exact public generation,
+and requested resource to the contract. It explicitly requests the exact locale
+with CMS fallback disabled. Missing ordinary target-language content returns an
+absent result plus only a source-owned typed same-resource alternative relation
+whose target is independently proved current and safe; placement and label
+remain source-owned. The reader never asks Payload to substitute fields or
+complete resources.
+Readiness consumes batched source-owned version evidence through this boundary;
+it does not duplicate Payload status or scan every document on a public request.

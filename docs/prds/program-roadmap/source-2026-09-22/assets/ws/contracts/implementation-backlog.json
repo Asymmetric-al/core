@@ -1,0 +1,472 @@
+{
+  "status": "proposed_not_created_in_github",
+  "tickets": [
+    {
+      "id": "WS-01",
+      "title": "Authority and source inventory",
+      "dependsOn": [],
+      "scope": "Map every proposed contract to its authoritative existing service, phase readiness, exact permission and privacy purpose; inventory existing tasks/automations so no duplicate owner is introduced.",
+      "acceptanceEvidence": "Approved source-binding matrix, zero undocumented protected action, active change alignment.",
+      "crossCuttingTests": [
+        "WS-AT-002",
+        "WS-AT-058"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-02",
+      "title": "Pure dialect and compiler",
+      "dependsOn": [
+        "WS-01"
+      ],
+      "scope": "Implement strict schema, typed AST normalization, graph IR and digest, predicate evaluator, branch/join rules, reference dominance and classification propagation.",
+      "acceptanceEvidence": "Property tests and negative fixtures prove deterministic compile and rejection behavior.",
+      "crossCuttingTests": [
+        "WS-AT-009",
+        "WS-AT-010",
+        "WS-AT-015",
+        "WS-AT-017"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-03",
+      "title": "Tenant-safe process storage",
+      "dependsOn": [
+        "WS-01"
+      ],
+      "scope": "Design additive migrations using existing owners; implement composite tenant references, immutable publications, run revisions, occurrences, waits, intent links and constrained application grants.",
+      "acceptanceEvidence": "Migration forward/rollback proof, DB race tests, no broad browser writes.",
+      "crossCuttingTests": [
+        "WS-AT-001",
+        "WS-AT-033"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-04",
+      "title": "Runtime automation authority",
+      "dependsOn": [
+        "WS-01",
+        "WS-03"
+      ],
+      "scope": "Bind current source capabilities to tenant automation grants; separate publisher, initiator, delegate and human approver; enforce revocation at each action.",
+      "acceptanceEvidence": "Cross-role/tenant negative tests and grant departure/revocation tests pass.",
+      "crossCuttingTests": [
+        "WS-AT-002",
+        "WS-AT-003",
+        "WS-AT-004",
+        "WS-AT-008"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-05",
+      "title": "Event intake and enrollment",
+      "dependsOn": [
+        "WS-02",
+        "WS-03",
+        "WS-04"
+      ],
+      "scope": "Use source outbox and durable receipts; implement prospective binding generation, subject-scoped enrollment, historical-dark handling and accepted event dedupe.",
+      "acceptanceEvidence": "Out-of-order commit, duplicate, import, and missing wake tests pass.",
+      "crossCuttingTests": [
+        "WS-AT-019",
+        "WS-AT-020",
+        "WS-AT-021",
+        "WS-AT-022"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-06",
+      "title": "Evaluator and durable advance",
+      "dependsOn": [
+        "WS-02",
+        "WS-03",
+        "WS-05"
+      ],
+      "scope": "Implement pure next-work plans, short CAS transactions, source revision verification, selected-branch state, bounded continuations and source-result wakes.",
+      "acceptanceEvidence": "Concurrent joins advance once and completed history remains immutable.",
+      "crossCuttingTests": [
+        "WS-AT-028",
+        "WS-AT-038"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-07",
+      "title": "Operation intents and provider ambiguity",
+      "dependsOn": [
+        "WS-04",
+        "WS-06"
+      ],
+      "scope": "Bind permanent domain effect identities to existing claims/outbox; implement fencing, exact prepared payload reference, safe retry and unknown-result reconciliation.",
+      "acceptanceEvidence": "Ambiguous send and expired lease tests cannot produce blind duplicate effects.",
+      "crossCuttingTests": [
+        "WS-AT-029",
+        "WS-AT-030",
+        "WS-AT-031",
+        "WS-AT-043"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-08",
+      "title": "Waits, reminders and calendars",
+      "dependsOn": [
+        "WS-05",
+        "WS-06",
+        "WS-07"
+      ],
+      "scope": "Implement registration/recheck handshake, source event consumers, indexed due reconciliation, pinned calendars, DST rules, pause clocks and catch-up policy.",
+      "acceptanceEvidence": "Both completion orderings and lost-wake recovery work; no timeout approvals.",
+      "crossCuttingTests": [
+        "WS-AT-025",
+        "WS-AT-026",
+        "WS-AT-027",
+        "WS-AT-039",
+        "WS-AT-040",
+        "WS-AT-041",
+        "WS-AT-042"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-09",
+      "title": "Shared task and role adapter",
+      "dependsOn": [
+        "WS-01",
+        "WS-04",
+        "WS-06"
+      ],
+      "scope": "Adapt shared tasks, typed outcomes, qualified roles/fallbacks, source-controlled reassignment, conflict-of-interest checks and scoped My Work queries.",
+      "acceptanceEvidence": "Assignment does not grant permission; task result cannot invent source approval.",
+      "crossCuttingTests": [
+        "WS-AT-008",
+        "WS-AT-049"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-10",
+      "title": "Communication intent adapter",
+      "dependsOn": [
+        "WS-01",
+        "WS-04",
+        "WS-07"
+      ],
+      "scope": "Request source-governed publications/audiences, coordinate shared purposes, enforce suppression at send, preserve inbound correlation and safe webhook interpretation.",
+      "acceptanceEvidence": "No duplicate donor purpose, no raw Resend graph call, no unsafe source-state notice.",
+      "crossCuttingTests": [
+        "WS-AT-043",
+        "WS-AT-044",
+        "WS-AT-045",
+        "WS-AT-046",
+        "WS-AT-047",
+        "WS-AT-048"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-11",
+      "title": "Forms, files and evidence",
+      "dependsOn": [
+        "WS-01",
+        "WS-04",
+        "WS-09"
+      ],
+      "scope": "Implement/adopt versioned forms, allowed mappings, save/resume/submissions, private evidence lifecycle, required-category qualification and currentness adapters.",
+      "acceptanceEvidence": "Double submit safe; quarantined/obsolete evidence cannot satisfy requirements.",
+      "crossCuttingTests": [
+        "WS-AT-012",
+        "WS-AT-024",
+        "WS-AT-052",
+        "WS-AT-053"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-12",
+      "title": "External participant sessions",
+      "dependsOn": [
+        "WS-04",
+        "WS-11"
+      ],
+      "scope": "Reuse protected-action exchange for scoped reference tasks; implement expiry/revocation, scanner-safe interaction and source-authorized submissions.",
+      "acceptanceEvidence": "No scanner side effects or access to another applicant; restricted scopes require stronger assurance.",
+      "crossCuttingTests": [
+        "WS-AT-050",
+        "WS-AT-051"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-13",
+      "title": "No-side-effect simulation",
+      "dependsOn": [
+        "WS-02",
+        "WS-06"
+      ],
+      "scope": "Use the real evaluator with synthetic source adapters, virtual clock, explicit safe fixtures and permission-projection previews.",
+      "acceptanceEvidence": "No transport/credential access; production semantics and simulation outcomes align for fixture set.",
+      "crossCuttingTests": [
+        "WS-AT-009",
+        "WS-AT-014",
+        "WS-AT-017",
+        "WS-AT-018"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-14",
+      "title": "Publication and dependency governance",
+      "dependsOn": [
+        "WS-02",
+        "WS-03",
+        "WS-04",
+        "WS-13"
+      ],
+      "scope": "Implement immutable preflights/publications, independent review where required, activation boundary, reverse dependency index and incompatible-reference blocking.",
+      "acceptanceEvidence": "Stale/revoked preflights fail; old runs remain pinned.",
+      "crossCuttingTests": [
+        "WS-AT-003",
+        "WS-AT-033",
+        "WS-AT-036"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-15",
+      "title": "Run amendment and migration",
+      "dependsOn": [
+        "WS-06",
+        "WS-07",
+        "WS-08",
+        "WS-14"
+      ],
+      "scope": "Implement impact diff, source-approved evidence reuse, assignment/deadline edits, structural revisions, cancellation epochs and controlled version migrations.",
+      "acceptanceEvidence": "Per-applicant extra interview changes only that case; no history erase or repeated sends.",
+      "crossCuttingTests": [
+        "WS-AT-029",
+        "WS-AT-030",
+        "WS-AT-034",
+        "WS-AT-035",
+        "WS-AT-037"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-16",
+      "title": "Guided editor and canvas/outline",
+      "dependsOn": [
+        "WS-02",
+        "WS-09",
+        "WS-13",
+        "WS-14"
+      ],
+      "scope": "Build exact base-maia UI, contextual catalog, sentence editor and constrained React Flow AST operations, inspectors, autosave/revision conflict UI and full outline alternative.",
+      "acceptanceEvidence": "Keyboard task succeeds, advanced/simple conversion is lossless, 250-node target measured.",
+      "crossCuttingTests": [
+        "WS-AT-032",
+        "WS-AT-035",
+        "WS-AT-059"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-17",
+      "title": "Run operations and participant journeys",
+      "dependsOn": [
+        "WS-09",
+        "WS-11",
+        "WS-12",
+        "WS-15",
+        "WS-16"
+      ],
+      "scope": "Build staff run overlay and activity, shared My Work, applicant My Journey, safe source milestones, error recovery and low-bandwidth submission UX.",
+      "acceptanceEvidence": "No staff depth leaks; mobile poor-network submission is safe.",
+      "crossCuttingTests": [
+        "WS-AT-005",
+        "WS-AT-052",
+        "WS-AT-060"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-18",
+      "title": "Donation and development packs",
+      "dependsOn": [
+        "WS-05",
+        "WS-09",
+        "WS-10",
+        "WS-14"
+      ],
+      "scope": "Implement source-certified contribution/recognition/recurring predicates, donor and missionary purpose coordination, development hooks and default-off starters.",
+      "acceptanceEvidence": "All DON recipe tests and related MPD tests pass through real source services.",
+      "crossCuttingTests": [
+        "WS-AT-017",
+        "WS-AT-018",
+        "WS-AT-022",
+        "WS-AT-044",
+        "WS-AT-045"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-19",
+      "title": "Mobilization and onboarding pack",
+      "dependsOn": [
+        "WS-11",
+        "WS-12",
+        "WS-15",
+        "WS-17"
+      ],
+      "scope": "Implement inquiry, references/interviews/screening, source decisions, reusable onboarding, training/documents, readiness, withdrawal and amendment blueprints.",
+      "acceptanceEvidence": "MOB recipe tests pass including required references, conditional acceptance and receiving handoff.",
+      "crossCuttingTests": [
+        "WS-AT-012",
+        "WS-AT-024",
+        "WS-AT-025",
+        "WS-AT-034",
+        "WS-AT-058"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-20",
+      "title": "Support Hub rule adoption",
+      "dependsOn": [
+        "WS-05",
+        "WS-09",
+        "WS-10",
+        "WS-14"
+      ],
+      "scope": "Migrate/adopt the existing inert rule vocabulary into Studio; keep contextual settings as views; preserve source clocks, quarantine, threads and collision safety.",
+      "acceptanceEvidence": "GEN support recipes pass; exactly one rules execution owner per active rule.",
+      "crossCuttingTests": [
+        "WS-AT-023",
+        "WS-AT-045",
+        "WS-AT-046",
+        "WS-AT-047"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-21",
+      "title": "Content, events and documents packs",
+      "dependsOn": [
+        "WS-10",
+        "WS-11",
+        "WS-14",
+        "WS-17"
+      ],
+      "scope": "Bind exact-revision approvals, source schedules/capacity/payment classification, translations, renewal and participant training to common primitives.",
+      "acceptanceEvidence": "COM and relevant GEN tests pass; publication and waitlist source outcomes remain truthful.",
+      "crossCuttingTests": [
+        "WS-AT-024",
+        "WS-AT-053",
+        "WS-AT-054"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-22",
+      "title": "Protected finance coordination",
+      "dependsOn": [
+        "WS-01",
+        "WS-04",
+        "WS-07",
+        "WS-09",
+        "WS-14"
+      ],
+      "scope": "Expose approved coordination-only hooks and native settings; disallow prototype correction/replay shortcuts and arbitrary approval graphs.",
+      "acceptanceEvidence": "All FIN tests and source separation-of-duties certification pass.",
+      "crossCuttingTests": [
+        "WS-AT-002",
+        "WS-AT-007",
+        "WS-AT-031",
+        "WS-AT-049"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-23",
+      "title": "Sealed care coordination",
+      "dependsOn": [
+        "WS-04",
+        "WS-10",
+        "WS-11",
+        "WS-17"
+      ],
+      "scope": "Implement invisible-by-default sealed scope, source-qualified roles, safe notifications, private audit and emergency/records handoffs without authority duplication.",
+      "acceptanceEvidence": "CARE tests plus zero-existence-leak and provider handling qualification pass.",
+      "crossCuttingTests": [
+        "WS-AT-005",
+        "WS-AT-006",
+        "WS-AT-008",
+        "WS-AT-048",
+        "WS-AT-064"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-24",
+      "title": "Portability, upgrades and rollout",
+      "dependsOn": [
+        "WS-14",
+        "WS-15",
+        "WS-16"
+      ],
+      "scope": "Implement inert template export/import with rebinding, versioned action compatibility, shadow migration of legacy rules, bounded canary enablement and rollback.",
+      "acceptanceEvidence": "No imported code/tenant IDs; source effect identities survive cutover; no dual-running engines.",
+      "crossCuttingTests": [
+        "WS-AT-021",
+        "WS-AT-036",
+        "WS-AT-037",
+        "WS-AT-063"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-25",
+      "title": "Observability, load and recovery",
+      "dependsOn": [
+        "WS-07",
+        "WS-08",
+        "WS-17"
+      ],
+      "scope": "Implement safe metrics, independent outage heartbeat, due-work and outcome recovery, fair admission, cost instrumentation, restore suppression and operator runbooks.",
+      "acceptanceEvidence": "Fault drills and documented performance/load targets pass with actual provider configuration.",
+      "crossCuttingTests": [
+        "WS-AT-043",
+        "WS-AT-055",
+        "WS-AT-056",
+        "WS-AT-057"
+      ],
+      "status": "not_started"
+    },
+    {
+      "id": "WS-26",
+      "title": "Acceptance, pilot and release evidence",
+      "dependsOn": [
+        "WS-18",
+        "WS-19",
+        "WS-20",
+        "WS-21",
+        "WS-22",
+        "WS-23",
+        "WS-24",
+        "WS-25"
+      ],
+      "scope": "Execute all required suites, source adapter checks, accessibility tests and representative-tenant pilot; document unresolved gates honestly; use staged source-ready rollout.",
+      "acceptanceEvidence": "Repository validation and review accepted; no critical findings; release/rollback evidence attached.",
+      "crossCuttingTests": [
+        "WS-AT-001",
+        "WS-AT-059",
+        "WS-AT-060"
+      ],
+      "status": "not_started"
+    }
+  ]
+}

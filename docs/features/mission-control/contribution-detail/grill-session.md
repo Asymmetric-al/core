@@ -1,5 +1,13 @@
 # Contribution Detail — grill session notes
 
+> **Historical grill record; applicability reconciled 2026-09-16.** The
+> [current owner map](README.md) identifies later Phase 13/12 money and approval
+> decisions, Phase 16 recurring ownership, and Phase 7/17/18/19 document and
+> communication boundaries. Original decisions and code observations below
+> remain dated evidence; Campaign-as-Fund, donation-row/adjustment target and
+> default second approval are superseded in their stated scope. This record
+> does not reopen those choices or prove the target implementation shipped.
+
 > **Note (2026-07-06):** The CRM/Twenty post state and repost/retry actions
 > referenced in this document target the now-retired Twenty pipeline and are
 > dormant per

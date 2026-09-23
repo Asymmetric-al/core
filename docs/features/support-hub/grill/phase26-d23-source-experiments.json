@@ -1,0 +1,135 @@
+{
+  "checkedAt": "2026-09-12T09:10:07.035Z",
+  "method": "Isolated installed-source experiment: imported exact shared createDefaultExtensions and installed Tiptap createNodeFromContent/getSchema; no browser, production data, save, send or runtime source mutation.",
+  "tiptapVersion": "3.22.3",
+  "results": [
+    {
+      "name": "heading_accepted_without_heading_toolbar",
+      "accepted": true,
+      "output": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 1
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Fixture heading"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "code_block_accepted_without_code_toolbar",
+      "accepted": true,
+      "output": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "codeBlock",
+            "attrs": {
+              "language": null
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Fixture code"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "external_image_accepted_without_image_toolbar",
+      "accepted": true,
+      "output": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "image",
+            "attrs": {
+              "src": "https://example.invalid/fixture.png",
+              "alt": "Fixture image",
+              "title": null,
+              "width": "100%",
+              "height": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown_attribute_silently_discarded_by_prosemirror_schema",
+      "accepted": true,
+      "output": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Fixture text"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown_node_rejected_with_explicit_validation",
+      "accepted": false,
+      "error": "[tiptap error]: Invalid JSON content"
+    }
+  ],
+  "serializerExperiments": [
+    {
+      "name": "current_signature_serializes_supplied_agent_email_without_public_email_distinction",
+      "output": {
+        "text": "Fixture Responder\nFixture title\nprivate-login@example.invalid",
+        "html": "Fixture Responder<br/>Fixture title<br/>private-login@example.invalid"
+      }
+    },
+    {
+      "name": "current_signature_omitted_from_json_but_present_in_html_and_text",
+      "output": {
+        "json": {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Fixture reply"
+                }
+              ]
+            }
+          ]
+        },
+        "html": "<p>Fixture reply</p>\n<p class=\"support-signature\">--<br/>Fixture Responder<br/>private-login@example.invalid</p>",
+        "text": "Fixture reply\n\n--\nFixture Responder\nprivate-login@example.invalid",
+        "attachments": []
+      }
+    }
+  ],
+  "sourceHashes": {
+    "packages/ui/components/shadcn/rich-text-editor/extensions.ts": "df7ae7eb65cd85f783b879f20f387ef3395cbf1168768cf6887706c4f138680d",
+    "packages/ui/components/shadcn/rich-text-editor/rich-text-editor.tsx": "72de26bf96b40c16cb6f085f221abcb98ed2415e319a8cf5154ce05b543d266f",
+    "packages/ui/components/shadcn/rich-text-editor/image-view.tsx": "1df7e92a2b960fd31924d57903103095cd4bb26c3bd4a632871ef186a16afa64",
+    "apps/admin/features/support-hub/components/detail/composer/SupportTipTapEditor.tsx": "f89d84d041a344ec91f6344d1efa6342adec3f6d88e2844bb309c78a121affab",
+    "apps/admin/features/support-hub/components/detail/composer/serialize-payload.ts": "ef068aa25719b47057500c6e29f9f4fe8e71c5567946fbe7f895590efa0cea60"
+  },
+  "limits": [
+    "This proves shared schema admissibility and parser behavior for five synthetic JSON cases plus two current pure serializer cases, not actual UI paste, server acceptance, XSS exploitability, database/RLS safety, email rendering, or provider delivery.",
+    "No network fetch of fixture image performed.",
+    "An allowed external-image node is not by itself proof that sending permits external assets.",
+    "No proposed D23 profile or shared compiler implemented or tested."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-11",
+  "status": "passed",
+  "cliVersion": "resend-cli v2.16.0",
+  "mode": "installed CLI input validation and request construction only",
+  "syntheticRequest": {
+    "dryRun": true,
+    "request": {
+      "from": "Example Ministry Support <support@example.test>",
+      "to": ["requester@example.test"],
+      "subject": "Re: Help with my account",
+      "html": "<p>Thanks for contacting Example Ministry.</p><p>We\u2019ve received your message. You can reply to this email if you need to add anything.</p><p>Automatic confirmation \u00b7 Example Ministry</p>",
+      "text": "Thanks for contacting Example Ministry.\n\nWe\u2019ve received your message. You can reply to this email if you need to add anything.\n\nAutomatic confirmation \u00b7 Example Ministry",
+      "replyTo": "support+opaque-example@example.test",
+      "headers": {
+        "In-Reply-To": "<original@example.test>",
+        "References": "<original@example.test>",
+        "Auto-Submitted": "auto-replied",
+        "X-Auto-Response-Suppress": "All"
+      }
+    }
+  },
+  "checks": [
+    "dryRun true",
+    "one synthetic recipient",
+    "HTML and plain text supplied",
+    "original RFC threading references retained",
+    "automatic response headers retained",
+    "opaque reply route retained; stable idempotency key argument supplied (transport option omitted by dry-run output)"
+  ],
+  "sourceHashes": {
+    "packages/email/resend.ts": "3ee9089037a5a9bcf03f771c77a03b65353e2cf5722e200bc3a779a26074c784",
+    "packages/api/src/email/consent.ts": "8ff113eb8df1874bd58a46ac932f485ffac2f811ceb1a342f80b0fa02badb571",
+    "packages/api/src/email/template-test-send.ts": "2ea57861a14eb6d31c8d3e66222e26ddd985a5faeaebde2b7cc916d83c8bc54c",
+    "packages/api/src/email/template-store.ts": "92e5e57b893dc202429a02159d343bbfad682e56264125c6f8a59c42279eaebe",
+    "packages/api/src/admin/support-hub/adapter/supabase.ts": "17666d3087ce4e86c7386874bdf42d4ef491b6e35fa53384fa77bdd32e7b6cb6"
+  },
+  "limits": "No provider/API call, credentials read, real email, publication, template renderer execution, database/RLS/concurrency/SMTP/MIME/client threading or delivery proof. HTML is an illustrative output, not a Core Email Studio published artifact.",
+  "idempotencyKeyArgument": "dryrun-d13-immutable-envelope-example"
+}

@@ -1,51 +1,48 @@
 # Design: Complete Twenty CRM Retirement
 
-## Context
+## Current architecture
 
-Live CRM notes `GET` Twenty `notes` and `POST` enqueue `crm_outbound_jobs` with
-`twentyObjectName: "notes"`. Relationships fan out Twenty objects (people,
-companies, churches, households, relationshipCommitments, ministryActivities).
-There is no `crm_notes` table today. ADR-0001 already retires Twenty.
+Asym Postgres owns CRM truth. Native notes and relationships run through
+`packages/api/src/admin/crm/notes/**` and `relationships/**`, with tenant,
+permission and restricted-data checks. Notes persist in `crm_notes` and return
+the authoritative local record; no queued-to-Twenty result or vendor request is
+part of the accepted contract. The implementation merged through PR #1325 on
+2026-08-19; AL-1861 synchronizes the durable specification and current prose.
 
-Phase 9 party/identity spine, `crm_command_logs`, `crm_merge_candidates`, and
-`crm_record_links` stay. Reuse them. Do not duplicate models.
+## Historical transition
+
+Before that replacement, notes queried Twenty and queued `crm_outbound_jobs`;
+relationships read vendor objects and `crm_notes` did not yet exist. Those
+observations describe the pre-retirement source, not today's baseline. Original
+proofs and the archived integration package remain dated historical evidence.
 
 ## Decisions
 
-- Relationships: local Asym Postgres reads through `packages/api`, tenant and
-  role isolation, search/pagination, care-sensitive exclusion, native source
-  labels. No `mode: "twenty"`.
-- Notes: authenticate, validate, insert into a tenant-owned local table,
-  audit via `crm_command_logs`, return the persisted note, immediately
-  readable. Restricted visibility stays. No Twenty outbound job.
-- Forward migrations only. `ENABLE` and `FORCE` RLS. Composite tenant keys.
-- After replacements are proven, delete Twenty client, gateway, health,
-  webhooks, mapping, projections, sync, env fields, and `verify:twenty-crm-health`.
-- Outbound queue: inspect consumers. If `staged-gifts` is the only leftover
-  and has no current non-Twenty consumer, remove the dormant Twenty-named
-  queue rather than keeping a speculative provider-sync framework.
-- `crm_record_links` remains, made provider-neutral if a Twenty-named CHECK
-  remains.
-- Non-regression: extend `scripts/verify/data-boundary-check.mjs` rather than
-  a new scanner. Allow ADR-0001, archives, dated evidence, the guard's
-  fixtures, and explicit retirement docs.
-- Do not rewrite `openspec/changes/archive/2026-07-02-integrate-twenty-crm-core/`.
-  It already carries a RETIRED warning.
-- External Vercel `TWENTY_*` and Twenty Cloud key/workspace cleanup happens
-  only with authenticated tooling. If credentials are missing, record an
-  exact human checklist. Never log secret values.
+- Relationships use local Asym reads, scoped search/pagination and native source
+  labels. Apply current tenant/role visibility and care-sensitive exclusions.
+- Notes authenticate and authorize, validate, insert locally, record the
+  required command audit and return a persisted record immediately readable
+  through the same scoped contract. Do not enqueue a vendor sync operation.
+- Preserve forward-only migrations, RLS and composite tenant keys. Do not drop
+  generalized command/merge/link records or reinterpret historical identifiers
+  as live Twenty ownership. Any remaining compatibility cleanup follows its
+  source-owned migration with evidence; it is not an automatic schema rewrite.
+- Do not restore vendor clients, gateway, health, webhook, mapping, projection,
+  queue, sync or environment machinery. Use the existing data-boundary guard;
+  historical evidence and the guard's negative fixtures are not live dependencies.
+- External variable/key/workspace cleanup requires exact authorized environment
+  inspection. Its unverified status stays explicit in `tasks.md`.
 
 ## Affected surfaces
 
-- `packages/api/src/admin/crm/notes/**`
-- `packages/api/src/admin/crm/relationships/**`
-- `packages/database` hooks, `packages/env` schema
-- Admin CRM pages under `apps/admin`
-- Supabase migrations and generated types
-- Verification scripts and unit tests
+- `packages/api/src/admin/crm/notes/**` and `relationships/**`
+- `packages/database` hooks, `packages/env` schema and native Admin CRM pages
+- Historical forward migrations, verification scripts and tests
+- Durable `crm-core` and the retired integration documentation
 
-## Rollback
+## Recovery
 
-Keep forward migrations reversible by not dropping generalized Asym tables.
-Restore previous API services only from git. Do not reintroduce Twenty
-credentials.
+Restore only a proved native Asym CRM version that preserves tenant, permission,
+audit and data compatibility. Never roll back to pre-retirement Twenty services
+or credentials. Keep source-owned records and forward migration history intact;
+deployment or external cleanup requires its own evidence.
