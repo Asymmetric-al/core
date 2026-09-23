@@ -300,6 +300,12 @@
       "skillPath": "skills/next-dev-loop/SKILL.md",
       "computedHash": "aad97b32ba6efd31e92d063ec77120a694fe0d4a9401daf9af4c205cd5e21b07"
     },
+    "nextjs-app-architecture": {
+      "source": "aurorascharff/nextjs-app-architecture-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "94f700fb57aef401e135ddbb0d13a2986d6416820ee4e1b2bf1fd8e17fae0d66"
+    },
     "npm-deps-cleanup": {
       "source": "anthonyshew/dotfiles",
       "sourceType": "github",
