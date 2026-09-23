@@ -1,36 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { validateProductionSource } from "../../../scripts/verify/deployment-discipline.mjs";
+import { validateProductionSource } from "../../../scripts/release/production.mjs";
 
 const headSha = "a".repeat(40);
 
 describe("production source", () => {
-  it("accepts only a Core head already reachable from develop", () => {
+  it("accepts a release head already reachable from fetched develop", () => {
     const isAncestor = vi.fn(() => true);
-    expect(
-      validateProductionSource({
-        headRepository: "Asymmetric-al/core",
-        headSha,
-        isAncestor,
-      }),
-    ).toBe(true);
-    expect(isAncestor).toHaveBeenCalledWith(headSha, "origin/develop");
+    expect(validateProductionSource({ headSha, isAncestor })).toBe(true);
+    expect(isAncestor).toHaveBeenCalledWith(headSha, "FETCH_HEAD");
   });
 
   it.each([
-    ["outside/core", headSha, true],
-    ["Asymmetric-al/core", "bad", true],
-    ["Asymmetric-al/core", headSha, false],
-  ])(
-    "blocks an invalid or unpromoted head",
-    (headRepository, sha, ancestor) => {
-      expect(
-        validateProductionSource({
-          headRepository,
-          headSha: sha,
-          isAncestor: () => ancestor,
-        }),
-      ).toBe(false);
-    },
-  );
+    ["bad", true],
+    [headSha, false],
+  ])("blocks an invalid or unpromoted head", (sha, ancestor) => {
+    expect(
+      validateProductionSource({
+        headSha: sha,
+        isAncestor: () => ancestor,
+      }),
+    ).toBe(false);
+  });
 });

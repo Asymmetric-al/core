@@ -20,6 +20,7 @@ import {
 } from "eve/channels/github";
 
 import {
+  APPROVED_PR_AUTOMATION_BOT_IDS,
   approvedCommandAppIds,
   authorizeEveGithubActor,
   authorizeEveGithubCheckSuite,
@@ -73,14 +74,27 @@ function accountableTrigger(ctx: GitHubInboundContext): string {
   return `github_sender:${ctx.sender.id}:delivery:${ctx.delivery.id}`;
 }
 
-function githubReviewAuth(ctx: GitHubInboundContext) {
+function githubReviewAuth(ctx: GitHubInboundContext, appProof?: unknown) {
   const auth = defaultGitHubAuth(ctx);
+  const proof =
+    appProof && typeof appProof === "object" && !Array.isArray(appProof)
+      ? (appProof as Record<string, unknown>)
+      : null;
+  const attributes: Record<string, string | readonly string[]> = {
+    ...auth.attributes,
+    session_purpose: "github_review",
+  };
+  if (
+    ctx.sender.type === "Bot" &&
+    typeof proof?.id === "number" &&
+    typeof proof.slug === "string"
+  ) {
+    attributes.authorized_app_id = String(proof.id);
+    attributes.authorized_app_slug = proof.slug;
+  }
   return {
     ...auth,
-    attributes: {
-      ...auth.attributes,
-      session_purpose: "github_review",
-    },
+    attributes,
   };
 }
 
@@ -350,14 +364,18 @@ const botName =
 async function authorizedSender(
   ctx: GitHubInboundContext,
   appProof?: unknown,
+  approvedBotAccountIds?: ReadonlySet<number>,
 ): Promise<boolean> {
   return authorizeEveGithubActor({
     actor: ctx.sender,
     appProof,
+    approvedBotAccountIds,
     approvedAppIds: approvedCommandAppIds(
       process.env.EVE_APPROVED_COMMAND_APP_IDS,
     ),
     request: (input) => ctx.github.request(input),
+    onLookupError: () =>
+      console.error("[eve/github] authorization service unavailable"),
   });
 }
 
@@ -370,6 +388,8 @@ export default githubChannel({
   },
   async onComment(ctx, comment) {
     if (ctx.repository.fullName !== CORE_REPOSITORY) return null;
+    // Eve's own review comments cannot start a second Eve turn.
+    if (ctx.sender.id === 299_239_962) return null;
     if (
       ctx.conversation.kind === "issue" ||
       !isBotMention(comment.body, botName)
@@ -399,7 +419,7 @@ export default githubChannel({
     );
     return allowed
       ? {
-          auth: githubReviewAuth(ctx),
+          auth: githubReviewAuth(ctx, comment.raw.performed_via_github_app),
           context: [
             REVIEW_SOURCE_PROVENANCE,
             EVE_GITHUB_REVIEW_OUTPUT_INSTRUCTIONS,
@@ -415,7 +435,10 @@ export default githubChannel({
   async onPullRequest(ctx, pullRequest) {
     if (ctx.repository.fullName !== CORE_REPOSITORY) return null;
     if (!REVIEW_TRIGGER_ACTIONS.has(pullRequest.action)) return null;
-    if (!(await authorizedSender(ctx))) return null;
+    if (
+      !(await authorizedSender(ctx, undefined, APPROVED_PR_AUTOMATION_BOT_IDS))
+    )
+      return null;
     if (
       !(await preflightEveGithubReview({
         github: ctx.github,

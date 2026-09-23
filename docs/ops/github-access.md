@@ -19,6 +19,12 @@ commands when the signed event identifies the App. Bot-like names alone do not
 confer authority. Webhook receiver, event sender, and executing agent are
 separate principals.
 
+Signed PR events from the installed Cursor, Codex Connector, Eve, and Core PR
+Loop App bot account IDs may initiate governed Eve review. Comment commands
+require GitHub's
+`performed_via_github_app` proof and an App ID in
+`EVE_APPROVED_COMMAND_APP_IDS`; an empty setting denies bot comment commands.
+
 The installed `asymmetric-core-eve` App currently has repository `Metadata:
 read` but no organization `Members: read`. Its owner must add that organization
 permission and accept the installation permission update before human GitHub

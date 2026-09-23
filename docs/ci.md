@@ -5,10 +5,10 @@
 Two workflow files run on every PR base, including internal stacked branches,
 and on every push to `develop` and `production`:
 
-| Workflow          | File                                   | Branches                                        | Jobs                                            | Target time               |
-| ----------------- | -------------------------------------- | ----------------------------------------------- | ----------------------------------------------- | ------------------------- |
-| Fast checks       | `.github/workflows/ci.yml`             | all PR bases; pushes on `develop`, `production` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
-| Integration + E2E | `.github/workflows/ci-integration.yml` | all PR bases; pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
+| Workflow          | File                                   | Branches                                        | Jobs                                                                         | Target time               |
+| ----------------- | -------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | all PR bases; pushes on `develop`, `production` | `format`, `integrity`, `lint`, `typecheck`, `build`, `test-unit` → `ci-gate` | < 4 min with remote cache |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | all PR bases; pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`                                | ~5–25 min                 |
 
 Current workflow semantics:
 
@@ -92,8 +92,9 @@ the production release command:
 bun run release:production
 ```
 
-The release command checks deployment discipline, local CI
-preflight, and deployment impact before pushing `HEAD` to `origin/production`.
+The release command checks deployment discipline, local CI preflight, and that
+`HEAD` is already reachable from fetched `develop`, then summarizes deployment
+impact before pushing to `origin/production`.
 Emergency bypasses require an explicit reason:
 
 ```bash
@@ -164,32 +165,40 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `format`
 
-- _What it checks:_ Runs `bun run format:check` (Prettier), `bun run skills:verify`
-  (skill mirrors), `bun run verify:phase25-spec`, `bun run openspec:validate`,
-  and `bun run verify:openspec-deltas`.
-- _Why it exists:_ Prevents formatting, mirror, and specification drift.
+- _What it checks:_ Runs `bun run format:check` (Prettier).
+- _Why it exists:_ Reports formatting problems as formatting problems.
 - _Debug locally:_ Run `bun run format:check`; if needed run `bun run format`.
-  Check mirrors with `bun run skills:verify` and run the scoped spec checks.
 
-### `lint` (needs: `format`)
+### `integrity`
+
+- _What it checks:_ Runs `bun run skills:verify` (skill mirrors),
+  `bun run verify:phase25-spec`, `bun run openspec:validate`, and
+  `bun run verify:openspec-deltas`.
+- _Why it exists:_ Prevents mirror and specification drift under its own check
+  name. `ci-gate` requires it alongside format, lint, typecheck, build, and unit
+  tests.
+- _Debug locally:_ Run the failing integrity command directly. Intentional
+  skill changes use `bun run skills:sync` before `bun run skills:verify`.
+
+### `lint`
 
 - _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract over live source; gitignored Eve `.eve`, `.nitro`, and `.output` generated trees are excluded), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:bun-lock-drift` (every workspace `package.json` dependency key and range is recorded in the matching `bun.lock` `workspaces` block), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails) and `bun run verify:shadcn-diff` (component drift guard).
 - _Why it exists:_ Enforces consistent code quality and prevents architecture, workspace, and ESLint config drift.
 - _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:bun-lock-drift`, `bun run verify:eslint`, `bun run verify:shadcn-config`, and `bun run verify:shadcn-diff`.
 
-### `typecheck` (needs: `lint`)
+### `typecheck`
 
 - _What it checks:_ Runs `bun run typecheck` (Turborepo → `tsc --noEmit` across all apps and packages).
 - _Why it exists:_ Catches type errors that TypeScript strict mode would surface at compile time but not at runtime.
 - _Debug locally:_ Run `bun run typecheck`. Per-app: `bun run typecheck:donor`, `bun run typecheck:admin`, `bun run typecheck:missionary`.
 
-### `build` (needs: `typecheck`)
+### `build`
 
 - _What it checks:_ Runs `bun run build` (Turborepo → `next build` for all apps). The script applies CI-equivalent env defaults (`SKIP_ENV_VALIDATION=1`, stub Supabase keys, and a stub `PAYLOAD_SECRET`) when missing.
 - _Why it exists:_ Catches bundle errors, missing imports, and Next.js build-time failures that type-checking alone cannot catch.
 - _Debug locally:_ Run `bun run build` for CI-equivalent behavior, or `bun run build:strict` to validate with real local env values only.
 
-### `test-unit` (needs: `build`)
+### `test-unit`
 
 - _What it checks:_ Runs `bun run test:unit` (Vitest with coverage enabled, targets `tests/unit/**/*.test.ts(x)`, `environment: "node"`).
 - _Artifacts:_ Uploads generated `coverage/` as `unit-test-coverage` (`if-no-files-found: ignore`, retained for 7 days). Current development output includes `coverage-summary.json`, `coverage-final.json`, `v8-raw-coverage.json`, and `coverage-warnings.log`.

@@ -40,6 +40,23 @@ jobs:
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
       - run: bun ci --no-cache --backend=copyfile
       - run: bun run format:check
+
+  integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install system dependencies (canvas)
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun ci --no-cache --backend=copyfile
       - run: bun run skills:verify
       - run: bun run verify:phase25-spec
       - run: bun run openspec:validate
@@ -188,12 +205,13 @@ jobs:
 
   ci-gate:
     if: always()
-    needs: [format, lint, typecheck, build, test-unit]
+    needs: [format, integrity, lint, typecheck, build, test-unit]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if any prerequisite check failed
         run: |
           echo "format: ${{ needs.format.result }}"
+          echo "integrity: ${{ needs.integrity.result }}"
           echo "lint: ${{ needs.lint.result }}"
           echo "typecheck: ${{ needs.typecheck.result }}"
           echo "build: ${{ needs.build.result }}"
@@ -202,6 +220,7 @@ jobs:
           failed=0
           for result in \
             "${{ needs.format.result }}" \
+            "${{ needs.integrity.result }}" \
             "${{ needs.lint.result }}" \
             "${{ needs.typecheck.result }}" \
             "${{ needs.build.result }}" \
@@ -225,10 +244,21 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
       - name: Verify production source is already on develop
         env:
           CORE_PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
           CORE_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          set -euo pipefail
+          if [ "$CORE_PR_HEAD_REPOSITORY" != 'Asymmetric-al/core' ]; then
+            echo 'Production source must be a Core branch.'
+            exit 1
+          fi
+          if [[ ! "$CORE_PR_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'Production source SHA is invalid.'
+            exit 1
+          fi
           git fetch --no-tags origin develop:refs/remotes/origin/develop
-          node scripts/verify/deployment-discipline.mjs --production-source
+          GIT_NO_REPLACE_OBJECTS=1 git merge-base --is-ancestor \
+            "$CORE_PR_HEAD_SHA" refs/remotes/origin/develop

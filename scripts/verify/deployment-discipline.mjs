@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -14,36 +14,6 @@ const DEFAULT_SCOPE = "asymmetric-al";
 const PRODUCTION_BRANCH = "production";
 const DEVELOPMENT_BRANCH = "develop";
 const REQUIRED_BUILD_QUEUE_CONFIGURATION = "WAIT_FOR_NAMESPACE_QUEUE";
-
-export function validateProductionSource({
-  headRepository,
-  headSha,
-  isAncestor,
-}) {
-  return (
-    headRepository === DEFAULT_REPO &&
-    /^[0-9a-f]{40}$/u.test(headSha) &&
-    isAncestor(headSha, "origin/develop")
-  );
-}
-
-function checkProductionSource() {
-  const headSha = process.env.CORE_PR_HEAD_SHA ?? "";
-  const headRepository = process.env.CORE_PR_HEAD_REPOSITORY ?? "";
-  const allowed = validateProductionSource({
-    headRepository,
-    headSha,
-    isAncestor: (commit, ref) =>
-      spawnSync("git", ["merge-base", "--is-ancestor", commit, ref], {
-        stdio: "ignore",
-      }).status === 0,
-  });
-  if (!allowed)
-    throw new Error(
-      "Production source must be a Core commit already reachable from develop.",
-    );
-  console.log("Production source is reachable from develop.");
-}
 
 export const EXPECTED_IGNORE_COMMANDS = Object.freeze({
   admin: "node ../../scripts/vercel/should-ignore-build.mjs admin",
@@ -381,10 +351,6 @@ Options:
 }
 
 async function main() {
-  if (process.argv.includes("--production-source")) {
-    checkProductionSource();
-    return;
-  }
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     printHelp();

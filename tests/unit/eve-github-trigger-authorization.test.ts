@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  APPROVED_PR_AUTOMATION_BOT_IDS,
   authorizeEveGithubActor,
   authorizeEveGithubCheckSuite,
 } from "../../packages/eve-runtime/src/github/authorize-trigger";
@@ -51,14 +52,17 @@ describe("Eve GitHub trigger authorization", () => {
         request: github("inactive", "write"),
       }),
     ).toBe(false);
+    const onLookupError = vi.fn();
     expect(
       await authorizeEveGithubActor({
         actor,
         request: async () => {
           throw new Error("Members: read unavailable");
         },
+        onLookupError,
       }),
     ).toBe(false);
+    expect(onLookupError).toHaveBeenCalledOnce();
   });
 
   it("rejects mismatched numeric identity and bot-name spoofing", async () => {
@@ -95,6 +99,23 @@ describe("Eve GitHub trigger authorization", () => {
         appProof: { id: 4321, slug: "unknown" },
         approvedAppIds,
         request,
+      }),
+    ).toBe(false);
+  });
+
+  it("accepts a configured immutable App bot account on signed PR events", async () => {
+    expect(
+      await authorizeEveGithubActor({
+        actor: { id: 206_951_365, login: "cursor[bot]", type: "Bot" },
+        approvedBotAccountIds: APPROVED_PR_AUTOMATION_BOT_IDS,
+        request: github("inactive", "none"),
+      }),
+    ).toBe(true);
+    expect(
+      await authorizeEveGithubActor({
+        actor: { id: 999, login: "cursor[bot]", type: "Bot" },
+        approvedBotAccountIds: APPROVED_PR_AUTOMATION_BOT_IDS,
+        request: github("inactive", "none"),
       }),
     ).toBe(false);
   });

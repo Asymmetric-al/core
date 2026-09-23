@@ -15,12 +15,26 @@ describe("commit metadata is not a development gate", () => {
       expect(source).not.toContain("verify:git-attribution");
     }
     expect(ci).toContain("bun run format:check");
-    expect(ci).toContain("needs: [format, lint, typecheck, build, test-unit]");
+    expect(ci).toContain(
+      "needs: [format, integrity, lint, typecheck, build, test-unit]",
+    );
+    const format = ci.slice(
+      ci.indexOf("  format:"),
+      ci.indexOf("  integrity:"),
+    );
+    expect(format).toContain("bun run format:check");
+    expect(format).not.toMatch(
+      /bun run (skills:verify|openspec:validate|verify:phase25-spec)/u,
+    );
     for (const gate of ["lint", "typecheck", "build", "test:unit"]) {
       expect(preflight).toContain(`script: "${gate}"`);
     }
     expect(existsSync("scripts/verify/git-attribution.mjs")).toBe(false);
     expect(existsSync("scripts/git/trusted-identities.mjs")).toBe(false);
+    expect(release).toContain(
+      "assertReleaseSourceIsOnDevelop(args.remote, commit)",
+    );
+    expect(ci).toContain("ref: ${{ github.event.pull_request.base.sha }}");
   });
 
   it("runs normal CI for automation PRs against any internal base branch", () => {

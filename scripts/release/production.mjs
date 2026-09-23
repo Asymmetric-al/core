@@ -102,6 +102,29 @@ function readChangedFiles(remote) {
   return changed.split(/\r?\n/).filter(Boolean);
 }
 
+export function validateProductionSource({ headSha, isAncestor }) {
+  return /^[0-9a-f]{40}$/u.test(headSha) && isAncestor(headSha, "FETCH_HEAD");
+}
+
+function assertReleaseSourceIsOnDevelop(remote, commit) {
+  run("git", ["fetch", "--no-tags", remote, DEVELOPMENT_BRANCH], {
+    inherit: true,
+  });
+  const valid = validateProductionSource({
+    headSha: commit,
+    isAncestor: (headSha, developRef) =>
+      spawnSync("git", ["merge-base", "--is-ancestor", headSha, developRef], {
+        stdio: "ignore",
+        env: { ...process.env, GIT_NO_REPLACE_OBJECTS: "1" },
+      }).status === 0,
+  });
+  if (!valid) {
+    throw new Error(
+      `production release requires HEAD to be reachable from ${remote}/${DEVELOPMENT_BRANCH}`,
+    );
+  }
+}
+
 export function summarizeDeploymentImpact(changedFiles) {
   const apps = Object.keys(APPS);
   return apps.map((app) => {
@@ -170,6 +193,8 @@ async function main() {
     "verify:deployment-discipline",
   ]);
   runGate("run CI preflight", "bun", ["run", "ci:preflight"]);
+
+  assertReleaseSourceIsOnDevelop(args.remote, commit);
 
   const changedFiles = readChangedFiles(args.remote);
   const impact = summarizeDeploymentImpact(changedFiles);

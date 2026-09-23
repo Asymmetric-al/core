@@ -2,6 +2,12 @@
 const CORE = "/repos/Asymmetric-al/core";
 const WRITE_ROLES = new Set(["write", "maintain", "admin"]);
 const GITHUB_ACTIONS_APP_ID = 15368;
+// Numeric GitHub bot accounts for the installed Cursor, Codex Connector, Eve,
+// and Core PR Loop Apps.
+// This is used only for signed PR events, which lack performed_via_github_app.
+export const APPROVED_PR_AUTOMATION_BOT_IDS: ReadonlySet<number> = new Set([
+  206_951_365, 199_175_422, 299_239_962, 301_899_336,
+]);
 
 type GithubResponse = { body: unknown; status: number };
 type GithubRequest = (input: {
@@ -34,6 +40,8 @@ export async function authorizeEveGithubActor(input: {
   actor: GithubActor;
   appProof?: unknown;
   approvedAppIds?: ReadonlySet<number>;
+  approvedBotAccountIds?: ReadonlySet<number>;
+  onLookupError?: (error: unknown) => void;
   request: GithubRequest;
 }): Promise<boolean> {
   const { actor, request } = input;
@@ -43,10 +51,11 @@ export async function authorizeEveGithubActor(input: {
   if (actor.type === "Bot") {
     const proof = record(input.appProof);
     return (
-      typeof proof?.id === "number" &&
-      input.approvedAppIds?.has(proof.id) === true &&
-      typeof proof.slug === "string" &&
-      proof.slug.length > 0
+      (typeof proof?.id === "number" &&
+        input.approvedAppIds?.has(proof.id) === true &&
+        typeof proof.slug === "string" &&
+        proof.slug.length > 0) ||
+      input.approvedBotAccountIds?.has(actor.id) === true
     );
   }
   if (actor.type !== "User") return false;
@@ -75,8 +84,9 @@ export async function authorizeEveGithubActor(input: {
       typeof role === "string" &&
       WRITE_ROLES.has(role.toLowerCase())
     );
-  } catch {
+  } catch (error) {
     // An unavailable Members:read or Metadata:read API fails this command only.
+    if (record(error)?.status !== 404) input.onLookupError?.(error);
     return false;
   }
 }

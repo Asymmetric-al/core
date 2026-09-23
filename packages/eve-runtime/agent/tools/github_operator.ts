@@ -5,7 +5,10 @@ import {
 import { defineDynamic, defineTool } from "eve/tools";
 import { z } from "zod";
 
-import { authorizeEveGithubActor } from "../../src/github/authorize-trigger";
+import {
+  approvedCommandAppIds,
+  authorizeEveGithubActor,
+} from "../../src/github/authorize-trigger";
 import { eveGithubRequest } from "../../src/github/client";
 import { isEveGithubOperatorSessionPurpose } from "../../src/github/session-purpose";
 import {
@@ -46,11 +49,20 @@ async function isAuthorizedGithubSender(
   login: string,
   principalId: string,
   userType: string,
+  appId: string | undefined,
+  appSlug: string | undefined,
 ): Promise<boolean> {
   const id = /^github:(\d+)$/u.exec(principalId)?.[1];
   if (!id) return false;
   return authorizeEveGithubActor({
     actor: { id: Number(id), login, type: userType },
+    appProof:
+      appId && appSlug ? { id: Number(appId), slug: appSlug } : undefined,
+    approvedAppIds: approvedCommandAppIds(
+      process.env.EVE_APPROVED_COMMAND_APP_IDS,
+    ),
+    onLookupError: () =>
+      console.error("[eve/github] authorization service unavailable"),
     request: (input) => eveGithubRequest({ ...input, installationId }),
   });
 }
@@ -64,6 +76,8 @@ export default defineDynamic({
       const deliveryId = auth?.attributes.delivery_id;
       const login = auth?.attributes.user_login;
       const userType = auth?.attributes.user_type;
+      const appId = auth?.attributes.authorized_app_id;
+      const appSlug = auth?.attributes.authorized_app_slug;
       const sessionPurpose = auth?.attributes.session_purpose;
       const installationId =
         typeof installation === "string" ? Number(installation) : Number.NaN;
@@ -83,6 +97,8 @@ export default defineDynamic({
           login,
           auth.principalId,
           userType,
+          typeof appId === "string" ? appId : undefined,
+          typeof appSlug === "string" ? appSlug : undefined,
         ))
       ) {
         return null;
