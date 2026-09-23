@@ -13,23 +13,23 @@ Never call real external services (APIs, databases, message queues) in unit test
 
 ```typescript
 // Call real APIs in tests
-describe('PaymentService', () => {
-  it('should process payment', async () => {
+describe("PaymentService", () => {
+  it("should process payment", async () => {
     const service = new PaymentService(new StripeClient(realApiKey));
     // Hits real Stripe API!
-    const result = await service.charge('tok_visa', 1000);
+    const result = await service.charge("tok_visa", 1000);
     // Slow, costs money, flaky
   });
 });
 
 // Use real database
-describe('UsersService', () => {
+describe("UsersService", () => {
   beforeEach(async () => {
-    await connection.query('DELETE FROM users'); // Modifies real DB
+    await connection.query("DELETE FROM users"); // Modifies real DB
   });
 
-  it('should create user', async () => {
-    const user = await service.create({ email: 'test@test.com' });
+  it("should create user", async () => {
+    const user = await service.create({ email: "test@test.com" });
     // Side effects on shared database
   });
 });
@@ -45,7 +45,7 @@ const mockHttpService = {
 
 ```typescript
 // Mock HTTP service properly
-describe('WeatherService', () => {
+describe("WeatherService", () => {
   let service: WeatherService;
   let httpService: jest.Mocked<HttpService>;
 
@@ -67,43 +67,45 @@ describe('WeatherService', () => {
     httpService = module.get(HttpService);
   });
 
-  it('should return weather data', async () => {
+  it("should return weather data", async () => {
     const mockResponse = {
       data: { temperature: 72, humidity: 45 },
       status: 200,
-      statusText: 'OK',
+      statusText: "OK",
       headers: {},
       config: {},
     };
 
     httpService.get.mockReturnValue(of(mockResponse));
 
-    const result = await service.getWeather('NYC');
+    const result = await service.getWeather("NYC");
 
     expect(result).toEqual({ temperature: 72, humidity: 45 });
   });
 
-  it('should handle API timeout', async () => {
-    httpService.get.mockReturnValue(
-      throwError(() => new Error('ETIMEDOUT')),
-    );
+  it("should handle API timeout", async () => {
+    httpService.get.mockReturnValue(throwError(() => new Error("ETIMEDOUT")));
 
-    await expect(service.getWeather('NYC')).rejects.toThrow('Weather service unavailable');
+    await expect(service.getWeather("NYC")).rejects.toThrow(
+      "Weather service unavailable",
+    );
   });
 
-  it('should handle rate limiting', async () => {
+  it("should handle rate limiting", async () => {
     httpService.get.mockReturnValue(
       throwError(() => ({
-        response: { status: 429, data: { message: 'Rate limited' } },
+        response: { status: 429, data: { message: "Rate limited" } },
       })),
     );
 
-    await expect(service.getWeather('NYC')).rejects.toThrow(TooManyRequestsException);
+    await expect(service.getWeather("NYC")).rejects.toThrow(
+      TooManyRequestsException,
+    );
   });
 });
 
 // Mock repository instead of database
-describe('UsersService', () => {
+describe("UsersService", () => {
   let service: UsersService;
   let repo: jest.Mocked<Repository<User>>;
 
@@ -127,14 +129,14 @@ describe('UsersService', () => {
     repo = module.get(getRepositoryToken(User));
   });
 
-  it('should find user by id', async () => {
-    const mockUser = { id: '1', name: 'John', email: 'john@test.com' };
+  it("should find user by id", async () => {
+    const mockUser = { id: "1", name: "John", email: "john@test.com" };
     repo.findOne.mockResolvedValue(mockUser);
 
-    const result = await service.findById('1');
+    const result = await service.findById("1");
 
     expect(result).toEqual(mockUser);
-    expect(repo.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+    expect(repo.findOne).toHaveBeenCalledWith({ where: { id: "1" } });
   });
 });
 
@@ -155,17 +157,17 @@ function createMockStripe(): jest.Mocked<Stripe> {
 }
 
 // Mock time for time-dependent tests
-describe('TokenService', () => {
+describe("TokenService", () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-15'));
+    jest.setSystemTime(new Date("2024-01-15"));
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it('should expire token after 1 hour', async () => {
+  it("should expire token after 1 hour", async () => {
     const token = await service.createToken();
 
     // Fast-forward time

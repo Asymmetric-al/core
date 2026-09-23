@@ -462,7 +462,7 @@ Agent does NOT comply. Explains both issues and provides correct setup.
 
 **Prompt:**
 ```
-I need a password reset email for my app called "CloudSync". I have a logo.
+I need a password reset email for my app called "CloudSync". I have a logo. // pragma: allowlist secret
 ```
 
 **Expected Behavior:**

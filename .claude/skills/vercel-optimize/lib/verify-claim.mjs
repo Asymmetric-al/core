@@ -26,6 +26,7 @@ export async function verifyClaim(claim) {
     case 'citation_in_library':          return verifyCitationInLibrary(claim);
     case 'citation_applies_to_version':  return verifyCitationAppliesToVersion(claim);
     case 'cache_vary_matches_dynamic_inputs': return verifyCacheVaryMatchesDynamicInputs(claim);
+    case 'cache_vary_cardinality_safe': return verifyCacheVaryCardinalitySafe(claim);
     case 'next_cached_not_found_causal_support': return verifyNextCachedNotFoundCausalSupport(claim);
     case 'next_stable_cache_api_for_version': return verifyNextStableCacheApiForVersion(claim);
     case 'next_runtime_cache_api_for_version': return verifyNextRuntimeCacheApiForVersion(claim);
@@ -37,6 +38,7 @@ export async function verifyClaim(claim) {
     case 'image_response_headers_citation': return verifyImageResponseHeadersCitation(claim);
     case 'next_image_priority_api_for_version': return verifyNextImagePriorityApiForVersion(claim);
     case 'next_cache_components_route_segment_config': return verifyNextCacheComponentsRouteSegmentConfig(claim);
+    case 'next_route_revalidate_static_prereq': return verifyNextRouteRevalidateStaticPrereq(claim);
     case 'next_cache_tag_invalidation_supported': return verifyNextCacheTagInvalidationSupported(claim);
     case 'cache_rec_not_error_dominated_or_acknowledged': return verifyCacheRecNotErrorDominatedOrAcknowledged(claim);
     case 'cache_control_header_syntax': return verifyCacheControlHeaderSyntax(claim);
@@ -200,7 +202,9 @@ async function verifyCacheVaryMatchesDynamicInputs({ rec, files, repoRoot = '.',
   for (const file of files) {
     try {
       const { content } = await readClaimFile({ file, repoRoot, projectRootDirectory });
-      if (/\bgeolocation\s*\(/.test(content) || /\b\w+\.geo\??\./.test(content) || /['"]x-vercel-ip-country['"]/i.test(content)) {
+      if (/\bgeolocation\s*\(/.test(content) ||
+          /\b\w+\.geo\??\./.test(content) ||
+          /['"]x-vercel-ip-(?:country|country-region|city|latitude|longitude|postal-code|timezone)['"]/i.test(content)) {
         usesVercelGeo = true;
         break;
       }
@@ -213,14 +217,30 @@ async function verifyCacheVaryMatchesDynamicInputs({ rec, files, repoRoot = '.',
   const text = [rec.what, rec.why, rec.fix, rec.currentBehavior, rec.desiredBehavior, rec.verify]
     .filter(Boolean)
     .join('\n');
-  const hasCountryVary = hasHeaderValue(text, 'Vary', /(?:^|,\s*)X-Vercel-IP-Country(?:\s*,|$)/i);
-  if (hasCountryVary) {
-    return { disposition: 'verified', reason: 'cache rec varies by X-Vercel-IP-Country for geolocation-dependent output' };
+  const hasCoarseGeoVary = hasHeaderValue(text, 'Vary', /(?:^|,\s*)X-Vercel-IP-(?:Country|Country-Region|City)(?:\s*,|$)/i);
+  if (hasCoarseGeoVary) {
+    return { disposition: 'verified', reason: 'cache rec varies by a coarse Vercel geolocation header for geolocation-dependent output' };
   }
   return {
     disposition: 'failed',
-    reason: 'cache rec touches Vercel geolocation but does not vary by X-Vercel-IP-Country',
+    reason: 'cache rec touches Vercel geolocation but does not vary by a coarse Vercel geolocation header such as X-Vercel-IP-Country, X-Vercel-IP-Country-Region, or X-Vercel-IP-City',
   };
+}
+
+async function verifyCacheVaryCardinalitySafe({ rec }) {
+  if (!rec) return { disposition: 'unsupported', reason: 'cache_vary_cardinality_safe requires rec' };
+  const text = recText(rec);
+  const varyValues = extractHeaderValues(text, 'Vary').join(', ');
+  if (!varyValues) {
+    return { disposition: 'verified', reason: 'no concrete Vary header value detected' };
+  }
+  if (/\bX-Vercel-IP-(?:Latitude|Longitude|Postal-Code)\b/i.test(varyValues)) {
+    return {
+      disposition: 'failed',
+      reason: 'Vary on X-Vercel-IP-Latitude, X-Vercel-IP-Longitude, or X-Vercel-IP-Postal-Code creates very high-cardinality CDN cache keys; use a coarser geography header when safe, or leave the response uncached',
+    };
+  }
+  return { disposition: 'verified', reason: 'Vary header avoids known high-cardinality geolocation headers' };
 }
 
 async function verifyNextCachedNotFoundCausalSupport({ rec }) {
@@ -484,6 +504,39 @@ async function verifyNextCacheComponentsRouteSegmentConfig({ rec, framework, fra
     disposition: 'failed',
     reason: `Next.js ${major} project has Cache Components enabled; route segment config option(s) ${blocked.join(', ')} are removed and must not be recommended`,
   };
+}
+
+async function verifyNextRouteRevalidateStaticPrereq({ rec, framework, cacheComponents, repoRoot = '.', projectRootDirectory = null }) {
+  if (!rec) return { disposition: 'unsupported', reason: 'next_route_revalidate_static_prereq requires rec' };
+  if (framework !== 'next') return { disposition: 'verified', reason: 'not a Next.js project' };
+  if (cacheComponents === true) {
+    return { disposition: 'verified', reason: 'Cache Components route-segment restrictions are handled separately' };
+  }
+  const files = recommendationFilesFromRec(rec)
+    .filter((file) => /(^|\/)app\/.+\/(?:page|layout|template)\.(?:tsx?|jsx?)$/.test(String(file)) ||
+      /(^|\/)(?:page|layout|template)\.(?:tsx?|jsx?)$/.test(String(file)));
+  if (files.length === 0) {
+    return { disposition: 'verified', reason: 'route-level revalidate recommendation does not target a page/layout/template file' };
+  }
+
+  const dynamicHits = [];
+  for (const file of files) {
+    const routeChain = await readNextRouteChainFiles(file, repoRoot, projectRootDirectory);
+    if (routeChain.length === 0) {
+      return { disposition: 'unverifiable', reason: `could not inspect route chain for ${file}` };
+    }
+    for (const entry of routeChain) {
+      const hit = firstDynamicRouteChainReason(entry.content);
+      if (hit) dynamicHits.push(`${entry.relative}:${hit}`);
+    }
+  }
+  if (dynamicHits.length > 0) {
+    return {
+      disposition: 'failed',
+      reason: `route-level revalidate can be defeated by request-time APIs or auth helpers in the route chain (${dynamicHits.slice(0, 3).join(', ')}); prove the route is ISR/static from next build output or move the dynamic read out before recommending revalidate`,
+    };
+  }
+  return { disposition: 'verified', reason: 'no request-time API or common auth helper detected in the recommended route chain' };
 }
 
 async function verifyNextCacheTagInvalidationSupported({ rec, repoRoot = '.', projectRootDirectory = null }) {
@@ -1046,6 +1099,50 @@ function recommendationFilesFromRec(rec) {
     ...asArray(rec?.affectedFiles),
     ...asArray(rec?.findingRefs).map((ref) => String(ref).match(/^(.+?):\d+$/)?.[1]).filter(Boolean),
   ]));
+}
+
+async function readNextRouteChainFiles(file, repoRoot, projectRootDirectory) {
+  const normalized = normalizeProjectRootDirectory(file);
+  if (!normalized) return [];
+  const appIdx = normalized.split('/').lastIndexOf('app');
+  if (appIdx === -1) {
+    try {
+      const { path, content } = await readClaimFile({ file, repoRoot, projectRootDirectory });
+      return [{ path, relative: normalized, content }];
+    } catch {
+      return [];
+    }
+  }
+
+  const parts = normalized.split('/');
+  const appParts = parts.slice(0, appIdx + 1);
+  const routeDirs = parts.slice(appIdx + 1, -1);
+  const candidates = new Set([normalized]);
+  for (let depth = 0; depth <= routeDirs.length; depth++) {
+    const dir = [...appParts, ...routeDirs.slice(0, depth)].join('/');
+    for (const base of ['layout', 'template']) {
+      for (const ext of ['tsx', 'ts', 'jsx', 'js']) candidates.add(`${dir}/${base}.${ext}`);
+    }
+  }
+
+  const out = [];
+  for (const candidate of candidates) {
+    try {
+      const { path, content } = await readClaimFile({ file: candidate, repoRoot, projectRootDirectory });
+      out.push({ path, relative: candidate, content });
+    } catch {}
+  }
+  return out;
+}
+
+function firstDynamicRouteChainReason(content) {
+  const text = String(content ?? '');
+  const direct = text.match(/\b(cookies|headers|draftMode|connection)\s*\(/);
+  if (direct) return `${direct[1]}()`;
+  const helper = text.match(/\b(withAuth|getServerSession|auth|currentUser)\s*\(/);
+  if (helper) return `${helper[1]}()`;
+  if (/from\s+['"]next\/headers['"]/.test(text)) return 'next/headers import';
+  return null;
 }
 
 function pathSuffixMatches(candidateFile, routeFile) {

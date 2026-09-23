@@ -41,6 +41,14 @@ after upstream refreshes before running `bun run skills:sync`.
 
 <!-- CORE-OVERLAY-END -->
 
+## Initial Response
+
+When this skill is first invoked without a specific question, respond only with:
+
+> I'm ready to review your animations against a high craft bar, my standards come from Emil Kowalski's animation philosophy.
+
+Do not provide any other information until the user asks a question.
+
 A specialized review skill. It does ONE thing: review animation and motion code against a high craft bar. It does not write features, fix unrelated bugs, or review non-motion code. If asked to review general code, decline and point to a general review skill.
 
 ## Operating Posture
@@ -121,7 +129,7 @@ A single markdown table. One row per issue. Never a "Before:/After:" list.
 | `transition: all 300ms`               | `transition: transform 200ms ease-out` | Specify exact properties; `all` animates unintended properties off-GPU    |
 | `transform: scale(0)`                 | `transform: scale(0.95); opacity: 0`   | Nothing appears from nothing — `scale(0)` looks like it came from nowhere |
 | `ease-in` on dropdown                 | `ease-out` + custom curve              | `ease-in` delays the moment the user watches most; feels sluggish         |
-| `transform-origin: center` on popover | `var(--transform-origin)`              | Popovers scale from their trigger, not center (modals are exempt)         |
+| `transform-origin: center` on popover | `var(--transform-origin)` (Base UI)    | Popovers scale from their trigger, not center (modals are exempt)         |
 
 ### Part 2 — Verdict (REQUIRED)
 

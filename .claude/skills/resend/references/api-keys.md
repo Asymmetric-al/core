@@ -1,6 +1,6 @@
 # API Keys
 
-Create, list, and delete API keys programmatically. No get or update endpoints exist.
+Create, list, update, and delete API keys programmatically. No get endpoint exists.
 
 ## SDK Methods
 
@@ -8,6 +8,7 @@ Create, list, and delete API keys programmatically. No get or update endpoints e
 |-----------|---------|--------|
 | Create | `resend.apiKeys.create(params)` | `resend.ApiKeys.create(params)` |
 | List | `resend.apiKeys.list(params?)` | `resend.ApiKeys.list()` |
+| Update | `resend.apiKeys.update(id, params)` | `resend.ApiKeys.update(params)` |
 | Delete | `resend.apiKeys.remove(id)` | `resend.ApiKeys.remove(id)` |
 
 ## Create Parameters
@@ -19,6 +20,12 @@ Create, list, and delete API keys programmatically. No get or update endpoints e
 - `permission`: `"full_access"` (default) or `"sending_access"`
 - `domainId`: only applies when `permission` is `"sending_access"` — scopes the key to a single domain
 - `name`: max 50 characters
+
+## Update Parameters
+
+**Required:** `name`
+
+Only `name` can be changed. `permission` and `domainId` are fixed at creation — recreate the key to change either.
 
 ## Examples
 
@@ -47,6 +54,11 @@ console.log('Key ID:', data.id);
 // List all keys (tokens are NOT included in list response)
 const { data: keys, error: listError } = await resend.apiKeys.list();
 
+// Rename a key (only `name` is patchable)
+const { data: updated, error: updateError } = await resend.apiKeys.update('api_key_id', {
+  name: 'Production Sending Key v2',
+});
+
 // Delete a key
 const { data: deleted, error: deleteError } = await resend.apiKeys.remove('api_key_id');
 ```
@@ -71,6 +83,12 @@ print(f"API Key: {key['token']}")
 # List all keys
 keys = resend.ApiKeys.list()
 
+# Rename a key (only "name" is patchable)
+resend.ApiKeys.update({
+    "id": "api_key_id",
+    "name": "Production Sending Key v2",
+})
+
 # Delete a key
 resend.ApiKeys.remove("api_key_id")
 ```
@@ -80,7 +98,8 @@ resend.ApiKeys.remove("api_key_id")
 | Mistake | Fix |
 |---------|-----|
 | Not storing the token on create | The token is returned **once** — store it immediately |
-| Expecting a get or update endpoint | Neither exists — list returns metadata only (no tokens) |
+| Expecting a get endpoint | Doesn't exist — list returns metadata only (no tokens) |
+| Trying to update `permission` or `domainId` | Only `name` can be patched — recreate the key to change scope |
 | Setting `domainId` with `full_access` | `domainId` only applies to `sending_access` keys |
 | Calling `.delete()` instead of `.remove()` | Node.js SDK uses `.remove()` for all delete operations |
 | Ignoring `error` return | Node.js SDK returns `{ data, error }` — always check `error` |

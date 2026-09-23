@@ -186,9 +186,9 @@ public class LoginTest {
         emailField.clear();
         emailField.sendKeys("user@example.com");
 
-        WebElement passwordField = driver.findElement(By.id("password"));
-        passwordField.clear();
-        passwordField.sendKeys("s3cure!Pass");
+        WebElement passwordField = driver.findElement(By.id("password")); // pragma: allowlist secret
+        passwordField.clear(); // pragma: allowlist secret
+        passwordField.sendKeys("s3cure!Pass"); // pragma: allowlist secret
 
         WebElement loginButton = wait.until(
             ExpectedConditions.elementToBeClickable(By.cssSelector("button[type='submit']"))
@@ -213,7 +213,7 @@ test('user can log in', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('s3cure!Pass');
+  await page.getByLabel('Password').fill('s3cure!Pass'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign In' }).click();
 
   await page.waitForURL('/dashboard');
@@ -229,7 +229,7 @@ test('user can log in', async ({ page }) => {
   await page.goto('/login');
 
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByLabel('Password').fill('s3cure!Pass');
+  await page.getByLabel('Password').fill('s3cure!Pass'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign In' }).click();
 
   await page.waitForURL('/dashboard');
@@ -602,7 +602,7 @@ public class LoginPage {
     private WebDriverWait wait;
 
     private By emailField = By.id("email");
-    private By passwordField = By.id("password");
+    private By passwordField = By.id("password"); // pragma: allowlist secret
     private By loginButton = By.cssSelector("button[type='submit']");
     private By errorMessage = By.cssSelector(".error-message");
 
@@ -611,12 +611,12 @@ public class LoginPage {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
-    public void login(String email, String password) {
+    public void login(String email, String password) { // pragma: allowlist secret
         wait.until(ExpectedConditions.visibilityOfElementLocated(emailField));
         driver.findElement(emailField).clear();
         driver.findElement(emailField).sendKeys(email);
-        driver.findElement(passwordField).clear();
-        driver.findElement(passwordField).sendKeys(password);
+        driver.findElement(passwordField).clear(); // pragma: allowlist secret
+        driver.findElement(passwordField).sendKeys(password); // pragma: allowlist secret
         driver.findElement(loginButton).click();
     }
 
@@ -635,20 +635,20 @@ import { type Page, type Locator, expect } from '@playwright/test';
 
 export class LoginPage {
   private readonly emailField: Locator;
-  private readonly passwordField: Locator;
+  private readonly passwordField: Locator; // pragma: allowlist secret
   private readonly loginButton: Locator;
   private readonly errorMessage: Locator;
 
   constructor(private readonly page: Page) {
     this.emailField = page.getByLabel('Email');
-    this.passwordField = page.getByLabel('Password');
+    this.passwordField = page.getByLabel('Password'); // pragma: allowlist secret
     this.loginButton = page.getByRole('button', { name: 'Sign In' });
     this.errorMessage = page.getByRole('alert');
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string) { // pragma: allowlist secret
     await this.emailField.fill(email);
-    await this.passwordField.fill(password);
+    await this.passwordField.fill(password); // pragma: allowlist secret
     await this.loginButton.click();
   }
 
@@ -667,14 +667,14 @@ class LoginPage {
   constructor(page) {
     this.page = page;
     this.emailField = page.getByLabel('Email');
-    this.passwordField = page.getByLabel('Password');
+    this.passwordField = page.getByLabel('Password'); // pragma: allowlist secret
     this.loginButton = page.getByRole('button', { name: 'Sign In' });
     this.errorMessage = page.getByRole('alert');
   }
 
-  async login(email, password) {
+  async login(email, password) { // pragma: allowlist secret
     await this.emailField.fill(email);
-    await this.passwordField.fill(password);
+    await this.passwordField.fill(password); // pragma: allowlist secret
     await this.loginButton.click();
   }
 
@@ -915,7 +915,7 @@ export const test = base.extend({
   authenticatedPage: async ({ page }, use) => {
     await page.goto('/login');
     await page.getByLabel('Email').fill('admin@example.com');
-    await page.getByLabel('Password').fill('password');
+    await page.getByLabel('Password').fill('password'); // pragma: allowlist secret
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('/dashboard');
     await use(page);

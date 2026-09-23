@@ -67,6 +67,13 @@ export function extractClaims(rec, ctx = {}) {
       projectRootDirectory,
       sourceField: 'cache-safety',
     });
+    if (mentionsVaryHeader(rec)) {
+      claims.push({
+        type: 'cache_vary_cardinality_safe',
+        rec,
+        sourceField: 'cache-vary-cardinality',
+      });
+    }
     claims.push({
       type: 'cache_rec_not_error_dominated_or_acknowledged',
       rec,
@@ -207,6 +214,19 @@ export function extractClaims(rec, ctx = {}) {
     });
   }
 
+  if (mentionsRouteLevelRevalidate(rec)) {
+    claims.push({
+      type: 'next_route_revalidate_static_prereq',
+      rec,
+      framework,
+      frameworkVersion,
+      cacheComponents,
+      repoRoot,
+      projectRootDirectory,
+      sourceField: 'next-route-revalidate-static-prereq',
+    });
+  }
+
   if (mentionsExistingCacheTagInvalidation(rec)) {
     claims.push({
       type: 'next_cache_tag_invalidation_supported',
@@ -335,6 +355,10 @@ function recommendsSharedCache(rec) {
   return /\b(?:s-maxage|CDN-Cache-Control|Vercel-CDN-Cache-Control|Cache-Control)\b/i.test(haystack);
 }
 
+function mentionsVaryHeader(rec) {
+  return /\bVary\b/i.test(recText(rec));
+}
+
 function mentionsNextCachedNotFound(rec) {
   const haystack = recText(rec);
   return /\bnotFound\b/.test(haystack) &&
@@ -417,6 +441,13 @@ function mentionsNextCacheComponentsRouteSegmentConfig(rec) {
     /\b(?:set|add|configure|use)\s+[^.\n]{0,80}\b(?:dynamicParams|fetchCache)\b/i.test(haystack) ||
     /\broute segment config options?\b[^.\n]{0,120}\b(?:Route Handlers?|handlers?)\b[^.\n]{0,120}\b(?:no longer apply|do not apply|removed)\b/i.test(haystack) ||
     /\b(?:revalidate|dynamic|fetchCache)\b[^.\n]{0,80}\broute segment (?:config|export)\b/i.test(haystack);
+}
+
+function mentionsRouteLevelRevalidate(rec) {
+  const haystack = recText(rec);
+  return /\bexport\s+const\s+revalidate\b/.test(haystack) ||
+    /\broute[- ]level\s+revalidate\b/i.test(haystack) ||
+    /\brevalidate\s*(?:=|:)\s*\d+\b[^.\n]{0,120}\b(?:page|layout|route segment|segment export)\b/i.test(haystack);
 }
 
 function mentionsExistingCacheTagInvalidation(rec) {

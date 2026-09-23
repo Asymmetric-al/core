@@ -13,24 +13,24 @@ Implement liveness and readiness probes using `@nestjs/terminus`. Liveness check
 
 ```typescript
 // Simple ping that doesn't check dependencies
-@Controller('health')
+@Controller("health")
 export class HealthController {
   @Get()
   check(): string {
-    return 'OK'; // Service might be unhealthy but returns OK
+    return "OK"; // Service might be unhealthy but returns OK
   }
 }
 
 // Health check that blocks on slow dependencies
-@Controller('health')
+@Controller("health")
 export class HealthController {
   @Get()
   async check(): Promise<string> {
     // If database is slow, health check times out
-    await this.userRepo.findOne({ where: { id: '1' } });
+    await this.userRepo.findOne({ where: { id: "1" } });
     await this.redis.ping();
     await this.externalApi.healthCheck();
-    return 'OK';
+    return "OK";
   }
 }
 ```

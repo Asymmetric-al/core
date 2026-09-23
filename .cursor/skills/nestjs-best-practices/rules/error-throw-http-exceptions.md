@@ -18,16 +18,16 @@ export class UsersService {
   async findById(id: string): Promise<{ user?: User; error?: string }> {
     const user = await this.repo.findOne({ where: { id } });
     if (!user) {
-      return { error: 'User not found' }; // Controller must check this
+      return { error: "User not found" }; // Controller must check this
     }
     return { user };
   }
 }
 
-@Controller('users')
+@Controller("users")
 export class UsersController {
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
+  @Get(":id")
+  async findOne(@Param("id") id: string) {
     const result = await this.usersService.findById(id);
     if (result.error) {
       throw new NotFoundException(result.error);
@@ -58,7 +58,7 @@ export class UsersService {
       where: { email: dto.email },
     });
     if (existing) {
-      throw new ConflictException('Email already registered');
+      throw new ConflictException("Email already registered");
     }
     return this.repo.save(dto);
   }
@@ -71,10 +71,10 @@ export class UsersService {
 }
 
 // Controller stays thin
-@Controller('users')
+@Controller("users")
 export class UsersController {
-  @Get(':id')
-  findOne(@Param('id') id: string): Promise<User> {
+  @Get(":id")
+  findOne(@Param("id") id: string): Promise<User> {
     return this.usersService.findById(id);
   }
 

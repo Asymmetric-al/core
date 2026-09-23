@@ -29,8 +29,8 @@ export class OrdersService {
     // Tight coupling - OrdersService knows about all consumers
     await this.inventoryService.reserve(order.items);
     await this.emailService.sendConfirmation(order);
-    await this.analyticsService.track('order_created', order);
-    await this.notificationService.push(order.userId, 'Order placed');
+    await this.analyticsService.track("order_created", order);
+    await this.notificationService.push(order.userId, "Order placed");
     await this.loyaltyService.addPoints(order.userId, order.total);
 
     // Adding new behavior requires modifying this service
@@ -43,7 +43,7 @@ export class OrdersService {
 
 ```typescript
 // Use EventEmitter for decoupling
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 // Define event
 export class OrderCreatedEvent {
@@ -68,7 +68,7 @@ export class OrdersService {
 
     // Emit event - no knowledge of consumers
     this.eventEmitter.emit(
-      'order.created',
+      "order.created",
       new OrderCreatedEvent(order.id, order.userId, order.items, order.total),
     );
 
@@ -79,7 +79,7 @@ export class OrdersService {
 // Listeners in separate modules
 @Injectable()
 export class InventoryListener {
-  @OnEvent('order.created')
+  @OnEvent("order.created")
   async handleOrderCreated(event: OrderCreatedEvent): Promise<void> {
     await this.inventoryService.reserve(event.items);
   }
@@ -87,7 +87,7 @@ export class InventoryListener {
 
 @Injectable()
 export class EmailListener {
-  @OnEvent('order.created')
+  @OnEvent("order.created")
   async handleOrderCreated(event: OrderCreatedEvent): Promise<void> {
     await this.emailService.sendConfirmation(event.orderId);
   }
@@ -95,9 +95,9 @@ export class EmailListener {
 
 @Injectable()
 export class AnalyticsListener {
-  @OnEvent('order.created')
+  @OnEvent("order.created")
   async handleOrderCreated(event: OrderCreatedEvent): Promise<void> {
-    await this.analyticsService.track('order_created', {
+    await this.analyticsService.track("order_created", {
       orderId: event.orderId,
       total: event.total,
     });

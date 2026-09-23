@@ -114,7 +114,7 @@ For conditional responses, request body inspection, response modification, or ti
 playwright-cli run-code "async page => {
   await page.route('**/api/login', route => {
     const body = route.request().postDataJSON();
-    if (body.username === 'admin' && body.password === 'secret') {
+    if (body.username === 'admin' && body.password === 'secret') { // pragma: allowlist secret
       route.fulfill({
         status: 200,
         contentType: 'application/json',
