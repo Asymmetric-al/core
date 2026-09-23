@@ -34,7 +34,11 @@ describe("commit metadata is not a development gate", () => {
     expect(release).toContain(
       "assertReleaseSourceIsOnDevelop(args.remote, commit)",
     );
-    expect(ci).toContain("ref: ${{ github.event.pull_request.base.sha }}");
+    const releaseSource = read(".github/workflows/release-source.yml");
+    expect(releaseSource).toContain("pull_request_target:");
+    expect(releaseSource).toContain("contents: read");
+    expect(releaseSource).toContain("compare/${CORE_PR_HEAD_SHA}...develop");
+    expect(releaseSource).not.toContain("actions/checkout");
   });
 
   it("runs normal CI for automation PRs against any internal base branch", () => {

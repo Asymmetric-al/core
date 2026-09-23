@@ -9,8 +9,10 @@ Write+ permission response. App commands need signed event App identity and an
 explicit approved App ID. CI check-suite triggers require the GitHub Actions
 App identity. API errors fail the command closed without affecting software CI.
 
-The local pre-push hook retains the production push guard. A production PR
-source check ensures its head is already reachable from `develop`.
+The local pre-push hook retains the production push guard. A read-only
+`pull_request_target` workflow runs from trusted default-branch code and checks
+GitHub's compare API to ensure a production PR head is already reachable from
+`develop`. It never checks out PR code.
 
 The GitHub collaborators-only interaction limit is temporary. A repository
 administrator renews it before expiration until a narrowly scoped independent

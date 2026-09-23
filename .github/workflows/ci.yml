@@ -235,30 +235,3 @@ jobs:
             echo "At least one CI check failed."
             exit 1
           fi
-
-  release-source-gate:
-    if: github.event_name == 'pull_request' && github.base_ref == 'production'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-          ref: ${{ github.event.pull_request.base.sha }}
-      - name: Verify production source is already on develop
-        env:
-          CORE_PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
-          CORE_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-          if [ "$CORE_PR_HEAD_REPOSITORY" != 'Asymmetric-al/core' ]; then
-            echo 'Production source must be a Core branch.'
-            exit 1
-          fi
-          if [[ ! "$CORE_PR_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
-            echo 'Production source SHA is invalid.'
-            exit 1
-          fi
-          git fetch --no-tags origin develop:refs/remotes/origin/develop
-          GIT_NO_REPLACE_OBJECTS=1 git merge-base --is-ancestor \
-            "$CORE_PR_HEAD_SHA" refs/remotes/origin/develop

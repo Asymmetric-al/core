@@ -289,8 +289,10 @@ Verified through the GitHub branch-protection API on 2026-09-23:
   than a PR-review requirement.
 - `integration-gate` remains a workflow summary job but is not currently a
   required branch-protection context.
-- `release-source-gate` is defined in `ci.yml` for production PRs and verifies
-  that the PR head is already reachable from `develop`.
+- `release-source-gate` is defined in `release-source.yml` for production PRs.
+  It runs from the trusted default branch with a read-only token and verifies
+  that the PR head is already reachable from `develop` through GitHub's compare
+  API, without checking out PR code.
 - The canonical repository has no `main` branch. Legacy `main: false`
   deployment configuration is a deny-only compatibility rule, not evidence of
   a live protected branch.
