@@ -1,5 +1,17 @@
 # Phase 3 — Minimum Permission & Role-Scoped Projection Foundation
 
+**Current context amendment — 2026-09-23.** The accepted Phase 12
+D12/D14 and ship-first context rules govern the current authorization target:
+capabilities are evaluated inside one server-validated Tenant Authorization
+Context, never by joining a person’s unrelated active memberships. This
+reconciles the earlier multi-hat shorthand with the
+[owning Phase 12 contract](./phase-12-full-role-permission-configuration.md#b-principals-the-tenant-axis-and-revocation-d12d14--the-ship-first-amendments)
+and its [September 21 integrated source](https://github.com/Asymmetric-al/core/blob/a54f236a26bd4b0749c724173966738461ed340b/docs/prds/sitestacker-parity/phase-12-full-role-permission-configuration.md).
+The Phase 3 code-registry/read-only UI foundation and capability-table deferral
+remain its early delivery scope; this correction adds no backward dependency
+on completion of the Phase 12 product and invents no private-participant
+admission model.
+
 **Program:** SiteStacker Parity · **Phase:** 3 · **Status:** Groomed; tracked by epic #489 + children
 
 > Buildable synthesis of the Phase 3 grill (decisions D1–D12) plus a nonprofit-CRM/CMS best-practice validation and a gap-check verified against the live schema on this branch. Grounded in the repo as of drafting; **specific file/line references may drift** — treat them as pointers, not contracts. New canonical terms are reconciled in **Glossary & OpenSpec** below and must be added to the repo-root `CONTEXT.md`.
@@ -55,7 +67,7 @@ Build the **full conceptual projection model now, integrated with the systems th
 
 1. **`field_policies`** — one field-only static lookup keyed `(record_type, field_key, surface, tenant_id)` → `{visible, editable, exportable, sensitivity_category}`. Fail-closed: no row ⇒ invisible/non-exportable outside Mission Control.
 2. **A surface-generic, subtract-only projection resolver** — the single read/write chokepoint. Effective access = `field_policies ∩ tenant boundary ∩ Legal Entity scope ∩ row-scope ∩ record-flags ∩ record-state`. It can only ever _remove_ access, never grant it. All conditional/row logic (Legal Entity, ownership, gift anonymity, relationship-scope, record-state, consent) lives here, **never** in `field_policies`.
-3. **A code-source-of-truth capability registry** — generalizes the existing contributions-only capability pattern; effective capability = union across a user's active memberships (multi-hat). Capability _tables_ are deferred (D12); code is the sole authority and Mission Control renders it read-only.
+3. **A code-source-of-truth capability registry** — generalizes the existing contributions-only capability pattern. Aggregate only the applicable grant sources inside one current, server-validated Tenant Authorization Context, then apply the subtract-only floors. For a membership-backed human, that context selects one active Tenant assignment; another staff/donor/missionary hat is not an additional source of authority for the request. Phase 12 defines the public-only, single-Tenant NHI and audited operator variants. Capability _tables_ remain deferred from Phase 3’s early registry generation to Phase 12; code remains authoritative and the Phase 3 UI renders the registry read-only.
 4. **One unified export-governance layer** — a single policy source + shared `csvSafeCell` + one consent gate + identifiers-only audit, governing CSV, receipts, and email now, with Mailchimp as a fully-specified contract.
 5. **A change-controlled Mission Control permissions UI** — three routes where **widening a projection is a maker-checker reviewed event** (reusing the existing contribution correction-approval engine) and **narrowing is immediate** (fail-safe direction).
 
@@ -93,7 +105,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
 - **A2 — Single projection chokepoint.** Every narrow-surface read/write and every governed export flows through one resolver in `packages/api`. Surfaces stop hand-rolling `SELECT`s. Enforced by a lint that bans direct `.from('<sensitive-table>').select()` outside the resolver module (a callsite/import check — **not** column-string static analysis, which is deferred).
 - **A3 — `field_policies` is a field-only static lookup, never a rules engine.** No conditions, no dotted-path evaluation, no per-value provenance. → **ADR-A**.
 - **A4 — The resolver is the only home for conditional/row logic and it only subtracts.** Tenant boundary, Legal Entity scope, ownership, gift anonymity, relationship-scope, record-state, member-care author-only, and consent live here as composing predicates. `effective = field_policies ∩ tenant_boundary ∩ legal_entity_scope ∩ row_scope ∩ record_flags ∩ record_state`; the resolver never grants. Legal Entity is evaluated only for entity-bearing records, never inferred from Site, designation, processor account, or a mutable tenant default.
-- **A5 — Capabilities are code source-of-truth; capability tables deferred (D12).** One exhaustive typed registry (`capability → meta`, `role/subrole → capability[]`), effective = union across active memberships, with a dormant `tenantOverrides` param so per-tenant grants are additive later. `/minimum` renders the code map read-only. → **ADR-B**.
+- **A5 — Capabilities are code source-of-truth; capability tables deferred (Phase 3 D12).** One exhaustive typed registry (`capability → meta`, `role/subrole → capability[]`) supplies the early read-only foundation. Resolution uses one validated Tenant Authorization Context, as specified by the later Phase 12 owner: a membership-backed request aggregates only grant sources applicable to its selected active assignment, never all memberships held by the same person. Public, NHI and operator contexts retain their distinct source restrictions. The dormant `tenantOverrides` seam does not merge hats or widen a floor. `/minimum` renders the code map read-only; Phase 12 later owns generated capability tables and its grant product. → **ADR-B** (early registry rationale retained).
 - **A6 — Export is governed through one policy source; `exportable` is authoritative, serializers are consumers.** Any egress emits a field only if `exportable = true` and its category is allowed for the channel; `internal`/`care`/`security` never leave externally; payment identifiers are never bulk-exported. → **ADR-D**.
 - **A7 — Audit is identifiers-only with a typed payload and a system-actor path.** Field **keys**, not values; a nullable actor for transactional/system events. This is an _enforced_ property of the logging helper, not an assumed database protection (see Data model note on `audit_logs`).
 - **A8 — Widening is a maker-checker reviewed event; narrowing is immediate.** The fail-safe asymmetry, enforced systemically (server-side classification + distinct-human approval), not by UI copy. → **ADR-C**.
@@ -146,7 +158,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
 
 **Module 3 — Surface-generic projection resolver** _(the subtract-only core)_
 
-- Responsibility: the single chokepoint. Given `(surface, recordType, row, auth, policies, scope?)`, return only policy-visible fields, then subtract via row-scope/record-flags/record-state. Never adds a field absent from `field_policies`. Every derived/projection output column must declare a category; absent ⇒ `internal`.
+- Responsibility: the single chokepoint. Given `(surface, recordType, row, auth, policies, scope?)`, consume `auth` from one current, server-validated Tenant Authorization Context, return only policy-visible fields, then subtract via row-scope/record-flags/record-state. A list of loaded memberships is discovery input, not an authorization union. The Phase 12 owner defines the context variants and verification/fire-time rules; do not introduce another resolver or a fallback actor. Never add a field absent from `field_policies`. Every derived/projection output column must declare a category; absent ⇒ `internal`.
 - Interface:
   ```ts
   interface RowScope {
@@ -197,7 +209,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
   }): Promise<{
     allowed: boolean;
     reason: "ok" | "do_not_email" | "do_not_contact" | "suppressed";
-  }>; // self ⇒ always allowed
+  }>; // self-service access is not contact; current PDP/source access still applies
   function emitGovernedCsv<Row>(input: {
     surface;
     recordType;
@@ -211,9 +223,14 @@ The governing principle throughout is **least privilege / need-to-know**: restri
     rowCount: number;
   }>;
   ```
-- Enforce-now: CSV, receipt (text), `sendEmail()`. Contract-only: Mailchimp and
-  receipt-PDF generation. The historical “future `notification_queue` worker”
-  idea is superseded by the dated Phase 17 amendment below and must not be built.
+- Foundation enforcement covers governed CSV/JSON and the shared projection/
+  consent boundary. Communications consume Phase 17 preparation and Phase 6
+  sole dispatch; official receipt/statement output consumes Phase 7 facts and
+  Phase 18 admitted artifacts. The original text-receipt, direct-send and ad hoc
+  receipt-PDF paths are superseded targets. Their dependent official output
+  remains unavailable until exact owner qualification; unrelated foundation
+  work does not wait for the whole later phases. Mailchimp retains its later
+  governed contract. No historical `notification_queue` worker is created.
 - Prior art: `crm/reports/export.ts` (already audited via `audit.log('crm_export_created')`); the three live-vulnerable serializers to converge.
 
 **Module 5 — `field_policy_change_requests` + `widen()` classifier + Mission Control change-control** _(the largest work item)_
@@ -266,10 +283,10 @@ The governing principle throughout is **least privilege / need-to-know**: restri
 
 - **Read chokepoint** — `resolveProjection` is the required path for donor-portal (promote `DONOR_SELECT`), missionary-portal (promote `DONOR_RELATIONSHIP_SELECT`), and export. **Promotion-parity guard (must-fix):** seed policies so each promoted surface's post-resolver field set **equals its current hardcoded `SELECT`** (minus deliberately-narrowed fields, listed explicitly), asserted by a golden-snapshot test in CI **before** enforcement is enabled — the analog of Phase 2's lossless-backfill rule, so fail-closed promotion can't silently regress a live portal.
 - **Write chokepoint (D6)** — `assertEditableForSurface` wraps the donor/missionary **mutation entrypoints** (portal profile/preference update handlers — enumerated in the ticket) so a write to a field not editable-for-that-surface is rejected (the tamper-symmetric twin of the read chokepoint). Sensitive-category edits capture a reason (reusable component); reason-capture is generic, blocking _approval_ stays domain-specific (corrections).
-- **Export governance** — `resolvePolicy` + `csvSafeCell` + consent + audit across CSV/receipt/`sendEmail()` now; Mailchimp and receipt-PDF remain contracts (the Mailchimp contract includes the inbound `unsubscribed|cleaned → do_not_email` writer). The historical `notification_queue` carries no worker or transport contract: implementation must classify/migrate and retire it, or retain it only after proving the one bounded non-transport owner required below. The CRM CSV serializer's columns are driven by the resolved exportable projection.
+- **Export governance** — `resolvePolicy` + the one shared `csvSafeCell` + current consent + audit govern CSV/JSON and the common egress boundary. Phase 17/6 communication and Phase 7/18 official documents consume that boundary through their exact qualified contracts, never a parallel direct sender or prototype text/PDF renderer. Mailchimp retains its governed inbound suppression contract. The historical `notification_queue` carries no worker or transport contract: implementation must classify/migrate and retire it, or retain it only after proving the one bounded non-transport owner required below. The CRM CSV serializer's columns are driven by the resolved exportable projection.
 - **Change-control flow** — reason → server-computed diff-preview (`widen()` + blast-radius rollup) → direction branch → approval-on-widening (distinct human at profile-id level) → base-fingerprint recheck → apply → audit → rollback-as-inverse-edit.
 - **Baseline guard** — a dedicated `assertCanEditBaselinePolicy` (explicit super-admin check; **rejects `tenant_id NULL` writes routed through the tenant-scoped `requireCrmAccess` path**, which `??`-falls-back and would otherwise pass for any staff).
-- **Meta-capabilities** — `permissions.view` / `permissions.propose_widening` / `permissions.approve_widening` on the **contribution capability resolver** (graduated so propose ≠ approve), not the flat staff-capability union.
+- **Meta-capabilities** — `permissions.view` / `permissions.propose_widening` / `permissions.approve_widening` resolve through the **one shared PDP** under the selected validated context (graduated so propose ≠ approve). The historical contribution resolver and flat staff-capability union are not alternate authorities.
 - **Anti-drift CI** — extend `verify:data-boundary` with the callsite lint (A2); the client DataTable CSV export **throws on any governed/sensitive column**.
 - **Surface-exposure lattice (ruling).** `mission_control` (least exposed) `<` `donor` ≈ `missionary` (peers, **incomparable**) `<` `public` (most exposed); `export` is governed by the separate stricter `exportable` flag. Moving a field between two incomparable surfaces (e.g. donor→missionary) is a **widen** (fail-closed). Any surface pair not comparable in the lattice ⇒ `widen`.
 - **Anonymity (ruling).** Mask donor identity on `missionary` + `public`; **retain** for finance/admin/receipt/audit. The resolver masks only from an explicit, purpose-scoped gift-anonymity fact. Every accepted online guest gift resolves or creates its known Party/legal donor before the contribution is accepted; guest giving is never a null-donor shortcut. A null donor is valid only for the explicit `unknown_offline` source-intent case (for example, anonymous cash or an unmarked offering), which remains non-receiptable until source-owned identity evidence is later supplied. Grounded in the AFP Donor Bill of Rights (not the retracted `CONTEXT.md` citation — see Further Notes).
@@ -293,7 +310,7 @@ A good test here exercises **external behavior through each module's stable inte
 - **Export governance** — `csvSafeCell` neutralizes leading `=`/`+`/`-`/`@`/TAB/CR/LF then RFC-4180-quotes (fixtures for all three serializers incl. the donor-**name** label column and the Phase-2 `source_code` debt), emits CRLF + BOM; `emitGovernedCsv` emits only `exportable=true` fields and drops `internal`/`care`/`security` + payment identifiers; the rewired serializer's columns equal the `exportable` projection (proves the two sources can't disagree); audited `rowCount` == rows emitted; JSON export obeys the same field set (format-agnostic); merge-tag render can't inject other-party/internal fields.
 - **Consent gate** — staff/system email/CSV to a `do_not_email`/`do_not_contact`/suppressed donor is blocked fail-closed; a donor's self-service access to their own receipt is not blocked.
 - **Maker-checker** — narrow/neutral publishes immediately + audited; widen writes pending and the resolver keeps serving the old policy until approval; requester can't approve own request (survives multi-hat at profile-id level); base-fingerprint recheck rejects when the live row moved; concurrent decide → 409; confused-deputy allowlist rejects widening a financial/care/security field to an external surface; baseline row editable only by super-admin.
-- **Capabilities** — effective = union across memberships; propose ≠ approve (four-eyes can't collapse); dormant `tenantOverrides` yields platform defaults unchanged.
+- **Capabilities** — changing or adding an unrelated active membership cannot change a request’s authority under its selected validated assignment; test same-user multiple hats, wrong-Tenant assignments and explicit authorized context switching. Aggregate only applicable grant sources inside that context before the floors. Under the Phase 12 integration contract, public-only contexts cannot acquire internal grants, NHI authority shrinks with the current human-owner ceiling, and operator authority stays bound to its exact audited grant. Deferred member work re-resolves the selected assignment; service/operator work re-resolves its own source context, never a fabricated member assignment. Propose ≠ approve (the same human cannot satisfy a distinct-human check by switching hats); dormant `tenantOverrides` yields the selected context’s platform defaults unchanged.
 - **Audit envelope** — sensitive edits/exports/consent-suppressed-sends/denied-sensitive-access and policy propose/approve/reject/publish/rollback write identifiers-only details; `care`+`security` reads audited, others not; the system-actor path writes a row with `user_id NULL`.
 - **Boundary CI** — the callsite lint forbids raw sensitive-table `SELECT` outside the resolver; the client DataTable CSV export throws on governed columns.
 
@@ -357,7 +374,7 @@ Ticket shape (filed via `/to-issues`):
 1. `field_policies` table + column census/seed + fail-closed default.
 2. Surface-generic resolver + promote both portal `SELECT`s + **promotion-parity golden snapshot** + extend `verify:data-boundary` chokepoint lint + client-DataTable-export gate.
 3. Code-only capabilities registry + 3 meta-caps + `/minimum` read view.
-4. Unified export-governance + rewire CRM CSV serializer to policy + consent gate on `sendEmail()` + receipt + merge-tag surface gate (consumes the P0 `csvSafeCell`).
+4. Unified export governance + rewire CRM CSV serializer to policy + canonical consent boundary and typed Phase 17 message / Phase 18 document-field projection (consumes the one shared `csvSafeCell`; later source output activates only under its exact owner qualification).
 5. Narrow-surface write chokepoint + enumerated mutation entrypoints + reason-capture component (D6).
 6. `field_policy_change_requests` + `widen()` classifier + surface-exposure lattice + `/projections` change-control UI + baseline guard.
 7. `/audit` read-only viewer + `logPolicyChange` + typed identifiers-only audit payload + system-actor path.

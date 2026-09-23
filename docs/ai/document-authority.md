@@ -153,12 +153,13 @@ environment inventory and authorized access. Its unverified status remains in
 `openspec/changes/complete-twenty-crm-retirement/tasks.md`; a documentation change
 does not claim credential revocation, data disposal or deployment completion.
 
-## Matters that do not need another product decision
+## Settled choices and qualification boundaries
 
 The recorded rulings already settle Asym-owned CRM, distinct Giving Campaigns,
-Phase 13's optional second-approver default, Phase 6/17 communication ownership,
-compact agent instructions, and the ratified P22–26 scope. Correcting stale
-references and integrating those contracts does not reopen their alternatives.
+Phase 6/17 communication ownership, compact agent instructions, and the ratified
+P22–26 scope. Phase 13 records an optional tenant second-approver default, but the
+posted-correction exception in Phase 15 is now the explicit C-01 decision below.
+Correcting settled source references does not reopen unrelated alternatives.
 
 Keep these separate from a new founder decision:
 
@@ -178,9 +179,11 @@ Keep these separate from a new founder decision:
   than using the open PR state as proof of absence. Preserve persisted-quote
   rails and distinguish legacy sagas; do not apply future runbooks to old code.
 
-No new product choice was identified as necessary for these documentation
-corrections. If future qualification invalidates a premise, record the precise
-failed guarantee and affected choices before seeking a founder ruling.
+The original September 16 consolidation identified no new product choice for
+its scoped corrections. The broader September 23 audit subsequently found
+C-01 and C-02 below; that earlier observation does not close them. If later
+qualification invalidates another premise, record the precise failed guarantee
+and affected choices before seeking a founder ruling.
 
 ## Publication workflow prerequisite
 
@@ -192,6 +195,15 @@ separates that prerequisite from the P22–26 planning imports. It supplies the
 trusted team identity and normal attribution/hook checks needed to publish as
 Conrad; it does not remove GitHub review requirements or authorize production
 deployment. Existing prerequisite commits retain their original authorship.
+
+## September 23 congruence follow-up
+
+The [cross-contract audit](audits/2026-09-23-contract-congruence.md) records the
+source-grounded corrections, exact verification limits, current source-PR
+readback and delivery-graph repairs. Its C-01 correction-approval and C-02 posted-state placement conflicts await
+explicit founder rulings; do not infer a resolution from a later file date.
+PR #1428 is now merged in develop at `e811fc9f14a727d4e71b23df3ba356b5f645207b`;
+the earlier prerequisite capture above remains dated evidence, not its final head.
 
 ## Verification and closeout
 

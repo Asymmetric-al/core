@@ -227,13 +227,18 @@ Phase 22 language; it does not make the terms above provisional.
 
 ### Phase 23 D10 precision amendment — 2026-08-21
 
-Founder-ratified D10 is the sole narrow exception to D1's exclusion of
-cross-locale transactions. It permits only one already-prepared Site
-Presentation Activation to CAS-advance the exact current public-locale head
-cohort in one short PostgreSQL transaction. It does not weaken D1's
-single-locale rule for ordinary Page, route, Navigation, content, or locale
-publication and creates no Site-global serving head. See
-[D10](#d10--complete-cohort-all-or-none-site-presentation-activation) and
+Founder-ratified D10 permits one already-prepared Site Presentation Activation
+to CAS-advance the exact current public-locale head cohort in one short
+PostgreSQL transaction. It is the presentation-only exception, not a general
+multi-locale content-publish command. Later Phase 24 D73/[ADR-0194](../../adr/0194-explicit-former-primary-website-disposition.md)
+and D76/[ADR-0197](../../adr/0197-prepared-same-tenant-site-domain-cutover.md)
+require their own bounded domain-origin/cutover transitions to advance the
+compatible current-public-locale generation and affected Domain heads atomically;
+D76 first establishes and acknowledges the adverse Moving barrier. These exact
+owner commands preserve unrelated drafts, private locales and source-owned
+release facts. Ordinary Page, route, Navigation, content and locale publication
+stays single-locale, with no Site-global serving head or distributed transaction.
+See [D10](#d10--complete-cohort-all-or-none-site-presentation-activation) and
 [ADR-0154](../../adr/0154-complete-cohort-site-presentation-activation-through-d1.md).
 
 ## D2 — Staged hierarchical public paths under the D1 serving generation
@@ -2137,6 +2142,10 @@ evidence-backed implementation proofs and will be resolved one at a time.
 
 **Status:** Ratified and adversarially hardened on 2026-08-21.
 
+The following preserves the original ruling. The later Phase 24 D73/D76 domain
+exceptions qualify its historical “sole” wording as recorded in the D1 precision
+amendment above and the binding interpretation below.
+
 > **C-prime-amended-and-hardened (C-prime-R) — one complete-cohort, all-or-none
 > D1 Site Presentation Activation:** for one exact Tenant × environment × Site,
 > prepare from the exact current-serving D1 Public Site Generation of every
@@ -2209,6 +2218,12 @@ evidence-backed implementation proofs and will be resolved one at a time.
 
 ### Binding interpretation
 
+- D10 owns presentation-only complete-cohort activation. Phase 24 D73 and D76
+  separately own the exact qualified domain-origin/cutover transactions that
+  consume compatible D1 public-locale successors and atomically advance their
+  Domain/head cohorts. D76 preserves adverse-fence acknowledgment before its
+  authority swap. Neither exception permits ordinary multi-locale content
+  publication, private-locale activation or a second public head.
 - A **Site Presentation Activation Manifest** is an immutable preparation and
   audit closure. Its normalized membership contains one expected head and one
   sealed successor for every exact currently public locale plus one proof-only

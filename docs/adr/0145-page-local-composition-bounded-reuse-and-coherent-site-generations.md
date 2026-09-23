@@ -95,12 +95,19 @@ retained safe versions instead of rewriting history.
 
 ## Phase 23 D10 precision amendment
 
-Founder-ratified Phase 23 D10 and ADR-0154 create the sole narrow exception to
-the cross-locale exclusion above: one already-prepared Site Presentation
-Activation may CAS-advance the exact current public-locale head cohort in one
-short PostgreSQL transaction. Ordinary Page, route, Navigation, content, and
-locale publication remains single-locale; no Site-global serving head or second
-public authority is created. The Legal-Entity exclusion remains unchanged.
+Founder-ratified Phase 23 D10 and ADR-0154 define the presentation-only narrow
+exception: one already-prepared Site Presentation Activation may CAS-advance
+the exact current public-locale head cohort in one short PostgreSQL transaction.
+Later Phase 24 D73/[ADR-0194](./0194-explicit-former-primary-website-disposition.md)
+and D76/[ADR-0197](./0197-prepared-same-tenant-site-domain-cutover.md) also require
+their exact domain-owned origin/cutover transitions to advance compatible
+current-public-locale generation successors with the affected Domain heads
+atomically. D76 retains its acknowledged adverse Moving barrier before the
+final source/destination head swap. These bounded domain commands consume D1
+generations; they cannot publish unrelated content, private locales, a partial
+origin cohort or a new serving authority. Ordinary Page, route, Navigation,
+content and locale publication remains single-locale. The Legal-Entity and
+distributed-transaction exclusions remain unchanged.
 
 Ratification of this planning decision authorizes no implementation, schema,
 migration, provider qualification, issue publication, release activation, or

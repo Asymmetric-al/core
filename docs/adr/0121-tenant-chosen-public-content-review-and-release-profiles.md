@@ -50,8 +50,13 @@ not generic contributor permission or AI judgment.
 Payload remains authoring substrate. Its `_status`, Admin UI, REST, GraphQL,
 Local API, service role, restore, bulk, and scheduler paths cannot create public
 release truth. Restore creates a new candidate, scheduling only wakes the same
-current-proofed command, policy changes are prospective, and old review
-backlogs never become automatic releases.
+current-proofed command. Review-profile changes are prospective: tightening
+stops queued automatic release at current-policy reproof, and loosening never
+publishes an old review backlog. Staff may decide an already-waiting candidate
+under its pinned review profile, or its contributor may deliberately submit a
+new candidate under the new profile. A prospective profile successor alone does
+not invalidate that manual review; current actor, safety, expected-head,
+profile/renderer compatibility and dependency proof still apply.
 
 ## Consequences
 

@@ -68,11 +68,14 @@ readiness, but they neither block nor satisfy core website publication.
 Publishing a locale does not make it the default; D16 alone owns the root.
 
 Operational Postgres owns stable Site Locale identity and the sole locale-exact
-release head through D66's minimal Public Site Generation contract. This does
-not accept or depend on the broader unmerged Phase 23 Presentation Package
-proposal; an accepted compatible Phase 23 generation contract must be consumed
-rather than duplicated. Payload owns
-localized content drafts/publications. Public readers consume one exact
+release head. Phase 24 consumes the adopted Phase 23 D1 Public Site Generation
+contract and its qualified implementation rather than duplicating that owner.
+D66's core locale-publication closure does not require an optional bespoke D9
+Presentation Package or Phase 42 source/composer lane. The original source PR's
+merge state is separate from adoption of its planning contract; implementation
+and qualification still require their own evidence. Payload provides bounded
+localized editorial storage behind the source owner's commands; its publish
+status cannot advance the public head. Public readers consume one exact
 generation. Readiness is derived, never a mutable database Boolean or a second
 serving head. This aggregate is isolated one deployment environment per
 Supabase project/database; environment remains trusted command/cache/audit

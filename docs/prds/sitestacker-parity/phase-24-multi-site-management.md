@@ -205,10 +205,11 @@ Web Studio while preserving strict domain ownership:
   remain useful review/access-governance evidence but are not launch gates.
 - The current one-host, null-Site, mutable-latest CMS and USD-shaped runtime is
   replacement/migration evidence. It does not weaken this specification.
-- Phase 24 consumes an accepted equivalent of Phase 23's immutable public
-  generation, Working Revision, placement, finite transfer, and source-owner
-  contracts. The open Phase 23 proposal is not treated as merged authority;
-  implementation must reconcile or supersede it before dependent writers ship.
+- Phase 24 consumes the adopted Phase 23 immutable public-generation, Working
+  Revision, placement, finite-transfer, and source-owner planning contracts.
+  Original source-PR merge state is separate from this adoption. The affected
+  producer implementation must pass its own qualification before dependent
+  writers ship; documentation integration does not satisfy that gate.
 
 ### 2. Bounded ownership
 
@@ -641,9 +642,9 @@ Web Studio while preserving strict domain ownership:
 
 ### Dependency order
 
-1. Reconcile accepted Phase 23-equivalent public generation, Working Revision,
-   Page placement, transfer, lease, and source-owner contracts; land canonical
-   Site/locale/Money/EffectiveAccess foundations.
+1. Implement and qualify the affected adopted Phase 23 public-generation,
+   Working Revision, Page-placement, transfer, lease, and source-owner contracts;
+   land canonical Site/locale/Money/EffectiveAccess foundations.
 2. Land immutable operational records, structural constraints, command-only
    writes, expected-head CAS, semantic receipts, outbox, adverse fences, and
    safe public readers before UI writers.

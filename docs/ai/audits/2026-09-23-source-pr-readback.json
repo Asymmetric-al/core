@@ -1,0 +1,113 @@
+{
+  "observedAt": "2026-09-23T02:27:01.920152+00:00",
+  "pullRequests": [
+    {
+      "number": 1323,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "merged_at": null,
+      "updated_at": "2026-09-22T08:32:33Z",
+      "html_url": "https://github.com/Asymmetric-al/core/pull/1323",
+      "head": "ab89ae85148f96b8ec11c8612559d23ab51548ee",
+      "base": "e811fc9f14a727d4e71b23df3ba356b5f645207b",
+      "mergeCommit": "b337e52cc7a30c920065afeccd79ad05a0f07700"
+    },
+    {
+      "number": 1340,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "merged_at": null,
+      "updated_at": "2026-09-22T08:33:20Z",
+      "html_url": "https://github.com/Asymmetric-al/core/pull/1340",
+      "head": "9b49d34370deb4fcfb81effd7d4eedf847430c0e",
+      "base": "e811fc9f14a727d4e71b23df3ba356b5f645207b",
+      "mergeCommit": "ff144e705ebfb65f48e6bc86112cd7f26943cc09"
+    },
+    {
+      "number": 1558,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "merged_at": null,
+      "updated_at": "2026-09-22T08:33:50Z",
+      "html_url": "https://github.com/Asymmetric-al/core/pull/1558",
+      "head": "f5dbd1b376daa7f0cfd4a823f5a39ba8f170a1fa",
+      "base": "e811fc9f14a727d4e71b23df3ba356b5f645207b",
+      "mergeCommit": "605dbae532ecb827558aea17bc44a4e726744437"
+    },
+    {
+      "number": 1564,
+      "state": "open",
+      "draft": false,
+      "merged": false,
+      "merged_at": null,
+      "updated_at": "2026-09-22T08:37:08Z",
+      "html_url": "https://github.com/Asymmetric-al/core/pull/1564",
+      "head": "0624ca3841ea98e618fed0e2c490d24c0ef1d9c1",
+      "base": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "mergeCommit": null
+    },
+    {
+      "number": 1657,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "merged_at": null,
+      "updated_at": "2026-09-22T04:19:22Z",
+      "html_url": "https://github.com/Asymmetric-al/core/pull/1657",
+      "head": "ae74b9856e2d910096ab74e715f51c143364a5ce",
+      "base": "7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd",
+      "mergeCommit": "05369b02699c332e381734fe5c4d198f9ac31912"
+    },
+    {
+      "number": 1428,
+      "state": "closed",
+      "draft": false,
+      "merged": true,
+      "merged_at": "2026-09-22T07:15:05Z",
+      "updated_at": "2026-09-22T07:15:21Z",
+      "html_url": "https://github.com/Asymmetric-al/core/pull/1428",
+      "head": "328e16b23c12d501ae5abe031e594e08eca60796",
+      "base": "c236455724a819ec800104be3e81f563da3de86b",
+      "mergeCommit": "e811fc9f14a727d4e71b23df3ba356b5f645207b"
+    },
+    {
+      "number": 1891,
+      "state": "open",
+      "draft": false,
+      "merged": false,
+      "merged_at": null,
+      "updated_at": "2026-09-21T16:23:34Z",
+      "html_url": "https://github.com/Asymmetric-al/core/pull/1891",
+      "head": "2e8f95d193926f080c38b293653b215a7642ef37",
+      "base": "ab53c8471688c75dd39d7e9a85490236d7122eb4",
+      "mergeCommit": null
+    },
+    {
+      "number": 1897,
+      "state": "open",
+      "draft": false,
+      "merged": false,
+      "merged_at": null,
+      "updated_at": "2026-09-22T07:03:01Z",
+      "html_url": "https://github.com/Asymmetric-al/core/pull/1897",
+      "head": "9c8d69c407433dfe20c14fa2de2ccd0402f70583",
+      "base": "c236455724a819ec800104be3e81f563da3de86b",
+      "mergeCommit": null
+    },
+    {
+      "number": 1890,
+      "state": "open",
+      "draft": false,
+      "merged": false,
+      "merged_at": null,
+      "updated_at": "2026-09-22T08:46:15Z",
+      "html_url": "https://github.com/Asymmetric-al/core/pull/1890",
+      "head": "d95a328483f5b6f7296ea51577759dafc534c306",
+      "base": "ab53c8471688c75dd39d7e9a85490236d7122eb4",
+      "mergeCommit": null
+    }
+  ]
+}

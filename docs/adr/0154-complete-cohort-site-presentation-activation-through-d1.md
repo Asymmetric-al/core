@@ -21,6 +21,10 @@ heads.
 
 ## Decision
 
+The following is the original August 21 D10 ruling. Its historical “sole”
+cross-locale description is qualified by the later domain-owner contracts in
+the current consequences below; D10's presentation-only behavior is unchanged.
+
 > **C-prime-amended-and-hardened (C-prime-R) — one complete-cohort, all-or-none
 > D1 Site Presentation Activation:** for one exact Tenant × environment × Site,
 > prepare from the exact current-serving D1 Public Site Generation of every
@@ -93,8 +97,15 @@ heads.
 
 ## Consequences
 
-- D10 is a narrow, purpose-specific precision amendment to D1. Ordinary Page,
-  route, Navigation, content, and locale publication remains one-locale CAS.
+- D10 remains the presentation-only, complete-cohort amendment to D1. Later
+  Phase 24 D73/[ADR-0194](./0194-explicit-former-primary-website-disposition.md)
+  and D76/[ADR-0197](./0197-prepared-same-tenant-site-domain-cutover.md) authorize
+  their separate exact domain-origin/cutover transactions over compatible
+  current-public-locale generation and Domain heads. D76 requires adverse Moving
+  acknowledgment before its final source/destination authority swap. Those
+  commands cannot use D10 to publish drafts, activate a private locale, weaken
+  domain proof or create partial positive origin cohorts. Ordinary Page, route,
+  Navigation, content and locale publication remains one-locale CAS.
 - Every authoritative locale head in a cohort must share one PostgreSQL primary.
   Future sharding requires a new decision; D10 does not add distributed commit.
 - One small Site census fence coordinates locale membership changes but is not

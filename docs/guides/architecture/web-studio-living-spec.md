@@ -2,7 +2,7 @@
 
 **Status:** Living document — update this file when you change Web Studio behavior, routes, collections, or contracts.
 
-**Role:** architecture and implementation observations, with explicit adopted target contracts. Product intent is governed by the current Phase 5/22/23/24 owner specifications; this narrative cannot override them.
+**Role:** architecture and implementation observations, with explicit adopted target contracts. Product intent is governed by the current Phase 5/22/23/24 owner specifications and the explicitly adopted Phase 42 successor scope; this narrative cannot override them.
 
 **Related:** Phase snapshots (`web-studio-phase1.md` … `phase3.md`) are historical. Source at `7abd2c11` supplies the implementation observations below; source presence does not prove production release or fulfillment of the adopted contracts.
 
@@ -1047,16 +1047,24 @@ See
 
 ---
 
-## 7. Form architecture
+## 7. Form architecture: prototype observations and adopted target
 
-| Use case                       | Stack                                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------- |
-| Main document body             | Payload document context — **no** TanStack Form for the primary Payload fields              |
-| Template / wizard screens      | `@tanstack/react-form` + Zod in `flows/*.tsx`                                               |
-| Workspace / inspector settings | `useAsymForm` from `@asym/ui/components/primitives/tanstack-form` (TanStack Form–based API) |
-| Simple search in list          | Native controlled inputs + Payload list hooks                                               |
+| Use case                                | Stack                                                                                       |
+| --------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Payload-wrapped prototype document body | One Payload document context; do not add a competing TanStack Form session                  |
+| Template / wizard screens               | `@tanstack/react-form` + Zod in `flows/*.tsx`                                               |
+| Workspace / inspector settings          | `useAsymForm` from `@asym/ui/components/primitives/tanstack-form` (TanStack Form–based API) |
+| Simple search in list                   | Native controlled inputs + Payload list hooks                                               |
 
-**Why:** Payload owns field semantics and draft lifecycle; TanStack Form is for **isolated** Mission Control UI that must not fight Payload’s form engine.
+The table describes the Payload-wrapped prototype at the source snapshot named
+above. Its form engine must not compete with another engine for the same draft.
+The adopted [Phase 42 design](../../prds/web-studio-hybrid/design.md) permits
+Asym-owned inspectors with one authoritative form session and a qualified
+canonical/Puck adapter. Phase 23 D12 still owns acknowledged revisions, leases,
+save receipts, history and recovery; qualified D11/Lexical owns prose semantics.
+A resource switches writers only after equivalent behavior and composer
+isolation are proved. UI failure cannot expose raw Payload Admin as a fallback.
+This target is planning authority, not a claim that the replacement has shipped.
 
 ---
 

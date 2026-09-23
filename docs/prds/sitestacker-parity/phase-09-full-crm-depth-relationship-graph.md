@@ -730,7 +730,7 @@ foundation, business, daf_sponsor, partner, agency, …}` on the org
   intact when #602 archives the package.
 - **C7 — Roadmap v2 renumbering (2026-07-07).** All forward-phase
   references in this PRD were renumbered to Roadmap v2
-  ([`roadmap.md`](./roadmap.md) — 41 phases, v1→v2 mapping table there).
+  ([`roadmap.md`](./roadmap.md) — 45 phases in v3; historical v1→v2 mapping retained there).
   No scope change: every socket, guardrail, and deferral points at the
   same phase _by name_; only the numbers moved (e.g. Custom Fields 10→11,
   Files 25→29, Events/groups 28→37, Workflow engine 31→34, Donor

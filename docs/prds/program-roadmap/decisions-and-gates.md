@@ -31,6 +31,21 @@ the supplied roadmap settles those. HA-A1–HA-A4 are recorded scoped successor
 planning contracts, not assumed deployed behavior. A repository belongs to one
 Tenant; there is no adopted one-repository-per-Tenant commercial count limit.
 
+## Cross-owner clarification found on September 23
+
+[C-01: posted-gift correction approval](../../ai/audits/2026-09-23-contract-congruence.md#one-unresolved-owner-decision)
+needs a founder ruling between Phase 13's optional tenant separation of duties
+and Phase 15's mandatory different approver. Keep affected implementation
+undispatched until that exact rule is settled; do not confuse this decision with
+source qualification or with separately retained risk/money-out controls.
+
+[C-02: posted facts and mutable operational state](../../ai/audits/2026-09-23-contract-congruence.md#c-02-posted-state)
+needs a ruling on separate owner-controlled state records versus a narrow header
+update allowlist. The current whole-row immutability rule and mutable status
+column proposals cannot both be implemented unchanged. Preserve the logical
+owner contracts; do not silently weaken financial immutability or choose a new
+physical storage design.
+
 ## Engineering qualification, not a request to choose arbitrary facts
 
 The [Workflow register](../workflow-studio/12-owner-bindings-and-decisions.md)

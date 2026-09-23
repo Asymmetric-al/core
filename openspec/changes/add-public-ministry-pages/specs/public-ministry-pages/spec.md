@@ -181,6 +181,42 @@ Absent a deliberate tenant D4 choice, the disclosed safe fallback SHALL be
 customized only for the Missionary Page, Project/Campaign Page, and Ministry
 Update publication paths the tenant actually uses.
 
+A later Review and Release Profile successor SHALL apply prospectively. A
+more restrictive current posture SHALL stop queued automatic release at
+execution-time policy reproof. A less restrictive posture SHALL NOT publish or
+reinterpret an existing review backlog. Authorized staff MAY decide an already-
+waiting candidate under its pinned review profile, or the contributor MAY
+explicitly submit a new candidate under the new profile. A prospective profile
+successor alone SHALL NOT invalidate manual review; current authority, safety,
+expected heads, profile/renderer compatibility and required dependency proof
+SHALL still be re-proved.
+
+#### Scenario: Tightening stops a queued automatic release
+
+- **GIVEN** an exact candidate was queued under Publish after checks
+- **WHEN** the current exact-scope profile changes to Review before publishing
+  before its release effect commits
+- **THEN** current-policy reproof stops automatic publication
+- **AND** the candidate and original evidence remain inspectable without a
+  public-head advance
+
+#### Scenario: Loosening does not publish the existing review backlog
+
+- **GIVEN** an exact candidate is waiting under Review before publishing
+- **WHEN** a later exact-scope profile permits Publish after checks
+- **THEN** that successor does not release or reinterpret the waiting candidate
+- **AND** staff may decide it under its pinned review profile or the contributor
+  may explicitly submit a new candidate under the new profile
+
+#### Scenario: A prospective profile successor preserves exact manual review
+
+- **GIVEN** a waiting candidate retains its pinned review profile and expected
+  public head, and all current authority, safety and required proofs pass
+- **WHEN** authorized staff decide it after a prospective review-profile change
+- **THEN** that profile successor alone does not make the review stale
+- **AND** a superseded candidate, moved expected public head or failed current
+  mandatory proof still blocks release
+
 #### Scenario: A sibling publication scope uses a different review posture
 
 - **WHEN** final intent is submitted for one exact Tenant, Legal Entity,
@@ -244,10 +280,12 @@ create a second editorial workflow.
 
 #### Scenario: The candidate becomes stale during review
 
-- **WHEN** subject, safety, reach, assignment, profile, locale, route, media, or
-  giving authority no longer matches the candidate
+- **WHEN** required current subject, safety, reach, assignment, presentation or
+  review-profile compatibility, locale, route, media, or giving proof fails for
+  the candidate
 - **THEN** approval is blocked with the cause and next safe action
-- **AND** staff cannot force the stale candidate live
+- **AND** staff cannot force the stale candidate live or treat a prospective
+  review-profile successor alone as failure of the pinned manual-review rules
 
 ### Requirement: D6 Public Support Progress Is Typed Source-Authoritative And Optional Per Page
 

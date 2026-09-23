@@ -142,7 +142,7 @@ bolted-on module or push admin depth into donor/missionary surfaces.
 
 - [`README.md`](./README.md) — this charter.
 - [`roadmap.md`](./roadmap.md) — **Roadmap v3 (source of truth for phase
-  architecture):** the full 41-phase table with slugs and dependencies, the
+  architecture):** the full 45-phase table with slugs and dependencies, the
   v1→v2 renumbering map, dependency lanes/parallelism, and per-phase scope
   sections. **Read this (plus `phase-map.md`) before writing a PRD, issues,
   tickets, or a new implementation PR** so the work fits the whole program.

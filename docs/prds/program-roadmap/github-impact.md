@@ -101,3 +101,14 @@ Fresh GitHub reads on September 22 found original product source PRs #1323, #134
 Each new implementation slice needs an exact owner/source binding, a current capability/profile decision, a preserved work-package and scenario mapping, and independent positive/adverse proof. In particular, private participant admission, unknown-correspondent requested SMS response, enterprise negative-event service authority, existing-account succession, and P42's whole-composer/physical-transaction boundaries are explicit qualification gates. A symbolic alias, demo screen, SDK or green structural map is not the missing contract.
 
 Use the complete source packages and [integration guide](./integration-guide.md), retain unresolved decisions with an accountable owner, and publish a bounded backlog only after overlap and dependency checks. This inventory is planning evidence; implementation and provider/release evidence remain separately required.
+
+## September 23 congruence follow-up
+
+The [cross-contract audit](../../ai/audits/2026-09-23-contract-congruence.md)
+records the follow-up source/ticket corrections, current source-PR evidence and
+exact coverage limits. Its [50-issue readback](../../ai/audits/2026-09-23-issue-reconciliation.json)
+is separate from the seven September 22 adoption amendments above. The new
+Phase 24 navigation index #1898 exposes the same 126 existing implementation
+leaves under GitHub's parent-size limit; it is not another implementation task.
+Phase 4's accepted Phase 2/3 blockers are now native edges. No correction chooses
+the unresolved C-01 approval policy or C-02 operational-state placement.

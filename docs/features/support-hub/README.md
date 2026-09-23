@@ -36,6 +36,17 @@ Email Studio/P17 owns governed content, canonical authoring and whole-message pr
 
 The [September 15 issue-publication record](phase26-spec-publication.md) describes that completed event. Its statements about no source commit/PR are dated evidence, not a restriction on this separately authorized documentation PR. Original-capture hashes in traceability identify the evidence as captured. The PR provenance record maps repository formatting to those original captures and the published issue without claiming product runtime proof.
 
+## Current summaries and earlier build records
+
+The [operator contract](operator-guide.md) and [administration contract](admin-guide.md)
+summarize the accepted target and qualification boundaries. They do not certify
+current deployed behavior. The `phase-01` through `phase-07` notes, feature file
+map/parity inventory and local Phase 8 release notes describe earlier implementation
+stages; their phase numbers are unrelated to the program roadmap. The Phase 6
+note separately states the current Workflow Studio migration boundary. Do not
+restore old status, retry, role, template or automation semantics from those
+records when implementing the current formal contract.
+
 ## Historical model artifacts
 
 The three Python reference-model files in `grill/` preserve finite, synthetic experiments from the recorded review. They are not application code, an integration test suite, or evidence that runtime behavior passed. They use their original output paths; D29 and D35 can overwrite adjacent captured JSON, and D34 retains an old workspace output path. Inspect or reproduce them in a separate scratch copy, not in the evidence directory. They are not registered with Core's CI or release tests. Their exact captured bytes remain part of the provenance record.

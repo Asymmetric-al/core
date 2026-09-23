@@ -21,6 +21,36 @@ compare-and-swap. `PublishedContentReader` SHALL be the only public read seam;
 downstream search, cache, sitemap, CDN and crawler convergence SHALL remain
 separate facts.
 
+Ordinary content publication SHALL remain single-locale. D10 SHALL own only the
+presentation-wide complete-cohort exception. The later Phase 24 D73 and D76
+contracts SHALL govern their separate exact domain-origin/cutover transactions:
+they SHALL consume compatible current-public-locale D1 successors and atomically
+advance the affected Domain and public-head cohorts. D76 SHALL establish and
+acknowledge its adverse Moving barrier before the final source/destination
+head swap. Neither domain command SHALL publish unrelated drafts, activate a
+private locale, allow a partial positive origin cohort or create another serving
+head. Provider and cache work SHALL remain outside authoritative transactions.
+
+#### Scenario: A qualified Primary Domain successor spans public locales
+
+- **GIVEN** the Phase 24 D73 owner has prepared compatible origin successors for
+  every current public locale and all exact Domain and generation heads
+- **WHEN** its current-proofed domain command commits
+- **THEN** the Domain role generation and complete expected public-origin head
+  cohort advance atomically through the owning contract
+- **AND** unrelated content drafts and enabled nonpublic locales remain unchanged
+
+#### Scenario: A prepared same-Tenant Domain move loses a final head race
+
+- **GIVEN** the Phase 24 D76 Moving barrier has been durably established and
+  acknowledged for the exact prepared source/destination closure
+- **WHEN** expected Domain or public-head proof no longer matches before the
+  final authority swap
+- **THEN** no partial source/destination favorable head swap commits
+- **AND** the command retains the existing adverse state and follows D76's
+  receipt-backed recovery rather than claiming nothing changed or publishing
+  drafts through D10
+
 #### Scenario: An editor publishes a valid Page successor
 
 - **GIVEN** one authorized editor has an acknowledged exact-locale Page draft

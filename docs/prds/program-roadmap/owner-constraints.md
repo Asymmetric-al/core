@@ -1219,9 +1219,11 @@ generalized geography).
   care caseload views; care-sensitive indicators surfaced to general staff
   only as the Phase 10-approved summary chip (structural member-care
   exclusion from Phase 9 general surfaces carries through).
-- **Candidate-screening data** (psychological assessments from
-  mobilization workflows, 34/37) landing as Restricted with its own
-  retention schedule.
+- **Candidate-screening data** requested by Phase 41 applications or Phase 37
+  registration remains in the qualified Phase 38 care source as Restricted
+  with its own retention schedule. Phase 34 coordinates approved work only;
+  application/registration records receive the permitted determination or
+  reference, never the raw assessment.
 - **Compliance evidence surfaces**: per-tier retention/deletion enforcement
   reports, appropriate-policy-document support (ICO), DSAR/erasure tooling
   that correctly excludes data whose disclosure endangers third parties.
@@ -1248,18 +1250,19 @@ deletion or hold authority.
 
 ## Phase 39 — field-first-ux
 
-- **PWA shell** (Serwist — the standard Next.js App Router toolchain):
-  installable workspace, app-shell precache, runtime caching, offline
-  detection.
-- **Read-path resilience**: TanStack DB persistence (SQLite-WASM adapters)
-  for the missionary's permitted slice (partners, tasks, commitments) —
-  server-authoritative, schema-version-controlled re-sync. Before the device
-  posture is certified, only non-sensitive projections may persist locally.
-- **Offline write queue for a small named set** of workflows via
-  `@tanstack/offline-transactions`: client-generated idempotency keys,
-  exponential backoff, ordered replay for dependent ops, **visible
-  pending/synced state** ($synced/$origin row metadata → WhatsApp-style
-  indicators).
+- **Qualified PWA shell**: installable workspace, app-shell precache,
+  runtime caching and offline detection for the supported Next.js/runtime.
+  Serwist remains an evaluation candidate, not an adopted dependency.
+- **Read-path resilience** for the missionary's permitted slice (partners,
+  tasks, commitments): server-authoritative, schema-version-controlled
+  re-sync. Qualify candidate TanStack DB persistence and SQLite-WASM adapters
+  against the actual device/source contract before choosing storage. Before
+  the device posture is certified, only non-sensitive projections may persist.
+- **Offline write queue for a small named set**: client-generated operation
+  identities, bounded retry/backoff, ordered replay for dependent operations
+  and visible pending/synced/conflict state. Qualify candidate libraries such
+  as `@tanstack/offline-transactions`; an earlier library or row-metadata
+  example does not select the implementation or prove production fit.
 - **D22 offline boundary**: only a visibly device-local, non-authoritative
   Prospective Expense Plan Draft may be resumed offline after the device-
   security contract is certified. Submit, withdraw, request-information,
@@ -1337,11 +1340,13 @@ plaintext convenience storage.
   and kill switches. Feature domains still own suggestion interpretation and
   acceptance commands; a Phase 40 workbench never gains generic write
   authority.
-- **Tiered autonomy + review-by-exception**: conservative thresholds first;
-  expand only as override rates drop (<~30%); human corrections captured as
-  feedback, not discarded. Advisory-first merge (the shipped Dynamics 365
-  pattern: AI pre-selects surviving values with reasoning; a click
-  commits).
+- **Human-reviewed assistance**: retain corrections as evaluation feedback
+  and present proposed merge values with source-linked reasoning. Only a
+  current authorized human decision invokes the owning command. Any later
+  autonomy expansion requires an explicit policy and source decision; an
+  override-rate threshold cannot authorize it. The earlier <~30% benchmark
+  and vendor review-by-exception comparison remain research history, not a
+  current activation rule.
 - **Governed AI access to numbers**: any natural-language analytics speaks
   **only through the Phase 33 semantic layer** (tenant/role security
   compiled in — cross-tenant queries impossible to construct).

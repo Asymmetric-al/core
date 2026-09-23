@@ -4,7 +4,7 @@
 
 Groomed via `grill-with-docs` (2026-07-11). All seven decision families **D1–D7** are ratified, plus the **NF3** loose-thread ("Send acknowledgments" gate) and the two thin founder-confirms that rode alongside it (cash dual-count deferred to fast-follow; a counsel/finance sign-off gate added as a phase deliverable). Each decision was pressure-tested by a dedicated adversarial review fleet before ratification — the fleet lineage is: **D3** three-layer workbench (17-category `wf_f4a1135a-b58`, ratified-as-hardened with 16 amendments + a cut list (binding do-not-build) + 2 gating spikes); **D4** tender menu (17-category `wf_bd7b7b90-a0a`) followed by a nine-agent **Stripe deep dive** (`wf_3089d3d8-91a`) that vindicated the native-embedded phone lane; **D5** commit contract (17-category `wf_3d29b7cc-f8d`, 14 amendments + 4 founder micro-choices); **D6** deposit grouping (`wf_33b236ee-f71`, field-validated undeposited-funds spine, 16 amendments + 6 call-backs); **D7** batch templates (17-category `wf_fddff5b6-be6`, 13 amendments); a whole-scope **loose-threads sweep** (`wf_4923b56c-393`, 49 scope areas → 23 DECIDED · 17 CARRYABLE · 9 DANGLING, all closed); and the **NF3** acknowledgment-send design fleet (`wf_15809123-59f`). The PRD is authored from that decision record.
 
-**Slug:** `gift-batch-entry` · **Roadmap position:** Phase 15 of 41 (roadmap v2) · **Posting/intake predecessors:** Phase 13 (Campaign, Designation, Contribution Ledger & Giving Cart), Phase 14 (Donor Credit Operations), and Phase 7 source dating/receipt-plan authority. **Official receipt activation predecessors:** Phase 7 source authorization, Phase 18 generated documents, and Phase 17/6 governed delivery. The planning contracts are groomed-not-built; Phase 13's append-only ledger (epic #690) has **zero SQL on disk today**, and Phase 14's credit machinery (epic #719) is likewise unbuilt.
+**Slug:** `gift-batch-entry` · **Roadmap position:** Phase 15 of 45 (roadmap v3, adopted 2026-09-22) · **Posting/intake predecessors:** Phase 13 (Campaign, Designation, Contribution Ledger & Giving Cart), Phase 14 (Donor Credit Operations), and Phase 7 source dating/receipt-plan authority. **Official receipt activation predecessors:** Phase 7 source authorization, Phase 18 generated documents, and Phase 17/6 governed delivery. The planning contracts are groomed-not-built; Phase 13's append-only ledger (epic #690) has **zero SQL on disk today**, and Phase 14's credit machinery (epic #719) is likewise unbuilt.
 
 **Program posture: groomed-not-built.** This document is a design against not-yet-built Phase 7, Phase 13, Phase 14, Phase 17/6, and Phase 18 contracts; it makes no live or shipped claims. Every repo anchor cited below (see **Repo Anchors**) is **evidence as of authoring** — proof that the seam, precedent, or infrastructure exists to build against — never a brittle build instruction, and never an assertion that the Phase 15 product exists. The Phase 15 tables (`gift_entry_batches`, `batch_templates`, `deposit_groups`, `deposit_assignment_events`, `noncash_gift_details`) are all net-new. Because the product has **no users** (founder ruling 2026-07-06), there is no migration ceremony and no compatibility shim: every table ships correct-from-start, and the cross-PRD congruence package (see S10) renames predecessor vocabulary freely because nothing it names is built. **Tracked by epic #758 + children #759–#786** (minted 2026-07-11 via `/to-tickets`; every child `status:blocked` on the predecessor spine — dispatch is a separate founder decision, no `ready-for-agent`).
 
@@ -1198,6 +1198,15 @@ It restates the counts, the dollar total, and the **plan- and tender-conditional
 - Receipts are content-minimized to IRS-required fields (blast-radius reduction on cross-donor misdelivery).
 
 ### Mod 3 — Amend a posted gift = compensating correction
+
+**Pending cross-owner approval clarification (C-01, 2026-09-23).** The recorded
+Phase 13 default permits a capability-authorized correction with reason/audit
+and optional tenant separation of duties; Phase 15 D5 Mod3 separately requires
+a different approver for post-commit amends. The founder ruling between those
+rules is pending in the [congruence decision record](../../ai/audits/2026-09-23-contract-congruence.md#one-unresolved-owner-decision).
+Do not dispatch an implementation that silently chooses either rule. Preserve
+independent append-only correction, source ownership and separately required
+risk/money-out controls while this narrow approval question is resolved.
 
 #### Pre-commit is a free edit; post-commit is a correction only [D5 Mod3, Call-back B, Amd 7]
 

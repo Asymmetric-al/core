@@ -17,3 +17,8 @@ this documentation change cannot mark those tasks complete.
 Publication is [PR #1897](https://github.com/Asymmetric-al/core/pull/1897).
 Current-head CI/review/merge state is verified on GitHub; publication alone does
 not prove merge readiness or any product qualification.
+
+The September 23 [congruence follow-up](../../../docs/ai/audits/2026-09-23-contract-congruence.md)
+records additional verified source/ticket corrections and explicit C-01/C-02
+owner decision gates. Completing documentation publication does not close those
+unchecked product/architecture decisions or any runtime qualification.

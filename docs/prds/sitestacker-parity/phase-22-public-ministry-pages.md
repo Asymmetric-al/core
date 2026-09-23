@@ -105,7 +105,7 @@ owned, re-proved action.
 25. **US22-025** — As a reviewer, I want one queue containing only candidates that need judgment, so that review stays quiet.
 26. **US22-026** — As a reviewer, I want Approve & publish, Request changes, and terminal Reject, so that decisions are clear and bounded.
 27. **US22-027** — As a contributor, I want requested changes attached to the exact candidate, so that I know what to revise.
-28. **US22-028** — As staff, I want stale review actions rejected after a newer candidate or policy change, so that I cannot publish obsolete work.
+28. **US22-028** — As staff, I want review actions rejected when the candidate is superseded, its expected public head changes, or current required proof fails, while prospective review-profile changes preserve waiting work’s pinned rules, so that I can decide the exact still-valid submission.
 29. **US22-029** — As an administrator, I want healthy automatic releases omitted from the queue, so that staff are not asked to rubber-stamp them.
 30. **US22-030** — As an auditor, I want every decision append-only with actor and time, so that review history cannot be rewritten.
 
@@ -385,7 +385,12 @@ owned, re-proved action.
   The selected exact-scope version is pinned when a candidate is submitted;
   missing or unusable scope truth uses the disclosed review-required fallback
   and never a tenant-global or sibling-scope profile. Later profile changes are
-  prospective. Mandatory eligibility, safety,
+  prospective: tightening stops queued automatic release at current-policy
+  reproof, while loosening never publishes an existing review backlog. Staff may
+  decide an already-waiting candidate under its pinned review profile, or the
+  contributor may deliberately submit a new candidate under the new profile.
+  A prospective profile successor alone does not invalidate manual review.
+  Mandatory current eligibility, safety, authority, profile/renderer compatibility,
   attestation, source, subject, route, media, and release checks apply in either
   posture. Automatic release is a policy outcome, not a bypass.
 - **D5:** Staff review has one lane and three outcomes: `Approve & publish`,

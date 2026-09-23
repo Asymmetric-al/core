@@ -49,8 +49,12 @@ remedy and never offer **Approve anyway**.
 - Tenant flexibility is preserved without arbitrary workflow configuration,
   while Phase 10 safety and the applicable D2 Page or D11 Update concurrency
   guarantees remain unchanged.
-- A profile change is prospective and never surprise-publishes an existing
-  review backlog.
+- Review-profile changes are prospective. Tightening stops queued automatic
+  release at current-policy reproof; loosening never publishes the waiting
+  backlog. Staff may decide a waiting candidate under its pinned profile, or
+  its contributor may deliberately submit a new candidate. A prospective
+  profile successor alone does not invalidate manual review, while current
+  authority, safety, expected-head and required dependency proof remain binding.
 
 ## Later Phase 22 D26 qualification
 

@@ -220,3 +220,16 @@
       scope, acceptance projections, ticket amendments and independent checkpoint DAGs.
 - [x] Record exact validation and publication evidence; keep all runtime and
       provider qualification tasks open until their owning gates pass.
+
+## Owner decisions discovered by the September 23 congruence audit
+
+These are product/architecture decision gates, not a claim that source work or
+qualification has completed. Details and current safe boundaries are in the
+[decision record](../../../docs/ai/audits/2026-09-23-contract-congruence.md#unresolved-owner-decisions).
+
+- [ ] Resolve C-01 with the founder and synchronize the Phase 13/15 correction
+      approval rule, affected acceptance and issue #766 before dispatching that
+      policy implementation.
+- [ ] Resolve C-02 with the founder and synchronize the Phase 13/14 operational
+      state placement, immutable-row enforcement and affected schema/tests/tickets
+      before implementing that storage seam.
