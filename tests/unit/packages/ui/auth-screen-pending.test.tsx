@@ -72,7 +72,7 @@ afterEach(() => {
 });
 
 describe("auth form pending submissions", () => {
-  it("locks login before rerender and unlocks after failure without losing button focus", async () => {
+  it("locks login with a natively disabled submit button and unlocks after failure", async () => {
     const pending = deferred<{ error: { message: string } }>();
     auth.signInWithPassword.mockReturnValueOnce(pending.promise);
     auth.signInWithPassword.mockResolvedValueOnce({ error: null });
@@ -102,8 +102,8 @@ describe("auth form pending submissions", () => {
       email: "fixture@example.test",
       password: "fixture-password",
     });
-    expect(button.getAttribute("aria-disabled")).toBe("true");
-    expect(document.activeElement).toBe(button);
+    expect(button.hasAttribute("disabled")).toBe(true);
+    expect(button.getAttribute("aria-disabled")).not.toBe("true");
     act(() => {
       form.requestSubmit();
     });
@@ -113,6 +113,7 @@ describe("auth form pending submissions", () => {
       pending.resolve({ error: { message: "Try again" } });
     });
     expect(screen.getByText("Try again")).toBeTruthy();
+    expect(button.hasAttribute("disabled")).toBe(false);
     expect(button.getAttribute("aria-disabled")).not.toBe("true");
     await act(async () => {
       form.requestSubmit();
@@ -132,13 +133,14 @@ describe("auth form pending submissions", () => {
       view.container.querySelector("form")!.requestSubmit();
     });
 
-    expect(button.getAttribute("aria-disabled")).toBe("true");
-    expect(document.activeElement).toBe(button);
+    expect(button.hasAttribute("disabled")).toBe(true);
+    expect(button.getAttribute("aria-disabled")).not.toBe("true");
     expect(auth.signUp).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       pending.resolve({ data: { session: null }, error: null });
     });
+    expect(button.hasAttribute("disabled")).toBe(false);
     expect(button.getAttribute("aria-disabled")).not.toBe("true");
     expect(screen.getByText(/check your email for verification/i)).toBeTruthy();
     expect(auth.replace).not.toHaveBeenCalled();

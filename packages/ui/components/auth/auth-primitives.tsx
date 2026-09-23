@@ -50,7 +50,8 @@ export const AuthButton = React.forwardRef<
     const labelId = React.useId();
     // Submit controls must stay natively disabled while loading. Base UI's
     // focusableWhenDisabled path only sets aria-disabled, so Enter in a field
-    // would still implicit-submit the form and re-enter login/register.
+    // would still implicit-submit the form. Login and register also ignore a
+    // second call via submissionInFlight; native disabled is the HTML lock.
     const focusableWhenDisabled = loading && type !== "submit";
     return (
       <Button
