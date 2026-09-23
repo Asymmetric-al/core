@@ -117,3 +117,9 @@ immutable posted financial rows. ADR-0206 and the subsequent C-02 amendment
 [ledger](../../ai/audits/2026-09-23-c02-issue-reconciliation.json) track that explicit successor; the original
 50-issue ledger remains dated publication evidence. C-01 approval policy is
 still unresolved.
+
+The initial reconciliation PR #1897 merged while the later C-02 follow-up was
+being prepared. [PR #1901](https://github.com/Asymmetric-al/core/pull/1901) carries
+that accepted ruling and its source corrections. The C-02 ledger retains both
+the initial 16 body readbacks and the provenance-only successor that directs
+agents to the correct source PR; issue metadata and native edges are unchanged.

@@ -182,7 +182,14 @@ state what was actually checked.
   `bunx @shadscan/cli@0.1.1 --json`; the separate existing hook audits the shared
   UI package at its own floor of 29. No UI changes or gate bypass were made.
 
-[PR #1897](https://github.com/Asymmetric-al/core/pull/1897) carries this follow-up.
+[PR #1897](https://github.com/Asymmetric-al/core/pull/1897) merged the initial
+reconciliation on September 23 at 03:31:11 UTC, at develop commit
+`ea8086cf398fb20878994f5979cbeea7959a1845`. The later C-02 ruling and its
+source/ticket corrections are carried by [PR #1901](https://github.com/Asymmetric-al/core/pull/1901).
+The C-02 ledger preserves the initial issue publication and the subsequent
+source-link-only correction to that follow-up PR; historical #1897 references
+remain historical. The complete 17-stage pre-push gate passed for C-02 commit
+`640b97b7d98a7719d51fc1eec075bf1d21f7cd32`, including 4,511 passing tests.
 Read its current head, required checks, review threads and merge state on GitHub;
 this dated document does not promise those external states remain unchanged.
 C-01 and existing source/provider gates remain unresolved where their required
