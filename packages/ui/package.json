@@ -82,7 +82,7 @@
     "@tiptap/suggestion": "^3.22.3",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",
-    "cnfast": "0.0.8",
+    "cn": "0.3.2",
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
