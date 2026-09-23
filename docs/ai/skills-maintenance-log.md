@@ -1,6 +1,6 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-07-15
+Last updated: 2026-09-16
 
 ## Scope
 
@@ -291,6 +291,107 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
   distinct files. Both fixes are pinned as required
   `POST_REFRESH_REPLACEMENTS` so future refreshes fail loudly on upstream
   drift instead of silently reverting them.
+
+## 2026-08-29 - Emil Kowalski pack and paid skill refresh
+
+- Confirmed live upstream `emilkowalski/skills` at
+  `d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7` now ships twelve public skills.
+  Core lockfile-manages eleven of them (`animate`, `animate-expo`,
+  `animation-vocabulary`, `apple-design`, `ask-sonner`, `emil-design-eng`,
+  `emil-prototype`, `improve-animations`, `pick-ui-library`,
+  `review-animations`, `write-swift`) and keeps the Core-authored
+  `find-animation-opportunities` adapter.
+- Copied the pack into `.agents/skills/` instead of running
+  `npx skills add emilkowalski/skills -y`, which would overwrite Matt Pocock
+  `prototype` and the Core animation-opportunity adapter. Upstream
+  `skills/prototype/` is vendored as `emil-prototype`.
+- Refreshed the paid animations.dev skill **`emil-design-engineering`**
+  (`$99`) from `https://animations.dev` into
+  `~/.cursor/skills/emil-design-engineering/`, then
+  `bun run skills:refresh-upstream --only=animations.dev`.
+- Added Core overlays, MIT provenance, and routing for the six new public
+  skills. Existing Base UI, motion-token, and reduced-motion overlays remain
+  authoritative.
+
+## 2026-09-16 - Design skill packs and Emil refresh
+
+- Confirmed live upstream `emilkowalski/skills` at
+  `85e8e2363b713506e1d5b6e07a0eb2da66be1bc3`. Added the new public
+  `mobile-native` skill and refreshed the rest of the lockfile-managed pack.
+  Kept Core's `find-animation-opportunities` adapter and Matt Pocock
+  `prototype`.
+- Refreshed the paid animations.dev skill **`emil-design-engineering`**
+  (`$99`) from `https://animations.dev` into
+  `~/.cursor/skills/emil-design-engineering/`, then
+  `bun run skills:refresh-upstream --only=animations.dev`.
+- Vendored Jakub Krehel polish skills (`better-ui`, `better-typography`,
+  `better-colors`, `better-layout`, `better-interface`, `better-accessibility`,
+  `better-writing`, `interface-review`), Anthropic `frontend-design`,
+  leonxlnx `design-taste-frontend` / `redesign-existing-projects`, and obra
+  Superpowers `test-driven-development`. `better-writing` is included because
+  `better-interface` depends on it. Did not vendor unlisted Jakub skills
+  (`break`, `variant`, `explain-interface`).
+- Marked `interface-review`, `frontend-design`, `design-taste-frontend`, and
+  `redesign-existing-projects` explicit-only. Overlays keep Base UI /
+  `base-maia` authoritative; these skills must not restyle Core product apps.
+- Core TDD remains `docs/ai/skills/tdd/SKILL.md`; obra TDD is a companion.
+  Core a11y remains `docs/ai/skills/accessibility-review/SKILL.md`.
+- Added focused refresh scripts: `skills:refresh-jakubkrehel`,
+  `skills:refresh-frontend-design`, `skills:refresh-taste-skill`,
+  `skills:refresh-obra-tdd`.
+
+## 2026-09-16 - Full catalog freshness audit
+
+- Audited every lockfile-managed skill (128 original names) against live
+  GitHub `SKILL.md` bytes. True content refreshes were applied; overlay,
+  Prettier, OpenSpec `v1.9.0` pin, and Core-adapter diffs were not treated as
+  stale upstream.
+- Kept OpenSpec skills on installed CLI `@fission-ai/openspec@1.9.0`. Did not
+  bump to upstream `v1.13.0`. Frozen OpenSpec changes stay frozen.
+- Refreshed Cursor Team Kit at `c1c0a328`, Babysitter `babysit` from default
+  branch `main` at `baae1ad6` (fail-closed npm-exec, no `latest` fallback),
+  and `grill-for-unknowns` 0.1.3 at `d8d5f4b`. Grill lock `computedHash`
+  tracks canonical overlayed `SKILL.md` bytes.
+- Realigned lockfile hashes to GitHub-raw `SKILL.md` SHA-256 where the local
+  tree already matched HEAD (CLI `computedHash` is not the repo convention).
+  Left Prettier-formatted Team Kit skills, overlayed canonical skills, the
+  OpenSpec pin, and Core adapters (`prototype`, `vitest`, `tdd`,
+  `emil-prototype`) on their existing hashes.
+- Promoted moved GitHub paths without growing the lockfile: `vercel/eve`
+  `skills/eve/SKILL.md`, `playwright-best-practices/SKILL.md`,
+  `skills/nestjs-best-practices/SKILL.md` (NestJS reference only; no
+  NestJS/TypeORM in Core), `resend/resend-cli` at v2.21.0. `playwright-skill`
+  stays lockfile + `.agents` only.
+- `create-agent` stays a kept snapshot (`ikindacodes/ship-eve` no longer
+  publishes `skills/`).
+- Matt Pocock HEAD removed `design-an-interface`, `edit-article`,
+  `obsidian-vault`, `qa`, `request-refactor-plan`, `ubiquitous-language`, and
+  `writing-great-skills`. Canonical copies stay as kept snapshots. Did not
+  vendor successor `writing-for-agents`.
+- Inngest refresh now vendors `inngest-api-cli` and `rest-api-v2.md` /
+  `cli-commands.md`; retired `agent-friction.md`. Pins unchanged.
+- Payload reference files already matched HEAD; SKILL.md differs only by Core
+  overlay. bendc README wrapper reviewed 2026-09-16.
+- Restored marked and unmarked Core overlays on promote. `skills:sync` /
+  `skills:verify` rewrite runtime mirrors after CLI adds.
+- Restored the marked ask-matt grill-depth overlay so `/grill-for-unknowns`
+  stays on the main flow after the Matt CLI body refresh. NestJS overlay
+  keeps `not a NestJS application` on one line. Anthropic `frontend-design`
+  now vendors root `LICENSE.txt` instead of `references/LICENSE.md`.
+- Vendored NestJS, Playwright, and Payload reference docs keep
+  `pragma: allowlist secret` on credential-example lines, and those trees
+  are Prettier-ignored so wrapping does not re-trip the commit scanner.
+- `skills:sync` now allowlists those same credential-example lines in
+  ecosystem `.agents` copies (including JSON string values) before mirroring
+  to Cursor and Claude, so lockfile-only skills stay committable after CLI
+  refresh. `skills:refresh-upstream` walks every copied canonical file, not
+  only `better-accessibility` / `better-writing`.
+- Follow-up 2026-09-16: restore `disable-model-invocation: true` in
+  Anthropic `frontend-design` YAML frontmatter (overlay prose was not
+  enough). Remap ask-matt `/writing-for-agents` to kept
+  `/writing-great-skills`; add `skills:refresh-ask-matt` without vendoring
+  the successor. `skills:sync` now skips and prunes macOS Finder junk
+  (`Archive.zip`, `__MACOSX`, `.DS_Store`, `._*`) from ecosystem copies.
 
 ## Rollback Notes
 

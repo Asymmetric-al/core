@@ -3,8 +3,8 @@ source_name: pbakaus/impeccable
 source_url: https://github.com/pbakaus/impeccable
 source_type: github
 upstream_path: .agents/skills/impeccable/SKILL.md
-skills_lock_hash: 53feeb8610c5317002aa81df280ee5a11aacfb8e2d90212997f966dec7d04f19
-last_reviewed: 2026-06-28
+skills_lock_hash: fa0cb3ef01a25b9094266109a63c1d01d4b2d4973f75b324f5c4ad7e568d148f
+last_reviewed: 2026-09-16
 ---
 
 # Upstream: impeccable

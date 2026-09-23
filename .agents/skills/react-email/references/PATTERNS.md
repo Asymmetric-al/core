@@ -4,13 +4,13 @@ Real-world examples of common email templates using React Email with Tailwind CS
 
 ## Table of Contents
 
-- [Password Reset Email](#password-reset-email)
+- [Password Reset Email](#password-reset-email) // pragma: allowlist secret
 - [Order Confirmation with Product List](#order-confirmation-with-product-list)
 - [Notification Email with Code Block](#notification-email-with-code-block)
 - [Multi-Column Newsletter](#multi-column-newsletter)
 - [Team Invitation Email](#team-invitation-email)
 
-## Password Reset Email
+## Password Reset Email // pragma: allowlist secret
 
 ```tsx
 import {
@@ -27,38 +27,38 @@ import {
   pixelBasedPreset
 } from 'react-email';
 
-interface PasswordResetProps {
+interface PasswordResetProps { // pragma: allowlist secret
   resetUrl: string;
   email: string;
   expiryHours?: number;
 }
 
-export default function PasswordReset({ resetUrl, email, expiryHours = 1 }: PasswordResetProps) {
+export default function PasswordReset({ resetUrl, email, expiryHours = 1 }: PasswordResetProps) { // pragma: allowlist secret
   return (
     <Html lang="en">
       <Tailwind config={{ presets: [pixelBasedPreset] }}>
         <Head />
         <Body className="bg-gray-100 font-sans">
-          <Preview>Reset your password - Action required</Preview>
+          <Preview>Reset your password - Action required</Preview> // pragma: allowlist secret
           <Container className="mx-auto py-10 px-5 max-w-xl bg-white">
             <Heading className="text-2xl font-bold text-gray-800 mb-5">
-              Reset Your Password
+              Reset Your Password // pragma: allowlist secret
             </Heading>
             <Text className="text-base leading-7 text-gray-800 my-4">
-              A password reset was requested for your account: <strong>{email}</strong>
+              A password reset was requested for your account: <strong>{email}</strong> // pragma: allowlist secret
             </Text>
             <Text className="text-base leading-7 text-gray-800 my-4">
-              Click the button below to reset your password. This link expires in {expiryHours} hour{expiryHours > 1 ? 's' : ''}.
+              Click the button below to reset your password. This link expires in {expiryHours} hour{expiryHours > 1 ? 's' : ''}. // pragma: allowlist secret
             </Text>
             <Button
               href={resetUrl}
               className="bg-red-600 text-white px-7 py-3.5 rounded block text-center font-bold my-6 no-underline box-border"
             >
-              Reset Password
+              Reset Password // pragma: allowlist secret
             </Button>
             <Hr className="border-solid border-gray-200 my-6" />
             <Text className="text-sm text-gray-500 leading-5 my-2">
-              If you didn't request this, please ignore this email. Your password will remain unchanged.
+              If you didn't request this, please ignore this email. Your password will remain unchanged. // pragma: allowlist secret
             </Text>
             <Text className="text-sm text-gray-500 leading-5 my-2">
               For security, this link will only work once.
@@ -70,11 +70,11 @@ export default function PasswordReset({ resetUrl, email, expiryHours = 1 }: Pass
   );
 }
 
-PasswordReset.PreviewProps = {
+PasswordReset.PreviewProps = { // pragma: allowlist secret
   resetUrl: 'https://example.com/reset/abc123',
   email: 'user@example.com',
   expiryHours: 1
-} as PasswordResetProps;
+} as PasswordResetProps; // pragma: allowlist secret
 ```
 
 ## Order Confirmation with Product List

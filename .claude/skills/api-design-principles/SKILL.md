@@ -346,7 +346,7 @@ type Mutation {
 input CreateUserInput {
   email: String!
   name: String!
-  password: String!
+  password: String! # pragma: allowlist secret
 }
 
 # Payload types for mutations
@@ -440,7 +440,7 @@ async def resolve_create_user(obj, info, input: dict) -> dict:
         user = await create_user(
             email=input["email"],
             name=input["name"],
-            password=hash_password(input["password"])
+            password=hash_password(input["password"]) # pragma: allowlist secret
         )
 
         return {

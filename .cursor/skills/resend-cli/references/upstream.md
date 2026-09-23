@@ -2,7 +2,8 @@
 source_name: resend/resend-cli (resend-cli agent skill)
 source_url: https://github.com/resend/resend-cli
 license: MIT
-last_reviewed: 2026-05-23
+last_reviewed: 2026-09-16
+skills_lock_hash: 7ac3852492006d9439582db0a68e0ec21723aff4b89be799fe4e62361a12c47c
 ---
 
 # Upstream: Resend CLI agent skill
@@ -10,10 +11,11 @@ last_reviewed: 2026-05-23
 Canonical copy in this repo: `docs/ai/skills/resend-cli/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/resend/resend-cli
-- **Release tag (vendored):** https://github.com/resend/resend-cli/releases/tag/v2.0.0 (CLI **2.0.0**)
+- **Latest release tag at review:** https://github.com/resend/resend-cli/releases/tag/v2.21.0
 - **Announcement:** https://resend.com/blog/resend-cli-2
 - **Upstream path:** `skills/resend-cli/` (includes `SKILL.md` and `references/*.md`)
 - **CLI docs:** https://resend.com/docs/cli
+- **Install via Skills CLI:** `npx skills add resend/resend-cli --skill resend-cli -y`
 
 ## Not the same as platform / SDK skills
 
@@ -22,14 +24,14 @@ Canonical copy in this repo: `docs/ai/skills/resend-cli/` (mirrored to `.cursor/
 
 ## Refresh from upstream
 
-This skill is **not** copied by `bun run skills:refresh-upstream` (that script is only for Supabase skills installed via `npx skills add supabase/agent-skills`).
+This skill is **not** copied by `bun run skills:refresh-upstream`.
 
-1. Download the tagged tree (e.g. tarball for `v2.0.0`) or compare against https://github.com/resend/resend-cli/tree/v2.0.0/skills/resend-cli
-2. Replace `docs/ai/skills/resend-cli/` contents with upstream `skills/resend-cli/` (preserve any future **This repository** section in `SKILL.md` if you add one)
-3. Update `last_reviewed` in this file when you bump the vendored tag
+1. `npx skills add resend/resend-cli --skill resend-cli -y` updates `.agents/skills/resend-cli/` and `skills-lock.json`.
+2. Copy the skill tree into `docs/ai/skills/resend-cli/`, restoring the **This repository** overlay in `SKILL.md`.
+3. Preserve this `references/upstream.md` file and update `last_reviewed`.
 4. `bun run skills:sync` && `bun run skills:verify`
 
 ## Notes for maintainers
 
 - Do not copy secrets, tokens, or environment-specific identifiers into skill content.
-- If `npx skills add resend/resend-cli` (or equivalent) is confirmed to install into `.agents/skills/resend-cli`, consider adding `resend-cli` to `scripts/refresh-upstream-skills.mjs` and `skills-lock.json` using the same pattern as Supabase.
+- Do not refresh this skill from `resend/resend-skills`; that package is a different CLI id (`resend`).

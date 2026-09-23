@@ -4,7 +4,7 @@ description: Use when building any system where email content triggers actions â
 license: MIT
 metadata:
     author: resend
-    version: "3.0.2"
+    version: "3.0.4"
     homepage: https://resend.com/agent-skills
     source: https://github.com/resend/resend-skills
     openclaw:
@@ -40,7 +40,7 @@ inputs:
       required: true
     - name: RESEND_WEBHOOK_SECRET
       description: Webhook signing secret for verifying inbound email event payloads. Returned as `signing_secret` in the response when you create a webhook via the API.
-      required: true
+      required: false
 references:
     - security-levels.md
     - webhook-setup.md
@@ -116,7 +116,7 @@ Ask your human:
 **Safer options:**
 
 1. **Environment file method:** Human creates `.env` file directly: `echo "RESEND_API_KEY=re_xxx" >> .env`
-2. **Password manager / secrets manager:** Human stores key in 1Password, Vault, etc.
+2. **Password manager / secrets manager:** Human stores key in 1Password, Vault, etc. // pragma: allowlist secret
 3. **If key must be shared in chat:** Human should rotate the key immediately after setup
 
 ### Domain-Scoped API Keys (Recommended for Existing Accounts)
@@ -279,6 +279,10 @@ import { Resend } from 'resend';
 
 const app = express();
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const ALLOWED_SENDERS = (process.env.ALLOWED_SENDERS || '').split(',').filter(Boolean);
+const isAllowedSender = (sender) =>
+  ALLOWED_SENDERS.some(allowed => sender === allowed.toLowerCase());
 
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   try {

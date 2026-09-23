@@ -185,7 +185,7 @@ describe('Registration Form', () => {
     cy.get('#first-name').type('Jane');
     cy.get('#last-name').type('Doe');
     cy.get('#email').type('jane@example.com');
-    cy.get('#password').type('s3cure!Pass');
+    cy.get('#password').type('s3cure!Pass'); // pragma: allowlist secret
     cy.get('#country').select('United States');
     cy.get('#terms').check();
 
@@ -216,7 +216,7 @@ test.describe('Registration Form', () => {
     await page.getByLabel('First name').fill('Jane');
     await page.getByLabel('Last name').fill('Doe');
     await page.getByLabel('Email').fill('jane@example.com');
-    await page.getByLabel('Password').fill('s3cure!Pass');
+    await page.getByLabel('Password').fill('s3cure!Pass'); // pragma: allowlist secret
     await page.getByLabel('Country').selectOption('United States');
     await page.getByLabel('I agree to the terms').check();
 
@@ -247,7 +247,7 @@ test.describe('Registration Form', () => {
     await page.getByLabel('First name').fill('Jane');
     await page.getByLabel('Last name').fill('Doe');
     await page.getByLabel('Email').fill('jane@example.com');
-    await page.getByLabel('Password').fill('s3cure!Pass');
+    await page.getByLabel('Password').fill('s3cure!Pass'); // pragma: allowlist secret
     await page.getByLabel('Country').selectOption('United States');
     await page.getByLabel('I agree to the terms').check();
 
@@ -450,11 +450,11 @@ test.describe('Product List', () => {
 **Cypress**
 ```javascript
 // cypress/support/commands.js
-Cypress.Commands.add('login', (email, password) => {
-  cy.session([email, password], () => {
+Cypress.Commands.add('login', (email, password) => { // pragma: allowlist secret
+  cy.session([email, password], () => { // pragma: allowlist secret
     cy.visit('/login');
     cy.get('#email').type(email);
-    cy.get('#password').type(password);
+    cy.get('#password').type(password); // pragma: allowlist secret
     cy.get('button[type="submit"]').click();
     cy.url().should('include', '/dashboard');
   });
@@ -463,7 +463,7 @@ Cypress.Commands.add('login', (email, password) => {
 // cypress/e2e/dashboard.cy.js
 describe('Dashboard', () => {
   beforeEach(() => {
-    cy.login('admin@example.com', 'password123');
+    cy.login('admin@example.com', 'password123'); // pragma: allowlist secret
     cy.visit('/dashboard');
   });
 
@@ -484,7 +484,7 @@ const authFile = path.join(__dirname, '../.auth/user.json');
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('admin@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
@@ -537,7 +537,7 @@ const authFile = path.join(__dirname, '../.auth/user.json');
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('admin@example.com');
-  await page.getByLabel('Password').fill('password123');
+  await page.getByLabel('Password').fill('password123'); // pragma: allowlist secret
   await page.getByRole('button', { name: 'Sign in' }).click();
   await page.waitForURL('/dashboard');
 
