@@ -10,8 +10,8 @@ checkout to a reviewed pull request.
 - Work on a feature branch; do not commit directly to `develop`.
 - Update `production` only through `bun run release:production`. The canonical
   repository has no `main` branch; do not create or target one.
-- Passing attribution or appearing in CODEOWNERS does not grant a GitHub role or
-  bypass branch protection, required checks, review, or conversation resolution.
+- GitHub access authorizes developers and approved automation. Commit metadata
+  does not grant or deny permission. Branch protection and reviews still apply.
 
 ## Choose the correct remote model
 
@@ -28,32 +28,17 @@ git switch -c feature/AL-123-short-title
 git push -u origin feature/AL-123-short-title
 ```
 
-### External contributor
+### Public reader
 
-External contributors use a fork as `origin` and the canonical repo as
-`upstream`:
-
-```bash
-git clone git@github.com:<your-login>/core.git
-cd core
-git remote add upstream git@github.com:Asymmetric-al/core.git
-git fetch upstream
-git switch -c feature/AL-123-short-title upstream/develop
-git push -u origin feature/AL-123-short-title
-```
-
-Open the fork pull request against `Asymmetric-al/core:develop`. An external
-author does not need to be added to the internal identity registry; their
-truthful authorship and DCO sign-off are preserved through review. Do not copy a
-registered internal tuple: fork claims for a registered identity require that
-account's verified commit signature.
+Public readers may fork Core, but collaborator-only issue and PR creation is
+enabled. An organization owner grants new developers Core Write+ access.
 
 ## Windows and WSL authentication
 
 Keep source and Git operations in the WSL checkout. WSL Git may reuse Windows
 Git Credential Manager, and an authenticated Windows GitHub CLI may handle
-issues, pull requests, reviews, checks, and Actions. Follow the canonical setup
-and command examples in `docs/ops/git-attribution.md`; never copy a token into
+issues, pull requests, reviews, checks, and Actions. Follow the access policy
+in `docs/ops/github-access.md`; never copy a token into
 WSL, repository config, shell history, logs, or committed files. GitHub still
 enforces the authenticated account's live role and the repository's branch
 rules.
@@ -66,10 +51,10 @@ rules.
    model above. A draft pull request is useful for early visibility.
 3. **Implement in small steps.** Keep the diff focused and run targeted tests
    while working.
-4. **Commit truthfully.** Sign off the commit and use a conventional subject:
+4. **Commit.** Use a conventional subject:
 
    ```bash
-   git commit -s -m "fix(scope): describe the change" -m "ref AL-123"
+   git commit -m "fix(scope): describe the change" -m "ref AL-123"
    ```
 
 5. **Run the repository gate.** Before marking the pull request ready:
@@ -84,27 +69,14 @@ rules.
    request the applicable code owners, and resolve review threads.
 7. **Merge and clean up.** Merge through GitHub after required checks and review
    pass. Delete the feature branch, then refresh local `develop` from `origin`
-   (internal) or `upstream` (external).
+   from `origin`.
 
-## Attribution and carried authorship
+## Handoffs
 
-Canonical-repository pushes require a registered internal operator and
-registered non-platform committers. A reviewed external commit may retain its
-original, attributable author while an internal developer is recorded as the
-committer. Do not rewrite an external author's identity to make a check pass.
-
-The pre-push hook validates the outgoing commit set and runs
-`bun run ci:preflight`. Required remote attribution verification runs in the
-`format` job, which blocks `ci-gate` through `needs`. Pull requests validate the
-full event `base..head` graph. In a
-same-repository PR, only the matching authenticated event actor may present an
-unsigned registered tuple; a fork or actor mismatch requires its matching
-signer. PR ownership and earlier branch reachability are not identity proof.
-Bots or coworkers forwarding unsigned commits from another registered identity
-must obtain matching signature proof; the verifier does not grandfather them.
-Protected pushes instead validate GitHub-signed integration provenance. Commit-
-email association alone is not proof, and attribution does not replace GitHub
-authorization or review.
+A human or approved agent may continue another authorized actor's branch. The
+pre-push hook runs normal CI preflight and guards direct production pushes; it
+does not inspect commit identity. Eve checks the authenticated GitHub command
+sender before privileged work. See `docs/ops/github-access.md`.
 
 ## Troubleshooting
 
@@ -116,5 +88,4 @@ authorization or review.
 - **Push authentication fails in WSL:** verify the local credential-helper path
   and the Windows GCM session. Do not export or copy its stored credential.
 - **GitHub operation is denied:** check `gh auth status` in Windows and the
-  account's live repository role. Changing docs, CODEOWNERS, or attribution
-  policy cannot grant platform permission.
+  account's live repository role. Changing docs or CODEOWNERS cannot grant platform permission.

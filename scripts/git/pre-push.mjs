@@ -7,33 +7,10 @@ import {
   evaluatePrePushGuard,
   parsePrePushUpdates,
 } from "./pre-push-guard.mjs";
-import { parseGitHubRepoSlug } from "./trusted-identities.mjs";
-
-export function createPrePushEnvironment({
-  input,
-  remoteName,
-  remoteUrl,
-  env,
-}) {
-  const { ASYM_PRE_PUSH_REMOTE_URL: _discardedRemoteUrl, ...safeEnv } = env;
-  const safeRemoteName =
-    typeof remoteName === "string" && /^[A-Za-z0-9._-]+$/.test(remoteName)
-      ? remoteName
-      : "";
-
-  return {
-    ...safeEnv,
-    ASYM_PRE_PUSH_UPDATES: input,
-    ASYM_PRE_PUSH_REMOTE_NAME: safeRemoteName,
-    ASYM_PRE_PUSH_REPOSITORY_SLUG: parseGitHubRepoSlug(remoteUrl) ?? "",
-  };
-}
 
 export function runPrePush({
   env = process.env,
   input,
-  remoteName,
-  remoteUrl,
   runCommand = spawnSync,
 }) {
   const updates = parsePrePushUpdates(input);
@@ -48,12 +25,7 @@ export function runPrePush({
   console.log(`[pre-push-guard] allowed: ${guardResult.reason}`);
 
   const result = runCommand("bun", ["run", "ci:preflight"], {
-    env: createPrePushEnvironment({
-      input,
-      remoteName,
-      remoteUrl,
-      env,
-    }),
+    env,
     stdio: "inherit",
   });
 
@@ -69,9 +41,7 @@ export function runPrePush({
 
 function runCli() {
   const input = readFileSync(0, "utf8");
-  const [remoteName = "", remoteUrl = ""] = process.argv.slice(2);
-
-  return runPrePush({ input, remoteName, remoteUrl });
+  return runPrePush({ input });
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
