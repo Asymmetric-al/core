@@ -44,6 +44,10 @@
       "types": "./collections/support-workspace.ts",
       "default": "./collections/support-workspace.ts"
     },
+    "./collections/support-hub.schema": {
+      "types": "./collections/support-hub.schema.ts",
+      "default": "./collections/support-hub.schema.ts"
+    },
     "./hooks": {
       "types": "./hooks/index.ts",
       "default": "./hooks/index.ts"

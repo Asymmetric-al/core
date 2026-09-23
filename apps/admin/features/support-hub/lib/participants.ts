@@ -1,21 +1,24 @@
-import {
-  supportAgentsCollection,
-  type SupportAssignee,
-  type SupportParticipant,
-} from "@asym/database/hooks";
+import type { SupportAssignee, SupportParticipant } from "@asym/database/hooks";
 
 /**
- * Resolve an agent id to a `SupportParticipant` envelope used when authoring
- * messages from a mutation hook. Reads directly from the live collection so
- * the function stays valid as the agents seed grows.
+ * Resolve an agent id against a caller-owned agent list. The Support Hub
+ * agents collection does not start sync on import, so lookups must not
+ * snapshot a possibly empty collection.
  */
-export function getSupportAgentParticipant(
+export function findSupportAgentParticipant(
+  agents: readonly SupportAssignee[],
   agentId: string,
 ): SupportParticipant | undefined {
-  const rows = supportAgentsCollection.toArray as SupportAssignee[] | undefined;
-  const agent = rows?.find((row) => row.id === agentId);
+  const agent = agents.find((row) => row.id === agentId);
   if (!agent) return undefined;
   return toSupportParticipant(agent);
+}
+
+export function getSupportAgentParticipant(
+  agentId: string,
+  agents: readonly SupportAssignee[],
+): SupportParticipant | undefined {
+  return findSupportAgentParticipant(agents, agentId);
 }
 
 export function toSupportParticipant(

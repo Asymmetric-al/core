@@ -2,6 +2,8 @@
 
 **Current adoption requirements amended 2026-09-22 (AL-1892).** This file retains the earlier Support implementation inventory; its local “Phase 6/7” labels are historical feature stages, not program Phases 6/7. The [current Phase 26 package](README.md) owns native Support behavior and the [Workflow Studio contract](../../prds/workflow-studio/README.md) owns configurable cross-product rules. The [original record](https://github.com/Asymmetric-al/core/blob/7abd2c11ffd4ed70c6775c4fd6f51c996e4350dd/docs/features/support-hub/phase-06-reports-settings-automation.md) preserves the initial design and reported test results.
 
+> **Collection boundary.** Live Donor Care Support Hub UI reads and writes `apps/admin/app/api/admin/support/**` through TanStack Query hooks. Browser TanStack DB collections are a tenant-scoped read cache over those routes (`startSync: false`); they are not the Give Hope seed interface. Give Hope seed lives only in in-memory adapter fixtures. `supportHubAdapter` is `supabaseSupportHubAdapter`. Seeded-collection counts below describe historical Give Hope fixtures, not the live collection interface.
+
 ## Current compatibility requirements
 
 - Preserve the nested `/support/reports/*` and `/support/settings/*` entry points and shared Mission Control shell where compatible with the current Phase 26 experience. Route compatibility does not establish source authorization.
