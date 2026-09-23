@@ -30,8 +30,9 @@ Phase 6 communication outcomes and Phase 18 artifact authority remain separate.
 This planned contract projects the accepted Phase 14 D3.1/D3.11, F.1/F.6/F.12,
 data-model and ownership-matrix outcomes in
 `docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md`. It does not
-select the pending C-02 physical carrier of contribution operational state or
-claim that the target runtime has shipped.
+claim that the target runtime has shipped. The separate accepted C-02
+requirement below and ADR-0206 govern physical operational-state placement;
+this tribute contract retains its source, coverage and cancellation semantics.
 
 #### Scenario: Different tribute preferences share one recipient claim
 
@@ -75,3 +76,96 @@ claim that the target runtime has shipped.
 - WHEN staff click cancel or retry after losing a response
 - THEN coverage remains claimed pending exact owner recovery
 - AND no automatic retraction, fabricated recall or duplicate composition occurs
+
+### Requirement: Posted Financial Facts Have Separate Owner Operational State
+
+The system MUST keep the complete posted contribution header, designation lines
+and postings immutable, including subsequently added columns. Following the
+accepted founder ruling in ADR-0206, mutable payment/review and acknowledgment
+operational state MUST use separate domain-owned records with exact same-Tenant
+source references, exposed through coherent authorized joined projections.
+No operational-field allowlist or privileged path MAY update a posted financial
+row. The durable posting/freeze fact MUST govern this protection; changing an
+operational status MUST NOT reopen the row for editing.
+The contribution-correction allowance for harmless metadata MUST NOT permit a
+posted financial-row update; such mutable metadata belongs in the separate
+qualified owner record.
+
+Phase 13 MUST retain payment source evidence, finance review and operational
+reconciliation ownership. Posting/reversal and effective money MUST remain
+append-only-derived. Phase 14 MUST retain separate acknowledgment purpose/request
+state and exact admitted contribution/settlement relations, including existing
+consolidated-request cardinality. Phase 7 facts, Phase 18 artifacts, Phase 19
+statement operations and Phase 6 communication outcomes MUST retain their
+independent owners rather than becoming mutable header/request copies.
+Phase 14 current attribution repair MUST preserve frozen initial header capture.
+Phase 15 deposit membership and operational return state MUST use separate
+gift-grain owner records with at most one current deposit per gift and append-only
+assignment history. Same-Tenant, settlement-rail, currency/account and exact
+consumed-revision constraints MUST remain binding; deposit reassignment MUST NOT
+rewrite posted headers or create money. Financial return corrections MUST retain
+the existing append-only source contract.
+
+Local accepted state, source result, required audit and outbox facts MUST commit
+atomically under the qualified owner command, with expected revisions and
+permanent semantic identity. Provider I/O and uncertainty MUST use the existing
+source recovery contract. Locking the immutable header for sequence allocation
+MAY serialize append-only postings; it MUST NOT update a header counter.
+Joined readers MUST preserve exact current authority and coherent source
+versions/cursors and MUST NOT substitute stale legacy state for unavailable facts.
+A source-qualified known absence MUST remain a valid result where the owner
+contract admits it, with exact scope/version and completeness proof. A failed
+lookup, unavailable evidence or missing required record MUST NOT default to
+that known absence or success. This sets no mandatory row-per-source cardinality.
+This architecture ruling does not settle C-01's staff-correction approval policy
+or prove that the schema and runtime have been implemented.
+
+#### Scenario: Operational transitions preserve all posted financial columns
+
+- GIVEN a posted contribution and its separate owner operational records
+- WHEN current qualified payment, review, acknowledgment, attribution or deposit state changes
+- THEN only the owning operational records and required source evidence change
+- AND every posted financial column remains unchanged
+- AND joined reads expose each result under its exact source identity/version
+
+#### Scenario: A mutable state cannot reopen a frozen row
+
+- GIVEN a durably posted contribution
+- WHEN an ordinary or privileged path changes operational state to unposted or
+  attempts UPDATE or DELETE on its financial header, lines or postings
+- THEN financial-row mutation remains forbidden by the durable freeze fact
+- AND no trigger bypass or operational-field update exception is accepted
+
+#### Scenario: Multi-source acknowledgment preserves its existing cardinality
+
+- GIVEN a Phase 14 request covering an owner-admitted consolidated source set
+- WHEN its purpose, hold, readiness or release state changes
+- THEN its separate request and exact same-Tenant source relations retain that set
+- AND no single-header assumption splits or duplicates the intended request
+- AND Phase 6 delivery and Phase 18 artifact outcomes remain separate facts
+
+#### Scenario: Concurrent source work preserves one atomic result
+
+- GIVEN exact source revisions and one semantic command identity
+- WHEN release, correction, replay or recovery races a local operational update
+- THEN the qualified owner transaction accepts one consistent result with its
+  required receipt, audit and outbox or leaves no partial accepted state
+- AND unknown provider outcome reconciles the existing operation without
+  inventing or duplicating a financial fact, a semantic operation or a communication
+- AND recovery may record the one exact owner-admitted, source-confirmed effect
+  if it has not already been recorded
+
+#### Scenario: Posting sequence allocation does not rewrite the header
+
+- GIVEN a posted immutable header with append-only posting history
+- WHEN concurrent corrections allocate the next sequence under the owner lock
+- THEN unique monotonic sequences serialize the accepted appended entries
+- AND no mutable counter or cache is written onto the posted header
+
+#### Scenario: Joined state cannot substitute an unqualified legacy value
+
+- GIVEN a joined read whose required owner state is missing, stale or unavailable
+- WHEN the authorized contribution view is requested
+- THEN it returns the source-qualified incomplete/unavailable result
+- AND it does not mix revisions, cross Tenant boundaries, claim success or fall
+  back to a legacy mutable financial-row status

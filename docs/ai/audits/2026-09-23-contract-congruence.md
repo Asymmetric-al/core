@@ -54,6 +54,15 @@ sources, not proof of deployment or source qualification.
   the adopted 45-phase v3 architecture. PostgreSQL 17's official extension
   documentation corrects an unsupported `pgcrypto` deprecation claim without
   selecting a new crypto architecture or claiming target qualification.
+- **Deposit and noncash consumers.** The touched Phase 15 substrate checklist
+  now includes the already-owned noncash disposition coverage facts and source
+  projection. Phase 15 freezes slip source content; Phase 18 owns the qualified
+  generated artifact and current authorized access. Phase 29 scanned-file custody
+  does not grant artifact access through a signed URL. The exact slip purpose,
+  source/access contract and release evidence must be qualified before activation;
+  this audit does not invent a purpose or declare it executable. These are
+  existing-owner corrections found during C-02 follow-through, not additional
+  product decisions inferred from the founder's storage ruling.
 - **Recurring ownership.** Existing Phase 16 dispositions replace the obsolete
   Phase 13 per-line subscription/lifecycle tickets. Fee-cover uses exact accepted
   cohort/occurrence/leg/item provenance without silent authorization widening.
@@ -93,7 +102,9 @@ The [50-issue publication ledger](2026-09-23-issue-reconciliation.json) records 
 permitted title corrections, metadata checks and dependency snapshots. Publication
 and an issue's Closed state do not complete any source qualification.
 
-## Unresolved owner decisions
+<a id="unresolved-owner-decisions"></a>
+
+## Owner decisions and disposition
 
 <a id="one-unresolved-owner-decision"></a>
 
@@ -116,23 +127,37 @@ append-only ledger, receipt-owner and source-recovery work can proceed.
 
 <a id="c-02-posted-state"></a>
 
-**C-02 — Posted-row immutability versus mutable operational state.** Phase 13
-D3/section E rule 2 and its invariant/test register freeze the whole posted
-header, line and posting, including future columns. Its header data model also
-places payment/review axes on the header, while Phase 14's acknowledgment data
-model adds mutable request state and hold time to it. Post-success return,
-review and acknowledgment transitions cannot all work through an unconditional
-posted-header UPDATE prohibition.
+**C-02 — Posted-row immutability versus mutable operational state (resolved).**
+Before the ruling, Phase 13 D3/section E rule 2 and its invariant/test register
+froze the whole posted header, line and posting, including future columns. Its
+header sketch also placed payment/review axes on the header, while Phase 14's
+earlier acknowledgment model added mutable request state and hold time to it.
+Post-success return, review and acknowledgment transitions could not all work
+through that unconditional posted-header UPDATE prohibition.
 
-The founder has been asked to choose between separate owner-controlled
-operational records with joined projections (recommended, preserving full
-posted-row immutability) and an explicit narrow allowlist of operational header
-updates while money/legal facts remain immutable. No source grants a clear
-exception today. Logical lifecycles, exact source authority, append-only money,
-current artifact/communication joins and permanent effect identity stay binding;
-physical mutable-state placement and an immutability exception must not be
-implemented by inference. This is a schema/ownership decision, separate from
-C-01's human approval policy.
+**Accepted on September 23:** Conrad selected “Separate operational records;
+keep posted rows immutable.” [ADR-0206](../../adr/0206-immutable-posted-financial-facts-and-owner-operational-state.md)
+records the ruling. Phase 13 payment/review/reconciliation state and Phase 14
+acknowledgment request/source state and Phase 15 deposit operations live in separate owner-controlled records,
+with coherent joined projections. The complete posted header, lines and postings
+remain immutable, including future columns and privileged writes. A durable
+posting/freeze fact enforces that protection independently of mutable status.
+Existing consolidated acknowledgment requests retain their exact admitted
+multi-source cardinality. Owner authority, atomic local receipts/audit/outbox,
+permanent operation identity and external-outcome recovery remain binding.
+
+The Phase 13–15 PRDs, active OpenSpec and directly affected schema/lifecycle/
+acknowledgment/attribution/deposit tickets adopt this ruling. The physical schema, migrations,
+grants/RLS, writers, coherent readers and adversarial tests still require
+implementation and qualification; documentation does not establish runtime
+protection. C-01's human approval policy remains independently unresolved.
+
+The subsequent [C-02 publication ledger](2026-09-23-c02-issue-reconciliation.json)
+records 16 fresh, hash-guarded issue amendments and exact readbacks, including
+the direct Phase 15 deposit and acknowledgment consumers. Titles, state, labels,
+assignees and native dependencies remain unchanged. This successor preserves
+the original 50-issue ledger as dated evidence; it does not overwrite earlier
+publication history or claim implementation completion.
 
 Existing roadmap product questions and provider qualification gates remain in
 [decisions and gates](../../prds/program-roadmap/decisions-and-gates.md). They
@@ -160,6 +185,7 @@ state what was actually checked.
 [PR #1897](https://github.com/Asymmetric-al/core/pull/1897) carries this follow-up.
 Read its current head, required checks, review threads and merge state on GitHub;
 this dated document does not promise those external states remain unchanged.
-C-01/C-02 and existing source/provider gates remain unresolved where their
-required decisions or evidence are absent. No runtime feature, provider/deployment configuration
+C-01 and existing source/provider gates remain unresolved where their required
+decisions or evidence are absent. C-02 is accepted; its implementation and
+qualification remain required. No runtime feature, provider/deployment configuration
 change or production release was performed by this audit.

@@ -230,6 +230,12 @@ qualification has completed. Details and current safe boundaries are in the
 - [ ] Resolve C-01 with the founder and synchronize the Phase 13/15 correction
       approval rule, affected acceptance and issue #766 before dispatching that
       policy implementation.
-- [ ] Resolve C-02 with the founder and synchronize the Phase 13/14 operational
-      state placement, immutable-row enforcement and affected schema/tests/tickets
-      before implementing that storage seam.
+- [x] Record the founder's C-02 ruling in ADR-0206 and synchronize Phase 13–15
+      target storage and OpenSpec: separate operational records, fully immutable
+      posted financial rows and coherent owner projections.
+- [x] Publish and exact-readback verify the 16 directly affected C-02 schema,
+      lifecycle, acknowledgment, attribution and deposit issue amendments while
+      preserving issue metadata and native dependencies.
+- [ ] Implement and qualify C-02 across actual schema/migrations, grants/RLS,
+      writers/readers, atomic receipts/outbox and adversarial immutable-row,
+      replay/concurrency and consolidated-request tests before activation.
