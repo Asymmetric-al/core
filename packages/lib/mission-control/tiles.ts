@@ -49,5 +49,6 @@ export function getTileById(id: string): Tile | undefined {
 }
 
 export function getTilesByRole(roleIds: string[]): Tile[] {
-  return TILES.filter((tile) => tile.roles.some((r) => roleIds.includes(r)));
+  const roleIdSet = new Set(roleIds);
+  return TILES.filter((tile) => tile.roles.some((r) => roleIdSet.has(r)));
 }

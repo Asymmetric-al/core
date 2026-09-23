@@ -82,6 +82,7 @@ export function RatingCell<TData extends RowData>({
             onClick={() => handleClick(star.index)}
             onMouseEnter={() => handleMouseEnter(star.index)}
             disabled={disabled || !isEditing}
+            aria-label={`Rate ${star.index + 1} of ${max}`}
             className={cn(
               "p-0 relative",
               isEditing &&

@@ -88,6 +88,7 @@ export function SelectCell<TData extends RowData>({
               size="icon"
               className="ml-auto size-5 shrink-0 hover:bg-muted"
               onClick={handleClear}
+              aria-label="Clear selection"
             >
               <XIcon className="size-3" />
             </Button>

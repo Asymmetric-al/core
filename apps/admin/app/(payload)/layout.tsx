@@ -225,18 +225,12 @@ function WebStudioDatabaseConfigurationError({
 }
 
 function buildLanguageOptions(payloadConfig: PayloadConfig): LanguageOptions {
-  return Object.entries(
-    payloadConfig.i18n.supportedLanguages || {},
-  ).reduce<LanguageOptions>((acc, [language, languageConfig]) => {
-    if (Object.keys(payloadConfig.i18n.supportedLanguages).includes(language)) {
-      acc.push({
-        label: languageConfig.translations.general.thisLanguage,
-        value: language as LanguageOptions[number]["value"],
-      });
-    }
-
-    return acc;
-  }, []);
+  return Object.entries(payloadConfig.i18n.supportedLanguages || {}).map(
+    ([language, languageConfig]) => ({
+      label: languageConfig.translations.general.thisLanguage,
+      value: language as LanguageOptions[number]["value"],
+    }),
+  );
 }
 
 async function getPayloadNavPreference(req: PayloadRequest) {

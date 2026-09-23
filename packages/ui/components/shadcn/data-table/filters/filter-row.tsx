@@ -155,6 +155,7 @@ export function FilterRow({
           variant="ghost"
           size="icon"
           onClick={onRemove}
+          aria-label={field ? `Remove ${field.label} filter` : "Remove filter"}
           className="size-8 text-muted-foreground hover:text-destructive shrink-0"
         >
           <Trash2Icon className="size-4" />

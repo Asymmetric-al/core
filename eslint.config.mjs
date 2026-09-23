@@ -188,6 +188,7 @@ const eslintConfig = defineConfig([
       "scripts/**",
       "next-env.d.ts",
       "eslint.config.mjs",
+      "**/public/maplibre/**",
     ],
   },
 ]);

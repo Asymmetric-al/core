@@ -8,6 +8,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import { flushSync } from "react-dom";
 import React from "react";
 import {
   afterEach,
@@ -21,6 +22,8 @@ import {
 
 type CheckoutPageClientComponent =
   (typeof import("../../../../apps/donor/app/(public)/(solid)/checkout/checkout-client"))["CheckoutPageClient"]; // eslint-disable-line @typescript-eslint/consistent-type-imports -- Keep the component import deferred until after mocks are registered.
+type CheckoutSearchParams =
+  React.ComponentProps<CheckoutPageClientComponent>["searchParams"];
 
 const stripeState = vi.hoisted(() => ({
   cardElement: {},
@@ -278,25 +281,45 @@ const serverErrorResponse = (message = "Server rejected the donation") =>
     }),
   );
 
+const checkoutWithOverride = (searchParams: CheckoutSearchParams) => (
+  <CheckoutPageClient
+    searchParams={searchParams}
+    stripeOverride={{
+      cardElement: <div data-testid="stripe-card-element" />,
+      elements: stripeState.elements,
+      mode: "live",
+      publishableKey: "pk_test_unit",
+      stripe: stripeState.stripe,
+    }}
+  />
+);
+
 const renderCheckout = (
-  searchParams: React.ComponentProps<CheckoutPageClientComponent>["searchParams"] = {
+  searchParams: CheckoutSearchParams = {
     amount: "100",
     missionary_id: TEST_MISSIONARY_ID,
     workerId: TEST_WORKER_ID,
   },
-) =>
-  render(
-    <CheckoutPageClient
-      searchParams={searchParams}
-      stripeOverride={{
-        cardElement: <div data-testid="stripe-card-element" />,
-        elements: stripeState.elements,
-        mode: "live",
-        publishableKey: "pk_test_unit",
-        stripe: stripeState.stripe,
-      }}
-    />,
+) => render(checkoutWithOverride(searchParams));
+
+const renderCheckoutInStrictMode = (
+  searchParams: CheckoutSearchParams = {
+    amount: "100",
+    missionary_id: TEST_MISSIONARY_ID,
+    workerId: TEST_WORKER_ID,
+  },
+) => {
+  const strictCheckout = (params: CheckoutSearchParams) => (
+    <React.StrictMode>{checkoutWithOverride(params)}</React.StrictMode>
   );
+  const view = render(strictCheckout(searchParams));
+
+  return {
+    ...view,
+    rerenderCheckout: (params: CheckoutSearchParams) =>
+      view.rerender(strictCheckout(params)),
+  };
+};
 
 const renderCheckoutWithRuntimeConfig = (
   searchParams: React.ComponentProps<CheckoutPageClientComponent>["searchParams"] = {
@@ -546,6 +569,93 @@ describe("CheckoutPageClient live card confirmation", () => {
       expect(configurationError.textContent).toMatch(/configuration/i);
     },
   );
+
+  it("uses a remounted publishable key mid-flight without resetting checkout when the returned key matches", async () => {
+    let resolveDonation: ((value: Response) => void) | null = null;
+    const donationPromise = new Promise<Response>((resolve) => {
+      resolveDonation = resolve;
+    });
+    fetchMock().mockReturnValue(donationPromise);
+    stripeState.stripe.confirmCardPayment.mockResolvedValue({
+      paymentIntent: { status: "succeeded" },
+    });
+
+    const searchParams = {
+      amount: "100",
+      missionary_id: TEST_MISSIONARY_ID,
+      workerId: TEST_WORKER_ID,
+    };
+    const view = render(
+      <CheckoutPageClient
+        searchParams={searchParams}
+        stripeOverride={{
+          cardElement: <div data-testid="stripe-card-element" />,
+          elements: stripeState.elements,
+          mode: "live",
+          publishableKey: "pk_test_initial",
+          stripe: stripeState.stripe,
+        }}
+      />,
+    );
+    advanceToPayment();
+    confirmPayment();
+
+    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
+    expect(
+      (
+        screen.getByRole("button", {
+          name: /processing payment/i,
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+
+    flushSync(() => {
+      view.rerender(
+        <CheckoutPageClient
+          searchParams={searchParams}
+          stripeOverride={{
+            cardElement: <div data-testid="stripe-card-element" />,
+            elements: stripeState.elements,
+            mode: "live",
+            publishableKey: "pk_test_rotated",
+            stripe: stripeState.stripe,
+          }}
+        />,
+      );
+    });
+
+    expect(
+      (
+        screen.getByRole("button", {
+          name: /processing payment/i,
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+
+    await act(async () => {
+      resolveDonation?.(
+        new Response(
+          JSON.stringify({
+            clientSecret: "cs_test_123",
+            donationId: "don_123",
+            paymentIntentId: "pi_123",
+            publishableKey: "pk_test_rotated",
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200,
+          },
+        ),
+      );
+      await donationPromise;
+    });
+
+    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByRole("heading", { name: /contribution confirmed/i }),
+    ).toBeTruthy();
+    expect(screen.queryByText(/configuration changed/i)).toBeNull();
+  });
 
   it("does not show success for /api/donate initialization until Stripe confirms the PaymentIntent", async () => {
     let resolveConfirmation:
@@ -949,6 +1059,80 @@ describe("CheckoutPageClient idempotency retry keys", () => {
     expect(requestAt(0).body.fund_id).toBe(TEST_FUND_ID);
     expect(requestAt(1).headers["Idempotency-Key"]).toBe("idem-2");
     expect(requestAt(1).body.fund_id).toBe(TEST_OTHER_FUND_ID);
+  });
+});
+
+describe("CheckoutPageClient StrictMode payment state", () => {
+  it("commits a successful payment once when React replays state updaters", async () => {
+    fetchMock().mockImplementation(initializedDonationResponse);
+    stripeState.stripe.confirmCardPayment.mockResolvedValue({
+      paymentIntent: { status: "succeeded" },
+    });
+
+    renderCheckoutInStrictMode();
+    advanceToPayment();
+    confirmPayment();
+
+    expect(
+      await screen.findByRole("heading", { name: /contribution confirmed/i }),
+    ).toBeTruthy();
+    expect(fetchCallsByMethod("POST")).toHaveLength(1);
+    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1);
+  });
+
+  it("reuses the idempotency key for an exact StrictMode retry", async () => {
+    fetchMock()
+      .mockImplementationOnce(() => serverErrorResponse("Try again"))
+      .mockImplementationOnce(() => serverErrorResponse("Try again"));
+
+    renderCheckoutInStrictMode();
+    advanceToPayment();
+    confirmPayment();
+
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "Try again",
+    );
+    confirmPayment();
+
+    await waitFor(() => expect(fetchCallsByMethod("POST")).toHaveLength(2));
+    expect(requestAt(0).headers["Idempotency-Key"]).toBe("idem-1");
+    expect(requestAt(1).headers["Idempotency-Key"]).toBe("idem-1");
+  });
+
+  it("unlocks a stale StrictMode request after checkout params change", async () => {
+    let rejectDonationRequest: ((reason?: unknown) => void) | null = null;
+    const donationRequestPromise = new Promise<Response>((_resolve, reject) => {
+      rejectDonationRequest = reject;
+    });
+    fetchMock().mockReturnValue(donationRequestPromise);
+
+    const view = renderCheckoutInStrictMode({
+      amount: "100",
+      fund_id: TEST_FUND_ID,
+    });
+    advanceToPayment();
+    confirmPayment();
+
+    await waitFor(() => expect(fetchCallsByMethod("POST")).toHaveLength(1));
+
+    view.rerenderCheckout({
+      amount: "100",
+      fund_id: TEST_OTHER_FUND_ID,
+    });
+
+    await act(async () => {
+      rejectDonationRequest?.(new Error("Network unavailable"));
+      await donationRequestPromise.catch(() => null);
+    });
+
+    expect((await screen.findByRole("alert")).textContent).toMatch(
+      /checkout details changed/i,
+    );
+    const backButton = screen.getByRole("button", { name: /^back$/i });
+    const confirmButton = screen.getByRole("button", { name: /confirm/i });
+    expect((backButton as HTMLButtonElement).disabled).toBe(false);
+    expect((confirmButton as HTMLButtonElement).disabled).toBe(false);
+    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
   });
 });
 

@@ -27,7 +27,6 @@ describe("react-doctor first-party wrapper", () => {
 
     expect(command.command).toBe("bunx");
     expect(command.args).toEqual([
-      "--bun",
       "react-doctor@latest",
       "apps/admin",
       "--verbose",
@@ -39,11 +38,17 @@ describe("react-doctor first-party wrapper", () => {
     ]);
   });
 
+  it("runs React Doctor on Node instead of forcing the Bun runtime", () => {
+    // react-doctor spawns its rule engine over Node IPC and calls
+    // `child.channel.unref()`, which Bun's ChildProcess does not implement.
+    // Forcing `bunx --bun` makes every target fail before any rule runs.
+    expect(createReactDoctorCommand("apps/admin").args).not.toContain("--bun");
+  });
+
   it("normalizes equals-style fail-on flags", () => {
     expect(
       createReactDoctorCommand("packages/ui", ["--fail-on=none"]).args,
     ).toEqual([
-      "--bun",
       "react-doctor@latest",
       "packages/ui",
       "--verbose",
@@ -60,7 +65,6 @@ describe("react-doctor first-party wrapper", () => {
         "none",
       ]).args,
     ).toEqual([
-      "--bun",
       "react-doctor@latest",
       "packages/ui",
       "--verbose",
@@ -74,19 +78,19 @@ describe("react-doctor first-party wrapper", () => {
   it("wraps bunx through cmd.exe on Windows", () => {
     expect(
       createSpawnCommand(
-        { command: "bunx", args: ["--bun", "react-doctor@latest"] },
+        { command: "bunx", args: ["react-doctor@latest"] },
         { platform: "win32", comSpec: "C:\\Windows\\System32\\cmd.exe" },
       ),
     ).toEqual({
       command: "C:\\Windows\\System32\\cmd.exe",
-      args: ["/d", "/s", "/c", "bunx", "--bun", "react-doctor@latest"],
+      args: ["/d", "/s", "/c", "bunx", "react-doctor@latest"],
     });
   });
 
   it("spawns the command directly outside Windows", () => {
     const command = {
       command: "bunx",
-      args: ["--bun", "react-doctor@latest"],
+      args: ["react-doctor@latest"],
     };
 
     expect(createSpawnCommand(command, { platform: "linux" })).toBe(command);

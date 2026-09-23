@@ -14,15 +14,19 @@ vi.mock("next/image", () => ({
 
 type PublicPageMediaModule =
   typeof import("../../../apps/donor/components/cms/public-page-media");
+type PublicPageMediaBlocksModule =
+  typeof import("../../../apps/donor/components/cms/public-page-media-blocks");
 
 let PublicCmsPageMedia: PublicPageMediaModule["PublicCmsPageMedia"];
-let readMediaBearingBlocks: PublicPageMediaModule["readMediaBearingBlocks"];
+let readMediaBearingBlocks: PublicPageMediaBlocksModule["readMediaBearingBlocks"];
 
 beforeAll(async () => {
   const pageMediaModule =
     await import("../../../apps/donor/components/cms/public-page-media");
+  const pageMediaBlocksModule =
+    await import("../../../apps/donor/components/cms/public-page-media-blocks");
   PublicCmsPageMedia = pageMediaModule.PublicCmsPageMedia;
-  readMediaBearingBlocks = pageMediaModule.readMediaBearingBlocks;
+  readMediaBearingBlocks = pageMediaBlocksModule.readMediaBearingBlocks;
 });
 
 const CMS_BASE_URL = "http://127.0.0.1:3030";

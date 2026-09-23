@@ -89,8 +89,12 @@ function Carousel({
     [scrollPrev, scrollNext],
   );
 
+  // shadcn's `setApi` contract hands the parent the Embla instance once it
+  // exists. Embla only exposes it after mount, so this is a one-time handoff
+  // of an imperative object rather than live state being mirrored upward.
   React.useEffect(() => {
     if (!api || !setApi) return;
+    // react-doctor-disable-next-line react-doctor/no-pass-live-state-to-parent, react-doctor/no-pass-data-to-parent
     setApi(api);
   }, [api, setApi]);
 
@@ -101,24 +105,37 @@ function Carousel({
     api.on("select", onSelect);
 
     return () => {
-      api?.off("select", onSelect);
+      api.off("reInit", onSelect);
+      api.off("select", onSelect);
     };
   }, [api, onSelect]);
 
+  const contextValue = React.useMemo<CarouselContextProps>(
+    () => ({
+      carouselRef,
+      api: api,
+      opts,
+      orientation:
+        orientation || (opts?.axis === "y" ? "vertical" : "horizontal"),
+      scrollPrev,
+      scrollNext,
+      canScrollPrev,
+      canScrollNext,
+    }),
+    [
+      carouselRef,
+      api,
+      opts,
+      orientation,
+      scrollPrev,
+      scrollNext,
+      canScrollPrev,
+      canScrollNext,
+    ],
+  );
+
   return (
-    <CarouselContext.Provider
-      value={{
-        carouselRef,
-        api: api,
-        opts,
-        orientation:
-          orientation || (opts?.axis === "y" ? "vertical" : "horizontal"),
-        scrollPrev,
-        scrollNext,
-        canScrollPrev,
-        canScrollNext,
-      }}
-    >
+    <CarouselContext.Provider value={contextValue}>
       <div
         onKeyDownCapture={handleKeyDown}
         className={cn("relative", className)}

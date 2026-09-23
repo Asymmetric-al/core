@@ -56,6 +56,8 @@ export function DataTableViewModeToggle({
         size="icon"
         className="size-8 rounded-lg"
         onClick={() => onViewModeChange("table")}
+        aria-label="Table view"
+        aria-pressed={viewMode === "table"}
       >
         <LayoutList className="size-4" />
       </Button>
@@ -64,6 +66,8 @@ export function DataTableViewModeToggle({
         size="icon"
         className="size-8 rounded-lg"
         onClick={() => onViewModeChange("card")}
+        aria-label="Card view"
+        aria-pressed={viewMode === "card"}
       >
         <LayoutGrid className="size-4" />
       </Button>

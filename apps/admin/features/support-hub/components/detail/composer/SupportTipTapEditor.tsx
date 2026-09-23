@@ -5,10 +5,14 @@ import {
   EditorRoot,
   EditorToolbar,
   type Extensions,
-  type ToolbarTool,
 } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
+
+import {
+  SUPPORT_NOTE_TOOLS,
+  SUPPORT_REPLY_TOOLS,
+} from "./support-toolbar-tools";
 
 import type { ReactNode } from "react";
 
@@ -69,23 +73,6 @@ interface SupportTipTapEditorProps {
  * `extraExtensions?: Extension[]` prop to `EditorRoot` and forward it from
  * here as `props.extraExtensions`. The contract on this side stays stable.
  */
-export const SUPPORT_REPLY_TOOLS: ToolbarTool[] = [
-  "bold",
-  "italic",
-  "underline",
-  "bulletList",
-  "orderedList",
-  "blockquote",
-  "link",
-];
-
-export const SUPPORT_NOTE_TOOLS: ToolbarTool[] = [
-  "bold",
-  "italic",
-  "underline",
-  "bulletList",
-  "link",
-];
 
 export function SupportTipTapEditor({
   value,
