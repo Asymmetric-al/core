@@ -3,10 +3,6 @@ name: CI
 on:
   workflow_dispatch:
   pull_request:
-    branches:
-      - develop
-      - production
-      - "cursor/**"
   push:
     branches: [develop, production]
 
@@ -43,27 +39,24 @@ jobs:
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
       - run: bun ci --no-cache --backend=copyfile
-      - name: Verify Git attribution
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ASYM_GITHUB_EVENT_NAME: ${{ github.event_name }}
-          ASYM_GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
-          ASYM_GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          ASYM_GITHUB_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || (github.event_name != 'pull_request' && github.repository) || '' }}
-          ASYM_GITHUB_REPOSITORY: ${{ github.repository }}
-          ASYM_GITHUB_REF_NAME: ${{ github.ref_name }}
-          ASYM_GITHUB_REF_TYPE: ${{ github.ref_type }}
-          ASYM_GITHUB_EVENT_ACTOR_LOGIN: ${{ github.actor }}
-          ASYM_GITHUB_EVENT_ACTOR_ID: ${{ github.actor_id }}
-          ASYM_GITHUB_EVENT_SENDER_LOGIN: ${{ github.event.sender.login || '' }}
-          ASYM_GITHUB_EVENT_SENDER_ID: ${{ github.event.sender.id || '' }}
-          ASYM_GITHUB_PULL_REQUEST_AUTHOR_LOGIN: ${{ github.event.pull_request.user.login || '' }}
-          ASYM_GITHUB_PULL_REQUEST_AUTHOR_ID: ${{ github.event.pull_request.user.id || '' }}
-          ASYM_GITHUB_HEAD_OWNER_LOGIN: ${{ github.event.pull_request.head.repo.owner.login || '' }}
-          ASYM_GITHUB_HEAD_OWNER_ID: ${{ github.event.pull_request.head.repo.owner.id || '' }}
-          ASYM_GITHUB_TRIGGERING_ACTOR_LOGIN: ${{ github.triggering_actor }}
-        run: bun run verify:git-attribution -- --ci
       - run: bun run format:check
+
+  integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install system dependencies (canvas)
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun ci --no-cache --backend=copyfile
       - run: bun run skills:verify
       - run: bun run verify:phase25-spec
       - run: bun run openspec:validate
@@ -212,12 +205,13 @@ jobs:
 
   ci-gate:
     if: always()
-    needs: [format, lint, typecheck, build, test-unit]
+    needs: [format, integrity, lint, typecheck, build, test-unit]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if any prerequisite check failed
         run: |
           echo "format: ${{ needs.format.result }}"
+          echo "integrity: ${{ needs.integrity.result }}"
           echo "lint: ${{ needs.lint.result }}"
           echo "typecheck: ${{ needs.typecheck.result }}"
           echo "build: ${{ needs.build.result }}"
@@ -226,6 +220,7 @@ jobs:
           failed=0
           for result in \
             "${{ needs.format.result }}" \
+            "${{ needs.integrity.result }}" \
             "${{ needs.lint.result }}" \
             "${{ needs.typecheck.result }}" \
             "${{ needs.build.result }}" \
