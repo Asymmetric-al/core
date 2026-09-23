@@ -149,9 +149,7 @@ export function DetailDrawer({
           <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <User className="size-4 text-muted-foreground" />
-              <span className="truncate max-w-[200px] sm:max-w-md">
-                {display}
-              </span>
+              <span className="truncate max-w-50 sm:max-w-md">{display}</span>
             </div>
             <div className="flex items-center gap-1">
               <Button

@@ -227,10 +227,7 @@ export function Map({
     <MapContext.Provider value={mapState}>
       <div
         ref={containerRef}
-        className={cn(
-          "bg-muted relative h-full min-h-[400px] w-full",
-          className,
-        )}
+        className={cn("bg-muted relative h-full min-h-100 w-full", className)}
       >
         {!mapLoaded && <Loader />}
         {mapLoaded && children}
@@ -700,7 +697,7 @@ export function MapLegend({
       position={position}
       className={cn("hidden lg:block", className)}
     >
-      <div className="bg-popover/90 border-border/80 ring-border/40 min-w-[160px] rounded-2xl border p-4 shadow-xl ring-1 backdrop-blur-xl">
+      <div className="bg-popover/90 border-border/80 ring-border/40 min-w-40 rounded-2xl border p-4 shadow-xl ring-1 backdrop-blur-xl">
         <p className="text-muted-foreground mb-3 text-[10px] font-bold uppercase tracking-wider">
           {title}
         </p>

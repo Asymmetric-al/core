@@ -106,7 +106,7 @@ export const Textarea = React.forwardRef<
     <textarea
       data-slot="textarea"
       className={cn(
-        "flex min-h-[100px] w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex min-h-25 w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       ref={ref}
@@ -705,7 +705,7 @@ export const ScrollArea: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
     className={cn("relative overflow-hidden", className)}
     {...props}
   >
-    <div className="size-full overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+    <div className="size-full overflow-y-auto overflow-x-hidden scrollbar-thumb-border scrollbar-track-transparent">
       {children}
     </div>
   </div>

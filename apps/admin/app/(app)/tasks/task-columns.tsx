@@ -12,6 +12,7 @@ import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -133,8 +134,8 @@ export function getTaskColumns({
             className={cn(
               "size-5 rounded-full border-2 flex items-center justify-center transition-colors duration-200",
               isCompleted
-                ? "bg-emerald-500 border-emerald-500 text-white"
-                : "border-muted-foreground/30 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30",
+                ? "bg-primary border-primary text-primary-foreground"
+                : "border-muted-foreground/30 hover:border-primary hover:bg-primary/10",
             )}
           >
             {isCompleted && <Check className="size-3" />}
@@ -178,9 +179,9 @@ export function getTaskColumns({
               </button>
               {task.linked_entity && (
                 <div className="flex items-center gap-1.5 mt-1">
-                  <Avatar className="size-4">
+                  <Avatar size="sm">
                     <AvatarImage src={task.linked_entity.avatar} />
-                    <AvatarFallback className="text-[8px] bg-muted">
+                    <AvatarFallback>
                       {task.linked_entity.name[0]}
                     </AvatarFallback>
                   </Avatar>
@@ -206,11 +207,13 @@ export function getTaskColumns({
         const config = getStatusConfig(status)!;
         return (
           <Badge
-            variant="outline"
-            className={cn(
-              "h-5 rounded-lg border px-2 py-0.5 text-[11px] font-semibold shadow-none",
-              config.color,
-            )}
+            variant={
+              status === "completed"
+                ? "default"
+                : status === "in_progress"
+                  ? "secondary"
+                  : "outline"
+            }
           >
             {config.label}
           </Badge>
@@ -238,11 +241,13 @@ export function getTaskColumns({
         const config = getPriorityConfig(priority)!;
         return (
           <Badge
-            variant="outline"
-            className={cn(
-              "h-5 rounded-lg border px-2 py-0.5 text-[11px] font-semibold shadow-none",
-              config.color,
-            )}
+            variant={
+              priority === "urgent"
+                ? "destructive"
+                : priority === "high"
+                  ? "secondary"
+                  : "outline"
+            }
           >
             {config.label}
           </Badge>
@@ -277,14 +282,17 @@ export function getTaskColumns({
             className={cn(
               "flex items-center gap-1.5 text-xs font-medium",
               formatted.isOverdue && !isCompleted
-                ? "text-red-600 dark:text-red-400"
+                ? "text-destructive"
                 : formatted.isToday && !isCompleted
-                  ? "text-amber-600 dark:text-amber-400"
+                  ? "text-primary"
                   : "text-muted-foreground",
             )}
           >
             {formatted.isOverdue && !isCompleted && (
-              <AlertCircle className="size-3" />
+              <>
+                <AlertCircle className="size-3 text-destructive" />
+                <span className="sr-only">Overdue: </span>
+              </>
             )}
             <Calendar className="size-3" />
             <span>{formatted.label}</span>
@@ -309,11 +317,9 @@ export function getTaskColumns({
         }
         return (
           <div className="flex items-center gap-2">
-            <Avatar className="size-6 border border-border">
+            <Avatar size="sm">
               <AvatarImage src={task.assigned_to_avatar} />
-              <AvatarFallback className="text-[9px] bg-primary text-primary-foreground">
-                {task.assigned_to_name[0]}
-              </AvatarFallback>
+              <AvatarFallback>{task.assigned_to_name[0]}</AvatarFallback>
             </Avatar>
             <span className="text-sm text-muted-foreground truncate">
               {task.assigned_to_name}
@@ -381,44 +387,31 @@ export function getTaskColumns({
                   <Button
                     aria-label={`Open actions for ${task.title}`}
                     variant="ghost"
-                    className="size-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
+                    size="icon-sm"
                   >
                     <span className="sr-only">Open menu</span>
                     <MoreHorizontal className="size-4" />
                   </Button>
                 }
               />
-              <DropdownMenuContent
-                align="end"
-                className="w-48 rounded-2xl border-border p-2"
-              >
-                <DropdownMenuItem
-                  onClick={() => onViewTask(task)}
-                  className="rounded-xl px-3 py-2 text-sm"
-                >
-                  View Details
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onEditTask(task)}
-                  className="rounded-xl px-3 py-2 text-sm"
-                >
-                  Edit Task
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onToggleComplete(task)}
-                  className="rounded-xl px-3 py-2 text-sm"
-                >
-                  {task.status === "completed"
-                    ? "Mark Incomplete"
-                    : "Mark Complete"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-border my-1" />
-                <DropdownMenuItem
-                  onClick={() => onDeleteTask(task.id)}
-                  className="rounded-xl px-3 py-2 text-sm text-destructive focus:text-destructive focus:bg-destructive/10"
-                >
-                  Delete Task
-                </DropdownMenuItem>
+              <DropdownMenuContent align="end">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => onViewTask(task)}>
+                    View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEditTask(task)}>
+                    Edit Task
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onToggleComplete(task)}>
+                    {task.status === "completed"
+                      ? "Mark Incomplete"
+                      : "Mark Complete"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="my-1" />
+                  <DropdownMenuItem onClick={() => onDeleteTask(task.id)}>
+                    Delete Task
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

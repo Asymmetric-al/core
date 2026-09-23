@@ -44,7 +44,7 @@ export default function SignStudioPublicSigningPage() {
             GH
           </div>
           <div className="hidden md:block w-px h-6 bg-zinc-200 mx-1" />
-          <h1 className="font-semibold text-zinc-700 truncate max-w-[200px] md:max-w-md">
+          <h1 className="font-semibold text-zinc-700 truncate max-w-50 md:max-w-md">
             Employment Agreement - John Doe
           </h1>
         </div>
@@ -105,7 +105,7 @@ export default function SignStudioPublicSigningPage() {
             </div>
           </motion.div>
         ) : (
-          <div className="max-w-4xl w-full bg-white shadow-2xl shadow-zinc-200/50 rounded-xl border border-zinc-200 min-h-[800px] relative p-8 md:p-16 flex flex-col gap-8">
+          <div className="max-w-4xl w-full bg-white shadow-2xl shadow-zinc-200/50 rounded-xl border border-zinc-200 min-h-200 relative p-8 md:p-16 flex flex-col gap-8">
             {/* Fake Document Content */}
             <div className="h-8 w-1/3 bg-zinc-200 mb-8" />
 

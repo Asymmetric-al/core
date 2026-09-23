@@ -7,9 +7,11 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
+import { FieldGroup } from "@asym/ui/components/shadcn/field";
 import { Loader2 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
@@ -102,131 +104,120 @@ export function AddPartnerDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {trigger ? <DialogTrigger render={trigger} /> : null}
-      <DialogContent className="overflow-hidden rounded-[2rem] border-zinc-100 p-0 sm:max-w-[500px]">
-        <div className="bg-zinc-900 px-8 py-10 text-white">
-          <DialogTitle className="text-3xl font-black tracking-tighter">
-            Add New Partner
-          </DialogTitle>
-          <DialogDescription className="mt-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+      <DialogContent className="sm:max-w-125" scrollable>
+        <DialogHeader>
+          <DialogTitle>Add New Partner</DialogTitle>
+          <DialogDescription>
             Enter the details for your new ministry partner
           </DialogDescription>
-        </div>
+        </DialogHeader>
 
-        <div className="p-8">
-          <form
-            className="space-y-6"
-            onSubmit={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              form.handleSubmit();
-            }}
-          >
-            <div className="grid grid-cols-2 gap-4">
-              <form.AppField name="name">
-                {(field) => (
-                  <field.TextField
-                    className="col-span-2"
-                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
-                    label="Full Name / Org Name"
-                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
-                    placeholder="Enter name"
-                  />
-                )}
-              </form.AppField>
+        <form
+          className="flex flex-col gap-6"
+          onSubmit={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            form.handleSubmit();
+          }}
+        >
+          <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <form.AppField name="name">
+              {(field) => (
+                <field.TextField
+                  className="sm:col-span-2"
+                  label="Full Name / Org Name"
+                  placeholder="Enter name"
+                />
+              )}
+            </form.AppField>
 
-              <form.AppField name="email">
-                {(field) => (
-                  <field.TextField
-                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
-                    label="Email Address"
-                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
-                    placeholder="email@example.com"
-                    type="email"
-                  />
-                )}
-              </form.AppField>
+            <form.AppField name="email">
+              {(field) => (
+                <field.TextField
+                  label="Email Address"
+                  placeholder="email@example.com"
+                  type="email"
+                />
+              )}
+            </form.AppField>
 
-              <form.AppField name="phone">
-                {(field) => (
-                  <field.TextField
-                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
-                    label="Phone Number"
-                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
-                    placeholder="(555) 000-0000"
-                  />
-                )}
-              </form.AppField>
+            <form.AppField name="phone">
+              {(field) => (
+                <field.TextField
+                  label="Phone Number"
+                  placeholder="(555) 000-0000"
+                />
+              )}
+            </form.AppField>
 
-              <form.AppField name="type">
-                {(field) => (
-                  <field.SelectField
-                    label="Partner Type"
-                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
-                    options={PARTNER_TYPE_OPTIONS}
-                    placeholder="Select type"
-                    triggerClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
-                  />
-                )}
-              </form.AppField>
+            <form.AppField name="type">
+              {(field) => (
+                <field.SelectField
+                  label="Partner Type"
+                  options={PARTNER_TYPE_OPTIONS}
+                  placeholder="Select type"
+                />
+              )}
+            </form.AppField>
 
-              <form.AppField name="frequency">
-                {(field) => (
-                  <field.SelectField
-                    label="Giving Frequency"
-                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
-                    options={PARTNER_FREQUENCY_OPTIONS}
-                    placeholder="Select frequency"
-                    triggerClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
-                  />
-                )}
-              </form.AppField>
+            <form.AppField name="frequency">
+              {(field) => (
+                <field.SelectField
+                  label="Giving Frequency"
+                  options={PARTNER_FREQUENCY_OPTIONS}
+                  placeholder="Select frequency"
+                />
+              )}
+            </form.AppField>
 
-              <form.AppField name="location">
-                {(field) => (
-                  <field.TextField
-                    className="col-span-2"
-                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
-                    label="Location (City, State)"
-                    labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
-                    placeholder="Denver, CO"
-                  />
-                )}
-              </form.AppField>
-            </div>
+            <form.AppField name="location">
+              {(field) => (
+                <field.TextField
+                  className="sm:col-span-2"
+                  label="Location (City, State)"
+                  placeholder="Denver, CO"
+                />
+              )}
+            </form.AppField>
+          </FieldGroup>
 
-            <div className="flex gap-3 pt-4">
-              <Button
-                className="h-12 flex-1 rounded-xl border-zinc-200 text-[10px] font-black uppercase tracking-widest"
-                onClick={() => handleOpenChange(false)}
-                type="button"
-                variant="outline"
-              >
-                Cancel
-              </Button>
+          <div className="grid grid-cols-2 gap-3 pt-4">
+            <Button
+              onClick={() => handleOpenChange(false)}
+              type="button"
+              variant="outline"
+            >
+              Cancel
+            </Button>
 
-              <form.Subscribe
-                selector={(state) => ({
-                  canSubmit: state.canSubmit,
-                  isSubmitting: state.isSubmitting,
-                })}
-              >
-                {({ canSubmit, isSubmitting }) => (
-                  <Button
-                    className="h-12 flex-1 rounded-xl bg-zinc-900 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-800"
-                    disabled={!canSubmit || isSubmitting}
-                    type="submit"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      "Add Partner"
-                    )}
-                  </Button>
-                )}
-              </form.Subscribe>
-            </div>
-          </form>
-        </div>
+            <form.Subscribe
+              selector={(state) => ({
+                canSubmit: state.canSubmit,
+                isSubmitting: state.isSubmitting,
+              })}
+            >
+              {({ canSubmit, isSubmitting }) => (
+                <Button
+                  aria-busy={isSubmitting}
+                  disabled={!canSubmit || isSubmitting}
+                  type="submit"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2
+                        aria-hidden="true"
+                        className="size-4 animate-spin"
+                      />
+                      <span className="sr-only">Adding partner</span>
+                    </>
+                  ) : (
+                    "Add Partner"
+                  )}
+                </Button>
+              )}
+            </form.Subscribe>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

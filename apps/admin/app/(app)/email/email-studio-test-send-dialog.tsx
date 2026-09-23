@@ -37,7 +37,7 @@ export function EmailStudioTestSendDialog({
 }: EmailStudioTestSendDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]" showCloseButton={!isSending}>
+      <DialogContent className="sm:max-w-105" showCloseButton={!isSending}>
         <form
           onSubmit={(event) => {
             event.preventDefault();

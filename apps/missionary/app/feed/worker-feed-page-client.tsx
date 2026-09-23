@@ -93,7 +93,7 @@ const RichTextEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[250px] w-full bg-muted rounded-2xl animate-pulse" />
+      <div className="h-62.5 w-full bg-muted rounded-2xl animate-pulse" />
     ),
   },
 );
@@ -243,7 +243,7 @@ function FollowerRequestItem({
                     <Button
                       size="sm"
                       variant="maia"
-                      className="w-full h-8 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
+                      className="w-full text-[9px] uppercase tracking-wider rounded-lg"
                       onClick={() => handleAction("approve")}
                     >
                       Accept
@@ -257,7 +257,7 @@ function FollowerRequestItem({
                     <Button
                       size="sm"
                       variant="maia-outline"
-                      className="w-full h-8 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
+                      className="w-full text-[9px] uppercase tracking-wider rounded-lg"
                       onClick={() => handleAction("ignore")}
                     >
                       Ignore
@@ -395,7 +395,7 @@ function PostCard({
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+                  <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[9px] uppercase tracking-wider">
                     {post.post_type}
                   </Badge>
                 </motion.div>
@@ -425,7 +425,7 @@ function PostCard({
                   variant="ghost"
                   size="icon"
                   aria-label="Post actions"
-                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl hover-scale-subtle"
+                  className="sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl hover-scale-subtle"
                 >
                   <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
                 </Button>
@@ -433,7 +433,7 @@ function PostCard({
             />
             <DropdownMenuContent
               align="end"
-              className="rounded-xl border-border shadow-lg p-2 min-w-[160px] sm:min-w-[180px]"
+              className="rounded-xl border-border shadow-lg p-2 min-w-40 sm:min-w-45"
             >
               <DropdownMenuItem className="font-semibold text-[10px] uppercase tracking-wider rounded-lg py-2.5 sm:py-3 cursor-pointer gap-2.5 sm:gap-3">
                 <Pin className="size-3.5 text-muted-foreground" /> Pin to Top
@@ -480,7 +480,7 @@ function PostCard({
                 className="rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-md group-hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500"
               >
                 {post.media.length === 1 && singleMedia ? (
-                  <div className="relative w-full h-auto min-h-[200px] max-h-[400px] sm:max-h-[600px]">
+                  <div className="relative w-full h-auto min-h-50 max-h-100 sm:max-h-150">
                     <Image
                       src={singleMedia.url}
                       alt="Update"
@@ -494,7 +494,7 @@ function PostCard({
                     <CarouselContent>
                       {post.media.map((item, idx: number) => (
                         <CarouselItem key={`${item.type}-${item.url}`}>
-                          <div className="relative w-full h-auto min-h-[200px] max-h-[400px] sm:max-h-[600px]">
+                          <div className="relative w-full h-auto min-h-50 max-h-100 sm:max-h-150">
                             <Image
                               src={item.url}
                               alt={`Update ${idx + 1}`}
@@ -596,7 +596,7 @@ function SecurityAccessDialog({
           <Button
             variant="outline"
             size="sm"
-            className="h-9 px-4 text-xs font-medium gap-2 hover-scale-subtle"
+            className="h-9 px-4 text-xs gap-2 hover-scale-subtle"
           >
             <ShieldCheck className="size-4" />
             <span className="hidden sm:inline">Security & Access</span>
@@ -604,7 +604,7 @@ function SecurityAccessDialog({
           </Button>
         }
       />
-      <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden gap-0 rounded-2xl border-border">
+      <DialogContent className="sm:max-w-130 p-0 overflow-hidden gap-0 rounded-2xl border-border">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-muted/30">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -874,7 +874,7 @@ function PostComposerActions({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2"
+            className="flex gap-2 sm:gap-3 overflow-x-auto pb-2"
           >
             {selectedMedia.map((item, idx) => (
               <motion.div
@@ -932,7 +932,7 @@ function PostComposerActions({
             size="sm"
             disabled={isUploading}
             onClick={simulateUpload}
-            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+            className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             {isUploading ? (
               <motion.div
@@ -958,7 +958,7 @@ function PostComposerActions({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border hover-scale-subtle"
+                className="text-muted-foreground font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border hover-scale-subtle"
               >
                 {postPrivacy === "public" ? (
                   <Globe className="size-3" />
@@ -976,7 +976,7 @@ function PostComposerActions({
           />
           <DropdownMenuContent
             align="start"
-            className="rounded-xl border-border shadow-lg p-1.5 min-w-[160px]"
+            className="rounded-xl border-border shadow-lg p-1.5 min-w-40"
           >
             <DropdownMenuItem
               onClick={() => setPostPrivacy("public")}
@@ -1010,7 +1010,7 @@ function PostComposerActions({
             variant="maia-outline"
             size="sm"
             disabled={postActionDisabled}
-            className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
+            className="px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
           >
             {isSaving ? (
               <motion.div
@@ -1036,7 +1036,7 @@ function PostComposerActions({
             variant="maia"
             size="sm"
             disabled={postActionDisabled}
-            className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
+            className="sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
           >
             {isSaving ? (
               <motion.div
@@ -1162,7 +1162,7 @@ function PostComposerCard({
               onChange={setPostContent}
               placeholder={`What's happening? Share a ${postType.toLowerCase()}…`}
               className="rounded-xl sm:rounded-2xl"
-              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-[100px] sm:min-h-[140px] leading-relaxed"
+              contentClassName="py-3 sm:py-4 px-3 sm:px-4 text-sm sm:text-base text-foreground placeholder:text-muted-foreground min-h-25 sm:min-h-35 leading-relaxed"
               toolbarPosition="bottom"
               proseInvert={false}
               actions={
@@ -1240,7 +1240,7 @@ function FeedPostsTabsSection({
                     exit={{ scale: 0.95, opacity: 0 }}
                     transition={springTransition}
                   >
-                    <Badge className="bg-primary text-primary-foreground border-none h-4 px-1 text-[8px] font-semibold">
+                    <Badge className="border-none h-4 px-1 text-[8px] font-semibold">
                       {drafts.length}
                     </Badge>
                   </motion.div>
@@ -1308,7 +1308,7 @@ function FeedPostsTabsSection({
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: 0.1 }}
                               >
-                                <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[8px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                <Badge className="bg-muted text-muted-foreground border-none font-semibold text-[8px] uppercase tracking-wider">
                                   Draft • {draft.post_type}
                                 </Badge>
                               </motion.div>
@@ -1410,7 +1410,7 @@ function FollowerRequestsCard({
               exit={{ scale: 0.95, opacity: 0 }}
               transition={springTransition}
             >
-              <Badge className="bg-primary text-primary-foreground border-none font-semibold text-[10px] h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center">
+              <Badge className="border-none font-semibold text-[10px] h-5 min-w-5 px-1.5 flex">
                 {pendingRequests.length}
               </Badge>
             </motion.div>
@@ -1486,7 +1486,7 @@ function WorkerFeedPageView() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="max-w-[1500px] mx-auto pb-20"
+      className="max-w-375 mx-auto pb-20"
     >
       <PageHeader
         title="Ministry Updates"

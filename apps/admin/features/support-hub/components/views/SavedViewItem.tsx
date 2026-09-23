@@ -49,7 +49,7 @@ export function SavedViewItem({
           isActive ? "text-zinc-900" : "text-zinc-600 hover:text-zinc-900",
         )}
       >
-        <span className="truncate max-w-[160px] block">{view.name}</span>
+        <span className="truncate max-w-40 block">{view.name}</span>
       </button>
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -58,7 +58,7 @@ export function SavedViewItem({
               type="button"
               variant="ghost"
               size="icon"
-              className="size-6 rounded-md text-zinc-400 hover:text-zinc-700"
+              className="size-6 text-zinc-400 hover:text-zinc-700"
               aria-label={`Saved view actions for ${view.name}`}
             >
               <MoreHorizontal className="size-3" />

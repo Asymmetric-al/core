@@ -70,6 +70,12 @@ Inspect the work from several angles:
 - For data access, are route handlers thin and shared logic in the correct package?
 - For UI, does it use shared `@asym/ui` primitives and repo tokens where appropriate?
 
+For UI-related work, follow
+`docs/ai/skills/moai-library-shadcn/references/design-system-lint.md`.
+Check raw findings, discovery health, consumer/authoring scope, and separate
+review of token, contract, exception, and debt changes. A clean lint exit does
+not replace rendered behavior or accessibility evidence.
+
 ### Code quality
 
 - Are types accurate?

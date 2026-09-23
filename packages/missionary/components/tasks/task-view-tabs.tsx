@@ -44,7 +44,7 @@ export function TaskViewTabs({
     <div className="w-full border-b bg-card">
       <div className="container">
         <nav
-          className="relative flex gap-1 overflow-x-auto pb-0 scrollbar-hide"
+          className="relative flex gap-1 overflow-x-auto pb-0"
           aria-label="Task views"
         >
           {views.map((view) => {
@@ -82,8 +82,7 @@ export function TaskViewTabs({
                 {isActive && (
                   <motion.span
                     layoutId="task-tab-indicator"
-                    className="absolute bottom-0 inset-x-0 h-0.5 bg-primary rounded-full z-10"
-                    style={{ bottom: 0, top: "auto" }}
+                    className="absolute bottom-0 top-auto inset-x-0 h-0.5 bg-primary rounded-full z-10"
                     transition={
                       reduceMotion
                         ? { duration: 0.15 }

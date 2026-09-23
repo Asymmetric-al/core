@@ -39,9 +39,9 @@ export function TaskBulkActionsBar({
         <div className="bg-primary text-primary-foreground rounded-xl px-4 py-3 shadow-lg flex items-center gap-3">
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             onClick={onClear}
-            className="size-8 text-primary-foreground/60 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            className="text-primary-foreground/60 hover:text-primary-foreground hover:bg-primary-foreground/10"
           >
             <X className="size-4" />
             <span className="sr-only">Clear selection</span>
@@ -55,7 +55,7 @@ export function TaskBulkActionsBar({
             variant="ghost"
             size="sm"
             onClick={() => onUpdateStatus("completed")}
-            className="h-8 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10"
+            className="text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10"
           >
             <CheckCircle2 className="size-4 mr-2" />
             Complete
@@ -67,7 +67,7 @@ export function TaskBulkActionsBar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10"
+                  className="text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10"
                 >
                   Status
                   <ChevronDown className="size-4 ml-1" />
@@ -96,7 +96,7 @@ export function TaskBulkActionsBar({
             variant="ghost"
             size="sm"
             onClick={onDelete}
-            className="h-8 text-destructive-foreground hover:text-destructive-foreground hover:bg-destructive/80"
+            className="text-destructive-foreground hover:text-destructive-foreground hover:bg-destructive/80"
           >
             <Trash2 className="size-4 mr-2" />
             Delete

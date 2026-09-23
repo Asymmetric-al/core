@@ -185,7 +185,7 @@ export function ProfileFormColumn({
                 value={profile.bio}
                 onChange={(e) => updateProfile("bio", e.target.value)}
                 placeholder="Tell supporters about yourself, your ministry, and how they can partner with you..."
-                className="min-h-[180px] resize-none focus:ring-2 focus:ring-zinc-200"
+                className="min-h-45 resize-none focus:ring-2 focus:ring-zinc-200"
                 maxLength={BIO_MAX_CHARS}
               />
             </FormField>
@@ -224,7 +224,7 @@ export function ProfileFormColumn({
               <p className="text-sm font-medium text-zinc-900">
                 Profile Picture
               </p>
-              <p className="text-xs text-zinc-500 max-w-[220px]">
+              <p className="text-xs text-zinc-500 max-w-55">
                 Square image, at least 400x400px. JPG or PNG, max 5MB.
               </p>
               <ImageUpload
@@ -239,7 +239,7 @@ export function ProfileFormColumn({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-8 text-xs"
+                  className="text-xs"
                 >
                   <Upload className="mr-1.5 size-3.5" />
                   Upload Photo

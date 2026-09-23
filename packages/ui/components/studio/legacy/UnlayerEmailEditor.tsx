@@ -557,9 +557,6 @@ export const LegacyUnlayerEmailEditor = forwardRef<
         onReady={handleEditorReady}
         options={editorOptions as EmailEditorProps["options"]}
         style={{
-          flex: "1 1 auto",
-          display: "flex",
-          height: "100%",
           width: "100%",
           opacity: loadingState === "ready" ? 1 : 0,
           transition: "opacity 0.3s ease-in-out",

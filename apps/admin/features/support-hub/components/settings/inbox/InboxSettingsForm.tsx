@@ -202,7 +202,7 @@ export function InboxSettingsForm() {
                   : null,
               })
             }
-            className="h-9 w-[120px] font-mono text-[12px]"
+            className="w-30 font-mono text-[12px]"
           />
           <span className="text-[12px] text-zinc-500">days</span>
         </div>

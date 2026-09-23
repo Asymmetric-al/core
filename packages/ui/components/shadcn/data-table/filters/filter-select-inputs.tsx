@@ -56,7 +56,7 @@ export function FilterSelectInput({
             aria-expanded={open}
             aria-controls={listboxId}
             className={cn(
-              "h-9 w-[180px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
+              "h-9 w-45 justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
               !selectedOption && "text-muted-foreground",
               className,
             )}
@@ -78,7 +78,7 @@ export function FilterSelectInput({
         }
       />
       <PopoverContent
-        className="w-[220px] overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
+        className="w-55 overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
         align="start"
         sideOffset={8}
       >
@@ -172,7 +172,7 @@ export function FilterMultiSelectInput({
             aria-expanded={open}
             aria-controls={listboxId}
             className={cn(
-              "h-auto min-h-9 w-[240px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
+              "h-auto min-h-9 w-60 justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
               !selectedOptions.length && "text-muted-foreground",
               className,
             )}
@@ -213,7 +213,7 @@ export function FilterMultiSelectInput({
         }
       />
       <PopoverContent
-        className="w-[260px] overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
+        className="w-65 overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
         align="start"
         sideOffset={8}
       >

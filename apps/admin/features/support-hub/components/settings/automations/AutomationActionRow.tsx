@@ -54,7 +54,7 @@ export function AutomationActionRow({
           handleKindChange(value as SupportAutomationAction["kind"])
         }
       >
-        <SelectTrigger className="h-8 min-w-[180px] text-[12px]">
+        <SelectTrigger className="h-8 min-w-45 text-[12px]">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -76,7 +76,7 @@ export function AutomationActionRow({
             onChange({ kind: "assign_agent", agentId: value });
           }}
         >
-          <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
+          <SelectTrigger className="h-8 min-w-50 text-[12px]">
             <SelectValue placeholder="Pick an agent" />
           </SelectTrigger>
           <SelectContent>
@@ -99,7 +99,7 @@ export function AutomationActionRow({
             onChange({ kind: "assign_team", teamId: value });
           }}
         >
-          <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
+          <SelectTrigger className="h-8 min-w-50 text-[12px]">
             <SelectValue placeholder="Pick a team" />
           </SelectTrigger>
           <SelectContent>
@@ -122,7 +122,7 @@ export function AutomationActionRow({
             onChange({ kind: "add_label", labelId: value });
           }}
         >
-          <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
+          <SelectTrigger className="h-8 min-w-50 text-[12px]">
             <SelectValue placeholder="Pick a label" />
           </SelectTrigger>
           <SelectContent>
@@ -150,7 +150,7 @@ export function AutomationActionRow({
             })
           }
         >
-          <SelectTrigger className="h-8 min-w-[140px] text-[12px]">
+          <SelectTrigger className="h-8 min-w-35 text-[12px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -178,7 +178,7 @@ export function AutomationActionRow({
             })
           }
         >
-          <SelectTrigger className="h-8 min-w-[140px] text-[12px]">
+          <SelectTrigger className="h-8 min-w-35 text-[12px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -202,7 +202,7 @@ export function AutomationActionRow({
               hours: Number(event.target.value) || 1,
             })
           }
-          className="h-8 w-[120px] font-mono text-[12px]"
+          className="h-8 w-30 font-mono text-[12px]"
         />
       ) : null}
 
@@ -216,7 +216,7 @@ export function AutomationActionRow({
             onChange({ kind: "run_macro", macroId: value });
           }}
         >
-          <SelectTrigger className="h-8 min-w-[220px] text-[12px]">
+          <SelectTrigger className="h-8 min-w-55 text-[12px]">
             <SelectValue placeholder="Pick a macro" />
           </SelectTrigger>
           <SelectContent>

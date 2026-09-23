@@ -114,7 +114,7 @@ export function SupportTipTapEditor({
         tone === "note" && "border-amber-200 bg-amber-50/40",
       )}
       editorClassName={cn(
-        "min-h-[140px] text-[13px] leading-relaxed text-zinc-900",
+        "min-h-35 text-[13px] leading-relaxed text-zinc-900",
         tone === "note" && "text-amber-900",
       )}
     >

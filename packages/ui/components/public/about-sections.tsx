@@ -8,6 +8,7 @@ import {
 } from "@asym/lib/motion";
 import {
   DURATION_STANDARD,
+  DURATION_SLOW,
   EASE_OUT_SOFT,
   propsFadeRiseInView,
   propsHeroEntrance,
@@ -16,6 +17,7 @@ import {
   STAGGER_TIGHT,
 } from "@asym/lib/motion-presets";
 import { buildCheckoutHref } from "@asym/lib/payments/checkout-designations";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { Target, Users, Shield, Heart, Globe, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,41 +26,48 @@ import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 
-export function AboutHero() {
+function useSectionEntranceDisabled() {
   const reduceMotion = useReducedMotion();
+  const withinRouteLayer = useWithinViewTransitionRouteLayer();
+  return reduceMotion === true || withinRouteLayer;
+}
+
+export function AboutHero() {
+  const disableEntrance = useSectionEntranceDisabled();
 
   return (
     <LazyMotion features={domAnimation}>
-      <section className="relative pt-48 pb-64 overflow-hidden isolate bg-zinc-950">
+      <section className="dark relative pt-48 pb-64 overflow-hidden isolate bg-background text-foreground">
         <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
-          <div className="absolute inset-0 to-zinc-950" />
-          <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-emerald-600/10 rounded-full blur-[200px]" />
-          <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-blue-600/10 rounded-full blur-[180px]" />
+          <div className="absolute top-0 right-0 size-250 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 size-200 bg-accent/10 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-6xl space-y-12">
-            <m.div {...propsHeroEntrance(reduceMotion, 0)}>
-              <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-white/60 text-[10px] font-semibold uppercase tracking-[0.4em] backdrop-blur-xl">
-                <Sparkles className="size-4 text-amber-500" /> The Asymmetric
+          <div className="max-w-6xl flex flex-col gap-12">
+            <m.div {...propsHeroEntrance(disableEntrance, 0)}>
+              <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-foreground/5 border border-border text-foreground text-xs font-semibold uppercase tracking-widest backdrop-blur-xl">
+                <Sparkles className="size-4 text-primary" /> The Asymmetric
                 Method
               </div>
             </m.div>
 
-            <m.div {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT)}>
-              <h1 className="text-6xl md:text-[10rem] font-semibold tracking-tighter text-white leading-[0.85] font-syne text-balance">
+            <m.div {...propsHeroEntrance(disableEntrance, STAGGER_TIGHT)}>
+              <h1 className="text-5xl sm:text-6xl md:text-8xl xl:text-9xl font-semibold tracking-tighter text-foreground leading-none font-display text-balance wrap-anywhere">
                 Engineered <br />
-                <span className="to-white/20">Restoration.</span>
+                <span>Restoration.</span>
               </h1>
             </m.div>
 
-            <m.div {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT * 2)}>
-              <p className="text-2xl md:text-3xl text-zinc-400 max-w-3xl font-light leading-relaxed tracking-tight text-balance">
+            <m.div {...propsHeroEntrance(disableEntrance, STAGGER_TIGHT * 2)}>
+              <p className="text-2xl md:text-3xl text-muted-foreground max-w-3xl font-light leading-relaxed tracking-tight text-balance">
                 Geography should not dictate destiny. We build the
                 infrastructure that connects{" "}
-                <span className="text-white font-medium">global capital</span>{" "}
+                <span className="text-foreground font-medium">
+                  global capital
+                </span>{" "}
                 to{" "}
-                <span className="text-white font-medium">
+                <span className="text-foreground font-medium">
                   frontline courage.
                 </span>
               </p>
@@ -71,28 +80,28 @@ export function AboutHero() {
 }
 
 export function AboutBelief() {
-  const reduceMotion = useReducedMotion();
+  const disableEntrance = useSectionEntranceDisabled();
 
   return (
     <LazyMotion features={domAnimation}>
-      <section className="py-40 bg-white relative overflow-hidden">
+      <section className="py-40 bg-background relative overflow-hidden">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
             <m.div
-              {...propsFadeRiseInView(reduceMotion, { y: 12 })}
-              className="space-y-12"
+              {...propsFadeRiseInView(disableEntrance, { y: 12 })}
+              className="flex flex-col gap-12"
             >
-              <div className="space-y-6">
-                <span className="text-emerald-600 font-semibold tracking-[0.4em] uppercase text-xs">
+              <div className="flex flex-col gap-6">
+                <span className="text-muted-foreground font-semibold tracking-widest uppercase text-xs">
                   Our Thesis
                 </span>
-                <h2 className="text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-950 leading-[0.85] font-syne">
+                <h2 className="text-4xl sm:text-6xl md:text-7xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-semibold tracking-tighter text-foreground leading-none font-display wrap-anywhere">
                   Hope as <br />
-                  <span className="text-zinc-300">Infrastructure.</span>
+                  <span className="text-muted-foreground">Infrastructure.</span>
                 </h2>
               </div>
 
-              <p className="text-2xl text-zinc-600 leading-relaxed font-light tracking-tight">
+              <p className="text-2xl text-muted-foreground leading-relaxed font-light tracking-tight">
                 Most aid organizations are built for a world that no longer
                 exists. They are slow, opaque, and hierarchical.{" "}
                 <strong>GiveHope</strong> is built for the now. We are a lean,
@@ -104,8 +113,8 @@ export function AboutBelief() {
                 <Link
                   href="/workers"
                   className={cn(
-                    buttonVariants({ size: "lg" }),
-                    "h-14 px-10 rounded-full bg-zinc-950 text-white hover:bg-emerald-500 transition-colors duration-200 ease-out font-semibold font-syne text-xs uppercase tracking-widest",
+                    buttonVariants({ variant: "maia", size: "lg" }),
+                    "scroll-mt-24",
                   )}
                 >
                   Explore the Frontlines
@@ -113,25 +122,28 @@ export function AboutBelief() {
               </div>
             </m.div>
 
-            <m.div {...propsScaleFadeInView(reduceMotion)} className="relative">
-              <div className="aspect-square bg-zinc-50 rounded-3xl p-8 flex items-center justify-center border border-zinc-100 shadow-xl overflow-hidden relative group">
-                <div className="absolute inset-0 opacity-20 pointer-events-none grayscale group-hover:grayscale-0 transition-[filter] duration-500 ease-out">
+            <m.div
+              {...propsScaleFadeInView(disableEntrance)}
+              className="relative"
+            >
+              <div className="aspect-square bg-card rounded-3xl p-8 flex items-center justify-center border border-border shadow-xl overflow-hidden relative group">
+                <div className="absolute inset-0 opacity-20 pointer-events-none grayscale [@media(hover:hover)_and_(pointer:fine)]:group-hover:grayscale-0 transition duration-500 ease-out">
                   <Image
                     src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=2000"
                     fill
-                    className="object-cover transition-transform duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
+                    className="object-cover transition-transform duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-(--scale-hover-subtle)"
                     alt="Community members gathering together"
                     sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                   />
                 </div>
-                <div className="relative z-10 text-center space-y-4">
-                  <div className="size-16 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-xl border border-zinc-100">
-                    <Globe className="size-8 text-emerald-500" />
+                <div className="relative z-10 text-center flex flex-col gap-4">
+                  <div className="size-16 bg-background rounded-2xl flex items-center justify-center mx-auto shadow-xl border border-border">
+                    <Globe className="size-8 text-foreground" />
                   </div>
-                  <p className="text-3xl font-semibold font-syne text-zinc-950 tracking-tighter">
+                  <p className="text-3xl font-semibold font-display text-foreground tracking-tighter">
                     100% Direct-
                   </p>
-                  <p className="text-zinc-500 max-w-xs mx-auto text-sm font-medium">
+                  <p className="text-foreground max-w-xs mx-auto text-sm font-medium">
                     No middle-management. No administrative leakage. Your
                     support goes exactly where it&apos;s needed.
                   </p>
@@ -146,47 +158,43 @@ export function AboutBelief() {
 }
 
 export function AboutValues() {
-  const reduceMotion = useReducedMotion();
+  const disableEntrance = useSectionEntranceDisabled();
 
   const values = [
     {
       icon: Target,
       title: "Precision",
       text: "We target specific, verified needs identified by local field leaders with zero delay.",
-      color: "emerald",
     },
     {
       icon: Users,
       title: "Partnership",
       text: "We don't deploy staff; we deploy resources to the local heroes already on the ground.",
-      color: "blue",
     },
     {
       icon: Shield,
       title: "Integrity",
       text: "Radical transparency is our default. You track every cent from pledge to payload.",
-      color: "amber",
     },
     {
       icon: Heart,
       title: "Dignity",
       text: "We serve humans, not metrics. Every interaction is rooted in mutual respect.",
-      color: "red",
     },
   ];
 
   return (
     <LazyMotion features={domAnimation}>
-      <section className="py-40 bg-zinc-50">
+      <section className="py-40 bg-muted">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-end mb-32 gap-12">
-            <div className="space-y-6">
-              <span className="text-zinc-400 font-semibold tracking-[0.4em] uppercase text-xs">
+            <div className="flex flex-col gap-6">
+              <span className="text-foreground font-semibold tracking-widest uppercase text-xs">
                 The Protocol
               </span>
-              <h2 className="text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-950 leading-[0.85] font-syne">
+              <h2 className="text-4xl sm:text-6xl md:text-8xl font-semibold tracking-tighter text-foreground leading-none font-display wrap-anywhere">
                 Operational <br />
-                <span className="text-zinc-300">Principles.</span>
+                <span className="text-muted-foreground">Principles.</span>
               </h2>
             </div>
           </div>
@@ -195,42 +203,35 @@ export function AboutValues() {
               <m.div
                 key={item.title}
                 initial={
-                  reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }
+                  disableEntrance ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }
                 }
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{
                   duration: DURATION_STANDARD,
                   ease: EASE_OUT_SOFT,
-                  delay: reduceMotion ? 0 : idx * STAGGER_MEDIUM,
+                  delay: disableEntrance ? 0 : idx * STAGGER_MEDIUM,
                 }}
               >
-                <Card className="group border-none bg-white rounded-2xl shadow-lg [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-1 transition-[transform,box-shadow] duration-300 ease-out h-full">
-                  <CardContent className="pt-10 pb-8 px-8 flex flex-col items-center text-center gap-y-6 h-full">
-                    <div
-                      className={cn(
-                        "size-12 rounded-xl flex items-center justify-center transition-transform duration-200 ease-out group-hover:rotate-6",
-                        item.color === "emerald"
-                          ? "bg-emerald-50 text-emerald-600"
-                          : item.color === "blue"
-                            ? "bg-blue-50 text-blue-600"
-                            : item.color === "amber"
-                              ? "bg-amber-50 text-amber-600"
-                              : "bg-red-50 text-red-600",
-                      )}
-                    >
-                      <item.icon className="size-6" />
-                    </div>
-                    <div className="space-y-3">
-                      <h3 className="text-xl font-semibold text-zinc-950 font-syne">
-                        {item.title}
-                      </h3>
-                      <p className="text-zinc-500 leading-relaxed font-light text-sm">
-                        {item.text}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="group h-full transition-transform duration-300 ease-out [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-1">
+                  <Card className="h-full">
+                    <CardContent className="h-full">
+                      <div className="flex h-full flex-col items-center gap-6 py-6 text-center">
+                        <div className="size-12 rounded-xl flex items-center justify-center bg-muted text-foreground transition-transform duration-200 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:rotate-6">
+                          <item.icon className="size-6" />
+                        </div>
+                        <div className="flex flex-col gap-3">
+                          <h3 className="text-xl font-semibold text-foreground font-display">
+                            {item.title}
+                          </h3>
+                          <p className="text-muted-foreground leading-relaxed font-light text-sm">
+                            {item.text}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </m.div>
             ))}
           </div>
@@ -241,7 +242,7 @@ export function AboutValues() {
 }
 
 export function AboutLeadership() {
-  const reduceMotion = useReducedMotion();
+  const disableEntrance = useSectionEntranceDisabled();
 
   const team = [
     {
@@ -263,13 +264,13 @@ export function AboutLeadership() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <section className="py-40 bg-white">
+      <section className="py-40 bg-background">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-32 space-y-6">
-            <span className="text-emerald-600 font-semibold tracking-[0.4em] uppercase text-xs">
+          <div className="text-center mb-32 flex flex-col gap-6">
+            <span className="text-muted-foreground font-semibold tracking-widest uppercase text-xs">
               The Board
             </span>
-            <h2 className="text-6xl md:text-8xl font-semibold tracking-tighter text-zinc-950 font-syne">
+            <h2 className="text-4xl sm:text-6xl md:text-7xl xl:text-8xl font-semibold tracking-tighter text-foreground leading-none font-display text-balance wrap-anywhere">
               Trustees of Hope.
             </h2>
           </div>
@@ -279,34 +280,34 @@ export function AboutLeadership() {
               <m.div
                 key={person.name}
                 initial={
-                  reduceMotion
+                  disableEntrance
                     ? { opacity: 1, scale: 1 }
                     : { opacity: 0, scale: 0.96 }
                 }
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{
-                  duration: 0.35,
+                  duration: DURATION_SLOW,
                   ease: EASE_OUT_SOFT,
-                  delay: reduceMotion ? 0 : i * STAGGER_MEDIUM,
+                  delay: disableEntrance ? 0 : i * STAGGER_MEDIUM,
                 }}
-                className="group cursor-pointer"
+                className="group"
               >
-                <div className="relative aspect-[3/4] mb-8 overflow-hidden rounded-2xl bg-zinc-100 shadow-xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-emerald-500/10 transition-shadow duration-300 ease-out">
+                <div className="relative aspect-3/4 mb-8 overflow-hidden rounded-2xl bg-muted shadow-xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-foreground/10 transition-shadow duration-300 ease-out">
                   <Image
                     src={person.img}
                     alt={`${person.name}, ${person.role} at GiveHope`}
                     fill
-                    className="object-cover saturate-0 group-hover:saturate-[0.8] contrast-[1.1] transition-[transform,filter] duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[1.02]"
+                    className="object-cover saturate-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:saturate-80 contrast-110 transition duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-(--scale-hover-subtle)"
                     sizes="(max-width: 768px) 100vw, 25vw"
                   />
-                  <div className="absolute inset-0 bg-zinc-950/20 group-hover:bg-zinc-950/0 transition-colors duration-300 ease-out" />
+                  <div className="dark absolute inset-0 bg-background/20 [@media(hover:hover)_and_(pointer:fine)]:group-hover:bg-background/0 transition-colors duration-300 ease-out" />
                 </div>
-                <div className="space-y-1 text-center">
-                  <h3 className="text-2xl font-semibold text-zinc-950 font-syne group-hover:text-emerald-600 transition-colors duration-200 ease-out">
+                <div className="flex flex-col gap-1 text-center">
+                  <h3 className="text-2xl font-semibold text-foreground font-display [@media(hover:hover)_and_(pointer:fine)]:group-hover:text-primary transition-colors duration-200 ease-out">
                     {person.name}
                   </h3>
-                  <p className="text-zinc-400 font-semibold text-[9px] uppercase tracking-[0.3em]">
+                  <p className="text-muted-foreground font-semibold text-xs uppercase tracking-widest">
                     {person.role}
                   </p>
                 </div>
@@ -320,24 +321,27 @@ export function AboutLeadership() {
 }
 
 export function AboutCTA() {
-  const reduceMotion = useReducedMotion();
+  const disableEntrance = useSectionEntranceDisabled();
 
   return (
     <LazyMotion features={domAnimation}>
-      <section className="py-60 bg-zinc-950 relative overflow-hidden text-center">
+      <section className="dark py-60 bg-background text-foreground relative overflow-hidden text-center">
         <div className="absolute inset-0 opacity-40 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-emerald-600/30 rounded-full blur-[200px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-300 bg-primary/10 rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto px-6 relative z-10 max-w-5xl">
           <m.div
-            {...propsFadeRiseInView(reduceMotion, { y: 12, duration: 0.35 })}
+            {...propsFadeRiseInView(disableEntrance, {
+              y: 12,
+              duration: DURATION_SLOW,
+            })}
           >
-            <h2 className="text-6xl md:text-8xl font-semibold text-white tracking-tighter mb-8 leading-[0.8] font-syne">
+            <h2 className="text-5xl sm:text-6xl md:text-8xl font-semibold text-foreground tracking-tighter mb-8 leading-none font-display wrap-anywhere">
               Join the <br />
-              <span className="text-emerald-500">Method.</span>
+              <span className="text-muted-foreground">Method.</span>
             </h2>
-            <p className="text-xl md:text-2xl text-zinc-300 max-w-2xl mx-auto mb-16 font-light leading-relaxed tracking-tight">
+            <p className="text-xl md:text-2xl text-foreground/80 max-w-2xl mx-auto mb-16 font-light leading-relaxed tracking-tight">
               Don&apos;t just watch the world change. Be the reason it does.
               Join our global sustainer community today.
             </p>
@@ -345,8 +349,8 @@ export function AboutCTA() {
               <Link
                 href="/workers"
                 className={cn(
-                  buttonVariants({ size: "lg" }),
-                  "h-14 px-10 rounded-full bg-white text-zinc-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-semibold font-syne shadow-xl hover-scale-subtle",
+                  buttonVariants({ variant: "maia", size: "lg" }),
+                  "scroll-mt-24",
                 )}
               >
                 View Directory
@@ -355,7 +359,7 @@ export function AboutCTA() {
                 href={buildCheckoutHref({ fundId: "general" })}
                 className={cn(
                   buttonVariants({ size: "lg", variant: "outline" }),
-                  "h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-semibold font-syne backdrop-blur-xl transition-colors duration-200 ease-out",
+                  "scroll-mt-24",
                 )}
               >
                 Support Urgent Needs

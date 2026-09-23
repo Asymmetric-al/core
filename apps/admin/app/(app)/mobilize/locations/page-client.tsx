@@ -107,7 +107,7 @@ export default function LocationsPage() {
         </div>
 
         <TabsContent value="map" className="m-0">
-          <Card className="relative h-[600px] overflow-hidden rounded-2xl border-zinc-100 bg-zinc-50 shadow-sm">
+          <Card className="relative h-150 overflow-hidden rounded-2xl border-zinc-100 bg-zinc-50 shadow-sm">
             <Map
               initialViewState={{
                 longitude: 0,

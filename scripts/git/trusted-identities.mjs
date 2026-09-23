@@ -93,23 +93,42 @@ export function parseGitHubRepoSlug(remoteUrl) {
     return null;
   }
 
-  const trimmedUrl = remoteUrl.trim().replace(/\.git$/, "");
-  const scpMatch = /^git@github\.com:(?<owner>[^/]+)\/(?<repo>[^/]+)$/i.exec(
-    trimmedUrl,
-  );
-
-  if (scpMatch?.groups) {
-    return `${scpMatch.groups.owner}/${scpMatch.groups.repo}`;
+  const trimmedUrl = remoteUrl.trim();
+  if (/[\s\u0000-\u001f\u007f]/.test(trimmedUrl) || trimmedUrl.includes("\\")) {
+    return null;
   }
 
-  const urlMatch =
-    /^(?:https|ssh):\/\/(?:[^/@]+@)?github\.com\/(?<owner>[^/]+)\/(?<repo>[^/]+)$/i.exec(
+  let repositoryPath;
+  const scpMatch = /^git@github\.com:(?<path>.+)$/i.exec(trimmedUrl);
+  if (scpMatch?.groups) {
+    repositoryPath = scpMatch.groups.path;
+  } else {
+    const urlMatch = /^(?:https|ssh):\/\/[^/?#]+(?<path>\/[^?#]*)$/i.exec(
       trimmedUrl,
     );
+    if (!urlMatch?.groups) return null;
+    try {
+      const url = new URL(trimmedUrl);
+      const defaultPort = url.protocol === "ssh:" ? "22" : "";
+      if (
+        url.hostname.toLowerCase() !== "github.com" ||
+        (url.port && url.port !== defaultPort)
+      ) {
+        return null;
+      }
+      // Keep the original path so URL dot-segment normalization cannot bless it.
+      // Userinfo is transport authentication and never leaves this parser.
+      repositoryPath = urlMatch.groups.path.slice(1);
+    } catch {
+      return null;
+    }
+  }
 
-  return urlMatch?.groups
-    ? `${urlMatch.groups.owner}/${urlMatch.groups.repo}`
-    : null;
+  const match = /^(?<owner>[A-Za-z0-9-]+)\/(?<repo>[A-Za-z0-9_.-]+)$/.exec(
+    repositoryPath.replace(/\.git$/, ""),
+  );
+  if (!match?.groups || [".", ".."].includes(match.groups.repo)) return null;
+  return `${match.groups.owner}/${match.groups.repo}`;
 }
 
 export function findTrustedIdentityByGitIdentity(

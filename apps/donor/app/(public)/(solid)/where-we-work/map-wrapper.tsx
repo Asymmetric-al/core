@@ -244,7 +244,7 @@ function LocationSearchCommand({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-120 p-0 gap-0 overflow-hidden">
         <DialogHeader className="sr-only">
           <DialogTitle>Search Locations</DialogTitle>
           <DialogDescription>
@@ -256,7 +256,7 @@ function LocationSearchCommand({
             placeholder="Search locations, workers, projects…"
             className="h-14 text-base"
           />
-          <CommandList className="max-h-[400px]">
+          <CommandList className="max-h-100">
             <CommandEmpty className="py-12">
               <div className="flex flex-col items-center gap-2">
                 <div className="size-12 rounded-full bg-muted flex items-center justify-center">
@@ -500,7 +500,7 @@ function DetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px] p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-130 p-0 gap-0 overflow-hidden">
         <DialogHeader className="sr-only">
           <DialogTitle>{location.title}</DialogTitle>
           <DialogDescription>
@@ -588,7 +588,7 @@ function DetailDialog({
                   prefetch={true}
                   className="flex-1"
                 >
-                  <Button className="w-full h-11 rounded-xl font-semibold gap-2">
+                  <Button className="w-full h-11 rounded-xl font-semibold">
                     <ExternalLinkIcon className="size-4" />
                     View Profile
                   </Button>
@@ -702,7 +702,7 @@ function MobileDetailSheet({
                   prefetch={true}
                   className="flex-1"
                 >
-                  <Button className="w-full h-12 rounded-xl font-semibold gap-2">
+                  <Button className="w-full h-12 rounded-xl font-semibold">
                     <ExternalLinkIcon className="size-4" />
                     View Profile
                   </Button>
@@ -846,7 +846,7 @@ function SelectedLocationPill({
                 ]?.bg || MARKER_COLORS.custom.bg,
               )}
             />
-            <span className="text-sm font-semibold text-foreground truncate max-w-[200px]">
+            <span className="text-sm font-semibold text-foreground truncate max-w-50">
               {selectedLocation.title}
             </span>
             <div className="size-7 rounded-full bg-primary flex items-center justify-center group-hover:bg-primary/90 transition-colors">
@@ -1026,7 +1026,7 @@ export function WhereWeWorkMap() {
           />
           <MapStyleToggle
             position="bottom-right"
-            className="bottom-[140px] lg:bottom-[180px] right-4 lg:right-8"
+            className="bottom-35 lg:bottom-45 right-4 lg:right-8"
           />
 
           <MapLegend

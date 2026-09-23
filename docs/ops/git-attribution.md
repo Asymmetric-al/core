@@ -130,6 +130,16 @@ For a fork pull request, use `<your-login>:feature/AL-123-short-title` as the
 do not need a shared plaintext credential, and these commands do not bypass the
 authenticated account's live permissions.
 
+### Supported repository remotes
+
+Repository detection accepts GitHub HTTPS URLs, `ssh://` URLs, and
+`git@github.com:owner/repository.git` remotes. Explicit default HTTPS port 443
+and SSH port 22 are supported. Transport userinfo is never included in the
+returned repository slug or the pre-push child environment. Nondefault ports,
+other hosts/protocols, query or fragment markers, malformed or encoded paths,
+and dot segments are rejected. Provider requests use a credential-free target;
+URL credentials do not supply actor or signer proof.
+
 ## Enforcement
 
 Local `bun run verify:git-attribution` checks repository configuration and commit

@@ -74,7 +74,7 @@ const PUBLIC_UPDATES = [
 
 const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
   <div className="group relative pl-8 pb-12 last:pb-0">
-    <div className="absolute left-[11px] top-3 bottom-0 w-px bg-zinc-100 group-last:hidden" />
+    <div className="absolute left-2.75 top-3 bottom-0 w-px bg-zinc-100 group-last:hidden" />
     <div className="absolute left-0 top-3 size-6 rounded-full border-4 border-white bg-zinc-100 flex items-center justify-center z-10 group-hover:bg-blue-100 group-hover:scale-110 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-300">
       <div className="size-1.5 rounded-full bg-zinc-400 group-hover:bg-blue-600 transition-colors" />
     </div>
@@ -86,7 +86,7 @@ const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
         </span>
         <Badge
           variant="secondary"
-          className="px-2 py-0 text-[10px] bg-zinc-50 text-zinc-600 border-zinc-200"
+          className="py-0 text-[10px] bg-zinc-50 text-zinc-600 border-zinc-200"
         >
           {update.type}
         </Badge>
@@ -106,7 +106,7 @@ const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
           />
 
           {update.image && (
-            <div className="rounded-lg overflow-hidden mb-4 border border-zinc-100 relative h-[300px]">
+            <div className="rounded-lg overflow-hidden mb-4 border border-zinc-100 relative h-75">
               <Image
                 src={update.image}
                 alt="Update visual"

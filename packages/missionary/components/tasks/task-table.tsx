@@ -77,7 +77,7 @@ export function TaskTable({
   return (
     <div className="w-full bg-card rounded-2xl overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[800px]">
+        <table className="w-full text-left border-collapse min-w-200">
           <thead>
             <tr className="border-b border-border bg-muted/30">
               <th className="w-14 p-4">
@@ -167,7 +167,7 @@ export function TaskTable({
                         <div className="flex flex-col min-w-0">
                           <span
                             className={cn(
-                              "text-sm font-medium text-foreground truncate max-w-[280px]",
+                              "text-sm font-medium text-foreground truncate max-w-70",
                               isCompleted &&
                                 "text-muted-foreground line-through",
                             )}
@@ -249,7 +249,7 @@ export function TaskTable({
                                 .slice(0, 2)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-xs text-foreground truncate max-w-[100px]">
+                          <span className="text-xs text-foreground truncate max-w-25">
                             {task.donor.name}
                           </span>
                         </div>

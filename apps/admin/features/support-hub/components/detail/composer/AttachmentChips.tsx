@@ -50,7 +50,7 @@ export function AttachmentChips({
         size="sm"
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
-        className="h-8 gap-1.5 rounded-lg border-zinc-200 px-2 text-xs font-medium text-zinc-600"
+        className="rounded-lg border-zinc-200 px-2 text-xs text-zinc-600"
       >
         <Paperclip className="size-3.5" />
         Attach
@@ -73,7 +73,7 @@ export function AttachmentChips({
           )}
         >
           <Paperclip className="size-3 text-zinc-400" />
-          <span className="max-w-[160px] truncate">{attachment.filename}</span>
+          <span className="max-w-40 truncate">{attachment.filename}</span>
           <span className="text-zinc-400">
             {formatBytes(attachment.sizeBytes)}
           </span>

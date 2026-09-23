@@ -17,15 +17,15 @@ import type { ChartConfig } from "@asym/ui/components/shadcn/chart";
 const chartConfig = {
   recurring: {
     label: "Recurring",
-    color: "oklch(0.45 0.10 250)",
+    color: "var(--chart-1)",
   },
   oneTime: {
     label: "One-Time",
-    color: "oklch(0.60 0.08 250)",
+    color: "var(--chart-2)",
   },
   offline: {
     label: "Offline",
-    color: "oklch(0.75 0.05 250)",
+    color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
 
@@ -125,13 +125,20 @@ const SKELETON_BARS = [
 
 function GivingBreakdownSkeleton() {
   return (
-    <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full flex flex-col">
+    <div className="h-50 sm:h-62.5 md:h-75 w-full flex flex-col">
       <div className="flex-1 flex items-end justify-around gap-1 px-4 pb-6">
         {SKELETON_BARS.map(({ id, height }) => (
-          <div key={id} className="flex-1 flex flex-col items-center gap-1">
+          <div
+            key={id}
+            className="h-full flex-1 flex flex-col items-center justify-end gap-1"
+          >
             <Skeleton
-              className="w-full rounded-t-sm"
-              style={{ height: `${height}%` }}
+              className="h-(--skeleton-bar-height) w-full rounded-t-sm"
+              style={
+                {
+                  "--skeleton-bar-height": `${height}%`,
+                } as React.CSSProperties
+              }
             />
           </div>
         ))}
@@ -168,7 +175,7 @@ export function GivingBreakdownChart({
 
   if (error) {
     return (
-      <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full flex items-center justify-center text-sm text-zinc-400">
+      <div className="h-50 sm:h-62.5 md:h-75 w-full flex items-center justify-center text-sm text-muted-foreground">
         Unable to load chart data
       </div>
     );
@@ -178,106 +185,100 @@ export function GivingBreakdownChart({
 
   if (!hasData) {
     return (
-      <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full flex items-center justify-center text-sm text-zinc-400">
+      <div className="h-50 sm:h-62.5 md:h-75 w-full flex items-center justify-center text-sm text-muted-foreground">
         No donation data available
       </div>
     );
   }
 
   return (
-    <ChartContainer
-      config={chartConfig}
-      className="h-[200px] sm:h-[250px] md:h-[300px] w-full min-h-[180px]"
-    >
-      <BarChart
-        data={monthlyBreakdown}
-        margin={{
-          top: 5,
-          right: 5,
-          left: 0,
-          bottom: 0,
-        }}
-        barGap={2}
-      >
-        <CartesianGrid
-          vertical={false}
-          strokeDasharray="3 3"
-          stroke="oklch(0.92 0.004 286.32)"
-          opacity={0.3}
-        />
-        <XAxis
-          dataKey="month"
-          tickLine={false}
-          tickMargin={5}
-          axisLine={false}
-          fontSize={9}
-          fontWeight={700}
-          stroke="oklch(0.55 0.01 286.32)"
-          interval="preserveStartEnd"
-        />
-        <YAxis
-          tickLine={false}
-          axisLine={false}
-          fontSize={9}
-          fontWeight={700}
-          tickFormatter={(value) =>
-            value >= 1000 ? `$${(value / 1000).toFixed(0)}k` : `$${value}`
-          }
-          width={35}
-          tickMargin={4}
-          stroke="oklch(0.55 0.01 286.32)"
-        />
-        <ChartTooltip
-          cursor={{ fill: "oklch(0.96 0.004 286.32)", opacity: 0.4 }}
-          content={
-            <ChartTooltipContent
-              indicator="dot"
-              className="bg-white/95 backdrop-blur-xl border-zinc-200 shadow-2xl rounded-xl p-2.5 min-w-[160px] text-[10px] font-bold"
-              formatter={(value, name) => {
-                const labels: Record<string, string> = {
-                  recurring: "Recurring",
-                  oneTime: "One-Time",
-                  offline: "Offline",
-                };
-                return (
-                  <span className="flex items-center gap-2">
-                    <span>{labels[name as string] || name}</span>
-                    <span className="font-black">
-                      ${Number(value).toLocaleString()}
+    <div className="h-50 sm:h-62.5 md:h-75 w-full grid grid-cols-1 grid-rows-1 items-stretch">
+      <ChartContainer config={chartConfig} className="w-full self-stretch">
+        <BarChart
+          data={monthlyBreakdown}
+          margin={{
+            top: 5,
+            right: 5,
+            left: 0,
+            bottom: 0,
+          }}
+          barGap={2}
+        >
+          <CartesianGrid
+            vertical={false}
+            strokeDasharray="3 3"
+            stroke="var(--border)"
+            opacity={0.3}
+          />
+          <XAxis
+            dataKey="month"
+            tickLine={false}
+            tickMargin={5}
+            axisLine={false}
+            fontSize={12}
+            fontWeight={700}
+            stroke="var(--muted-foreground)"
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            fontSize={12}
+            fontWeight={700}
+            tickFormatter={(value) =>
+              value >= 1000 ? `$${(value / 1000).toFixed(0)}k` : `$${value}`
+            }
+            width={48}
+            tickMargin={4}
+            stroke="var(--muted-foreground)"
+          />
+          <ChartTooltip
+            cursor={{ fill: "var(--muted)", opacity: 0.4 }}
+            content={
+              <ChartTooltipContent
+                indicator="dot"
+                formatter={(value, name) => {
+                  const labels: Record<string, string> = {
+                    recurring: "Recurring",
+                    oneTime: "One-Time",
+                    offline: "Offline",
+                  };
+                  return (
+                    <span className="flex items-center gap-2">
+                      <span>{labels[name as string] || name}</span>
+                      <span className="font-black">
+                        ${Number(value).toLocaleString()}
+                      </span>
                     </span>
-                  </span>
-                );
-              }}
-            />
-          }
-        />
-        <ChartLegend
-          content={<ChartLegendContent />}
-          className="pt-2 text-[10px] [&_.recharts-legend-item-text]:!text-zinc-600"
-          wrapperStyle={{ fontSize: "10px" }}
-        />
-        <Bar
-          dataKey="recurring"
-          stackId="donations"
-          fill="var(--color-recurring)"
-          maxBarSize={48}
-          shape={RecurringBarShape}
-        />
-        <Bar
-          dataKey="oneTime"
-          stackId="donations"
-          fill="var(--color-oneTime)"
-          maxBarSize={48}
-          shape={OneTimeBarShape}
-        />
-        <Bar
-          dataKey="offline"
-          stackId="donations"
-          fill="var(--color-offline)"
-          maxBarSize={48}
-          shape={OfflineBarShape}
-        />
-      </BarChart>
-    </ChartContainer>
+                  );
+                }}
+              />
+            }
+          />
+          <ChartLegend content={<ChartLegendContent />} />
+          <Bar
+            dataKey="recurring"
+            stackId="donations"
+            fill="var(--color-recurring)"
+            maxBarSize={48}
+            shape={RecurringBarShape}
+          />
+          <Bar
+            dataKey="oneTime"
+            stackId="donations"
+            fill="var(--color-oneTime)"
+            maxBarSize={48}
+            shape={OneTimeBarShape}
+          />
+          <Bar
+            dataKey="offline"
+            stackId="donations"
+            fill="var(--color-offline)"
+            maxBarSize={48}
+            shape={OfflineBarShape}
+          />
+        </BarChart>
+      </ChartContainer>
+    </div>
   );
 }

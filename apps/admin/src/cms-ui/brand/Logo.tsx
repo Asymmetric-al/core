@@ -17,7 +17,7 @@ export function Logo() {
           </span>
           <Badge
             variant="secondary"
-            className="h-4 rounded-full px-1.5 text-[9px] font-semibold uppercase"
+            className="h-4 px-1.5 text-[9px] font-semibold uppercase"
           >
             CMS
           </Badge>

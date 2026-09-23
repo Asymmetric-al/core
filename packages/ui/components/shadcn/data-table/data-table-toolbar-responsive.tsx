@@ -152,6 +152,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
               />
               {(table.getColumn(searchKey)?.getFilterValue() as string) && (
                 <Button
+                  aria-label="Clear search"
                   variant="ghost"
                   size="icon"
                   className="absolute right-1 top-1/2 -translate-y-1/2 size-7"
@@ -164,6 +165,8 @@ export function DataTableToolbarResponsive<TData extends RowData>({
             <Button
               variant="outline"
               size="icon"
+              aria-label="Toggle search"
+              aria-expanded={searchOpen}
               className="sm:hidden size-9 rounded-xl"
               onClick={() => setSearchOpen((prev) => !prev)}
               disabled={urlStatePending}
@@ -233,6 +236,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
             <Button
               variant="outline"
               size="icon"
+              aria-label="Refresh"
               onClick={onRefresh}
               disabled={isLoading}
               className="size-9 rounded-xl"
@@ -247,6 +251,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
             <Button
               variant="outline"
               size="sm"
+              aria-label="Export"
               onClick={onExport}
               className="hidden sm:flex h-9 gap-2 rounded-xl"
             >
@@ -263,6 +268,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
                     variant="outline"
                     size="sm"
                     disabled={urlStatePending}
+                    aria-label="Toggle columns"
                     className="h-9 gap-2 rounded-xl"
                   >
                     <Columns data-icon="inline-start" />
@@ -319,6 +325,7 @@ export function DataTableToolbarResponsive<TData extends RowData>({
             />
             {(table.getColumn(searchKey)?.getFilterValue() as string) && (
               <Button
+                aria-label="Clear search"
                 variant="ghost"
                 size="icon"
                 className="absolute right-1 top-1/2 -translate-y-1/2 size-8"

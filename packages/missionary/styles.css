@@ -1,0 +1,2 @@
+/* Missionary components use Core's shared theme. The app consumes this entry. */
+@import "@asym/ui/styles/globals.css";

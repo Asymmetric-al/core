@@ -524,7 +524,7 @@ export function useDonorsPageView(): DonorsPageViewModel {
                   )}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] truncate max-w-[100px] font-medium uppercase tracking-wider text-zinc-400">
+                  <span className="text-[10px] truncate max-w-25 font-medium uppercase tracking-wider text-zinc-400">
                     {donor.location || "Unknown"}
                   </span>
                   <span className="text-xs font-semibold text-zinc-900">
@@ -934,11 +934,7 @@ export function DonorsPageContent({
         description="Manage your support network and donor relationships."
       >
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 px-4 text-xs font-medium"
-          >
+          <Button variant="outline" size="sm" className="h-9 px-4 text-xs">
             <Download className="mr-2 size-4" />
             Export
           </Button>
@@ -948,10 +944,7 @@ export function DonorsPageContent({
             missionaryId={profile.id}
             onSuccess={refreshDonors}
             trigger={
-              <Button
-                size="sm"
-                className="h-9 px-4 text-xs font-medium hover-scale-subtle"
-              >
+              <Button size="sm" className="h-9 px-4 text-xs hover-scale-subtle">
                 <Plus className="mr-2 size-4" />
                 Add Partner
               </Button>
@@ -1100,7 +1093,7 @@ export function DonorsPageContent({
                     />
                     <DropdownMenuContent
                       align="end"
-                      className="w-56 rounded-xl border-zinc-100 shadow-xl max-h-[400px] overflow-y-auto"
+                      className="w-56 rounded-xl border-zinc-100 shadow-xl max-h-100 overflow-y-auto"
                     >
                       <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                         Filter by Status
@@ -1192,7 +1185,7 @@ export function DonorsPageContent({
                       >
                         <Badge
                           variant="outline"
-                          className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border-zinc-200"
+                          className="text-[9px] font-semibold uppercase tracking-widest bg-zinc-100 text-zinc-600 border-zinc-200"
                         >
                           {statusFilter}
                           <button
@@ -1212,7 +1205,7 @@ export function DonorsPageContent({
                       >
                         <Badge
                           variant="outline"
-                          className="text-[9px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border-blue-200"
+                          className="text-[9px] font-semibold uppercase tracking-widest bg-blue-50 text-blue-600 border-blue-200"
                         >
                           {pledgeFilter === "Active"
                             ? "Recurring"
@@ -1301,7 +1294,7 @@ export function DonorsPageContent({
                           variant="outline"
                           size="sm"
                           onClick={clearAllFilters}
-                          className="mt-4 h-8 rounded-xl text-xs"
+                          className="mt-4 rounded-xl text-xs"
                         >
                           Clear Filters
                         </Button>
@@ -1394,7 +1387,7 @@ export function DonorsPageContent({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="lg:hidden size-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
+                            className="lg:hidden text-zinc-400 rounded-xl hover:bg-zinc-100"
                             onClick={clearSelection}
                           >
                             <ArrowLeft className="size-5" />
@@ -1455,7 +1448,7 @@ export function DonorsPageContent({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50"
+                            className="w-full h-9 px-4 text-xs rounded-xl border-zinc-200 hover:bg-zinc-50"
                             onClick={() => noteComposer.open("note")}
                           >
                             <Pencil className="size-3.5 mr-1.5" /> Note
@@ -1500,7 +1493,7 @@ export function DonorsPageContent({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="size-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
+                                className="text-zinc-400 rounded-xl hover:bg-zinc-100"
                               >
                                 <MoreHorizontal className="size-5" />
                               </Button>
@@ -1735,7 +1728,7 @@ export function DonorsPageContent({
                             >
                               <Textarea
                                 placeholder="Log a call, meeting notes, or observation..."
-                                className="min-h-[80px] border-none bg-white focus:ring-0 resize-none text-sm p-3 rounded-xl shadow-sm"
+                                className="min-h-20 border-none bg-white focus:ring-0 resize-none text-sm p-3 rounded-xl shadow-sm"
                                 value={noteComposer.noteInput}
                                 onChange={(e) =>
                                   noteComposer.setNoteInput(e.target.value)
@@ -1795,7 +1788,7 @@ export function DonorsPageContent({
                                 >
                                   <Button
                                     size="sm"
-                                    className="h-8 rounded-xl px-4 text-[10px] font-semibold uppercase tracking-widest"
+                                    className="rounded-xl px-4 text-[10px] font-semibold uppercase tracking-widest"
                                     onClick={noteComposer.save}
                                     disabled={
                                       !noteComposer.noteInput.trim() ||
@@ -1963,7 +1956,7 @@ export function DonorsPageContent({
                                   variant="outline"
                                   size="sm"
                                   onClick={editDialog.open}
-                                  className="h-8 px-3 text-xs rounded-xl border-zinc-200"
+                                  className="text-xs rounded-xl border-zinc-200"
                                 >
                                   <Pencil className="size-3.5 mr-1.5" /> Edit
                                 </Button>
@@ -2350,7 +2343,7 @@ export function DonorsPageContent({
                                 <p className="text-sm font-semibold text-zinc-900">
                                   No recurring donations
                                 </p>
-                                <p className="text-xs text-zinc-400 mt-1 max-w-[280px]">
+                                <p className="text-xs text-zinc-400 mt-1 max-w-70">
                                   When this partner sets up a recurring gift, it
                                   will appear here with all the details.
                                 </p>
@@ -2610,7 +2603,7 @@ export function DonorsPageContent({
                 {...scaleIn}
                 transition={smoothTransition}
               >
-                <Card className="border-zinc-200 border-dashed bg-zinc-50/30 rounded-[2.5rem] h-full min-h-[600px] flex items-center justify-center">
+                <Card className="border-zinc-200 border-dashed bg-zinc-50/30 rounded-[2.5rem] h-full min-h-150 flex items-center justify-center">
                   <CardContent className="p-16 text-center">
                     <motion.div
                       initial={{ scale: 0.8, opacity: 0 }}
@@ -2632,7 +2625,7 @@ export function DonorsPageContent({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 }}
-                      className="mt-2 text-sm font-medium text-zinc-400 max-w-[280px] mx-auto"
+                      className="mt-2 text-sm font-medium text-zinc-400 max-w-70 mx-auto"
                     >
                       Choose a donor from the list to view their profile,
                       recurring donations, and giving history.
@@ -2675,7 +2668,7 @@ export function DonorsPageContent({
           noteComposer.close();
         }}
       >
-        <DialogContent className="sm:max-w-[500px] rounded-2xl">
+        <DialogContent className="sm:max-w-125 rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold tracking-tight">
               {noteComposer.activityType === "note"
@@ -2701,7 +2694,7 @@ export function DonorsPageContent({
                     ? "Meeting notes..."
                     : "Type your note here..."
               }
-              className="min-h-[150px] resize-none rounded-xl border-zinc-200"
+              className="min-h-37.5 resize-none rounded-xl border-zinc-200"
             />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -2738,7 +2731,7 @@ export function DonorsPageContent({
           tagEditor.close();
         }}
       >
-        <DialogContent className="sm:max-w-[500px] rounded-2xl">
+        <DialogContent className="sm:max-w-125 rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold tracking-tight">
               Manage Tags

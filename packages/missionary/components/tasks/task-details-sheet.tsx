@@ -136,7 +136,7 @@ export function TaskDetailsSheet({
               variant="ghost"
               size="icon"
               onClick={() => onDelete(task)}
-              className="size-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
             >
               <Trash2 className="size-4" />
               <span className="sr-only">Delete task</span>
@@ -274,7 +274,7 @@ export function TaskDetailsSheet({
                   Description
                 </p>
               </div>
-              <div className="p-3 sm:p-4 rounded-xl bg-muted/50 border min-h-[80px] text-sm text-foreground leading-relaxed">
+              <div className="p-3 sm:p-4 rounded-xl bg-muted/50 border min-h-20 text-sm text-foreground leading-relaxed">
                 {task.description || (
                   <span className="text-muted-foreground italic">
                     No description provided.

@@ -149,7 +149,7 @@ function KpiSkeletonRow() {
       {[0, 1, 2, 3].map((index) => (
         <div
           key={index}
-          className="h-[92px] animate-pulse rounded-2xl border border-border bg-muted/40"
+          className="h-23 animate-pulse rounded-2xl border border-border bg-muted/40"
         />
       ))}
     </div>
@@ -227,7 +227,7 @@ export function ReportsPageView({
           <Button
             onClick={() => setSummary(buildReportSummary(report))}
             disabled={!canSummarize}
-            className="h-10 rounded-xl px-5 text-sm font-semibold shadow-md"
+            className="h-10 rounded-xl px-5 font-semibold shadow-md"
           >
             <ClipboardList className="size-4" />
             Quick Summary
@@ -261,7 +261,7 @@ export function ReportsPageView({
                     variant="ghost"
                     size="icon"
                     onClick={() => setSummary(null)}
-                    className="size-9 rounded-full text-muted-foreground hover:text-foreground"
+                    className="rounded-full text-muted-foreground hover:text-foreground"
                   >
                     <X className="size-5" />
                   </Button>

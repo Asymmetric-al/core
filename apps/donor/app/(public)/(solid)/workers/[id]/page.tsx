@@ -95,7 +95,7 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
   return (
     <article className="group relative pl-8 pb-12 last:pb-0">
       <div
-        className="absolute left-[11px] top-3 bottom-0 w-px bg-zinc-100 group-last:hidden"
+        className="absolute left-2.75 top-3 bottom-0 w-px bg-zinc-100 group-last:hidden"
         aria-hidden="true"
       />
       <div
@@ -112,7 +112,7 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
           </time>
           <Badge
             variant="secondary"
-            className="px-2 py-0 text-[10px] bg-zinc-100 text-zinc-600 border-none"
+            className="py-0 text-[10px] bg-zinc-100 text-zinc-600 border-none"
           >
             {update.type}
           </Badge>
@@ -132,7 +132,7 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
             />
 
             {update.image && (
-              <figure className="rounded-xl overflow-hidden mb-4 border border-zinc-100 relative h-[280px]">
+              <figure className="rounded-xl overflow-hidden mb-4 border border-zinc-100 relative h-70">
                 <Image
                   src={update.image}
                   alt={`Visual from ${update.title}`}

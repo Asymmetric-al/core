@@ -35,7 +35,7 @@ export function AppHeader({ title }: AppHeaderProps) {
         <SidebarTrigger className="-ml-1 size-8 touch-target flex items-center justify-center [&_svg]:!size-4" />
         <Separator orientation="vertical" className="h-4 hidden sm:block" />
         {title && (
-          <h1 className="text-sm font-semibold tracking-tight hidden sm:block truncate max-w-[200px] lg:max-w-none">
+          <h1 className="text-sm font-semibold tracking-tight hidden sm:block truncate max-w-50 lg:max-w-none">
             {title}
           </h1>
         )}
@@ -99,7 +99,7 @@ export function AppHeader({ title }: AppHeaderProps) {
           variant="ghost"
           size="sm"
           data-testid="auth-signout"
-          className="h-8 px-2 text-xs"
+          className="px-2 text-xs"
           onClick={handleSignOut}
           disabled={isSigningOut}
         >

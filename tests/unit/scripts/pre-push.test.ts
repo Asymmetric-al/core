@@ -358,6 +358,20 @@ describe("pre-push coordinator", () => {
     expect(originalEnv).toEqual({ PATH: "/usr/bin" });
   });
 
+  it("does not forward credentials from a malformed remote target", async () => {
+    const credentialUrl =
+      "https://x-access-token:fixture-secret@github.com/Asymmetric-al/core.git?token=fixture-secret";
+    const { createPrePushEnvironment } = await loadPrePushCoordinator();
+    const childEnv = createPrePushEnvironment({
+      env: { PATH: "/usr/bin" },
+      input: "",
+      remoteName: "origin",
+      remoteUrl: credentialUrl,
+    });
+    expect(childEnv.ASYM_PRE_PUSH_REPOSITORY_SLUG).toBe("");
+    expect(Object.values(childEnv).join("\n")).not.toContain("fixture-secret");
+  });
+
   it("sanitizes the remote name when Git supplies a raw credential URL twice", async () => {
     const credentialUrl =
       "https://x-access-token:secret@github.com/Asymmetric-al/core.git";

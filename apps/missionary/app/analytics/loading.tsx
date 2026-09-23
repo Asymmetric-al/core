@@ -21,10 +21,10 @@ export default function Loading() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Skeleton className="h-[360px] rounded-2xl lg:col-span-2" />
-        <Skeleton className="h-[360px] rounded-2xl" />
+        <Skeleton className="h-90 rounded-2xl lg:col-span-2" />
+        <Skeleton className="h-90 rounded-2xl" />
       </div>
-      <Skeleton className="h-[320px] rounded-2xl" />
+      <Skeleton className="h-80 rounded-2xl" />
     </div>
   );
 }

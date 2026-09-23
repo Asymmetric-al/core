@@ -93,7 +93,7 @@ function DrawerContent({
             data-slot="drawer-body"
             className="flex h-full flex-col"
           >
-            <div className="bg-muted mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full group-data-[swipe-direction=down]/drawer-content:block" />
+            <div className="bg-muted mx-auto mt-4 hidden h-2 w-25 shrink-0 rounded-full group-data-[swipe-direction=down]/drawer-content:block" />
             {children}
           </DrawerPrimitive.Content>
         </DrawerPrimitive.Popup>

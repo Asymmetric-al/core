@@ -216,7 +216,7 @@ function TileSummaryCard({ tile }: { tile: Tile }) {
             </div>
             <Badge
               variant="outline"
-              className="h-5 rounded-md border-border bg-background px-1.5 text-[10px] font-semibold text-muted-foreground"
+              className="h-5 rounded-md bg-background px-1.5 text-[10px] font-semibold text-muted-foreground"
             >
               {classifyTile(tile)}
             </Badge>
@@ -270,7 +270,7 @@ export function MissionControlHome({
               <div className="pointer-events-none absolute right-0 top-0 size-64 translate-x-1/3 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
               <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-3xl space-y-3">
-                  <Badge className="h-6 w-fit border border-white/10 bg-white/10 px-2 text-xs font-semibold text-zinc-100 hover:bg-white/10">
+                  <Badge className="h-6 border-white/10 bg-white/10 font-semibold text-zinc-100 hover:bg-white/10">
                     Mission Control dashboard
                   </Badge>
                   <div className="space-y-2">
@@ -283,7 +283,7 @@ export function MissionControlHome({
                     </p>
                   </div>
                 </div>
-                <div className="grid gap-2 sm:grid-cols-3 lg:w-[460px]">
+                <div className="grid gap-2 sm:grid-cols-3 lg:w-115">
                   {DASHBOARD_GUIDE_ITEMS.map((item) => (
                     <div
                       key={item.label}
@@ -337,7 +337,7 @@ export function MissionControlHome({
               <Dialog open={showAllTools} onOpenChange={setShowAllTools}>
                 <DialogTrigger
                   render={
-                    <Button className="h-10 w-full rounded-xl bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-800">
+                    <Button className="h-10 w-full rounded-xl bg-zinc-900 font-semibold text-white hover:bg-zinc-800">
                       <LayoutGrid className="mr-2 size-4" />
                       Customize modules
                     </Button>
@@ -506,7 +506,7 @@ export function MissionControlHome({
                 render={
                   <Button
                     variant="outline"
-                    className="h-10 rounded-xl border-zinc-200 bg-white px-4 text-sm font-semibold hover:bg-zinc-50"
+                    className="h-10 rounded-xl border-zinc-200 bg-white font-semibold hover:bg-zinc-50"
                   >
                     <LayoutGrid className="mr-2 size-4" />
                     Preview widgets

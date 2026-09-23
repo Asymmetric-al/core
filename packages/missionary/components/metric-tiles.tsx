@@ -8,7 +8,6 @@ import {
   type ChartConfig,
 } from "@asym/ui/components/shadcn/chart";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { cn } from "@asym/ui/lib/utils";
 import * as React from "react";
 import { Area, AreaChart } from "recharts";
 
@@ -31,17 +30,19 @@ interface MetricTileProps {
 
 function MetricTileSkeleton() {
   return (
-    <Card className="overflow-hidden border-zinc-200 shadow-sm bg-white">
-      <CardContent className="p-0 flex flex-row items-stretch h-[72px] md:h-[80px]">
-        <div className="flex flex-col justify-between p-2.5 pr-0 flex-shrink-0 min-w-[100px] sm:min-w-[120px] max-w-[60%]">
-          <div className="space-y-1.5">
+    <Card>
+      <CardContent className="p-0 flex flex-row items-stretch h-18 md:h-20">
+        <div className="flex flex-col justify-between p-2.5 pr-0 flex-shrink-0 min-w-25 sm:min-w-30 max-w-3/5">
+          <div className="flex flex-col gap-1.5">
             <Skeleton className="h-2 w-16" />
             <Skeleton className="h-5 w-20" />
           </div>
           <Skeleton className="h-3 w-24" />
         </div>
-        <div className="flex-1 min-w-[60px] relative">
-          <Skeleton className="absolute inset-0 m-1 rounded-sm" />
+        <div className="flex-1 min-w-15 relative">
+          <div className="absolute inset-0 m-1">
+            <Skeleton className="size-full rounded-sm" />
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -66,66 +67,58 @@ function MetricTile({
   const chartData = data.length > 0 ? data : [{ date: "1", value: 0 }];
 
   return (
-    <Card className="overflow-hidden border-zinc-200 shadow-sm bg-white hover:border-zinc-300 transition-colors group rounded-xl">
-      <CardContent className="p-0 flex flex-row items-stretch h-[72px] md:h-[80px]">
-        <div className="flex flex-col justify-between p-2.5 pr-0 flex-shrink-0 min-w-[100px] sm:min-w-[120px] max-w-[60%]">
-          <div className="space-y-0">
-            <p className="text-[9px] font-semibold text-zinc-400 uppercase tracking-widest leading-none mb-0.5 truncate">
+    <Card>
+      <CardContent className="p-0 flex flex-row items-stretch min-h-24">
+        <div className="flex flex-col justify-between p-2.5 pr-0 flex-shrink-0 min-w-25 sm:min-w-30 max-w-3/5">
+          <div className="flex flex-col">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest leading-none mb-0.5 truncate">
               {title}
             </p>
-            <h3 className="text-lg md:text-xl font-semibold text-zinc-900 tracking-tighter leading-tight">
+            <h3 className="wrap-anywhere text-lg md:text-xl font-semibold text-foreground tracking-tighter leading-tight">
               {amount}
             </h3>
           </div>
           {change && (
             <div className="flex items-center gap-1">
-              <Badge
-                variant="secondary"
-                className={cn(
-                  "px-1 py-0 text-[8px] font-semibold border-none shrink-0",
-                  trend === "up"
-                    ? "bg-emerald-50 text-emerald-600"
-                    : trend === "down"
-                      ? "bg-amber-50 text-amber-600"
-                      : "bg-zinc-100 text-zinc-500",
-                )}
-              >
+              <Badge variant="secondary">
                 {trend === "up" ? "+" : ""}
                 {change}
               </Badge>
-              <span className="text-[8px] text-zinc-400 font-semibold uppercase tracking-tighter whitespace-nowrap truncate">
+              <span className="text-xs text-muted-foreground font-semibold uppercase tracking-tighter whitespace-nowrap truncate">
                 vs prior
               </span>
             </div>
           )}
         </div>
-        <div className="flex-1 min-w-[60px] relative overflow-hidden">
-          <ChartContainer
-            config={chartConfig}
-            className="absolute inset-0 !aspect-auto min-h-[50px]"
-          >
-            <AreaChart
-              data={chartData}
-              margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+        <div className="flex-1 min-w-15 relative overflow-hidden">
+          <div className="absolute inset-0 grid grid-cols-1 grid-rows-1 items-stretch">
+            <ChartContainer
+              config={chartConfig}
+              className="w-full self-stretch"
             >
-              <defs>
-                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={color} stopOpacity={0.2} />
-                  <stop offset="95%" stopColor={color} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke={color}
-                strokeWidth={2}
-                fill={`url(#${gradientId})`}
-                dot={false}
-                isAnimationActive={true}
-                animationDuration={800}
-              />
-            </AreaChart>
-          </ChartContainer>
+              <AreaChart
+                data={chartData}
+                margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={color} stopOpacity={0.2} />
+                    <stop offset="95%" stopColor={color} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke={color}
+                  strokeWidth={2}
+                  fill={`url(#${gradientId})`}
+                  dot={false}
+                  isAnimationActive={true}
+                  animationDuration={800}
+                />
+              </AreaChart>
+            </ChartContainer>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -155,9 +148,7 @@ export function MetricTiles({ missionaryId }: MetricTilesProps) {
   if (error) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
-        <Card className="md:col-span-3 p-4 text-center text-sm text-zinc-500">
-          Unable to load donation metrics
-        </Card>
+        <Card>Unable to load donation metrics</Card>
       </div>
     );
   }
@@ -170,7 +161,7 @@ export function MetricTiles({ missionaryId }: MetricTilesProps) {
         change={formatChange(thisMonth.change)}
         trend={thisMonth.trend}
         data={thisMonth.data}
-        color="oklch(0.627 0.265 303.891)"
+        color="var(--chart-1)"
         isLoading={isLoading}
       />
       <MetricTile
@@ -179,7 +170,7 @@ export function MetricTiles({ missionaryId }: MetricTilesProps) {
         change={formatChange(lastMonth.change)}
         trend={lastMonth.trend}
         data={lastMonth.data}
-        color="oklch(0.707 0.165 254.624)"
+        color="var(--chart-2)"
         isLoading={isLoading}
       />
       <MetricTile
@@ -188,7 +179,7 @@ export function MetricTiles({ missionaryId }: MetricTilesProps) {
         change={formatChange(yearToDate.change)}
         trend={yearToDate.trend}
         data={yearToDate.data}
-        color="oklch(0.609 0.126 221.723)"
+        color="var(--chart-3)"
         isLoading={isLoading}
       />
     </div>

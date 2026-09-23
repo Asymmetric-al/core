@@ -309,7 +309,7 @@ function AutomationRuleRow({
         </ItemContent>
         <ItemActions>
           <Badge
-            className="shrink-0 text-xs"
+            className="shrink-0"
             variant={status === "Active" ? "default" : "outline"}
           >
             {status}
@@ -494,7 +494,7 @@ function IntegrationTelemetryCard({
                         ? "Connection telemetry is backed by persisted data"
                         : "Connection telemetry is not wired yet"}
                     </h3>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="">
                       {telemetryBacked ? "Backed" : "Not wired yet"}
                     </Badge>
                   </div>

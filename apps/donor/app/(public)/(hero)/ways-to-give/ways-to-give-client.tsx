@@ -19,7 +19,7 @@ export function WaysToGiveClient() {
   return (
     <div className="bg-zinc-50 min-h-screen pt-20">
       <section className="bg-zinc-950 text-white py-32 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-900/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute top-0 right-0 w-150 h-150 bg-blue-900/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
         <div className="container mx-auto px-6 text-center relative z-10">
           <h1 className="text-5xl md:text-7xl font-semibold tracking-tighter mb-8 text-balance">

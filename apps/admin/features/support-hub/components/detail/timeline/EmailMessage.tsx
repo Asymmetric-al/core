@@ -101,7 +101,7 @@ export function EmailMessage({ message }: EmailMessageProps) {
             {isDraft ? (
               <Badge
                 variant="outline"
-                className="h-5 gap-1 rounded-md border-amber-200 bg-amber-100 px-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-800"
+                className="h-5 rounded-md border-amber-200 bg-amber-100 px-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-800"
               >
                 <Save className="size-3" />
                 Draft
@@ -143,9 +143,7 @@ export function EmailMessage({ message }: EmailMessageProps) {
               className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-700"
             >
               <Paperclip className="size-3 text-zinc-400" />
-              <span className="max-w-[200px] truncate">
-                {attachment.filename}
-              </span>
+              <span className="max-w-50 truncate">{attachment.filename}</span>
             </span>
           ))}
           {showInboundAttachmentState(message) ? (

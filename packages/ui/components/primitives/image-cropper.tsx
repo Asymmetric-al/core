@@ -222,7 +222,7 @@ export function ImageCropper({
   if (state.imageError) {
     return (
       <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
-        <DialogContent className="border-border bg-background p-6 sm:max-w-[400px]">
+        <DialogContent className="border-border bg-background p-6 sm:max-w-100">
           <DialogHeader className="sr-only">
             <DialogTitle>Image load error</DialogTitle>
             <DialogDescription>
@@ -250,7 +250,7 @@ export function ImageCropper({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleCancel()}>
-      <DialogContent className="border-border bg-background flex h-[90vh] max-h-[700px] flex-col overflow-hidden p-0 sm:max-w-[600px]">
+      <DialogContent className="border-border bg-background flex h-[90vh] max-h-175 flex-col overflow-hidden p-0 sm:max-w-150">
         <DialogHeader className="border-border/70 shrink-0 border-b p-4 sm:p-6">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold uppercase tracking-tight sm:text-xl">
             <Scissors className="text-foreground size-4 sm:h-5 sm:w-5" />
@@ -261,7 +261,7 @@ export function ImageCropper({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="bg-foreground relative min-h-[200px] flex-1 sm:min-h-[300px]">
+        <div className="bg-foreground relative min-h-50 flex-1 sm:min-h-75">
           <Cropper
             image={image}
             crop={state.crop}
@@ -334,7 +334,7 @@ export function ImageCropper({
               type="button"
               onClick={handleSave}
               disabled={state.isProcessing || !state.croppedAreaPixels}
-              className="bg-primary text-primary-foreground h-9 min-w-[100px] flex-1 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 sm:h-10 sm:min-w-[120px] sm:flex-none"
+              className="bg-primary text-primary-foreground h-9 min-w-25 flex-1 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 sm:h-10 sm:min-w-30 sm:flex-none"
             >
               {state.isProcessing ? (
                 <>

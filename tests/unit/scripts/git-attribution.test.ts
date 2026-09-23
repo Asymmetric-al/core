@@ -1684,4 +1684,51 @@ describe("git attribution verifier", () => {
     });
     expect(readGithubUser).toHaveBeenCalledWith("renamed-legacy-user");
   });
+
+  it.each([
+    "https://x-access-token:fixture-token@github.com/Asymmetric-al/core.git",
+    "https://fixture-token@github.com/Asymmetric-al/core",
+    "https://build-user:fixture%40token%3Avalue@github.com/Asymmetric-al/core.git",
+    "https://x-access-token:fixture-token@GITHUB.COM:443/Asymmetric-al/core.git",
+    "ssh://git@github.com/Asymmetric-al/core.git",
+    "ssh://git@GITHUB.COM:22/Asymmetric-al/core.git",
+    "git@GITHUB.COM:Asymmetric-al/core.git",
+  ])(
+    "extracts only the repository from a supported GitHub remote",
+    (origin) => {
+      expect(parseGitHubRepoSlug(origin)).toBe("Asymmetric-al/core");
+    },
+  );
+
+  it.each([
+    "http://github.com/Asymmetric-al/core.git",
+    "https://github.com.example.com/Asymmetric-al/core.git",
+    "https://github.com@elsewhere.example/Asymmetric-al/core.git",
+    "https://github.com:8443/Asymmetric-al/core.git",
+    "https://github.com/Asymmetric-al/core.git?token=fixture-token",
+    "https://github.com/Asymmetric-al/core.git#fragment",
+    "https://github.com/Asymmetric-al/core.git?",
+    "https://github.com/Asymmetric-al/core.git#",
+    "ssh://git@github.com:2222/Asymmetric-al/core.git",
+    "ssh://git@github.com/Asymmetric-al/core.git?token=fixture-token",
+    "https://github.com/ignored/../Asymmetric-al/core.git",
+    "https://github.com/ignored/%2e%2e/Asymmetric-al/core.git",
+    "https://github.com/Asymmetric-al/./core.git",
+    "https://github.com/Asymmetric-al/co\u0000re.git",
+    "https://github.com/Asymmetric-al/core/extra",
+    "https://github.com/Asymmetric-al/core%2Fextra",
+    "https://github.com/Asymmetric-al/core%3Ftoken=fixture-token",
+    "https://github.com/Asymmetric-al/",
+    "https://github.com//core",
+    "https://github.com/Asymmetric-al/co re",
+    "https://git\\hub.com/Asymmetric-al/core.git",
+    "git@github.com:Asymmetric-al/core.git?token=fixture-token",
+    "git@github.com:Asymmetric-al/core/extra",
+    "git@elsewhere.example:Asymmetric-al/core.git",
+  ])(
+    "rejects origins outside a GitHub HTTPS or SSH repository path",
+    (origin) => {
+      expect(parseGitHubRepoSlug(origin)).toBeNull();
+    },
+  );
 });

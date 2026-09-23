@@ -74,7 +74,7 @@ export function TaskRow({
           : { ...smoothTransition, delay: Math.min(index, 6) * 0.02 }
       }
       className={cn(
-        "relative group flex items-start gap-5 p-6 border rounded-[2rem]",
+        "relative group flex items-start gap-5 p-6 border rounded-4xl",
         "transition-[border-color,box-shadow] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
         isCompleted
           ? "bg-[oklch(0.985_0.002_265)]/50 border-[oklch(0.915_0.003_265)] opacity-75"
@@ -94,7 +94,7 @@ export function TaskRow({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               {task.is_auto_generated && (
-                <Badge className="bg-[oklch(0.205_0.015_265)] text-white border-0 text-[8px] font-black uppercase tracking-[0.2em] px-2 h-5 rounded-full">
+                <Badge className="bg-[oklch(0.205_0.015_265)] text-white border-0 text-[8px] font-black uppercase tracking-[0.2em] h-5">
                   Automated
                 </Badge>
               )}
@@ -150,7 +150,7 @@ export function TaskRow({
             />
             <DropdownMenuContent
               align="end"
-              className="rounded-2xl border-[oklch(0.915_0.003_265)] p-2 shadow-2xl min-w-[180px]"
+              className="rounded-2xl border-[oklch(0.915_0.003_265)] p-2 shadow-2xl min-w-45"
             >
               <DropdownMenuItem
                 onClick={onEdit}

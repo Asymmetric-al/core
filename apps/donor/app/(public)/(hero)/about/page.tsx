@@ -13,8 +13,10 @@ export const metadata: Metadata = pageMetadata.about;
 
 export default function AboutPage() {
   return (
-    <div
-      className="bg-white min-h-screen selection:bg-emerald-500/30"
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="bg-background text-foreground min-h-screen selection:bg-accent"
       data-testid="about-route-shell"
     >
       <BreadcrumbJsonLd
@@ -28,6 +30,6 @@ export default function AboutPage() {
       <AboutValues />
       <AboutLeadership />
       <AboutCTA />
-    </div>
+    </main>
   );
 }
