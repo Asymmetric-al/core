@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from "@asym/ui/components/shadcn/dialog";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
@@ -884,6 +885,8 @@ export function DonorsPageContent({
   editDialog,
   actions,
 }: DonorsPageViewModel) {
+  const pendingActionLabelId = React.useId();
+
   const { isLoading, error } = status;
   const {
     activeCount,
@@ -1036,6 +1039,7 @@ export function DonorsPageContent({
                 <div className="flex gap-1">
                   <DropdownMenu>
                     <DropdownMenuTrigger
+                      aria-label="Sort donors"
                       render={
                         <Button
                           variant="ghost"
@@ -1050,39 +1054,43 @@ export function DonorsPageContent({
                       align="end"
                       className="w-48 rounded-xl border-zinc-100 shadow-xl"
                     >
-                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                        Sort By
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator className="bg-zinc-100" />
-                      {[
-                        { value: "last_gift", label: "Last Gift Date" },
-                        { value: "total_given", label: "Total Given" },
-                        { value: "name", label: "Name" },
-                        { value: "joined_date", label: "Partner Since" },
-                      ].map((opt) => (
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                          Sort By
+                        </DropdownMenuLabel>
+
+                        <DropdownMenuSeparator className="bg-zinc-100" />
+                        {[
+                          { value: "last_gift", label: "Last Gift Date" },
+                          { value: "total_given", label: "Total Given" },
+                          { value: "name", label: "Name" },
+                          { value: "joined_date", label: "Partner Since" },
+                        ].map((opt) => (
+                          <DropdownMenuCheckboxItem
+                            key={opt.value}
+                            checked={sortBy === opt.value}
+                            onCheckedChange={() =>
+                              setSortBy(opt.value as SortOption)
+                            }
+                            className="text-xs font-medium"
+                          >
+                            {opt.label}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                        <DropdownMenuSeparator className="bg-zinc-100" />
                         <DropdownMenuCheckboxItem
-                          key={opt.value}
-                          checked={sortBy === opt.value}
-                          onCheckedChange={() =>
-                            setSortBy(opt.value as SortOption)
-                          }
+                          checked={sortAsc}
+                          onCheckedChange={toggleSortAsc}
                           className="text-xs font-medium"
                         >
-                          {opt.label}
+                          Ascending
                         </DropdownMenuCheckboxItem>
-                      ))}
-                      <DropdownMenuSeparator className="bg-zinc-100" />
-                      <DropdownMenuCheckboxItem
-                        checked={sortAsc}
-                        onCheckedChange={toggleSortAsc}
-                        className="text-xs font-medium"
-                      >
-                        Ascending
-                      </DropdownMenuCheckboxItem>
+                      </DropdownMenuGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <DropdownMenu>
                     <DropdownMenuTrigger
+                      aria-label="Filter donors"
                       render={
                         <Button
                           variant="ghost"
@@ -1102,67 +1110,76 @@ export function DonorsPageContent({
                       align="end"
                       className="w-56 rounded-xl border-zinc-100 shadow-xl max-h-[400px] overflow-y-auto"
                     >
-                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                        Filter by Status
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator className="bg-zinc-100" />
-                      {["All", "Active", "New", "Lapsed", "At Risk"].map(
-                        (s) => (
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                          Filter by Status
+                        </DropdownMenuLabel>
+
+                        <DropdownMenuSeparator className="bg-zinc-100" />
+                        {["All", "Active", "New", "Lapsed", "At Risk"].map(
+                          (s) => (
+                            <DropdownMenuCheckboxItem
+                              key={s}
+                              checked={statusFilter === s}
+                              onCheckedChange={() => setStatusFilter(s)}
+                              className="text-xs font-medium"
+                            >
+                              {s}
+                            </DropdownMenuCheckboxItem>
+                          ),
+                        )}
+                        <DropdownMenuSeparator className="bg-zinc-100" />
+                      </DropdownMenuGroup>
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                          Filter by Recurring
+                        </DropdownMenuLabel>
+
+                        <DropdownMenuSeparator className="bg-zinc-100" />
+                        {["All", "Active", "Inactive"].map((p) => (
                           <DropdownMenuCheckboxItem
-                            key={s}
-                            checked={statusFilter === s}
-                            onCheckedChange={() => setStatusFilter(s)}
+                            key={p}
+                            checked={pledgeFilter === p}
+                            onCheckedChange={() => setPledgeFilter(p)}
                             className="text-xs font-medium"
                           >
-                            {s}
+                            {p === "Active"
+                              ? "Has Recurring"
+                              : p === "Inactive"
+                                ? "No Recurring"
+                                : "All"}
                           </DropdownMenuCheckboxItem>
-                        ),
-                      )}
-                      <DropdownMenuSeparator className="bg-zinc-100" />
-                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                        Filter by Recurring
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator className="bg-zinc-100" />
-                      {["All", "Active", "Inactive"].map((p) => (
-                        <DropdownMenuCheckboxItem
-                          key={p}
-                          checked={pledgeFilter === p}
-                          onCheckedChange={() => setPledgeFilter(p)}
-                          className="text-xs font-medium"
-                        >
-                          {p === "Active"
-                            ? "Has Recurring"
-                            : p === "Inactive"
-                              ? "No Recurring"
-                              : "All"}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                      <DropdownMenuSeparator className="bg-zinc-100" />
-                      <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                        Filter by Tag
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator className="bg-zinc-100" />
-                      {AVAILABLE_TAGS.map((tag) => (
-                        <DropdownMenuCheckboxItem
-                          key={tag.id}
-                          checked={tagFilter.includes(tag.id)}
-                          onCheckedChange={() => toggleFilterTag(tag.id)}
-                          className="text-xs font-medium"
-                        >
-                          {tag.label}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                      {hasActiveFilters && (
-                        <>
-                          <DropdownMenuSeparator className="bg-zinc-100" />
-                          <DropdownMenuItem
-                            onClick={clearAllFilters}
-                            className="text-xs font-medium text-rose-600"
+                        ))}
+                        <DropdownMenuSeparator className="bg-zinc-100" />
+                      </DropdownMenuGroup>
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                          Filter by Tag
+                        </DropdownMenuLabel>
+
+                        <DropdownMenuSeparator className="bg-zinc-100" />
+                        {AVAILABLE_TAGS.map((tag) => (
+                          <DropdownMenuCheckboxItem
+                            key={tag.id}
+                            checked={tagFilter.includes(tag.id)}
+                            onCheckedChange={() => toggleFilterTag(tag.id)}
+                            className="text-xs font-medium"
                           >
-                            Clear All Filters
-                          </DropdownMenuItem>
-                        </>
-                      )}
+                            {tag.label}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                        {hasActiveFilters && (
+                          <>
+                            <DropdownMenuSeparator className="bg-zinc-100" />
+                            <DropdownMenuItem
+                              onClick={clearAllFilters}
+                              className="text-xs font-medium text-rose-600"
+                            >
+                              Clear All Filters
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -1350,12 +1367,19 @@ export function DonorsPageContent({
             {hasMoreDonors && !error && !isLoading && (
               <div className="border-t border-zinc-100 p-3 shrink-0">
                 <Button
+                  aria-labelledby={`${pendingActionLabelId}-23`}
+                  focusableWhenDisabled={isLoadingMoreDonors}
                   variant="outline"
                   size="sm"
                   onClick={loadMoreDonors}
                   disabled={isLoadingMoreDonors}
                   className="w-full h-9 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-900"
                 >
+                  <span id={`${pendingActionLabelId}-23`} className="sr-only">
+                    {isLoadingMoreDonors
+                      ? "Loading partners"
+                      : "Load more partners"}
+                  </span>
                   {isLoadingMoreDonors ? (
                     <>
                       <Loader2 className="size-3.5 mr-2 animate-spin" />
@@ -1496,6 +1520,7 @@ export function DonorsPageContent({
                         </motion.div>
                         <DropdownMenu>
                           <DropdownMenuTrigger
+                            aria-label="Open actions"
                             render={
                               <Button
                                 variant="ghost"
@@ -1510,42 +1535,46 @@ export function DonorsPageContent({
                             align="end"
                             className="rounded-xl border-zinc-100 shadow-xl"
                           >
-                            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-                              Actions
-                            </DropdownMenuLabel>
-                            <DropdownMenuSeparator className="bg-zinc-100" />
-                            <DropdownMenuItem
-                              onClick={editDialog.open}
-                              className="text-xs font-medium"
-                            >
-                              <Pencil className="size-3.5 mr-2" /> Edit Profile
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={tagEditor.open}
-                              className="text-xs font-medium"
-                            >
-                              <Tag className="size-3.5 mr-2" /> Manage Tags
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-zinc-100" />
-                            <DropdownMenuItem
-                              onClick={() => noteComposer.open("call")}
-                              className="text-xs font-medium"
-                            >
-                              <Phone className="size-3.5 mr-2" /> Log Call
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => noteComposer.open("meeting")}
-                              className="text-xs font-medium"
-                            >
-                              <Briefcase className="size-3.5 mr-2" /> Log
-                              Meeting
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => noteComposer.open("email")}
-                              className="text-xs font-medium"
-                            >
-                              <Mail className="size-3.5 mr-2" /> Log Email
-                            </DropdownMenuItem>
+                            <DropdownMenuGroup>
+                              <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                                Actions
+                              </DropdownMenuLabel>
+
+                              <DropdownMenuSeparator className="bg-zinc-100" />
+                              <DropdownMenuItem
+                                onClick={editDialog.open}
+                                className="text-xs font-medium"
+                              >
+                                <Pencil className="size-3.5 mr-2" /> Edit
+                                Profile
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={tagEditor.open}
+                                className="text-xs font-medium"
+                              >
+                                <Tag className="size-3.5 mr-2" /> Manage Tags
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-zinc-100" />
+                              <DropdownMenuItem
+                                onClick={() => noteComposer.open("call")}
+                                className="text-xs font-medium"
+                              >
+                                <Phone className="size-3.5 mr-2" /> Log Call
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => noteComposer.open("meeting")}
+                                className="text-xs font-medium"
+                              >
+                                <Briefcase className="size-3.5 mr-2" /> Log
+                                Meeting
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => noteComposer.open("email")}
+                                className="text-xs font-medium"
+                              >
+                                <Mail className="size-3.5 mr-2" /> Log Email
+                              </DropdownMenuItem>
+                            </DropdownMenuGroup>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </motion.div>
@@ -1794,6 +1823,10 @@ export function DonorsPageContent({
                                   whileTap={{ scale: 0.98 }}
                                 >
                                   <Button
+                                    aria-labelledby={`${pendingActionLabelId}-24`}
+                                    focusableWhenDisabled={
+                                      noteComposer.isSaving
+                                    }
                                     size="sm"
                                     className="h-8 rounded-xl px-4 text-[10px] font-semibold uppercase tracking-widest"
                                     onClick={noteComposer.save}
@@ -1802,6 +1835,14 @@ export function DonorsPageContent({
                                       noteComposer.isSaving
                                     }
                                   >
+                                    <span
+                                      id={`${pendingActionLabelId}-24`}
+                                      className="sr-only"
+                                    >
+                                      {noteComposer.isSaving
+                                        ? "Posting…"
+                                        : "Post"}
+                                    </span>
                                     {noteComposer.isSaving ? (
                                       <Loader2 className="size-3 animate-spin" />
                                     ) : (
@@ -2713,10 +2754,15 @@ export function DonorsPageContent({
               Cancel
             </Button>
             <Button
+              aria-labelledby={`${pendingActionLabelId}-25`}
+              focusableWhenDisabled={noteComposer.isSaving}
               onClick={noteComposer.save}
               disabled={!noteComposer.noteInput.trim() || noteComposer.isSaving}
               className="h-10 px-6 rounded-xl"
             >
+              <span id={`${pendingActionLabelId}-25`} className="sr-only">
+                {noteComposer.isSaving ? "Saving…" : "Save"}
+              </span>
               {noteComposer.isSaving ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
@@ -2796,10 +2842,15 @@ export function DonorsPageContent({
               Cancel
             </Button>
             <Button
+              aria-labelledby={`${pendingActionLabelId}-26`}
+              focusableWhenDisabled={tagEditor.isSaving}
               onClick={tagEditor.save}
               disabled={tagEditor.isSaving}
               className="h-10 px-6 rounded-xl"
             >
+              <span id={`${pendingActionLabelId}-26`} className="sr-only">
+                {tagEditor.isSaving ? "Saving tags…" : "Save Tags"}
+              </span>
               {tagEditor.isSaving ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (

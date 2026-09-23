@@ -81,6 +81,7 @@ export function DataTableToolbar<TData extends RowData>({
               variant="ghost"
               onClick={() => table.resetColumnFilters()}
               disabled={urlStatePending}
+              focusableWhenDisabled={urlStatePending}
               className="h-9 px-3 rounded-xl text-muted-foreground hover:text-foreground"
             >
               Reset

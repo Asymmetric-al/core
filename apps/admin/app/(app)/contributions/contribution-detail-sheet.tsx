@@ -801,6 +801,7 @@ export function ContributionDetailSheet({
                     )}
                   {canRetryCrmScope && parentRetryScope && (
                     <Button
+                      focusableWhenDisabled={isActionPending}
                       variant="outline"
                       size="sm"
                       disabled={isActionPending}
@@ -892,6 +893,7 @@ export function ContributionDetailSheet({
                           "designation",
                         ) && (
                           <Button
+                            focusableWhenDisabled={isActionPending}
                             variant="outline"
                             size="sm"
                             disabled={isActionPending}
@@ -988,6 +990,7 @@ export function ContributionDetailSheet({
             </Button>
             {canSendReceipt && (
               <Button
+                focusableWhenDisabled={isActionPending}
                 variant="outline"
                 size="sm"
                 className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
@@ -1002,6 +1005,7 @@ export function ContributionDetailSheet({
             )}
             {canApproveGift && (
               <Button
+                focusableWhenDisabled={isActionPending}
                 variant="outline"
                 size="sm"
                 disabled={isActionPending}
@@ -1017,6 +1021,7 @@ export function ContributionDetailSheet({
             )}
             {canRetryGift && (
               <Button
+                focusableWhenDisabled={isActionPending}
                 variant="outline"
                 size="sm"
                 disabled={isActionPending}
@@ -1032,6 +1037,7 @@ export function ContributionDetailSheet({
             )}
             {showRefundAction && (
               <Button
+                focusableWhenDisabled={isActionPending}
                 variant="outline"
                 size="sm"
                 disabled={!canRefund || isActionPending}

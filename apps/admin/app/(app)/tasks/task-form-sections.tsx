@@ -59,6 +59,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { useId, type ComponentType } from "react";
 
 import { DEFAULT_TASK_TAGS, TAG_CATEGORIES, getTagConfig } from "./tags";
 import {
@@ -69,7 +70,6 @@ import { TASK_PRIORITIES, TASK_TYPES } from "./types";
 
 import type { LinkedEntity, StaffMember, TaskType } from "./types";
 import type { TaskFormApi } from "./use-task-form";
-import type { ComponentType } from "react";
 
 const TYPE_ICONS: Record<TaskType, ComponentType<{ className?: string }>> = {
   call: Phone,
@@ -544,6 +544,14 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
                         <form.Field name={`reminders[${index}].type`}>
                           {(field) => (
                             <Select
+                              items={[
+                                {
+                                  value: "notification",
+                                  label: "Notification",
+                                },
+                                { value: "email", label: "Email" },
+                                { value: "both", label: "Both" },
+                              ]}
                               onOpenChange={(open) => {
                                 if (!open) {
                                   field.handleBlur();
@@ -556,7 +564,10 @@ function TaskRemindersSection({ form }: { form: TaskFormApi }) {
                               }
                               value={field.state.value || "notification"}
                             >
-                              <SelectTrigger className="h-8 w-32 rounded-lg text-xs">
+                              <SelectTrigger
+                                aria-label="Reminder type"
+                                className="h-8 w-32 rounded-lg text-xs"
+                              >
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="rounded-xl">
@@ -848,6 +859,8 @@ export function TaskFormDialogFooter({
   isEdit,
   onClose,
 }: TaskFormDialogFooterProps) {
+  const pendingActionLabelId = useId();
+
   return (
     <DialogFooter className="border-t border-border bg-muted/30 px-6 py-4">
       <Button
@@ -866,11 +879,19 @@ export function TaskFormDialogFooter({
       >
         {({ canSubmit, isSubmitting }) => (
           <Button
+            aria-labelledby={`${pendingActionLabelId}-11`}
+            focusableWhenDisabled={isSubmitting}
             className="rounded-xl"
             disabled={!canSubmit || isSubmitting}
             type="submit"
           >
-            {isSubmitting ? "Saving…" : isEdit ? "Save Changes" : "Create Task"}
+            <span id={`${pendingActionLabelId}-11`}>
+              {isSubmitting
+                ? "Saving…"
+                : isEdit
+                  ? "Save Changes"
+                  : "Create Task"}
+            </span>
           </Button>
         )}
       </form.Subscribe>

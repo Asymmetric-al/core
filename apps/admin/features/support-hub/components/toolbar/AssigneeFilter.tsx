@@ -5,13 +5,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 
 import { useSupportAgents } from "../../hooks/use-support-agents";
 
@@ -43,31 +37,34 @@ export function AssigneeFilter({ value, onValueChange }: AssigneeFilterProps) {
   };
 
   return (
-    <Select value={selectValue} onValueChange={handleChange}>
-      <SelectTrigger
-        aria-label="Assignee filter"
-        className="h-10 w-[180px] rounded-xl border-zinc-200 bg-white text-[13px] font-medium text-zinc-700"
-      >
-        <SelectValue placeholder="Any assignee" />
-      </SelectTrigger>
-      <SelectContent align="start">
-        <SelectItem value={ANY_VALUE}>Any assignee</SelectItem>
-        <SelectItem value="me">Assigned to me</SelectItem>
-        <SelectItem value="unassigned">Unassigned</SelectItem>
-        {agents.map((agent) => (
-          <SelectItem key={agent.id} value={agent.id}>
-            <span className="flex items-center gap-2">
-              <Avatar className="size-5">
-                <AvatarImage src={agent.avatarUrl ?? undefined} />
-                <AvatarFallback className="text-[10px]">
-                  {agent.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <span>{agent.name}</span>
-            </span>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <SearchableSelect
+      renderOption={(option) => {
+        const agent = agents.find((entry) => entry.id === option.value);
+        return agent ? (
+          <span className="flex items-center gap-2">
+            <Avatar className="size-5">
+              <AvatarImage src={agent.avatarUrl ?? undefined} alt="" />
+              <AvatarFallback className="text-[10px]">
+                {agent.name.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <span>{agent.name}</span>
+          </span>
+        ) : (
+          option.label
+        );
+      }}
+      items={[
+        { value: ANY_VALUE, label: "Any assignee" },
+        { value: "me", label: "Assigned to me" },
+        { value: "unassigned", label: "Unassigned" },
+        ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
+      ]}
+      value={selectValue}
+      onValueChange={handleChange}
+      aria-label="Assignee filter"
+      className="h-10 w-[180px] rounded-xl border-zinc-200 bg-white text-[13px] font-medium text-zinc-700"
+      placeholder="Any assignee"
+    />
   );
 }

@@ -3,6 +3,10 @@
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label as UiLabel } from "@asym/ui/components/shadcn/label";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@asym/ui/components/shadcn/toggle-group";
 import { cn } from "@asym/ui/lib/utils";
 import { Check } from "lucide-react";
 import * as React from "react";
@@ -81,7 +85,7 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3">
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 text-card-foreground">
       <div className="space-y-2">
         <UiLabel htmlFor="support-label-name">Name</UiLabel>
         <Input
@@ -104,22 +108,34 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
         />
       </div>
       <div className="space-y-2">
-        <UiLabel className="block">Tone</UiLabel>
-        <div className="flex flex-wrap items-center gap-2">
+        <UiLabel className="block" id="support-label-tone">
+          Tone
+        </UiLabel>
+        <ToggleGroup
+          aria-labelledby="support-label-tone"
+          value={[tone]}
+          onValueChange={(values) => {
+            const next = SUPPORT_LABEL_TONES.find(
+              (option) => option === values[0],
+            );
+            if (next) setTone(next);
+          }}
+          spacing={2}
+          className="flex flex-wrap items-center gap-2"
+        >
           {SUPPORT_LABEL_TONES.map((option) => {
             const isActive = option === tone;
             return (
-              <button
+              <ToggleGroupItem
                 key={option}
+                value={option}
                 type="button"
-                onClick={() => setTone(option)}
-                aria-pressed={isActive}
                 aria-label={`Use ${option} tone`}
                 className={cn(
-                  "flex h-8 items-center gap-1 rounded-md border px-2 text-[11px] font-semibold uppercase tracking-wider",
+                  "flex h-8 items-center gap-1 rounded-md border px-2 text-[11px] font-semibold uppercase tracking-wider data-pressed:bg-transparent data-pressed:text-foreground",
                   isActive
-                    ? "border-zinc-900"
-                    : "border-zinc-200 hover:border-zinc-300",
+                    ? "border-foreground"
+                    : "border-border hover:border-ring",
                 )}
               >
                 <span
@@ -130,11 +146,11 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
                   )}
                 />
                 {option}
-                {isActive ? <Check className="size-3 text-zinc-900" /> : null}
-              </button>
+                {isActive ? <Check className="size-3 text-foreground" /> : null}
+              </ToggleGroupItem>
             );
           })}
-        </div>
+        </ToggleGroup>
       </div>
       <div className="space-y-2">
         <UiLabel className="block">Preview</UiLabel>
@@ -162,6 +178,7 @@ export function LabelForm({ label, onSaved, onCancel }: LabelFormProps) {
           size="sm"
           onClick={handleSave}
           disabled={saveLabel.isPending || trimmedName.length === 0}
+          focusableWhenDisabled={saveLabel.isPending}
           className="h-8 rounded-lg px-3 text-xs"
         >
           {label ? "Save changes" : "Create label"}

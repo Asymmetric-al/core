@@ -501,10 +501,13 @@ export function ProfileHeaderActions({
   handleDiscard,
   handleSave,
 }: ProfileHeaderActionsProps) {
+  const pendingActionLabelId = React.useId();
+
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <Tooltip>
         <TooltipTrigger
+          aria-label="Copy profile link"
           render={
             <Button
               variant="outline"
@@ -543,6 +546,7 @@ export function ProfileHeaderActions({
 
       <Tooltip>
         <TooltipTrigger
+          aria-label="View your public profile"
           render={
             <a
               href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
@@ -590,6 +594,8 @@ export function ProfileHeaderActions({
         layout
       >
         <Button
+          aria-labelledby={`${pendingActionLabelId}-28`}
+          focusableWhenDisabled={isSaving}
           onClick={handleSave}
           disabled={isSaving || !hasChanges}
           size="sm"
@@ -598,6 +604,9 @@ export function ProfileHeaderActions({
             saveSuccess && "bg-emerald-600 hover:bg-emerald-600",
           )}
         >
+          <span id={`${pendingActionLabelId}-28`} className="sr-only">
+            {isSaving ? "Saving…" : saveSuccess ? "Saved!" : "Save Changes"}
+          </span>
           <AnimatePresence mode="wait">
             {isSaving ? (
               <motion.div

@@ -47,6 +47,7 @@ import {
   Send,
   XCircle,
 } from "lucide-react";
+import { useId } from "react";
 
 import { formatValidatedAtUtcLabel } from "./validated-at";
 
@@ -358,6 +359,8 @@ export function ResendDisconnectedView({
   showApiKey,
   onToggleApiKeyVisibility,
 }: ResendDisconnectedViewProps) {
+  const pendingActionLabelId = useId();
+
   const resendCredentialFieldId = "resend-api-key";
   const handleConnectSubmit = () => {
     void form.handleSubmit();
@@ -525,11 +528,16 @@ export function ResendDisconnectedView({
           >
             {({ canSubmit, isSubmitting }) => (
               <Button
+                aria-labelledby={`${pendingActionLabelId}-8`}
+                focusableWhenDisabled={isSubmitting}
                 className="min-w-[140px] bg-blue-600 hover:bg-blue-700"
                 disabled={!canSubmit || isSubmitting}
                 onClick={handleConnectSubmit}
                 type="button"
               >
+                <span id={`${pendingActionLabelId}-8`} className="sr-only">
+                  {isSubmitting ? "Connecting…" : "Connect Resend"}
+                </span>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 size-4 animate-spin" />
@@ -556,6 +564,8 @@ export function ResendTestDialog({
   fromEmail,
   onOpenChange,
 }: ResendTestDialogProps) {
+  const pendingActionLabelId = useId();
+
   const handleTestSubmit = () => {
     void form.handleSubmit();
   };
@@ -639,11 +649,20 @@ export function ResendTestDialog({
             >
               {({ canSubmit, isSubmitting }) => (
                 <Button
+                  aria-labelledby={`${pendingActionLabelId}-9`}
+                  focusableWhenDisabled={isSubmitting}
                   className="bg-blue-600 hover:bg-blue-700"
                   disabled={!canSubmit || isSubmitting}
                   onClick={handleTestSubmit}
                   type="button"
                 >
+                  <span id={`${pendingActionLabelId}-9`} className="sr-only">
+                    {isSubmitting
+                      ? "Sending…"
+                      : testStatus === "success"
+                        ? "Send Another"
+                        : "Send Test"}
+                  </span>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 size-4 animate-spin" />

@@ -152,8 +152,18 @@ export default function AnalyticsPage() {
           errorMessage="We couldn't load your giving trends. Please try again."
           emptyMessage="No giving activity yet. Recurring and one-time gifts will appear here."
           actions={
-            <Select defaultValue="6m">
-              <SelectTrigger className="w-[100px] h-8 rounded-lg text-[9px] font-bold uppercase tracking-wider border-zinc-200">
+            <Select
+              items={[
+                { value: "6m", label: "Last 6m" },
+                { value: "12m", label: "Last 12m" },
+                { value: "all", label: "All Time" },
+              ]}
+              defaultValue="6m"
+            >
+              <SelectTrigger
+                aria-label="Giving trend period"
+                className="w-[100px] h-8 rounded-lg text-[9px] font-bold uppercase tracking-wider border-zinc-200"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-lg border-zinc-100">

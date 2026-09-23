@@ -2,13 +2,7 @@
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import * as React from "react";
 import { toast } from "sonner";
@@ -163,27 +157,25 @@ export function SlaPolicyForm({
         />
       </SettingsRow>
       <SettingsRow
+        control
         label="Business hours"
         description="SLA timers pause outside of these hours when set."
       >
-        <Select
+        <SearchableSelect
+          items={[
+            { value: "none", label: "24/7 coverage" },
+            ...(businessHours.data ?? []).map((row) => ({
+              value: row.id,
+              label: row.name,
+            })),
+          ]}
           value={businessHoursId ?? "none"}
           onValueChange={(value) =>
             setBusinessHoursId(value === "none" ? null : value)
           }
-        >
-          <SelectTrigger className="h-9 max-w-sm text-[12px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">24/7 coverage</SelectItem>
-            {(businessHours.data ?? []).map((row) => (
-              <SelectItem key={row.id} value={row.id}>
-                {row.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          aria-label="Business hours"
+          className="h-9 max-w-sm text-[12px]"
+        />
       </SettingsRow>
       <SettingsRow
         label="Default"

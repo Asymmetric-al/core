@@ -197,6 +197,9 @@ export function EveApprovalBudgetPanel() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
+              focusableWhenDisabled={
+                mutation.isPending && mutation.variables?.action === "execute"
+              }
               disabled={mutation.isPending || !targetKey}
               onClick={() =>
                 mutation.mutate({
@@ -211,6 +214,10 @@ export function EveApprovalBudgetPanel() {
             </Button>
             <Button
               variant="outline"
+              focusableWhenDisabled={
+                mutation.isPending &&
+                mutation.variables?.action === "request_approval"
+              }
               disabled={mutation.isPending || !targetKey}
               onClick={() =>
                 mutation.mutate({
@@ -318,6 +325,12 @@ export function EveApprovalBudgetPanel() {
                 <Button
                   size="sm"
                   variant="outline"
+                  focusableWhenDisabled={
+                    mutation.isPending &&
+                    mutation.variables?.action === "override_budget" &&
+                    mutation.variables.scopeType === budget.scopeType &&
+                    mutation.variables.scopeId === budget.scopeId
+                  }
                   disabled={mutation.isPending}
                   onClick={() =>
                     mutation.mutate({
@@ -387,6 +400,12 @@ export function EveApprovalBudgetPanel() {
                       <>
                         <Button
                           size="sm"
+                          focusableWhenDisabled={
+                            mutation.isPending &&
+                            mutation.variables?.action === "decide_approval" &&
+                            mutation.variables.approvalId === approval.id &&
+                            mutation.variables.approved === true
+                          }
                           disabled={mutation.isPending}
                           onClick={() =>
                             mutation.mutate({
@@ -403,6 +422,12 @@ export function EveApprovalBudgetPanel() {
                         <Button
                           size="sm"
                           variant="destructive"
+                          focusableWhenDisabled={
+                            mutation.isPending &&
+                            mutation.variables?.action === "decide_approval" &&
+                            mutation.variables.approvalId === approval.id &&
+                            mutation.variables.approved === false
+                          }
                           disabled={mutation.isPending}
                           onClick={() =>
                             mutation.mutate({

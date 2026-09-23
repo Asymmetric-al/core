@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "../../lib/utils";
+import { Button } from "../shadcn/button";
 import { Checkbox } from "../shadcn/checkbox";
 
 const authButtonVariants = cva(
@@ -31,20 +32,38 @@ export const AuthButton = React.forwardRef<
     VariantProps<typeof authButtonVariants> & {
       loading?: boolean;
     }
->(({ className, variant, loading = false, children, ...props }, ref) => {
-  return (
-    <button
-      ref={ref}
-      type={props.type ?? "button"}
-      className={cn(authButtonVariants({ variant }), className)}
-      disabled={loading || props.disabled}
-      {...props}
-    >
-      {loading ? <Loader2 className="size-4 animate-spin" /> : null}
-      {children}
-    </button>
-  );
-});
+>(
+  (
+    {
+      className,
+      variant,
+      loading = false,
+      disabled,
+      children,
+      "aria-label": ariaLabel,
+      "aria-labelledby": ariaLabelledBy,
+      ...props
+    },
+    ref,
+  ) => {
+    const labelId = React.useId();
+    return (
+      <Button
+        ref={ref}
+        type={props.type ?? "button"}
+        className={cn(authButtonVariants({ variant }), className)}
+        disabled={loading || disabled}
+        focusableWhenDisabled={loading}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy ?? (ariaLabel ? undefined : labelId)}
+        {...props}
+      >
+        {loading ? <Loader2 className="size-4 animate-spin" /> : null}
+        <span id={labelId}>{children}</span>
+      </Button>
+    );
+  },
+);
 AuthButton.displayName = "AuthButton";
 
 export function AuthCard({

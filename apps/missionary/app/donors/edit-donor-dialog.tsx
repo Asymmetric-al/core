@@ -71,6 +71,8 @@ export function EditDonorDialog({
   onSuccess,
   open,
 }: EditDonorDialogProps) {
+  const pendingActionLabelId = React.useId();
+
   const initialValues = React.useMemo(
     () => createInitialEditDonorFormValues(donor),
     [donor],
@@ -411,10 +413,15 @@ export function EditDonorDialog({
             >
               {({ canSubmit, isSubmitting }) => (
                 <Button
+                  aria-labelledby={`${pendingActionLabelId}-22`}
+                  focusableWhenDisabled={isSubmitting}
                   className="h-10 rounded-xl px-6"
                   disabled={!canSubmit || isSubmitting}
                   type="submit"
                 >
+                  <span id={`${pendingActionLabelId}-22`} className="sr-only">
+                    {isSubmitting ? "Saving…" : "Save Changes"}
+                  </span>
                   {isSubmitting ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (

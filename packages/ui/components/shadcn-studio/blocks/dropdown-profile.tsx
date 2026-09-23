@@ -59,51 +59,55 @@ const ProfileDropdown = ({
     <DropdownMenu defaultOpen={defaultOpen}>
       <DropdownMenuTrigger render={trigger} />
       <DropdownMenuContent className="w-64" align={align || "end"}>
-        <DropdownMenuLabel className="flex items-center gap-3 px-3 py-2 font-normal">
-          <div className="relative">
-            <Avatar className="size-9">
-              <AvatarImage
-                src={
-                  user?.avatarUrl ||
-                  "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
-                }
-                alt={user?.name || "User"}
-              />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            <span className="ring-card absolute right-0 bottom-0 block size-2 rounded-full bg-green-600 ring-2" />
-          </div>
-          <div className="flex flex-1 flex-col items-start overflow-hidden">
-            <span className="text-foreground text-sm font-semibold truncate w-full">
-              {user?.name || "User"}
-            </span>
-            <span className="text-muted-foreground text-xs truncate w-full">
-              {user?.email || "user@example.com"}
-            </span>
-          </div>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex items-center gap-3 px-3 py-2 font-normal">
+            <div className="relative">
+              <Avatar className="size-9">
+                <AvatarImage
+                  src={
+                    user?.avatarUrl ||
+                    "https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-1.png"
+                  }
+                  alt={user?.name || "User"}
+                />
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+              <span className="ring-card absolute right-0 bottom-0 block size-2 rounded-full bg-green-600 ring-2" />
+            </div>
+            <div className="flex flex-1 flex-col items-start overflow-hidden">
+              <span className="text-foreground text-sm font-semibold truncate w-full">
+                {user?.name || "User"}
+              </span>
+              <span className="text-muted-foreground text-xs truncate w-full">
+                {user?.email || "user@example.com"}
+              </span>
+            </div>
+          </DropdownMenuLabel>
 
-        {menuItems.length > 0 && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              {menuItems.map((item) => {
-                const Icon = item.icon;
+          {menuItems.length > 0 && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                {menuItems.map((item) => {
+                  const Icon = item.icon;
 
-                return (
-                  <DropdownMenuItem
-                    key={`${item.href}:${item.label}`}
-                    render={<Link href={item.href} />}
-                    className="px-3 py-1.5 text-sm cursor-pointer"
-                  >
-                    {Icon && <Icon className="text-muted-foreground size-4" />}
-                    <span>{item.label}</span>
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuGroup>
-          </>
-        )}
+                  return (
+                    <DropdownMenuItem
+                      key={`${item.href}:${item.label}`}
+                      render={<Link href={item.href} />}
+                      className="px-3 py-1.5 text-sm cursor-pointer"
+                    >
+                      {Icon && (
+                        <Icon className="text-muted-foreground size-4" />
+                      )}
+                      <span>{item.label}</span>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuGroup>
+            </>
+          )}
+        </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
 

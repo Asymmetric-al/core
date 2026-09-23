@@ -2,6 +2,7 @@
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Loader2, Save, Send, StickyNote } from "lucide-react";
+import { useId } from "react";
 
 import type { ComposerMode } from "./use-conversation-composer";
 
@@ -30,6 +31,8 @@ export function ComposerActions({
   onCancel,
   beforeSend,
 }: ComposerActionsProps) {
+  const pendingActionLabelId = useId();
+
   const isReply = mode === "reply";
   const sendIcon = isPending ? (
     <Loader2 className="size-3.5 animate-spin" />
@@ -46,6 +49,13 @@ export function ComposerActions({
     : isPending
       ? "Saving"
       : "Add note";
+  const sendAccessibleLabel = isReply
+    ? isPending
+      ? "Sending reply to donor"
+      : "Send reply to donor"
+    : isPending
+      ? "Saving internal note"
+      : "Add internal note";
 
   return (
     <div className="flex items-center justify-between gap-2 px-3 py-2">
@@ -72,6 +82,7 @@ export function ComposerActions({
         ) : null}
         {isReply ? (
           <Button
+            focusableWhenDisabled={isPending}
             type="button"
             variant="outline"
             size="sm"
@@ -84,15 +95,19 @@ export function ComposerActions({
           </Button>
         ) : null}
         <Button
+          aria-labelledby={`${pendingActionLabelId}-17`}
+          focusableWhenDisabled={isPending}
           type="button"
           size="sm"
           disabled={isPending || !isDirty}
           aria-busy={isPending}
-          aria-label={isReply ? "Send reply to donor" : "Add internal note"}
           onClick={onSend}
           className="h-8 gap-1.5 rounded-lg bg-zinc-900 px-3 text-xs font-bold uppercase tracking-widest text-white hover:bg-zinc-800"
         >
           {sendIcon}
+          <span id={`${pendingActionLabelId}-17`} className="sr-only">
+            {sendAccessibleLabel}
+          </span>
           {sendLabel}
         </Button>
       </div>

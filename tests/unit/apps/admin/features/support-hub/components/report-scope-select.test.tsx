@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { agentsMock, inboxesMock, labelsMock, routeStateMock, setStateMock } =
@@ -77,6 +77,7 @@ vi.mock(
   }),
 );
 
+// eslint-disable-next-line no-restricted-imports -- AL-1894: Integration test exercises the app's actual selector and route-state contract.
 import { ReportScopeSelect } from "../../../../../../../apps/admin/features/support-hub/components/reports/ReportScopeSelect";
 
 describe("ReportScopeSelect", () => {
@@ -105,5 +106,16 @@ describe("ReportScopeSelect", () => {
     await waitFor(() => {
       expect(setStateMock).toHaveBeenCalledWith({ scopeId: "inbox-1" });
     });
+  });
+
+  it("names the scope controls and shows the display label before opening the popup", () => {
+    render(<ReportScopeSelect />);
+    expect(
+      screen.getByRole("combobox", { name: "Scope" }).textContent,
+    ).toContain("Inbox");
+    expect(
+      screen.getByRole("combobox", { name: "Inbox" }).textContent,
+    ).toContain("General Inbox");
+    expect(screen.queryByRole("listbox")).toBeNull();
   });
 });

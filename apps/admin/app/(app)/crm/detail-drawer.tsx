@@ -61,6 +61,9 @@ export function DetailDrawer({
   /** Notifies the host after an inline operation refreshes shared row data. */
   onRowRefresh?: () => void;
 }) {
+  const summaryButtonLabelId = useId();
+  const pendingActionLabelId = useId();
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [noteBody, setNoteBody] = useState("");
   const noteFieldId = useId();
@@ -160,11 +163,15 @@ export function DetailDrawer({
                 className="h-9 gap-2 rounded-xl border border-border bg-card text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
                 onClick={summarizeContact}
                 disabled={isAnalyzing}
+                focusableWhenDisabled={isAnalyzing}
+                aria-labelledby={summaryButtonLabelId}
               >
                 <FileText
                   className={cn("size-3.5", isAnalyzing && "animate-pulse")}
                 />
-                {isAnalyzing ? "Summarizing..." : "Quick Summary"}
+                <span id={summaryButtonLabelId}>
+                  {isAnalyzing ? "Summarizing..." : "Quick Summary"}
+                </span>
               </Button>
               <div className="h-4 w-px bg-border mx-2" />
               <Button
@@ -345,6 +352,8 @@ export function DetailDrawer({
                         </Button>
                       </div>
                       <Button
+                        aria-labelledby={`${pendingActionLabelId}-3`}
+                        focusableWhenDisabled={createNoteMutation.isPending}
                         size="sm"
                         className="h-7 px-4 text-[10px] font-semibold uppercase tracking-wider"
                         disabled={
@@ -352,9 +361,11 @@ export function DetailDrawer({
                         }
                         onClick={() => void saveNote()}
                       >
-                        {createNoteMutation.isPending
-                          ? "Saving..."
-                          : "Save Note"}
+                        <span id={`${pendingActionLabelId}-3`}>
+                          {createNoteMutation.isPending
+                            ? "Saving..."
+                            : "Save Note"}
+                        </span>
                       </Button>
                     </div>
                   </div>

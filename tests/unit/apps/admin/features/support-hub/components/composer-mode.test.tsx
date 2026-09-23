@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ComposerActions } from "../../../../../../../apps/admin/features/support-hub/components/detail/composer/ComposerActions";
 
@@ -45,20 +45,24 @@ describe("ComposerActions a11y / mode switch", () => {
   });
 
   it("disables + announces busy when isPending is true", () => {
+    const onSend = vi.fn();
     render(
       <ComposerActions
         mode="reply"
         isPending
         isDirty
-        onSend={() => undefined}
+        onSend={onSend}
         onSaveDraft={() => undefined}
       />,
     );
     const sendButton = screen.getByRole("button", {
-      name: /Send reply to donor/i,
+      name: /Sending reply to donor/i,
     });
     expect(sendButton.getAttribute("aria-busy")).toBe("true");
-    expect((sendButton as HTMLButtonElement).disabled).toBe(true);
+    expect((sendButton as HTMLButtonElement).disabled).toBe(false);
+    expect(sendButton.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(sendButton);
+    expect(onSend).not.toHaveBeenCalled();
   });
 
   it("disables Send when the body is empty", () => {

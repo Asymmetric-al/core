@@ -3,13 +3,7 @@
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import * as React from "react";
@@ -101,27 +95,22 @@ export function SignatureForm({
         />
       </SettingsRow>
       <SettingsRow
+        control
         label="Owner"
         description="Workspace signatures apply to every agent; agent-owned signatures override the default."
       >
-        <Select
+        <SearchableSelect
+          items={[
+            { value: "workspace", label: "Workspace" },
+            ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
+          ]}
           value={ownerAgentId ?? "workspace"}
           onValueChange={(value) =>
             setOwnerAgentId(value === "workspace" ? null : value)
           }
-        >
-          <SelectTrigger className="h-9 max-w-sm text-[12px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="workspace">Workspace</SelectItem>
-            {agents.map((agent) => (
-              <SelectItem key={agent.id} value={agent.id}>
-                {agent.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          aria-label="Owner"
+          className="h-9 max-w-sm text-[12px]"
+        />
       </SettingsRow>
       <SettingsRow
         label="Body"

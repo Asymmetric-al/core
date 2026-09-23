@@ -5,7 +5,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
@@ -79,9 +78,12 @@ export function GiftHistoryViewSwitcher({
             ))}
           </DropdownMenuRadioGroup>
         ) : (
-          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+          <div
+            role="status"
+            className="px-2 py-1.5 text-xs font-normal text-muted-foreground"
+          >
             No saved views yet.
-          </DropdownMenuLabel>
+          </div>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onSaveCurrentAs}>

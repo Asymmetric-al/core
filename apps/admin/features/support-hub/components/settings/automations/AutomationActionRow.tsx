@@ -7,6 +7,7 @@ import {
 } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import {
   Select,
   SelectContent,
@@ -49,12 +50,21 @@ export function AutomationActionRow({
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50/60 p-2">
       <Select
+        items={[
+          ...SUPPORT_AUTOMATION_ACTION_KINDS.map((kind) => ({
+            value: kind,
+            label: labelForKind(kind),
+          })),
+        ]}
         value={action.kind}
         onValueChange={(value) =>
           handleKindChange(value as SupportAutomationAction["kind"])
         }
       >
-        <SelectTrigger className="h-8 min-w-[180px] text-[12px]">
+        <SelectTrigger
+          aria-label="Action type"
+          className="h-8 min-w-[180px] text-[12px]"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -67,7 +77,10 @@ export function AutomationActionRow({
       </Select>
 
       {action.kind === "assign_agent" ? (
-        <Select
+        <SearchableSelect
+          items={[
+            ...agents.map((agent) => ({ value: agent.id, label: agent.name })),
+          ]}
           value={action.agentId}
           onValueChange={(value) => {
             if (value === null) {
@@ -75,22 +88,20 @@ export function AutomationActionRow({
             }
             onChange({ kind: "assign_agent", agentId: value });
           }}
-        >
-          <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
-            <SelectValue placeholder="Pick an agent" />
-          </SelectTrigger>
-          <SelectContent>
-            {agents.map((agent) => (
-              <SelectItem key={agent.id} value={agent.id}>
-                {agent.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          aria-label="Assigned agent"
+          className="h-8 min-w-[200px] text-[12px]"
+          placeholder="Pick an agent"
+        />
       ) : null}
 
       {action.kind === "assign_team" ? (
-        <Select
+        <SearchableSelect
+          items={[
+            ...(teams.data ?? []).map((team) => ({
+              value: team.id,
+              label: team.name,
+            })),
+          ]}
           value={action.teamId}
           onValueChange={(value) => {
             if (value === null) {
@@ -98,22 +109,17 @@ export function AutomationActionRow({
             }
             onChange({ kind: "assign_team", teamId: value });
           }}
-        >
-          <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
-            <SelectValue placeholder="Pick a team" />
-          </SelectTrigger>
-          <SelectContent>
-            {(teams.data ?? []).map((team) => (
-              <SelectItem key={team.id} value={team.id}>
-                {team.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          aria-label="Assigned team"
+          className="h-8 min-w-[200px] text-[12px]"
+          placeholder="Pick a team"
+        />
       ) : null}
 
       {action.kind === "add_label" ? (
-        <Select
+        <SearchableSelect
+          items={[
+            ...labels.map((label) => ({ value: label.id, label: label.name })),
+          ]}
           value={action.labelId}
           onValueChange={(value) => {
             if (value === null) {
@@ -121,22 +127,20 @@ export function AutomationActionRow({
             }
             onChange({ kind: "add_label", labelId: value });
           }}
-        >
-          <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
-            <SelectValue placeholder="Pick a label" />
-          </SelectTrigger>
-          <SelectContent>
-            {labels.map((label) => (
-              <SelectItem key={label.id} value={label.id}>
-                {label.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          aria-label="Label to add"
+          className="h-8 min-w-[200px] text-[12px]"
+          placeholder="Pick a label"
+        />
       ) : null}
 
       {action.kind === "set_priority" ? (
         <Select
+          items={[
+            ...SUPPORT_PRIORITIES.map((priority) => ({
+              value: priority,
+              label: priority,
+            })),
+          ]}
           value={action.priority}
           onValueChange={(value) =>
             onChange({
@@ -150,7 +154,10 @@ export function AutomationActionRow({
             })
           }
         >
-          <SelectTrigger className="h-8 min-w-[140px] text-[12px]">
+          <SelectTrigger
+            aria-label="Priority"
+            className="h-8 min-w-[140px] text-[12px]"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -165,6 +172,12 @@ export function AutomationActionRow({
 
       {action.kind === "set_status" ? (
         <Select
+          items={[
+            ...SUPPORT_CONVERSATION_STATUSES.map((status) => ({
+              value: status,
+              label: status,
+            })),
+          ]}
           value={action.status}
           onValueChange={(value) =>
             onChange({
@@ -178,7 +191,10 @@ export function AutomationActionRow({
             })
           }
         >
-          <SelectTrigger className="h-8 min-w-[140px] text-[12px]">
+          <SelectTrigger
+            aria-label="Status"
+            className="h-8 min-w-[140px] text-[12px]"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -207,7 +223,10 @@ export function AutomationActionRow({
       ) : null}
 
       {action.kind === "run_macro" ? (
-        <Select
+        <SearchableSelect
+          items={[
+            ...macros.map((macro) => ({ value: macro.id, label: macro.name })),
+          ]}
           value={action.macroId}
           onValueChange={(value) => {
             if (value === null) {
@@ -215,18 +234,10 @@ export function AutomationActionRow({
             }
             onChange({ kind: "run_macro", macroId: value });
           }}
-        >
-          <SelectTrigger className="h-8 min-w-[220px] text-[12px]">
-            <SelectValue placeholder="Pick a macro" />
-          </SelectTrigger>
-          <SelectContent>
-            {macros.map((macro) => (
-              <SelectItem key={macro.id} value={macro.id}>
-                {macro.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          aria-label="Macro to run"
+          className="h-8 min-w-[220px] text-[12px]"
+          placeholder="Pick a macro"
+        />
       ) : null}
 
       <Button

@@ -182,6 +182,7 @@ export function EmailStudioHeader({
       <EmailStudioProviderStatus />
 
       <Button
+        focusableWhenDisabled={isSaving || isSendingTest}
         variant="outline"
         size="sm"
         onClick={onSaveClick}

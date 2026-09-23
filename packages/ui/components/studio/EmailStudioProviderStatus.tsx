@@ -30,7 +30,12 @@ export function EmailStudioProviderStatus({
   if (variant === "badge") {
     return (
       <Tooltip>
-        <TooltipTrigger render={badge} />
+        <TooltipTrigger
+          render={badge}
+          tabIndex={0}
+          aria-label="React Email"
+          aria-description="Email Studio uses React Email Editor; sending uses the Resend delivery layer."
+        />
         <TooltipContent side="bottom">
           <p>
             Email Studio uses React Email Editor; sending still uses the Resend

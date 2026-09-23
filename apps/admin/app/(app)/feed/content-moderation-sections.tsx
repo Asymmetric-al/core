@@ -31,6 +31,7 @@ import {
   DialogFooter,
 } from "@asym/ui/components/shadcn/dialog";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -618,6 +619,7 @@ function AllPostsFeedPostCard({
                     whileTap={{ scale: 0.95 }}
                   >
                     <DropdownMenuTrigger
+                      aria-label="Open actions"
                       render={
                         <Button
                           variant="ghost"
@@ -633,61 +635,64 @@ function AllPostsFeedPostCard({
                     align="end"
                     className="w-52 rounded-xl p-1.5"
                   >
-                    <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-2">
-                      Quick Actions
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => onAction(post.id, "edit")}
-                      className="rounded-lg py-2.5 cursor-pointer gap-2.5"
-                    >
-                      <Edit3 className="size-4 text-muted-foreground" /> Edit
-                      Post
-                    </DropdownMenuItem>
-                    {post.isPinned ? (
-                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                        <Pin className="size-4 text-muted-foreground" /> Unpin
-                        Post
-                      </DropdownMenuItem>
-                    ) : (
-                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                        <Pin className="size-4 text-muted-foreground" /> Pin to
-                        Top
-                      </DropdownMenuItem>
-                    )}
-                    {post.status === "hidden" ? (
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-2">
+                        Quick Actions
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => onAction(post.id, "approve")}
+                        onClick={() => onAction(post.id, "edit")}
                         className="rounded-lg py-2.5 cursor-pointer gap-2.5"
                       >
-                        <Eye className="size-4 text-muted-foreground" /> Restore
+                        <Edit3 className="size-4 text-muted-foreground" /> Edit
                         Post
                       </DropdownMenuItem>
-                    ) : (
+                      {post.isPinned ? (
+                        <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                          <Pin className="size-4 text-muted-foreground" /> Unpin
+                          Post
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                          <Pin className="size-4 text-muted-foreground" /> Pin
+                          to Top
+                        </DropdownMenuItem>
+                      )}
+                      {post.status === "hidden" ? (
+                        <DropdownMenuItem
+                          onClick={() => onAction(post.id, "approve")}
+                          className="rounded-lg py-2.5 cursor-pointer gap-2.5"
+                        >
+                          <Eye className="size-4 text-muted-foreground" />{" "}
+                          Restore Post
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          onClick={() => onAction(post.id, "hide")}
+                          className="rounded-lg py-2.5 cursor-pointer gap-2.5"
+                        >
+                          <EyeOff className="size-4 text-muted-foreground" />{" "}
+                          Hide Post
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                        <ExternalLink className="size-4 text-muted-foreground" />{" "}
+                        View Public Post
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
+                        <UserX className="size-4 text-muted-foreground" /> View
+                        Author
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => onAction(post.id, "hide")}
-                        className="rounded-lg py-2.5 cursor-pointer gap-2.5"
+                        className="text-destructive rounded-lg py-2.5 cursor-pointer gap-2.5"
+                        onClick={() => onAction(post.id, "delete")}
                       >
-                        <EyeOff className="size-4 text-muted-foreground" /> Hide
-                        Post
+                        <Trash2 className="size-4" /> Delete Post
                       </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                      <ExternalLink className="size-4 text-muted-foreground" />{" "}
-                      View Public Post
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="rounded-lg py-2.5 cursor-pointer gap-2.5">
-                      <UserX className="size-4 text-muted-foreground" /> View
-                      Author
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive rounded-lg py-2.5 cursor-pointer gap-2.5"
-                      onClick={() => onAction(post.id, "delete")}
-                    >
-                      <Trash2 className="size-4" /> Delete Post
-                    </DropdownMenuItem>
+                    </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -1224,124 +1229,133 @@ export function ContentModerationTabsSection({
                   align="end"
                   className="w-56 rounded-xl p-1.5"
                 >
-                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold px-2">
-                    Visibility
-                  </DropdownMenuLabel>
-                  <DropdownMenuCheckboxItem
-                    checked={filterVisibility === "all"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_visibility",
-                        value: "all",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    All
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterVisibility === "public"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_visibility",
-                        value: "public",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Public
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterVisibility === "partners"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_visibility",
-                        value: "partners",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Partners
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterVisibility === "private"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_visibility",
-                        value: "private",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Private
-                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold px-2">
+                      Visibility
+                    </DropdownMenuLabel>
+                    <DropdownMenuCheckboxItem
+                      checked={filterVisibility === "all"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_visibility",
+                          value: "all",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      All
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterVisibility === "public"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_visibility",
+                          value: "public",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Public
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterVisibility === "partners"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_visibility",
+                          value: "partners",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Partners
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterVisibility === "private"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_visibility",
+                          value: "private",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Private
+                    </DropdownMenuCheckboxItem>
+                  </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold px-2">
-                    Type
-                  </DropdownMenuLabel>
-                  <DropdownMenuCheckboxItem
-                    checked={filterType === "all"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_type",
-                        value: "all",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    All Types
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterType === "update"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_type",
-                        value: "update",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Updates
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterType === "prayer request"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_type",
-                        value: "prayer request",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Prayer Requests
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterType === "story"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_type",
-                        value: "story",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Stories
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filterType === "announcement"}
-                    onCheckedChange={() =>
-                      dispatchUi({
-                        type: "set_filter_type",
-                        value: "announcement",
-                      })
-                    }
-                    className="rounded-lg"
-                  >
-                    Announcements
-                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="text-[10px] uppercase tracking-wider font-semibold px-2">
+                      Type
+                    </DropdownMenuLabel>
+                    <DropdownMenuCheckboxItem
+                      checked={filterType === "all"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_type",
+                          value: "all",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      All Types
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterType === "update"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_type",
+                          value: "update",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Updates
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterType === "prayer request"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_type",
+                          value: "prayer request",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Prayer Requests
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterType === "story"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_type",
+                          value: "story",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Stories
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={filterType === "announcement"}
+                      onCheckedChange={() =>
+                        dispatchUi({
+                          type: "set_filter_type",
+                          value: "announcement",
+                        })
+                      }
+                      className="rounded-lg"
+                    >
+                      Announcements
+                    </DropdownMenuCheckboxItem>
+                  </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
               <Select
+                items={[
+                  { value: "newest", label: "Newest" },
+                  { value: "oldest", label: "Oldest" },
+                  { value: "engagement", label: "Engagement" },
+                ]}
                 value={sortBy}
                 onValueChange={(value) =>
                   dispatchUi({
@@ -1350,7 +1364,10 @@ export function ContentModerationTabsSection({
                   })
                 }
               >
-                <SelectTrigger className="h-9 sm:h-10 w-28 sm:w-36 rounded-xl">
+                <SelectTrigger
+                  aria-label="Sort content"
+                  className="h-9 sm:h-10 w-28 sm:w-36 rounded-xl"
+                >
                   <ArrowUpDown className="size-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -1616,6 +1633,7 @@ function ModerationQueuePostCard({
                         whileTap={{ scale: 0.9 }}
                       >
                         <TooltipTrigger
+                          aria-label="Approve"
                           render={
                             <Button
                               variant="ghost"
@@ -1641,6 +1659,7 @@ function ModerationQueuePostCard({
                         whileTap={{ scale: 0.9 }}
                       >
                         <TooltipTrigger
+                          aria-label="Hide Post"
                           render={
                             <Button
                               variant="ghost"
@@ -1666,6 +1685,7 @@ function ModerationQueuePostCard({
                         whileTap={{ scale: 0.9 }}
                       >
                         <TooltipTrigger
+                          aria-label="Delete Post"
                           render={
                             <Button
                               variant="ghost"
@@ -1690,6 +1710,7 @@ function ModerationQueuePostCard({
                       whileTap={{ scale: 0.95 }}
                     >
                       <DropdownMenuTrigger
+                        aria-label="Open actions"
                         render={
                           <Button
                             variant="ghost"

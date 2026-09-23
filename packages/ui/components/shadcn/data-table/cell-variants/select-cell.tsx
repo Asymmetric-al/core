@@ -18,6 +18,7 @@ import type { RowData } from "../tanstack";
 import type { SelectCellProps } from "./types";
 
 export function SelectCell<TData extends RowData>({
+  cell,
   value,
   isEditing = false,
   onValueChange,
@@ -55,6 +56,7 @@ export function SelectCell<TData extends RowData>({
   if (isEditing && !disabled) {
     return (
       <Select
+        items={options}
         value={value ?? ""}
         onValueChange={(newValue) => {
           if (newValue === null) return;
@@ -63,27 +65,31 @@ export function SelectCell<TData extends RowData>({
         open={open}
         onOpenChange={setOpen}
       >
-        <SelectTrigger
-          className={cn(
-            "h-8 w-full px-2 text-sm",
-            !selectedOption && "text-muted-foreground",
-            className,
-          )}
-        >
-          <SelectValue placeholder={placeholder}>
-            {selectedOption ? (
-              <div className="flex items-center gap-2">
-                {selectedOption.icon && (
-                  <selectedOption.icon className="size-3.5 shrink-0" />
-                )}
-                <span className="truncate">{selectedOption.label}</span>
-              </div>
-            ) : (
-              placeholder
+        <div className="flex items-center gap-1">
+          <SelectTrigger
+            aria-label={cell.column.columnDef.meta?.label ?? cell.column.id}
+            className={cn(
+              "h-8 w-full px-2 text-sm",
+              !selectedOption && "text-muted-foreground",
+              className,
             )}
-          </SelectValue>
+          >
+            <SelectValue placeholder={placeholder}>
+              {selectedOption ? (
+                <div className="flex items-center gap-2">
+                  {selectedOption.icon && (
+                    <selectedOption.icon className="size-3.5 shrink-0" />
+                  )}
+                  <span className="truncate">{selectedOption.label}</span>
+                </div>
+              ) : (
+                placeholder
+              )}
+            </SelectValue>
+          </SelectTrigger>
           {clearable && value && (
             <Button
+              aria-label={`Clear ${cell.column.columnDef.meta?.label ?? cell.column.id}`}
               variant="ghost"
               size="icon"
               className="ml-auto size-5 shrink-0 hover:bg-muted"
@@ -92,7 +98,7 @@ export function SelectCell<TData extends RowData>({
               <XIcon className="size-3" />
             </Button>
           )}
-        </SelectTrigger>
+        </div>
         <SelectContent>
           {options.map((option) => (
             <SelectItem

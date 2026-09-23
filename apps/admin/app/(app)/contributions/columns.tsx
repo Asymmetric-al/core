@@ -17,6 +17,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
 import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -475,17 +476,19 @@ export function getContributionColumns({
               }
             />
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() =>
-                  navigator.clipboard.writeText(
-                    contribution.transactionId ?? contribution.id,
-                  )
-                }
-              >
-                <Copy className="mr-2 size-4" />
-                Copy Transaction ID
-              </DropdownMenuItem>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigator.clipboard.writeText(
+                      contribution.transactionId ?? contribution.id,
+                    )
+                  }
+                >
+                  <Copy className="mr-2 size-4" />
+                  Copy Transaction ID
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onViewContribution(contribution)}

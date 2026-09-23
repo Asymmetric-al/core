@@ -228,9 +228,6 @@ export const LegacyUnlayerEmailEditor = forwardRef<
     [mergeTags, studioConfig.mergeTags, defaultMergeTags],
   );
 
-  const progress =
-    loadingState === "ready" ? 100 : loadingState === "loading" ? 70 : 20;
-
   const LoadingIcon = isDocumentMode ? FileText : Mail;
   const loadingLabel = isDocumentMode ? "document" : "email";
 
@@ -509,7 +506,11 @@ export const LegacyUnlayerEmailEditor = forwardRef<
                 Initializing {loadingLabel} editor…
               </span>
             </div>
-            <Progress value={10} className="h-1.5 w-48" />
+            <Progress
+              aria-label={`Loading ${loadingLabel} editor`}
+              value={null}
+              className="h-1.5 w-48"
+            />
           </div>
         </div>
       </div>
@@ -537,7 +538,11 @@ export const LegacyUnlayerEmailEditor = forwardRef<
                     : "Loading components…"}
                 </span>
               </div>
-              <Progress value={progress} className="h-1.5 w-48" />
+              <Progress
+                aria-label={`Loading ${loadingLabel} editor`}
+                value={null}
+                className="h-1.5 w-48"
+              />
             </div>
 
             {!accountConfig.isConfigured && (

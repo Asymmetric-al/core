@@ -152,16 +152,26 @@ export function AutomationRuleForm({
         </div>
       </SettingsRow>
       <SettingsRow
+        control
         label="Trigger"
         description="Event that causes the rule to evaluate."
       >
         <Select
+          items={[
+            ...SUPPORT_AUTOMATION_TRIGGERS.map((kind) => ({
+              value: kind,
+              label: formatTrigger(kind),
+            })),
+          ]}
           value={trigger}
           onValueChange={(value) =>
             setTrigger(value as SupportAutomationRule["trigger"])
           }
         >
-          <SelectTrigger className="h-9 max-w-sm text-[12px]">
+          <SelectTrigger
+            aria-label="Trigger"
+            className="h-9 max-w-sm text-[12px]"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

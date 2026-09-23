@@ -1,14 +1,7 @@
 "use client";
 
 import { Button } from "@asym/ui/components/shadcn/button";
-import { Label } from "@asym/ui/components/shadcn/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@asym/ui/components/shadcn/select";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import { useAuth, useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
@@ -198,8 +191,13 @@ function ProjectPageCreateViewContent() {
           <form.Field name="fundId">
             {(field) => (
               <div className="flex flex-col gap-2">
-                <Label>Fund</Label>
-                <Select
+                <SearchableSelect
+                  items={[
+                    ...(funds ?? []).map((f) => ({
+                      value: f.id,
+                      label: f.name?.trim() || f.id,
+                    })),
+                  ]}
                   value={field.state.value || null}
                   onValueChange={(v) => {
                     if (v === null) {
@@ -208,18 +206,9 @@ function ProjectPageCreateViewContent() {
                     field.handleChange(v);
                   }}
                   disabled={fundsIsPending || fundsIsError}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select fund" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(funds ?? []).map((f) => (
-                      <SelectItem key={f.id} value={f.id}>
-                        {f.name?.trim() || f.id}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Select fund"
+                  label="Fund"
+                />
               </div>
             )}
           </form.Field>

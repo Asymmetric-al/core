@@ -9,13 +9,27 @@ import {
   waitFor,
 } from "@testing-library/react";
 import * as React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
-import { EveAdminMemoryPanel } from "../../../../../apps/admin/app/(app)/admin/eve/admin-memory-panel";
 import { getQueryClient } from "../../../../../packages/database/providers/query-client";
 import { QueryProvider } from "../../../../../packages/database/providers/query-provider";
 
 import type { EveAdminMemoryAdminView } from "../../../../../packages/api/src/eve/admin-memory/types";
+
+let EveAdminMemoryPanel: React.ComponentType;
+beforeAll(async () => {
+  const module =
+    await import("../../../../../apps/admin/app/(app)/admin/eve/admin-memory-panel");
+  EveAdminMemoryPanel = module.EveAdminMemoryPanel;
+});
 
 vi.mock("@asym/ui/components/shadcn/alert", () => ({
   Alert: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
@@ -62,9 +76,12 @@ vi.mock("@asym/ui/components/shadcn/badge", () => ({
 }));
 
 vi.mock("@asym/ui/components/shadcn/button", () => ({
-  Button: (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
-    <button type="button" {...props} />
-  ),
+  Button: ({
+    focusableWhenDisabled: _focusableWhenDisabled,
+    ...props
+  }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    focusableWhenDisabled?: boolean;
+  }) => <button type="button" {...props} />,
 }));
 
 vi.mock("@asym/ui/components/shadcn/card", () => ({

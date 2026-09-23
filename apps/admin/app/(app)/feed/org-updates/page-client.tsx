@@ -247,6 +247,7 @@ function FeedSettingsSheet({
               </div>
 
               <RadioGroup
+                aria-label="Feed Visibility"
                 value={visibility}
                 onValueChange={(val) => setVisibility(val as OrgPostVisibility)}
                 className="space-y-2"
@@ -329,6 +330,7 @@ function FeedSettingsSheet({
                     </div>
                   </div>
                   <Switch
+                    aria-label="Email for Org Posts"
                     checked={emailOrgPosts}
                     onCheckedChange={setEmailOrgPosts}
                   />
@@ -347,6 +349,7 @@ function FeedSettingsSheet({
 
         <SheetFooter className="p-4 border-t">
           <Button
+            focusableWhenDisabled={isSaving}
             onClick={handleSave}
             disabled={isSaving}
             className="w-full h-10 rounded-xl font-semibold"
@@ -439,6 +442,7 @@ function PostCard({
           <DropdownMenu>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <DropdownMenuTrigger
+                aria-label="Open actions"
                 render={
                   <Button
                     variant="ghost"
@@ -839,6 +843,7 @@ function ComposeCardActions({
       <div className="flex flex-wrap items-center gap-2 w-full">
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
+            focusableWhenDisabled={isUploading}
             variant="ghost"
             size="sm"
             disabled={isUploading}
@@ -857,6 +862,7 @@ function ComposeCardActions({
         <DropdownMenu>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <DropdownMenuTrigger
+              aria-label={`Post visibility: ${visibility}`}
               render={
                 <Button
                   variant="ghost"
@@ -908,9 +914,11 @@ function ComposeCardActions({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={onSaveDraft}
+            aria-label="Save draft"
             variant="outline"
             size="sm"
             disabled={isDisabled}
+            focusableWhenDisabled={isPublishing}
             className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg font-semibold"
           >
             {isPublishing ? (
@@ -925,8 +933,10 @@ function ComposeCardActions({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={onPublish}
+            aria-label="Publish update"
             size="sm"
             disabled={isDisabled}
+            focusableWhenDisabled={isPublishing}
             className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm font-semibold"
           >
             {isPublishing ? (

@@ -9,6 +9,7 @@ import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
@@ -209,6 +210,12 @@ function HistoryPageHeader({
       <div className="flex flex-wrap gap-3">
         <div className="relative w-[140px]">
           <Select
+            items={[
+              ...HISTORY_YEAR_OPTIONS.map((year) => ({
+                value: year,
+                label: year,
+              })),
+            ]}
             value={yearFilter}
             onValueChange={(value) => {
               if (value === null) {
@@ -217,7 +224,10 @@ function HistoryPageHeader({
               onYearFilterChange(value);
             }}
           >
-            <SelectTrigger className="pl-10 bg-white border-zinc-200 shadow-sm">
+            <SelectTrigger
+              aria-label="Giving history year"
+              className="pl-10 bg-white border-zinc-200 shadow-sm"
+            >
               <Calendar className="absolute left-3 top-2.5 size-4 text-zinc-500 z-10 pointer-events-none" />
               <SelectValue placeholder="Year" />
             </SelectTrigger>
@@ -369,31 +379,34 @@ function HistoryFiltersToolbar({
             }
           />
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-              Filter by Type
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem
-              checked={typeFilter === "All"}
-              onCheckedChange={() => onTypeFilterChange("All")}
-              className="text-xs font-semibold uppercase tracking-widest"
-            >
-              All Types
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={typeFilter === "Recurring"}
-              onCheckedChange={() => onTypeFilterChange("Recurring")}
-              className="text-xs font-semibold uppercase tracking-widest"
-            >
-              Recurring
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={typeFilter === "One-Time"}
-              onCheckedChange={() => onTypeFilterChange("One-Time")}
-              className="text-xs font-semibold uppercase tracking-widest"
-            >
-              One-Time
-            </DropdownMenuCheckboxItem>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                Filter by Type
+              </DropdownMenuLabel>
+
+              <DropdownMenuSeparator />
+              <DropdownMenuCheckboxItem
+                checked={typeFilter === "All"}
+                onCheckedChange={() => onTypeFilterChange("All")}
+                className="text-xs font-semibold uppercase tracking-widest"
+              >
+                All Types
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={typeFilter === "Recurring"}
+                onCheckedChange={() => onTypeFilterChange("Recurring")}
+                className="text-xs font-semibold uppercase tracking-widest"
+              >
+                Recurring
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={typeFilter === "One-Time"}
+                onCheckedChange={() => onTypeFilterChange("One-Time")}
+                className="text-xs font-semibold uppercase tracking-widest"
+              >
+                One-Time
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -414,38 +427,41 @@ function HistoryFiltersToolbar({
             }
           />
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-              Filter by Status
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem
-              checked={statusFilter === "All"}
-              onCheckedChange={() => onStatusFilterChange("All")}
-              className="text-xs font-semibold uppercase tracking-widest"
-            >
-              All Statuses
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={statusFilter === "Succeeded"}
-              onCheckedChange={() => onStatusFilterChange("Succeeded")}
-              className="text-xs font-semibold uppercase tracking-widest text-emerald-600"
-            >
-              Succeeded
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={statusFilter === "Processing"}
-              onCheckedChange={() => onStatusFilterChange("Processing")}
-              className="text-xs font-semibold uppercase tracking-widest text-blue-600"
-            >
-              Processing
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={statusFilter === "Failed"}
-              onCheckedChange={() => onStatusFilterChange("Failed")}
-              className="text-xs font-semibold uppercase tracking-widest text-rose-600"
-            >
-              Failed
-            </DropdownMenuCheckboxItem>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+                Filter by Status
+              </DropdownMenuLabel>
+
+              <DropdownMenuSeparator />
+              <DropdownMenuCheckboxItem
+                checked={statusFilter === "All"}
+                onCheckedChange={() => onStatusFilterChange("All")}
+                className="text-xs font-semibold uppercase tracking-widest"
+              >
+                All Statuses
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={statusFilter === "Succeeded"}
+                onCheckedChange={() => onStatusFilterChange("Succeeded")}
+                className="text-xs font-semibold uppercase tracking-widest text-emerald-600"
+              >
+                Succeeded
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={statusFilter === "Processing"}
+                onCheckedChange={() => onStatusFilterChange("Processing")}
+                className="text-xs font-semibold uppercase tracking-widest text-blue-600"
+              >
+                Processing
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={statusFilter === "Failed"}
+                onCheckedChange={() => onStatusFilterChange("Failed")}
+                className="text-xs font-semibold uppercase tracking-widest text-rose-600"
+              >
+                Failed
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

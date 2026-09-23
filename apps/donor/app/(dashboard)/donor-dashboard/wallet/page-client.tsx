@@ -21,6 +21,7 @@ import {
   DialogFooter,
 } from "@asym/ui/components/shadcn/dialog";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -752,32 +753,35 @@ function MethodCard({
                 }
               />
               <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
-                <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 px-2 py-1.5">
-                  Manage Method
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="my-1" />
-                {!method.isDefault && (
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 px-2 py-1.5">
+                    Manage Method
+                  </DropdownMenuLabel>
+
+                  <DropdownMenuSeparator className="my-1" />
+                  {!method.isDefault && (
+                    <DropdownMenuItem
+                      onClick={() => onSetDefault(method.id)}
+                      className="rounded-lg cursor-pointer font-semibold uppercase tracking-widest text-[10px]"
+                    >
+                      Set as Default
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
-                    onClick={() => onSetDefault(method.id)}
+                    onClick={() => onEdit(method)}
                     className="rounded-lg cursor-pointer font-semibold uppercase tracking-widest text-[10px]"
                   >
-                    Set as Default
+                    <Edit2 className="mr-2 size-3.5" /> Edit Details
                   </DropdownMenuItem>
-                )}
-                <DropdownMenuItem
-                  onClick={() => onEdit(method)}
-                  className="rounded-lg cursor-pointer font-semibold uppercase tracking-widest text-[10px]"
-                >
-                  <Edit2 className="mr-2 size-3.5" /> Edit Details
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="my-1" />
-                <DropdownMenuItem
-                  onClick={() => onDeleteRequest(method.id)}
-                  className="text-rose-600 focus:text-rose-600 focus:bg-rose-50 rounded-lg cursor-pointer font-semibold uppercase tracking-widest text-[10px] group"
-                >
-                  <Trash2 className="mr-2 size-3.5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 transition-transform" />{" "}
-                  Remove
-                </DropdownMenuItem>
+                  <DropdownMenuSeparator className="my-1" />
+                  <DropdownMenuItem
+                    onClick={() => onDeleteRequest(method.id)}
+                    className="text-rose-600 focus:text-rose-600 focus:bg-rose-50 rounded-lg cursor-pointer font-semibold uppercase tracking-widest text-[10px] group"
+                  >
+                    <Trash2 className="mr-2 size-3.5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 transition-transform" />{" "}
+                    Remove
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

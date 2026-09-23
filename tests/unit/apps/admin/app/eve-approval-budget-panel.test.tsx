@@ -1,6 +1,7 @@
 /** @vitest-environment jsdom */
 
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -86,6 +87,53 @@ afterEach(() => {
 });
 
 describe("Eve approval budget overrides", () => {
+  it("keeps the initiating allowance button focusable while its disabled peer cannot activate", async () => {
+    const firstBudget = view.budgets[0];
+    if (!firstBudget) throw new Error("The test requires one budget");
+    const twoBudgets = {
+      ...view,
+      budgets: [
+        firstBudget,
+        { ...firstBudget, id: "budget-2", scopeId: "other" },
+      ],
+    };
+    let finishMutation:
+      | ((value: ReturnType<typeof response>) => void)
+      | undefined;
+    const pendingResponse = new Promise<ReturnType<typeof response>>(
+      (resolve) => {
+        finishMutation = resolve;
+      },
+    );
+    const fetchMock = vi.fn(
+      async (_input: RequestInfo | URL, init?: RequestInit) =>
+        init?.method === "POST" ? pendingResponse : response(twoBudgets),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderPanel();
+    const [initiator, peer] = await screen.findAllByRole("button", {
+      name: "Add one request for 1 hour",
+    });
+    if (!initiator || !peer)
+      throw new Error("The test requires two allowance buttons");
+    initiator.focus();
+    fireEvent.click(initiator);
+    await waitFor(() =>
+      expect(initiator.getAttribute("aria-disabled")).toBe("true"),
+    );
+    expect(initiator.hasAttribute("disabled")).toBe(false);
+    expect(document.activeElement).toBe(initiator);
+    expect(peer.hasAttribute("disabled")).toBe(true);
+    fireEvent.click(initiator);
+    fireEvent.click(peer);
+    expect(
+      fetchMock.mock.calls.filter(([, init]) => init?.method === "POST"),
+    ).toHaveLength(1);
+    await act(async () => finishMutation?.(response(twoBudgets)));
+    await waitFor(() =>
+      expect(initiator.hasAttribute("aria-disabled")).toBe(false),
+    );
+  });
   it("submits the rendered budget's scope type and ID", async () => {
     const fetchMock = vi.fn(
       async (_input: RequestInfo | URL, _init?: RequestInit) => response(view),

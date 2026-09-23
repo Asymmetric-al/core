@@ -128,6 +128,7 @@ function PledgesHeader({
       <Button
         onClick={onManage}
         disabled={managing}
+        focusableWhenDisabled={managing}
         className="h-12 px-6 rounded-lg font-semibold uppercase tracking-widest text-[10px]"
       >
         {managing ? (
@@ -212,6 +213,7 @@ export default function DonorPledgesPage() {
               </p>
             </div>
             <Button
+              focusableWhenDisabled={billingPortal.isPending}
               variant="outline"
               onClick={openBillingPortal}
               disabled={billingPortal.isPending}

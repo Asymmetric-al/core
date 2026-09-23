@@ -3,6 +3,7 @@
 import { SUPPORT_AUTOMATION_CONDITION_KINDS } from "@asym/database/hooks";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { SearchableSelect } from "@asym/ui/components/shadcn/searchable-select";
 import {
   Select,
   SelectContent,
@@ -40,12 +41,21 @@ export function AutomationConditionRow({
   return (
     <li className="flex flex-wrap items-center gap-2 rounded-lg bg-zinc-50/60 p-2">
       <Select
+        items={[
+          ...SUPPORT_AUTOMATION_CONDITION_KINDS.map((kind) => ({
+            value: kind,
+            label: labelForKind(kind),
+          })),
+        ]}
         value={condition.kind}
         onValueChange={(value) =>
           handleKindChange(value as SupportAutomationCondition["kind"])
         }
       >
-        <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
+        <SelectTrigger
+          aria-label="Condition type"
+          className="h-8 min-w-[200px] text-[12px]"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -58,7 +68,10 @@ export function AutomationConditionRow({
       </Select>
 
       {condition.kind === "inbox_is" ? (
-        <Select
+        <SearchableSelect
+          items={[
+            ...inboxes.map((inbox) => ({ value: inbox.id, label: inbox.name })),
+          ]}
           value={condition.inboxId}
           onValueChange={(value) => {
             if (value === null) {
@@ -66,22 +79,17 @@ export function AutomationConditionRow({
             }
             onChange({ kind: "inbox_is", inboxId: value });
           }}
-        >
-          <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
-            <SelectValue placeholder="Pick an inbox" />
-          </SelectTrigger>
-          <SelectContent>
-            {inboxes.map((inbox) => (
-              <SelectItem key={inbox.id} value={inbox.id}>
-                {inbox.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          aria-label="Condition inbox"
+          className="h-8 min-w-[200px] text-[12px]"
+          placeholder="Pick an inbox"
+        />
       ) : null}
 
       {condition.kind === "label_includes" ? (
-        <Select
+        <SearchableSelect
+          items={[
+            ...labels.map((label) => ({ value: label.id, label: label.name })),
+          ]}
           value={condition.labelId}
           onValueChange={(value) => {
             if (value === null) {
@@ -89,18 +97,10 @@ export function AutomationConditionRow({
             }
             onChange({ kind: "label_includes", labelId: value });
           }}
-        >
-          <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
-            <SelectValue placeholder="Pick a label" />
-          </SelectTrigger>
-          <SelectContent>
-            {labels.map((label) => (
-              <SelectItem key={label.id} value={label.id}>
-                {label.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          aria-label="Condition label"
+          className="h-8 min-w-[200px] text-[12px]"
+          placeholder="Pick a label"
+        />
       ) : null}
 
       {condition.kind === "from_domain_equals" ? (

@@ -6,6 +6,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
 import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -212,18 +213,20 @@ export function TasksFilterSection({
               align="end"
               className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"
             >
-              <DropdownMenuLabel className="px-3 py-2 text-xs font-semibold text-zinc-600">
-                View Settings
-              </DropdownMenuLabel>
-              <DropdownMenuCheckboxItem
-                checked={showCompleted}
-                onCheckedChange={(value) =>
-                  onShowCompletedChange(Boolean(value))
-                }
-                className="rounded-lg px-3 py-2 text-sm font-medium"
-              >
-                Include Completed
-              </DropdownMenuCheckboxItem>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="px-3 py-2 text-xs font-semibold text-zinc-600">
+                  View Settings
+                </DropdownMenuLabel>
+                <DropdownMenuCheckboxItem
+                  checked={showCompleted}
+                  onCheckedChange={(value) =>
+                    onShowCompletedChange(Boolean(value))
+                  }
+                  className="rounded-lg px-3 py-2 text-sm font-medium"
+                >
+                  Include Completed
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -10,7 +10,7 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { RichTextViewer } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
 import { Paperclip, RotateCcw, Save } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { useSupportNow } from "../../../lib/now";
 import { formatRelative } from "../../../lib/time";
@@ -197,6 +197,7 @@ function InboundAttachmentState({
 }: {
   message: SupportMessage & { inboundEmailId: string };
 }) {
+  const retryLabelId = useId();
   const [retryState, setRetryState] = useState<
     "idle" | "requesting" | "requested" | "error"
   >("idle");
@@ -243,13 +244,17 @@ function InboundAttachmentState({
           className="h-5 gap-1 px-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900"
           onClick={requestRetry}
           disabled={retryState === "requesting"}
+          focusableWhenDisabled={retryState === "requesting"}
+          aria-labelledby={retryLabelId}
         >
           <RotateCcw className="size-3" />
-          {retryState === "requesting"
-            ? "Retrying…"
-            : retryState === "error"
-              ? "Retry failed — try again"
-              : "Retry"}
+          <span id={retryLabelId}>
+            {retryState === "requesting"
+              ? "Retrying…"
+              : retryState === "error"
+                ? "Retry failed — try again"
+                : "Retry"}
+          </span>
         </Button>
       ) : null}
     </span>

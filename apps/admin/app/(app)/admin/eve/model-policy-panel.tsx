@@ -210,12 +210,14 @@ function PolicyLifecycleRow({
   activePolicyId,
   canManage,
   isPending,
+  isEvaluating,
   onMutate,
   policy,
 }: {
   activePolicyId?: string;
   canManage: boolean;
   isPending: boolean;
+  isEvaluating: boolean;
   onMutate: (mutation: EveModelPolicyMutation) => void;
   policy: EveModelPolicyRecord;
 }) {
@@ -266,6 +268,7 @@ function PolicyLifecycleRow({
             <Button
               size="sm"
               variant="outline"
+              focusableWhenDisabled={isEvaluating}
               disabled={isPending}
               onClick={() =>
                 onMutate({
@@ -501,6 +504,12 @@ export function EveModelPolicyPanel() {
                   activePolicyId={data.activePolicy?.id}
                   canManage={data.canManage}
                   isPending={mutation.isPending}
+                  isEvaluating={
+                    mutation.isPending &&
+                    mutation.variables?.method === "PATCH" &&
+                    mutation.variables.body.action === "evaluate" &&
+                    mutation.variables.body.policyId === policy.id
+                  }
                   onMutate={(nextMutation) => mutation.mutate(nextMutation)}
                   policy={policy}
                 />
@@ -526,7 +535,13 @@ export function EveModelPolicyPanel() {
               value={draftText}
               onChange={(event) => setDraftText(event.target.value)}
             />
-            <Button disabled={mutation.isPending} onClick={submitDraft}>
+            <Button
+              focusableWhenDisabled={
+                mutation.isPending && mutation.variables?.method === "POST"
+              }
+              disabled={mutation.isPending}
+              onClick={submitDraft}
+            >
               Create immutable draft
             </Button>
           </CardContent>

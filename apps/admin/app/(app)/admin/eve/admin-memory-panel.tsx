@@ -124,11 +124,13 @@ function formatTime(value: string) {
 function EntryEditor({
   entry,
   pending,
+  saving,
   onSave,
   onCancel,
 }: {
   entry: EveAdminMemoryEntry;
   pending: boolean;
+  saving: boolean;
   onSave: (input: {
     category: EveAdminMemoryCategory;
     content: string;
@@ -180,6 +182,7 @@ function EntryEditor({
       <div className="flex gap-2">
         <Button
           size="sm"
+          focusableWhenDisabled={saving}
           disabled={pending || !title.trim() || !content.trim()}
           onClick={() => onSave({ category, title, content })}
         >
@@ -305,6 +308,9 @@ export function EveAdminMemoryPanel() {
             />
           </div>
           <Button
+            focusableWhenDisabled={
+              mutation.isPending && mutation.variables?.method === "POST"
+            }
             disabled={mutation.isPending || !title.trim() || !content.trim()}
             onClick={() =>
               mutation.mutate({
@@ -346,6 +352,12 @@ export function EveAdminMemoryPanel() {
               <Button
                 size="sm"
                 variant={setting.autoSaveEnabled ? "outline" : "secondary"}
+                focusableWhenDisabled={
+                  mutation.isPending &&
+                  mutation.variables?.method === "PATCH" &&
+                  mutation.variables.body.action === "set_auto_save" &&
+                  mutation.variables.body.category === setting.category
+                }
                 disabled={mutation.isPending}
                 onClick={() =>
                   mutation.mutate({
@@ -422,6 +434,12 @@ export function EveAdminMemoryPanel() {
                   <EntryEditor
                     entry={entry}
                     pending={mutation.isPending}
+                    saving={
+                      mutation.isPending &&
+                      mutation.variables?.method === "PATCH" &&
+                      mutation.variables.body.action === "edit" &&
+                      mutation.variables.body.entryId === entry.id
+                    }
                     onCancel={() => setEditingIntent(undefined)}
                     onSave={(values) =>
                       mutation.mutate({

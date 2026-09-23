@@ -3,6 +3,7 @@
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
+  DropdownMenuGroup,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -15,6 +16,7 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SheetTitle,
 } from "@asym/ui/components/shadcn/sheet";
 import { cn } from "@asym/ui/lib/utils";
 import {
@@ -149,6 +151,7 @@ export function AppShell({
           <div className="flex items-center gap-4">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger
+                aria-label="Open navigation"
                 render={
                   <Button
                     variant="ghost"
@@ -163,6 +166,7 @@ export function AppShell({
                 side="left"
                 className="w-72 p-0 border-r border-zinc-200"
               >
+                <SheetTitle className="sr-only">Navigation</SheetTitle>
                 <div className="flex h-16 items-center px-6 border-b border-zinc-100">
                   {/* <Logo className="scale-90 origin-left" /> */}
                   <span className="text-xl font-bold">Asym</span>
@@ -257,25 +261,28 @@ export function AppShell({
                 align="end"
                 className="w-56 rounded-2xl border-zinc-200 p-2 shadow-xl"
               >
-                <DropdownMenuLabel className="px-3 py-2">
-                  <p className="text-xs font-bold text-zinc-900 uppercase tracking-widest">
-                    Admin Account
-                  </p>
-                  <p className="text-[10px] text-zinc-400 font-medium">
-                    admin@asymmetric.al
-                  </p>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-zinc-100" />
-                <DropdownMenuItem className="rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-zinc-600 focus:bg-zinc-50 focus:text-zinc-900">
-                  <User className="mr-3 size-4" /> Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem className="rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-zinc-600 focus:bg-zinc-50 focus:text-zinc-900">
-                  <Settings className="mr-3 size-4" /> Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-zinc-100" />
-                <DropdownMenuItem className="rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-rose-600 focus:bg-rose-50 focus:text-rose-700">
-                  <LogOut className="mr-3 size-4" /> Sign Out
-                </DropdownMenuItem>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="px-3 py-2">
+                    <p className="text-xs font-bold text-zinc-900 uppercase tracking-widest">
+                      Admin Account
+                    </p>
+                    <p className="text-[10px] text-zinc-400 font-medium">
+                      admin@asymmetric.al
+                    </p>
+                  </DropdownMenuLabel>
+
+                  <DropdownMenuSeparator className="bg-zinc-100" />
+                  <DropdownMenuItem className="rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-zinc-600 focus:bg-zinc-50 focus:text-zinc-900">
+                    <User className="mr-3 size-4" /> Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-zinc-600 focus:bg-zinc-50 focus:text-zinc-900">
+                    <Settings className="mr-3 size-4" /> Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-zinc-100" />
+                  <DropdownMenuItem className="rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-widest text-rose-600 focus:bg-rose-50 focus:text-rose-700">
+                    <LogOut className="mr-3 size-4" /> Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

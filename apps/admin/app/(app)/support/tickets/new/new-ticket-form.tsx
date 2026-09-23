@@ -6,7 +6,7 @@ import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { supportHubRoutes } from "../../support-hub.routes";
 
@@ -27,6 +27,8 @@ interface NewTicketFormProps {
 const priorities: SupportTicketPriority[] = ["low", "normal", "high", "urgent"];
 
 export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
+  const pendingActionLabelId = useId();
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -175,8 +177,15 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Creating..." : "Create ticket"}
+        <Button
+          aria-labelledby={`${pendingActionLabelId}-10`}
+          focusableWhenDisabled={isSubmitting}
+          disabled={isSubmitting}
+          type="submit"
+        >
+          <span id={`${pendingActionLabelId}-10`}>
+            {isSubmitting ? "Creating..." : "Create ticket"}
+          </span>
         </Button>
         <Link
           href={supportHubRoutes.tickets}

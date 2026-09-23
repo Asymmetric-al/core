@@ -14,6 +14,7 @@ import { Button } from "../button";
 import {
   Select,
   SelectContent,
+  SelectControlLabel,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -105,14 +106,22 @@ function DataTablePaginationImpl<TData extends RowData>({
       </div>
       <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 lg:gap-8">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium whitespace-nowrap">Rows per page</p>
           <Select
+            items={[
+              ...pageSizes.map((pageSize) => ({
+                value: `${pageSize}`,
+                label: pageSize,
+              })),
+            ]}
             value={`${pagination.pageSize}`}
             onValueChange={(value) => {
               table.setPageSize(Number(value));
             }}
             disabled={urlStatePending}
           >
+            <SelectControlLabel className="text-sm font-medium whitespace-nowrap">
+              Rows per page
+            </SelectControlLabel>
             <SelectTrigger className="h-9 w-[72px] rounded-xl">
               <SelectValue placeholder={pagination.pageSize} />
             </SelectTrigger>
@@ -139,6 +148,7 @@ function DataTablePaginationImpl<TData extends RowData>({
             className="hidden size-9 p-0 lg:flex rounded-xl"
             onClick={() => table.setPageIndex(0)}
             disabled={urlStatePending || !table.getCanPreviousPage()}
+            focusableWhenDisabled={urlStatePending}
           >
             <ChevronsLeft className="size-4" aria-hidden="true" />
           </Button>
@@ -148,6 +158,7 @@ function DataTablePaginationImpl<TData extends RowData>({
             className="size-9 p-0 rounded-xl"
             onClick={() => table.previousPage()}
             disabled={urlStatePending || !table.getCanPreviousPage()}
+            focusableWhenDisabled={urlStatePending}
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
           </Button>
@@ -157,6 +168,7 @@ function DataTablePaginationImpl<TData extends RowData>({
             className="size-9 p-0 rounded-xl"
             onClick={() => table.nextPage()}
             disabled={urlStatePending || !table.getCanNextPage()}
+            focusableWhenDisabled={urlStatePending}
           >
             <ChevronRight className="size-4" aria-hidden="true" />
           </Button>
@@ -166,6 +178,7 @@ function DataTablePaginationImpl<TData extends RowData>({
             className="hidden size-9 p-0 lg:flex rounded-xl"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={urlStatePending || !table.getCanNextPage()}
+            focusableWhenDisabled={urlStatePending}
           >
             <ChevronsRight className="size-4" aria-hidden="true" />
           </Button>

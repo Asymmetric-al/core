@@ -9,6 +9,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectControlLabel,
 } from "@asym/ui/components/shadcn/select";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { RotateCcw } from "lucide-react";
@@ -79,15 +80,20 @@ export function ReportFilters({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
-            Group by
-          </Label>
           <Select
+            items={[
+              { value: "day", label: "Day" },
+              { value: "week", label: "Week" },
+              { value: "month", label: "Month" },
+            ]}
             value={state.groupBy}
             onValueChange={(value) =>
               setState({ groupBy: value as typeof state.groupBy })
             }
           >
+            <SelectControlLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+              Group by
+            </SelectControlLabel>
             <SelectTrigger className="h-9 w-[140px] text-[12px]">
               <SelectValue />
             </SelectTrigger>

@@ -290,6 +290,7 @@ export function MobilizePipelineTable({
               <span>{row.original.readiness}% ready</span>
             </div>
             <Progress
+              aria-label="Training completion"
               value={row.original.readiness}
               className="h-1.5 rounded-full"
             />
@@ -611,7 +612,11 @@ export function MobilizeCandidateDetailSheet({
                         Training Completion
                       </span>
                     </div>
-                    <Progress value={candidate.readiness} className="h-3" />
+                    <Progress
+                      aria-label="Training completion"
+                      value={candidate.readiness}
+                      className="h-3"
+                    />
                     <p className="text-xs text-zinc-500 mt-4">
                       Based on completed modules, vetting interviews, and
                       document submission.
