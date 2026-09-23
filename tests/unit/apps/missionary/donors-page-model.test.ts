@@ -1,14 +1,21 @@
 import { describe, expect, it } from "vitest";
 
+import { ANONYMOUS_DONOR_LABEL } from "../../../../packages/api/src/missionary-portal/redaction";
+
 import {
   applyDonorsStatFilter,
   createDefaultDonorsFilters,
   createDonorsPageSummary,
+  createTagEditorDraft,
   formatDonorAddress,
+  getDonorCallHref,
+  getDonorEmailHref,
   getGivingHistoryRows,
   hasDonorsActiveFilters,
   removeTagSelection,
+  toPartnerSafeDonor,
   toggleTagSelection,
+  ANONYMOUS_DONOR_LABEL as PARTNER_ANONYMOUS_DONOR_LABEL,
 } from "../../../../apps/missionary/app/donors/donors-page-model";
 
 import type {
@@ -169,6 +176,13 @@ describe("donors page model helpers", () => {
       pledgeFilter: "All",
       selectedDonorId: null,
     });
+    expect(applyDonorsStatFilter("needsAttention")).toEqual({
+      searchTerm: "",
+      statusFilter: "Needs Attention",
+      tagFilter: [],
+      pledgeFilter: "All",
+      selectedDonorId: null,
+    });
   });
 
   it("formats addresses while preserving existing country suppression", () => {
@@ -224,5 +238,121 @@ describe("donors page model helpers", () => {
     expect(removed).toEqual(["monthly-partner"]);
     expect(removeTagSelection(added, "monthly-partner")).toEqual(["family"]);
     expect(currentTags).toEqual(["family"]);
+  });
+
+  it("copies committed tags into a tag editor draft so aborted toggles cannot alias stored tags", () => {
+    const committed = ["family"];
+    const draft = createTagEditorDraft(committed);
+
+    expect(draft).toEqual(["family"]);
+    expect(draft).not.toBe(committed);
+
+    const toggled = toggleTagSelection(draft, "monthly-partner");
+    expect(toggled).toEqual(["family", "monthly-partner"]);
+    expect(committed).toEqual(["family"]);
+    expect(createTagEditorDraft(committed)).toEqual(["family"]);
+    expect(createTagEditorDraft(undefined)).toEqual([]);
+  });
+
+  it("keeps the Partners anonymous label aligned with the server redaction SSOT", () => {
+    expect(PARTNER_ANONYMOUS_DONOR_LABEL).toBe(ANONYMOUS_DONOR_LABEL);
+  });
+
+  it("strips leaked identity from an anonymous partner row while preserving support stats", () => {
+    const poisoned = createDonor({
+      name: "Jane Secret",
+      initials: "JS",
+      email: "jane@secret.test",
+      phone: "555-0199",
+      mobile: "555-0111",
+      work_phone: "555-0222",
+      avatar_url: "https://cdn.example/jane.jpg",
+      location: "Denver, CO",
+      address: { street: "123 Hidden St", city: "Denver" },
+      work_address: { street: "9 Office Rd" },
+      website: "https://janesecret.test",
+      organization: "Secret Org",
+      title: "Director",
+      notes: "Do not share",
+      tags: ["vip"],
+      spouse: "Hidden Spouse",
+      is_anonymous: true,
+      total_given: 500,
+      status: "Active",
+      has_active_pledge: true,
+    });
+
+    const safe = toPartnerSafeDonor(poisoned);
+
+    expect(safe.name).toBe(ANONYMOUS_DONOR_LABEL);
+    expect(safe.initials).toBe("AD");
+    expect(safe.email).toBe("");
+    expect(safe.phone).toBe("");
+    expect(safe.mobile).toBeUndefined();
+    expect(safe.work_phone).toBeUndefined();
+    expect(safe.avatar_url).toBeUndefined();
+    expect(safe.location).toBe("");
+    expect(safe.address).toEqual({});
+    expect(safe.work_address).toBeUndefined();
+    expect(safe.website).toBeUndefined();
+    expect(safe.organization).toBeUndefined();
+    expect(safe.title).toBeUndefined();
+    expect(safe.notes).toBeUndefined();
+    expect(safe.spouse).toBeUndefined();
+    expect(safe.tags).toEqual([]);
+    expect(safe.activities).toEqual([]);
+    expect(safe.total_given).toBe(500);
+    expect(safe.status).toBe("Active");
+    expect(safe.has_active_pledge).toBe(true);
+    expect(safe.is_anonymous).toBe(true);
+    expect(getDonorCallHref(poisoned)).toBeNull();
+    expect(getDonorCallHref(safe)).toBeNull();
+    expect(getDonorEmailHref(poisoned.email, poisoned.is_anonymous)).toBeNull();
+    expect(getDonorEmailHref(safe.email, safe.is_anonymous)).toBeNull();
+  });
+
+  it("leaves named partners unchanged", () => {
+    const named = createDonor({
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      phone: "555-0100",
+    });
+
+    expect(toPartnerSafeDonor(named)).toEqual(named);
+    expect(getDonorCallHref(named)).toBe("tel:555-0100");
+    expect(getDonorEmailHref(named.email, named.is_anonymous)).toBe(
+      "mailto:ada@example.com",
+    );
+  });
+
+  it("builds tel and mailto hrefs only when a phone or email is present", () => {
+    expect(
+      getDonorCallHref(
+        createDonor({
+          phone: "555-0100",
+          mobile: "555-0199",
+        }),
+      ),
+    ).toBe("tel:555-0100");
+    expect(
+      getDonorCallHref(
+        createDonor({
+          phone: "",
+          mobile: "555-0199",
+        }),
+      ),
+    ).toBe("tel:555-0199");
+    expect(
+      getDonorCallHref(
+        createDonor({
+          phone: "  ",
+          mobile: undefined,
+        }),
+      ),
+    ).toBeNull();
+    expect(getDonorEmailHref("ada@example.com")).toBe("mailto:ada@example.com");
+    expect(getDonorEmailHref("")).toBeNull();
+    expect(getDonorEmailHref("   ")).toBeNull();
+    expect(getDonorEmailHref(undefined)).toBeNull();
   });
 });

@@ -85,4 +85,6 @@ export interface Donor {
   activities: Activity[];
   recurring_donations: RecurringDonation[];
   has_active_pledge: boolean;
+  /** True when the row is redacted because the donor is anonymous to this missionary. */
+  is_anonymous?: boolean;
 }
