@@ -190,7 +190,7 @@ export function ResendConnectedView({
 
   return (
     <div className="space-y-6">
-      <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50/50 to-white">
+      <Card className="border-emerald-200 bg-transparent bg-gradient-to-br from-emerald-50/50 to-white">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div>

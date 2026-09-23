@@ -187,7 +187,7 @@ function FollowerRequestItem({
         <motion.div whileHover={{ scale: 1.02 }} transition={springTransition}>
           <Avatar className="size-9 shrink-0 border border-border/50 shadow-sm">
             <AvatarImage src={request.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-semibold">
+            <AvatarFallback className="bg-transparent bg-gradient-to-br from-muted to-muted/50 text-muted-foreground text-[10px] font-semibold">
               {request.initials}
             </AvatarFallback>
           </Avatar>
