@@ -248,7 +248,12 @@ describe("emilkowalski skill pack", () => {
     expect(animate).toContain("Do not invoke `pick-ui-library`");
     expect(animate).toContain("## Initial Response");
     expect(prototype).toContain("apps/*/app/prototypes/");
+    expect(prototype).toContain("outside app routes");
+    expect(prototype).not.toContain("`/prototypes/<slug>`");
     expect(prototype).toContain("## Initial Response");
+    expect(refreshScript).toContain(
+      "an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent)",
+    );
     expect(refreshScript).toContain('relativePath: "component-design.md"');
     expect(refreshScript).toContain(
       "4. **asChild** - Render as different element (Radix pattern)",

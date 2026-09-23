@@ -41,10 +41,11 @@ Cursor and Claude Code skill directories remain exact generated mirrors.
 
 ### Keep installation and canonical refresh separate
 
-`npx --yes skills@latest add emilkowalski/skills -y` refreshes the Skills CLI
-source and lock metadata. A focused repo refresh command promotes the installed
-trees while preserving marked Core overlays and provenance, followed by
-`skills:sync` and `skills:verify`.
+Do not run `npx --yes skills@latest add emilkowalski/skills -y`. That
+installer can overwrite Matt Pocock `prototype` and Core's
+`find-animation-opportunities` adapter. Promote the vendored trees with
+`bun run skills:refresh-emilkowalski`, which preserves marked Core overlays
+and provenance, then `bun run skills:sync` and `bun run skills:verify`.
 
 ## Verification
 

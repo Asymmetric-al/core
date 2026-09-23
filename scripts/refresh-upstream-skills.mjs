@@ -769,6 +769,14 @@ const POST_REFRESH_REPLACEMENTS = [
     required: true,
   },
   {
+    skillName: "emil-prototype",
+    relativePath: "SKILL.md",
+    search:
+      "an isolated route or page (`/prototypes/<slug>`, or the framework's equivalent)",
+    replace: "an isolated prototype surface outside app routes",
+    required: true,
+  },
+  {
     skillName: "pick-ui-library",
     relativePath: "SKILL.md",
     search: [
@@ -2168,16 +2176,18 @@ async function swapPreparedRefresh(preparedRefresh) {
   try {
     await moveDirectory(staging, to);
   } catch (error) {
-    if (hasBackup) {
-      try {
-        await rm(to, { recursive: true, force: true });
+    try {
+      await rm(to, { recursive: true, force: true });
+      if (hasBackup) {
         await moveDirectory(backup, to);
-      } catch (restoreError) {
-        throw new AggregateError(
-          [error, restoreError],
-          `Failed to restore ${to} from backup ${backup} after refresh swap error`,
-        );
       }
+    } catch (restoreError) {
+      throw new AggregateError(
+        [error, restoreError],
+        hasBackup
+          ? `Failed to restore ${to} from backup ${backup} after refresh swap error`
+          : `Failed to remove partial refresh destination ${to} after refresh swap error`,
+      );
     }
     throw error;
   }
