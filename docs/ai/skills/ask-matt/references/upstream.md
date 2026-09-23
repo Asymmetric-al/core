@@ -25,8 +25,9 @@ Canonical copy in this repo: `docs/ai/skills/ask-matt/` (mirrored to `.agents/sk
    is generated mirror output again.
 3. The refresh restores the marked `<!-- CORE-OVERLAY-START -->` grill-depth
    step so `/grill-for-unknowns` remains on the main flow, then remaps the
-   writing-for-agents successor bullet to kept `/writing-great-skills`. Core
-   does not vendor that successor.
+   writing-for-agents successor bullet to kept `/writing-great-skills`, and
+   rewrites upstream standalone entries that Core does not vendor into direct
+   in-place guidance instead of missing slash-command routes.
 4. Preserve or regenerate this `references/upstream.md` file with the current
    lock hash.
 5. Run `bun run skills:sync` and `bun run skills:verify`.

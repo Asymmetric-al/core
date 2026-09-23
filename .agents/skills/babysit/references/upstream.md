@@ -22,7 +22,10 @@ Canonical copy in this repo: `docs/ai/skills/babysit/` (mirrored to `.cursor/ski
 
 1. Run `bun run skills:refresh-upstream`.
 2. The script clones `https://github.com/a5c-ai/babysitter-cursor.git` at `main`, verifies the upstream skill directory exists, copies the full skill directory into `docs/ai/skills/babysit/`, and updates this metadata.
-3. Run `bun run skills:sync` and `bun run skills:verify` to refresh runtime mirrors.
+3. The refresh keeps Core's pinned SDK lookup and rewrites the Cursor harness
+   instructions to use the non-interactive, in-turn `run:iterate` loop required
+   by the Core overlay.
+4. Run `bun run skills:sync` and `bun run skills:verify` to refresh runtime mirrors.
 
 ## Notes for maintainers
 

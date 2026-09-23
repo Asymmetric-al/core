@@ -343,12 +343,44 @@ try {
 CLI="npm exec --yes --package @a5c-ai/babysitter-sdk@$SDK_VERSION -- babysitter"
 \`\`\``;
 
+const BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK = `Run the following command to get full instructions:
+
+\`\`\`bash
+$CLI instructions:babysit-skill --harness cursor --interactive
+\`\`\`
+
+For non-interactive mode (running with \`-p\` flag or no AskUserQuestion tool):
+
+\`\`\`bash
+$CLI instructions:babysit-skill --harness cursor --no-interactive
+\`\`\`
+
+Follow the instructions returned by the command above to orchestrate the run.`;
+
+const BABYSIT_CORE_INSTRUCTIONS_BLOCK = `Run the non-interactive Cursor harness instructions so they can be reconciled
+with the Core overlay's in-turn loop:
+
+\`\`\`bash
+$CLI instructions:babysit-skill --harness cursor --no-interactive
+\`\`\`
+
+Follow the returned instructions only where they do not conflict with this
+file's Core overlay. In Cursor, keep driving \`$CLI run:iterate\` in this same
+turn; do not switch to interactive mode or rely on a Stop hook.`;
+
 const POST_REFRESH_REPLACEMENTS = [
   {
     skillName: "babysit",
     relativePath: "SKILL.md",
     search: BABYSIT_UPSTREAM_DEPENDENCY_BLOCK,
     replace: BABYSIT_CORE_DEPENDENCY_BLOCK,
+    required: true,
+  },
+  {
+    skillName: "babysit",
+    relativePath: "SKILL.md",
+    search: BABYSIT_UPSTREAM_INSTRUCTIONS_BLOCK,
+    replace: BABYSIT_CORE_INSTRUCTIONS_BLOCK,
     required: true,
   },
   {
@@ -425,6 +457,24 @@ const POST_REFRESH_REPLACEMENTS = [
       "- **`/writing-for-agents`** is the reference for writing documents agents consume: skills, AGENTS.md, pointed-at docs.",
     replace:
       "- **`/writing-great-skills`** is the kept snapshot for writing documents agents consume: skills, AGENTS.md, pointed-at docs. Upstream renamed this to writing-for-agents; Core does not vendor that successor.",
+    required: true,
+  },
+  {
+    skillName: "ask-matt",
+    relativePath: "SKILL.md",
+    search:
+      "- **`/to-questionnaire`** comes in when the thing blocking you isn't in your head or the codebase but in **someone else's**, and it writes them a questionnaire to fill in. It's the inverse of `/grill-me`: instead of interviewing you about the subject, it interviews you about the **send** (who it's going to, what you need back) and aims the questions at the gap. What comes back is material for `/grill-with-docs` or `/to-spec`.",
+    replace:
+      "- **Questionnaire drafting** comes in when the thing blocking you isn't in your head or the codebase but in **someone else's**. Draft the questionnaire directly, aiming the questions at the gap; what comes back is material for `/grill-with-docs` or `/to-spec`.",
+    required: true,
+  },
+  {
+    skillName: "ask-matt",
+    relativePath: "SKILL.md",
+    search:
+      "- **`/wait-what`** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill, and the agent re-pitches what it just said with the context you were missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.",
+    replace:
+      "- **Plain-English re-explanation** is the corrective for a message that didn't land. Use it mid-conversation, inside any other skill: re-pitch what you just said with the context the user was missing, in plain English, using the `CONTEXT.md` vocabulary. It works after the fact; `/grill-with-docs` is the upfront cure, because a shared language agreed early is what stops the jargon arriving at all.",
     required: true,
   },
   {
@@ -1802,7 +1852,9 @@ function assertAskMattOverlayOnMainFlow(skillContent) {
     overlayEnd < stepTwoIndex &&
     skillContent.includes("/grill-for-unknowns") &&
     skillContent.includes("/writing-great-skills") &&
-    !skillContent.includes("/writing-for-agents")
+    !skillContent.includes("/writing-for-agents") &&
+    !skillContent.includes("/to-questionnaire") &&
+    !skillContent.includes("/wait-what")
   );
 }
 

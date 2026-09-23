@@ -96,16 +96,13 @@ Make sure `jq` is installed and available in the path. If not, install it.
 
 ## Instructions
 
-Run the following command to get full instructions:
-
-```bash
-$CLI instructions:babysit-skill --harness cursor --interactive
-```
-
-For non-interactive mode (running with `-p` flag or no AskUserQuestion tool):
+Run the non-interactive Cursor harness instructions so they can be reconciled
+with the Core overlay's in-turn loop:
 
 ```bash
 $CLI instructions:babysit-skill --harness cursor --no-interactive
 ```
 
-Follow the instructions returned by the command above to orchestrate the run.
+Follow the returned instructions only where they do not conflict with this
+file's Core overlay. In Cursor, keep driving `$CLI run:iterate` in this same
+turn; do not switch to interactive mode or rely on a Stop hook.
