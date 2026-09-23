@@ -77,9 +77,11 @@ GitHub's live branch rules determine required contexts. See
 `docs/ci.md#branch-protection` for the dated inventory; workflow job existence
 alone does not prove that GitHub requires a context. The deployment-discipline
 verifier enforces repository-declared policy, not live platform configuration.
-Disable force pushes and deletion on `develop` and `production`; attribution is
-an additional step in `format`, which gates `ci-gate`; it is not branch
-authorization.
+Disable force pushes and deletion on `develop` and `production`. The `format`
+job checks formatting, while `integrity` checks skill and spec contracts; both
+gate `ci-gate`. The required production `release-source-gate` runs from the
+trusted default branch with read-only GitHub access and proves the PR head is
+already reachable from `develop`.
 
 ## Production E2E scope
 
